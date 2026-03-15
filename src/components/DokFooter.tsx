@@ -5,8 +5,8 @@ export default function DokFooter() {
     <footer style={{ borderTop: "1px solid #e8e8e4", background: "#fff", fontFamily: "Montserrat, sans-serif" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 24px", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 24 }}>
         <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "baseline", gap: 4 }}>
-          <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: 18, fontWeight: 700, color: "#1a1a1a" }}>Dok</span>
-          <span style={{ fontFamily: "Cormorant, serif", fontSize: 20, fontWeight: 700, fontStyle: "italic", color: ACCENT }}>Диалог</span>
+          <span style={{ fontFamily: "Cormorant, serif", fontSize: 24, fontWeight: 700, color: "#1a1a1a" }}>Dok</span>
+          <span style={{ fontFamily: "Cormorant, serif", fontSize: 24, fontWeight: 700, color: ACCENT }}> Диалог</span>
         </a>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 32, justifyContent: "center" }}>
