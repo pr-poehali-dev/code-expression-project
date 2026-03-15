@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import DokFooter from "@/components/DokFooter";
 import DokNavbar from "@/components/DokNavbar";
+import Icon from "@/components/ui/icon";
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -237,9 +238,9 @@ export default function DokDialog() {
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <div className="dd-features-grid">
             {[
-              { icon: "📚", title: "Онлайн-обучение", text: "Структурированные курсы от практикующих экспертов в удобном формате — смотри в любое время" },
-              { icon: "👥", title: "Сообщество", text: "Закрытый клуб специалистов МассоПро: обмен опытом, разборы случаев, поддержка коллег" },
-              { icon: "🗂️", title: "База знаний", text: "Методические материалы, протоколы, техники и рекомендации всегда под рукой" },
+              { icon: "GraduationCap", title: "Онлайн-обучение", text: "Структурированные курсы от практикующих экспертов в удобном формате — смотри в любое время" },
+              { icon: "Users", title: "Сообщество", text: "Закрытый клуб специалистов МассоПро: обмен опытом, разборы случаев, поддержка коллег" },
+              { icon: "BookOpen", title: "База знаний", text: "Методические материалы, протоколы, техники и рекомендации всегда под рукой" },
             ].map((item, i) => (
               <FadeIn key={i} delay={i * 100}>
                 <div className="dd-feature-card"
@@ -247,7 +248,9 @@ export default function DokDialog() {
                   onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(-4px)"; el.style.boxShadow = "0 8px 40px rgba(0,0,0,0.1)"; }}
                   onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 2px 24px rgba(0,0,0,0.06)"; }}
                 >
-                  <div style={{ fontSize: 32, marginBottom: 14 }}>{item.icon}</div>
+                  <div style={{ width: 52, height: 52, borderRadius: 14, background: `${ACCENT}14`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
+                    <Icon name={item.icon} size={26} style={{ color: ACCENT }} />
+                  </div>
                   <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px, 2.5vw, 26px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 10 }}>{item.title}</div>
                   <div style={{ fontSize: 14, lineHeight: 1.65, color: "#6a6a6a" }}>{item.text}</div>
                 </div>
