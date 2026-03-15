@@ -40,10 +40,35 @@ const ACCENT_DARK = "hsl(185, 85%, 26%)";
 const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.3)";
 const ACCENT_SHADOW_HOVER = "hsla(185, 85%, 32%, 0.45)";
 
+const ICONS: Record<string, React.ReactNode> = {
+  phone: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 12.07 19.79 19.79 0 0 1 1.49 3.4 2 2 0 0 1 3.47 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.66a16 16 0 0 0 6 6l.56-.56a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.21 16.92z" />
+    </svg>
+  ),
+  email: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </svg>
+  ),
+  telegram: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21.198 2.433a2.242 2.242 0 0 0-1.022.215l-16.5 7.5a2.25 2.25 0 0 0 .126 4.073l3.9 1.205 2.306 6.54a.75.75 0 0 0 1.302.21l2.13-2.743 4.14 3.102a2.25 2.25 0 0 0 3.494-1.467l2.25-16.5a2.25 2.25 0 0 0-2.126-2.135z" />
+    </svg>
+  ),
+  web: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+  ),
+};
+
 function ContactCard({
-  icon, title, value, sub, href, delay,
+  iconKey, title, value, sub, href, delay,
 }: {
-  icon: string; title: string; value: string; sub?: string; href?: string; delay?: number;
+  iconKey: string; title: string; value: string; sub?: string; href?: string; delay?: number;
 }) {
   return (
     <FadeIn delay={delay ?? 0}>
@@ -72,7 +97,7 @@ function ContactCard({
             el.style.boxShadow = "0 4px 24px rgba(0,0,0,0.07)";
           }}
         >
-          <div style={{ fontSize: 30, marginBottom: 12 }}>{icon}</div>
+          <div style={{ color: ACCENT, marginBottom: 16, lineHeight: 0 }}>{ICONS[iconKey]}</div>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "#aaa", marginBottom: 8 }}>
             {title}
           </div>
@@ -237,10 +262,10 @@ export default function Kontakty() {
       <section style={{ paddingBottom: 80 }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <div className="k-cards-grid">
-            <ContactCard icon="📞" title="Телефон" value="+7 (902) 900-74-74" sub="Пн–Пт, 9:00–18:00" href="tel:+79029007474" delay={0} />
-            <ContactCard icon="✉️" title="Электронная почта" value="massopro@mail.ru" sub="Ответим в течение 24 часов" href="mailto:massopro@mail.ru" delay={100} />
-            <ContactCard icon="✈️" title="Telegram" value="@SergeuVodopianov" sub="Быстрый ответ" href="https://t.me/SergeuVodopianov" delay={200} />
-            <ContactCard icon="🌐" title="Основной сайт" value="massopro.ru" sub="Вся информация о системе МассоПро" href="https://massopro.ru" delay={300} />
+            <ContactCard iconKey="phone" title="Телефон" value="+7 (902) 900-74-74" sub="Пн–Пт, 9:00–18:00" href="tel:+79029007474" delay={0} />
+            <ContactCard iconKey="email" title="Электронная почта" value="massopro@mail.ru" sub="Ответим в течение 24 часов" href="mailto:massopro@mail.ru" delay={100} />
+            <ContactCard iconKey="telegram" title="Telegram" value="@SergeuVodopianov" sub="Быстрый ответ" href="https://t.me/SergeuVodopianov" delay={200} />
+            <ContactCard iconKey="web" title="Основной сайт" value="massopro.ru" sub="Вся информация о системе МассоПро" href="https://massopro.ru" delay={300} />
           </div>
         </div>
       </section>
