@@ -21,11 +21,14 @@ export default function DokFooter() {
           </div>
           <div>
             <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "#aaa" }}>Правовые</p>
-            {["Политика конфиденциальности", "Оферта"].map(l => (
-              <a key={l} href="#" style={{ display: "block", fontSize: 13, color: "#666", textDecoration: "none", marginBottom: 6, transition: "color 0.2s" }}
+            {[
+              { label: "Политика конфиденциальности", href: "/privacy" },
+              { label: "Оферта", href: "/offer" },
+            ].map(l => (
+              <a key={l.label} href={l.href} style={{ display: "block", fontSize: 13, color: "#666", textDecoration: "none", marginBottom: 6, transition: "color 0.2s" }}
                 onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = ACCENT}
                 onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "#666"}
-              >{l}</a>
+              >{l.label}</a>
             ))}
           </div>
         </div>
