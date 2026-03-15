@@ -142,7 +142,7 @@ export default function Privacy() {
             <div style={{ background: "#fff", borderRadius: 16, padding: "20px 24px", boxShadow: "0 2px 16px rgba(0,0,0,0.05)", fontSize: 13, color: "#666", lineHeight: 1.8 }}>
               <div><strong style={{ color: "#3a3a3a" }}>УТВЕРЖДЕНА</strong></div>
               <div>Приказ ИП Водопьянов С.Г. № 2 от 24.03.2008 г.</div>
-              <div>Размещена на сайте: massopro.ru/privacy</div>
+              <div>Размещена на сайте: docdialog.ru/privacy</div>
               <div>Дата размещения: 27.03.2008 г.</div>
             </div>
           </FadeIn>
