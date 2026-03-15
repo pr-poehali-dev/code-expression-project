@@ -304,6 +304,32 @@ export default function Tarify() {
         </div>
       </section>
 
+      {/* Process Notice */}
+      <section style={{ paddingBottom: 48, paddingTop: 0 }}>
+        <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{
+            background: "linear-gradient(135deg, #f8f4ef 0%, #fdf6ee 100%)",
+            border: `1.5px solid ${ACCENT}30`,
+            borderLeft: `4px solid ${ACCENT}`,
+            borderRadius: 16,
+            padding: "28px 32px",
+            display: "flex",
+            gap: 20,
+            alignItems: "flex-start",
+          }}>
+            <div style={{ fontSize: 28, lineHeight: 1, flexShrink: 0, marginTop: 2 }}>📋</div>
+            <div>
+              <div style={{ fontFamily: "Cormorant, serif", fontSize: 20, fontWeight: 700, color: "#1a1a1a", marginBottom: 10 }}>
+                Как проходит работа после оплаты
+              </div>
+              <p style={{ fontSize: 15, lineHeight: 1.75, color: "#4a4a4a", margin: 0 }}>
+                После заключения договора и оплаты тарифа мы начинаем с <strong>бесплатной оценки</strong> ваших специалистов-массажистов. И только после того, как команда полностью укомплектована и готова, — приступаем к обучению персонала.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Plans */}
       <section style={{ paddingBottom: 80 }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
