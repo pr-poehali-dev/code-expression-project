@@ -7,7 +7,7 @@ const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.3)";
 const NAV_LINKS = [
   { label: "Платформа", href: "#platform", active: true },
   { label: "Тарифы", href: "/tarify" },
-  { label: "Партнёрская программа", href: "#partners" },
+  { label: "Партнёрская программа", href: "/partnery" },
   { label: "Блог", href: "#blog" },
   { label: "Контакты", href: "#contacts" },
 ];
