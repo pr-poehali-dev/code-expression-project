@@ -45,7 +45,7 @@ export default function DokNavbar() {
           ))}
         </nav>
 
-        <a href="#contact"
+        <a href="https://school.brossok.ru/login" target="_blank" rel="noopener noreferrer"
           style={{ background: ACCENT, color: "#fff", padding: "9px 22px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "all 0.25s ease", boxShadow: `0 4px 16px ${ACCENT_SHADOW}`, fontFamily: "Montserrat, sans-serif" }}
           onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT_DARK; el.style.transform = "translateY(-1px)"; }}
           onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT; el.style.transform = "translateY(0)"; }}
