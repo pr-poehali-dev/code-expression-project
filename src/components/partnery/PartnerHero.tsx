@@ -80,7 +80,9 @@ export default function PartnerHero() {
               Стать партнёром
             </a>
             <a
-              href="#cabinet"
+              href="https://school.brossok.ru/login"
+              target="_blank"
+              rel="noopener noreferrer"
               style={{ display: "inline-flex", alignItems: "center", gap: 6, color: ACCENT, fontSize: 15, fontWeight: 600, textDecoration: "none", padding: "14px 4px", transition: "opacity 0.2s" }}
               onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.7"}
               onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
