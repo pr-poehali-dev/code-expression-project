@@ -143,7 +143,9 @@ export default function PartnerFormaSection() {
               </p>
             </div>
             <a
-              href="#"
+              href="https://school.brossok.ru/login"
+              target="_blank"
+              rel="noopener noreferrer"
               style={{ display: "inline-flex", alignItems: "center", gap: 6, color: ACCENT, fontSize: 15, fontWeight: 700, textDecoration: "none", padding: "14px 28px", borderRadius: 12, border: `2px solid ${ACCENT}`, whiteSpace: "nowrap", transition: "all 0.2s" }}
               onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT; el.style.color = "#fff"; }}
               onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "transparent"; el.style.color = ACCENT; }}
