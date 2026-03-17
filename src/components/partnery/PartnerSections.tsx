@@ -227,7 +227,9 @@ export default function PartnerSections() {
                 </div>
               </div>
               <a
-                href="#partner-form"
+                href="https://school.brossok.ru/aff/reg"
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{ display: "inline-block", background: "#fff", color: ACCENT, padding: "16px 36px", borderRadius: 14, fontSize: 15, fontWeight: 700, textDecoration: "none", boxShadow: `0 8px 32px ${ACCENT_SHADOW}`, whiteSpace: "nowrap", transition: "transform 0.2s ease" }}
                 onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)"; }}
