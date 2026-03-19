@@ -39,13 +39,46 @@ const HOW_STEPS = [
   { num: "04", title: "Вы получаете 10% комиссии", desc: "С каждой оплаты, совершённой по вашему промокоду, на ваш счёт начисляется 10% комиссионных. Ежемесячно, автоматически." },
 ];
 
+const BENEFIT_ICONS: Record<string, React.ReactNode> = {
+  income: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+    </svg>
+  ),
+  promo: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>
+    </svg>
+  ),
+  analytics: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+  ),
+  support: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  ),
+  fast: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>
+  ),
+  unlimited: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/>
+    </svg>
+  ),
+};
+
 const BENEFITS = [
-  { icon: "💰", title: "Пассивный доход", desc: "Комиссия начисляется ежемесячно, пока салон остаётся подписчиком. Рекомендовали один раз — получаете регулярно." },
-  { icon: "🎯", title: "Промокод со скидкой", desc: "Ваш промокод даёт салону реальную выгоду — это облегчает разговор и повышает конверсию в подписку." },
-  { icon: "📊", title: "Прозрачная аналитика", desc: "В личном кабинете видите все активации промокода, начисленные комиссии и историю выплат в режиме реального времени." },
-  { icon: "🤝", title: "Поддержка партнёров", desc: "Персональный менеджер, обучающие материалы и готовые скрипты для переговоров с владельцами салонов." },
-  { icon: "⚡", title: "Быстрый старт", desc: "Регистрация занимает 5 минут. Промокод активен сразу — можно начинать рекомендовать в тот же день." },
-  { icon: "🔄", title: "Без ограничений", desc: "Количество привлечённых салонов не ограничено. Чем больше активных салонов — тем выше ежемесячный доход." },
+  { iconKey: "income", title: "Пассивный доход", desc: "Комиссия начисляется ежемесячно, пока салон остаётся подписчиком. Рекомендовали один раз — получаете регулярно." },
+  { iconKey: "promo", title: "Промокод со скидкой", desc: "Ваш промокод даёт салону реальную выгоду — это облегчает разговор и повышает конверсию в подписку." },
+  { iconKey: "analytics", title: "Прозрачная аналитика", desc: "В личном кабинете видите все активации промокода, начисленные комиссии и историю выплат в режиме реального времени." },
+  { iconKey: "support", title: "Поддержка партнёров", desc: "Персональный менеджер, обучающие материалы и готовые скрипты для переговоров с владельцами салонов." },
+  { iconKey: "fast", title: "Быстрый старт", desc: "Регистрация занимает 5 минут. Промокод активен сразу — можно начинать рекомендовать в тот же день." },
+  { iconKey: "unlimited", title: "Без ограничений", desc: "Количество привлечённых салонов не ограничено. Чем больше активных салонов — тем выше ежемесячный доход." },
 ];
 
 const TARIFFS = [
@@ -186,7 +219,9 @@ export default function PartnerSections() {
             {BENEFITS.map((b, i) => (
               <FadeIn key={i} delay={i * 80}>
                 <div style={{ background: "#fff", borderRadius: 20, padding: "28px", boxShadow: "0 2px 20px rgba(0,0,0,0.05)" }}>
-                  <div style={{ fontSize: 32, marginBottom: 14 }}>{b.icon}</div>
+                  <div style={{ width: 48, height: 48, borderRadius: 14, background: "hsl(185, 85%, 96%)", display: "flex", alignItems: "center", justifyContent: "center", color: ACCENT, marginBottom: 18 }}>
+                    {BENEFIT_ICONS[b.iconKey]}
+                  </div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", marginBottom: 8 }}>{b.title}</div>
                   <div style={{ fontSize: 13, color: "#5a5a5a", lineHeight: 1.65 }}>{b.desc}</div>
                 </div>
