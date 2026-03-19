@@ -34,8 +34,7 @@ export default function DokNavbar() {
             <a key={l.label} href={l.href} style={{
               fontSize: 14, fontWeight: 500, textDecoration: "none",
               color: l.active ? ACCENT : "#444",
-              borderBottom: l.active ? `2px solid ${ACCENT}` : "2px solid transparent",
-              paddingBottom: 2, transition: "color 0.2s",
+              transition: "color 0.2s",
             }}
               onMouseEnter={e => { if (!l.active) (e.currentTarget as HTMLAnchorElement).style.color = ACCENT; }}
               onMouseLeave={e => { if (!l.active) (e.currentTarget as HTMLAnchorElement).style.color = "#444"; }}
