@@ -80,7 +80,11 @@ function ConsultForm() {
   if (sent) {
     return (
       <div style={{ textAlign: "center", padding: "32px 16px" }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+        <div style={{ width: 72, height: 72, borderRadius: "50%", background: "hsl(185, 85%, 96%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "hsl(185, 85%, 32%)" }}>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 6 9 17l-5-5"/>
+          </svg>
+        </div>
         <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px, 5vw, 28px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 12 }}>Заявка принята!</div>
         <p style={{ fontSize: 15, color: "#5a5a5a", lineHeight: 1.65 }}>Мы свяжемся с вами в течение рабочего дня и расскажем всё о доступе к платформе.</p>
       </div>
