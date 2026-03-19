@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { label: "Тарифы", href: "/tarify" },
   { label: "Партнёрская программа", href: "/partnery" },
   { label: "Блог", href: "#blog" },
-  { label: "Контакты", href: "#contacts" },
+  { label: "Контакты", href: "/kontakty" },
 ];
 
 function isActive(href: string) {
