@@ -5,12 +5,18 @@ const ACCENT_DARK = "hsl(185, 85%, 26%)";
 const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.3)";
 
 const NAV_LINKS = [
-  { label: "Платформа", href: "#platform", active: true },
+  { label: "Платформа", href: "/" },
   { label: "Тарифы", href: "/tarify" },
   { label: "Партнёрская программа", href: "/partnery" },
   { label: "Блог", href: "#blog" },
   { label: "Контакты", href: "#contacts" },
 ];
+
+function isActive(href: string) {
+  const path = window.location.pathname;
+  if (href.startsWith("#")) return path === "/";
+  return path === href;
+}
 
 export default function DokNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -33,11 +39,11 @@ export default function DokNavbar() {
           {NAV_LINKS.map((l) => (
             <a key={l.label} href={l.href} style={{
               fontSize: 14, fontWeight: 500, textDecoration: "none",
-              color: l.active ? ACCENT : "#444",
+              color: isActive(l.href) ? ACCENT : "#444",
               transition: "color 0.2s",
             }}
-              onMouseEnter={e => { if (!l.active) (e.currentTarget as HTMLAnchorElement).style.color = ACCENT; }}
-              onMouseLeave={e => { if (!l.active) (e.currentTarget as HTMLAnchorElement).style.color = "#444"; }}
+              onMouseEnter={e => { if (!isActive(l.href)) (e.currentTarget as HTMLAnchorElement).style.color = ACCENT; }}
+              onMouseLeave={e => { if (!isActive(l.href)) (e.currentTarget as HTMLAnchorElement).style.color = "#444"; }}
             >
               {l.label}
             </a>
@@ -67,7 +73,7 @@ export default function DokNavbar() {
           {NAV_LINKS.map((l) => (
             <a key={l.label} href={l.href} onClick={() => setMenuOpen(false)} style={{
               display: "block", padding: "10px 0", fontSize: 15, fontWeight: 500,
-              color: l.active ? ACCENT : "#333", textDecoration: "none", borderBottom: "1px solid #eee",
+              color: isActive(l.href) ? ACCENT : "#333", textDecoration: "none", borderBottom: "1px solid #eee",
             }}>
               {l.label}
             </a>
