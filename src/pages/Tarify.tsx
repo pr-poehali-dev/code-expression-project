@@ -147,10 +147,10 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 
 const SEND_URL = "https://functions.poehali.dev/9d9058e7-5c92-49c1-ad75-68ed3ea30bb1";
 
-function ConsultForm() {
+function ConsultForm({ initialPlan = "" }: { initialPlan?: string }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [plan, setPlan] = useState("");
+  const [plan, setPlan] = useState(initialPlan);
   const [agreed, setAgreed] = useState(false);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -239,6 +239,20 @@ function ConsultForm() {
 }
 
 export default function Tarify() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalPlan, setModalPlan] = useState("");
+
+  const openModal = (planName: string) => {
+    setModalPlan(planName);
+    setModalOpen(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    document.body.style.overflow = "";
+  };
+
   return (
     <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
       <style>{`
@@ -380,6 +394,7 @@ export default function Tarify() {
                   </ul>
 
                   <button
+                    onClick={() => openModal(plan.name)}
                     style={{
                       background: plan.ctaStyle === "outline" ? "transparent" : plan.name === "Расширенный" ? "#fff" : ACCENT,
                       color: plan.ctaStyle === "outline" ? "#1a1a1a" : plan.name === "Расширенный" ? ACCENT : "#fff",
@@ -460,6 +475,47 @@ export default function Tarify() {
       </section>
 
       <DokFooter />
+
+      {/* Modal */}
+      {modalOpen && (
+        <div
+          onClick={closeModal}
+          style={{
+            position: "fixed", inset: 0, zIndex: 1000,
+            background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "24px 16px",
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: "#fff", borderRadius: 20, padding: "40px 36px",
+              maxWidth: 480, width: "100%", position: "relative",
+              boxShadow: "0 24px 80px rgba(0,0,0,0.18)",
+              fontFamily: "Montserrat, sans-serif",
+            }}
+          >
+            <button
+              onClick={closeModal}
+              style={{
+                position: "absolute", top: 16, right: 16,
+                background: "none", border: "none", cursor: "pointer",
+                fontSize: 22, color: "#999", lineHeight: 1, padding: 4,
+              }}
+            >✕</button>
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 8 }}>
+                Оставить заявку
+              </div>
+              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: 28, fontWeight: 700, color: "#1a1a1a", margin: 0 }}>
+                {modalPlan ? `Тариф «${modalPlan}»` : "Получить предложение"}
+              </h2>
+            </div>
+            <ConsultForm initialPlan={modalPlan} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
