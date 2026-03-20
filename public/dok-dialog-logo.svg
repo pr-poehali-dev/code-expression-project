@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="800" height="200">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Cormorant:wght@700&amp;display=swap');
+    </style>
+  </defs>
+  <rect width="800" height="200" fill="white"/>
+  <text x="60" y="148" font-family="Georgia, 'Times New Roman', serif" font-size="130" font-weight="700" fill="#1a1a1a">Dok</text>
+  <text x="348" y="148" font-family="Georgia, 'Times New Roman', serif" font-size="130" font-weight="700" fill="hsl(185, 85%, 32%)"> Диалог</text>
+</svg>
