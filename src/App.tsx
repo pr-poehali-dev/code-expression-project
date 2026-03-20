@@ -11,6 +11,7 @@ import Kontakty from "./pages/Kontakty";
 import Privacy from "./pages/Privacy";
 import Offer from "./pages/Offer";
 import NotFound from "./pages/NotFound";
+import CookieBanner from "./components/CookieBanner";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <CookieBanner />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
