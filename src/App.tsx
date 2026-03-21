@@ -10,7 +10,7 @@ import Partnery from "./pages/Partnery";
 import Kontakty from "./pages/Kontakty";
 import Privacy from "./pages/Privacy";
 import Offer from "./pages/Offer";
-import NotFound from "./pages/NotFound";
+import NotFoundPage from "./pages/NotFoundPage";
 import CookieBanner from "./components/CookieBanner";
 
 const queryClient = new QueryClient();
@@ -30,7 +30,7 @@ const App = () => (
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/offer" element={<Offer />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
