@@ -8,8 +8,8 @@ export const SEND_URL = "https://functions.poehali.dev/9d9058e7-5c92-49c1-ad75-6
 export const PLANS = [
   {
     name: "Базовый",
-    price: "150 000",
-    period: "/ внедрение",
+    price: "По запросу",
+    period: "",
     badge: null,
     color: "#fff",
     textColor: "#1a1a1a",
@@ -28,8 +28,8 @@ export const PLANS = [
   },
   {
     name: "Расширенный",
-    price: "250 000",
-    period: "/ внедрение",
+    price: "По запросу",
+    period: "",
     badge: "Популярный",
     color: ACCENT,
     textColor: "#fff",
