@@ -215,7 +215,10 @@ export default function Kontakty() {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: 20px;
+          align-items: stretch;
         }
+        .k-cards-grid > * { height: 100%; display: flex; flex-direction: column; }
+        .k-cards-grid > * > a { flex: 1; }
         @media (max-width: 900px) {
           .k-cards-grid {
             grid-template-columns: repeat(2, 1fr);
