@@ -213,8 +213,13 @@ export default function Kontakty() {
       <style>{`
         .k-cards-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          grid-template-columns: repeat(4, 1fr);
           gap: 20px;
+        }
+        @media (max-width: 900px) {
+          .k-cards-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
         }
         .k-form-grid {
           display: grid;
