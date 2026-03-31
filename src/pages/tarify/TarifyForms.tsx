@@ -125,9 +125,9 @@ export function ConsultForm({ initialPlan = "" }: { initialPlan?: string }) {
           style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 15, outline: "none", background: "#fff", boxSizing: "border-box", fontFamily: "Montserrat, sans-serif", color: plan ? "#1a1a1a" : "#999" }}
         >
           <option value="" disabled>Выберите тариф</option>
-          <option value="Базовый">Базовый — 150 000 ₽</option>
-          <option value="Расширенный">Расширенный — 250 000 ₽</option>
-          <option value="Полный">Полный — по запросу</option>
+          <option value="Базовый">Базовый</option>
+          <option value="Расширенный">Расширенный</option>
+          <option value="Полный">Полный</option>
         </select>
       </div>
       <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
