@@ -16,12 +16,12 @@ const REVIEWS = [
   {
     name: "Марина С.",
     text: "После курса смогла поднять цену сеанса с 2 000 до 3 500 ₽. Клиенты сами рекомендуют меня другим — результат виден сразу.",
-    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/1d6c59c1-4773-468e-af93-147799af28c3.jpg",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/112b5e86-c667-4402-95cd-f9bfdc8b78fa.jpg",
   },
   {
     name: "Алексей В.",
     text: "Раньше боялся клиентов с травмами. Теперь это моя специализация. Запись расписана на 2 недели вперёд.",
-    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/8fdca789-3467-4c72-b1dc-4eb6c28f5036.jpg",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/21047f48-ac51-4882-9dc1-524a42b297d9.jpg",
   },
 ];
 
