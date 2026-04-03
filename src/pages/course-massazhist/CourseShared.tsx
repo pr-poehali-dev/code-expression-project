@@ -70,16 +70,22 @@ export const h2style: React.CSSProperties = {
   color: "#1a1a1a",
 };
 
+const BUY_URL = "https://school.brossok.ru/buy/15";
+
 export function BtnPrimary({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   const [h, setH] = useState(false);
   return (
-    <button
+    <a
+      href={BUY_URL}
+      target="_blank"
+      rel="noopener noreferrer"
       onMouseEnter={() => setH(true)}
       onMouseLeave={() => setH(false)}
       style={{
+        display: "inline-block",
+        textDecoration: "none",
         background: h ? ACCENT_DARK : ACCENT,
         color: "#fff",
-        border: "none",
         borderRadius: 12,
         padding: "14px 32px",
         fontSize: 15,
@@ -91,17 +97,22 @@ export function BtnPrimary({ children, style }: { children: React.ReactNode; sty
         transform: h ? "translateY(-2px)" : "translateY(0)",
         ...style,
       }}
-    >{children}</button>
+    >{children}</a>
   );
 }
 
 export function BtnSecondary({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   const [h, setH] = useState(false);
   return (
-    <button
+    <a
+      href={BUY_URL}
+      target="_blank"
+      rel="noopener noreferrer"
       onMouseEnter={() => setH(true)}
       onMouseLeave={() => setH(false)}
       style={{
+        display: "inline-block",
+        textDecoration: "none",
         background: "transparent",
         color: h ? ACCENT_DARK : ACCENT,
         border: `2px solid ${ACCENT}`,
@@ -114,7 +125,7 @@ export function BtnSecondary({ children, style }: { children: React.ReactNode; s
         transition: "all 0.2s",
         ...style,
       }}
-    >{children}</button>
+    >{children}</a>
   );
 }
 
