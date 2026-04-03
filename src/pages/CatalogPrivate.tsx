@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Helmet } from "react-helmet-async";
 import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
 import Icon from "@/components/ui/icon";
@@ -163,6 +164,14 @@ export default function CatalogPrivate() {
 
   return (
     <div style={{ background: BG, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#1a1a1a" }}>
+      <Helmet>
+        <title>Все курсы для мастеров массажа — Каталог | Dok Диалог</title>
+        <meta name="description" content="7 онлайн-курсов по массажу: от новичка до профессионала. Техники массажа, протоколы, коррекция фигуры, висцеральный массаж, привлечение клиентов." />
+        <meta name="keywords" content="курсы массажа онлайн, обучение массажист, техники массажа, протоколы массажа, коррекция фигуры, висцеральный массаж, привлечение клиентов массаж" />
+        <meta property="og:title" content="Все курсы для мастеров массажа | Dok Диалог" />
+        <meta property="og:description" content="7 онлайн-курсов по массажу: от новичка до профессионала. Техники, протоколы, продвижение." />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <DokNavbar />
 
       <main style={{ paddingTop: 100, paddingBottom: 80 }}>

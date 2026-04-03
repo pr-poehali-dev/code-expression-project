@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import DokFooter from "@/components/DokFooter";
 import DokNavbar from "@/components/DokNavbar";
 import Icon from "@/components/ui/icon";
@@ -141,6 +142,14 @@ function ConsultForm() {
 export default function DokDialog() {
   return (
     <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
+      <Helmet>
+        <title>Dok Диалог — Образовательная платформа для мастеров массажа</title>
+        <meta name="description" content="Онлайн-обучение, профессиональное сообщество и база знаний для мастеров массажа системы МассоПро. Структурированные курсы, протоколы и поддержка." />
+        <meta name="keywords" content="обучение массажу, онлайн курсы массажа, МассоПро, образование массажист, профессия массажист" />
+        <meta property="og:title" content="Dok Диалог — Образовательная платформа для мастеров массажа" />
+        <meta property="og:description" content="Онлайн-обучение, профессиональное сообщество и база знаний для мастеров массажа системы МассоПро." />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <style>{`
         .dd-hero-grid {
           display: grid;

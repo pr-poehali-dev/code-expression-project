@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
 import { BG, CtaBar } from "./course-korrektsiya/CkfShared";
@@ -8,6 +9,14 @@ import CkfPricingSection from "./course-korrektsiya/CkfPricingSection";
 export default function CourseKorrektsiya() {
   return (
     <div style={{ background: BG, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#1a1a1a" }}>
+      <Helmet>
+        <title>Коррекция фигуры: техники против целлюлита и лишних объёмов | Dok Диалог</title>
+        <meta name="description" content="Современные техники массажа для быстрых визуальных результатов. Уменьшение объёмов, работа с целлюлитом, увеличение среднего чека. Готовые протоколы." />
+        <meta name="keywords" content="массаж коррекция фигуры, антицеллюлитный массаж обучение, уменьшение объёмов массаж, бьюти массаж курс, техники коррекции тела" />
+        <meta property="og:title" content="Коррекция фигуры: техники против целлюлита и лишних объёмов" />
+        <meta property="og:description" content="Современные техники для быстрых визуальных результатов в коррекции объёмов и работе с целлюлитом." />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <DokNavbar />
 
       <CkfHeroSection />

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Helmet } from "react-helmet-async";
 import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
 import Icon from "@/components/ui/icon";
@@ -128,6 +129,14 @@ function CtaBar() {
 export default function CoursePotok() {
   return (
     <div style={{ background: BG, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#1a1a1a" }}>
+      <Helmet>
+        <title>Массажист с потоком клиентов: от 0 до стабильной записи | Dok Диалог</title>
+        <meta name="description" content="Система привлечения и удержания клиентов для массажиста. 5 модулей: каналы привлечения, система записи, скрипты общения, лояльность. Первые результаты за 2–4 недели." />
+        <meta name="keywords" content="привлечение клиентов массажист, продвижение массажиста, маркетинг для массажиста, как найти клиентов массаж, запись клиентов массаж" />
+        <meta property="og:title" content="Массажист с потоком клиентов: от 0 до стабильной записи" />
+        <meta property="og:description" content="Система привлечения и удержания клиентов. 5 модулей: каналы, запись, скрипты, лояльность. Первые результаты за 2–4 недели." />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <DokNavbar />
 
       {/* ── 1. HERO ── */}

@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
 import { BG, CtaBar } from "./course-antistress/CasShared";
@@ -8,6 +9,14 @@ import CasPricingSection from "./course-antistress/CasPricingSection";
 export default function CourseAntistress() {
   return (
     <div style={{ background: BG, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#1a1a1a" }}>
+      <Helmet>
+        <title>Антистресс-техники массажа: усиление эффекта в 2 раза | Dok Диалог</title>
+        <meta name="description" content="Техники работы с нервной системой для максимального эффекта массажа. Быстрый результат с первого сеанса, повышение лояльности клиентов. Подходит любому уровню." />
+        <meta name="keywords" content="антистресс массаж курс, техники расслабления массаж, массаж нервная система, расслабляющий массаж техники, обучение антистресс массаж" />
+        <meta property="og:title" content="Антистресс-техники массажа: усиление эффекта в 2 раза" />
+        <meta property="og:description" content="Техники работы с нервной системой для максимального эффекта. Быстрый результат, лояльность клиентов." />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <DokNavbar />
 
       <CasHeroSection />

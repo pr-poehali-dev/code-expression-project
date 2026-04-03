@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
 import { BG, CtaBar } from "./course-protokoly/CpShared";
@@ -8,6 +9,14 @@ import CpPricingSection from "./course-protokoly/CpPricingSection";
 export default function CourseProtokoly() {
   return (
     <div style={{ background: BG, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#1a1a1a" }}>
+      <Helmet>
+        <title>Готовые протоколы массажа: схемы при боли, стрессе и зажимах | Dok Диалог</title>
+        <meta name="description" content="Готовые схемы сеансов массажа под конкретные запросы клиентов: боль, стресс, зажимы. Применяйте сразу на практике, повышайте уверенность и результаты." />
+        <meta name="keywords" content="протоколы массажа, схемы сеансов массажа, массаж при стрессе, массаж при зажимах, готовые протоколы для массажиста" />
+        <meta property="og:title" content="Готовые протоколы массажа: схемы при боли, стрессе и зажимах" />
+        <meta property="og:description" content="Готовые схемы сеансов под конкретные запросы клиентов. Применяйте сразу, повышайте уверенность." />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <DokNavbar />
 
       <CpHeroSection />

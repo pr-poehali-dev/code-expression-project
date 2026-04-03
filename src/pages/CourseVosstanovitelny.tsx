@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
 import { BG, CtaBar } from "./course-vosstanovitelny/CvShared";
@@ -8,6 +9,14 @@ import CvPricingSection from "./course-vosstanovitelny/CvPricingSection";
 export default function CourseVosstanovitelny() {
   return (
     <div style={{ background: BG, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#1a1a1a" }}>
+      <Helmet>
+        <title>Восстановительный массаж PRO: работа с болью и травмами | Dok Диалог</title>
+        <meta name="description" content="Освойте работу с болевыми состояниями, травмами и сложными случаями. Увеличьте средний чек и поток клиентов с курсом Восстановительный массаж PRO." />
+        <meta name="keywords" content="восстановительный массаж курс, массаж при боли, массаж при травмах, реабилитационный массаж обучение, увеличение чека массажиста" />
+        <meta property="og:title" content="Восстановительный массаж PRO: работа с болью и травмами" />
+        <meta property="og:description" content="Освойте работу с болевыми состояниями и травмами. Увеличьте средний чек и поток клиентов." />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <DokNavbar />
 
       <CvHeroSection />

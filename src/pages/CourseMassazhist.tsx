@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
 import { BG, CtaBar } from "./course-massazhist/CourseShared";
@@ -8,6 +9,14 @@ import CoursePricingSection from "./course-massazhist/CoursePricingSection";
 export default function CourseMassazhist() {
   return (
     <div style={{ background: BG, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#1a1a1a" }}>
+      <Helmet>
+        <title>Профессия массажист с нуля: первый доход за 30 дней | Dok Диалог</title>
+        <meta name="description" content="Освойте профессию массажиста без медицинского образования. Практика с первого дня, реальный заработок через 30 дней. Онлайн-курс от МассоПро." />
+        <meta name="keywords" content="курс массажист с нуля, обучение массажу с нуля, профессия массажист, заработок на массаже, массаж без медобразования" />
+        <meta property="og:title" content="Профессия массажист с нуля: первый доход за 30 дней" />
+        <meta property="og:description" content="Освойте профессию массажиста без медицинского образования. Практика с первого дня, первый доход через 30 дней." />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <DokNavbar />
 
       <CourseHeroSection />
