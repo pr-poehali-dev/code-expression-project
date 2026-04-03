@@ -114,7 +114,7 @@ const COURSES: Course[] = [
       "Безопасной работе с внутренними органами",
       "Применению техник на практике",
     ],
-    price: "5 900 ₽",
+    price: "4 990 ₽",
     level: "beginner",
     direction: "technique",
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/d9819836-a0ee-4339-b6da-de14ba2dfd2b.jpg",

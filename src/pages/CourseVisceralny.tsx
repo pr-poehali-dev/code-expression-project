@@ -132,7 +132,7 @@ function CtaBar() {
           <div style={{ color: "#999", fontSize: 13 }}>Безопасный старт без медобразования</div>
         </div>
         <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-          <span style={{ fontFamily: "Cormorant, serif", fontSize: 28, fontWeight: 700 }}>2 990 ₽</span>
+          <span style={{ fontFamily: "Cormorant, serif", fontSize: 28, fontWeight: 700 }}>4 990 ₽</span>
           <BtnPrimary>Купить курс</BtnPrimary>
           <BtnSecondary>Рассрочка</BtnSecondary>
         </div>
@@ -179,7 +179,7 @@ export default function CourseVisceralny() {
               ))}
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <BtnPrimary>Купить курс — 2 990 ₽</BtnPrimary>
+              <BtnPrimary>Купить курс — 4 990 ₽</BtnPrimary>
               <BtnSecondary>Оформить рассрочку</BtnSecondary>
             </div>
           </div>
@@ -405,7 +405,7 @@ export default function CourseVisceralny() {
             boxShadow: "0 8px 40px rgba(0,0,0,0.08)",
           }} className="cvm-price-pad">
             <div style={{ fontSize: 13, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Стоимость курса</div>
-            <div style={{ fontFamily: "Cormorant, serif", fontSize: 56, fontWeight: 700, color: "#1a1a1a", lineHeight: 1 }}>2 990 ₽</div>
+            <div style={{ fontFamily: "Cormorant, serif", fontSize: 56, fontWeight: 700, color: "#1a1a1a", lineHeight: 1 }}>4 990 ₽</div>
             <div style={{ color: "#999", fontSize: 14, margin: "8px 0 32px" }}>или рассрочка от 250 ₽/мес</div>
             <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", marginBottom: 24 }}>
               {["Полная оплата", "Рассрочка на 12 мес"].map((o) => (
@@ -471,7 +471,7 @@ export default function CourseVisceralny() {
             Всё необходимое — в одном курсе. Доступно. Безопасно. С первого дня.
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <BtnPrimary style={{ padding: "16px 40px", fontSize: 16 }}>Купить курс — 2 990 ₽</BtnPrimary>
+            <BtnPrimary style={{ padding: "16px 40px", fontSize: 16 }}>Купить курс — 4 990 ₽</BtnPrimary>
             <BtnSecondary style={{ padding: "15px 40px", fontSize: 16 }}>Рассрочка</BtnSecondary>
           </div>
         </div>
