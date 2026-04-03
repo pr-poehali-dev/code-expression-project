@@ -207,7 +207,7 @@ export default function DokDialog() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 40 }}>
                   <p style={{ fontSize: "clamp(16px, 2.5vw, 18px)", lineHeight: 1.75, color: "#3a3a3a", margin: 0 }}>
                     <strong>Образовательная платформа</strong> для{" "}
-                    <strong>специалистов</strong> системы <strong>МассоПРО</strong>.
+                    <strong>специалистов</strong> системы <strong><a href="https://massopro.ru/" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>МассоПРО</a></strong>.
                   </p>
                   <p style={{ fontSize: "clamp(15px, 2vw, 17px)", lineHeight: 1.75, color: "#5a5a5a", margin: 0 }}>
                     Платформа объединяет структурированное онлайн-обучение, профессиональное сообщество и базу знаний — всё, что нужно мастеру массажа для роста.
