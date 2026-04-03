@@ -377,26 +377,65 @@ export default function CoursePotok() {
         </div>
       </section>
 
-      {/* ── 10. СТОИМОСТЬ ── */}
+      {/* ── 10. СТОИМОСТЬ / ТАРИФЫ ── */}
       <section style={{ padding: "80px 0 0" }}>
-        <div style={{ maxWidth: 700, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{
-            background: "#fff", border: "1px solid #e8e8e4", borderRadius: 24,
-            padding: "48px 40px", textAlign: "center",
-            boxShadow: "0 8px 40px rgba(0,0,0,0.08)",
-          }} className="cpt-price-pad">
-            <div style={{ fontSize: 13, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Стоимость курса</div>
-            <div style={{ fontFamily: "Cormorant, serif", fontSize: 56, fontWeight: 700, color: "#1a1a1a", lineHeight: 1 }}>25 590 ₽</div>
-            <div style={{ color: "#999", fontSize: 14, margin: "8px 0 32px" }}>или рассрочка — уточните при регистрации</div>
-            <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", marginBottom: 32 }}>
-              {["Полная оплата", "Рассрочка"].map((o) => (
-                <div key={o} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#555" }}>
-                  <Icon name="Check" size={14} style={{ color: ACCENT }} />
-                  {o}
-                </div>
-              ))}
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px" }}>
+          <h2 style={{ ...h2style, textAlign: "center" }}>Выберите тариф</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }} className="cpt-4col">
+
+            {/* Бесплатный */}
+            <div style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "32px 24px", display: "flex", flexDirection: "column", boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#22c55e", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Бесплатный</div>
+              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>0 ₽</div>
+              <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Навсегда бесплатно</div>
+              <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Массажист 2.0: Создание и Продвижение Личного Бренда»</div>
+              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.55, margin: "0 0 20px", flex: 1 }}>Базовые знания для тех, кто только начинает. Введение в интернет-маркетинг и бизнес-маркетинг.</p>
+              <a href={COURSE_URL} target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: "#22c55e", color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
+                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85"}
+                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
+              >Начать бесплатно</a>
             </div>
-            <BtnStart style={{ padding: "16px 40px", fontSize: 16 }}>Начать бесплатно</BtnStart>
+
+            {/* Старт */}
+            <div style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "32px 24px", display: "flex", flexDirection: "column", boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Стартовый</div>
+              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>4 900 ₽</div>
+              <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Полная оплата</div>
+              <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Массажист 2.0: Создание и Продвижение Личного Бренда»</div>
+              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.55, margin: "0 0 20px", flex: 1 }}>Комплексные знания о бизнес-маркетинге, анализ состояния бизнеса и стратегии для привлечения клиентов.</p>
+              <a href={COURSE_URL} target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: ACCENT, color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
+                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85"}
+                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
+              >Купить курс</a>
+            </div>
+
+            {/* Профи */}
+            <div style={{ background: "#fff", border: `2px solid ${ACCENT}`, borderRadius: 20, padding: "32px 24px", display: "flex", flexDirection: "column", boxShadow: `0 8px 32px ${ACCENT}22`, position: "relative" }}>
+              <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: ACCENT, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 14px", borderRadius: 20, whiteSpace: "nowrap" }}>Популярный</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Профи</div>
+              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>14 900 ₽</div>
+              <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Полная оплата</div>
+              <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Массажный Бизнес 2.0: Продвижение и Оптимизация»</div>
+              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.55, margin: "0 0 20px", flex: 1 }}>SEO, контекстная реклама, Яндекс Директ, VK, Telegram, воронки продаж и медиапланирование.</p>
+              <a href={COURSE_URL} target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: ACCENT, color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
+                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85"}
+                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
+              >Купить курс</a>
+            </div>
+
+            {/* Эксперт */}
+            <div style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "32px 24px", display: "flex", flexDirection: "column", boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Эксперт</div>
+              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>34 900 ₽</div>
+              <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Полная оплата</div>
+              <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Маркетинг: От Основ до Эксперта»</div>
+              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.55, margin: "0 0 20px", flex: 1 }}>Аудит бизнеса, таргетированная реклама, SEO, управление рекламой — полный арсенал для роста и масштабирования.</p>
+              <a href={COURSE_URL} target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: ACCENT, color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
+                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85"}
+                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
+              >Купить курс</a>
+            </div>
+
           </div>
         </div>
       </section>
