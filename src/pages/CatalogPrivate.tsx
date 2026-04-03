@@ -20,6 +20,7 @@ type Course = {
   tiers?: { label: string; color: string; price: string }[];
   image: string;
   detailUrl?: string;
+  buyUrl?: string;
 };
 
 const COURSES: Course[] = [
@@ -391,7 +392,10 @@ function CourseCard({ course }: { course: Course }) {
           >
             Подробнее
           </button>
-          <button
+          <a
+            href={course.buyUrl ?? "https://school.brossok.ru/buy/15"}
+            target="_blank"
+            rel="noopener noreferrer"
             style={{
               flex: 1,
               padding: "10px 14px",
@@ -405,12 +409,15 @@ function CourseCard({ course }: { course: Course }) {
               fontFamily: "Montserrat, sans-serif",
               boxShadow: `0 4px 14px ${ACCENT_SHADOW}`,
               transition: "all 0.18s",
+              textDecoration: "none",
+              textAlign: "center",
+              display: "block",
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = ACCENT_DARK; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = ACCENT; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = ACCENT_DARK; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = ACCENT; }}
           >
             Купить / Рассрочка
-          </button>
+          </a>
         </div>
       </div>
       </div>
