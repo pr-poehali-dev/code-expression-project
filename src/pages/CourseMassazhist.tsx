@@ -246,6 +246,60 @@ export default function CourseMassazhist() {
         </div>
       </section>
 
+      {/* ── АВТОР КУРСА ─────────────────────────── */}
+      <section style={{ padding: "80px 0 0" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{
+            background: "#fff",
+            border: "1px solid #e8e8e4",
+            borderRadius: 24,
+            overflow: "hidden",
+            display: "grid",
+            gridTemplateColumns: "320px 1fr",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
+          }} className="course-author-grid">
+            <div style={{ position: "relative", minHeight: 320 }}>
+              <img
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/d0a7ff9d-716f-4a20-a395-e785aca57e30.jpg"
+                alt="Автор курса"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", minHeight: 320 }}
+              />
+            </div>
+            <div style={{ padding: "40px 44px" }} className="course-author-pad">
+              <div style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 }}>
+                Автор курса
+              </div>
+              <h3 style={{ fontFamily: "Cormorant, serif", fontSize: 32, fontWeight: 700, margin: "0 0 6px", color: "#1a1a1a" }}>
+                Сергей Водопьянов
+              </h3>
+              <p style={{ color: "#999", fontSize: 14, margin: "0 0 24px" }}>
+                Практикующий массажист, преподаватель · 12 лет опыта
+              </p>
+              <p style={{ fontSize: 15, color: "#555", lineHeight: 1.75, margin: "0 0 28px" }}>
+                Начинал без медицинского образования — с нуля построил частную практику и вырастил более 500 учеников. Автор методики «Быстрый старт», по которой студенты выходят на первый заработок уже в процессе обучения.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+                {[
+                  { value: "12+", label: "лет практики" },
+                  { value: "500+", label: "учеников" },
+                  { value: "95%", label: "доходят до результата" },
+                ].map(({ value, label }) => (
+                  <div key={label} style={{
+                    background: BG,
+                    borderRadius: 12,
+                    padding: "12px 20px",
+                    textAlign: "center",
+                  }}>
+                    <div style={{ fontFamily: "Cormorant, serif", fontSize: 26, fontWeight: 700, color: ACCENT, lineHeight: 1 }}>{value}</div>
+                    <div style={{ fontSize: 12, color: "#888", marginTop: 4 }}>{label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── CTA 1 ──────────────────────────────── */}
       <CtaBar />
 
@@ -494,6 +548,7 @@ export default function CourseMassazhist() {
           .course-hero-grid { grid-template-columns: 1fr !important; }
           .course-3col { grid-template-columns: repeat(2, 1fr) !important; }
           .course-5col { grid-template-columns: repeat(3, 1fr) !important; }
+          .course-author-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 600px) {
           .course-2col { grid-template-columns: 1fr !important; }
@@ -501,6 +556,7 @@ export default function CourseMassazhist() {
           .course-5col { grid-template-columns: repeat(2, 1fr) !important; }
           .course-result-pad { padding: 32px 24px !important; }
           .course-price-pad { padding: 36px 24px !important; }
+          .course-author-pad { padding: 28px 24px !important; }
         }
       `}</style>
     </div>
