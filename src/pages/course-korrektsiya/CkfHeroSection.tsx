@@ -141,7 +141,10 @@ export default function CkfHeroSection() {
             <div style={{ padding: "40px 44px" }} className="ckf-author-pad">
               <div style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 }}>Автор курса</div>
               <h3 style={{ fontFamily: "Cormorant, serif", fontSize: 32, fontWeight: 700, margin: "0 0 6px", color: "#1a1a1a" }}>Сергей Водопьянов</h3>
-              <p style={{ color: "#999", fontSize: 14, margin: "0 0 20px" }}>Остеопат · 17 лет опыта · Член Российской остеопатической ассоциации</p>
+              <p style={{ color: "#999", fontSize: 14, margin: "0 0 20px" }}>
+                Остеопат · 17 лет опыта ·{" "}
+                <a href="https://assotsiatsiya-osteopatov.ru/user/svodopianoff/" target="_blank" rel="noopener noreferrer" style={{ color: ACCENT, textDecoration: "none" }}>Член Российской остеопатической ассоциации</a>
+              </p>
               <p style={{ fontSize: 15, color: "#555", lineHeight: 1.75, margin: "0 0 28px" }}>
                 За годы практики работал с тысячами людей, помогая улучшить самочувствие при болях в спине и шее, восстановить осанку. Специализируется на работе с офисными сотрудниками, спортсменами и беременными женщинами.
               </p>
@@ -157,6 +160,14 @@ export default function CkfHeroSection() {
                     <div style={{ fontSize: 11, color: "#888", marginTop: 4, lineHeight: 1.3 }}>{label}</div>
                   </div>
                 ))}
+                <a href="https://massopro.ru/catalog/1" target="_blank" rel="noopener noreferrer" style={{ background: BG, borderRadius: 12, padding: "12px 20px", textAlign: "center", minWidth: 90, textDecoration: "none" }}>
+                  <div style={{ fontFamily: "Cormorant, serif", fontSize: 24, fontWeight: 700, color: ACCENT, lineHeight: 1 }}>5.0</div>
+                  <div style={{ fontSize: 11, color: "#888", marginTop: 4, lineHeight: 1.3 }}>MassoPRO</div>
+                </a>
+                <a href="https://yandex.com/maps/org/osteopat_plyus/99582120415/reviews/?indoorLevel=1&ll=37.599911%2C55.781054&utm_campaign=v1&utm_medium=rating&utm_source=badge&z=17" target="_blank" rel="noopener noreferrer" style={{ background: BG, borderRadius: 12, padding: "12px 20px", textAlign: "center", minWidth: 90, textDecoration: "none" }}>
+                  <div style={{ fontFamily: "Cormorant, serif", fontSize: 24, fontWeight: 700, color: ACCENT, lineHeight: 1 }}>5.0</div>
+                  <div style={{ fontSize: 11, color: "#888", marginTop: 4, lineHeight: 1.3 }}>Отзывы Яндекс</div>
+                </a>
               </div>
             </div>
           </div>
