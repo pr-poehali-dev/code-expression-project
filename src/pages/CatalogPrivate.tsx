@@ -86,6 +86,8 @@ const COURSES: Course[] = [
     level: "any",
     direction: "technique",
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/7ee6581d-0eae-4377-b509-048c05c11572.jpg",
+    detailUrl: "/course/antistress-tehniki-massazha",
+    buyUrl: "https://school.brossok.ru/buy/42",
   },
   {
     id: 5,
