@@ -1,4 +1,5 @@
 import DokNavbar from "@/components/DokNavbar";
+import DokFooter from "@/components/DokFooter";
 import Icon from "@/components/ui/icon";
 
 const ACCENT = "hsl(185, 85%, 32%)";
@@ -165,6 +166,7 @@ export default function Catalog() {
           }
         }
       `}</style>
+      <DokFooter />
     </div>
   );
 }
