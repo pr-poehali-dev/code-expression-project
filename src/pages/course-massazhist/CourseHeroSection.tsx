@@ -64,6 +64,7 @@ export default function CourseHeroSection() {
               { icon: "MessageCircle", text: "Поймёте, как работать с клиентом" },
               { icon: "ListChecks", text: "Получите пошаговый план старта" },
               { icon: "Banknote", text: "Сможете начать зарабатывать" },
+              { icon: "Star", text: "Получите сертификат и уверенность в профессии" },
             ].map(({ icon, text }) => (
               <div key={text} style={{
                 background: "#fff",
