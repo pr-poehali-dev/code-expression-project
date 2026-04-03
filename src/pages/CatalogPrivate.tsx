@@ -18,6 +18,7 @@ type Course = {
   level: "beginner" | "practitioner" | "any";
   direction: "technique" | "income";
   tiers?: { label: string; color: string; price: string }[];
+  image: string;
 };
 
 const COURSES: Course[] = [
@@ -34,6 +35,7 @@ const COURSES: Course[] = [
     priceNote: "или рассрочка",
     level: "beginner",
     direction: "income",
+    image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/5330c54a-7b7f-4b4b-bb27-5dfd7e57afb8.jpg",
   },
   {
     id: 2,
@@ -48,6 +50,7 @@ const COURSES: Course[] = [
     priceNote: "или рассрочка",
     level: "practitioner",
     direction: "technique",
+    image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/c61ffa15-f30f-41ca-9c39-e4a889f1e5b8.jpg",
   },
   {
     id: 3,
@@ -61,6 +64,7 @@ const COURSES: Course[] = [
     price: "19 900 ₽",
     level: "practitioner",
     direction: "technique",
+    image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/eeeaf528-cd8c-4010-b5fb-ca19d1dc4a85.jpg",
   },
   {
     id: 4,
@@ -74,6 +78,7 @@ const COURSES: Course[] = [
     price: "14 900 ₽",
     level: "any",
     direction: "technique",
+    image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/7ee6581d-0eae-4377-b509-048c05c11572.jpg",
   },
   {
     id: 5,
@@ -87,6 +92,7 @@ const COURSES: Course[] = [
     price: "16 900 ₽",
     level: "any",
     direction: "income",
+    image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/bdd8989f-e31c-46c9-aad1-6006a7f468ec.jpg",
   },
   {
     id: 6,
@@ -100,6 +106,7 @@ const COURSES: Course[] = [
     price: "5 900 ₽",
     level: "beginner",
     direction: "technique",
+    image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/d9819836-a0ee-4339-b6da-de14ba2dfd2b.jpg",
   },
   {
     id: 7,
@@ -119,6 +126,7 @@ const COURSES: Course[] = [
       { label: "Профи", color: "#f59e0b", price: "14 900 ₽" },
       { label: "Эксперт", color: "#ef4444", price: "34 900 ₽" },
     ],
+    image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/ac73bf44-ff8f-4207-9d24-56da457498ea.jpg",
   },
 ];
 
@@ -273,7 +281,8 @@ function CourseCard({ course }: { course: Course }) {
         background: "#fff",
         borderRadius: 18,
         border: "1px solid #e8e8e4",
-        padding: "28px 28px 24px",
+        overflow: "hidden",
+        padding: 0,
         display: "flex",
         flexDirection: "column",
         gap: 0,
@@ -282,6 +291,26 @@ function CourseCard({ course }: { course: Course }) {
         transition: "all 0.25s ease",
       }}
     >
+      <div style={{
+        width: "100%",
+        height: 190,
+        overflow: "hidden",
+        flexShrink: 0,
+      }}>
+        <img
+          src={course.image}
+          alt={course.title}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+            transition: "transform 0.4s ease",
+            transform: hovered ? "scale(1.05)" : "scale(1)",
+          }}
+        />
+      </div>
+      <div style={{ padding: "24px 24px 20px", display: "flex", flexDirection: "column", flex: 1 }}>
       <h3 style={{
         fontSize: 16,
         fontWeight: 700,
@@ -380,6 +409,7 @@ function CourseCard({ course }: { course: Course }) {
             Купить / Рассрочка
           </button>
         </div>
+      </div>
       </div>
     </div>
   );
