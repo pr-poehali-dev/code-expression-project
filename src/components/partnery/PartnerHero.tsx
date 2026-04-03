@@ -21,13 +21,14 @@ function useInView(threshold = 0.15) {
   return { ref, visible };
 }
 
-function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+function FadeIn({ children, delay = 0, stretch = false }: { children: React.ReactNode; delay?: number; stretch?: boolean }) {
   const { ref, visible } = useInView();
   return (
     <div ref={ref} style={{
       opacity: visible ? 1 : 0,
       transform: visible ? "translateY(0)" : "translateY(24px)",
       transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`,
+      ...(stretch ? { height: "100%" } : {}),
     }}>
       {children}
     </div>
@@ -92,10 +93,10 @@ export default function PartnerHero() {
           </div>
         </FadeIn>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 20, gridAutoRows: "1fr" }}>
           {STATS.map((s, i) => (
-            <FadeIn key={i} delay={400 + i * 80}>
-              <div style={{ background: "#fff", borderRadius: 20, padding: "28px 24px", boxShadow: "0 4px 32px rgba(0,0,0,0.06)" }}>
+            <FadeIn key={i} delay={400 + i * 80} stretch>
+              <div style={{ background: "#fff", borderRadius: 20, padding: "28px 24px", boxShadow: "0 4px 32px rgba(0,0,0,0.06)", height: "100%", boxSizing: "border-box" }}>
                 <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(32px, 3.5vw, 48px)", fontWeight: 700, color: ACCENT, lineHeight: 1, marginBottom: 8 }}>
                   {s.value}
                 </div>
