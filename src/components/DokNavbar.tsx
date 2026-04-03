@@ -6,6 +6,7 @@ const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.3)";
 
 const NAV_LINKS = [
   { label: "Платформа", href: "/" },
+  { label: "Каталог", href: "/catalog" },
   { label: "Тарифы", href: "/tarify" },
   { label: "Партнёрская программа", href: "/partnery" },
   { label: "Блог", href: "https://school.brossok.ru/blog" },
