@@ -70,6 +70,8 @@ const COURSES: Course[] = [
     level: "practitioner",
     direction: "technique",
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/eeeaf528-cd8c-4010-b5fb-ca19d1dc4a85.jpg",
+    detailUrl: "/course/gotovye-protokoly-massazha",
+    buyUrl: "https://school.brossok.ru/buy/50",
   },
   {
     id: 4,
