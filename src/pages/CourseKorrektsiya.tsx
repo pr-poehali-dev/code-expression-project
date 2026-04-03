@@ -9,7 +9,7 @@ const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.25)";
 const BG = "#f8f8f6";
 const BUY_URL = "https://school.brossok.ru/buy/43";
 
-const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/20944999-3477-41d5-af8b-a7f33a3a5c4e.jpg";
+const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/48178e7f-9d80-4fe1-8203-784003be647f.jpg";
 const AUTHOR_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/e1094aa6-0054-4675-a2d2-f6112eab1bf6.png";
 
 const REVIEWS = [
