@@ -140,6 +140,8 @@ const COURSES: Course[] = [
       { label: "Эксперт", color: "#ef4444", price: "34 900 ₽" },
     ],
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/ac73bf44-ff8f-4207-9d24-56da457498ea.jpg",
+    detailUrl: "/course/massazhist-s-potokom-klientov",
+    buyUrl: "https://school.brossok.ru/training/view/-laquo-massaghist-2-0-sozdanie-i-prodvighenie-lichnogo-brenda-raquo-",
   },
 ];
 
