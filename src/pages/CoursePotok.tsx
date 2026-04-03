@@ -75,10 +75,11 @@ const h2style: React.CSSProperties = {
   color: "#1a1a1a",
 };
 
-function BtnStart({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+function BtnStart({ children, style, className }: { children: React.ReactNode; style?: React.CSSProperties; className?: string }) {
   const [h, setH] = useState(false);
   return (
     <a href={COURSE_URL} target="_blank" rel="noopener noreferrer"
+      className={className}
       onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       style={{
         display: "inline-block", textDecoration: "none",
@@ -115,7 +116,7 @@ function AccordionItem({ title, children }: { title: string; children: React.Rea
 function CtaBar() {
   return (
     <div style={{ margin: "60px 0 0", background: "#fff", borderTop: "1px solid #e8e8e4", borderBottom: "1px solid #e8e8e4" }}>
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+      <div className="cpt-ctabar">
         <div>
           <div style={{ fontWeight: 700, fontSize: 17 }}>Массажист с потоком клиентов</div>
           <div style={{ color: "#999", fontSize: 13 }}>От 0 до стабильной записи</div>
@@ -171,7 +172,7 @@ export default function CoursePotok() {
                 </div>
               ))}
             </div>
-            <BtnStart style={{ padding: "16px 40px", fontSize: 16 }}>Начать бесплатно</BtnStart>
+            <BtnStart style={{ padding: "16px 40px", fontSize: 16 }} className="cpt-hero-btn">Начать бесплатно</BtnStart>
           </div>
           <div style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
             <img src={HERO_IMG} alt="Массажист с потоком клиентов" style={{ width: "100%", height: 440, objectFit: "cover", display: "block" }} />
@@ -497,7 +498,7 @@ export default function CoursePotok() {
           <p style={{ fontSize: 16, color: "#666", margin: "0 0 36px" }}>
             Система, которая работает — даже если сейчас поток нулевой
           </p>
-          <BtnStart style={{ padding: "16px 40px", fontSize: 16 }}>Начать бесплатно</BtnStart>
+          <BtnStart style={{ padding: "16px 40px", fontSize: 16 }} className="cpt-hero-btn">Начать бесплатно</BtnStart>
         </div>
       </section>
 
@@ -512,6 +513,7 @@ export default function CoursePotok() {
         .cpt-result-pad { padding: 48px; }
         .cpt-solution-pad { padding: 44px 48px; }
         .cpt-price-pad { padding: 48px 40px; }
+        .cpt-ctabar { max-width: 1100px; margin: 0 auto; padding: 28px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
         @media (max-width: 900px) {
           .cpt-hero-grid { grid-template-columns: 1fr !important; }
           .cpt-3col { grid-template-columns: repeat(2, 1fr) !important; }
@@ -521,11 +523,14 @@ export default function CoursePotok() {
         @media (max-width: 600px) {
           .cpt-2col { grid-template-columns: 1fr !important; }
           .cpt-3col { grid-template-columns: 1fr !important; }
-          .cpt-4col { grid-template-columns: repeat(2, 1fr) !important; }
+          .cpt-4col { grid-template-columns: 1fr !important; }
           .cpt-5col { grid-template-columns: repeat(2, 1fr) !important; }
           .cpt-result-pad { padding: 28px 20px !important; }
           .cpt-solution-pad { padding: 28px 20px !important; }
           .cpt-price-pad { padding: 36px 24px !important; }
+          .cpt-ctabar { flex-direction: column; align-items: flex-start; }
+          .cpt-ctabar a { width: 100%; text-align: center; box-sizing: border-box; }
+          .cpt-hero-btn { width: 100%; text-align: center; box-sizing: border-box; }
         }
       `}</style>
     </div>
