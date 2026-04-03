@@ -118,6 +118,8 @@ const COURSES: Course[] = [
     level: "beginner",
     direction: "technique",
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/d9819836-a0ee-4339-b6da-de14ba2dfd2b.jpg",
+    detailUrl: "/course/visceralny-massazh-s-nulya",
+    buyUrl: "https://school.brossok.ru/buy/55",
   },
   {
     id: 7,
