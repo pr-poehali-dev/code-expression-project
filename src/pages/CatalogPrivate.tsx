@@ -19,6 +19,7 @@ type Course = {
   direction: "technique" | "income";
   tiers?: { label: string; color: string; price: string }[];
   image: string;
+  detailUrl?: string;
 };
 
 const COURSES: Course[] = [
@@ -36,6 +37,7 @@ const COURSES: Course[] = [
     level: "beginner",
     direction: "income",
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/5330c54a-7b7f-4b4b-bb27-5dfd7e57afb8.jpg",
+    detailUrl: "/course/massazhist-s-nulya",
   },
   {
     id: 2,
@@ -385,6 +387,7 @@ function CourseCard({ course }: { course: Course }) {
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}12`; }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+            onClick={() => { if (course.detailUrl) window.location.href = course.detailUrl; }}
           >
             Подробнее
           </button>

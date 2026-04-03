@@ -12,6 +12,7 @@ import Privacy from "./pages/Privacy";
 import Offer from "./pages/Offer";
 import Catalog from "./pages/Catalog";
 import CatalogPrivate from "./pages/CatalogPrivate";
+import CourseMassazhist from "./pages/CourseMassazhist";
 import NotFoundPage from "./pages/NotFoundPage";
 import CookieBanner from "./components/CookieBanner";
 
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/offer" element={<Offer />} />
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/catalog/private" element={<CatalogPrivate />} />
+          <Route path="/course/massazhist-s-nulya" element={<CourseMassazhist />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
