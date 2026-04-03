@@ -109,6 +109,7 @@ export default function CpHeroSection() {
               { icon: "Link", text: "Связки техник для практики" },
               { icon: "Layers", text: "Понимание логики построения сеанса" },
               { icon: "ShieldCheck", text: "Уверенность в своих действиях" },
+              { icon: "Repeat", text: "Стабильный результат на каждом сеансе" },
             ].map(({ icon, text }) => (
               <div key={text} style={{
                 background: "#fff", borderRadius: 14, padding: "24px 20px",
