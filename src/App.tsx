@@ -16,6 +16,7 @@ import CourseMassazhist from "./pages/CourseMassazhist";
 import CourseVosstanovitelny from "./pages/CourseVosstanovitelny";
 import CourseProtokoly from "./pages/CourseProtokoly";
 import CourseAntistress from "./pages/CourseAntistress";
+import CourseKorrektsiya from "./pages/CourseKorrektsiya";
 import NotFoundPage from "./pages/NotFoundPage";
 import CookieBanner from "./components/CookieBanner";
 
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/course/vosstanovitelny-massazh-pro" element={<CourseVosstanovitelny />} />
           <Route path="/course/gotovye-protokoly-massazha" element={<CourseProtokoly />} />
           <Route path="/course/antistress-tehniki-massazha" element={<CourseAntistress />} />
+          <Route path="/course/korrektsiya-figury" element={<CourseKorrektsiya />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

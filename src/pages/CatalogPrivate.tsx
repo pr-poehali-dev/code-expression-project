@@ -102,6 +102,8 @@ const COURSES: Course[] = [
     level: "any",
     direction: "income",
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/bdd8989f-e31c-46c9-aad1-6006a7f468ec.jpg",
+    detailUrl: "/course/korrektsiya-figury",
+    buyUrl: "https://school.brossok.ru/buy/43",
   },
   {
     id: 6,
