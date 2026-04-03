@@ -55,6 +55,7 @@ const COURSES: Course[] = [
     direction: "technique",
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/c61ffa15-f30f-41ca-9c39-e4a889f1e5b8.jpg",
     detailUrl: "/course/vosstanovitelny-massazh-pro",
+    buyUrl: "https://school.brossok.ru/buy/5",
   },
   {
     id: 3,

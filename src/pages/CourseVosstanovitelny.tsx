@@ -7,7 +7,7 @@ const ACCENT = "hsl(185, 85%, 32%)";
 const ACCENT_DARK = "hsl(185, 85%, 26%)";
 const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.25)";
 const BG = "#f8f8f6";
-const BUY_URL = "https://school.brossok.ru/buy/15";
+const BUY_URL = "https://school.brossok.ru/buy/5";
 
 const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/31ba4247-0ef8-483d-b086-1ae129072ef5.jpg";
 const AUTHOR_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/e1094aa6-0054-4675-a2d2-f6112eab1bf6.png";
