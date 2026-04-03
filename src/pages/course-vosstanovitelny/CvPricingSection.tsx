@@ -1,9 +1,18 @@
 import Icon from "@/components/ui/icon";
 import { ACCENT, FAQS, AccordionItem, BtnPrimary, BtnSecondary, h2style } from "./CvShared";
 
+const mobileStyles = `
+  .pricing-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  @media (max-width: 600px) {
+    .pricing-btns { flex-direction: column; width: 100%; }
+    .pricing-btns a { width: 100%; text-align: center; box-sizing: border-box; }
+  }
+`;
+
 export default function CvPricingSection() {
   return (
     <>
+      <style>{mobileStyles}</style>
       {/* ── 11. СТОИМОСТЬ ── */}
       <section style={{ padding: "80px 0 0" }}>
         <div style={{ maxWidth: 700, margin: "0 auto", padding: "0 24px" }}>
@@ -23,7 +32,7 @@ export default function CvPricingSection() {
                 </div>
               ))}
             </div>
-            <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+            <div className="pricing-btns">
               <BtnPrimary>Купить курс</BtnPrimary>
               <BtnSecondary>Оформить рассрочку</BtnSecondary>
             </div>
@@ -78,7 +87,7 @@ export default function CvPricingSection() {
           <p style={{ fontSize: 16, color: "#666", margin: "0 0 36px" }}>
             Это не просто обучение — это переход на новый уровень дохода
           </p>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+          <div className="pricing-btns">
             <BtnPrimary style={{ padding: "16px 40px", fontSize: 16 }}>Купить курс — 39 900 ₽</BtnPrimary>
             <BtnSecondary style={{ padding: "15px 40px", fontSize: 16 }}>Рассрочка</BtnSecondary>
           </div>

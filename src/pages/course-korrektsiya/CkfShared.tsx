@@ -124,12 +124,21 @@ export function AccordionItem({ title, children }: { title: string; children: Re
 export function CtaBar() {
   return (
     <div style={{ margin: "60px 0 0", background: "#fff", borderTop: "1px solid #e8e8e4", borderBottom: "1px solid #e8e8e4" }}>
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+      <style>{`
+        .ctabar-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+        .ctabar-btns { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        @media (max-width: 600px) {
+          .ctabar-inner { flex-direction: column; align-items: flex-start; }
+          .ctabar-btns { width: 100%; flex-direction: column; gap: 10px; }
+          .ctabar-btns a { width: 100%; text-align: center; box-sizing: border-box; }
+        }
+      `}</style>
+      <div className="ctabar-inner">
         <div>
           <div style={{ fontWeight: 700, fontSize: 17 }}>Коррекция фигуры</div>
           <div style={{ color: "#999", fontSize: 13 }}>Видимый результат с первого сеанса</div>
         </div>
-        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+        <div className="ctabar-btns">
           <span style={{ fontFamily: "Cormorant, serif", fontSize: 28, fontWeight: 700 }}>16 900 ₽</span>
           <BtnPrimary>Купить курс</BtnPrimary>
           <BtnSecondary>Рассрочка</BtnSecondary>
