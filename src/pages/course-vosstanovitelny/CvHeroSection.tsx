@@ -109,6 +109,7 @@ export default function CvHeroSection() {
               { icon: "Dumbbell", text: "Работа со связками и мышцами" },
               { icon: "Stethoscope", text: "Основы мануальной терапии" },
               { icon: "Circle", text: "Подход к работе с внутренними органами" },
+              { icon: "TrendingUp", text: "Повышение среднего чека за счёт результата" },
             ].map(({ icon, text }) => (
               <div key={text} style={{
                 background: "#fff", borderRadius: 14, padding: "24px 20px",
