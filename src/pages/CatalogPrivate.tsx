@@ -193,7 +193,7 @@ export default function CatalogPrivate() {
               margin: "0 0 12px",
               lineHeight: 1.1,
             }}>
-              Курсы для массажистов
+              Онлайн курсы для массажистов
             </h1>
             <p style={{ fontSize: 17, color: "#666", margin: 0 }}>
               Практические курсы для роста навыков и дохода — от первых клиентов до высокого чека
