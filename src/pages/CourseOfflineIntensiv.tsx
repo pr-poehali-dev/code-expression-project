@@ -351,7 +351,7 @@ export default function CourseOfflineIntensiv() {
               { icon: "TrendingUp", title: "Увеличите доход", text: "Получите техники, которые реально работают на рост чека" },
               { icon: "Users", title: "Выстроите поток", text: "Научитесь превращать разовых клиентов в постоянных" },
               { icon: "Target", title: "Составите план", text: "Уйдёте с конкретными шагами на ближайший месяц" },
-              { icon: "CheckCircle", title: "Снимете хаос", text: "Поймёте систему — и перестанете работать «вхолостую»" },
+              { icon: "PlayCircle", title: "Доступ к онлайн-урокам", text: "Получите доступ к записям техник, которые проходили на интенсиве" },
               { icon: "Star", title: "Повысите уверенность", text: "Начнёте позиционировать себя как профессионал с ценой" },
             ].map(({ icon, title, text }) => (
               <div key={title} style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 16, padding: "22px 20px" }}>
