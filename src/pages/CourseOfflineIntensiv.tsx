@@ -439,7 +439,6 @@ export default function CourseOfflineIntensiv() {
             {[
               { icon: "FileText", title: "Чек-лист диагностики", text: "Готовый инструмент для регулярного анализа своей практики" },
               { icon: "BookOpen", title: "Скрипты общения", text: "Готовые фразы для работы с возражениями и повышения чека" },
-              { icon: "Video", title: "Запись встречи", text: "Доступ к видео для повторного просмотра ключевых моментов" },
               { icon: "MessageCircle", title: "Чат участников", text: "Закрытый чат для поддержки и обмена опытом после интенсива" },
             ].map(({ icon, title, text }) => (
               <div key={title} style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 16, padding: "22px 20px", display: "flex", gap: 16 }}>
