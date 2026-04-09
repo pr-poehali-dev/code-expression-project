@@ -171,7 +171,7 @@ const OFFLINE_COURSES: Course[] = [
     direction: "income",
     format: "offline",
     duration: "1 день",
-    image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/ac73bf44-ff8f-4207-9d24-56da457498ea.jpg",
+    image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/1a5aac68-8ad8-45e6-bb3c-bbab1439bb75.jpg",
     detailUrl: "/course/offline-intensiv-massazh",
     bookUrl: "/course/offline-intensiv-massazh",
     buyUrl: "/course/offline-intensiv-massazh",

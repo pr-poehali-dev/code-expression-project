@@ -10,7 +10,7 @@ const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.25)";
 const BG = "#f8f8f6";
 const PAY_URL = "#pay";
 const BOOK_URL = "#book";
-const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/ac73bf44-ff8f-4207-9d24-56da457498ea.jpg";
+const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/1a5aac68-8ad8-45e6-bb3c-bbab1439bb75.jpg";
 
 const h2style: React.CSSProperties = {
   fontFamily: "Cormorant, serif",
