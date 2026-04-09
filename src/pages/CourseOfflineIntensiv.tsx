@@ -414,6 +414,27 @@ export default function CourseOfflineIntensiv() {
       <section style={{ padding: "80px 0 0" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
           <h2 style={h2style}>Бонусы участника</h2>
+          {/* Плашка онлайн-доступ */}
+          <div style={{
+            background: `linear-gradient(135deg, ${ACCENT}18 0%, ${ACCENT}08 100%)`,
+            border: `2px solid ${ACCENT}40`,
+            borderRadius: 16, padding: "20px 24px",
+            display: "flex", alignItems: "center", gap: 16,
+            marginBottom: 16,
+          }}>
+            <div style={{ flexShrink: 0, background: ACCENT, borderRadius: 12, padding: 10 }}>
+              <Icon name="PlayCircle" size={28} style={{ color: "#fff" }} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 16, color: "#1a1a1a", marginBottom: 4 }}>
+                Онлайн-доступ к техникам интенсива
+              </div>
+              <div style={{ fontSize: 14, color: "#555", lineHeight: 1.5 }}>
+                После мероприятия вы получите доступ к онлайн-урокам по всем техникам, которые проходили на интенсиве — для повторения и закрепления
+              </div>
+            </div>
+          </div>
+
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="bonuses-grid">
             {[
               { icon: "FileText", title: "Чек-лист диагностики", text: "Готовый инструмент для регулярного анализа своей практики" },
