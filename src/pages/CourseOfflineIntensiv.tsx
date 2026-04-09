@@ -516,7 +516,55 @@ export default function CourseOfflineIntensiv() {
         </div>
       </section>
 
-      {/* ── 9. БЛОК ОПЛАТЫ (повтор середины) ── */}
+      {/* ── 9. ОТЗЫВЫ ── */}
+      <section style={{ padding: "80px 0 0" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
+          <h2 style={h2style}>Отзывы участников</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }} className="reviews-grid">
+            {[
+              {
+                name: "Анастасия К.",
+                text: "Начала с нуля, через месяц уже принимала первых клиентов. Курс очень понятный, всё по шагам. Теперь это мой основной доход.",
+                img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/c207e068-8203-4f20-a40a-53d60df722e5.jpg",
+              },
+              {
+                name: "Елена М.",
+                text: "Долго сомневалась — нет образования, нет опыта. Но курс реально для новичков. За 3 недели освоила технику и уже зарабатываю.",
+                img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/3618e920-2b36-438e-b312-f7f0874826c3.jpg",
+              },
+              {
+                name: "Ксения М.",
+                text: "До этого было 3–4 клиента в месяц. После интенсива выстроила систему — теперь стабильная запись на 3 недели вперёд.",
+                img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/86c97297-9734-4b88-a25c-081613ef18ff.jpg",
+              },
+              {
+                name: "Артём В.",
+                text: "Скептически относился к «маркетингу для массажистов». Но интенсив — это конкретные шаги, а не теория. Клиентов получил ещё в процессе.",
+                img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/61d79a41-ee5a-422e-b4d7-8f401bd382d4.jpg",
+              },
+            ].map((r) => (
+              <div key={r.name} style={{
+                background: "#fff",
+                border: "1px solid #e8e8e4",
+                borderRadius: 18,
+                padding: "28px",
+                boxShadow: "0 2px 16px rgba(0,0,0,0.05)",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+                  <img src={r.img} alt={r.name} style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover" }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 15 }}>{r.name}</div>
+                    <div style={{ color: "#f59e0b", fontSize: 14 }}>★★★★★</div>
+                  </div>
+                </div>
+                <p style={{ fontSize: 14, color: "#555", lineHeight: 1.65, margin: 0 }}>{r.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 10. БЛОК ОПЛАТЫ (повтор) ── */}
       <PricingBlock />
 
       {/* ── 10. FAQ ── */}
@@ -553,6 +601,7 @@ export default function CourseOfflineIntensiv() {
           .problems-grid { grid-template-columns: 1fr !important; }
           .course-author-grid { grid-template-columns: 1fr !important; }
           .course-author-pad { padding: 28px 24px !important; }
+          .reviews-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 500px) {
           .results-grid { grid-template-columns: 1fr !important; }
