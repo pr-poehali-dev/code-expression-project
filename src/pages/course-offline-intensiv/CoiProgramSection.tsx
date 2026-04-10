@@ -102,6 +102,18 @@ export default function CoiProgramSection() {
             <p style={{ fontSize: 15, color: "#555", lineHeight: 1.7, margin: "0 0 20px" }}>
               Мы поможем с организацией поездки: расскажем о ближайших гостиницах, поможем скоординировать время приезда и ответим на вопросы.
             </p>
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 10,
+              background: "linear-gradient(135deg, hsl(185,85%,97%) 0%, #fff 100%)",
+              border: `1.5px solid ${ACCENT}`,
+              borderRadius: 12, padding: "12px 20px", marginBottom: 20,
+            }}>
+              <span style={{ fontSize: 22 }}>🏨</span>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a" }}>Скидка 10% на отели по нашей рекомендации</div>
+                <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>Напишите нам после записи — подберём вариант рядом с площадкой</div>
+              </div>
+            </div>
             <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
               {[
                 { icon: "Hotel", text: "Варианты жилья рядом" },
