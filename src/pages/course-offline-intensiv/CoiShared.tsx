@@ -4,7 +4,7 @@ export const ACCENT = "hsl(185, 85%, 32%)";
 export const ACCENT_DARK = "hsl(185, 85%, 26%)";
 export const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.25)";
 export const BG = "#f8f8f6";
-export const PAY_URL = "#pay";
+export const PAY_URL = "https://school.brossok.ru/buy/71";
 export const BOOK_URL = "#book";
 export const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/1a5aac68-8ad8-45e6-bb3c-bbab1439bb75.jpg";
 
