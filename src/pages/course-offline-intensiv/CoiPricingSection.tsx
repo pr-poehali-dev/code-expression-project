@@ -187,6 +187,53 @@ export default function CoiPricingSection() {
           </AccordionItem>
         </div>
       </section>
+
+      {/* ── АДРЕС ── */}
+      <section style={{ padding: "0 0 80px", background: "#fff" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{
+            background: "#f8f8f6",
+            border: "1px solid #e8e8e4",
+            borderRadius: 20,
+            padding: "36px 40px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 24,
+          }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+              <div style={{ color: ACCENT, flexShrink: 0, marginTop: 2 }}>
+                <Icon name="MapPin" size={28} />
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>Адрес мероприятия</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: "#1a1a1a", fontFamily: "Cormorant, serif", lineHeight: 1.3 }}>
+                  Москва, Волков пер., д. 4
+                </div>
+              </div>
+            </div>
+            <a
+              href="https://yandex.ru/maps/?text=Москва,+Волков+переулок,+4"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                padding: "12px 24px", borderRadius: 12,
+                border: `1.5px solid ${ACCENT}`, background: "transparent",
+                color: ACCENT, fontSize: 14, fontWeight: 600,
+                textDecoration: "none", fontFamily: "Montserrat, sans-serif",
+                transition: "all 0.18s", whiteSpace: "nowrap",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = `${ACCENT}12`; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = "transparent"; }}
+            >
+              <Icon name="Navigation" size={16} />
+              Как добраться
+            </a>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
