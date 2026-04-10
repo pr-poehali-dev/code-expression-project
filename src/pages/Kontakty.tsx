@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import DokFooter from "@/components/DokFooter";
 import DokNavbar from "@/components/DokNavbar";
 
@@ -210,6 +211,10 @@ function MessageForm() {
 export default function Kontakty() {
   return (
     <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
+      <Helmet>
+        <title>Контакты — Связаться с Dok Диалог | МассоПро</title>
+        <meta name="description" content="Свяжитесь с командой Dok Диалог: телефон, email, Telegram. Вопросы по платформе, тарифам и партнёрству. Ответим быстро в рабочее время." />
+      </Helmet>
       <style>{`
         .k-cards-grid {
           display: grid;

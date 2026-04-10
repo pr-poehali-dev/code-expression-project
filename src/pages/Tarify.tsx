@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Helmet } from "react-helmet-async";
 import DokFooter from "@/components/DokFooter";
 import DokNavbar from "@/components/DokNavbar";
 import TarifyPlans from "./tarify/TarifyPlans";
@@ -21,6 +22,10 @@ export default function Tarify() {
 
   return (
     <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
+      <Helmet>
+        <title>Тарифы на обучение массажу — Выберите свой план | Dok Диалог</title>
+        <meta name="description" content="Онлайн-курсы по массажу для частных мастеров и салонов. Выберите тариф: базовый, профессиональный или корпоративный. Доступ к урокам, протоколам и сообществу МассоПро." />
+      </Helmet>
       <style>{`
         .tarify-plans-grid {
           display: grid;

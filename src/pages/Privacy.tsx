@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import DokFooter from "@/components/DokFooter";
 import DokNavbar from "@/components/DokNavbar";
 
@@ -123,6 +124,10 @@ type SectionItem = {
 export default function Privacy() {
   return (
     <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
+      <Helmet>
+        <title>Политика конфиденциальности — Dok Диалог</title>
+        <meta name="description" content="Политика конфиденциальности платформы Dok Диалог. Порядок сбора, хранения и обработки персональных данных пользователей." />
+      </Helmet>
       <DokNavbar />
 
       {/* Hero */}

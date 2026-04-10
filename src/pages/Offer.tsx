@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import DokFooter from "@/components/DokFooter";
 import DokNavbar from "@/components/DokNavbar";
 
@@ -113,6 +114,10 @@ type SectionItem = { num: string; text: string };
 export default function Offer() {
   return (
     <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
+      <Helmet>
+        <title>Публичная оферта — Dok Диалог</title>
+        <meta name="description" content="Публичная оферта на оказание образовательных услуг платформы Dok Диалог. Условия договора, порядок оплаты и возврата." />
+      </Helmet>
       <DokNavbar />
 
       {/* Hero */}
