@@ -21,6 +21,7 @@ export function BtnPay({ children, style }: { children: React.ReactNode; style?:
   return (
     <a
       href={PAY_URL}
+      target="_blank" rel="noopener noreferrer"
       onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       style={{
         display: "inline-block", textDecoration: "none",
@@ -39,6 +40,7 @@ export function BtnBook({ children, style }: { children: React.ReactNode; style?
   return (
     <a
       href={BOOK_URL}
+      target="_blank" rel="noopener noreferrer"
       onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       style={{
         display: "inline-block", textDecoration: "none",
