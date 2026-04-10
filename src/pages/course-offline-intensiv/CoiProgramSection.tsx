@@ -80,6 +80,7 @@ export default function CoiProgramSection() {
               { icon: "FileText", title: "Чек-лист диагностики", text: "Готовый инструмент для регулярного анализа своей практики" },
               { icon: "BookOpen", title: "Скрипты общения", text: "Готовые фразы для работы с возражениями и повышения чека" },
               { icon: "MessageCircle", title: "Чат участников", text: "Закрытый чат для поддержки и обмена опытом после интенсива" },
+              { icon: "TrendingUp", title: "План роста дохода", text: "Персональный план действий для увеличения выручки в ближайшие 30 дней" },
             ].map(({ icon, title, text }) => (
               <div key={title} style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 16, padding: "22px 20px", display: "flex", gap: 16 }}>
                 <div style={{ color: ACCENT, flexShrink: 0 }}><Icon name={icon} size={24} /></div>
