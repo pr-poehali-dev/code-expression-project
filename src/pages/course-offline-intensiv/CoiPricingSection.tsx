@@ -5,7 +5,7 @@ export default function CoiPricingSection() {
   return (
     <>
       {/* ── БЛОК ОПЛАТЫ ── */}
-      <section id="pay" style={{ padding: "80px 0", background: "#fff" }}>
+      <section id="pay" style={{ padding: "80px 0 80px", marginTop: 80, background: "#fff" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
           <h2 style={{ ...h2style, textAlign: "center" }}>Выберите формат участия</h2>
 
