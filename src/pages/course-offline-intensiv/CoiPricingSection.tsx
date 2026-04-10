@@ -17,6 +17,7 @@ export default function CoiPricingSection() {
               border: `2px solid ${ACCENT}`,
               borderRadius: 20, padding: "32px 28px",
               position: "relative", overflow: "hidden",
+              display: "flex", flexDirection: "column",
             }}>
               <div style={{
                 position: "absolute", top: 16, right: 16,
@@ -55,12 +56,14 @@ export default function CoiPricingSection() {
                 ))}
               </ul>
 
-              <BtnPay style={{ width: "100%", textAlign: "center", padding: "16px 24px", fontSize: 16, borderRadius: 12 }}>
-                Оплатить 9 900 руб.
-              </BtnPay>
-              <p style={{ fontSize: 12, color: "#888", margin: "12px 0 0", textAlign: "center", lineHeight: 1.5 }}>
-                Вы фиксируете минимальную цену и гарантируете участие
-              </p>
+              <div style={{ marginTop: "auto" }}>
+                <BtnPay style={{ width: "100%", textAlign: "center", padding: "16px 24px", fontSize: 16, borderRadius: 12 }}>
+                  Оплатить 9 900 руб.
+                </BtnPay>
+                <p style={{ fontSize: 12, color: "#888", margin: "12px 0 0", textAlign: "center", lineHeight: 1.5 }}>
+                  Вы фиксируете минимальную цену и гарантируете участие
+                </p>
+              </div>
             </div>
 
             {/* Card 2 — Book */}
@@ -68,6 +71,7 @@ export default function CoiPricingSection() {
               background: "#fafaf8",
               border: "1.5px solid #e8e8e4",
               borderRadius: 20, padding: "32px 28px",
+              display: "flex", flexDirection: "column",
             }}>
               <div style={{ fontSize: 18, fontWeight: 700, margin: "0 0 20px", color: "#1a1a1a" }}>
                 Забронировать место
@@ -100,12 +104,14 @@ export default function CoiPricingSection() {
                 ))}
               </ul>
 
-              <BtnBook style={{ width: "100%", textAlign: "center", padding: "15px 24px", fontSize: 15, borderRadius: 12 }}>
-                Забронировать
-              </BtnBook>
-              <p style={{ fontSize: 12, color: "#aaa", margin: "12px 0 0", textAlign: "center", lineHeight: 1.5 }}>
-                Подходит, если хотите занять место сейчас и оплатить позже
-              </p>
+              <div style={{ marginTop: "auto" }}>
+                <BtnBook style={{ width: "100%", textAlign: "center", padding: "15px 24px", fontSize: 15, borderRadius: 12 }}>
+                  Забронировать
+                </BtnBook>
+                <p style={{ fontSize: 12, color: "#aaa", margin: "12px 0 0", textAlign: "center", lineHeight: 1.5 }}>
+                  Подходит, если хотите занять место сейчас и оплатить позже
+                </p>
+              </div>
             </div>
           </div>
 
