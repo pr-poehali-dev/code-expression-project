@@ -113,7 +113,7 @@ function ContactCard({
   );
 }
 
-const SEND_URL = "https://functions.poehali.dev/9d9058e7-5c92-49c1-ad75-68ed3ea30bb1";
+const SEND_URL = "https://functions.poehali.dev/13844979-19e6-463d-bb8e-fddd2b08479f";
 
 function MessageForm() {
   const [name, setName] = useState("");
