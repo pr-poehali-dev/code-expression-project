@@ -147,7 +147,8 @@ export default function CoiContactForm() {
                   style={{ marginTop: 2, accentColor: ACCENT, width: 16, height: 16, flexShrink: 0, cursor: "pointer" }}
                 />
                 <span style={{ fontSize: 13, color: "#888", lineHeight: 1.5 }}>
-                  Я согласен(а) на обработку персональных данных в соответствии с политикой конфиденциальности
+                  Я согласен(а) на обработку персональных данных в соответствии с{" "}
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: ACCENT, textDecoration: "underline" }}>политикой конфиденциальности</a>
                 </span>
               </label>
 
