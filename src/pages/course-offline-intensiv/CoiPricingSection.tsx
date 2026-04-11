@@ -12,7 +12,7 @@ export default function CoiPricingSection() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 }} className="pricing-grid">
 
             {/* Card 1 — Pay */}
-            <div style={{
+            <div className="coi-pricing-card" style={{
               background: "linear-gradient(135deg, hsl(185,85%,97%) 0%, #fff 100%)",
               border: `2px solid ${ACCENT}`,
               borderRadius: 20, padding: "32px 28px",
@@ -67,7 +67,7 @@ export default function CoiPricingSection() {
             </div>
 
             {/* Card 2 — Book */}
-            <div id="book" style={{
+            <div id="book" className="coi-pricing-card" style={{
               background: "#fafaf8",
               border: "1.5px solid #e8e8e4",
               borderRadius: 20, padding: "32px 28px",
@@ -116,7 +116,7 @@ export default function CoiPricingSection() {
           </div>
 
           {/* Comparison */}
-          <div style={{ background: "#f8f8f6", borderRadius: 16, padding: "28px 32px", border: "1px solid #e8e8e4" }}>
+          <div className="coi-compare-wrap" style={{ background: "#f8f8f6", borderRadius: 16, padding: "28px 32px", border: "1px solid #e8e8e4" }}>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 20, color: "#1a1a1a", textAlign: "center" }}>Сравнение вариантов</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="compare-grid">
               <div>

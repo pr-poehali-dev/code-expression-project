@@ -38,11 +38,26 @@ export default function CourseOfflineIntensiv() {
           .course-author-grid { grid-template-columns: 1fr !important; }
           .course-author-pad { padding: 28px 24px !important; }
           .reviews-grid { grid-template-columns: 1fr !important; }
+          .coi-pricing-card { padding: 24px 20px !important; }
+          .coi-compare-wrap { padding: 20px 20px !important; }
+          .coi-inogorod-card { padding: 28px 24px !important; }
+          .coi-bonus-online { flex-direction: column !important; }
+          .coi-timeline-item { flex-direction: column !important; gap: 8px !important; }
+          .coi-timeline-time { width: auto !important; }
+          .coi-timeline-body { border-left: none !important; padding-left: 0 !important; border-top: 2px solid rgba(0,166,153,0.2); padding-top: 8px !important; }
         }
         @media (max-width: 500px) {
           .results-grid { grid-template-columns: 1fr !important; }
           .format-grid { grid-template-columns: 1fr 1fr !important; }
           .coi-hero-btns { flex-direction: column !important; }
+          .coi-hero-btns a, .coi-hero-btns button { width: 100% !important; text-align: center !important; justify-content: center !important; }
+          .coi-hero-img { height: 240px !important; }
+          .coi-form-wrap { padding: 28px 18px !important; }
+          .coi-sent-wrap { padding: 36px 18px !important; }
+          .coi-pricing-card { padding: 20px 16px !important; }
+          .coi-compare-wrap { padding: 16px 16px !important; }
+          .coi-inogorod-card { padding: 22px 16px !important; }
+          .bonuses-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
       <DokFooter />

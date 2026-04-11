@@ -61,7 +61,7 @@ export default function CoiContactForm() {
         </p>
 
         {sent ? (
-          <div style={{
+          <div className="coi-sent-wrap" style={{
             background: "#fff", borderRadius: 18, padding: "48px 36px",
             textAlign: "center", border: `2px solid ${ACCENT}`,
             boxShadow: `0 4px 24px ${ACCENT_SHADOW}`,
@@ -75,7 +75,7 @@ export default function CoiContactForm() {
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={{
+          <form onSubmit={handleSubmit} className="coi-form-wrap" style={{
             background: "#fff", borderRadius: 18, padding: "40px 36px",
             border: "1px solid #e8e8e4", boxShadow: "0 2px 20px rgba(0,0,0,0.06)",
           }}>

@@ -53,7 +53,7 @@ export default function CoiHeroSection() {
             </div>
           </div>
           <div style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
-            <img src={HERO_IMG} alt="Офлайн интенсив для массажистов" style={{ width: "100%", height: 460, objectFit: "cover", display: "block" }} />
+            <img src={HERO_IMG} alt="Офлайн интенсив для массажистов" className="coi-hero-img" style={{ width: "100%", height: 460, objectFit: "cover", display: "block" }} />
           </div>
         </div>
       </section>

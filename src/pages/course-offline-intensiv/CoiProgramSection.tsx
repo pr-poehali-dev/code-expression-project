@@ -16,11 +16,11 @@ export default function CoiProgramSection() {
             { time: "16:15–17:15", title: "Удержание и возврат", desc: "Как превратить разового клиента в постоянного. Скрипты, поводы для контакта, программы лояльности." },
             { time: "17:15–18:00", title: "Составление личного плана", desc: "Каждый участник уходит с индивидуальным планом действий на ближайший месяц." },
           ].map(({ time, title, desc }, i) => (
-            <div key={i} style={{ display: "flex", gap: 20, marginBottom: 28 }}>
-              <div style={{ flexShrink: 0, width: 100, paddingTop: 2 }}>
+            <div key={i} style={{ display: "flex", gap: 20, marginBottom: 28 }} className="coi-timeline-item">
+              <div className="coi-timeline-time" style={{ flexShrink: 0, width: 100, paddingTop: 2 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: ACCENT, background: `${ACCENT}12`, borderRadius: 8, padding: "4px 8px", textAlign: "center" }}>{time}</div>
               </div>
-              <div style={{ borderLeft: `2px solid ${ACCENT}30`, paddingLeft: 20, flex: 1 }}>
+              <div className="coi-timeline-body" style={{ borderLeft: `2px solid ${ACCENT}30`, paddingLeft: 20, flex: 1 }}>
                 <div style={{ fontWeight: 700, fontSize: 16, color: "#1a1a1a", marginBottom: 6 }}>{title}</div>
                 <div style={{ fontSize: 14, color: "#666", lineHeight: 1.6 }}>{desc}</div>
               </div>
@@ -55,7 +55,7 @@ export default function CoiProgramSection() {
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
           <h2 style={h2style}>Бонусы участника</h2>
           {/* Плашка онлайн-доступ */}
-          <div style={{
+          <div className="coi-bonus-online" style={{
             background: `linear-gradient(135deg, ${ACCENT}18 0%, ${ACCENT}08 100%)`,
             border: `2px solid ${ACCENT}40`,
             borderRadius: 16, padding: "20px 24px",
@@ -97,7 +97,7 @@ export default function CoiProgramSection() {
       {/* ── 7. ДЛЯ ИНОГОРОДНИХ ── */}
       <section style={{ padding: "80px 0 0" }}>
         <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "36px 40px" }}>
+          <div className="coi-inogorod-card" style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "36px 40px" }}>
             <h2 style={{ ...h2style, marginBottom: 20 }}>Приедете из другого города?</h2>
             <p style={{ fontSize: 15, color: "#555", lineHeight: 1.7, margin: "0 0 20px" }}>
               Мы поможем с организацией поездки: расскажем о ближайших гостиницах, поможем скоординировать время приезда и ответим на вопросы.
