@@ -19,11 +19,12 @@ export default function CoiPricingSection() {
               position: "relative", overflow: "hidden",
               display: "flex", flexDirection: "column",
             }}>
-              <div style={{
-                position: "absolute", top: 16, right: 16,
-                background: ACCENT, color: "#fff",
-                fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 20, letterSpacing: 0.5,
-              }}>ЛУЧШИЙ ВЫБОР</div>
+              <div style={{ marginBottom: 14 }}>
+                <span style={{
+                  background: ACCENT, color: "#fff",
+                  fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 20, letterSpacing: 0.5,
+                }}>ЛУЧШИЙ ВЫБОР</span>
+              </div>
 
               <div style={{ fontSize: 18, fontWeight: 700, margin: "0 0 20px", color: "#1a1a1a" }}>
                 Оплатить полностью и сэкономить
