@@ -144,8 +144,16 @@ export function OfflineCourseCard({ course }: { course: Course }) {
         maxWidth: 680,
       }}
     >
+      <style>{`
+        .offline-img { height: 260px; }
+        .offline-body { padding: 28px 28px 24px; }
+        @media (max-width: 480px) {
+          .offline-img { height: 200px; }
+          .offline-body { padding: 20px 16px 20px; }
+        }
+      `}</style>
       <div style={{ display: "flex", flexDirection: "column" }} className="offline-card-inner">
-        <div style={{ width: "100%", height: 260, overflow: "hidden", flexShrink: 0, position: "relative" }}>
+        <div className="offline-img" style={{ width: "100%", overflow: "hidden", flexShrink: 0, position: "relative" }}>
           <img
             src={course.image}
             alt={course.title}
@@ -168,7 +176,7 @@ export function OfflineCourseCard({ course }: { course: Course }) {
           </div>
         </div>
 
-        <div style={{ padding: "28px 28px 24px", display: "flex", flexDirection: "column", flex: 1 }}>
+        <div className="offline-body" style={{ display: "flex", flexDirection: "column", flex: 1 }}>
           <h3 style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.3, margin: "0 0 12px", color: "#1a1a1a", fontFamily: "Cormorant, serif" }}>
             {course.title}
           </h3>
@@ -190,19 +198,22 @@ export function OfflineCourseCard({ course }: { course: Course }) {
             </ul>
           </div>
 
-          <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-            <div>
-              <span style={{ fontSize: 28, fontWeight: 700, color: "#1a1a1a" }}>{course.price}</span>
+          <div style={{ marginTop: "auto" }}>
+            <div style={{ marginBottom: 20 }}>
+              <span style={{ fontSize: 26, fontWeight: 700, color: "#1a1a1a" }}>{course.price}</span>
             </div>
-            <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <a
                 href={course.detailUrl ?? "#"}
                 style={{
-                  padding: "12px 22px", borderRadius: 11,
+                  flex: 1, minWidth: 120,
+                  padding: "13px 20px", borderRadius: 11,
                   border: `1.5px solid ${ACCENT}`, background: "transparent",
                   color: ACCENT, fontSize: 14, fontWeight: 600,
                   textDecoration: "none", transition: "all 0.18s",
                   fontFamily: "Montserrat, sans-serif",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  textAlign: "center", boxSizing: "border-box",
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = `${ACCENT}12`; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = "transparent"; }}
@@ -212,12 +223,15 @@ export function OfflineCourseCard({ course }: { course: Course }) {
               <a
                 href={course.detailUrl ?? "#"}
                 style={{
-                  padding: "12px 22px", borderRadius: 11,
+                  flex: 1, minWidth: 120,
+                  padding: "13px 20px", borderRadius: 11,
                   border: "none", background: ACCENT,
                   color: "#fff", fontSize: 14, fontWeight: 600,
                   textDecoration: "none", transition: "all 0.18s",
                   fontFamily: "Montserrat, sans-serif",
                   boxShadow: `0 4px 14px ${ACCENT_SHADOW}`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  textAlign: "center", boxSizing: "border-box",
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = ACCENT_DARK; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = ACCENT; }}
