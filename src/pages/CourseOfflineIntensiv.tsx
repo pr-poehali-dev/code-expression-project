@@ -51,6 +51,8 @@ export default function CourseOfflineIntensiv() {
           .format-grid { grid-template-columns: 1fr 1fr !important; }
           .coi-hero-btns { flex-direction: column !important; }
           .coi-hero-btns a, .coi-hero-btns button { width: 100% !important; text-align: center !important; justify-content: center !important; }
+          .coi-address-wrap { flex-direction: column !important; }
+          .coi-address-wrap a { width: 100% !important; justify-content: center !important; }
           .coi-hero-img { height: 240px !important; }
           .coi-form-wrap { padding: 28px 18px !important; }
           .coi-sent-wrap { padding: 36px 18px !important; }

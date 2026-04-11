@@ -176,7 +176,7 @@ export default function CoiPricingSection() {
       {/* ── АДРЕС ── */}
       <section style={{ padding: "80px 0 0" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{
+          <div className="coi-address-wrap" style={{
             background: "#fff",
             border: "1px solid #e8e8e4",
             borderRadius: 20,
@@ -203,12 +203,12 @@ export default function CoiPricingSection() {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
+                display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
                 padding: "12px 24px", borderRadius: 12,
                 border: `1.5px solid ${ACCENT}`, background: "transparent",
                 color: ACCENT, fontSize: 14, fontWeight: 600,
                 textDecoration: "none", fontFamily: "Montserrat, sans-serif",
-                transition: "all 0.18s", whiteSpace: "nowrap",
+                transition: "all 0.18s", whiteSpace: "nowrap", flexShrink: 0,
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = `${ACCENT}12`; }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = "transparent"; }}
