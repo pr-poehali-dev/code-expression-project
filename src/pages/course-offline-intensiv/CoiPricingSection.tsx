@@ -9,7 +9,7 @@ export default function CoiPricingSection() {
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
           <h2 style={{ ...h2style, textAlign: "center" }}>Выберите формат участия</h2>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40 }} className="pricing-grid">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 40, gridTemplateRows: "auto auto auto auto auto auto" }} className="pricing-grid">
 
             {/* Card 1 — Pay */}
             <div className="coi-pricing-card" style={{
@@ -17,51 +17,59 @@ export default function CoiPricingSection() {
               border: `2px solid ${ACCENT}`,
               borderRadius: 20, padding: "32px 28px",
               position: "relative", overflow: "hidden",
-              display: "flex", flexDirection: "column",
+              display: "contents",
             }}>
-              <div style={{ marginBottom: 14 }}>
+              {/* row 1: badge */}
+              <div style={{ gridColumn: 1, gridRow: 1, padding: "32px 28px 0", background: "linear-gradient(135deg, hsl(185,85%,97%) 0%, #fff 100%)", borderRadius: "20px 20px 0 0", border: `2px solid ${ACCENT}`, borderBottom: "none", marginBottom: 0 }}>
                 <span style={{
                   background: ACCENT, color: "#fff",
                   fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 20, letterSpacing: 0.5,
                 }}>ЛУЧШИЙ ВЫБОР</span>
               </div>
-
-              <div style={{ fontSize: 18, fontWeight: 700, margin: "0 0 20px", color: "#1a1a1a" }}>
+              {/* row 2: title */}
+              <div style={{ gridColumn: 1, gridRow: 2, fontSize: 18, fontWeight: 700, color: "#1a1a1a", padding: "16px 28px 0", background: "linear-gradient(135deg, hsl(185,85%,97%) 0%, #fff 100%)", border: `2px solid ${ACCENT}`, borderTop: "none", borderBottom: "none" }}>
                 Оплатить полностью и сэкономить
               </div>
-
-              <div style={{ marginBottom: 8 }}>
-                <span style={{ fontSize: 15, color: "#bbb", textDecoration: "line-through" }}>15 000 руб.</span>
+              {/* row 3: price */}
+              <div style={{ gridColumn: 1, gridRow: 3, padding: "16px 28px 0", background: "linear-gradient(135deg, hsl(185,85%,97%) 0%, #fff 100%)", border: `2px solid ${ACCENT}`, borderTop: "none", borderBottom: "none" }}>
+                <div style={{ marginBottom: 8 }}>
+                  <span style={{ fontSize: 15, color: "#bbb", textDecoration: "line-through" }}>15 000 руб.</span>
+                </div>
+                <div style={{ fontSize: 42, fontWeight: 800, color: "#1a1a1a", lineHeight: 1, marginBottom: 8 }}>9 900 <span style={{ fontSize: 24 }}>руб.</span></div>
+                <div style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  background: "#dcfce7", color: "#15803d",
+                  fontSize: 13, fontWeight: 700, padding: "5px 12px", borderRadius: 8,
+                }}>
+                  <Icon name="TrendingDown" size={14} />
+                  Вы экономите 5 100 руб.
+                </div>
               </div>
-              <div style={{ fontSize: 42, fontWeight: 800, color: "#1a1a1a", lineHeight: 1, marginBottom: 8 }}>9 900 <span style={{ fontSize: 24 }}>руб.</span></div>
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: 6,
-                background: "#dcfce7", color: "#15803d",
-                fontSize: 13, fontWeight: 700, padding: "5px 12px", borderRadius: 8, marginBottom: 24,
-              }}>
-                <Icon name="TrendingDown" size={14} />
-                Вы экономите 5 100 руб.
+              {/* row 4: features */}
+              <div style={{ gridColumn: 1, gridRow: 4, padding: "24px 28px 0", background: "linear-gradient(135deg, hsl(185,85%,97%) 0%, #fff 100%)", border: `2px solid ${ACCENT}`, borderTop: "none", borderBottom: "none", flex: 1 }}>
+                <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+                  {[
+                    "Место закрепляется сразу",
+                    "Без доплат и сюрпризов",
+                    "Фиксация минимальной цены",
+                    "Полный доступ ко всем материалам",
+                  ].map((item) => (
+                    <li key={item} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "#333" }}>
+                      <span style={{ color: ACCENT, flexShrink: 0, marginTop: 1 }}>✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
-
-              <ul style={{ margin: "0 0 28px", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
-                {[
-                  "Место закрепляется сразу",
-                  "Без доплат и сюрпризов",
-                  "Фиксация минимальной цены",
-                  "Полный доступ ко всем материалам",
-                ].map((item) => (
-                  <li key={item} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "#333" }}>
-                    <span style={{ color: ACCENT, flexShrink: 0, marginTop: 1 }}>✓</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-
-              <div style={{ marginTop: "auto" }}>
+              {/* row 5: button */}
+              <div style={{ gridColumn: 1, gridRow: 5, padding: "24px 28px", background: "linear-gradient(135deg, hsl(185,85%,97%) 0%, #fff 100%)", border: `2px solid ${ACCENT}`, borderTop: "none", borderBottom: "none" }}>
                 <BtnPay style={{ width: "100%", textAlign: "center", padding: "16px 24px", fontSize: 16, borderRadius: 12 }}>
                   Оплатить 9 900 руб.
                 </BtnPay>
-                <p style={{ fontSize: 12, color: "#888", margin: "12px 0 0", textAlign: "center", lineHeight: 1.5 }}>
+              </div>
+              {/* row 6: note */}
+              <div style={{ gridColumn: 1, gridRow: 6, padding: "0 28px 32px", background: "linear-gradient(135deg, hsl(185,85%,97%) 0%, #fff 100%)", borderRadius: "0 0 20px 20px", border: `2px solid ${ACCENT}`, borderTop: "none" }}>
+                <p style={{ fontSize: 12, color: "#888", margin: 0, textAlign: "center", lineHeight: 1.5 }}>
                   Вы фиксируете минимальную цену и гарантируете участие
                 </p>
               </div>
@@ -72,44 +80,56 @@ export default function CoiPricingSection() {
               background: "#fafaf8",
               border: "1.5px solid #e8e8e4",
               borderRadius: 20, padding: "32px 28px",
-              display: "flex", flexDirection: "column",
+              display: "contents",
             }}>
-              <div style={{ fontSize: 18, fontWeight: 700, margin: "0 0 20px", color: "#1a1a1a" }}>
+              {/* row 1: badge placeholder */}
+              <div style={{ gridColumn: 2, gridRow: 1, padding: "32px 28px 0", background: "#fafaf8", borderRadius: "20px 20px 0 0", border: "1.5px solid #e8e8e4", borderBottom: "none" }}>
+                <span style={{ display: "inline-block", height: 22 }} />
+              </div>
+              {/* row 2: title */}
+              <div style={{ gridColumn: 2, gridRow: 2, fontSize: 18, fontWeight: 700, color: "#1a1a1a", padding: "16px 28px 0", background: "#fafaf8", border: "1.5px solid #e8e8e4", borderTop: "none", borderBottom: "none" }}>
                 Забронировать место
               </div>
-
-              <div style={{ fontSize: 36, fontWeight: 800, color: "#1a1a1a", lineHeight: 1, marginBottom: 8 }}>2 000 <span style={{ fontSize: 20 }}>руб.</span></div>
-
-              <div style={{ fontSize: 13, color: "#888", marginBottom: 8 }}>
-                Останется доплатить:
+              {/* row 3: price */}
+              <div style={{ gridColumn: 2, gridRow: 3, padding: "16px 28px 0", background: "#fafaf8", border: "1.5px solid #e8e8e4", borderTop: "none", borderBottom: "none" }}>
+                <div style={{ marginBottom: 8 }}>
+                  <span style={{ display: "inline-block", height: 21 }} />
+                </div>
+                <div style={{ fontSize: 42, fontWeight: 800, color: "#1a1a1a", lineHeight: 1, marginBottom: 8 }}>2 000 <span style={{ fontSize: 24 }}>руб.</span></div>
+                <div style={{ fontSize: 13, color: "#888", marginBottom: 4 }}>Останется доплатить:</div>
+                <div style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  background: "#fef9c3", color: "#854d0e",
+                  fontSize: 13, fontWeight: 600, padding: "5px 12px", borderRadius: 8,
+                }}>
+                  <Icon name="AlertCircle" size={14} />
+                  13 000 руб. (без скидки)
+                </div>
               </div>
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: 6,
-                background: "#fef9c3", color: "#854d0e",
-                fontSize: 13, fontWeight: 600, padding: "5px 12px", borderRadius: 8, marginBottom: 24,
-              }}>
-                <Icon name="AlertCircle" size={14} />
-                13 000 руб. (без скидки)
+              {/* row 4: features */}
+              <div style={{ gridColumn: 2, gridRow: 4, padding: "24px 28px 0", background: "#fafaf8", border: "1.5px solid #e8e8e4", borderTop: "none", borderBottom: "none" }}>
+                <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+                  {[
+                    { text: "Фиксация места", ok: true },
+                    { text: "Доплата 13 000 руб. до события", ok: false },
+                    { text: "Итоговая стоимость выше", ok: false },
+                  ].map((item) => (
+                    <li key={item.text} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "#555" }}>
+                      <span style={{ color: item.ok ? ACCENT : "#bbb", flexShrink: 0, marginTop: 1 }}>{item.ok ? "✓" : "–"}</span>
+                      {item.text}
+                    </li>
+                  ))}
+                </ul>
               </div>
-
-              <ul style={{ margin: "0 0 28px", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
-                {[
-                  { text: "Фиксация места", ok: true },
-                  { text: "Доплата 13 000 руб. до события", ok: false },
-                  { text: "Итоговая стоимость выше", ok: false },
-                ].map((item) => (
-                  <li key={item.text} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "#555" }}>
-                    <span style={{ color: item.ok ? ACCENT : "#bbb", flexShrink: 0, marginTop: 1 }}>{item.ok ? "✓" : "–"}</span>
-                    {item.text}
-                  </li>
-                ))}
-              </ul>
-
-              <div style={{ marginTop: "auto" }}>
-                <BtnBook style={{ width: "100%", textAlign: "center", padding: "15px 24px", fontSize: 15, borderRadius: 12 }}>
+              {/* row 5: button */}
+              <div style={{ gridColumn: 2, gridRow: 5, padding: "24px 28px", background: "#fafaf8", border: "1.5px solid #e8e8e4", borderTop: "none", borderBottom: "none" }}>
+                <BtnBook style={{ width: "100%", textAlign: "center", padding: "16px 24px", fontSize: 15, borderRadius: 12 }}>
                   Забронировать
                 </BtnBook>
-                <p style={{ fontSize: 12, color: "#aaa", margin: "12px 0 0", textAlign: "center", lineHeight: 1.5 }}>
+              </div>
+              {/* row 6: note */}
+              <div style={{ gridColumn: 2, gridRow: 6, padding: "0 28px 32px", background: "#fafaf8", borderRadius: "0 0 20px 20px", border: "1.5px solid #e8e8e4", borderTop: "none" }}>
+                <p style={{ fontSize: 12, color: "#aaa", margin: 0, textAlign: "center", lineHeight: 1.5 }}>
                   Подходит, если хотите занять место сейчас и оплатить позже
                 </p>
               </div>
