@@ -197,25 +197,55 @@ export default function CourseTrevoga() {
 
       {/* AUTHOR */}
       <section style={{ background: "#fff", padding: "clamp(48px, 7vw, 80px) 20px" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
           <h2 style={{ ...h2style, textAlign: "center" }}>Кто ведёт курс</h2>
-          <div className="ct-author-wrap" style={{ display: "flex", gap: 36, alignItems: "flex-start", background: BG, borderRadius: 24, padding: "clamp(24px, 4vw, 40px)", border: "1px solid #e8e8e4" }}>
-            <img
-              src={AUTHOR_IMG}
-              alt="Автор курса"
-              className="ct-author-img"
-              style={{ width: "clamp(100px, 14vw, 160px)", height: "clamp(100px, 14vw, 160px)", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: `4px solid ${ACCENT}`, boxShadow: `0 8px 28px ${ACCENT_SHADOW}` }}
-            />
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: ACCENT, marginBottom: 6 }}>Автор и ведущий</div>
-              <h3 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 700, margin: "0 0 6px", color: "#1a1a1a" }}>Dok Диалог</h3>
-              <p style={{ fontSize: 13, color: "#888", margin: "0 0 14px" }}>Эксперт в области телесных практик, массажа и работы с нервной системой</p>
-              <p style={{ fontSize: "clamp(13px, 1.5vw, 15px)", color: "#444", lineHeight: 1.75, margin: "0 0 12px" }}>
-                Более 10 лет в работе с телом и нервной системой. Специализация — физиологические методы регуляции состояния: без эзотерики, без долгих медитаций, только работающие инструменты.
+          <div className="ct-author-grid" style={{
+            background: "#fff", border: "1px solid #e8e8e4", borderRadius: 24,
+            overflow: "hidden", display: "grid", gridTemplateColumns: "300px 1fr",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
+          }}>
+            <div style={{ position: "relative", minHeight: 360 }}>
+              <img
+                src={AUTHOR_IMG}
+                alt="Сергей Водопьянов"
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block", minHeight: 360 }}
+              />
+            </div>
+            <div style={{ padding: "clamp(24px, 4vw, 40px) clamp(24px, 4vw, 44px)" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 12 }}>
+                Автор курса
+              </div>
+              <h3 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 700, margin: "0 0 6px", color: "#1a1a1a" }}>
+                Сергей Водопьянов
+              </h3>
+              <p style={{ color: "#999", fontSize: 14, margin: "0 0 18px" }}>
+                Остеопат · 17 лет опыта ·{" "}
+                <a href="https://assotsiatsiya-osteopatov.ru/user/svodopianoff/" target="_blank" rel="noopener noreferrer" style={{ color: ACCENT, textDecoration: "none" }}>Член Российской остеопатической ассоциации</a>
               </p>
-              <p style={{ fontSize: "clamp(13px, 1.5vw, 15px)", color: "#444", lineHeight: 1.75, margin: 0 }}>
-                Автор курсов по массажу для тысяч специалистов по всей России. Убеждён: понимание собственной физиологии — это суперсила, которая должна быть у каждого.
+              <p style={{ fontSize: "clamp(13px, 1.5vw, 15px)", color: "#555", lineHeight: 1.75, margin: "0 0 24px" }}>
+                За годы практики работал с тысячами людей, помогая улучшить самочувствие при болях в спине и шее, восстановить осанку. Специализируется на работе с офисными сотрудниками, спортсменами и беременными женщинами.
               </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                {[
+                  { value: "17", label: "лет практики" },
+                  { value: "3000+", label: "консультаций" },
+                  { value: "Автор", label: "курсов Dok Диалог" },
+                  { value: "РОА", label: "сертификат" },
+                ].map(({ value, label }) => (
+                  <div key={label} style={{ background: BG, borderRadius: 12, padding: "12px 18px", textAlign: "center", minWidth: 80 }}>
+                    <div style={{ fontFamily: "Cormorant, serif", fontSize: 22, fontWeight: 700, color: ACCENT, lineHeight: 1 }}>{value}</div>
+                    <div style={{ fontSize: 11, color: "#888", marginTop: 4, lineHeight: 1.3 }}>{label}</div>
+                  </div>
+                ))}
+                <a href="https://massopro.ru/catalog/1" target="_blank" rel="noopener noreferrer" style={{ background: BG, borderRadius: 12, padding: "12px 18px", textAlign: "center", minWidth: 80, textDecoration: "none" }}>
+                  <div style={{ fontFamily: "Cormorant, serif", fontSize: 22, fontWeight: 700, color: ACCENT, lineHeight: 1 }}>5.0</div>
+                  <div style={{ fontSize: 11, color: "#888", marginTop: 4, lineHeight: 1.3 }}>MassoPRO</div>
+                </a>
+                <a href="https://yandex.com/maps/org/osteopat_plyus/99582120415/reviews/" target="_blank" rel="noopener noreferrer" style={{ background: BG, borderRadius: 12, padding: "12px 18px", textAlign: "center", minWidth: 80, textDecoration: "none" }}>
+                  <div style={{ fontFamily: "Cormorant, serif", fontSize: 22, fontWeight: 700, color: ACCENT, lineHeight: 1 }}>5.0</div>
+                  <div style={{ fontSize: 11, color: "#888", marginTop: 4, lineHeight: 1.3 }}>Отзывы Яндекс</div>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -286,8 +316,8 @@ export default function CourseTrevoga() {
           .ct-hero-img img { height: 280px !important; }
           .ct-stats { grid-template-columns: repeat(2, 1fr) !important; }
           .ct-ex-grid { grid-template-columns: 1fr !important; }
-          .ct-author-wrap { flex-direction: column !important; align-items: center !important; text-align: center !important; }
-          .ct-author-img { margin: 0 auto !important; }
+          .ct-author-grid { grid-template-columns: 1fr !important; }
+          .ct-author-grid img { min-height: 260px !important; max-height: 300px !important; }
         }
         @media (max-width: 600px) {
           .ct-pain-grid { grid-template-columns: 1fr !important; }
