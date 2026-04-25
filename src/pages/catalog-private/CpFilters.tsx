@@ -7,33 +7,86 @@ export function TabSwitcher({
   tab: TabType;
   setTab: (t: TabType) => void;
 }) {
+  const tabs = [
+    { value: "online", label: "Онлайн курсы", icon: "Monitor" },
+    { value: "offline", label: "Офлайн курсы", icon: "MapPin" },
+    { value: "point", label: "Точечные продукты", icon: "Zap" },
+  ] as { value: TabType; label: string; icon: string }[];
+
   return (
-    <div style={{ display: "flex", gap: 4, marginBottom: 36, background: "#fff", borderRadius: 14, padding: 5, border: "1px solid #e8e8e4", width: "100%", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-      {([
-        { value: "online", label: "Онлайн курсы", icon: "Monitor" },
-        { value: "offline", label: "Офлайн курсы", icon: "MapPin" },
-        { value: "point", label: "Точечные продукты", icon: "Zap" },
-      ] as { value: TabType; label: string; icon: string }[]).map((t) => (
+    <>
+      {/* Десктоп: одна строка */}
+      <div className="cp-tabs-desktop" style={{ display: "flex", gap: 4, marginBottom: 36, background: "#fff", borderRadius: 14, padding: 5, border: "1px solid #e8e8e4" }}>
+        {tabs.map((t) => (
+          <button
+            key={t.value}
+            onClick={() => setTab(t.value)}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              flex: 1,
+              padding: "10px 16px", borderRadius: 10, border: "none",
+              background: tab === t.value ? ACCENT : "transparent",
+              color: tab === t.value ? "#fff" : "#666",
+              fontSize: 13, fontWeight: 600,
+              cursor: "pointer", fontFamily: "Montserrat, sans-serif",
+              transition: "all 0.2s", whiteSpace: "nowrap",
+              boxShadow: tab === t.value ? `0 4px 14px ${ACCENT_SHADOW}` : "none",
+            }}
+          >
+            <Icon name={t.icon} size={15} />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Мобиле: сетка 2+1 */}
+      <div className="cp-tabs-mobile" style={{ display: "none", gap: 4, marginBottom: 28, background: "#fff", borderRadius: 14, padding: 5, border: "1px solid #e8e8e4", flexDirection: "column" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
+          {tabs.slice(0, 2).map((t) => (
+            <button
+              key={t.value}
+              onClick={() => setTab(t.value)}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                padding: "10px 8px", borderRadius: 10, border: "none",
+                background: tab === t.value ? ACCENT : "transparent",
+                color: tab === t.value ? "#fff" : "#666",
+                fontSize: 13, fontWeight: 600,
+                cursor: "pointer", fontFamily: "Montserrat, sans-serif",
+                transition: "all 0.2s",
+                boxShadow: tab === t.value ? `0 4px 14px ${ACCENT_SHADOW}` : "none",
+              }}
+            >
+              <Icon name={t.icon} size={14} />
+              {t.label}
+            </button>
+          ))}
+        </div>
         <button
-          key={t.value}
-          onClick={() => setTab(t.value)}
+          onClick={() => setTab("point")}
           style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            flex: 1, minWidth: "fit-content",
-            padding: "10px 16px", borderRadius: 10, border: "none",
-            background: tab === t.value ? ACCENT : "transparent",
-            color: tab === t.value ? "#fff" : "#666",
+            width: "100%", padding: "10px 8px", borderRadius: 10, border: "none",
+            background: tab === "point" ? ACCENT : "transparent",
+            color: tab === "point" ? "#fff" : "#666",
             fontSize: 13, fontWeight: 600,
             cursor: "pointer", fontFamily: "Montserrat, sans-serif",
-            transition: "all 0.2s", whiteSpace: "nowrap",
-            boxShadow: tab === t.value ? `0 4px 14px ${ACCENT_SHADOW}` : "none",
+            transition: "all 0.2s",
+            boxShadow: tab === "point" ? `0 4px 14px ${ACCENT_SHADOW}` : "none",
           }}
         >
-          <Icon name={t.icon} size={15} />
-          {t.label}
+          <Icon name="Zap" size={14} />
+          Точечные продукты
         </button>
-      ))}
-    </div>
+      </div>
+
+      <style>{`
+        @media (max-width: 540px) {
+          .cp-tabs-desktop { display: none !important; }
+          .cp-tabs-mobile { display: flex !important; }
+        }
+      `}</style>
+    </>
   );
 }
 
