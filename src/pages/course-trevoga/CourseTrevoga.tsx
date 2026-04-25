@@ -76,7 +76,16 @@ export default function CourseTrevoga() {
 
       {/* HERO */}
       <section style={{ paddingTop: 90, background: "#fff" }}>
-        <div style={{ maxWidth: 1160, margin: "0 auto", padding: "clamp(32px, 5vw, 60px) 20px 0" }}>
+        <div style={{ maxWidth: 1160, margin: "0 auto", padding: "clamp(20px, 4vw, 40px) 20px 0" }}>
+          <a href="/catalog/private" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "#999", fontSize: 14, textDecoration: "none", marginBottom: 24 }}
+            onMouseEnter={e => (e.currentTarget.style.color = ACCENT)}
+            onMouseLeave={e => (e.currentTarget.style.color = "#999")}
+          >
+            <Icon name="ArrowLeft" size={14} />
+            Назад к каталогу
+          </a>
+        </div>
+        <div style={{ maxWidth: 1160, margin: "0 auto", padding: "0 20px 0" }}>
           <div className="ct-hero-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(28px, 5vw, 60px)", alignItems: "center" }}>
             <div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: `${ACCENT}14`, color: ACCENT, borderRadius: 100, padding: "6px 16px", fontSize: 13, fontWeight: 600, marginBottom: 20 }}>
