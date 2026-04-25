@@ -8,7 +8,7 @@ export function TabSwitcher({
   setTab: (t: TabType) => void;
 }) {
   return (
-    <div style={{ display: "flex", gap: 4, marginBottom: 36, background: "#fff", borderRadius: 14, padding: 5, border: "1px solid #e8e8e4", width: "fit-content" }}>
+    <div style={{ display: "flex", gap: 4, marginBottom: 36, background: "#fff", borderRadius: 14, padding: 5, border: "1px solid #e8e8e4", width: "100%", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
       {([
         { value: "online", label: "Онлайн курсы", icon: "Monitor" },
         { value: "offline", label: "Офлайн курсы", icon: "MapPin" },
@@ -18,17 +18,18 @@ export function TabSwitcher({
           key={t.value}
           onClick={() => setTab(t.value)}
           style={{
-            display: "flex", alignItems: "center", gap: 8,
-            padding: "10px 24px", borderRadius: 10, border: "none",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            flex: 1, minWidth: "fit-content",
+            padding: "10px 16px", borderRadius: 10, border: "none",
             background: tab === t.value ? ACCENT : "transparent",
             color: tab === t.value ? "#fff" : "#666",
-            fontSize: 14, fontWeight: 600,
+            fontSize: 13, fontWeight: 600,
             cursor: "pointer", fontFamily: "Montserrat, sans-serif",
-            transition: "all 0.2s",
+            transition: "all 0.2s", whiteSpace: "nowrap",
             boxShadow: tab === t.value ? `0 4px 14px ${ACCENT_SHADOW}` : "none",
           }}
         >
-          <Icon name={t.icon} size={16} />
+          <Icon name={t.icon} size={15} />
           {t.label}
         </button>
       ))}

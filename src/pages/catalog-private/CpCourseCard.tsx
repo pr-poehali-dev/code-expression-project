@@ -85,13 +85,15 @@ export function CourseCard({ course }: { course: Course }) {
           </div>
 
           {/* Buttons */}
-          <div style={{ display: "flex", gap: 10 }}>
+          <div className="cp-card-btns" style={{ display: "flex", gap: 8 }}>
             <button
+              className="cp-card-btn-secondary"
               style={{
-                flex: 1, padding: "10px 14px", borderRadius: 10,
+                flex: 1, padding: "10px 10px", borderRadius: 10,
                 border: `1.5px solid ${ACCENT}`, background: "transparent",
                 color: ACCENT, fontSize: 13, fontWeight: 600,
                 cursor: "pointer", fontFamily: "Montserrat, sans-serif", transition: "all 0.18s",
+                whiteSpace: "nowrap",
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}12`; }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
@@ -103,13 +105,15 @@ export function CourseCard({ course }: { course: Course }) {
               href={course.buyUrl ?? "https://school.brossok.ru/buy/15"}
               target={course.price === "Бесплатно" ? "_self" : "_blank"}
               rel="noopener noreferrer"
+              className="cp-card-btn-primary"
               style={{
-                flex: 1, padding: "10px 14px", borderRadius: 10,
+                flex: 1, padding: "10px 10px", borderRadius: 10,
                 border: "none", background: ACCENT,
                 color: "#fff", fontSize: 13, fontWeight: 600,
                 cursor: "pointer", fontFamily: "Montserrat, sans-serif",
                 boxShadow: `0 4px 14px ${ACCENT_SHADOW}`, transition: "all 0.18s",
-                textDecoration: "none", textAlign: "center", display: "block",
+                textDecoration: "none", textAlign: "center", display: "flex",
+                alignItems: "center", justifyContent: "center", whiteSpace: "nowrap",
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = ACCENT_DARK; }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = ACCENT; }}
@@ -117,6 +121,11 @@ export function CourseCard({ course }: { course: Course }) {
               {course.price === "Бесплатно" ? "Получить" : "Купить"}
             </a>
           </div>
+          <style>{`
+            @media (max-width: 380px) {
+              .cp-card-btns { flex-direction: column !important; }
+            }
+          `}</style>
         </div>
       </div>
     </div>
