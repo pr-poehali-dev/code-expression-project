@@ -93,7 +93,7 @@ export default function CourseTrevoga() {
                 3 упражнения на основе физиологии вегетативной нервной системы. Никаких таблеток. Никаких медитаций на час. Только то, как устроено ваше тело — и как это использовать прямо сейчас.
               </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 32 }}>
-                {["Бесплатно", "Онлайн", "Для всех", "5–10 мин в день"].map((tag) => (
+                {["Бесплатно", "Онлайн", "Для всех 18+", "5–10 мин в день"].map((tag) => (
                   <span key={tag} style={{ padding: "5px 12px", borderRadius: 8, background: BG, border: "1px solid #e0e0dc", fontSize: 13, color: "#555", fontWeight: 500 }}>{tag}</span>
                 ))}
               </div>
