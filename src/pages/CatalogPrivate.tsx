@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
 import Icon from "@/components/ui/icon";
-import { ACCENT, BG, ONLINE_COURSES, OFFLINE_COURSES, LevelFilter, DirectionFilter, TabType } from "./catalog-private/CpShared";
+import { ACCENT, BG, ONLINE_COURSES, OFFLINE_COURSES, POINT_COURSES, LevelFilter, DirectionFilter, TabType } from "./catalog-private/CpShared";
 import { CourseCard, OfflineCourseCard } from "./catalog-private/CpCourseCard";
 import { TabSwitcher, CatalogFilters } from "./catalog-private/CpFilters";
 
@@ -12,9 +12,10 @@ export default function CatalogPrivate() {
   const [levelFilter, setLevelFilter] = useState<LevelFilter>("all");
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>("all");
 
-  const courses = tab === "online" ? ONLINE_COURSES : OFFLINE_COURSES;
+  const isPoint = tab === "point";
+  const courses = tab === "online" ? ONLINE_COURSES : tab === "offline" ? OFFLINE_COURSES : POINT_COURSES;
 
-  const filtered = courses.filter((c) => {
+  const filtered = isPoint ? courses : courses.filter((c) => {
     const levelOk =
       levelFilter === "all" ||
       c.level === "any" ||
@@ -63,12 +64,21 @@ export default function CatalogPrivate() {
 
           <TabSwitcher tab={tab} setTab={setTab} />
 
-          <CatalogFilters
-            levelFilter={levelFilter}
-            setLevelFilter={setLevelFilter}
-            directionFilter={directionFilter}
-            setDirectionFilter={setDirectionFilter}
-          />
+          {isPoint ? (
+            <div style={{ background: `${ACCENT}10`, border: `1px solid ${ACCENT}30`, borderRadius: 14, padding: "14px 20px", marginBottom: 32, display: "flex", alignItems: "center", gap: 10 }}>
+              <Icon name="Zap" size={16} style={{ color: ACCENT }} />
+              <span style={{ fontSize: 14, color: "#444" }}>
+                <strong style={{ color: ACCENT }}>Точечные продукты</strong> — короткие курсы и практики на конкретный запрос. Для всех, не только для массажистов.
+              </span>
+            </div>
+          ) : (
+            <CatalogFilters
+              levelFilter={levelFilter}
+              setLevelFilter={setLevelFilter}
+              directionFilter={directionFilter}
+              setDirectionFilter={setDirectionFilter}
+            />
+          )}
 
           {/* Grid */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }} className="cp-grid">

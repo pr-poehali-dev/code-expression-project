@@ -12,6 +12,7 @@ export function TabSwitcher({
       {([
         { value: "online", label: "Онлайн курсы", icon: "Monitor" },
         { value: "offline", label: "Офлайн курсы", icon: "MapPin" },
+        { value: "point", label: "Точечные продукты", icon: "Zap" },
       ] as { value: TabType; label: string; icon: string }[]).map((t) => (
         <button
           key={t.value}

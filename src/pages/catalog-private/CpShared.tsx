@@ -23,7 +23,7 @@ export type Course = {
 
 export type LevelFilter = "all" | "beginner" | "practitioner";
 export type DirectionFilter = "all" | "technique" | "income";
-export type TabType = "online" | "offline";
+export type TabType = "online" | "offline" | "point";
 
 export const ONLINE_COURSES: Course[] = [
   {
@@ -151,6 +151,26 @@ export const ONLINE_COURSES: Course[] = [
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/ac73bf44-ff8f-4207-9d24-56da457498ea.jpg",
     detailUrl: "/course/massazhist-s-potokom-klientov",
     buyUrl: "https://school.brossok.ru/training/view/-laquo-massaghist-2-0-sozdanie-i-prodvighenie-lichnogo-brenda-raquo-",
+  },
+];
+
+export const POINT_COURSES: Course[] = [
+  {
+    id: 201,
+    title: "«Выдохни»: как за 5–10 минут в день снять тревогу и выйти из стресса",
+    description: "3 упражнения на основе физиологии ВНС — работают с первого раза. Бесплатный курс для всех, кто устал жить в режиме тревоги.",
+    bullets: [
+      "Снять острую тревогу за 2–3 минуты",
+      "Понять, как работает ваша нервная система",
+      "Засыпать без мыслей и начинать день спокойно",
+    ],
+    price: "Бесплатно",
+    level: "any",
+    direction: "technique",
+    format: "online",
+    image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/ea5f9421-9087-43a3-b7f4-9bc851b3e6a5.jpg",
+    detailUrl: "/course/vns-trevoga",
+    buyUrl: "/course/vns-trevoga#form",
   },
 ];
 

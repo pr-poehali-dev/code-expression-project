@@ -101,7 +101,7 @@ export function CourseCard({ course }: { course: Course }) {
             </button>
             <a
               href={course.buyUrl ?? "https://school.brossok.ru/buy/15"}
-              target="_blank"
+              target={course.price === "Бесплатно" ? "_self" : "_blank"}
               rel="noopener noreferrer"
               style={{
                 flex: 1, padding: "10px 14px", borderRadius: 10,
@@ -114,7 +114,7 @@ export function CourseCard({ course }: { course: Course }) {
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = ACCENT_DARK; }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = ACCENT; }}
             >
-              Купить
+              {course.price === "Бесплатно" ? "Получить" : "Купить"}
             </a>
           </div>
         </div>
