@@ -16,7 +16,7 @@ export const h2style: React.CSSProperties = {
   color: "#1a1a1a",
 };
 
-const ACCESS_URL = "#form";
+const ACCESS_URL = "#";
 
 export function BtnPrimary({ children, style, href }: { children: React.ReactNode; style?: React.CSSProperties; href?: string }) {
   const [h, setH] = useState(false);
