@@ -206,7 +206,7 @@ export default function CourseTrevoga() {
           }}>
             <div style={{ position: "relative", minHeight: 360 }}>
               <img
-                src={AUTHOR_IMG}
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/8cd8e2aa-0e99-4ff1-ae38-06afef26f470.png"
                 alt="Сергей Водопьянов"
                 style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block", minHeight: 360 }}
               />
