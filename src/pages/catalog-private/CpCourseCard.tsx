@@ -172,7 +172,7 @@ export function OfflineCourseCard({ course }: { course: Course }) {
               transform: hovered ? "scale(1.04)" : "scale(1)",
             }}
           />
-          <div style={{ position: "absolute", top: 16, left: 16, display: "flex", gap: 8 }}>
+          <div style={{ position: "absolute", bottom: 16, left: 16, display: "flex", gap: 8 }}>
             <span style={{
               background: "#1a1a1a", color: "#fff",
               fontSize: 12, fontWeight: 700, padding: "5px 12px", borderRadius: 20, letterSpacing: 0.5,
