@@ -5,7 +5,7 @@ export const ACCENT_DARK = "hsl(185, 85%, 26%)";
 export const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.25)";
 export const BG = "#f8f8f6";
 
-export const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/b3e0e59f-8415-43a2-9566-b547945e3a35.jpg";
+export const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/725fb9f8-31a0-4896-9d9f-94e192d9d21d.jpg";
 export const AUTHOR_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/7cedf2c0-f95b-4849-92be-6fb3944e25d1.jpg";
 
 export const h2style: React.CSSProperties = {

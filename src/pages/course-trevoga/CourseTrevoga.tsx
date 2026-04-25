@@ -282,7 +282,8 @@ export default function CourseTrevoga() {
       <style>{`
         @media (max-width: 860px) {
           .ct-hero-grid { grid-template-columns: 1fr !important; }
-          .ct-hero-img { display: none !important; }
+          .ct-hero-img { order: -1; }
+          .ct-hero-img img { height: 280px !important; }
           .ct-stats { grid-template-columns: repeat(2, 1fr) !important; }
           .ct-ex-grid { grid-template-columns: 1fr !important; }
           .ct-author-wrap { flex-direction: column !important; align-items: center !important; text-align: center !important; }
