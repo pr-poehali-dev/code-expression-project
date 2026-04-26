@@ -316,7 +316,7 @@ export default function SalonServices() {
                   Хотите понять, сколько именно теряет ваш салон на массажных услугах — до подписания любых договоров? Проведём независимую аудит-диагностику: посмотрим на компетенции мастеров, тайминг, ценообразование и загрузку. Получите конкретный отчёт с цифрами.
                 </p>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12, flexShrink: 0 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, flexShrink: 0, minWidth: 0 }}>
                 <a
                   href="/diagnostika-salona"
                   style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", color: ACCENT, padding: "14px 24px", borderRadius: 12, fontSize: 14, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap", transition: "all 0.25s ease", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}
@@ -326,7 +326,7 @@ export default function SalonServices() {
                   Узнать подробнее
                   <Icon name="ArrowRight" size={14} />
                 </a>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", textAlign: "center" }}>30 000 ₽ · по понедельникам</span>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", textAlign: "center", whiteSpace: "nowrap" }}>30 000 ₽ · по понедельникам</span>
               </div>
             </div>
           </FadeIn>
@@ -334,6 +334,9 @@ export default function SalonServices() {
         <style>{`
           @media (max-width: 640px) {
             .ss-diag-grid { grid-template-columns: 1fr !important; }
+            .ss-diag-grid > div:last-child { align-self: flex-start; width: 100%; }
+            .ss-diag-grid > div:last-child a { width: 100%; justify-content: center; box-sizing: border-box; }
+            .ss-diag-grid > div:last-child span { text-align: center !important; }
           }
         `}</style>
       </section>
