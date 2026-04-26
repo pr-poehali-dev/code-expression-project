@@ -19,6 +19,7 @@ export type Course = {
   format?: "online" | "offline";
   duration?: string;
   bookUrl?: string;
+  comingSoon?: boolean;
 };
 
 export type LevelFilter = "all" | "beginner" | "practitioner";
@@ -171,6 +172,7 @@ export const POINT_COURSES: Course[] = [
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/ea5f9421-9087-43a3-b7f4-9bc851b3e6a5.jpg",
     detailUrl: "/course/vns-trevoga",
     buyUrl: "/course/vns-trevoga#form",
+    comingSoon: true,
   },
   {
     id: 202,

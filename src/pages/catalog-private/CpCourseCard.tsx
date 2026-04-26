@@ -22,7 +22,7 @@ export function CourseCard({ course }: { course: Course }) {
         transition: "all 0.25s ease",
       }}
     >
-      <div style={{ width: "100%", height: 190, overflow: "hidden", flexShrink: 0 }}>
+      <div style={{ width: "100%", height: 190, overflow: "hidden", flexShrink: 0, position: "relative" }}>
         <img
           src={course.image}
           alt={course.title}
@@ -30,8 +30,17 @@ export function CourseCard({ course }: { course: Course }) {
             width: "100%", height: "100%", objectFit: "cover", display: "block",
             transition: "transform 0.4s ease",
             transform: hovered ? "scale(1.05)" : "scale(1)",
+            filter: course.comingSoon ? "brightness(0.6)" : "none",
           }}
         />
+        {course.comingSoon && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", borderRadius: 12, padding: "10px 22px", display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b", flexShrink: 0 }} />
+              <span style={{ color: "#fff", fontSize: 14, fontWeight: 700, letterSpacing: "0.05em" }}>Скоро</span>
+            </div>
+          </div>
+        )}
       </div>
       <div style={{ padding: "24px 24px 20px", display: "flex", flexDirection: "column", flex: 1 }}>
         <h3 style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.35, margin: "0 0 12px", color: "#1a1a1a" }}>
@@ -85,42 +94,49 @@ export function CourseCard({ course }: { course: Course }) {
           </div>
 
           {/* Buttons */}
-          <div className="cp-card-btns" style={{ display: "flex", gap: 8 }}>
-            <button
-              className="cp-card-btn-secondary"
-              style={{
-                flex: 1, padding: "10px 10px", borderRadius: 10,
-                border: `1.5px solid ${ACCENT}`, background: "transparent",
-                color: ACCENT, fontSize: 13, fontWeight: 600,
-                cursor: "pointer", fontFamily: "Montserrat, sans-serif", transition: "all 0.18s",
-                whiteSpace: "nowrap",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}12`; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
-              onClick={() => { if (course.detailUrl) window.location.href = course.detailUrl; }}
-            >
-              Подробнее
-            </button>
-            <a
-              href={course.buyUrl ?? "https://school.brossok.ru/buy/15"}
-              target={course.price === "Бесплатно" ? "_self" : "_blank"}
-              rel="noopener noreferrer"
-              className="cp-card-btn-primary"
-              style={{
-                flex: 1, padding: "10px 10px", borderRadius: 10,
-                border: "none", background: ACCENT,
-                color: "#fff", fontSize: 13, fontWeight: 600,
-                cursor: "pointer", fontFamily: "Montserrat, sans-serif",
-                boxShadow: `0 4px 14px ${ACCENT_SHADOW}`, transition: "all 0.18s",
-                textDecoration: "none", textAlign: "center", display: "flex",
-                alignItems: "center", justifyContent: "center", whiteSpace: "nowrap",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = ACCENT_DARK; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = ACCENT; }}
-            >
-              {course.price === "Бесплатно" ? "Получить" : "Купить"}
-            </a>
-          </div>
+          {course.comingSoon ? (
+            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "12px 0 4px" }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b", flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: "#999", fontWeight: 500 }}>Скоро появится в каталоге</span>
+            </div>
+          ) : (
+            <div className="cp-card-btns" style={{ display: "flex", gap: 8 }}>
+              <button
+                className="cp-card-btn-secondary"
+                style={{
+                  flex: 1, padding: "10px 10px", borderRadius: 10,
+                  border: `1.5px solid ${ACCENT}`, background: "transparent",
+                  color: ACCENT, fontSize: 13, fontWeight: 600,
+                  cursor: "pointer", fontFamily: "Montserrat, sans-serif", transition: "all 0.18s",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}12`; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+                onClick={() => { if (course.detailUrl) window.location.href = course.detailUrl; }}
+              >
+                Подробнее
+              </button>
+              <a
+                href={course.buyUrl ?? "https://school.brossok.ru/buy/15"}
+                target={course.price === "Бесплатно" ? "_self" : "_blank"}
+                rel="noopener noreferrer"
+                className="cp-card-btn-primary"
+                style={{
+                  flex: 1, padding: "10px 10px", borderRadius: 10,
+                  border: "none", background: ACCENT,
+                  color: "#fff", fontSize: 13, fontWeight: 600,
+                  cursor: "pointer", fontFamily: "Montserrat, sans-serif",
+                  boxShadow: `0 4px 14px ${ACCENT_SHADOW}`, transition: "all 0.18s",
+                  textDecoration: "none", textAlign: "center", display: "flex",
+                  alignItems: "center", justifyContent: "center", whiteSpace: "nowrap",
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = ACCENT_DARK; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = ACCENT; }}
+              >
+                {course.price === "Бесплатно" ? "Получить" : "Купить"}
+              </a>
+            </div>
+          )}
           <style>{`
             @media (max-width: 380px) {
               .cp-card-btns { flex-direction: column !important; }
