@@ -8,7 +8,12 @@ import { CourseCard, OfflineCourseCard } from "./catalog-private/CpCourseCard";
 import { TabSwitcher, CatalogFilters } from "./catalog-private/CpFilters";
 
 export default function CatalogPrivate() {
-  const [tab, setTab] = useState<TabType>("online");
+  const [tab, setTab] = useState<TabType>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get("tab");
+    if (t === "point" || t === "offline" || t === "online") return t;
+    return "online";
+  });
   const [levelFilter, setLevelFilter] = useState<LevelFilter>("all");
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>("all");
 
