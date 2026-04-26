@@ -178,7 +178,9 @@ export default function SalonServices() {
             {PAINS.map((text, i) => (
               <FadeIn key={i} delay={i * 60}>
                 <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fff", borderRadius: 14, padding: "16px 20px", border: "1px solid #e8e8e4" }}>
-                  <span style={{ fontSize: 18, flexShrink: 0 }}>😓</span>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: "#fff3f3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                    <Icon name="X" size={13} style={{ color: "#e05050" }} />
+                  </div>
                   <span style={{ fontSize: "clamp(13px, 1.4vw, 14px)", color: "#444", lineHeight: 1.65 }}>{text}</span>
                 </div>
               </FadeIn>
