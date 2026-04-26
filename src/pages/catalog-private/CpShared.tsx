@@ -172,6 +172,23 @@ export const POINT_COURSES: Course[] = [
     detailUrl: "/course/vns-trevoga",
     buyUrl: "/course/vns-trevoga#form",
   },
+  {
+    id: 202,
+    title: "Фитнес для беременных (2-й триместр)",
+    description: "Безопасные тренировки для тела, которое меняется каждый день. 3 программы под разный ритм жизни — без перегрузок и риска.",
+    bullets: [
+      "Снижение напряжения в спине и теле",
+      "3 программы: 2, 3 и 7 раз в неделю",
+      "Без оборудования, в любое удобное время",
+    ],
+    price: "5 590 ₽",
+    level: "any",
+    direction: "technique",
+    format: "online",
+    image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/0fd773ca-0152-49ae-b5a9-d70add20f7de.jpg",
+    detailUrl: "/course/fitnes-beremennyh",
+    buyUrl: "https://school.brossok.ru/buy/60",
+  },
 ];
 
 export const OFFLINE_COURSES: Course[] = [
