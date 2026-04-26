@@ -351,7 +351,7 @@ export default function CourseFitnesBerem() {
 
       {/* AUTHOR */}
       <section style={{ background: "#fff", padding: "clamp(48px, 7vw, 80px) 20px" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <FadeIn>
             <div style={{ display: "flex", gap: 28, alignItems: "center", background: BG, borderRadius: 20, padding: "clamp(24px, 4vw, 36px)", border: "1px solid #e8e8e4" }} className="cfb-author">
               <img
@@ -365,6 +365,58 @@ export default function CourseFitnesBerem() {
                 <p style={{ fontSize: "clamp(13px, 1.4vw, 14px)", color: "#666", lineHeight: 1.7, margin: 0 }}>
                   Остеопат, 17 лет опыта. Член Российской остеопатической ассоциации. Специализируется на работе с беременными женщинами, офисными сотрудниками и спортсменами.
                 </p>
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* PROOF — Master of Sports */}
+      <section style={{ padding: "clamp(48px, 7vw, 80px) 20px" }}>
+        <div style={{ maxWidth: 1060, margin: "0 auto" }}>
+          <FadeIn>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(32px, 5vw, 64px)", alignItems: "center" }} className="cfb-proof-grid">
+              {/* Photo */}
+              <div style={{ borderRadius: 24, overflow: "hidden", boxShadow: "0 24px 80px rgba(0,0,0,0.13)", aspectRatio: "3/4", position: "relative" }}>
+                <img
+                  src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/5adabf6b-c9d2-44f4-8408-965adbbf5240.jpg"
+                  alt="Мастер спорта, 2-й триместр"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+                <div style={{ position: "absolute", top: 20, left: 20, background: "rgba(255,255,255,0.92)", backdropFilter: "blur(10px)", borderRadius: 12, padding: "10px 16px", display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: ACCENT, flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#1a1a1a" }}>Мастер спорта · 2-й триместр</span>
+                </div>
+              </div>
+              {/* Text */}
+              <div>
+                <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: ACCENT, marginBottom: 20, background: `${ACCENT}12`, borderRadius: 100, padding: "5px 14px" }}>
+                  Реальный опыт
+                </div>
+                <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 20px", lineHeight: 1.15 }}>
+                  Курс прошла мастер спорта —<br />
+                  <span style={{ color: ACCENT }}>находясь во 2-м триместре</span>
+                </h2>
+                <p style={{ fontSize: "clamp(14px, 1.6vw, 16px)", color: "#4a4a4a", lineHeight: 1.85, margin: "0 0 20px" }}>
+                  Профессиональная спортсменка — человек, который знает своё тело лучше большинства. И именно она выбрала эту программу, когда оказалась в периоде, где привычные тренировки стали невозможны.
+                </p>
+                <p style={{ fontSize: "clamp(14px, 1.6vw, 16px)", color: "#4a4a4a", lineHeight: 1.85, margin: "0 0 28px" }}>
+                  Курс позволил ей сохранить физическую активность, поддержать тело и оставаться в ресурсе — без перегрузок и без страха навредить. Это лучшее подтверждение того, что программа действительно работает безопасно и эффективно.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {[
+                    "Программа адаптирована даже для подготовленного тела",
+                    "Безопасность подтверждена практикой, а не только теорией",
+                    "Тренировки поддерживают, а не истощают",
+                  ].map((t, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                      <div style={{ width: 22, height: 22, borderRadius: "50%", background: `${ACCENT}14`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                        <Icon name="Check" size={11} style={{ color: ACCENT }} />
+                      </div>
+                      <span style={{ fontSize: "clamp(13px, 1.4vw, 14px)", color: "#333", lineHeight: 1.65 }}>{t}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </FadeIn>
@@ -416,6 +468,7 @@ export default function CourseFitnesBerem() {
           .cfb-stats { grid-template-columns: repeat(2, 1fr) !important; }
           .cfb-prog-grid { grid-template-columns: 1fr !important; }
           .cfb-author { flex-direction: column !important; text-align: center; }
+          .cfb-proof-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 600px) {
           .cfb-pain-grid { grid-template-columns: 1fr !important; }
