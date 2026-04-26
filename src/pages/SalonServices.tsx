@@ -105,14 +105,18 @@ export default function SalonServices() {
       </Helmet>
       <style>{`
         .ss-steps { display: flex; flex-direction: column; gap: 0; }
-        .ss-results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .ss-results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: stretch; }
         .ss-pains-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .ss-step-row { display: grid; grid-template-columns: 80px 1fr; gap: 0 32px; }
         @media (max-width: 860px) {
           .ss-results-grid { grid-template-columns: 1fr 1fr; }
         }
-        @media (max-width: 600px) {
+        @media (max-width: 640px) {
           .ss-results-grid { grid-template-columns: 1fr; }
           .ss-pains-grid { grid-template-columns: 1fr; }
+          .ss-step-row { grid-template-columns: 52px 1fr; gap: 0 16px; }
+          .ss-diag-grid { grid-template-columns: 1fr !important; }
+          .ss-diag-grid > div:last-child { flex-direction: row !important; align-items: center; }
         }
       `}</style>
       <DokNavbar />
@@ -205,11 +209,7 @@ export default function SalonServices() {
           <div className="ss-steps">
             {STEPS.map((step, i) => (
               <FadeIn key={i} delay={i * 80}>
-                <div style={{
-                  display: "grid", gridTemplateColumns: "80px 1fr", gap: "0 32px",
-                  paddingBottom: i < STEPS.length - 1 ? 0 : 0,
-                  position: "relative",
-                }}>
+                <div className="ss-step-row" style={{ position: "relative" }}>
                   {/* Left — number + line */}
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 4 }}>
                     <div style={{ width: 56, height: 56, borderRadius: 16, background: i === 0 ? ACCENT : `${ACCENT}14`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, zIndex: 1 }}>
@@ -255,8 +255,8 @@ export default function SalonServices() {
           </FadeIn>
           <div className="ss-results-grid">
             {RESULTS.map((r, i) => (
-              <FadeIn key={i} delay={i * 70}>
-                <div style={{ background: "#fff", borderRadius: 18, padding: "24px 22px", border: "1px solid #e8e8e4", boxShadow: "0 2px 16px rgba(0,0,0,0.04)", display: "flex", gap: 16, alignItems: "flex-start" }}>
+              <FadeIn key={i} delay={i * 70} style={{ height: "100%" }}>
+                <div style={{ height: "100%", background: "#fff", borderRadius: 18, padding: "24px 22px", border: "1px solid #e8e8e4", boxShadow: "0 2px 16px rgba(0,0,0,0.04)", display: "flex", gap: 16, alignItems: "flex-start", boxSizing: "border-box" }}>
                   <div style={{ width: 44, height: 44, borderRadius: 12, background: `${ACCENT}14`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <Icon name={r.icon} size={20} style={{ color: ACCENT }} />
                   </div>
