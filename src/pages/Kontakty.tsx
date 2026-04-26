@@ -276,7 +276,7 @@ export default function Kontakty() {
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <div className="k-cards-grid">
             <ContactCard iconKey="phone" title="Телефон" value="+7 (902) 900-74-74" sub="Пн–Пт, 9:00–18:00" href="tel:+79029007474" delay={0} />
-            <ContactCard iconKey="email" title="Электронная почта" value="massopro@mail.ru" sub="Ответим в течение 24 часов" href="mailto:massopro@mail.ru" delay={100} />
+            <ContactCard iconKey="email" title="Электронная почта" value="docdialog@mail.ru" sub="Ответим в течение 24 часов" href="mailto:docdialog@mail.ru" delay={100} />
             <ContactCard iconKey="telegram" title="Telegram" value="@SergeuVodopianov" sub="Быстрый ответ" href="https://t.me/SergeuVodopianov" delay={200} />
           </div>
         </div>
@@ -311,7 +311,7 @@ export default function Kontakty() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                   {[
                     { label: "Телефон", value: "+7 (902) 900-74-74", href: "tel:+79029007474" },
-                    { label: "Email", value: "massopro@mail.ru", href: "mailto:massopro@mail.ru" },
+                    { label: "Email", value: "docdialog@mail.ru", href: "mailto:docdialog@mail.ru" },
                     { label: "Telegram", value: "@SergeuVodopianov", href: "https://t.me/SergeuVodopianov" },
                     { label: "Режим работы", value: "Пн–Пт, 9:00–18:00", href: undefined },
                   ].map((item, i) => (
