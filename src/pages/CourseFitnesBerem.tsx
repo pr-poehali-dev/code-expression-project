@@ -349,72 +349,56 @@ export default function CourseFitnesBerem() {
         </div>
       </section>
 
-      {/* AUTHOR */}
+      {/* AUTHOR + DEMONSTRATOR */}
       <section style={{ background: "#fff", padding: "clamp(48px, 7vw, 80px) 20px" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <FadeIn>
-            <div style={{ display: "flex", gap: 28, alignItems: "center", background: BG, borderRadius: 20, padding: "clamp(24px, 4vw, 36px)", border: "1px solid #e8e8e4" }} className="cfb-author">
+            <h2 style={{ ...h2style, textAlign: "center" }}>Кто создал этот курс</h2>
+          </FadeIn>
+
+          {/* Author card */}
+          <FadeIn delay={100}>
+            <div style={{ display: "flex", gap: 28, alignItems: "flex-start", background: BG, borderRadius: 20, padding: "clamp(24px, 4vw, 40px)", border: "1px solid #e8e8e4", marginBottom: 20 }} className="cfb-author">
               <img
                 src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/8cd8e2aa-0e99-4ff1-ae38-06afef26f470.png"
                 alt="Сергей Водопьянов"
-                style={{ width: 100, height: 100, borderRadius: 16, objectFit: "cover", objectPosition: "top center", flexShrink: 0 }}
+                style={{ width: 110, height: 110, borderRadius: 16, objectFit: "cover", objectPosition: "top center", flexShrink: 0 }}
               />
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Автор курса</div>
-                <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px, 2.5vw, 26px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 6 }}>Сергей Водопьянов</div>
-                <p style={{ fontSize: "clamp(13px, 1.4vw, 14px)", color: "#666", lineHeight: 1.7, margin: 0 }}>
-                  Остеопат, 17 лет опыта. Член Российской остеопатической ассоциации. Специализируется на работе с беременными женщинами, офисными сотрудниками и спортсменами.
+                <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Автор курса · Руководитель Dok Диалог</div>
+                <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px, 2.8vw, 30px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 10 }}>Сергей Водопьянов</div>
+                <p style={{ fontSize: "clamp(13px, 1.4vw, 15px)", color: "#555", lineHeight: 1.8, margin: "0 0 16px" }}>
+                  Остеопат с 17-летним опытом, член Российской остеопатической ассоциации. Руководитель образовательной платформы Dok Диалог. Работает с беременными женщинами, помогая им безопасно поддерживать тело в каждом триместре — с опорой на физиологию, а не на общие рекомендации.
                 </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                  {["17 лет опыта", "3000+ консультаций", "Член РОА", "Руководитель Dok Диалог"].map((t, i) => (
+                    <span key={i} style={{ fontSize: 12, fontWeight: 600, color: ACCENT, background: `${ACCENT}10`, borderRadius: 100, padding: "4px 12px" }}>{t}</span>
+                  ))}
+                </div>
               </div>
             </div>
           </FadeIn>
-        </div>
-      </section>
 
-      {/* PROOF — Master of Sports */}
-      <section style={{ padding: "clamp(48px, 7vw, 80px) 20px" }}>
-        <div style={{ maxWidth: 1060, margin: "0 auto" }}>
-          <FadeIn>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(32px, 5vw, 64px)", alignItems: "center" }} className="cfb-proof-grid">
-              {/* Photo */}
-              <div style={{ borderRadius: 24, overflow: "hidden", boxShadow: "0 24px 80px rgba(0,0,0,0.13)", aspectRatio: "3/4", position: "relative" }}>
-                <img
-                  src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/5adabf6b-c9d2-44f4-8408-965adbbf5240.jpg"
-                  alt="Мастер спорта, 2-й триместр"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                />
-                <div style={{ position: "absolute", top: 20, left: 20, background: "rgba(255,255,255,0.92)", backdropFilter: "blur(10px)", borderRadius: 12, padding: "10px 16px", display: "inline-flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: ACCENT, flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "#1a1a1a" }}>Мастер спорта · 2-й триместр</span>
-                </div>
+          {/* Demonstrator card */}
+          <FadeIn delay={180}>
+            <div style={{ background: `linear-gradient(135deg, hsl(280,60%,12%) 0%, hsl(280,50%,22%) 100%)`, borderRadius: 20, padding: "clamp(24px, 4vw, 40px)", display: "flex", gap: 28, alignItems: "flex-start" }} className="cfb-author">
+              <div style={{ width: 110, height: 110, borderRadius: 16, background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name="Star" size={44} style={{ color: "rgba(255,255,255,0.6)" }} />
               </div>
-              {/* Text */}
               <div>
-                <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: ACCENT, marginBottom: 20, background: `${ACCENT}12`, borderRadius: 100, padding: "5px 14px" }}>
-                  Реальный опыт
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10, background: "rgba(255,255,255,0.08)", borderRadius: 100, padding: "4px 12px" }}>
+                  <Icon name="Video" size={11} style={{ color: "rgba(255,255,255,0.5)" }} />
+                  Демонстратор упражнений
                 </div>
-                <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 20px", lineHeight: 1.15 }}>
-                  Курс прошла мастер спорта —<br />
-                  <span style={{ color: ACCENT }}>находясь во 2-м триместре</span>
-                </h2>
-                <p style={{ fontSize: "clamp(14px, 1.6vw, 16px)", color: "#4a4a4a", lineHeight: 1.85, margin: "0 0 20px" }}>
-                  Профессиональная спортсменка — человек, который знает своё тело лучше большинства. И именно она выбрала эту программу, когда оказалась в периоде, где привычные тренировки стали невозможны.
+                <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px, 2.5vw, 28px)", fontWeight: 700, color: "#fff", marginBottom: 10 }}>
+                  Мастер спорта по гимнастике
+                </div>
+                <p style={{ fontSize: "clamp(13px, 1.4vw, 15px)", color: "rgba(255,255,255,0.75)", lineHeight: 1.8, margin: "0 0 16px" }}>
+                  Все упражнения в курсе показывает профессиональная спортсменка — мастер спорта по гимнастике, которая сама находилась во 2-м триместре беременности в момент съёмки. Это не постановочное видео — это реальное тело в реальном состоянии, выполняющее каждое движение так, как его стоит делать именно сейчас.
                 </p>
-                <p style={{ fontSize: "clamp(14px, 1.6vw, 16px)", color: "#4a4a4a", lineHeight: 1.85, margin: "0 0 28px" }}>
-                  Курс позволил ей сохранить физическую активность, поддержать тело и оставаться в ресурсе — без перегрузок и без страха навредить. Это лучшее подтверждение того, что программа действительно работает безопасно и эффективно.
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {[
-                    "Программа адаптирована даже для подготовленного тела",
-                    "Безопасность подтверждена практикой, а не только теорией",
-                    "Тренировки поддерживают, а не истощают",
-                  ].map((t, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: "50%", background: `${ACCENT}14`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                        <Icon name="Check" size={11} style={{ color: ACCENT }} />
-                      </div>
-                      <span style={{ fontSize: "clamp(13px, 1.4vw, 14px)", color: "#333", lineHeight: 1.65 }}>{t}</span>
-                    </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                  {["2-й триместр во время съёмки", "Мастер спорта по гимнастике", "Реальные тренировки на видео"].map((t, i) => (
+                    <span key={i} style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)", background: "rgba(255,255,255,0.1)", borderRadius: 100, padding: "4px 12px", border: "1px solid rgba(255,255,255,0.15)" }}>{t}</span>
                   ))}
                 </div>
               </div>
