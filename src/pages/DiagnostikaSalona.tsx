@@ -167,6 +167,7 @@ export default function DiagnostikaSalona() {
           .ds-what-grid { grid-template-columns: 1fr; }
           .ds-order-grid { grid-template-columns: 1fr; }
           .ds-why-grid { grid-template-columns: 1fr; }
+          .ds-price-grid { grid-template-columns: 1fr !important; }
           .ds-order-col { padding: 32px 24px !important; }
         }
       `}</style>
@@ -357,7 +358,7 @@ export default function DiagnostikaSalona() {
       {/* PRICE + GUARANTEE */}
       <section style={{ background: "#fff", padding: "clamp(48px, 7vw, 80px) 24px" }}>
         <div style={{ maxWidth: 860, margin: "0 auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="ds-why-grid">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="ds-price-grid">
             <FadeIn>
               <div style={{ background: `linear-gradient(135deg, hsl(185,85%,10%) 0%, hsl(185,70%,20%) 100%)`, borderRadius: 20, padding: "clamp(28px, 4vw, 40px)" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: 16 }}>Стоимость</div>
