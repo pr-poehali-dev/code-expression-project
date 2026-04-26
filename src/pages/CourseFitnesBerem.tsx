@@ -38,11 +38,24 @@ function FadeIn({ children, delay = 0, style = {} }: { children: React.ReactNode
 }
 
 function BtnPrimary({ href, children, style = {} }: { href: string; children: React.ReactNode; style?: React.CSSProperties }) {
+  const isWhite = (style as React.CSSProperties & { background?: string }).background === "#fff";
   return (
     <a href={href} target="_blank" rel="noopener noreferrer"
       style={{ display: "inline-block", background: ACCENT, color: "#fff", padding: "16px 36px", borderRadius: 14, fontSize: 16, fontWeight: 700, textDecoration: "none", transition: "all 0.25s ease", boxShadow: `0 4px 20px ${ACCENT_SHADOW}`, fontFamily: "Montserrat, sans-serif", ...style }}
-      onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT_DARK; el.style.boxShadow = `0 8px 32px ${ACCENT_SHADOW_HOVER}`; el.style.transform = "translateY(-2px)"; }}
-      onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT; el.style.boxShadow = `0 4px 20px ${ACCENT_SHADOW}`; el.style.transform = "translateY(0)"; }}
+      onMouseEnter={e => {
+        const el = e.currentTarget as HTMLAnchorElement;
+        el.style.background = isWhite ? "rgba(255,255,255,0.88)" : ACCENT_DARK;
+        el.style.color = isWhite ? ACCENT : "#fff";
+        el.style.boxShadow = `0 8px 32px ${ACCENT_SHADOW_HOVER}`;
+        el.style.transform = "translateY(-2px)";
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget as HTMLAnchorElement;
+        el.style.background = isWhite ? "#fff" : ACCENT;
+        el.style.color = isWhite ? ACCENT : "#fff";
+        el.style.boxShadow = `0 4px 20px ${ACCENT_SHADOW}`;
+        el.style.transform = "translateY(0)";
+      }}
     >
       {children}
     </a>
