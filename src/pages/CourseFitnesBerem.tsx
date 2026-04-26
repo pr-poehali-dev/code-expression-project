@@ -461,15 +461,22 @@ export default function CourseFitnesBerem() {
         @media (max-width: 860px) {
           .cfb-hero-grid { grid-template-columns: 1fr !important; }
           .cfb-hero-img { order: -1; }
-          .cfb-hero-img img { height: 300px !important; }
+          .cfb-hero-img img { height: 280px !important; }
           .cfb-stats { grid-template-columns: repeat(2, 1fr) !important; }
           .cfb-prog-grid { grid-template-columns: 1fr !important; }
-          .cfb-author { flex-direction: column !important; text-align: center; }
+          .cfb-author { flex-direction: column !important; align-items: flex-start !important; }
           .cfb-proof-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 600px) {
           .cfb-pain-grid { grid-template-columns: 1fr !important; }
           .cfb-results-grid { grid-template-columns: 1fr !important; }
+          .cfb-stats { grid-template-columns: repeat(2, 1fr) !important; }
+          .cfb-hero-grid { gap: 24px !important; }
+          .cfb-author { gap: 16px !important; }
+        }
+        @media (max-width: 420px) {
+          .cfb-stats { grid-template-columns: 1fr 1fr !important; font-size: 12px; }
+          .cfb-author img { width: 80px !important; height: 80px !important; }
         }
       `}</style>
 
