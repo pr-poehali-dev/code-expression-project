@@ -239,8 +239,8 @@ export default function DokDialog() {
             <FadeIn delay={150} style={{ paddingTop: 0 }}>
               <div style={{ borderRadius: 24, overflow: "hidden", boxShadow: "0 24px 80px rgba(0,0,0,0.12)", aspectRatio: "4/5" }}>
                 <img
-                  src="https://cdn.poehali.dev/projects/08a371f8-54a3-463b-ba90-37bf9bcbd421/files/56f66ace-211a-4578-a447-96d5332b3eb0.jpg"
-                  alt="Специалист Dok Диалог"
+                  src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/d6c1a29c-bf8b-4699-9022-dc44f41701d0.jpg"
+                  alt="Массажный салон Dok Диалог"
                   style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />
               </div>
