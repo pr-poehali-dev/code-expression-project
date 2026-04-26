@@ -173,7 +173,7 @@ export default function SalonServices() {
             <FadeIn delay={150} style={{ paddingTop: 40 }} >
               <div className="ss-hero-img" style={{ borderRadius: 24, overflow: "hidden", boxShadow: "0 24px 80px rgba(0,0,0,0.13)", aspectRatio: "4/5", position: "relative" }}>
                 <img
-                  src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/ed3626f4-c7a9-49bb-82bc-83c402e90585.jpg"
+                  src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/72c03792-a3c6-43c3-bb52-b23dd1c8ce2f.jpg"
                   alt="Массажный салон"
                   style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />
