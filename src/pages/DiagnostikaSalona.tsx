@@ -157,7 +157,7 @@ export default function DiagnostikaSalona() {
         .ds-hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
         .ds-what-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: stretch; }
         .ds-order-grid { display: grid; grid-template-columns: 1fr 1fr; }
-        .ds-why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .ds-why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
         @media (max-width: 960px) {
           .ds-hero-grid { grid-template-columns: 1fr; }
           .ds-hero-img { order: -1; max-height: 380px; overflow: hidden; }
@@ -374,7 +374,7 @@ export default function DiagnostikaSalona() {
               </div>
             </FadeIn>
             <FadeIn delay={100}>
-              <div style={{ background: BG, borderRadius: 20, padding: "clamp(28px, 4vw, 40px)", border: "1px solid #e8e8e4", height: "100%", boxSizing: "border-box" }}>
+              <div style={{ background: BG, borderRadius: 20, padding: "clamp(28px, 4vw, 40px)", border: "1px solid #e8e8e4", boxSizing: "border-box" }}>
                 <div style={{ width: 48, height: 48, borderRadius: 14, background: `${ACCENT}14`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
                   <Icon name="ShieldCheck" size={24} style={{ color: ACCENT }} />
                 </div>
