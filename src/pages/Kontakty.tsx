@@ -212,7 +212,7 @@ export default function Kontakty() {
   return (
     <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
       <Helmet>
-        <title>Контакты — Связаться с Dok Диалог | МассоПро</title>
+        <title>Контакты — Связаться с Dok Диалог</title>
         <meta name="description" content="Свяжитесь с командой Dok Диалог: телефон, email, Telegram. Вопросы по платформе, тарифам и партнёрству. Ответим быстро в рабочее время." />
       </Helmet>
       <style>{`
@@ -278,7 +278,6 @@ export default function Kontakty() {
             <ContactCard iconKey="phone" title="Телефон" value="+7 (902) 900-74-74" sub="Пн–Пт, 9:00–18:00" href="tel:+79029007474" delay={0} />
             <ContactCard iconKey="email" title="Электронная почта" value="massopro@mail.ru" sub="Ответим в течение 24 часов" href="mailto:massopro@mail.ru" delay={100} />
             <ContactCard iconKey="telegram" title="Telegram" value="@SergeuVodopianov" sub="Быстрый ответ" href="https://t.me/SergeuVodopianov" delay={200} />
-            <ContactCard iconKey="web" title="Основной сайт" value="massopro.ru" sub="Вся информация о системе МассоПро" href="https://massopro.ru" delay={300} />
           </div>
         </div>
       </section>
@@ -306,7 +305,7 @@ export default function Kontakty() {
                   Dok Диалог
                 </div>
                 <p style={{ fontSize: "clamp(14px, 2vw, 15px)", color: "rgba(255,255,255,0.6)", lineHeight: 1.7, marginBottom: 36 }}>
-                  Образовательная платформа для специалистов системы МассоПро. Онлайн-обучение мастеров салонов и студий массажа.
+                  Развитие массажных салонов и мастеров. Онлайн и офлайн обучение, оценка компетенций, стандарты работы.
                 </p>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
