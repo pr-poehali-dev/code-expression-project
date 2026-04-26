@@ -311,7 +311,9 @@ export default function SalonServices() {
       <section style={{ background: "#fff", padding: "clamp(56px, 8vw, 96px) 24px" }}>
         <div style={{ maxWidth: 660, margin: "0 auto", textAlign: "center" }}>
           <FadeIn>
-            <div style={{ fontSize: 48, marginBottom: 20 }}>💆</div>
+            <div style={{ width: 72, height: 72, borderRadius: 20, background: `${ACCENT}14`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
+              <Icon name="Sparkles" size={32} style={{ color: ACCENT }} />
+            </div>
             <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 4vw, 44px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 18px", lineHeight: 1.15 }}>
               Готовы сделать массаж прибыльным?
             </h2>
