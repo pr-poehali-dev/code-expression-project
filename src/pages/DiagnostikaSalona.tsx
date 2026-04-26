@@ -169,6 +169,8 @@ export default function DiagnostikaSalona() {
           .ds-why-grid { grid-template-columns: 1fr; }
           .ds-price-grid { grid-template-columns: 1fr !important; }
           .ds-order-col { padding: 32px 24px !important; }
+          .ds-table-desktop { display: none !important; }
+          .ds-table-mobile { display: flex !important; }
         }
       `}</style>
       <DokNavbar />
@@ -320,14 +322,13 @@ export default function DiagnostikaSalona() {
             </div>
           </FadeIn>
           <FadeIn delay={100}>
-            <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #e8e8e4", overflow: "hidden", boxShadow: "0 4px 32px rgba(0,0,0,0.06)" }}>
-              {/* Table header */}
+            {/* Desktop table */}
+            <div className="ds-table-desktop" style={{ background: "#fff", borderRadius: 20, border: "1px solid #e8e8e4", overflow: "hidden", boxShadow: "0 4px 32px rgba(0,0,0,0.06)" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", background: ACCENT, padding: "14px 24px", gap: 8 }}>
                 {["Зона анализа", "Текущий доход", "Потенциал", "Разница / мес"].map((col, i) => (
                   <div key={i} style={{ fontSize: 12, fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: "0.1em" }}>{col}</div>
                 ))}
               </div>
-              {/* Table rows */}
               {[
                 ["Компетенции мастеров", "оценивается", "рассчитывается", "считаем за вас"],
                 ["Тайминг процедур", "оценивается", "рассчитывается", "считаем за вас"],
@@ -349,6 +350,35 @@ export default function DiagnostikaSalona() {
                     Реальные цифры появятся в вашем отчёте — мы заполним каждую строку по вашему салону
                   </span>
                 </div>
+              </div>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="ds-table-mobile" style={{ display: "none", flexDirection: "column", gap: 12 }}>
+              {[
+                "Компетенции мастеров",
+                "Тайминг процедур",
+                "Ценообразование",
+                "Загрузка расписания",
+                "Допродажи и повторы",
+              ].map((zone, i) => (
+                <div key={i} style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e8e4", overflow: "hidden" }}>
+                  <div style={{ background: ACCENT, padding: "10px 16px" }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{zone}</span>
+                  </div>
+                  <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+                    {[["Текущий доход", "оценивается"], ["Потенциал", "рассчитывается"], ["Разница / мес", "считаем за вас"]].map(([label, val], j) => (
+                      <div key={j} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: 12, color: "#999", fontWeight: 500 }}>{label}</span>
+                        <span style={{ fontSize: 13, color: j === 2 ? ACCENT : "#888", fontWeight: j === 2 ? 600 : 400, fontStyle: j < 2 ? "italic" : "normal" }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <div style={{ background: `${ACCENT}08`, borderRadius: 14, padding: "14px 16px", border: `1px solid ${ACCENT}20`, display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <Icon name="Info" size={15} style={{ color: ACCENT, flexShrink: 0, marginTop: 1 }} />
+                <span style={{ fontSize: 13, color: "#555", lineHeight: 1.5 }}>Реальные цифры появятся в вашем отчёте — мы заполним каждую строку по вашему салону</span>
               </div>
             </div>
           </FadeIn>
