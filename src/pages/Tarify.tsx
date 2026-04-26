@@ -24,7 +24,7 @@ export default function Tarify() {
     <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
       <Helmet>
         <title>Тарифы на обучение массажу — Выберите свой план | Dok Диалог</title>
-        <meta name="description" content="Онлайн-курсы по массажу для частных мастеров и салонов. Выберите тариф: базовый, профессиональный или корпоративный. Доступ к урокам, протоколам и сообществу МассоПро." />
+        <meta name="description" content="Онлайн-курсы по массажу для частных мастеров и салонов. Выберите тариф: базовый, профессиональный или корпоративный. Доступ к урокам, протоколам и профессиональному сообществу." />
       </Helmet>
       <style>{`
         .tarify-plans-grid {

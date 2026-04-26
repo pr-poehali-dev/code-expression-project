@@ -24,7 +24,7 @@ export default function TarifyPlans({ onOpenModal }: TarifyPlansProps) {
           </FadeIn>
           <FadeIn delay={200}>
             <p style={{ fontSize: "clamp(15px, 2.5vw, 17px)", lineHeight: 1.75, color: "#5a5a5a", maxWidth: 580, marginBottom: 0 }}>
-              Три формата внедрения МассоПро — выберите подходящий для вашего салона. Все тарифы включают обучение мастеров и доступ к онлайн-платформе.
+              Три формата сотрудничества — выберите подходящий для вашего салона. Все тарифы включают обучение мастеров и доступ к онлайн-платформе.
             </p>
           </FadeIn>
         </div>
