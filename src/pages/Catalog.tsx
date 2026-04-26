@@ -86,24 +86,44 @@ export default function Catalog() {
               }}>
                 <Icon name="Building2" size={32} style={{ color: ACCENT }} />
               </div>
-              <div>
+              <div style={{ flex: 1 }}>
                 <h2 style={{ fontSize: 26, fontWeight: 700, margin: "0 0 12px", fontFamily: "Cormorant, serif" }}>
                   Для салонов
                 </h2>
-                <p style={{ fontSize: 15, color: "#666", margin: "0 0 28px", lineHeight: 1.6 }}>
-                  Обучение доступно для мастеров, прошедших внедрение через платформу
+                <p style={{ fontSize: 15, color: "#666", margin: "0 0 16px", lineHeight: 1.7 }}>
+                  Повышаем доход салона за счёт роста компетенций мастеров: правильные техники, оптимальный тайминг, грамотное ведение клиента — всё это напрямую влияет на выручку и возвращаемость.
+                </p>
+                <p style={{ fontSize: 14, color: "#999", margin: "0 0 28px", lineHeight: 1.6 }}>
+                  Уже работаете с нами? Войдите в кабинет для доступа к обучению.
                 </p>
               </div>
-              <span style={{
-                background: ACCENT, color: "#fff",
-                padding: "12px 28px", borderRadius: 10,
-                fontSize: 15, fontWeight: 600,
-                display: "inline-block",
-                boxShadow: `0 4px 16px ${ACCENT_SHADOW}`,
-                transition: "background 0.2s",
-              }}>
-                Войти в кабинет
-              </span>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+                <span style={{
+                  background: ACCENT, color: "#fff",
+                  padding: "12px 28px", borderRadius: 10,
+                  fontSize: 15, fontWeight: 600,
+                  display: "inline-block",
+                  boxShadow: `0 4px 16px ${ACCENT_SHADOW}`,
+                  transition: "background 0.2s",
+                }}>
+                  Войти в кабинет
+                </span>
+                <a
+                  href="/dlya-salonov"
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    background: "transparent", color: ACCENT,
+                    padding: "12px 20px", borderRadius: 10,
+                    fontSize: 14, fontWeight: 600,
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    border: `1.5px solid ${ACCENT}`,
+                    textDecoration: "none",
+                    transition: "background 0.2s",
+                  }}
+                >
+                  Узнать как
+                </a>
+              </div>
             </a>
 
             {/* Card 2: Частная практика */}
