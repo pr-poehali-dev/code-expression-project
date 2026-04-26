@@ -162,12 +162,15 @@ export default function Catalog() {
               }}>
                 <Icon name="UserRound" size={32} style={{ color: ACCENT }} />
               </div>
-              <div>
+              <div style={{ flex: 1 }}>
                 <h2 style={{ fontSize: 26, fontWeight: 700, margin: "0 0 12px", fontFamily: "Cormorant, serif" }}>
                   Для частной практики
                 </h2>
-                <p style={{ fontSize: 15, color: "#666", margin: "0 0 28px", lineHeight: 1.6 }}>
-                  Курсы для мастеров, которые хотят увеличить доход и поток клиентов
+                <p style={{ fontSize: 15, color: "#666", margin: "0 0 16px", lineHeight: 1.7 }}>
+                  Самостоятельно выбирайте курсы из каталога — онлайн или офлайн. Техники, протоколы и инструменты продвижения, которые помогают мастеру зарабатывать больше и выстраивать стабильный поток клиентов.
+                </p>
+                <p style={{ fontSize: 14, color: "#999", margin: "0 0 28px", lineHeight: 1.6 }}>
+                  Доступно без привязки к салону — в любое удобное время.
                 </p>
               </div>
               <span style={{
