@@ -96,10 +96,10 @@ export default function CourseTrevoga() {
                 «Выдохни»
               </h1>
               <p style={{ fontSize: "clamp(16px, 2.2vw, 22px)", fontWeight: 600, color: "#333", margin: "0 0 14px", lineHeight: 1.4 }}>
-                Как за 5–10 минут в день снять тревогу и выйти из стресса
+                Как снизить стресс и тревогу за 10–15 минут в день
               </p>
               <p style={{ fontSize: "clamp(14px, 1.5vw, 16px)", color: "#666", lineHeight: 1.75, margin: "0 0 28px" }}>
-                3 упражнения на основе физиологии вегетативной нервной системы. Никаких таблеток. Никаких медитаций на час. Только то, как устроено ваше тело — и как это использовать прямо сейчас.
+                Если ты постоянно в напряжении, быстро устаёшь и не можешь «выключить голову» — дело не в силе воли. Это перегруженная нервная система. И на это можно влиять — через тело, через дыхание, через внимание.
               </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 32 }}>
                 {["Бесплатно", "Онлайн", "Для всех 18+", "5–10 мин в день"].map((tag) => (
@@ -135,15 +135,18 @@ export default function CourseTrevoga() {
       {/* PAIN */}
       <section style={{ padding: "clamp(48px, 7vw, 80px) 20px" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <h2 style={{ ...h2style, textAlign: "center" }}>Узнаёте себя?</h2>
+          <h2 style={{ ...h2style, textAlign: "center" }}>Когда нервная система перегружена</h2>
+          <p style={{ textAlign: "center", fontSize: "clamp(14px, 1.5vw, 16px)", color: "#666", margin: "-20px auto 32px", maxWidth: 620, lineHeight: 1.7 }}>
+            Тело остаётся в напряжении даже в покое. Попытки «успокоиться» или «взять себя в руки» не работают — потому что ты пытаешься решить физиологическую реакцию через мысли.
+          </p>
           <div className="ct-pain-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             {[
-              "Просыпаетесь с тревогой, хотя ничего плохого не случилось",
-              "Не можете расслабиться даже когда «всё хорошо»",
-              "Сердце колотится без причины, мысли по кругу",
-              "Раздражение и усталость стали фоновым состоянием",
-              "Засыпаете с телефоном, потому что тишина тревожит",
-              "Чувствуете, что на грани, но не знаете как выйти",
+              "Тело остаётся в напряжении даже в покое",
+              "Дыхание становится поверхностным и зажатым",
+              "Мысли ускоряются и зацикливаются",
+              "Тревога возникает даже без явной причины",
+              "Сложно расслабиться даже в спокойной обстановке",
+              "Бывают резкие состояния, когда просто «накрывает»",
             ].map((text, i) => (
               <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fff", borderRadius: 14, padding: "16px 18px", border: "1px solid #e8e8e4" }}>
                 <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>😔</span>
@@ -154,8 +157,69 @@ export default function CourseTrevoga() {
           <div style={{ textAlign: "center", marginTop: 36 }}>
             <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", color: "#333", fontWeight: 600, lineHeight: 1.6, margin: 0 }}>
               Это не слабость и не «надо просто взять себя в руки».<br />
-              <span style={{ color: ACCENT }}>Это физиология. И у неё есть выключатель.</span>
+              <span style={{ color: ACCENT }}>Это физиология. И на неё можно влиять.</span>
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* GOOD NEWS */}
+      <section style={{ background: "#fff", padding: "clamp(48px, 7vw, 80px) 20px" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(32px, 5vw, 64px)", alignItems: "center" }} className="ct-pain-grid">
+            <div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: `${ACCENT}14`, color: ACCENT, borderRadius: 100, padding: "6px 16px", fontSize: 13, fontWeight: 600, marginBottom: 20 }}>
+                <Icon name="Sparkles" size={14} />
+                Хорошая новость
+              </div>
+              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 700, lineHeight: 1.15, margin: "0 0 20px", color: "#1a1a1a" }}>
+                На это можно влиять — через тело
+              </h2>
+              <p style={{ fontSize: "clamp(14px, 1.5vw, 16px)", color: "#555", lineHeight: 1.8, margin: "0 0 16px" }}>
+                Через дыхание. Через внимание. Не через мысли и не через силу воли.
+              </p>
+              <p style={{ fontSize: "clamp(14px, 1.5vw, 16px)", color: "#555", lineHeight: 1.8, margin: 0 }}>
+                В бесплатном мини-курсе ты получишь <strong>3 простых инструмента</strong>, которые помогут снизить уровень тревоги уже с первого применения. Это не теория — это конкретные действия, которые можно применить сразу.
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {[
+                { icon: "Wind", text: "Дыхательная техника — быстро снизить внутреннее напряжение" },
+                { icon: "Activity", text: "Стабилизация состояния — когда тревога резко усиливается" },
+                { icon: "Brain", text: "Практика возврата внимания — выход из тревожных мыслей" },
+              ].map((item, i) => (
+                <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: BG, borderRadius: 14, padding: "16px 18px", border: "1px solid #e8e8e4" }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: `${ACCENT}14`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Icon name={item.icon} size={16} style={{ color: ACCENT }} />
+                  </div>
+                  <span style={{ fontSize: "clamp(13px, 1.4vw, 14px)", color: "#444", lineHeight: 1.6, paddingTop: 4 }}>{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FOR WHOM */}
+      <section style={{ padding: "clamp(48px, 7vw, 80px) 20px" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+          <h2 style={{ ...h2style, textAlign: "center" }}>Кому подойдёт этот курс</h2>
+          <div className="ct-pain-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            {[
+              "Ты часто чувствуешь тревогу или внутреннее напряжение",
+              "Сложно расслабиться даже в спокойной обстановке",
+              "Мысли постоянно «крутятся» и не дают отдохнуть",
+              "Бывают резкие состояния, когда просто «накрывает»",
+              "Хочешь научиться быстро приводить себя в стабильное состояние",
+              "Ищешь не таблетки и не «поговорить», а реальные инструменты",
+            ].map((text, i) => (
+              <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fff", borderRadius: 14, padding: "16px 18px", border: "1px solid #e8e8e4" }}>
+                <div style={{ width: 22, height: 22, borderRadius: "50%", background: `${ACCENT}14`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                  <Icon name="Check" size={12} style={{ color: ACCENT }} />
+                </div>
+                <span style={{ fontSize: "clamp(13px, 1.4vw, 14px)", color: "#444", lineHeight: 1.6 }}>{text}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -265,10 +329,10 @@ export default function CourseTrevoga() {
         <div style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: 44, marginBottom: 16 }}>🌬️</div>
           <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 4.5vw, 44px)", fontWeight: 700, color: "#fff", margin: "0 0 16px", lineHeight: 1.2 }}>
-            Получите бесплатный доступ прямо сейчас
+            Начни с простого
           </h2>
           <p style={{ fontSize: "clamp(14px, 1.6vw, 16px)", color: "rgba(255,255,255,0.75)", margin: "0 0 32px", lineHeight: 1.7 }}>
-            Никакого спама. Только курс — и реальный инструмент управления своим состоянием.
+            Пройди бесплатный мини-курс и почувствуй, как меняется твоё состояние уже после первых практик. А дальше ты сам решишь — достаточно ли этого, или ты готов идти глубже.
           </p>
           <a
             href={ACCESS_URL}
@@ -291,6 +355,47 @@ export default function CourseTrevoga() {
         </div>
       </section>
 
+      {/* WHY IT STAYS / UPSELL */}
+      <section style={{ background: "#fff", padding: "clamp(48px, 7vw, 80px) 20px" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <h2 style={{ ...h2style, textAlign: "center" }}>Что важно понимать</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="ct-pain-grid">
+            <div style={{ background: BG, borderRadius: 20, padding: "clamp(24px, 4vw, 36px)", border: "1px solid #e8e8e4" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: "#fff3f3", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Icon name="AlertTriangle" size={20} style={{ color: "#e05050" }} />
+                </div>
+                <h3 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(18px, 2vw, 22px)", fontWeight: 700, margin: 0, color: "#1a1a1a" }}>Почему тревога возвращается</h3>
+              </div>
+              <p style={{ fontSize: "clamp(13px, 1.4vw, 15px)", color: "#555", lineHeight: 1.8, margin: "0 0 12px" }}>
+                Напряжение накапливается, а не сбрасывается. Тело остаётся в фоновом стрессе. Нет системы восстановления нервной системы.
+              </p>
+              <p style={{ fontSize: "clamp(13px, 1.4vw, 15px)", color: "#555", lineHeight: 1.8, margin: 0 }}>
+                В итоге — ты каждый раз <strong>«тушишь симптомы»</strong>, но не меняешь базовое состояние. Техники курса дают быстрый результат, но если тревога возвращается снова и снова — нервная система уже закрепила нестабильный режим работы.
+              </p>
+            </div>
+            <div style={{ background: `linear-gradient(135deg, hsl(185, 85%, 10%) 0%, hsl(185, 70%, 20%) 100%)`, borderRadius: 20, padding: "clamp(24px, 4vw, 36px)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Icon name="TrendingUp" size={20} style={{ color: "#fff" }} />
+                </div>
+                <h3 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(18px, 2vw, 22px)", fontWeight: 700, margin: 0, color: "#fff" }}>Системная регуляция ВНС</h3>
+              </div>
+              <p style={{ fontSize: "clamp(13px, 1.4vw, 15px)", color: "rgba(255,255,255,0.8)", lineHeight: 1.8, margin: "0 0 20px" }}>
+                В расширенной программе ты разбираешься глубже: как диагностировать состояние нервной системы, убрать хроническое напряжение из тела и выстроить устойчивое спокойствие и энергию.
+              </p>
+              <p style={{ fontSize: "clamp(13px, 1.4vw, 14px)", color: "rgba(255,255,255,0.6)", lineHeight: 1.7, margin: "0 0 24px", fontStyle: "italic" }}>
+                Это уже не про временное облегчение. Это про состояние, в котором ты живёшь каждый день.
+              </p>
+              <a href="/catalog/private" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.15)", color: "#fff", borderRadius: 12, padding: "12px 22px", fontSize: 14, fontWeight: 600, textDecoration: "none", border: "1px solid rgba(255,255,255,0.2)" }}>
+                Смотреть расширенную программу
+                <Icon name="ArrowRight" size={14} />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ */}
       <section style={{ padding: "clamp(48px, 7vw, 80px) 20px" }}>
         <div style={{ maxWidth: 760, margin: "0 auto" }}>
@@ -307,13 +412,13 @@ export default function CourseTrevoga() {
       <section style={{ padding: "0 20px clamp(48px, 7vw, 80px)" }}>
         <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center", background: "#fff", borderRadius: 24, padding: "clamp(32px, 5vw, 52px) clamp(20px, 5vw, 40px)", border: "1px solid #e8e8e4", boxShadow: "0 8px 40px rgba(0,0,0,0.06)" }}>
           <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px, 3.5vw, 36px)", fontWeight: 700, margin: "0 0 14px", color: "#1a1a1a" }}>
-            Вы заслуживаете чувствовать себя хорошо
+            Ты заслуживаешь чувствовать себя хорошо
           </h2>
           <p style={{ fontSize: "clamp(14px, 1.5vw, 16px)", color: "#666", lineHeight: 1.7, margin: "0 0 28px" }}>
-            Не «терпеть», не «справляться», не «отвлекаться». А выдохнуть по-настоящему. Начните сегодня — это бесплатно и займёт 5 минут.
+            Не «терпеть» и не «справляться». А выдохнуть по-настоящему и почувствовать, что контроль над своим состоянием — в твоих руках. Начни сегодня — это бесплатно и займёт 10 минут.
           </p>
           <BtnPrimary href={ACCESS_URL} style={{ fontSize: "clamp(14px, 1.6vw, 17px)", padding: "clamp(14px, 2vw, 18px) clamp(28px, 4vw, 44px)" }}>
-            Хочу выдохнуть →
+            Получить бесплатный доступ →
           </BtnPrimary>
         </div>
       </section>
