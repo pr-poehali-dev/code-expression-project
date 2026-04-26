@@ -333,10 +333,10 @@ export default function SalonServices() {
         </div>
         <style>{`
           @media (max-width: 640px) {
-            .ss-diag-grid { grid-template-columns: 1fr !important; }
-            .ss-diag-grid > div:last-child { align-self: flex-start; width: 100%; }
-            .ss-diag-grid > div:last-child a { width: 100%; justify-content: center; box-sizing: border-box; }
-            .ss-diag-grid > div:last-child span { text-align: center !important; }
+            .ss-diag-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+            .ss-diag-grid > div:last-child { display: flex; flex-direction: column; align-items: stretch; width: 100%; }
+            .ss-diag-grid > div:last-child a { width: 100%; box-sizing: border-box; justify-content: center; white-space: normal !important; text-align: center; }
+            .ss-diag-grid > div:last-child span { white-space: normal !important; text-align: center; display: block; width: 100%; }
           }
         `}</style>
       </section>
