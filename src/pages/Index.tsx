@@ -143,11 +143,11 @@ export default function DokDialog() {
   return (
     <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
       <Helmet>
-        <title>Dok Диалог — Образовательная платформа для мастеров массажа</title>
-        <meta name="description" content="Онлайн-обучение, профессиональное сообщество и база знаний для мастеров массажа системы МассоПро. Структурированные курсы, протоколы и поддержка." />
-        <meta name="keywords" content="обучение массажу, онлайн курсы массажа, МассоПро, образование массажист, профессия массажист" />
-        <meta property="og:title" content="Dok Диалог — Образовательная платформа для мастеров массажа" />
-        <meta property="og:description" content="Онлайн-обучение, профессиональное сообщество и база знаний для мастеров массажа системы МассоПро." />
+        <title>Dok Диалог — Развитие массажных салонов и мастеров</title>
+        <meta name="description" content="Запускаем массажные услуги в салонах, оцениваем и развиваем компетенции мастеров. Онлайн и офлайн курсы для частной практики и просветительские программы." />
+        <meta name="keywords" content="обучение массажу, онлайн курсы массажа, массажный салон, развитие массажистов, частная практика массаж" />
+        <meta property="og:title" content="Dok Диалог — Развитие массажных салонов и мастеров" />
+        <meta property="og:description" content="Запускаем массажные услуги в салонах, оцениваем и развиваем компетенции мастеров. Онлайн и офлайн курсы для частной практики." />
         <meta property="og:type" content="website" />
       </Helmet>
       <style>{`
@@ -195,7 +195,7 @@ export default function DokDialog() {
             <div className="dd-hero-left">
               <FadeIn delay={0}>
                 <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 20 }}>
-                  Образовательная платформа
+                  Развитие · Обучение · Практика
                 </div>
               </FadeIn>
               <FadeIn delay={100}>
@@ -206,29 +206,32 @@ export default function DokDialog() {
               <FadeIn delay={200}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 40 }}>
                   <p style={{ fontSize: "clamp(16px, 2.5vw, 18px)", lineHeight: 1.75, color: "#3a3a3a", margin: 0 }}>
-                    <strong>Образовательная платформа</strong> для{" "}
-                    <strong>специалистов</strong> системы <strong><a href="https://massopro.ru/" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>МассоПРО</a></strong>.
+                    Запускаем массажные услуги в салонах, оцениваем работу мастеров и помогаем выстраивать стандарты качества.
                   </p>
                   <p style={{ fontSize: "clamp(15px, 2vw, 17px)", lineHeight: 1.75, color: "#5a5a5a", margin: 0 }}>
-                    Платформа объединяет структурированное онлайн-обучение, профессиональное сообщество и базу знаний — всё, что нужно мастеру массажа для роста.
-                  </p>
-                  <p style={{ fontSize: "clamp(15px, 2vw, 17px)", lineHeight: 1.75, color: "#5a5a5a", margin: 0 }}>
-                    Доступ получают специалисты салонов и студий, подключённых к системе МассоПро.
+                    Для тех, кто ведёт частную практику — онлайн и офлайн курсы по выбору. Для широкой аудитории — точечные просветительские программы под конкретные запросы.
                   </p>
                 </div>
               </FadeIn>
               <FadeIn delay={300}>
-                <a
-                  href="/tarify"
-                  style={{ display: "inline-block", background: ACCENT, color: "#fff", padding: "15px 28px", borderRadius: 12, fontSize: 15, fontWeight: 600, letterSpacing: "0.02em", textDecoration: "none", transition: "all 0.25s ease", boxShadow: `0 4px 20px ${ACCENT_SHADOW}` }}
-                  onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT_DARK; el.style.boxShadow = `0 8px 32px ${ACCENT_SHADOW_HOVER}`; el.style.transform = "translateY(-2px)"; }}
-                  onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT; el.style.boxShadow = `0 4px 20px ${ACCENT_SHADOW}`; el.style.transform = "translateY(0)"; }}
-                >
-                  Смотреть тарифы
-                </a>
-                <p style={{ marginTop: 12, marginBottom: 0, fontSize: 13, color: "#999", lineHeight: 1.5 }}>
-                  Доступ предоставляется специалистам салонов и частным мастерам
-                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+                  <a
+                    href="/catalog"
+                    style={{ display: "inline-block", background: ACCENT, color: "#fff", padding: "15px 28px", borderRadius: 12, fontSize: 15, fontWeight: 600, letterSpacing: "0.02em", textDecoration: "none", transition: "all 0.25s ease", boxShadow: `0 4px 20px ${ACCENT_SHADOW}` }}
+                    onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT_DARK; el.style.boxShadow = `0 8px 32px ${ACCENT_SHADOW_HOVER}`; el.style.transform = "translateY(-2px)"; }}
+                    onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT; el.style.boxShadow = `0 4px 20px ${ACCENT_SHADOW}`; el.style.transform = "translateY(0)"; }}
+                  >
+                    Перейти в каталог
+                  </a>
+                  <a
+                    href="/tarify"
+                    style={{ display: "inline-block", background: "#fff", color: ACCENT, padding: "15px 28px", borderRadius: 12, fontSize: 15, fontWeight: 600, letterSpacing: "0.02em", textDecoration: "none", transition: "all 0.25s ease", border: `1.5px solid ${ACCENT}` }}
+                    onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = `${ACCENT}08`; el.style.transform = "translateY(-2px)"; }}
+                    onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "#fff"; el.style.transform = "translateY(0)"; }}
+                  >
+                    Тарифы для салонов
+                  </a>
+                </div>
               </FadeIn>
             </div>
 
@@ -246,52 +249,119 @@ export default function DokDialog() {
         </div>
       </section>
 
-      {/* Features */}
+      {/* Directions */}
       <section style={{ paddingBottom: 80 }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+          <FadeIn>
+            <div style={{ textAlign: "center", marginBottom: 48 }}>
+              <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 14 }}>Три направления работы</div>
+              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 700, color: "#1a1a1a", margin: 0, lineHeight: 1.2 }}>Выберите своё</h2>
+            </div>
+          </FadeIn>
           <div className="dd-features-grid">
             {[
-              { icon: "GraduationCap", title: "Онлайн-обучение", text: "Структурированные курсы от практикующих экспертов в удобном формате — смотри в любое время" },
-              { icon: "Users", title: "Сообщество", text: "Закрытый клуб специалистов МассоПро: обмен опытом, разборы случаев, поддержка коллег" },
-              { icon: "BookOpen", title: "База знаний", text: "Методические материалы, протоколы, техники и рекомендации всегда под рукой" },
+              {
+                icon: "Building2",
+                label: "Для салонов",
+                title: "Массажный салон",
+                text: "Запускаем массажные услуги в вашем салоне: подбор и обучение мастеров, оценка компетенций, стандарты работы и контроль качества.",
+                items: ["Запуск массажных услуг с нуля", "Оценка и обучение персонала", "Контроль качества и стандарты"],
+                href: "/catalog",
+                btnText: "Узнать подробнее",
+                accent: ACCENT,
+              },
+              {
+                icon: "UserCheck",
+                label: "Для частной практики",
+                title: "Частная практика",
+                text: "Выбирайте онлайн или офлайн курсы из каталога самостоятельно. Техники, протоколы, развитие компетенций — всё в одном месте.",
+                items: ["Онлайн-курсы в удобное время", "Офлайн интенсивы и практикумы", "Развитие профессиональных навыков"],
+                href: "/catalog/private",
+                btnText: "Смотреть каталог",
+                accent: "hsl(270, 60%, 45%)",
+              },
+              {
+                icon: "Lightbulb",
+                label: "Для повседневной жизни",
+                title: "Просветительские программы",
+                text: "Точечные программы под конкретные запросы: снятие стресса, восстановление, работа с телом. Для тех, кто хочет заботиться о себе осознанно.",
+                items: ["Практики снятия напряжения", "Программы восстановления", "Работа с телом и состоянием"],
+                href: "/catalog/private?tab=point",
+                btnText: "Смотреть программы",
+                accent: "hsl(12, 80%, 45%)",
+              },
             ].map((item, i) => (
               <FadeIn key={i} delay={i * 100}>
-                <div className="dd-feature-card"
-                  style={{ background: "#fff", borderRadius: 20, boxShadow: "0 2px 24px rgba(0,0,0,0.06)", transition: "transform 0.25s ease, box-shadow 0.25s ease", cursor: "default", height: "100%", boxSizing: "border-box" as const }}
-                  onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(-4px)"; el.style.boxShadow = "0 8px 40px rgba(0,0,0,0.1)"; }}
-                  onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 2px 24px rgba(0,0,0,0.06)"; }}
+                <a
+                  href={item.href}
+                  className="dd-feature-card"
+                  style={{
+                    display: "flex", flexDirection: "column",
+                    background: "#fff", borderRadius: 20,
+                    boxShadow: "0 2px 24px rgba(0,0,0,0.06)",
+                    transition: "transform 0.25s ease, box-shadow 0.25s ease",
+                    height: "100%", boxSizing: "border-box" as const,
+                    textDecoration: "none", color: "inherit",
+                  }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-4px)"; el.style.boxShadow = "0 8px 40px rgba(0,0,0,0.1)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 2px 24px rgba(0,0,0,0.06)"; }}
                 >
-                  <div style={{ width: 52, height: 52, borderRadius: 14, background: `${ACCENT}14`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
-                    <Icon name={item.icon} size={26} style={{ color: ACCENT }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase" as const, color: item.accent, marginBottom: 14, background: `${item.accent}12`, borderRadius: 100, padding: "4px 12px" }}>{item.label}</div>
+                    <div style={{ width: 52, height: 52, borderRadius: 14, background: `${item.accent}14`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
+                      <Icon name={item.icon} size={26} style={{ color: item.accent }} />
+                    </div>
+                    <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px, 2.5vw, 26px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 10 }}>{item.title}</div>
+                    <div style={{ fontSize: 14, lineHeight: 1.65, color: "#6a6a6a", marginBottom: 20 }}>{item.text}</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
+                      {item.items.map((pt, j) => (
+                        <div key={j} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span style={{ color: item.accent, fontSize: 14, fontWeight: 700, flexShrink: 0 }}>✓</span>
+                          <span style={{ fontSize: 13, color: "#3a3a3a" }}>{pt}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px, 2.5vw, 26px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 10 }}>{item.title}</div>
-                  <div style={{ fontSize: 14, lineHeight: 1.65, color: "#6a6a6a" }}>{item.text}</div>
-                </div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, color: item.accent, fontSize: 14, fontWeight: 600 }}>
+                    {item.btnText}
+                    <Icon name="ArrowRight" size={14} style={{ color: item.accent }} />
+                  </div>
+                </a>
               </FadeIn>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing CTA */}
+      {/* Salons CTA */}
       <section style={{ paddingBottom: 80 }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <FadeIn>
             <div className="dd-cta-block" style={{ background: ACCENT, borderRadius: 24, textAlign: "center", boxShadow: `0 16px 64px ${ACCENT_SHADOW}` }}>
               <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 4vw, 46px)", fontWeight: 700, color: "#fff", marginBottom: 16, lineHeight: 1.2 }}>
-                Готовы начать обучение?
+                Хотите запустить массаж в своём салоне?
               </div>
-              <p style={{ fontSize: "clamp(14px, 2vw, 17px)", color: "rgba(255,255,255,0.8)", lineHeight: 1.65, maxWidth: 520, margin: "0 auto 32px" }}>
-                Три тарифа на любой запрос — от базового доступа до персонального сопровождения куратором. Подписка ежемесячная, без обязательств.
+              <p style={{ fontSize: "clamp(14px, 2vw, 17px)", color: "rgba(255,255,255,0.8)", lineHeight: 1.65, maxWidth: 560, margin: "0 auto 32px" }}>
+                Поможем с подбором мастеров, обучением, оценкой компетенций и выстраиванием стандартов работы. Свяжитесь с нами — расскажем, как это работает.
               </p>
-              <a
-                href="/tarify"
-                style={{ display: "inline-block", background: "#fff", color: ACCENT, padding: "14px 36px", borderRadius: 12, fontSize: 15, fontWeight: 700, textDecoration: "none", transition: "all 0.25s ease", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 8px 32px rgba(0,0,0,0.2)"; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 4px 20px rgba(0,0,0,0.15)"; }}
-              >
-                Смотреть все тарифы →
-              </a>
+              <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+                <a
+                  href="/tarify"
+                  style={{ display: "inline-block", background: "#fff", color: ACCENT, padding: "14px 36px", borderRadius: 12, fontSize: 15, fontWeight: 700, textDecoration: "none", transition: "all 0.25s ease", boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 8px 32px rgba(0,0,0,0.2)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 4px 20px rgba(0,0,0,0.15)"; }}
+                >
+                  Тарифы для салонов →
+                </a>
+                <a
+                  href="/catalog"
+                  style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", color: "#fff", padding: "14px 36px", borderRadius: 12, fontSize: 15, fontWeight: 600, textDecoration: "none", transition: "all 0.25s ease", border: "1px solid rgba(255,255,255,0.3)" }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "rgba(255,255,255,0.22)"; el.style.transform = "translateY(-2px)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "rgba(255,255,255,0.15)"; el.style.transform = "translateY(0)"; }}
+                >
+                  Войти в систему
+                </a>
+              </div>
             </div>
           </FadeIn>
         </div>
@@ -307,26 +377,37 @@ export default function DokDialog() {
                   Частная практика
                 </div>
                 <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 3.5vw, 42px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 20, lineHeight: 1.2 }}>
-                  Работаете<br />на себя?
+                  Ведёте<br />частную практику?
                 </h2>
                 <p style={{ fontSize: "clamp(14px, 2vw, 16px)", lineHeight: 1.75, color: "#5a5a5a", marginBottom: 16 }}>
-                  Платформа Dok Диалог создана для мастеров салонов и студий системы МассоПро. Но если вы ведёте <strong>частную практику</strong> и хотите профессионально расти — мы готовы рассмотреть вашу заявку.
+                  Самостоятельно выбирайте курсы из каталога — онлайн или офлайн. Техники, протоколы, развитие компетенций — всё доступно без привязки к салону.
                 </p>
                 <p style={{ fontSize: "clamp(14px, 2vw, 16px)", lineHeight: 1.75, color: "#5a5a5a", marginBottom: 0 }}>
-                  Доступ к платформе предоставляется при <strong>наличии активной подписки</strong> на один из тарифов. Оставьте заявку — мы проконсультируем и поможем выбрать оптимальный план.
+                  Оставьте заявку — мы подберём подходящий формат и расскажем о доступных программах.
                 </p>
                 <div style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 10 }}>
-                  {["Онлайн-обучение в любое удобное время", "Актуальные техники и протоколы", "Поддержка профессионального сообщества"].map((item, i) => (
+                  {["Онлайн-курсы в любое удобное время", "Офлайн интенсивы и практикумы", "Точечные программы под конкретный запрос"].map((item, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <span style={{ color: ACCENT, fontWeight: 700, fontSize: 15 }}>✓</span>
                       <span style={{ fontSize: 14, color: "#3a3a3a" }}>{item}</span>
                     </div>
                   ))}
                 </div>
+                <div style={{ marginTop: 28 }}>
+                  <a
+                    href="/catalog/private"
+                    style={{ display: "inline-flex", alignItems: "center", gap: 8, background: ACCENT, color: "#fff", padding: "13px 24px", borderRadius: 12, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "all 0.25s ease", boxShadow: `0 4px 20px ${ACCENT_SHADOW}` }}
+                    onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT_DARK; el.style.transform = "translateY(-2px)"; }}
+                    onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT; el.style.transform = "translateY(0)"; }}
+                  >
+                    Перейти в каталог
+                    <Icon name="ArrowRight" size={14} />
+                  </a>
+                </div>
               </div>
               <div className="dd-split-col" style={{ background: "#f8f8f6", display: "flex", flexDirection: "column", justifyContent: "center" }}>
                 <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px, 3vw, 26px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 8 }}>Оставить заявку</div>
-                <p style={{ fontSize: 14, color: "#888", marginBottom: 28, lineHeight: 1.55 }}>Заполните форму, и мы свяжемся с вами для консультации. Доступ предоставляется при покупке любого тарифа.</p>
+                <p style={{ fontSize: 14, color: "#888", marginBottom: 28, lineHeight: 1.55 }}>Заполните форму, и мы свяжемся с вами для консультации по доступным программам.</p>
                 <ConsultForm />
               </div>
             </div>
