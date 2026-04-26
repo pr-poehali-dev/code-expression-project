@@ -318,7 +318,7 @@ export default function SalonServices() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12, flexShrink: 0 }}>
                 <a
-                  href="#"
+                  href="/diagnostika-salona"
                   style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", color: ACCENT, padding: "14px 24px", borderRadius: 12, fontSize: 14, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap", transition: "all 0.25s ease", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}
                   onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 8px 32px rgba(0,0,0,0.25)"; }}
                   onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 4px 20px rgba(0,0,0,0.2)"; }}
@@ -326,7 +326,7 @@ export default function SalonServices() {
                   Узнать подробнее
                   <Icon name="ArrowRight" size={14} />
                 </a>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", textAlign: "center" }}>Скоро</span>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", textAlign: "center" }}>30 000 ₽ · по понедельникам</span>
               </div>
             </div>
           </FadeIn>

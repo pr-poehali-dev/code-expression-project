@@ -22,6 +22,7 @@ import CoursePotok from "./pages/CoursePotok";
 import CourseOfflineIntensiv from "./pages/CourseOfflineIntensiv";
 import CourseTrevoga from "./pages/course-trevoga";
 import SalonServices from "./pages/SalonServices";
+import DiagnostikaSalona from "./pages/DiagnostikaSalona";
 import NotFoundPage from "./pages/NotFoundPage";
 import CookieBanner from "./components/CookieBanner";
 
@@ -53,6 +54,7 @@ const App = () => (
           <Route path="/course/offline-intensiv-massazh" element={<CourseOfflineIntensiv />} />
           <Route path="/course/vns-trevoga" element={<CourseTrevoga />} />
           <Route path="/dlya-salonov" element={<SalonServices />} />
+          <Route path="/diagnostika-salona" element={<DiagnostikaSalona />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
