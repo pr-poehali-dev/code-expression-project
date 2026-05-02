@@ -6,6 +6,7 @@ import Icon from "@/components/ui/icon";
 import { ACCENT, BG, ONLINE_COURSES, OFFLINE_COURSES, POINT_COURSES, LevelFilter, DirectionFilter, TabType } from "./catalog-private/CpShared";
 import { CourseCard, OfflineCourseCard } from "./catalog-private/CpCourseCard";
 import { TabSwitcher, CatalogFilters } from "./catalog-private/CpFilters";
+import CpCollectionCard from "./catalog-private/CpCollectionCard";
 
 export default function CatalogPrivate() {
   const [tab, setTab] = useState<TabType>(() => {
@@ -87,6 +88,7 @@ export default function CatalogPrivate() {
 
           {/* Grid */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }} className="cp-grid">
+            {tab === "online" && <CpCollectionCard />}
             {filtered.map((course) => (
               tab === "offline"
                 ? <OfflineCourseCard key={course.id} course={course} />

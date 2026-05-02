@@ -24,6 +24,7 @@ import CourseTrevoga from "./pages/course-trevoga";
 import SalonServices from "./pages/SalonServices";
 import CourseFitnesBerem from "./pages/CourseFitnesBerem";
 import DiagnostikaSalona from "./pages/DiagnostikaSalona";
+import CourseKollektsiya from "./pages/CourseKollektsiya";
 import NotFoundPage from "./pages/NotFoundPage";
 import CookieBanner from "./components/CookieBanner";
 
@@ -57,6 +58,7 @@ const App = () => (
           <Route path="/dlya-salonov" element={<SalonServices />} />
           <Route path="/course/fitnes-beremennyh" element={<CourseFitnesBerem />} />
           <Route path="/diagnostika-salona" element={<DiagnostikaSalona />} />
+          <Route path="/course/kollektsiya" element={<CourseKollektsiya />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
