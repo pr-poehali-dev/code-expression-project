@@ -1,7 +1,9 @@
 import Icon from "@/components/ui/icon";
 import { ACCENT, BG, HERO_IMG, AUTHOR_IMG, BtnPrimary, BtnSecondary, h2style } from "./CpShared";
+import { useDiscountTimer } from "@/hooks/useDiscountTimer";
 
 export default function CpHeroSection() {
+  const { isActive } = useDiscountTimer();
   return (
     <>
       {/* ── 1. HERO ── */}
@@ -37,7 +39,7 @@ export default function CpHeroSection() {
               ))}
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <BtnPrimary>Купить курс — 5 970 ₽</BtnPrimary>
+              <BtnPrimary>{isActive ? "Купить курс — 5 970 ₽" : "Купить курс — 19 900 ₽"}</BtnPrimary>
               <BtnSecondary>Оформить рассрочку</BtnSecondary>
             </div>
           </div>

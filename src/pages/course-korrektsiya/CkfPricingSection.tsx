@@ -1,5 +1,7 @@
 import Icon from "@/components/ui/icon";
 import { ACCENT, FAQS, AccordionItem, BtnPrimary, BtnSecondary, h2style } from "./CkfShared";
+import DiscountTimer from "@/components/ui/DiscountTimer";
+import { useDiscountTimer } from "@/hooks/useDiscountTimer";
 
 const mobileStyles = `
   .pricing-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
@@ -10,6 +12,7 @@ const mobileStyles = `
 `;
 
 export default function CkfPricingSection() {
+  const { isActive } = useDiscountTimer();
   return (
     <>
       <style>{mobileStyles}</style>
@@ -22,9 +25,14 @@ export default function CkfPricingSection() {
             boxShadow: "0 8px 40px rgba(0,0,0,0.08)",
           }} className="ckf-price-pad">
             <div style={{ fontSize: 13, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Стоимость курса</div>
-            <div style={{ fontSize: 18, color: "#aaa", textDecoration: "line-through", fontWeight: 400, marginBottom: 4 }}>16 900 ₽</div>
-            <div style={{ fontFamily: "Cormorant, serif", fontSize: 56, fontWeight: 700, color: "#1a1a1a", lineHeight: 1 }}>5 070 ₽</div>
-            <div style={{ color: "#999", fontSize: 14, margin: "8px 0 32px" }}>или рассрочка от 423 ₽/мес</div>
+            {isActive ? (
+              <div style={{ marginBottom: 8 }}>
+                <DiscountTimer oldPrice="16 900 ₽" newPrice="5 070 ₽" accent={ACCENT} size="lg" />
+              </div>
+            ) : (
+              <div style={{ fontFamily: "Cormorant, serif", fontSize: 56, fontWeight: 700, color: "#1a1a1a", lineHeight: 1 }}>16 900 ₽</div>
+            )}
+            <div style={{ color: "#999", fontSize: 14, margin: "8px 0 32px" }}>{isActive ? "или рассрочка от 423 ₽/мес" : "или рассрочка от 1 408 ₽/мес"}</div>
             <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", marginBottom: 24 }}>
               {["Полная оплата", "Рассрочка на 12 мес", "Рассрочка на 24 мес"].map((o) => (
                 <div key={o} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#555" }}>
@@ -89,7 +97,7 @@ export default function CkfPricingSection() {
             Клиенты платят за результат — дайте им его с первого же раза
           </p>
           <div className="pricing-btns">
-            <BtnPrimary style={{ padding: "16px 40px", fontSize: 16 }}>Купить курс — 5 070 ₽</BtnPrimary>
+            <BtnPrimary style={{ padding: "16px 40px", fontSize: 16 }}>{isActive ? "Купить курс — 5 070 ₽" : "Купить курс — 16 900 ₽"}</BtnPrimary>
             <BtnSecondary style={{ padding: "15px 40px", fontSize: 16 }}>Рассрочка</BtnSecondary>
           </div>
         </div>

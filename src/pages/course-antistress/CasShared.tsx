@@ -1,4 +1,6 @@
 import { useState } from "react";
+import DiscountTimer from "@/components/ui/DiscountTimer";
+import { useDiscountTimer } from "@/hooks/useDiscountTimer";
 
 export const ACCENT = "hsl(185, 85%, 32%)";
 export const ACCENT_DARK = "hsl(185, 85%, 26%)";
@@ -122,6 +124,7 @@ export function AccordionItem({ title, children }: { title: string; children: Re
 }
 
 export function CtaBar() {
+  const { isActive } = useDiscountTimer();
   return (
     <div style={{ margin: "60px 0 0", background: "#fff", borderTop: "1px solid #e8e8e4", borderBottom: "1px solid #e8e8e4" }}>
       <style>{`
@@ -139,8 +142,11 @@ export function CtaBar() {
           <div style={{ color: "#999", fontSize: 13 }}>Удивите клиента уже на первом сеансе</div>
         </div>
         <div className="ctabar-btns">
-          <span style={{ fontFamily: "Cormorant, serif", fontSize: 22, fontWeight: 400, color: "#aaa", textDecoration: "line-through" }}>14 900 ₽</span>
-          <span style={{ fontFamily: "Cormorant, serif", fontSize: 28, fontWeight: 700 }}>4 470 ₽</span>
+          {isActive ? (
+            <DiscountTimer oldPrice="14 900 ₽" newPrice="4 470 ₽" accent={ACCENT} size="sm" />
+          ) : (
+            <span style={{ fontFamily: "Cormorant, serif", fontSize: 28, fontWeight: 700 }}>14 900 ₽</span>
+          )}
           <BtnPrimary>Купить курс</BtnPrimary>
           <BtnSecondary>Рассрочка</BtnSecondary>
         </div>
