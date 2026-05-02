@@ -78,7 +78,10 @@ export function CourseCard({ course }: { course: Course }) {
                 background: `${t.color}08`,
               }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: t.color, marginBottom: 2 }}>{t.label}</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>{t.price}</div>
+                {t.oldPrice && (
+                  <div style={{ fontSize: 11, color: "#aaa", textDecoration: "line-through", lineHeight: 1.2 }}>{t.oldPrice}</div>
+                )}
+                <div style={{ fontSize: 13, fontWeight: 600, color: t.oldPrice ? ACCENT : "#1a1a1a" }}>{t.price}</div>
               </div>
             ))}
           </div>
@@ -86,10 +89,13 @@ export function CourseCard({ course }: { course: Course }) {
 
         <div style={{ marginTop: "auto" }}>
           {/* Price */}
-          <div style={{ marginBottom: 16 }}>
-            <span style={{ fontSize: 22, fontWeight: 700, color: "#1a1a1a" }}>{course.price}</span>
+          <div style={{ marginBottom: 16, display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+            {course.oldPrice && (
+              <span style={{ fontSize: 16, color: "#aaa", textDecoration: "line-through", fontWeight: 500 }}>{course.oldPrice}</span>
+            )}
+            <span style={{ fontSize: 22, fontWeight: 700, color: course.oldPrice ? ACCENT : "#1a1a1a" }}>{course.price}</span>
             {course.priceNote && (
-              <span style={{ fontSize: 13, color: "#999", marginLeft: 8 }}>{course.priceNote}</span>
+              <span style={{ fontSize: 13, color: "#999" }}>{course.priceNote}</span>
             )}
           </div>
 

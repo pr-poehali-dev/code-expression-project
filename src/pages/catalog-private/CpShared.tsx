@@ -9,10 +9,11 @@ export type Course = {
   description: string;
   bullets: string[];
   price: string;
+  oldPrice?: string;
   priceNote?: string;
   level: "beginner" | "practitioner" | "any";
   direction: "technique" | "income";
-  tiers?: { label: string; color: string; price: string }[];
+  tiers?: { label: string; color: string; price: string; oldPrice?: string }[];
   image: string;
   detailUrl?: string;
   buyUrl?: string;
@@ -36,7 +37,8 @@ export const ONLINE_COURSES: Course[] = [
       "Проводить полноценный сеанс с клиентом",
       "Находить первых клиентов и зарабатывать",
     ],
-    price: "19 900 ₽",
+    price: "5 970 ₽",
+    oldPrice: "19 900 ₽",
     priceNote: "или рассрочка",
     level: "beginner",
     direction: "income",
@@ -71,7 +73,8 @@ export const ONLINE_COURSES: Course[] = [
       "Работать с болью в спине, шее и стрессом",
       "Повышать эффективность каждого сеанса",
     ],
-    price: "19 900 ₽",
+    price: "5 970 ₽",
+    oldPrice: "19 900 ₽",
     level: "practitioner",
     direction: "technique",
     format: "online",
@@ -88,7 +91,8 @@ export const ONLINE_COURSES: Course[] = [
       "Усиливать эффект массажа через ВНС",
       "Повышать лояльность и возврат клиентов",
     ],
-    price: "14 900 ₽",
+    price: "4 470 ₽",
+    oldPrice: "14 900 ₽",
     level: "any",
     direction: "technique",
     format: "online",
@@ -105,7 +109,8 @@ export const ONLINE_COURSES: Course[] = [
       "Устранять отёки и улучшать внешний вид",
       "Создавать курс процедур для клиента",
     ],
-    price: "16 900 ₽",
+    price: "5 070 ₽",
+    oldPrice: "16 900 ₽",
     level: "any",
     direction: "income",
     format: "online",
@@ -122,7 +127,8 @@ export const ONLINE_COURSES: Course[] = [
       "Безопасной работе с внутренними органами",
       "Применению техник на практике",
     ],
-    price: "4 990 ₽",
+    price: "1 497 ₽",
+    oldPrice: "4 990 ₽",
     level: "beginner",
     direction: "technique",
     format: "online",
@@ -139,15 +145,16 @@ export const ONLINE_COURSES: Course[] = [
       "Упаковать личный бренд и повысить чек",
       "Выйти на стабильный доход",
     ],
-    price: "от 4 900 ₽",
+    price: "от 1 470 ₽",
+    oldPrice: "от 4 900 ₽",
     priceNote: "3 тарифа",
     level: "any",
     direction: "income",
     format: "online",
     tiers: [
-      { label: "Старт", color: "#22c55e", price: "4 900 ₽" },
-      { label: "Профи", color: "#f59e0b", price: "14 900 ₽" },
-      { label: "Эксперт", color: "#ef4444", price: "34 900 ₽" },
+      { label: "Старт", color: "#22c55e", price: "1 470 ₽", oldPrice: "4 900 ₽" },
+      { label: "Профи", color: "#f59e0b", price: "4 470 ₽", oldPrice: "14 900 ₽" },
+      { label: "Эксперт", color: "#ef4444", price: "10 470 ₽", oldPrice: "34 900 ₽" },
     ],
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/ac73bf44-ff8f-4207-9d24-56da457498ea.jpg",
     detailUrl: "/course/massazhist-s-potokom-klientov",
