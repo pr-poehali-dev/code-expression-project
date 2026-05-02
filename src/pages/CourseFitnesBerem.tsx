@@ -157,7 +157,7 @@ export default function CourseFitnesBerem() {
     <div style={{ background: BG, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#1a1a1a" }}>
       <Helmet>
         <title>Фитнес для беременных (2-й триместр) — Безопасные тренировки | Dok Диалог</title>
-        <meta name="description" content="Онлайн-курс: безопасные тренировки для беременных во 2-м триместре. 3 программы по частоте занятий. Автор — Сергей Водопьянов. 5 590 ₽." />
+        <meta name="description" content="Онлайн-курс: безопасные тренировки для беременных во 2-м триместре. 3 программы по частоте занятий. Автор — Сергей Водопьянов. 1 677 ₽." />
       </Helmet>
       <DokNavbar />
 
@@ -195,8 +195,9 @@ export default function CourseFitnesBerem() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
                 <BtnPrimary href={BUY_URL} style={{ fontSize: "clamp(14px, 1.6vw, 16px)", padding: "clamp(14px, 2vw, 16px) clamp(28px, 4vw, 40px)" }}>
-                  Купить курс — 5 590 ₽ →
+                  Купить курс — 1 677 ₽ →
                 </BtnPrimary>
+                <span style={{ fontSize: 15, color: "#aaa", textDecoration: "line-through", fontWeight: 500 }}>5 590 ₽</span>
               </div>
             </div>
             <div className="cfb-hero-img" style={{ borderRadius: 24, overflow: "hidden", boxShadow: "0 24px 80px rgba(0,0,0,0.12)" }}>
@@ -209,7 +210,7 @@ export default function CourseFitnesBerem() {
             {[
               { num: "2-й", label: "триместр" },
               { num: "3", label: "программы на выбор" },
-              { num: "5 590 ₽", label: "полный доступ" },
+              { num: "1 677 ₽", label: "полный доступ" },
               { num: "7+", label: "тренировок в неделю" },
             ].map((s, i) => (
               <div key={i} style={{ padding: "clamp(16px, 2vw, 28px) clamp(12px, 2vw, 24px)", borderRight: i < 3 ? "1px solid #e8e8e4" : "none", textAlign: "center" }}>
@@ -433,7 +434,8 @@ export default function CourseFitnesBerem() {
             Твоё тело сейчас проходит важный этап. И правильная нагрузка — это не про «спорт», а про состояние, в котором ты проживаешь этот период.
           </p>
           <p style={{ fontSize: "clamp(22px, 3vw, 28px)", fontFamily: "Cormorant, serif", fontWeight: 700, color: "#fff", margin: "0 0 28px" }}>
-            Полный доступ — 5 590 ₽
+            Полный доступ — 1 677 ₽{" "}
+            <span style={{ fontSize: "clamp(16px, 2vw, 20px)", textDecoration: "line-through", opacity: 0.6, fontWeight: 400 }}>5 590 ₽</span>
           </p>
           <BtnPrimary href={BUY_URL} style={{ background: "#fff", color: ACCENT, fontSize: "clamp(14px, 1.6vw, 16px)", padding: "clamp(14px, 2vw, 18px) clamp(28px, 4vw, 44px)" }}>
             Купить курс →
