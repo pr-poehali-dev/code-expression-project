@@ -26,7 +26,8 @@ export default function CptPricingSection() {
             {/* Старт */}
             <div style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "32px 24px", display: "flex", flexDirection: "column", boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Стартовый</div>
-              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>4 900 ₽</div>
+              <div style={{ fontSize: 13, color: "#aaa", textDecoration: "line-through", marginBottom: 2 }}>4 900 ₽</div>
+              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>1 470 ₽</div>
               <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Полная оплата</div>
               <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Массажист 2.0: Создание и Продвижение Личного Бренда»</div>
               <p style={{ fontSize: 13, color: "#666", lineHeight: 1.55, margin: "0 0 20px", flex: 1 }}>Комплексные знания о бизнес-маркетинге, анализ состояния бизнеса и стратегии для привлечения клиентов.</p>
@@ -40,7 +41,8 @@ export default function CptPricingSection() {
             <div style={{ background: "#fff", border: `2px solid ${ACCENT}`, borderRadius: 20, padding: "32px 24px", display: "flex", flexDirection: "column", boxShadow: `0 8px 32px ${ACCENT}22`, position: "relative" }}>
               <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: ACCENT, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 14px", borderRadius: 20, whiteSpace: "nowrap" }}>Популярный</div>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Профи</div>
-              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>14 900 ₽</div>
+              <div style={{ fontSize: 13, color: "#aaa", textDecoration: "line-through", marginBottom: 2 }}>14 900 ₽</div>
+              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>4 470 ₽</div>
               <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Полная оплата</div>
               <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Массажный Бизнес 2.0: Продвижение и Оптимизация»</div>
               <p style={{ fontSize: 13, color: "#666", lineHeight: 1.55, margin: "0 0 20px", flex: 1 }}>SEO, контекстная реклама, Яндекс Директ, VK, Telegram, воронки продаж и медиапланирование.</p>
@@ -53,7 +55,8 @@ export default function CptPricingSection() {
             {/* Эксперт */}
             <div style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "32px 24px", display: "flex", flexDirection: "column", boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Эксперт</div>
-              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>34 900 ₽</div>
+              <div style={{ fontSize: 13, color: "#aaa", textDecoration: "line-through", marginBottom: 2 }}>34 900 ₽</div>
+              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>10 470 ₽</div>
               <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Полная оплата</div>
               <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Маркетинг: От Основ до Эксперта»</div>
               <p style={{ fontSize: 13, color: "#666", lineHeight: 1.55, margin: "0 0 20px", flex: 1 }}>Аудит бизнеса, таргетированная реклама, SEO, управление рекламой — полный арсенал для роста и масштабирования.</p>

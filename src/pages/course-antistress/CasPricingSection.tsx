@@ -22,8 +22,9 @@ export default function CasPricingSection() {
             boxShadow: "0 8px 40px rgba(0,0,0,0.08)",
           }} className="cas-price-pad">
             <div style={{ fontSize: 13, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Стоимость курса</div>
-            <div style={{ fontFamily: "Cormorant, serif", fontSize: 56, fontWeight: 700, color: "#1a1a1a", lineHeight: 1 }}>14 900 ₽</div>
-            <div style={{ color: "#999", fontSize: 14, margin: "8px 0 32px" }}>или рассрочка от 1 242 ₽/мес</div>
+            <div style={{ fontSize: 18, color: "#aaa", textDecoration: "line-through", fontWeight: 400, marginBottom: 4 }}>14 900 ₽</div>
+            <div style={{ fontFamily: "Cormorant, serif", fontSize: 56, fontWeight: 700, color: "#1a1a1a", lineHeight: 1 }}>4 470 ₽</div>
+            <div style={{ color: "#999", fontSize: 14, margin: "8px 0 32px" }}>или рассрочка от 373 ₽/мес</div>
             <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", marginBottom: 24 }}>
               {["Полная оплата", "Рассрочка на 12 мес", "Рассрочка на 24 мес"].map((o) => (
                 <div key={o} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#555" }}>
@@ -88,7 +89,7 @@ export default function CasPricingSection() {
             Один новый инструмент — и ваши клиенты начнут рекомендовать вас другим
           </p>
           <div className="pricing-btns">
-            <BtnPrimary style={{ padding: "16px 40px", fontSize: 16 }}>Купить курс — 14 900 ₽</BtnPrimary>
+            <BtnPrimary style={{ padding: "16px 40px", fontSize: 16 }}>Купить курс — 4 470 ₽</BtnPrimary>
             <BtnSecondary style={{ padding: "15px 40px", fontSize: 16 }}>Рассрочка</BtnSecondary>
           </div>
         </div>

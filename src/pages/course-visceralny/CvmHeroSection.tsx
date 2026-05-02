@@ -37,7 +37,7 @@ export default function CvmHeroSection() {
               ))}
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <BtnPrimary>Купить курс — 4 990 ₽</BtnPrimary>
+              <BtnPrimary>Купить курс — 1 497 ₽</BtnPrimary>
               <BtnSecondary>Оформить рассрочку</BtnSecondary>
             </div>
           </div>

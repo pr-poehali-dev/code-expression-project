@@ -43,7 +43,7 @@ export default function CourseHeroSection() {
               ))}
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <BtnPrimary>Купить курс — 19 900 ₽</BtnPrimary>
+              <BtnPrimary>Купить курс — 5 970 ₽</BtnPrimary>
               <BtnSecondary>Оформить рассрочку</BtnSecondary>
             </div>
           </div>

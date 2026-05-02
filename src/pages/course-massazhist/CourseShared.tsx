@@ -187,7 +187,8 @@ export function CtaBar() {
           <div style={{ color: "#999", fontSize: 13 }}>Начните уже сегодня</div>
         </div>
         <div className="ctabar-btns">
-          <span style={{ fontFamily: "Cormorant, serif", fontSize: 28, fontWeight: 700 }}>19 900 ₽</span>
+          <span style={{ fontFamily: "Cormorant, serif", fontSize: 22, fontWeight: 400, color: "#aaa", textDecoration: "line-through" }}>19 900 ₽</span>
+          <span style={{ fontFamily: "Cormorant, serif", fontSize: 28, fontWeight: 700 }}>5 970 ₽</span>
           <BtnPrimary>Купить курс</BtnPrimary>
           <BtnSecondary>Рассрочка</BtnSecondary>
         </div>

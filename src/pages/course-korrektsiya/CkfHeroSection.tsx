@@ -37,7 +37,7 @@ export default function CkfHeroSection() {
               ))}
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <BtnPrimary>Купить курс — 16 900 ₽</BtnPrimary>
+              <BtnPrimary>Купить курс — 5 070 ₽</BtnPrimary>
               <BtnSecondary>Оформить рассрочку</BtnSecondary>
             </div>
           </div>

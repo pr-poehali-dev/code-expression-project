@@ -37,7 +37,7 @@ export default function CasHeroSection() {
               ))}
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <BtnPrimary>Купить курс — 14 900 ₽</BtnPrimary>
+              <BtnPrimary>Купить курс — 4 470 ₽</BtnPrimary>
               <BtnSecondary>Оформить рассрочку</BtnSecondary>
             </div>
           </div>
