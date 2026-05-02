@@ -88,12 +88,12 @@ export default function CatalogPrivate() {
 
           {/* Grid */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }} className="cp-grid">
-            {tab === "online" && <CpCollectionCard />}
             {filtered.map((course) => (
               tab === "offline"
                 ? <OfflineCourseCard key={course.id} course={course} />
                 : <CourseCard key={course.id} course={course} />
             ))}
+            {tab === "online" && <CpCollectionCard />}
           </div>
 
           {filtered.length === 0 && (
