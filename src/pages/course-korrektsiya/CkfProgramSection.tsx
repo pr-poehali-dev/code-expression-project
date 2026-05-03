@@ -41,13 +41,15 @@ export default function CkfProgramSection() {
             <p style={{ opacity: 0.75, margin: "0 0 32px", fontSize: 15 }}>Конкретный результат, который вы получите</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="ckf-2col">
               {[
-                "Можете демонстрировать быстрый результат",
-                "Повышаете лояльность и рекомендации",
-                "Применяете готовые связки техник",
-                "Зарабатываете больше за счёт визуального эффекта",
+                "Проводите диагностику и подбираете техники под запрос клиента",
+                "Владеете техниками коррекции фигуры и даёте видимый результат",
+                "Умеете привлекать первых клиентов бесплатно через купонаторы",
+                "Знаете, как превратить разового клиента в постоянного",
+                "Умеете строить стратегию продвижения и измерять её эффект",
+                "Зарабатываете больше за счёт востребованной специализации",
               ].map((item) => (
-                <div key={item} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 15, fontWeight: 500 }}>
-                  <span style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 12 }}>✓</span>
+                <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 15, fontWeight: 500 }}>
+                  <span style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 12, marginTop: 1 }}>✓</span>
                   {item}
                 </div>
               ))}
