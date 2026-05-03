@@ -3,6 +3,7 @@ import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
 import Icon from "@/components/ui/icon";
 import { useEffect, useRef, useState } from "react";
+import { useDiscountTimer } from "@/hooks/useDiscountTimer";
 
 const ACCENT = "hsl(280, 60%, 45%)";
 const ACCENT_DARK = "hsl(280, 60%, 38%)";
@@ -11,6 +12,7 @@ const ACCENT_SHADOW_HOVER = "hsla(280, 60%, 45%, 0.45)";
 const BG = "#f8f8f6";
 const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/0fd773ca-0152-49ae-b5a9-d70add20f7de.jpg";
 const BUY_URL = "https://school.brossok.ru/buy/60";
+const BUY_URL_DISCOUNT = "https://school.brossok.ru/buy/78";
 
 function useInView(threshold = 0.12) {
   const ref = useRef<HTMLDivElement>(null);
@@ -153,6 +155,8 @@ function AccordionItem({ title, children }: { title: string; children: React.Rea
 }
 
 export default function CourseFitnesBerem() {
+  const { isActive } = useDiscountTimer();
+  const buyUrl = isActive ? BUY_URL_DISCOUNT : BUY_URL;
   return (
     <div style={{ background: BG, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#1a1a1a" }}>
       <Helmet>
@@ -194,7 +198,7 @@ export default function CourseFitnesBerem() {
                 ))}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
-                <BtnPrimary href={BUY_URL} style={{ fontSize: "clamp(14px, 1.6vw, 16px)", padding: "clamp(14px, 2vw, 16px) clamp(28px, 4vw, 40px)" }}>
+                <BtnPrimary href={buyUrl} style={{ fontSize: "clamp(14px, 1.6vw, 16px)", padding: "clamp(14px, 2vw, 16px) clamp(28px, 4vw, 40px)" }}>
                   Купить курс — 1 677 ₽ →
                 </BtnPrimary>
                 <span style={{ fontSize: 15, color: "#aaa", textDecoration: "line-through", fontWeight: 500 }}>5 590 ₽</span>
@@ -437,7 +441,7 @@ export default function CourseFitnesBerem() {
             Полный доступ — 1 677 ₽{" "}
             <span style={{ fontSize: "clamp(16px, 2vw, 20px)", textDecoration: "line-through", opacity: 0.6, fontWeight: 400 }}>5 590 ₽</span>
           </p>
-          <BtnPrimary href={BUY_URL} style={{ background: "#fff", color: ACCENT, fontSize: "clamp(14px, 1.6vw, 16px)", padding: "clamp(14px, 2vw, 18px) clamp(28px, 4vw, 44px)" }}>
+          <BtnPrimary href={buyUrl} style={{ background: "#fff", color: ACCENT, fontSize: "clamp(14px, 1.6vw, 16px)", padding: "clamp(14px, 2vw, 18px) clamp(28px, 4vw, 44px)" }}>
             Купить курс →
           </BtnPrimary>
         </div>
