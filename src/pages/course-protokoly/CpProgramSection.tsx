@@ -41,13 +41,15 @@ export default function CpProgramSection() {
             <p style={{ opacity: 0.75, margin: "0 0 32px", fontSize: 15 }}>Конкретный результат, который вы получите</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="cp3-2col">
               {[
-                "Чётко понимаете, что делать на каждом сеансе",
-                "Работаете быстрее и увереннее",
-                "Даёте клиентам более стабильный результат",
-                "Снижаете стресс в работе",
+                "Диагностируете осанку и мышечный баланс с первого взгляда",
+                "Работаете с болью в спине, шее и голове по готовым протоколам",
+                "Умеете снимать зажимы ВНЧС, корректировать атлант и устранять мигрени",
+                "Применяете висцеральные и лимфодренажные техники на практике",
+                "Понимаете вегетативную нервную систему и регулируете её через массаж",
+                "Проводите уверенный сеанс от диагностики до результата",
               ].map((item) => (
-                <div key={item} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 15, fontWeight: 500 }}>
-                  <span style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 12 }}>✓</span>
+                <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 15, fontWeight: 500 }}>
+                  <span style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 12, marginTop: 1 }}>✓</span>
                   {item}
                 </div>
               ))}
