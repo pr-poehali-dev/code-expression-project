@@ -135,7 +135,7 @@ export function CourseCard({ course }: { course: Course }) {
                 Подробнее
               </button>
               <a
-                href={course.buyUrl ?? "https://school.brossok.ru/buy/15"}
+                href={(isActive && course.discountBuyUrl) ? course.discountBuyUrl : (course.buyUrl ?? "https://school.brossok.ru/buy/15")}
                 target={course.price === "Бесплатно" ? "_self" : "_blank"}
                 rel="noopener noreferrer"
                 className="cp-card-btn-primary"

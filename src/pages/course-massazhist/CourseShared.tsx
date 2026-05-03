@@ -73,12 +73,14 @@ export const h2style: React.CSSProperties = {
 };
 
 const BUY_URL = "https://school.brossok.ru/buy/15";
+const BUY_URL_DISCOUNT = "https://school.brossok.ru/buy/73";
 
 export function BtnPrimary({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   const [h, setH] = useState(false);
+  const { isActive } = useDiscountTimer();
   return (
     <a
-      href={BUY_URL}
+      href={isActive ? BUY_URL_DISCOUNT : BUY_URL}
       target="_blank"
       rel="noopener noreferrer"
       onMouseEnter={() => setH(true)}
@@ -105,9 +107,10 @@ export function BtnPrimary({ children, style }: { children: React.ReactNode; sty
 
 export function BtnSecondary({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   const [h, setH] = useState(false);
+  const { isActive } = useDiscountTimer();
   return (
     <a
-      href={BUY_URL}
+      href={isActive ? BUY_URL_DISCOUNT : BUY_URL}
       target="_blank"
       rel="noopener noreferrer"
       onMouseEnter={() => setH(true)}

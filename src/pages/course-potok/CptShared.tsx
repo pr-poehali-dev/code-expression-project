@@ -5,6 +5,9 @@ export const ACCENT_DARK = "hsl(185, 85%, 26%)";
 export const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.25)";
 export const BG = "#f8f8f6";
 export const COURSE_URL = "https://school.brossok.ru/training/view/-laquo-massaghist-2-0-sozdanie-i-prodvighenie-lichnogo-brenda-raquo-";
+export const COURSE_URL_DISCOUNT_START = "https://school.brossok.ru/buy/79";
+export const COURSE_URL_DISCOUNT_PROFI = "https://school.brossok.ru/buy/80";
+export const COURSE_URL_DISCOUNT_EXPERT = "https://school.brossok.ru/buy/81";
 export const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/217850e4-84f3-47e2-bb32-208b4fdff715.jpg";
 
 export const h2style: React.CSSProperties = {
