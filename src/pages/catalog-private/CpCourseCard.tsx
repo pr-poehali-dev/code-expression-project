@@ -117,6 +117,20 @@ export function CourseCard({ course }: { course: Course }) {
               <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b", flexShrink: 0 }} />
               <span style={{ fontSize: 13, color: "#999", fontWeight: 500 }}>Скоро появится в каталоге</span>
             </div>
+          ) : course.tiers ? (
+            <button
+              style={{
+                width: "100%", padding: "10px 10px", borderRadius: 10,
+                border: `1.5px solid ${ACCENT}`, background: "transparent",
+                color: ACCENT, fontSize: 13, fontWeight: 600,
+                cursor: "pointer", fontFamily: "Montserrat, sans-serif", transition: "all 0.18s",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = `${ACCENT}12`; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+              onClick={() => { if (course.detailUrl) window.location.href = course.detailUrl; }}
+            >
+              Подробнее
+            </button>
           ) : (
             <div className="cp-card-btns" style={{ display: "flex", gap: 8 }}>
               <button
