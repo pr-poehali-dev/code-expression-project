@@ -50,13 +50,15 @@ export default function CourseProgramSection() {
             <p style={{ opacity: 0.75, margin: "0 0 32px", fontSize: 15 }}>Конкретный результат, который вы получите</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="course-2col">
               {[
-                "Умеете делать базовый массаж",
-                "Можете принимать первых клиентов",
-                "Понимаете, как зарабатывать на навыке",
-                "Чувствуете уверенность в работе",
+                "Знаете анатомию, физиологию и биомеханику тела",
+                "Умеете работать с позвоночником, фасциями и мышцами",
+                "Делаете диагностику и корректируете дисфункции",
+                "Владеете техниками медицинского массажа",
+                "Понимаете психосоматику и работаете с эмоциональными блоками",
+                "Можете принимать клиентов и уверенно зарабатывать",
               ].map((item) => (
-                <div key={item} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 15, fontWeight: 500 }}>
-                  <span style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 12 }}>✓</span>
+                <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 15, fontWeight: 500 }}>
+                  <span style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 12, marginTop: 1 }}>✓</span>
                   {item}
                 </div>
               ))}
