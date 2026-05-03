@@ -224,6 +224,83 @@ export default function KollektsiyaContent() {
           </div>
         </div>
       </section>
+
+      {/* ── СЕРТИФИКАТЫ ─────────────────────────── */}
+      <section style={{ padding: "80px 0 0" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{
+            background: `linear-gradient(135deg, ${GOLD_BG} 0%, #fff8e8 100%)`,
+            border: `2px solid ${GOLD}33`,
+            borderRadius: 24,
+            padding: "56px 48px",
+            position: "relative",
+            overflow: "hidden",
+          }}>
+            <div style={{ position: "absolute", top: -60, right: -60, width: 260, height: 260, borderRadius: "50%", background: `${GOLD}0a` }} />
+            <div style={{ position: "absolute", bottom: -80, left: -40, width: 200, height: 200, borderRadius: "50%", background: `${GOLD}08` }} />
+
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 48, flexWrap: "wrap", position: "relative" }}>
+              {/* Левая часть — заголовок */}
+              <div style={{ flex: "1 1 320px" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: `${GOLD}18`, border: `1px solid ${GOLD}40`, borderRadius: 30, padding: "6px 16px", marginBottom: 20 }}>
+                  <Icon name="Award" size={15} style={{ color: GOLD }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: GOLD, textTransform: "uppercase", letterSpacing: 1 }}>По завершении каждого курса</span>
+                </div>
+                <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 700, lineHeight: 1.15, margin: "0 0 16px", color: "#1a1a1a" }}>
+                  6 именных сертификатов<br />в вашем портфолио
+                </h2>
+                <p style={{ fontSize: 16, color: "#555", lineHeight: 1.7, margin: "0 0 32px" }}>
+                  Каждый пройденный курс подтверждается документом — вы собираете профессиональное портфолио, которое говорит клиентам и работодателям о вашей квалификации.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {[
+                    { icon: "Briefcase", text: "Повышает доверие клиентов и стоимость услуг" },
+                    { icon: "Building2", text: "Открывает двери в студии, клиники, SPA-центры" },
+                    { icon: "TrendingUp", text: "Подтверждает экспертизу при найме и фрилансе" },
+                  ].map(item => (
+                    <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: `${GOLD}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <Icon name={item.icon} size={17} style={{ color: GOLD }} />
+                      </div>
+                      <span style={{ fontSize: 15, color: "#333", fontWeight: 500 }}>{item.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Правая часть — стопка сертификатов */}
+              <div style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", gap: 10, minWidth: 260 }}>
+                {[
+                  "Профессия массажист с нуля",
+                  "Висцеральный массаж",
+                  "Восстановительный массаж PRO",
+                  "Антистресс-техники",
+                  "Коррекция фигуры",
+                  "Готовые протоколы массажа",
+                ].map((name, i) => (
+                  <div key={name} style={{
+                    display: "flex", alignItems: "center", gap: 12,
+                    background: "#fff",
+                    border: `1px solid ${GOLD}30`,
+                    borderRadius: 12,
+                    padding: "12px 16px",
+                    boxShadow: "0 2px 12px rgba(212,160,23,0.08)",
+                  }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: 8,
+                      background: `linear-gradient(135deg, ${GOLD} 0%, #e8b830 100%)`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      flexShrink: 0, color: "#fff", fontSize: 13, fontWeight: 700,
+                    }}>{i + 1}</div>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: "#333", lineHeight: 1.3 }}>{name}</span>
+                    <Icon name="Award" size={15} style={{ color: GOLD, marginLeft: "auto", flexShrink: 0 }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
