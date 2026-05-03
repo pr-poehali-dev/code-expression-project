@@ -106,6 +106,42 @@ export default function CkfProgramSection() {
         </div>
       </section>
 
+      {/* ── СЕРТИФИКАТ БАННЕР ── */}
+      <section style={{ padding: "48px 0 0" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{
+            background: "linear-gradient(135deg, hsl(185,85%,28%) 0%, hsl(185,85%,18%) 100%)",
+            borderRadius: 20, padding: "40px 48px",
+            display: "flex", alignItems: "center", gap: 32, flexWrap: "wrap",
+            boxShadow: "0 8px 40px hsla(185,85%,32%,0.35)",
+            position: "relative", overflow: "hidden",
+          }}>
+            <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
+            <div style={{ position: "absolute", bottom: -60, right: 80, width: 160, height: 160, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+            <div style={{ width: 80, height: 80, borderRadius: 20, background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Icon name="Award" size={44} style={{ color: "#fff" }} />
+            </div>
+            <div style={{ flex: 1, minWidth: 220, position: "relative" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.65)", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>По завершении курса</div>
+              <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px, 3vw, 32px)", fontWeight: 700, color: "#fff", lineHeight: 1.2, marginBottom: 10 }}>
+                Вы получите именной сертификат
+              </div>
+              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.6 }}>
+                Документ подтверждает прохождение курса и открывает новые возможности для карьеры и клиентов
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, flexShrink: 0, position: "relative" }}>
+              {["Именной документ", "Электронный формат", "Подтверждает квалификацию"].map(item => (
+                <div key={item} style={{ display: "flex", alignItems: "center", gap: 10, color: "#fff", fontSize: 14, fontWeight: 500 }}>
+                  <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 11 }}>✓</div>
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── 9. ОТЗЫВЫ ── */}
       <section style={{ padding: "80px 0 0" }}>
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
