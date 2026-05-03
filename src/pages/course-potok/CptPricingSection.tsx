@@ -1,15 +1,28 @@
 import Icon from "@/components/ui/icon";
 import { ACCENT, COURSE_URL, COURSE_URL_DISCOUNT_START, COURSE_URL_DISCOUNT_PROFI, COURSE_URL_DISCOUNT_EXPERT, h2style, FAQS, AccordionItem, BtnStart } from "./CptShared";
 import { useDiscountTimer } from "@/hooks/useDiscountTimer";
+import DiscountTimer from "@/components/ui/DiscountTimer";
 
 export default function CptPricingSection() {
-  const { isActive } = useDiscountTimer();
+  const { isActive, formatted } = useDiscountTimer();
   return (
     <>
       {/* ── 10. СТОИМОСТЬ / ТАРИФЫ ── */}
       <section style={{ padding: "80px 0 0" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px" }}>
           <h2 style={{ ...h2style, textAlign: "center" }}>Выберите тариф</h2>
+          {isActive && (
+            <div style={{ textAlign: "center", marginBottom: 24 }}>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                background: "#e53935", color: "#fff", borderRadius: 10,
+                padding: "10px 24px", fontSize: 15, fontWeight: 700, letterSpacing: 0.3,
+              }}>
+                <span>⏱</span>
+                Скидка 70% сгорит через {formatted}
+              </span>
+            </div>
+          )}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }} className="cpt-4col">
 
             {/* Бесплатный */}
