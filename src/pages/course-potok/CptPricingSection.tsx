@@ -31,7 +31,12 @@ export default function CptPricingSection() {
               <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>0 ₽</div>
               <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Навсегда бесплатно</div>
               <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Массажист 2.0: Создание и Продвижение Личного Бренда»</div>
-              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.55, margin: "0 0 20px", flex: 1 }}>Базовые знания для тех, кто только начинает. Введение в интернет-маркетинг и бизнес-маркетинг.</p>
+              <ul style={{ fontSize: 13, color: "#666", lineHeight: 1.65, margin: "0 0 20px", flex: 1, paddingLeft: 16 }}>
+                <li>Введение в интернет-маркетинг</li>
+                <li>Путь пользователя и маркетинговая воронка</li>
+                <li>Работа с драйверами и барьерами</li>
+                <li>Развитие личного бренда</li>
+              </ul>
               <a href={COURSE_URL} target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: "#22c55e", color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
                 onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85"}
                 onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
@@ -45,7 +50,13 @@ export default function CptPricingSection() {
               <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>{isActive ? "1 470 ₽" : "4 900 ₽"}</div>
               <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Полная оплата</div>
               <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Массажист 2.0: Создание и Продвижение Личного Бренда»</div>
-              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.55, margin: "0 0 20px", flex: 1 }}>Комплексные знания о бизнес-маркетинге, анализ состояния бизнеса и стратегии для привлечения клиентов.</p>
+              <ul style={{ fontSize: 13, color: "#666", lineHeight: 1.65, margin: "0 0 20px", flex: 1, paddingLeft: 16 }}>
+                <li>Постановка бизнес-задач и KPI</li>
+                <li>Аналитика в Google Таблицах, юнит-экономика</li>
+                <li>Позиционирование и бренд-стратегия</li>
+                <li>Квиз-маркетинг и таргетированная реклама</li>
+                <li>SMM, контент, блогеры, купонаторы</li>
+              </ul>
               <a href={isActive ? COURSE_URL_DISCOUNT_START : "https://school.brossok.ru/buy/11"} target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: ACCENT, color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
                 onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85"}
                 onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
@@ -60,7 +71,13 @@ export default function CptPricingSection() {
               <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>{isActive ? "4 470 ₽" : "14 900 ₽"}</div>
               <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Полная оплата</div>
               <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Массажный Бизнес 2.0: Продвижение и Оптимизация»</div>
-              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.55, margin: "0 0 20px", flex: 1 }}>SEO, контекстная реклама, Яндекс Директ, VK, Telegram, воронки продаж и медиапланирование.</p>
+              <ul style={{ fontSize: 13, color: "#666", lineHeight: 1.65, margin: "0 0 20px", flex: 1, paddingLeft: 16 }}>
+                <li>Всё из тарифа «Старт»</li>
+                <li>SEO-оптимизация сайта от А до Я</li>
+                <li>Контекстная реклама и Яндекс Директ</li>
+                <li>VK Реклама и Telegram Ads</li>
+                <li>Медиапланирование и воронки продаж</li>
+              </ul>
               <a href={isActive ? COURSE_URL_DISCOUNT_PROFI : "https://school.brossok.ru/buy/12"} target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: ACCENT, color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
                 onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85"}
                 onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
@@ -74,7 +91,12 @@ export default function CptPricingSection() {
               <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>{isActive ? "10 470 ₽" : "34 900 ₽"}</div>
               <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Полная оплата</div>
               <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Маркетинг: От Основ до Эксперта»</div>
-              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.55, margin: "0 0 20px", flex: 1 }}>Аудит бизнеса, таргетированная реклама, SEO, управление рекламой — полный арсенал для роста и масштабирования.</p>
+              <ul style={{ fontSize: 13, color: "#666", lineHeight: 1.65, margin: "0 0 20px", flex: 1, paddingLeft: 16 }}>
+                <li>Всё из тарифов «Старт» и «Профи»</li>
+                <li>Основы веб-аналитики</li>
+                <li>Проектирование аналитики и отслеживание целей</li>
+                <li>Путь пользователя и типы событий</li>
+              </ul>
               <a href={isActive ? COURSE_URL_DISCOUNT_EXPERT : "https://school.brossok.ru/buy/13"} target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: ACCENT, color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
                 onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85"}
                 onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
