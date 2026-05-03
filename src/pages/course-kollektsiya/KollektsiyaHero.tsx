@@ -24,7 +24,7 @@ export default function KollektsiyaHero({ isActive, buyUrl, currentPrice }: Koll
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", position: "relative" }}>
         <div className="koll-hero-grid">
           <div>
-            <a href="/catalog/private" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "rgba(255,255,255,0.5)", fontSize: 13, textDecoration: "none", marginBottom: 28 }}>
+            <a href="/catalog/private" style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(255,255,255,0.5)", fontSize: 13, textDecoration: "none", marginBottom: 28, width: "fit-content" }}>
               <Icon name="ArrowLeft" size={13} />
               Все курсы
             </a>
