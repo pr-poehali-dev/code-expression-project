@@ -12,7 +12,7 @@ export default function KollektsiyaHero({ isActive, buyUrl, currentPrice }: Koll
   return (
     <section style={{
       background: `linear-gradient(135deg, #0d2b2e 0%, #0a3d40 50%, #0d2b2e 100%)`,
-      padding: "80px 0 90px",
+      padding: "100px 0 90px",
       position: "relative",
       overflow: "hidden",
     }}>
