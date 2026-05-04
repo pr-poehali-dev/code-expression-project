@@ -5,6 +5,7 @@ import { BG } from "./course-offline-intensiv/CoiShared";
 import CoiHeroSection from "./course-offline-intensiv/CoiHeroSection";
 import CoiProgramSection from "./course-offline-intensiv/CoiProgramSection";
 import CoiPricingSection from "./course-offline-intensiv/CoiPricingSection";
+import CoiReviewsSection from "./course-offline-intensiv/CoiReviewsSection";
 import CoiContactForm from "./course-offline-intensiv/CoiContactForm";
 
 export default function CourseOfflineIntensiv() {
@@ -22,6 +23,7 @@ export default function CourseOfflineIntensiv() {
 
       <CoiHeroSection />
       <CoiProgramSection />
+      <CoiReviewsSection />
       <CoiPricingSection />
       <CoiContactForm />
 
