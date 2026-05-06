@@ -116,7 +116,7 @@ export default function CatalogPrivate() {
                 </div>
               </div>
               <a
-                href="/catalog/private/course-offline-intensiv"
+                href="/course/offline-intensiv-massazh"
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
                   background: "#fff", color: "#00a699",
