@@ -86,6 +86,53 @@ export default function CatalogPrivate() {
             />
           )}
 
+          {/* Баннер интенсива — только для онлайн-курсов */}
+          {tab === "online" && (
+            <div style={{
+              background: "linear-gradient(135deg, #00a699 0%, #007a71 100%)",
+              borderRadius: 18,
+              padding: "20px 28px",
+              marginBottom: 32,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 20,
+              flexWrap: "wrap",
+              boxShadow: "0 4px 20px rgba(0,166,153,0.25)",
+            }} className="intensiv-banner">
+              <div style={{ display: "flex", alignItems: "center", gap: 14, flex: 1, minWidth: 240 }}>
+                <div style={{
+                  background: "rgba(255,255,255,0.2)", borderRadius: 12, padding: 10, flexShrink: 0,
+                }}>
+                  <Icon name="Gift" size={22} style={{ color: "#fff" }} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 15.5, color: "#fff", marginBottom: 4 }}>
+                    Получи бесплатный доступ ко всем онлайн-курсам
+                  </div>
+                  <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>
+                    Запишись на однодневный офлайн-интенсив в Москве — все онлайн-курсы уже включены в стоимость
+                  </div>
+                </div>
+              </div>
+              <a
+                href="/catalog/private/course-offline-intensiv"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  background: "#fff", color: "#00a699",
+                  fontWeight: 700, fontSize: 14, borderRadius: 12,
+                  padding: "11px 22px", textDecoration: "none", whiteSpace: "nowrap",
+                  transition: "opacity 0.2s", flexShrink: 0,
+                }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = "0.88")}
+                onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+              >
+                Узнать об интенсиве
+                <Icon name="ArrowRight" size={15} />
+              </a>
+            </div>
+          )}
+
           {/* Grid */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }} className="cp-grid">
             {filtered.map((course) => (
