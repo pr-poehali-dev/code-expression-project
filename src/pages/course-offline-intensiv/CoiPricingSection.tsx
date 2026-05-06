@@ -204,6 +204,12 @@ export default function CoiPricingSection() {
                 <div style={{ fontSize: 20, fontWeight: 700, color: "#1a1a1a", fontFamily: "Cormorant, serif", lineHeight: 1.3 }}>
                   Москва, Волков пер., д. 4
                 </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
+                  <Icon name="CalendarDays" size={14} style={{ color: ACCENT }} />
+                  <span style={{ fontSize: 13.5, color: "#555" }}>
+                    Интенсив проходит <strong>каждое воскресенье</strong> — уточняйте наличие мест на удобную дату
+                  </span>
+                </div>
               </div>
             </div>
             <a
