@@ -16,6 +16,7 @@ export default function DokFooter() {
               { label: "О нас", href: "/" },
               { label: "Каталог", href: "/catalog" },
               { label: "Тарифы", href: "/tarify" },
+              { label: "Отзывы", href: "/reviews" },
               { label: "Блог", href: "https://school.brossok.ru/blog" },
             ].map(l => (
               <a key={l.label} href={l.href} style={{ display: "block", fontSize: 13, color: "#666", textDecoration: "none", marginBottom: 6, transition: "color 0.2s" }}

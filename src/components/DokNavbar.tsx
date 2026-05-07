@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { label: "Тарифы", href: "/tarify" },
   { label: "Партнёрская программа", href: "/partnery" },
   { label: "Блог", href: "https://school.brossok.ru/blog" },
+  { label: "Отзывы", href: "/reviews" },
   { label: "Контакты", href: "/kontakty" },
 ];
 
