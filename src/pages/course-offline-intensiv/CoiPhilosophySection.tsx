@@ -61,25 +61,25 @@ export default function CoiPhilosophySection() {
         </div>
 
         {/* Итоговая плашка */}
-        <div style={{
+        <div className="philosophy-cta" style={{
           background: `linear-gradient(135deg, ${ACCENT} 0%, hsl(185, 85%, 22%) 100%)`,
           borderRadius: 22,
           padding: "32px 36px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: 28,
+          gap: 24,
           flexWrap: "wrap",
           position: "relative",
           overflow: "hidden",
           boxShadow: `0 8px 40px ${ACCENT}40`,
         }}>
           <div style={{ position: "absolute", top: -50, right: -50, width: 220, height: 220, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
-          <div style={{ flex: 1, minWidth: 260, position: "relative" }}>
+          <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
             <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(18px, 2.5vw, 24px)", fontWeight: 700, color: "#fff", lineHeight: 1.35, marginBottom: 12 }}>
               Приходите на интенсив — и забирайте<br />все онлайн-курсы бесплатно
             </div>
-            <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.7, maxWidth: 500 }}>
+            <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.7 }}>
               Мы отдаём онлайн-курсы в подарок каждому участнику интенсива — чтобы вы изучили теорию заранее и посвятили весь живой день практике под руководством тренера. Это наша инвестиция в качество вашей работы.
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 16 }}>
@@ -91,8 +91,8 @@ export default function CoiPhilosophySection() {
               ))}
             </div>
           </div>
-          <a href="#pay" style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
+          <a href="#pay" className="philosophy-cta-btn" style={{
+            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
             background: "#fff", color: ACCENT,
             fontWeight: 700, fontSize: 14.5, borderRadius: 14,
             padding: "14px 28px", textDecoration: "none", whiteSpace: "nowrap",
@@ -111,6 +111,11 @@ export default function CoiPhilosophySection() {
       <style>{`
         @media (max-width: 700px) {
           .philosophy-grid { grid-template-columns: 1fr !important; }
+          .philosophy-cta { padding: 24px 22px !important; border-radius: 18px !important; flex-direction: column !important; align-items: flex-start !important; }
+          .philosophy-cta-btn { width: 100% !important; box-sizing: border-box !important; }
+        }
+        @media (max-width: 480px) {
+          .philosophy-cta { padding: 20px 18px !important; }
         }
       `}</style>
     </section>
