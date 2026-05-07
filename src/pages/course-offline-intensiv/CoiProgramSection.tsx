@@ -312,7 +312,7 @@ export default function CoiProgramSection() {
       </section>
 
       {/* ── ДЛЯ ИНОГОРОДНИХ ── */}
-      <section style={{ padding: "80px 0 0" }}>
+      <section style={{ padding: "80px 0 80px" }}>
         <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 24px" }}>
           <div className="coi-inogorod-card" style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "36px 40px" }}>
             <h2 style={{ ...h2style, marginBottom: 20 }}>Приедете из другого города?</h2>
