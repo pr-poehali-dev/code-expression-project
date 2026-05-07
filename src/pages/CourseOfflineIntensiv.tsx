@@ -8,6 +8,7 @@ import CoiPricingSection from "./course-offline-intensiv/CoiPricingSection";
 import CoiReviewsSection from "./course-offline-intensiv/CoiReviewsSection";
 import CoiVideoReviews from "./course-offline-intensiv/CoiVideoReviews";
 import CoiContactForm from "./course-offline-intensiv/CoiContactForm";
+import CoiPhilosophySection from "./course-offline-intensiv/CoiPhilosophySection";
 
 export default function CourseOfflineIntensiv() {
   return (
@@ -24,6 +25,7 @@ export default function CourseOfflineIntensiv() {
 
       <CoiHeroSection />
       <CoiProgramSection />
+      <CoiPhilosophySection />
       <CoiReviewsSection />
       <CoiVideoReviews />
       <CoiPricingSection />
