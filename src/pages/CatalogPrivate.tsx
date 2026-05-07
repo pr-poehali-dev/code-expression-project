@@ -189,8 +189,8 @@ export default function CatalogPrivate() {
               <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
               <div style={{ position: "absolute", bottom: -30, right: 120, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.04)", pointerEvents: "none" }} />
 
-              <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 28, flexWrap: "wrap" }}>
-                <div style={{ flex: 1, minWidth: 280 }}>
+              <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 28, flexWrap: "wrap" }} className="intensiv-inner">
+                <div style={{ flex: 1, minWidth: 0 }}>
                   {/* Бейдж */}
                   <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "4px 12px", marginBottom: 14 }}>
                     <Icon name="Gift" size={13} style={{ color: "#fff" }} />
@@ -260,12 +260,16 @@ export default function CatalogPrivate() {
         @media (max-width: 900px) {
           .cp-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
+        @media (max-width: 760px) {
+          .for-whom-grid { grid-template-columns: 1fr !important; }
+          .intensiv-banner { padding: 24px 22px !important; border-radius: 18px !important; }
+          .intensiv-inner { flex-direction: column !important; align-items: flex-start !important; }
+          .intensiv-inner a { width: 100% !important; justify-content: center !important; box-sizing: border-box !important; }
+        }
         @media (max-width: 600px) {
           .cp-grid { grid-template-columns: 1fr !important; }
           .for-whom-grid { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 760px) {
-          .for-whom-grid { grid-template-columns: 1fr !important; }
+          .intensiv-banner { padding: 20px 18px !important; border-radius: 16px !important; }
         }
       `}</style>
       <DokFooter />
