@@ -12,17 +12,17 @@ const VIDEOS = [
   },
   {
     id: "ijbAj7MbdwDvX8jdx5fgiq",
-    name: "Артём В.",
-    city: "Санкт-Петербург",
-    experience: "Массажист, 3 года",
-    result: "Сарафанное радио работает само",
-  },
-  {
-    id: "5u8FjHNy89MCso6wue8uEq",
     name: "Наталья С.",
     city: "Казань",
     experience: "Массажист, 1,5 года",
     result: "Поток клиентов с нуля",
+  },
+  {
+    id: "5u8FjHNy89MCso6wue8uEq",
+    name: "Артём В.",
+    city: "Санкт-Петербург",
+    experience: "Массажист, 3 года",
+    result: "Сарафанное радио работает само",
   },
   {
     id: "eFKnFkaFhfwaMk7BZgi4zp",
