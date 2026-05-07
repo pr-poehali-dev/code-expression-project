@@ -108,6 +108,7 @@ export default function CoiVideoReviews() {
     <section style={{ padding: "60px 0 0" }}>
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 24px" }}>
 
+        {/* ДЕСКТОП: боковой список + плеер */}
         <div style={{
           background: "#fff",
           border: "1px solid #e8e8e4",
@@ -152,8 +153,8 @@ export default function CoiVideoReviews() {
           </div>
 
           {/* Правый плеер */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <div style={{ flex: 1, position: "relative", background: "#0d0d0d" }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column" }} className="coi-video-player">
+            <div style={{ flex: 1, position: "relative", background: "#0d0d0d", minHeight: 300 }}>
               <iframe
                 key={current.id}
                 src={`https://kinescope.io/embed/${current.id}`}
@@ -194,12 +195,7 @@ export default function CoiVideoReviews() {
             </div>
 
             {/* Навигация точками */}
-            <div style={{
-              padding: "0 22px 16px",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}>
+            <div style={{ padding: "0 22px 16px", display: "flex", alignItems: "center", gap: 8 }}>
               {VIDEOS.map((_, i) => (
                 <button
                   key={i}
@@ -222,11 +218,72 @@ export default function CoiVideoReviews() {
           </div>
         </div>
 
+        {/* МОБИЛЬНЫЙ: только список карточек без видео */}
+        <div className="coi-video-mobile">
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: "#bbb",
+            textTransform: "uppercase",
+            letterSpacing: 0.8,
+            marginBottom: 14,
+            fontFamily: "Montserrat, sans-serif",
+          }}>
+            Видеоотзывы
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {VIDEOS.map((v) => (
+              <div
+                key={v.id}
+                style={{
+                  background: "#fff",
+                  border: "1px solid #e8e8e4",
+                  borderRadius: 16,
+                  padding: "16px 18px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
+                }}
+              >
+                <div style={{
+                  width: 42, height: 42, borderRadius: 10, flexShrink: 0,
+                  background: `${ACCENT}15`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <div style={{
+                    width: 0, height: 0,
+                    borderTop: "6px solid transparent",
+                    borderBottom: "6px solid transparent",
+                    borderLeft: `11px solid ${ACCENT}`,
+                    marginLeft: 3,
+                  }} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a", marginBottom: 2, fontFamily: "Montserrat, sans-serif" }}>{v.name}</div>
+                  <div style={{ fontSize: 12, color: "#999", marginBottom: 6 }}>{v.city} · {v.experience}</div>
+                  <div style={{
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                    background: `${ACCENT}12`, borderRadius: 6, padding: "3px 9px",
+                  }}>
+                    <Icon name="TrendingUp" size={11} style={{ color: ACCENT }} />
+                    <span style={{ fontSize: 11.5, fontWeight: 600, color: ACCENT }}>{v.result}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <style>{`
-          @media (max-width: 680px) {
-            .coi-video-wrap { flex-direction: column !important; min-height: unset !important; }
-            .coi-video-sidebar { width: 100% !important; border-right: none !important; border-bottom: 1px solid #f0f0ed; flex-direction: row !important; overflow-x: auto !important; overflow-y: unset !important; padding: 12px 10px !important; flex-wrap: nowrap !important; gap: 8px !important; }
-            .coi-video-sidebar > div:first-child { display: none !important; }
+          .coi-video-mobile { display: none; }
+          @media (max-width: 640px) {
+            .coi-video-wrap { display: none !important; }
+            .coi-video-mobile { display: block; }
+          }
+          @media (min-width: 641px) and (max-width: 860px) {
+            .coi-video-wrap { min-height: 360px !important; }
+            .coi-video-sidebar { width: 220px !important; }
           }
         `}</style>
       </div>
