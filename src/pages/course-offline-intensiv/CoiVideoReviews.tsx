@@ -12,17 +12,17 @@ const VIDEOS = [
   },
   {
     id: "7on4nVofXbcgkDmWbjaZvH",
-    name: "Алексей Г.",
-    city: "Санкт-Петербург",
-    experience: "Спортивный массажист, 6 лет",
-    result: "+3 постоянных клиента",
-  },
-  {
-    id: "jWics1Kq1BrrtcFK25Vmgu",
     name: "Ольга В.",
     city: "Казань",
     experience: "Массажист-косметолог, 2 года",
     result: "Запись на 3 недели вперёд",
+  },
+  {
+    id: "jWics1Kq1BrrtcFK25Vmgu",
+    name: "Алексей Г.",
+    city: "Санкт-Петербург",
+    experience: "Спортивный массажист, 6 лет",
+    result: "+3 постоянных клиента",
   },
   {
     id: "us9ULPt46B7G77bQYwBXXt",
