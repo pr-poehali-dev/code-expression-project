@@ -320,7 +320,7 @@ export default function CoiProgramSection() {
               Мы поможем с организацией поездки: расскажем о ближайших гостиницах, поможем скоординировать время приезда и ответим на вопросы.
             </p>
             <div style={{
-              display: "inline-flex", alignItems: "center", gap: 10,
+              display: "flex", alignItems: "center", gap: 10,
               background: "linear-gradient(135deg, hsl(185,85%,97%) 0%, #fff 100%)",
               border: `1.5px solid ${ACCENT}`,
               borderRadius: 12, padding: "12px 20px", marginBottom: 20,
