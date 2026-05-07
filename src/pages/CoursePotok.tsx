@@ -5,6 +5,7 @@ import { BG } from "./course-potok/CptShared";
 import CptHeroSection from "./course-potok/CptHeroSection";
 import CptProgramSection from "./course-potok/CptProgramSection";
 import CptPricingSection from "./course-potok/CptPricingSection";
+import CptVideoReviews from "./course-potok/CptVideoReviews";
 
 export default function CoursePotok() {
   return (
@@ -21,6 +22,7 @@ export default function CoursePotok() {
 
       <CptHeroSection />
       <CptProgramSection />
+      <CptVideoReviews />
       <CptPricingSection />
 
       <DokFooter />
