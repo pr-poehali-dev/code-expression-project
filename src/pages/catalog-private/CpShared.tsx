@@ -218,7 +218,7 @@ export const OFFLINE_COURSES: Course[] = [
       "Освоить техники, повышающие средний чек",
       "Получить готовый план роста дохода",
     ],
-    price: "от 9 900 ₽",
+    price: "от 5 000 ₽",
     level: "any",
     direction: "income",
     format: "offline",

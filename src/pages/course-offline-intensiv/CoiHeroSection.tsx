@@ -45,7 +45,7 @@ export default function CoiHeroSection() {
               ))}
             </div>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }} className="coi-hero-btns">
-              <BtnPay style={{ padding: "16px 40px", fontSize: 16 }}>Оплатить 9 900 руб.</BtnPay>
+              <BtnPay style={{ padding: "16px 40px", fontSize: 16 }}>Оплатить 22 900 руб.</BtnPay>
               <BtnBook style={{ padding: "16px 28px", fontSize: 15 }}>Забронировать</BtnBook>
             </div>
             <div style={{ marginTop: 20, fontSize: 13, color: "#aaa" }}>

@@ -32,16 +32,16 @@ export default function CoiPricingSection() {
 
               <div style={{ minHeight: 110, marginBottom: 24 }}>
                 <div style={{ marginBottom: 8 }}>
-                  <span style={{ fontSize: 15, color: "#bbb", textDecoration: "line-through" }}>15 000 руб.</span>
+                  <span style={{ fontSize: 15, color: "#bbb", textDecoration: "line-through" }}>25 000 руб.</span>
                 </div>
-                <div style={{ fontSize: 42, fontWeight: 800, color: "#1a1a1a", lineHeight: 1, marginBottom: 8 }}>9 900 <span style={{ fontSize: 24 }}>руб.</span></div>
+                <div style={{ fontSize: 42, fontWeight: 800, color: "#1a1a1a", lineHeight: 1, marginBottom: 8 }}>22 900 <span style={{ fontSize: 24 }}>руб.</span></div>
                 <div style={{
                   display: "inline-flex", alignItems: "center", gap: 6,
                   background: "#dcfce7", color: "#15803d",
                   fontSize: 13, fontWeight: 700, padding: "5px 12px", borderRadius: 8,
                 }}>
                   <Icon name="TrendingDown" size={14} />
-                  Вы экономите 5 100 руб.
+                  Вы экономите 2 100 руб.
                 </div>
               </div>
 
@@ -61,7 +61,7 @@ export default function CoiPricingSection() {
 
               <div>
                 <BtnPay style={{ width: "100%", textAlign: "center", padding: "16px 24px", fontSize: 16, borderRadius: 12 }}>
-                  Оплатить 9 900 руб.
+                  Оплатить 22 900 руб.
                 </BtnPay>
                 <p style={{ fontSize: 12, color: "#888", margin: "12px 0 0", textAlign: "center", lineHeight: 1.5 }}>
                   Вы фиксируете минимальную цену и гарантируете участие
@@ -88,22 +88,22 @@ export default function CoiPricingSection() {
                 <div style={{ marginBottom: 8 }}>
                   <span style={{ fontSize: 15, color: "transparent", userSelect: "none" }}>—</span>
                 </div>
-                <div style={{ fontSize: 42, fontWeight: 800, color: "#1a1a1a", lineHeight: 1, marginBottom: 8 }}>2 000 <span style={{ fontSize: 24 }}>руб.</span></div>
-                <div style={{ fontSize: 13, color: "#888", marginBottom: 4 }}>Останется доплатить:</div>
+                <div style={{ fontSize: 42, fontWeight: 800, color: "#1a1a1a", lineHeight: 1, marginBottom: 8 }}>5 000 <span style={{ fontSize: 24 }}>руб.</span></div>
+                <div style={{ fontSize: 13, color: "#888", marginBottom: 4 }}>Останется доплатить на месте:</div>
                 <div style={{
                   display: "inline-flex", alignItems: "center", gap: 6,
                   background: "#fef9c3", color: "#854d0e",
                   fontSize: 13, fontWeight: 600, padding: "5px 12px", borderRadius: 8,
                 }}>
                   <Icon name="AlertCircle" size={14} />
-                  13 000 руб. (без скидки)
+                  20 000 руб. (без скидки)
                 </div>
               </div>
 
               <ul style={{ margin: "0 0 28px", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
                 {[
                   { text: "Фиксация места", ok: true },
-                  { text: "Доплата 13 000 руб. до события", ok: false },
+                  { text: "Доплата 20 000 руб. на месте", ok: false },
                   { text: "Итоговая стоимость выше", ok: false },
                 ].map((item) => (
                   <li key={item.text} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "#555" }}>
@@ -131,7 +131,7 @@ export default function CoiPricingSection() {
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: ACCENT, marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>Полная оплата</div>
                 {[
-                  "Экономия 5 100 руб.",
+                  "Экономия 2 100 руб.",
                   "Место закреплено сразу",
                   "Без доплат",
                   "Лучший выбор",
@@ -145,7 +145,7 @@ export default function CoiPricingSection() {
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#999", marginBottom: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>Бронь</div>
                 {[
                   "Только фиксация места",
-                  "Доплата 13 000 руб.",
+                  "Доплата 20 000 руб. на месте",
                   "Итог дороже",
                 ].map((t) => (
                   <div key={t} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13, color: "#888", marginBottom: 8 }}>
