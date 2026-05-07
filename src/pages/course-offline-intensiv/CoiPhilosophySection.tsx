@@ -37,7 +37,7 @@ export default function CoiPhilosophySection() {
           </div>
           <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 16px", lineHeight: 1.2 }}>
             Для нас важно не просто обучить,<br />
-            а убедиться, что вы делаете всё правильно
+            а убедиться, что вы делаете правильно
           </h2>
           <p style={{ fontSize: 15.5, color: "#666", maxWidth: 580, margin: "0 auto", lineHeight: 1.75 }}>
             Восстановительные техники — это не просто движения. Это работа с телом человека, 
