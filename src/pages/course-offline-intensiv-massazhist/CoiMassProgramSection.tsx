@@ -229,27 +229,6 @@ export default function CoiMassProgramSection() {
         </div>
       </section>
 
-      {/* ── ОНЛАЙН В ПОДАРОК ── */}
-      <section style={{ padding: "60px 0 0" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 24px" }}>
-          <div className="coi-bonus-online" style={{
-            background: BG, border: "1px solid #e8e8e4", borderRadius: 20,
-            padding: "28px 32px", display: "flex", alignItems: "center", gap: 28,
-          }}>
-            <div style={{ flexShrink: 0, width: 60, height: 60, borderRadius: 16, background: `${ACCENT}14`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Icon name="Gift" size={28} style={{ color: ACCENT }} />
-            </div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 17, color: "#1a1a1a", marginBottom: 8 }}>
-                Все онлайн-курсы — в подарок каждому участнику
-              </div>
-              <div style={{ fontSize: 14, color: "#666", lineHeight: 1.65 }}>
-                После интенсива вы сможете пересматривать техники, повторять материал и постепенно внедрять методики в свою практику. Чтобы вы ничего не забыли — весь курс остаётся с вами навсегда.
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </>
   );
 }
