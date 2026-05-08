@@ -451,10 +451,26 @@ function ResultScreen({ result, name, onRestart }: { result: QuizResult; name: s
   const [copied, setCopied] = useState(false);
 
   const copyPromo = () => {
-    navigator.clipboard.writeText(PROMO_CODE).then(() => {
+    try {
+      const el = document.createElement("textarea");
+      el.value = PROMO_CODE;
+      el.style.position = "fixed";
+      el.style.opacity = "0";
+      document.body.appendChild(el);
+      el.focus();
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    } catch {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(PROMO_CODE).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      }
+    }
   };
 
   return (
