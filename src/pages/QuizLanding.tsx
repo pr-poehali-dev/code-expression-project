@@ -34,15 +34,15 @@ export default function QuizLanding() {
         <div style={{ maxWidth: 760, margin: "0 auto", padding: "0 24px" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: ACCENT_LIGHT, border: `1px solid ${ACCENT}30`, borderRadius: 20, padding: "6px 16px", marginBottom: 28 }}>
             <Icon name="Sparkles" size={14} style={{ color: ACCENT }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 0.8 }}>Персональный подбор</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 0.8 }}>Подбор обучения</span>
           </div>
           <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(34px, 5vw, 58px)", fontWeight: 700, margin: "0 0 20px", color: "#1a1a1a", lineHeight: 1.15 }}>
-            Какой курс массажа<br />и восстановительных техник<br />подойдёт вам?
+            Какое обучение массажу<br />и восстановительным техникам<br />подойдёт именно вам?
           </h1>
-          <p style={{ fontSize: "clamp(15px, 2vw, 18px)", color: "#555", lineHeight: 1.75, margin: "0 0 16px", maxWidth: 580, marginLeft: "auto", marginRight: "auto" }}>
-            Не нужно часами изучать описания и гадать. Пройдите короткий квиз — и получите персональную рекомендацию курса, который подойдёт именно вам: под ваш уровень, цели и темп жизни.
+          <p style={{ fontSize: "clamp(15px, 2vw, 18px)", color: "#555", lineHeight: 1.75, margin: "0 0 16px", maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+            Ответьте на несколько вопросов — алгоритм подберёт подходящую программу обучения под ваш уровень, цели и удобный формат. Никакого перебора курсов вручную.
           </p>
-          <p style={{ fontSize: 14, color: "#aaa", margin: 0 }}>Займёт около 2 минут · Без обязательств · Результат сразу</p>
+          <p style={{ fontSize: 14, color: "#aaa", margin: 0 }}>Около 2 минут · Без обязательств · Результат сразу на странице</p>
         </div>
       </section>
 
