@@ -96,7 +96,7 @@ export default function QuizLanding() {
                 </div>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>Рейтинг 5.0</div>
-                  <div style={{ fontSize: 11.5, color: "#999" }}>MassoPRO · Яндекс</div>
+                  <div style={{ fontSize: 11.5, color: "#999" }}>Dok Диалог</div>
                 </div>
               </div>
             </div>
