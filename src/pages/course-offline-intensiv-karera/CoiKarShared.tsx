@@ -6,7 +6,7 @@ export const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.25)";
 export const BG = "#f8f8f6";
 export const PAY_URL = "https://school.brossok.ru/buy/71";
 export const BOOK_URL = "https://school.brossok.ru/buy/72";
-export const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/1a5aac68-8ad8-45e6-bb3c-bbab1439bb75.jpg";
+export const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/1d49199f-c08a-4fec-a72c-6c800f8a5758.jpg";
 
 export const h2style: React.CSSProperties = {
   fontFamily: "Cormorant, serif",
