@@ -132,7 +132,7 @@ export default function CatalogPrivate() {
               ].map((item) => {
                 const cardContent = (
                   <>
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 14, flex: 1 }}>
                       <div style={{ width: 44, height: 44, borderRadius: 12, background: `${item.accent}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         <Icon name={item.icon} size={20} style={{ color: item.accent }} />
                       </div>
