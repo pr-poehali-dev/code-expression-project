@@ -453,7 +453,7 @@ function ResultScreen({ result, name, onRestart }: { result: QuizResult; name: s
       {/* Курсы */}
       {result.courses.map((course) => {
         const isOffline = course.format === "offline";
-        const fullUrl = course.url.startsWith("http") ? course.url : `https://dok-dialog.ru${course.url}`;
+        const fullUrl = course.url.startsWith("http") ? course.url : `https://docdialog.ru${course.url}`;
         return (
           <div key={course.id} style={{
             background: "#fff",

@@ -231,7 +231,7 @@ def send_email(name: str, email: str, category: str, explanation: str, courses: 
     courses_html = ""
     for c in courses:
         fmt_label = "Онлайн" if c["format"] == "online" else "Офлайн-интенсив (Москва)"
-        url = f"https://dok-dialog.ru{c['url']}"
+        url = f"https://docdialog.ru{c['url']}"
         courses_html += f"""
         <tr>
           <td style="padding: 16px; border-bottom: 1px solid #f0f0f0;">
@@ -295,14 +295,14 @@ def send_email(name: str, email: str, category: str, explanation: str, courses: 
             <tr>
               <td style="padding: 0 40px 32px; text-align: center;">
                 <div style="font-size: 15px; color: #666; margin-bottom: 16px;">Остались вопросы? Напишите нам — поможем выбрать подходящую программу</div>
-                <a href="https://dok-dialog.ru/kontakty" style="display: inline-block; background: #2d8b76; color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 700;">Связаться с нами</a>
+                <a href="https://docdialog.ru/kontakty" style="display: inline-block; background: #2d8b76; color: #fff; padding: 14px 32px; border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 700;">Связаться с нами</a>
               </td>
             </tr>
             <!-- Футер -->
             <tr>
               <td style="background: #f8f8f6; padding: 20px 40px; text-align: center; border-top: 1px solid #eee;">
                 <div style="font-size: 12px; color: #aaa;">Dok Диалог — онлайн-курсы и интенсивы по восстановительным техникам</div>
-                <div style="font-size: 12px; color: #aaa; margin-top: 4px;"><a href="https://dok-dialog.ru" style="color: #2d8b76; text-decoration: none;">dok-dialog.ru</a></div>
+                <div style="font-size: 12px; color: #aaa; margin-top: 4px;"><a href="https://docdialog.ru" style="color: #2d8b76; text-decoration: none;">docdialog.ru</a></div>
               </td>
             </tr>
           </table>
