@@ -10,6 +10,7 @@ import CoiVideoReviews from "./course-offline-intensiv/CoiVideoReviews";
 import CoiSemPricingSection from "./course-offline-intensiv-semya/CoiSemPricingSection";
 import CoiContactForm from "./course-offline-intensiv/CoiContactForm";
 import CoiAuthorSection from "./course-offline-intensiv/CoiAuthorSection";
+import CoiHotelBanner from "./course-offline-intensiv/CoiHotelBanner";
 
 export default function CourseOfflineIntensivSemya() {
   return (
@@ -31,6 +32,7 @@ export default function CourseOfflineIntensivSemya() {
       <CoiVideoReviews />
       <CoiSemPricingSection />
       <CoiAuthorSection />
+      <CoiHotelBanner />
       <CoiContactForm />
 
       <style>{`

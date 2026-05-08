@@ -10,6 +10,7 @@ import CoiVideoReviews from "./course-offline-intensiv/CoiVideoReviews";
 import CoiTrenPricingSection from "./course-offline-intensiv-trener/CoiTrenPricingSection";
 import CoiContactForm from "./course-offline-intensiv/CoiContactForm";
 import CoiAuthorSection from "./course-offline-intensiv/CoiAuthorSection";
+import CoiHotelBanner from "./course-offline-intensiv/CoiHotelBanner";
 
 export default function CourseOfflineIntensivTrener() {
   return (
@@ -31,6 +32,7 @@ export default function CourseOfflineIntensivTrener() {
       <CoiVideoReviews />
       <CoiTrenPricingSection />
       <CoiAuthorSection />
+      <CoiHotelBanner />
       <CoiContactForm />
 
       <style>{`
