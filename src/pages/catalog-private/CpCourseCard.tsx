@@ -197,8 +197,6 @@ export function OfflineCourseCard({ course }: { course: Course }) {
         boxShadow: hovered ? `0 20px 56px ${ACCENT_SHADOW}` : "0 2px 16px rgba(0,0,0,0.06)",
         transform: hovered ? "translateY(-4px)" : "translateY(0)",
         transition: "all 0.25s ease",
-        gridColumn: "1 / -1",
-        maxWidth: 680,
       }}
     >
       <style>{`

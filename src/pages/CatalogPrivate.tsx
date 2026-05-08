@@ -262,14 +262,20 @@ export default function CatalogPrivate() {
           )}
 
           {/* Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }} className="cp-grid">
-            {filtered.map((course) => (
-              tab === "offline"
-                ? <OfflineCourseCard key={course.id} course={course} />
-                : <CourseCard key={course.id} course={course} />
-            ))}
-            {tab === "online" && <CpCollectionCard />}
-          </div>
+          {tab === "offline" ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }} className="cp-grid-offline">
+              {filtered.map((course) => (
+                <OfflineCourseCard key={course.id} course={course} />
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }} className="cp-grid">
+              {filtered.map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))}
+              {tab === "online" && <CpCollectionCard />}
+            </div>
+          )}
 
           {filtered.length === 0 && (
             <div style={{ textAlign: "center", padding: "80px 0", color: "#999", fontSize: 16 }}>
@@ -288,11 +294,13 @@ export default function CatalogPrivate() {
           .intensiv-banner { padding: 24px 22px !important; border-radius: 18px !important; }
           .intensiv-inner { flex-direction: column !important; align-items: flex-start !important; }
           .intensiv-inner a { width: 100% !important; justify-content: center !important; box-sizing: border-box !important; }
+          .cp-grid-offline { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 600px) {
           .cp-grid { grid-template-columns: 1fr !important; }
           .for-whom-grid { grid-template-columns: 1fr !important; }
           .intensiv-banner { padding: 20px 18px !important; border-radius: 16px !important; }
+          .cp-grid-offline { grid-template-columns: 1fr !important; }
         }
       `}</style>
       <DokFooter />
