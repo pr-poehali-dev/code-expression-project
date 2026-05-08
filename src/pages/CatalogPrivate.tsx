@@ -145,7 +145,7 @@ export default function CatalogPrivate() {
                         <p style={{ fontSize: 13.5, color: "#666", lineHeight: 1.65, margin: 0 }}>{item.desc}</p>
                       </div>
                     </div>
-                    <div style={{ borderTop: "1px solid #f0f0ed", paddingTop: 14, display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div style={{ borderTop: "1px solid #f0f0ed", paddingTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
                       {item.bullets.map((b) => (
                         <div key={b} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <div style={{ width: 16, height: 16, borderRadius: "50%", background: `${item.accent}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -156,7 +156,7 @@ export default function CatalogPrivate() {
                       ))}
                     </div>
                     {item.href && (
-                      <div style={{ borderTop: "1px solid #f0f0ed", paddingTop: 14 }}>
+                      <div style={{ borderTop: "1px solid #f0f0ed", paddingTop: 16 }}>
                         <span style={{ fontSize: 13, fontWeight: 700, color: item.accent, display: "flex", alignItems: "center", gap: 6 }}>
                           Узнать об интенсиве
                           <Icon name="ArrowRight" size={13} style={{ color: item.accent }} />
@@ -166,12 +166,12 @@ export default function CatalogPrivate() {
                   </>
                 );
                 return item.href ? (
-                  <a key={item.title} href={item.href} style={{ background: "#fff", border: `1.5px solid ${item.accent}40`, borderRadius: 20, padding: "24px 22px", display: "flex", flexDirection: "column", gap: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "box-shadow 0.2s, transform 0.2s", textDecoration: "none", cursor: "pointer" }}
+                  <a key={item.title} href={item.href} style={{ background: "#fff", border: `1.5px solid ${item.accent}40`, borderRadius: 20, padding: "24px", display: "flex", flexDirection: "column", gap: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "box-shadow 0.2s, transform 0.2s", textDecoration: "none", cursor: "pointer" }}
                     onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.boxShadow = `0 8px 32px ${item.accent}22`; el.style.transform = "translateY(-2px)"; }}
                     onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)"; el.style.transform = "translateY(0)"; }}
                   >{cardContent}</a>
                 ) : (
-                  <div key={item.title} style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "24px 22px", display: "flex", flexDirection: "column", gap: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "box-shadow 0.2s, transform 0.2s" }}
+                  <div key={item.title} style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "24px", display: "flex", flexDirection: "column", gap: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "box-shadow 0.2s, transform 0.2s" }}
                     onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.boxShadow = `0 8px 32px ${item.accent}22`; el.style.transform = "translateY(-2px)"; }}
                     onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)"; el.style.transform = "translateY(0)"; }}
                   >{cardContent}</div>
