@@ -37,7 +37,7 @@ export default function QuizLanding() {
             <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 0.8 }}>Персональный подбор</span>
           </div>
           <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(34px, 5vw, 58px)", fontWeight: 700, margin: "0 0 20px", color: "#1a1a1a", lineHeight: 1.15 }}>
-            Какой курс<br />выбрать именно вам?
+            Какой курс массажа<br />и восстановительных техник<br />подойдёт вам?
           </h1>
           <p style={{ fontSize: "clamp(15px, 2vw, 18px)", color: "#555", lineHeight: 1.75, margin: "0 0 16px", maxWidth: 580, marginLeft: "auto", marginRight: "auto" }}>
             Не нужно часами изучать описания и гадать. Пройдите короткий квиз — и получите персональную рекомендацию курса, который подойдёт именно вам: под ваш уровень, цели и темп жизни.
