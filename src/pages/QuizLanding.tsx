@@ -68,13 +68,40 @@ export default function QuizLanding() {
         </div>
       </section>
 
-      {/* ── РАЗДЕЛИТЕЛЬ ── */}
-      <section style={{ padding: "0 0 16px" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
-          <div style={{ width: 48, height: 3, background: ACCENT, borderRadius: 2, margin: "0 auto 28px" }} />
-          <p style={{ fontSize: 16, color: "#444", lineHeight: 1.7, margin: 0 }}>
-            Вы уже на правильном пути — вы здесь. Осталось сделать один шаг: ответить на несколько вопросов, и мы подберём то, что даст результат быстрее всего.
-          </p>
+      {/* ── ЧТО БУДЕТ ПОСЛЕ КВИЗА ── */}
+      <section style={{ padding: "0 0 40px" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 24, padding: "36px 40px", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }} className="quiz-promise-wrap">
+            <div style={{ textAlign: "center", marginBottom: 32 }}>
+              <div style={{ width: 48, height: 3, background: ACCENT, borderRadius: 2, margin: "0 auto 20px" }} />
+              <p style={{ fontSize: 16, color: "#444", lineHeight: 1.75, margin: 0, maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>
+                Вы уже на правильном пути — вы здесь. Осталось ответить на несколько вопросов, и мы подберём то, что даст результат быстрее всего.
+              </p>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }} className="quiz-promise-grid">
+              <div style={{ background: ACCENT_LIGHT, borderRadius: 16, padding: "20px", textAlign: "center" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+                  <Icon name="MonitorSmartphone" size={18} style={{ color: ACCENT }} />
+                </div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a", marginBottom: 6 }}>Результат на странице</div>
+                <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>Сразу после ответов — персональная рекомендация прямо здесь</div>
+              </div>
+              <div style={{ background: ACCENT_LIGHT, borderRadius: 16, padding: "20px", textAlign: "center" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+                  <Icon name="Mail" size={18} style={{ color: ACCENT }} />
+                </div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a", marginBottom: 6 }}>Копия на почту</div>
+                <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>Результат продублируется на ваш email — чтобы вернуться в любой момент</div>
+              </div>
+              <div style={{ background: ACCENT_LIGHT, borderRadius: 16, padding: "20px", textAlign: "center" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+                  <Icon name="Gift" size={18} style={{ color: ACCENT }} />
+                </div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a", marginBottom: 6 }}>Приятный бонус</div>
+                <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>Для тех, кто пройдёт квиз — небольшой подарок от нас в результатах</div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -86,6 +113,8 @@ export default function QuizLanding() {
       <style>{`
         @media (max-width: 600px) {
           .quiz-feelings-grid { grid-template-columns: 1fr !important; }
+          .quiz-promise-grid { grid-template-columns: 1fr !important; }
+          .quiz-promise-wrap { padding: 24px 20px !important; }
         }
       `}</style>
 
