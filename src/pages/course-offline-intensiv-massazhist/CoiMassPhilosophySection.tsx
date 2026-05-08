@@ -26,7 +26,7 @@ const ITEMS = [
 
 export default function CoiMassPhilosophySection() {
   return (
-    <section style={{ padding: "80px 0", background: "#fff" }}>
+    <section style={{ padding: "80px 0 120px", background: "#fff" }}>
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 24px" }}>
 
         <div style={{ textAlign: "center", marginBottom: 48 }}>
