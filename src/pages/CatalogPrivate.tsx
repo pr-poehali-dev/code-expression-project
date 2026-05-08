@@ -69,8 +69,8 @@ export default function CatalogPrivate() {
             </p>
           </div>
 
-          {/* Кому подойдут */}
-          <div style={{ marginBottom: 44 }}>
+          {/* Кому подойдут — только на вкладке онлайн */}
+          {tab === "online" && <div style={{ marginBottom: 44 }}>
             <div style={{ textAlign: "center", marginBottom: 28 }}>
               <span style={{ display: "inline-block", background: `${ACCENT}15`, color: ACCENT, fontSize: 12, fontWeight: 700, padding: "4px 14px", borderRadius: 20, letterSpacing: 0.6, marginBottom: 12 }}>
                 ДЛЯ КОГО
@@ -178,7 +178,7 @@ export default function CatalogPrivate() {
                 );
               })}
             </div>
-          </div>
+          </div>}
 
           <TabSwitcher tab={tab} setTab={setTab} />
 
