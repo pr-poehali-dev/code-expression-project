@@ -261,7 +261,8 @@ function IntroScreen({ onStart }: { onStart: () => void }) {
 function ContactsScreen({ onNext }: { onNext: (name: string, email: string) => void }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; email?: string; agree?: string }>({});
+  const [agree, setAgree] = useState(false);
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
@@ -279,6 +280,7 @@ function ContactsScreen({ onNext }: { onNext: (name: string, email: string) => v
     const e: typeof errors = {};
     if (!name.trim()) e.name = "Введите имя";
     if (!email.trim() || !email.includes("@")) e.email = "Введите корректный email";
+    if (!agree) e.agree = "Необходимо принять условия";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -320,9 +322,32 @@ function ContactsScreen({ onNext }: { onNext: (name: string, email: string) => v
         />
         {errors.email && <div style={{ fontSize: 12, color: "#e53e3e", marginTop: 4 }}>{errors.email}</div>}
       </div>
-      <p style={{ fontSize: 12.5, color: "#aaa", margin: "0 0 28px" }}>
+      <p style={{ fontSize: 12.5, color: "#aaa", margin: "0 0 20px" }}>
         На эту почту мы отправим ваши результаты и рекомендации по обучению.
       </p>
+
+      <label style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer", marginBottom: 6 }}>
+        <div
+          onClick={() => { setAgree(a => !a); setErrors(p => ({ ...p, agree: undefined })); }}
+          style={{
+            width: 20, height: 20, minWidth: 20, borderRadius: 5, marginTop: 1,
+            border: `2px solid ${errors.agree ? "#e53e3e" : agree ? ACCENT : "#d0d0cc"}`,
+            background: agree ? ACCENT : "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            transition: "all 0.15s", cursor: "pointer",
+          }}
+        >
+          {agree && <Icon name="Check" size={12} style={{ color: "#fff" }} />}
+        </div>
+        <span style={{ fontSize: 13, color: "#555", lineHeight: 1.55 }}>
+          Я ознакомился(-ась) и принимаю{" "}
+          <a href="/privacy" target="_blank" style={{ color: ACCENT, textDecoration: "underline" }}>политику конфиденциальности</a>
+          {" "}и{" "}
+          <a href="/offer" target="_blank" style={{ color: ACCENT, textDecoration: "underline" }}>оферту</a>
+        </span>
+      </label>
+      {errors.agree && <div style={{ fontSize: 12, color: "#e53e3e", marginBottom: 16 }}>{errors.agree}</div>}
+      {!errors.agree && <div style={{ marginBottom: 24 }} />}
 
       <button style={primaryBtn} onClick={() => { if (validate()) onNext(name, email); }}>
         Продолжить →
