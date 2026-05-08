@@ -32,6 +32,7 @@ import CourseKollektsiya from "./pages/CourseKollektsiya";
 import Reviews from "./pages/Reviews";
 import NotFoundPage from "./pages/NotFoundPage";
 import CookieBanner from "./components/CookieBanner";
+import QuizAdmin from "./pages/QuizAdmin";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
           <Route path="/diagnostika-salona" element={<DiagnostikaSalona />} />
           <Route path="/course/kollektsiya" element={<CourseKollektsiya />} />
           <Route path="/reviews" element={<Reviews />} />
+          <Route path="/quiz-admin" element={<QuizAdmin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

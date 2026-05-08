@@ -7,6 +7,7 @@ import { ACCENT, BG, ONLINE_COURSES, OFFLINE_COURSES, POINT_COURSES, LevelFilter
 import { CourseCard, OfflineCourseCard } from "./catalog-private/CpCourseCard";
 import { TabSwitcher, CatalogFilters } from "./catalog-private/CpFilters";
 import CpCollectionCard from "./catalog-private/CpCollectionCard";
+import CourseQuiz from "./catalog-private/CourseQuiz";
 
 export default function CatalogPrivate() {
   const [tab, setTab] = useState<TabType>(() => {
@@ -282,6 +283,24 @@ export default function CatalogPrivate() {
               По выбранным фильтрам курсов не найдено
             </div>
           )}
+        </div>
+
+        {/* Квиз-бот подбора курсов */}
+        <div style={{ background: `${ACCENT}08`, borderTop: `1px solid ${ACCENT}20`, marginTop: 60, padding: "60px 0" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+            <div style={{ textAlign: "center", marginBottom: 40 }}>
+              <span style={{ display: "inline-block", background: `${ACCENT}15`, color: ACCENT, fontSize: 12, fontWeight: 700, padding: "4px 14px", borderRadius: 20, letterSpacing: 0.6, marginBottom: 12 }}>
+                ПОДБОР ОБУЧЕНИЯ
+              </span>
+              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
+                Не знаете, с чего начать?
+              </h2>
+              <p style={{ fontSize: 16, color: "#666", margin: 0, maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
+                Пройдите короткий квиз и получите персональную подборку курсов прямо на почту
+              </p>
+            </div>
+            <CourseQuiz />
+          </div>
         </div>
       </main>
 
