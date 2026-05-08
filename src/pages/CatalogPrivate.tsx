@@ -241,8 +241,8 @@ export default function CatalogPrivate() {
           )}
         </div>
 
-        {/* Баннер интенсива */}
-        <div style={{ maxWidth: 1200, margin: "60px auto 0", padding: "0 24px 80px" }}>
+        {/* Баннер интенсива — не показываем в точечных продуктах */}
+        {tab !== "point" && <div style={{ maxWidth: 1200, margin: "60px auto 0", padding: "0 24px 80px" }}>
           <div style={{
             background: "linear-gradient(135deg, #00a699 0%, #005c55 100%)",
             borderRadius: 22,
@@ -288,7 +288,7 @@ export default function CatalogPrivate() {
               </a>
             </div>
           </div>
-        </div>
+        </div>}
 
       </main>
 
