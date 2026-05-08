@@ -33,6 +33,7 @@ import Reviews from "./pages/Reviews";
 import NotFoundPage from "./pages/NotFoundPage";
 import CookieBanner from "./components/CookieBanner";
 import QuizAdmin from "./pages/QuizAdmin";
+import QuizLanding from "./pages/QuizLanding";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,7 @@ const App = () => (
           <Route path="/course/kollektsiya" element={<CourseKollektsiya />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/quiz-admin" element={<QuizAdmin />} />
+          <Route path="/quiz" element={<QuizLanding />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
