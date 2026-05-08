@@ -70,7 +70,7 @@ export default function QuizLanding() {
                 />
               </div>
               {/* Превью-плашка сверху */}
-              <div style={{
+              <div className="quiz-hero-badge" style={{
                 position: "absolute", top: 20, left: -24,
                 background: "#fff", borderRadius: 16, padding: "14px 18px",
                 boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
@@ -85,7 +85,7 @@ export default function QuizLanding() {
                 </div>
               </div>
               {/* Превью-плашка снизу */}
-              <div style={{
+              <div className="quiz-hero-badge" style={{
                 position: "absolute", bottom: 24, right: -20,
                 background: "#fff", borderRadius: 16, padding: "14px 18px",
                 boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
@@ -171,7 +171,8 @@ export default function QuizLanding() {
       <style>{`
         @media (max-width: 860px) {
           .quiz-hero-grid { grid-template-columns: 1fr !important; }
-          .quiz-hero-grid > div:last-child { display: none !important; }
+          .quiz-hero-img { height: 300px !important; }
+          .quiz-hero-badge { display: none !important; }
         }
         @media (max-width: 768px) {
           .quiz-promise-grid { grid-template-columns: 1fr !important; }
