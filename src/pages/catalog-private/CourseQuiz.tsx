@@ -156,6 +156,8 @@ const card: React.CSSProperties = {
   boxShadow: "0 8px 40px rgba(0,0,0,0.07)",
   maxWidth: 640,
   margin: "0 auto",
+  boxSizing: "border-box",
+  width: "100%",
 };
 
 const btn = (active?: boolean): React.CSSProperties => ({
@@ -228,7 +230,7 @@ function ProgressBar({ step, total }: { step: number; total: number }) {
 
 function IntroScreen({ onStart }: { onStart: () => void }) {
   return (
-    <div style={card}>
+    <div style={card} className="cq-card">
       <div style={{
         width: 64, height: 64, borderRadius: 16, background: `${ACCENT}15`,
         display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24,
@@ -286,7 +288,7 @@ function ContactsScreen({ onNext }: { onNext: (name: string, email: string) => v
   };
 
   return (
-    <div style={card}>
+    <div style={card} className="cq-card">
       <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px, 3.5vw, 30px)", fontWeight: 700, margin: "0 0 8px" }}>
         Шаг 1 из 2 — Контактные данные
       </h2>
@@ -388,7 +390,7 @@ function QuestionsScreen({
   const isLast = currentQ === QUESTIONS.length - 1;
 
   return (
-    <div style={card}>
+    <div style={card} className="cq-card">
       <ProgressBar step={currentQ + 1} total={QUESTIONS.length} />
 
       <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px, 3.5vw, 28px)", fontWeight: 700, margin: "0 0 6px", lineHeight: 1.3 }}>
@@ -424,7 +426,7 @@ function QuestionsScreen({
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+      <div style={{ display: "flex", gap: 12, marginTop: 24 }} className="cq-btn-row">
         <button style={outlineBtn} onClick={onBack}>
           ← Назад
         </button>
@@ -476,7 +478,7 @@ function ResultScreen({ result, name, onRestart }: { result: QuizResult; name: s
   return (
     <div style={{ maxWidth: 700, margin: "0 auto" }}>
       {/* Заголовок */}
-      <div style={{ ...card, marginBottom: 24, textAlign: "center" }}>
+      <div style={{ ...card, marginBottom: 24, textAlign: "center" }} className="cq-card">
         <div style={{ width: 64, height: 64, borderRadius: "50%", background: `${ACCENT}15`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
           <Icon name="CheckCircle" size={34} style={{ color: ACCENT }} />
         </div>
@@ -516,7 +518,8 @@ function ResultScreen({ result, name, onRestart }: { result: QuizResult; name: s
             display: "flex",
             gap: 20,
             alignItems: "flex-start",
-          }}>
+            boxSizing: "border-box",
+          }} className="cq-result-course cq-card">
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                 <span style={{
@@ -565,7 +568,7 @@ function ResultScreen({ result, name, onRestart }: { result: QuizResult; name: s
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.85)", margin: "0 0 20px", lineHeight: 1.6 }}>
               Специально для вас — промокод на все рекомендованные онлайн-курсы. Введите его при оформлении.
             </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }} className="cq-promo">
               <div style={{
                 background: "rgba(255,255,255,0.15)",
                 border: "2px dashed rgba(255,255,255,0.4)",
@@ -681,7 +684,20 @@ export default function CourseQuiz() {
   };
 
   return (
-    <div style={{ padding: "0 0 16px" }}>
+    <div style={{ padding: "0 16px 16px" }}>
+      <style>{`
+        .cq-card { padding: 40px 36px !important; }
+        .cq-btn-row { flex-direction: row !important; }
+        @media (max-width: 600px) {
+          .cq-card { padding: 24px 18px !important; border-radius: 16px !important; }
+          .cq-btn-row { flex-direction: column !important; gap: 10px !important; }
+          .cq-btn-row button { width: 100% !important; justify-content: center !important; }
+          .cq-result-course { flex-direction: column !important; gap: 12px !important; }
+          .cq-result-course-actions { flex-direction: column !important; }
+          .cq-result-course-actions a { width: 100% !important; text-align: center !important; box-sizing: border-box !important; }
+          .cq-promo { flex-direction: column !important; align-items: flex-start !important; }
+        }
+      `}</style>
       {step === "intro" && (
         <IntroScreen onStart={() => setStep("contacts")} />
       )}
@@ -695,7 +711,7 @@ export default function CourseQuiz() {
       {step === "questions" && (
         <>
           {loading ? (
-            <div style={{ ...card, textAlign: "center", padding: "60px 36px" }}>
+            <div style={{ ...card, textAlign: "center", padding: "60px 36px" }} className="cq-card">
               <div style={{ width: 48, height: 48, border: `3px solid ${ACCENT}`, borderTopColor: "transparent", borderRadius: "50%", margin: "0 auto 20px", animation: "spin 0.8s linear infinite" }} />
               <p style={{ fontSize: 16, color: "#555" }}>Подбираем курсы под ваш профиль…</p>
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

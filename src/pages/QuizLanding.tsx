@@ -30,7 +30,7 @@ export default function QuizLanding() {
       <DokNavbar />
 
       {/* ── HERO ── */}
-      <section style={{ padding: "80px 0 60px", textAlign: "center" }}>
+      <section style={{ padding: "80px 0 60px", textAlign: "center" }} className="quiz-hero-section">
         <div style={{ maxWidth: 760, margin: "0 auto", padding: "0 24px" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: ACCENT_LIGHT, border: `1px solid ${ACCENT}30`, borderRadius: 20, padding: "6px 16px", marginBottom: 28 }}>
             <Icon name="Sparkles" size={14} style={{ color: ACCENT }} />
@@ -47,7 +47,7 @@ export default function QuizLanding() {
       </section>
 
       {/* ── ЧТО ВЫ ПОЧУВСТВУЕТЕ ── */}
-      <section style={{ padding: "0 0 70px" }}>
+      <section style={{ padding: "0 0 70px" }} className="quiz-feelings-section">
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
           <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px, 3vw, 32px)", fontWeight: 700, textAlign: "center", margin: "0 0 36px", color: "#1a1a1a" }}>
             Когда выбор сделан осознанно — всё становится проще
@@ -106,15 +106,20 @@ export default function QuizLanding() {
       </section>
 
       {/* ── КВИЗ ── */}
-      <section style={{ padding: "40px 0 80px" }}>
+      <section style={{ padding: "40px 0 80px" }} className="quiz-section">
         <CourseQuiz />
       </section>
 
       <style>{`
+        @media (max-width: 768px) {
+          .quiz-promise-grid { grid-template-columns: 1fr !important; }
+        }
         @media (max-width: 600px) {
           .quiz-feelings-grid { grid-template-columns: 1fr !important; }
-          .quiz-promise-grid { grid-template-columns: 1fr !important; }
-          .quiz-promise-wrap { padding: 24px 20px !important; }
+          .quiz-promise-wrap { padding: 20px 16px !important; }
+          .quiz-hero-section { padding: 48px 0 36px !important; }
+          .quiz-feelings-section { padding: 0 0 40px !important; }
+          .quiz-section { padding: 24px 0 56px !important; }
         }
       `}</style>
 
