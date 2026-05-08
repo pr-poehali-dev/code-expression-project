@@ -450,6 +450,8 @@ const PROMO_CODE = "BROSS55";
 function ResultScreen({ result, name, onRestart }: { result: QuizResult; name: string; onRestart: () => void }) {
   const catName = CATEGORY_NAMES[result.category] || "Персональная подборка";
   const hasOffline = result.courses.some(c => c.format === "offline");
+  const hasOnline = result.courses.some(c => c.format === "online");
+  const onlyOffline = hasOffline && !hasOnline;
   const [copied, setCopied] = useState(false);
 
   const copyPromo = () => {
@@ -545,8 +547,8 @@ function ResultScreen({ result, name, onRestart }: { result: QuizResult; name: s
         );
       })}
 
-      {/* Промокод — только если нет офлайн-интенсива */}
-      {!hasOffline && (
+      {/* Промокод — если есть хотя бы один онлайн-курс */}
+      {hasOnline && (
         <div style={{
           background: "linear-gradient(135deg, #1a6b5a 0%, #2d8b76 100%)",
           borderRadius: 18,
@@ -606,12 +608,34 @@ function ResultScreen({ result, name, onRestart }: { result: QuizResult; name: s
         </div>
       )}
 
+      {/* Сообщение про бесплатные онлайн-курсы — только если рекомендован офлайн-интенсив без онлайн */}
+      {onlyOffline && (
+        <div style={{
+          background: "linear-gradient(135deg, #1a6b5a 0%, #2d8b76 100%)",
+          borderRadius: 18, padding: "28px 28px", marginBottom: 16, position: "relative", overflow: "hidden",
+        }}>
+          <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
+          <div style={{ position: "relative" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "4px 12px", marginBottom: 12 }}>
+              <Icon name="Gift" size={13} style={{ color: "#fff" }} />
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: "#fff", letterSpacing: 0.5 }}>БОНУС ДЛЯ УЧАСТНИКОВ ИНТЕНСИВА</span>
+            </div>
+            <h3 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px, 3vw, 26px)", fontWeight: 700, color: "#fff", margin: "0 0 10px", lineHeight: 1.25 }}>
+              Все онлайн-курсы — бесплатно
+            </h3>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.9)", margin: 0, lineHeight: 1.7 }}>
+              После оплаты интенсива вы получите доступ ко всем онлайн-курсам в подарок — чтобы повторять материал и внедрять техники в практику в своём темпе.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div style={{ textAlign: "center", marginTop: 24 }}>
         <button
           style={{ background: "transparent", border: "none", color: "#aaa", fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}
           onClick={onRestart}
         >
-          Пройти квиз заново
+          Пройти заново
         </button>
       </div>
     </div>
