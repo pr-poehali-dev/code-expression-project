@@ -543,7 +543,7 @@ export default function CourseQuiz() {
     setLoading(true);
     setError("");
     try {
-      const resp = await fetch(`${QUIZ_URL}/submit`, {
+      const resp = await fetch(`${QUIZ_URL}?action=submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, answers }),

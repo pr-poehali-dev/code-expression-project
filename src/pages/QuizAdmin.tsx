@@ -88,7 +88,7 @@ export default function QuizAdmin() {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(`${QUIZ_URL}/admin/submissions`, { headers });
+      const r = await fetch(`${QUIZ_URL}?action=admin_submissions`, { headers });
       const d = await r.json();
       if (r.status === 401) { setAuthed(false); setError("Неверный токен"); return; }
       setSubmissions(d.submissions || []);
@@ -100,7 +100,7 @@ export default function QuizAdmin() {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(`${QUIZ_URL}/admin/courses`, { headers });
+      const r = await fetch(`${QUIZ_URL}?action=admin_courses`, { headers });
       const d = await r.json();
       if (r.status === 401) { setAuthed(false); setError("Неверный токен"); return; }
       setCourses(d.courses || []);
@@ -112,7 +112,7 @@ export default function QuizAdmin() {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(`${QUIZ_URL}/admin/submissions`, {
+      const r = await fetch(`${QUIZ_URL}?action=admin_submissions`, {
         headers: { "Content-Type": "application/json", "x-admin-token": token }
       });
       if (r.status === 401) { setError("Неверный токен"); return; }
@@ -132,7 +132,7 @@ export default function QuizAdmin() {
     if (!editingCourse) return;
     setLoading(true);
     try {
-      await fetch(`${QUIZ_URL}/admin/courses/${editingCourse.id}`, {
+      await fetch(`${QUIZ_URL}?action=admin_update_course&id=${editingCourse.id}`, {
         method: "PUT",
         headers,
         body: JSON.stringify(editingCourse),
@@ -147,7 +147,7 @@ export default function QuizAdmin() {
     if (!confirm("Скрыть курс из квиза?")) return;
     setLoading(true);
     try {
-      await fetch(`${QUIZ_URL}/admin/courses/${id}`, { method: "DELETE", headers });
+      await fetch(`${QUIZ_URL}?action=admin_delete_course&id=${id}`, { method: "DELETE", headers });
       loadCourses();
     } catch { setError("Ошибка удаления"); }
     finally { setLoading(false); }
@@ -156,7 +156,7 @@ export default function QuizAdmin() {
   const createCourse = async () => {
     setLoading(true);
     try {
-      await fetch(`${QUIZ_URL}/admin/courses`, {
+      await fetch(`${QUIZ_URL}?action=admin_create_course`, {
         method: "POST",
         headers,
         body: JSON.stringify(newCourse),

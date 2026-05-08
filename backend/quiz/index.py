@@ -14,46 +14,50 @@ CORS = {
 
 
 def get_db():
-    return psycopg2.connect(os.environ["DATABASE_URL"])
+    conn = psycopg2.connect(os.environ["DATABASE_URL"])
+    schema = os.environ.get("MAIN_DB_SCHEMA", "public")
+    conn.cursor().execute(f"SET search_path TO {schema}")
+    return conn
 
 
 def handler(event: dict, context) -> dict:
-    """Квиз-бот для подбора онлайн-курсов и интенсивов. Обрабатывает прохождение квиза, сохраняет заявки, отправляет email с рекомендациями."""
+    """Квиз-бот для подбора онлайн-курсов и интенсивов. Роутинг через ?action=... query-параметр."""
 
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
     method = event.get("httpMethod", "GET")
-    path = event.get("path", "/")
+    qs = event.get("queryStringParameters") or {}
+    action = qs.get("action", "")
 
-    # POST /submit — сохранить результат квиза и отправить email
-    if method == "POST" and path.endswith("/submit"):
+    # POST ?action=submit — сохранить результат квиза и отправить email
+    if method == "POST" and action == "submit":
         return handle_submit(event)
 
-    # GET /courses — получить список активных курсов
-    if method == "GET" and path.endswith("/courses"):
+    # GET ?action=courses — получить список активных курсов
+    if method == "GET" and action == "courses":
         return handle_get_courses(event)
 
-    # Админка: GET /admin/submissions
-    if method == "GET" and path.endswith("/admin/submissions"):
+    # Админка: GET ?action=admin_submissions
+    if method == "GET" and action == "admin_submissions":
         return handle_admin_submissions(event)
 
-    # Админка: GET /admin/courses
-    if method == "GET" and path.endswith("/admin/courses"):
+    # Админка: GET ?action=admin_courses
+    if method == "GET" and action == "admin_courses":
         return handle_admin_courses(event)
 
-    # Админка: POST /admin/courses — создать курс
-    if method == "POST" and path.endswith("/admin/courses"):
+    # Админка: POST ?action=admin_create_course
+    if method == "POST" and action == "admin_create_course":
         return handle_admin_create_course(event)
 
-    # Админка: PUT /admin/courses — обновить курс
-    if method == "PUT" and "/admin/courses/" in path:
-        course_id = path.split("/admin/courses/")[-1].split("/")[0]
+    # Админка: PUT ?action=admin_update_course&id=...
+    if method == "PUT" and action == "admin_update_course":
+        course_id = qs.get("id", "")
         return handle_admin_update_course(event, course_id)
 
-    # Админка: DELETE /admin/courses
-    if method == "DELETE" and "/admin/courses/" in path:
-        course_id = path.split("/admin/courses/")[-1].split("/")[0]
+    # Админка: DELETE ?action=admin_delete_course&id=...
+    if method == "DELETE" and action == "admin_delete_course":
+        course_id = qs.get("id", "")
         return handle_admin_delete_course(event, course_id)
 
     return {"statusCode": 404, "headers": CORS, "body": json.dumps({"error": "Not found"})}
