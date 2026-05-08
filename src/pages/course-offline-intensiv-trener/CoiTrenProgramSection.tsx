@@ -230,7 +230,7 @@ export default function CoiTrenProgramSection() {
       </section>
 
       {/* ── ОНЛАЙН В ПОДАРОК ── */}
-      <section style={{ padding: "60px 0 0" }}>
+      <section style={{ padding: "60px 0" }}>
         <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 24px" }}>
           <div className="coi-bonus-online" style={{
             background: BG, border: "1px solid #e8e8e4", borderRadius: 20,
