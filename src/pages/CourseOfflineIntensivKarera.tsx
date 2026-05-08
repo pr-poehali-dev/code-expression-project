@@ -9,6 +9,7 @@ import CoiReviewsSection from "./course-offline-intensiv/CoiReviewsSection";
 import CoiVideoReviews from "./course-offline-intensiv/CoiVideoReviews";
 import CoiKarPricingSection from "./course-offline-intensiv-karera/CoiKarPricingSection";
 import CoiContactForm from "./course-offline-intensiv/CoiContactForm";
+import CoiAuthorSection from "./course-offline-intensiv/CoiAuthorSection";
 
 export default function CourseOfflineIntensivKarera() {
   return (
@@ -29,6 +30,7 @@ export default function CourseOfflineIntensivKarera() {
       <CoiReviewsSection />
       <CoiVideoReviews />
       <CoiKarPricingSection />
+      <CoiAuthorSection />
       <CoiContactForm />
 
       <style>{`

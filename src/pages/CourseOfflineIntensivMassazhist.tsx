@@ -9,6 +9,7 @@ import CoiReviewsSection from "./course-offline-intensiv/CoiReviewsSection";
 import CoiVideoReviews from "./course-offline-intensiv/CoiVideoReviews";
 import CoiMassPricingSection from "./course-offline-intensiv-massazhist/CoiMassPricingSection";
 import CoiContactForm from "./course-offline-intensiv/CoiContactForm";
+import CoiAuthorSection from "./course-offline-intensiv/CoiAuthorSection";
 
 export default function CourseOfflineIntensivMassazhist() {
   return (
@@ -29,6 +30,7 @@ export default function CourseOfflineIntensivMassazhist() {
       <CoiReviewsSection />
       <CoiVideoReviews />
       <CoiMassPricingSection />
+      <CoiAuthorSection />
       <CoiContactForm />
 
       <style>{`
