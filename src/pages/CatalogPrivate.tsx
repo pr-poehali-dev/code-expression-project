@@ -93,6 +93,7 @@ export default function CatalogPrivate() {
                   accent: ACCENT,
                   desc: "Хотите внедрить восстановительные техники и работать со сложными запросами — болью, травмами, зажимами. Перестать быть просто «массажистом» и стать специалистом, к которому записываются за результатом и готовы платить в 2–3 раза больше.",
                   bullets: ["Поднять средний чек за счёт результата", "Уверенно работать с болью и травмами", "Выстроить стабильный поток клиентов"],
+                  href: "/course/offline-intensiv-dlya-massazhistov",
                 },
                 {
                   icon: "Dumbbell",
@@ -103,6 +104,7 @@ export default function CatalogPrivate() {
                   accent: "#d97706",
                   desc: "На тренировке получилась травма — и вы не знаете, что делать. Базовые восстановительные техники позволят быстро сориентироваться, снизить болевой синдром и правильно помочь ученику прямо на месте, не дожидаясь врача.",
                   bullets: ["Первая помощь при спортивных травмах", "Техники снятия мышечного спазма", "Уверенность в любой ситуации"],
+                  href: null,
                 },
                 {
                   icon: "Home",
@@ -113,6 +115,7 @@ export default function CatalogPrivate() {
                   accent: "#7c3aed",
                   desc: "Самодиагностика и простые восстановительные техники, которым можно научиться без медобразования. Помочь ребёнку с болью в спине, снять стресс у партнёра после тяжёлого дня или проработать своё собственное состояние — всё это доступно каждому.",
                   bullets: ["Простые техники без медобразования", "Диагностика себя и близких", "Быстрая помощь при боли и напряжении"],
+                  href: null,
                 },
                 {
                   icon: "TrendingUp",
@@ -123,36 +126,56 @@ export default function CatalogPrivate() {
                   accent: "#059669",
                   desc: "Чувствуете потенциал, но массажист — это не финальная точка? Специалист восстановительных техник — это другой уровень: другие клиенты, другой чек, другое отношение. Вы строите экспертность и репутацию, а не просто оказываете услугу.",
                   bullets: ["Путь от массажиста к специалисту", "Экспертность, которая продаёт сама", "Работа с аудиторией, которая ценит результат"],
+                  href: null,
                 },
-              ].map((item) => (
-                <div key={item.title} style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "24px 22px", display: "flex", flexDirection: "column", gap: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "box-shadow 0.2s, transform 0.2s" }}
-                  onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.boxShadow = `0 8px 32px ${item.accent}22`; el.style.transform = "translateY(-2px)"; }}
-                  onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)"; el.style.transform = "translateY(0)"; }}
-                >
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: `${item.accent}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <Icon name={item.icon} size={20} style={{ color: item.accent }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-                        <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1a1a1a", margin: 0 }}>{item.title}</h3>
-                        <span style={{ fontSize: 10.5, fontWeight: 700, background: item.badgeBg, color: item.badgeColor, padding: "2px 8px", borderRadius: 20 }}>{item.badge}</span>
+              ].map((item) => {
+                const cardContent = (
+                  <>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 12, background: `${item.accent}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <Icon name={item.icon} size={20} style={{ color: item.accent }} />
                       </div>
-                      <p style={{ fontSize: 13.5, color: "#666", lineHeight: 1.65, margin: 0 }}>{item.desc}</p>
-                    </div>
-                  </div>
-                  <div style={{ borderTop: "1px solid #f0f0ed", paddingTop: 14, display: "flex", flexDirection: "column", gap: 6 }}>
-                    {item.bullets.map((b) => (
-                      <div key={b} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div style={{ width: 16, height: 16, borderRadius: "50%", background: `${item.accent}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                          <Icon name="Check" size={10} style={{ color: item.accent }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+                          <h3 style={{ fontSize: 16, fontWeight: 700, color: "#1a1a1a", margin: 0 }}>{item.title}</h3>
+                          <span style={{ fontSize: 10.5, fontWeight: 700, background: item.badgeBg, color: item.badgeColor, padding: "2px 8px", borderRadius: 20 }}>{item.badge}</span>
+                          {item.href && <span style={{ fontSize: 10.5, fontWeight: 700, background: "#1a1a1a", color: "#fff", padding: "2px 8px", borderRadius: 20 }}>ИНТЕНСИВ</span>}
                         </div>
-                        <span style={{ fontSize: 12.5, color: "#444", fontWeight: 500 }}>{b}</span>
+                        <p style={{ fontSize: 13.5, color: "#666", lineHeight: 1.65, margin: 0 }}>{item.desc}</p>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                    </div>
+                    <div style={{ borderTop: "1px solid #f0f0ed", paddingTop: 14, display: "flex", flexDirection: "column", gap: 6 }}>
+                      {item.bullets.map((b) => (
+                        <div key={b} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ width: 16, height: 16, borderRadius: "50%", background: `${item.accent}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <Icon name="Check" size={10} style={{ color: item.accent }} />
+                          </div>
+                          <span style={{ fontSize: 12.5, color: "#444", fontWeight: 500 }}>{b}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {item.href && (
+                      <div style={{ borderTop: "1px solid #f0f0ed", paddingTop: 14 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: item.accent, display: "flex", alignItems: "center", gap: 6 }}>
+                          Узнать об интенсиве
+                          <Icon name="ArrowRight" size={13} style={{ color: item.accent }} />
+                        </span>
+                      </div>
+                    )}
+                  </>
+                );
+                return item.href ? (
+                  <a key={item.title} href={item.href} style={{ background: "#fff", border: `1.5px solid ${item.accent}40`, borderRadius: 20, padding: "24px 22px", display: "flex", flexDirection: "column", gap: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "box-shadow 0.2s, transform 0.2s", textDecoration: "none", cursor: "pointer" }}
+                    onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.boxShadow = `0 8px 32px ${item.accent}22`; el.style.transform = "translateY(-2px)"; }}
+                    onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)"; el.style.transform = "translateY(0)"; }}
+                  >{cardContent}</a>
+                ) : (
+                  <div key={item.title} style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "24px 22px", display: "flex", flexDirection: "column", gap: 14, boxShadow: "0 2px 12px rgba(0,0,0,0.04)", transition: "box-shadow 0.2s, transform 0.2s" }}
+                    onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.boxShadow = `0 8px 32px ${item.accent}22`; el.style.transform = "translateY(-2px)"; }}
+                    onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)"; el.style.transform = "translateY(0)"; }}
+                  >{cardContent}</div>
+                );
+              })}
             </div>
           </div>
 

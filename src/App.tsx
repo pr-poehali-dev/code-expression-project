@@ -20,6 +20,7 @@ import CourseKorrektsiya from "./pages/CourseKorrektsiya";
 import CourseVisceralny from "./pages/CourseVisceralny";
 import CoursePotok from "./pages/CoursePotok";
 import CourseOfflineIntensiv from "./pages/CourseOfflineIntensiv";
+import CourseOfflineIntensivMassazhist from "./pages/CourseOfflineIntensivMassazhist";
 import CourseTrevoga from "./pages/course-trevoga";
 import SalonServices from "./pages/SalonServices";
 import CourseFitnesBerem from "./pages/CourseFitnesBerem";
@@ -55,6 +56,7 @@ const App = () => (
           <Route path="/course/visceralny-massazh-s-nulya" element={<CourseVisceralny />} />
           <Route path="/course/massazhist-s-potokom-klientov" element={<CoursePotok />} />
           <Route path="/course/offline-intensiv-massazh" element={<CourseOfflineIntensiv />} />
+          <Route path="/course/offline-intensiv-dlya-massazhistov" element={<CourseOfflineIntensivMassazhist />} />
           <Route path="/course/vns-trevoga" element={<CourseTrevoga />} />
           <Route path="/dlya-salonov" element={<SalonServices />} />
           <Route path="/course/fitnes-beremennyh" element={<CourseFitnesBerem />} />
