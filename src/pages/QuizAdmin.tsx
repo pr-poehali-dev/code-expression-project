@@ -109,16 +109,26 @@ export default function QuizAdmin() {
   }, [token]);
 
   const login = async () => {
+    if (!token.trim()) { setError("Введите токен"); return; }
     setLoading(true);
     setError("");
     try {
       const r = await fetch(`${QUIZ_URL}?action=admin_submissions`, {
-        headers: { "Content-Type": "application/json", "x-admin-token": token }
+        headers: { "Content-Type": "application/json", "x-admin-token": token.trim() }
       });
-      if (r.status === 401) { setError("Неверный токен"); return; }
-      localStorage.setItem("quiz_admin_token", token);
+      if (r.status === 401) {
+        setError("Неверный токен. Проверьте значение в Ядро → Секреты → ADMIN_TOKEN");
+        return;
+      }
+      if (!r.ok) {
+        setError(`Ошибка сервера: ${r.status}`);
+        return;
+      }
+      localStorage.setItem("quiz_admin_token", token.trim());
       setAuthed(true);
-    } catch { setError("Ошибка соединения"); }
+    } catch (e) {
+      setError(`Ошибка соединения: ${e}`);
+    }
     finally { setLoading(false); }
   };
 
@@ -199,7 +209,7 @@ export default function QuizAdmin() {
           />
           {error && <div style={{ color: "#e53e3e", fontSize: 13, marginBottom: 12 }}>{error}</div>}
           <button style={{ ...primaryBtn, width: "100%", padding: "12px" }} onClick={login} disabled={loading}>
-            {loading ? "Вход..." : "Войти"}
+            {loading ? "Проверка токена..." : "Войти"}
           </button>
         </div>
       </div>

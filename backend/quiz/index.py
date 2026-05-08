@@ -13,11 +13,16 @@ CORS = {
 }
 
 
+SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "public")
+
+
 def get_db():
-    conn = psycopg2.connect(os.environ["DATABASE_URL"])
-    schema = os.environ.get("MAIN_DB_SCHEMA", "public")
-    conn.cursor().execute(f"SET search_path TO {schema}")
-    return conn
+    return psycopg2.connect(os.environ["DATABASE_URL"])
+
+
+def tbl(name: str) -> str:
+    """Возвращает полное имя таблицы со схемой."""
+    return f"{SCHEMA}.{name}"
 
 
 def handler(event: dict, context) -> dict:
@@ -65,7 +70,11 @@ def handler(event: dict, context) -> dict:
 
 def check_admin(event: dict) -> bool:
     token = event.get("headers", {}).get("x-admin-token", "")
-    return token == os.environ.get("ADMIN_TOKEN", "")
+    admin_token = os.environ.get("ADMIN_TOKEN", "")
+    # Если ADMIN_TOKEN не задан — доступ закрыт (пустой токен не пускает)
+    if not admin_token:
+        return False
+    return token == admin_token
 
 
 def compute_category(answers: dict) -> tuple[str, str]:
@@ -165,8 +174,8 @@ def get_recommended_courses(category: str, answers: dict, conn) -> list:
 
     # Основная категория
     cur.execute(
-        "SELECT id, title, description, url, buy_url, price, category, format "
-        "FROM quiz_courses WHERE is_active = TRUE AND category = %s ORDER BY sort_order LIMIT 4",
+        f"SELECT id, title, description, url, buy_url, price, category, format "
+        f"FROM {tbl('quiz_courses')} WHERE is_active = TRUE AND category = %s ORDER BY sort_order LIMIT 4",
         (category,)
     )
     rows = cur.fetchall()
@@ -177,8 +186,8 @@ def get_recommended_courses(category: str, answers: dict, conn) -> list:
         extras_cat = {"A": ["D"], "B": ["C", "D"], "C": ["B"], "D": ["B", "A"]}
         for extra in extras_cat.get(category, []):
             cur.execute(
-                "SELECT id, title, description, url, buy_url, price, category, format "
-                "FROM quiz_courses WHERE is_active = TRUE AND category = %s ORDER BY sort_order LIMIT 2",
+                f"SELECT id, title, description, url, buy_url, price, category, format "
+                f"FROM {tbl('quiz_courses')} WHERE is_active = TRUE AND category = %s ORDER BY sort_order LIMIT 2",
                 (extra,)
             )
             rows += cur.fetchall()
@@ -346,7 +355,7 @@ def handle_submit(event: dict) -> dict:
 
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO quiz_submissions (name, email, answers, category, recommended_courses) VALUES (%s, %s, %s, %s, %s) RETURNING id",
+            f"INSERT INTO {tbl('quiz_submissions')} (name, email, answers, category, recommended_courses) VALUES (%s, %s, %s, %s, %s) RETURNING id",
             (name, email, json.dumps(answers), category, json.dumps(courses))
         )
         submission_id = cur.fetchone()[0]
@@ -374,8 +383,8 @@ def handle_get_courses(event: dict) -> dict:
     try:
         cur = conn.cursor()
         cur.execute(
-            "SELECT id, title, description, url, buy_url, price, category, format, sort_order "
-            "FROM quiz_courses WHERE is_active = TRUE ORDER BY sort_order"
+            f"SELECT id, title, description, url, buy_url, price, category, format, sort_order "
+            f"FROM {tbl('quiz_courses')} WHERE is_active = TRUE ORDER BY sort_order"
         )
         rows = cur.fetchall()
     finally:
@@ -397,8 +406,8 @@ def handle_admin_submissions(event: dict) -> dict:
     try:
         cur = conn.cursor()
         cur.execute(
-            "SELECT id, name, email, category, created_at, answers, recommended_courses "
-            "FROM quiz_submissions ORDER BY created_at DESC LIMIT 200"
+            f"SELECT id, name, email, category, created_at, answers, recommended_courses "
+            f"FROM {tbl('quiz_submissions')} ORDER BY created_at DESC LIMIT 200"
         )
         rows = cur.fetchall()
     finally:
@@ -421,8 +430,8 @@ def handle_admin_courses(event: dict) -> dict:
     try:
         cur = conn.cursor()
         cur.execute(
-            "SELECT id, title, description, url, buy_url, price, category, format, is_active, sort_order "
-            "FROM quiz_courses ORDER BY sort_order"
+            f"SELECT id, title, description, url, buy_url, price, category, format, is_active, sort_order "
+            f"FROM {tbl('quiz_courses')} ORDER BY sort_order"
         )
         rows = cur.fetchall()
     finally:
@@ -446,7 +455,7 @@ def handle_admin_create_course(event: dict) -> dict:
     try:
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO quiz_courses (title, description, url, buy_url, price, category, format, is_active, sort_order) "
+            f"INSERT INTO {tbl('quiz_courses')} (title, description, url, buy_url, price, category, format, is_active, sort_order) "
             "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
             (body.get("title"), body.get("description"), body.get("url"), body.get("buy_url"),
              body.get("price"), body.get("category"), body.get("format", "online"),
@@ -469,7 +478,7 @@ def handle_admin_update_course(event: dict, course_id: str) -> dict:
     try:
         cur = conn.cursor()
         cur.execute(
-            "UPDATE quiz_courses SET title=%s, description=%s, url=%s, buy_url=%s, price=%s, "
+            f"UPDATE {tbl('quiz_courses')} SET title=%s, description=%s, url=%s, buy_url=%s, price=%s, "
             "category=%s, format=%s, is_active=%s, sort_order=%s, updated_at=NOW() WHERE id=%s",
             (body.get("title"), body.get("description"), body.get("url"), body.get("buy_url"),
              body.get("price"), body.get("category"), body.get("format", "online"),
@@ -489,7 +498,7 @@ def handle_admin_delete_course(event: dict, course_id: str) -> dict:
     conn = get_db()
     try:
         cur = conn.cursor()
-        cur.execute("UPDATE quiz_courses SET is_active = FALSE WHERE id = %s", (int(course_id),))
+        cur.execute(f"UPDATE {tbl('quiz_courses')} SET is_active = FALSE WHERE id = %s", (int(course_id),))
         conn.commit()
     finally:
         conn.close()
