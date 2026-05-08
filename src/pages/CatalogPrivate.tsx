@@ -145,7 +145,7 @@ export default function CatalogPrivate() {
                         <p style={{ fontSize: 13.5, color: "#666", lineHeight: 1.65, margin: 0 }}>{item.desc}</p>
                       </div>
                     </div>
-                    <div style={{ borderTop: "1px solid #f0f0ed", paddingTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+                    <div style={{ borderTop: "1px solid #f0f0ed", paddingTop: 16, display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
                       {item.bullets.map((b) => (
                         <div key={b} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <div style={{ width: 16, height: 16, borderRadius: "50%", background: `${item.accent}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
