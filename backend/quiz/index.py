@@ -219,6 +219,9 @@ def get_recommended_courses(category: str, answers: dict, conn) -> list:
     ]
 
 
+PROMO_CODE = "BROSS55"
+
+
 def send_email(name: str, email: str, category: str, explanation: str, courses: list):
     smtp_password = os.environ.get("SMTP_PASSWORD", "")
     from_email = "massopro@mail.ru"
@@ -230,6 +233,7 @@ def send_email(name: str, email: str, category: str, explanation: str, courses: 
         "D": "Новая профессия и заработок",
     }
 
+    has_offline = any(c["format"] == "offline" for c in courses)
     courses_html = ""
     for c in courses:
         fmt_label = "Онлайн" if c["format"] == "online" else "Офлайн-интенсив (Москва)"
@@ -293,6 +297,8 @@ def send_email(name: str, email: str, category: str, explanation: str, courses: 
                 </table>
               </td>
             </tr>
+            <!-- Промокод (только онлайн) -->
+            {'<tr><td style="padding: 0 40px 24px;"><table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #1a6b5a, #2d8b76); border-radius: 14px; overflow: hidden;"><tr><td style="padding: 28px 28px;"><div style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.75); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">СПЕЦИАЛЬНОЕ ПРЕДЛОЖЕНИЕ ДЛЯ ВАС</div><div style="font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 8px; font-family: Georgia, serif;">Скидка 55% на все онлайн-курсы</div><div style="font-size: 14px; color: rgba(255,255,255,0.85); margin-bottom: 20px; line-height: 1.6;">Введите промокод при оформлении любого онлайн-курса из вашей подборки.</div><div style="display: inline-block; background: rgba(255,255,255,0.15); border: 2px dashed rgba(255,255,255,0.5); border-radius: 10px; padding: 12px 24px;"><span style="font-size: 26px; font-weight: 800; color: #fff; letter-spacing: 3px; font-family: monospace;">' + PROMO_CODE + '</span></div></td></tr></table></td></tr>' if not has_offline else ''}
             <!-- CTA -->
             <tr>
               <td style="padding: 0 40px 32px; text-align: center;">

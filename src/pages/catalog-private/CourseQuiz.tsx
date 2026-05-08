@@ -443,8 +443,19 @@ function QuestionsScreen({
 
 // ─── Экран результата ──────────────────────────────────────────────────────────
 
+const PROMO_CODE = "BROSS55";
+
 function ResultScreen({ result, name, onRestart }: { result: QuizResult; name: string; onRestart: () => void }) {
   const catName = CATEGORY_NAMES[result.category] || "Персональная подборка";
+  const hasOffline = result.courses.some(c => c.format === "offline");
+  const [copied, setCopied] = useState(false);
+
+  const copyPromo = () => {
+    navigator.clipboard.writeText(PROMO_CODE).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   return (
     <div style={{ maxWidth: 700, margin: "0 auto" }}>
@@ -514,6 +525,67 @@ function ResultScreen({ result, name, onRestart }: { result: QuizResult; name: s
           </div>
         );
       })}
+
+      {/* Промокод — только если нет офлайн-интенсива */}
+      {!hasOffline && (
+        <div style={{
+          background: "linear-gradient(135deg, #1a6b5a 0%, #2d8b76 100%)",
+          borderRadius: 18,
+          padding: "28px 28px",
+          marginBottom: 16,
+          position: "relative",
+          overflow: "hidden",
+        }}>
+          <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.06)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: -20, left: 40, width: 80, height: 80, borderRadius: "50%", background: "rgba(255,255,255,0.04)", pointerEvents: "none" }} />
+          <div style={{ position: "relative" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "4px 12px", marginBottom: 12 }}>
+              <Icon name="Tag" size={13} style={{ color: "#fff" }} />
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: "#fff", letterSpacing: 0.5 }}>СПЕЦИАЛЬНОЕ ПРЕДЛОЖЕНИЕ</span>
+            </div>
+            <h3 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px, 3vw, 26px)", fontWeight: 700, color: "#fff", margin: "0 0 8px", lineHeight: 1.25 }}>
+              Скидка 55% на все онлайн-курсы
+            </h3>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.85)", margin: "0 0 20px", lineHeight: 1.6 }}>
+              Специально для вас — промокод на все рекомендованные онлайн-курсы. Введите его при оформлении.
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <div style={{
+                background: "rgba(255,255,255,0.15)",
+                border: "2px dashed rgba(255,255,255,0.4)",
+                borderRadius: 12,
+                padding: "12px 20px",
+                display: "flex", alignItems: "center", gap: 12,
+              }}>
+                <span style={{ fontSize: 22, fontWeight: 800, color: "#fff", letterSpacing: 2, fontFamily: "monospace" }}>
+                  {PROMO_CODE}
+                </span>
+              </div>
+              <button
+                onClick={copyPromo}
+                style={{
+                  background: "#fff",
+                  color: ACCENT,
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "12px 20px",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  transition: "opacity 0.18s",
+                }}
+              >
+                <Icon name={copied ? "Check" : "Copy"} size={15} style={{ color: ACCENT }} />
+                {copied ? "Скопировано!" : "Скопировать"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div style={{ textAlign: "center", marginTop: 24 }}>
         <button
