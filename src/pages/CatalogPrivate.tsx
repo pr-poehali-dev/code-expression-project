@@ -198,69 +198,7 @@ export default function CatalogPrivate() {
             />
           )}
 
-          {/* Баннер интенсива — только для онлайн-курсов */}
-          {tab === "online" && (
-            <div style={{
-              background: "linear-gradient(135deg, #00a699 0%, #005c55 100%)",
-              borderRadius: 22,
-              padding: "32px 36px",
-              marginBottom: 32,
-              boxShadow: "0 8px 40px rgba(0,166,153,0.28)",
-              position: "relative",
-              overflow: "hidden",
-            }} className="intensiv-banner">
-              {/* Декоративные круги */}
-              <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
-              <div style={{ position: "absolute", bottom: -30, right: 120, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.04)", pointerEvents: "none" }} />
 
-              <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 28, flexWrap: "wrap" }} className="intensiv-inner">
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  {/* Бейдж */}
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "4px 12px", marginBottom: 14 }}>
-                    <Icon name="Gift" size={13} style={{ color: "#fff" }} />
-                    <span style={{ fontSize: 11.5, fontWeight: 700, color: "#fff", letterSpacing: 0.5 }}>ВКЛЮЧЕНО В СТОИМОСТЬ ИНТЕНСИВА</span>
-                  </div>
-
-                  <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px, 2.5vw, 26px)", fontWeight: 700, color: "#fff", lineHeight: 1.25, marginBottom: 12 }}>
-                    Для нас важно не просто обучить —<br />
-                    а убедиться, что вы делаете всё правильно
-                  </div>
-
-                  <div style={{ fontSize: 14, color: "rgba(255,255,255,0.88)", lineHeight: 1.7, marginBottom: 20, maxWidth: 520 }}>
-                    Восстановительные техники работают только при точном исполнении. Именно поэтому мы приглашаем вас на однодневный офлайн-интенсив в Москве — чтобы отработать всё вживую, получить обратную связь тренера и выйти с уверенностью в каждом движении.
-                    <br /><br />
-                    А все онлайн-курсы мы отдаём <strong style={{ color: "#fff" }}>бесплатно в комплекте</strong> — потому что хотим, чтобы вы пришли подготовленными и взяли от интенсива максимум.
-                  </div>
-
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-                    {["Живая практика под контролем тренера", "Все онлайн-курсы в подарок", "Уверенность, а не сомнения"].map(item => (
-                      <div key={item} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.12)", borderRadius: 20, padding: "5px 12px" }}>
-                        <Icon name="Check" size={12} style={{ color: "#fff" }} />
-                        <span style={{ fontSize: 12.5, color: "#fff", fontWeight: 500 }}>{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <a
-                href="/course/offline-intensiv-massazh"
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 8,
-                  background: "#fff", color: "#00a699",
-                  fontWeight: 700, fontSize: 14, borderRadius: 14,
-                  padding: "14px 28px", textDecoration: "none", whiteSpace: "nowrap",
-                  transition: "opacity 0.2s, transform 0.2s", flexShrink: 0,
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.9"; (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)"; }}
-              >
-                Узнать об интенсиве
-                <Icon name="ArrowRight" size={15} />
-              </a>
-              </div>
-            </div>
-          )}
 
           {/* Grid */}
           {tab === "offline" ? (
@@ -301,6 +239,55 @@ export default function CatalogPrivate() {
               По выбранным фильтрам курсов не найдено
             </div>
           )}
+        </div>
+
+        {/* Баннер интенсива */}
+        <div style={{ maxWidth: 1200, margin: "60px auto 0", padding: "0 24px 80px" }}>
+          <div style={{
+            background: "linear-gradient(135deg, #00a699 0%, #005c55 100%)",
+            borderRadius: 22,
+            padding: "32px 36px",
+            boxShadow: "0 8px 40px rgba(0,166,153,0.28)",
+            position: "relative",
+            overflow: "hidden",
+          }} className="intensiv-banner">
+            <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.05)", pointerEvents: "none" }} />
+            <div style={{ position: "absolute", bottom: -30, right: 120, width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.04)", pointerEvents: "none" }} />
+            <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 28, flexWrap: "wrap" }} className="intensiv-inner">
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.15)", borderRadius: 20, padding: "4px 12px", marginBottom: 14 }}>
+                  <Icon name="Gift" size={13} style={{ color: "#fff" }} />
+                  <span style={{ fontSize: 11.5, fontWeight: 700, color: "#fff", letterSpacing: 0.5 }}>ВКЛЮЧЕНО В СТОИМОСТЬ ИНТЕНСИВА</span>
+                </div>
+                <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px, 2.5vw, 26px)", fontWeight: 700, color: "#fff", lineHeight: 1.25, marginBottom: 12 }}>
+                  Для нас важно не просто обучить —<br />
+                  а убедиться, что вы делаете всё правильно
+                </div>
+                <div style={{ fontSize: 14, color: "rgba(255,255,255,0.88)", lineHeight: 1.7, marginBottom: 20, maxWidth: 520 }}>
+                  Восстановительные техники работают только при точном исполнении. Именно поэтому мы приглашаем вас на однодневный офлайн-интенсив в Москве — чтобы отработать всё вживую, получить обратную связь тренера и выйти с уверенностью в каждом движении.
+                  <br /><br />
+                  А все онлайн-курсы мы отдаём <strong style={{ color: "#fff" }}>бесплатно в комплекте</strong> — потому что хотим, чтобы вы пришли подготовленными и взяли от интенсива максимум.
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                  {["Живая практика под контролем тренера", "Все онлайн-курсы в подарок", "Уверенность, а не сомнения"].map(item => (
+                    <div key={item} style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.12)", borderRadius: 20, padding: "5px 12px" }}>
+                      <Icon name="Check" size={12} style={{ color: "#fff" }} />
+                      <span style={{ fontSize: 12.5, color: "#fff", fontWeight: 500 }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <a
+                href="/course/offline-intensiv-massazh"
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#fff", color: "#00a699", fontWeight: 700, fontSize: 14, borderRadius: 14, padding: "14px 28px", textDecoration: "none", whiteSpace: "nowrap", transition: "opacity 0.2s, transform 0.2s", flexShrink: 0, boxShadow: "0 4px 20px rgba(0,0,0,0.15)" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.9"; (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)"; }}
+              >
+                Узнать об интенсиве
+                <Icon name="ArrowRight" size={15} />
+              </a>
+            </div>
+          </div>
         </div>
 
       </main>
