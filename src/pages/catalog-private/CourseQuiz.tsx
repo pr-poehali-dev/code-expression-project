@@ -482,19 +482,9 @@ function ResultScreen({ result, name, onRestart }: { result: QuizResult; name: s
               <p style={{ fontSize: 14, color: "#666", margin: "0 0 14px", lineHeight: 1.5 }}>
                 {course.description}
               </p>
-              <div style={{ fontSize: 18, fontWeight: 700, color: isOffline ? "#d97706" : ACCENT, marginBottom: 16 }}>
-                {course.price}
-              </div>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <a href={fullUrl} style={outlineBtn} target="_blank" rel="noopener noreferrer">
-                  Подробнее
-                </a>
-                {course.buy_url && (
-                  <a href={course.buy_url} style={primaryBtn} target="_blank" rel="noopener noreferrer">
-                    {isOffline ? "Забронировать" : "Записаться"}
-                  </a>
-                )}
-              </div>
+              <a href={fullUrl} style={outlineBtn} target="_blank" rel="noopener noreferrer">
+                Подробнее →
+              </a>
             </div>
           </div>
         );
