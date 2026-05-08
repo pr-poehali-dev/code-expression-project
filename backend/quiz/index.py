@@ -69,12 +69,14 @@ def handler(event: dict, context) -> dict:
 
 
 def check_admin(event: dict) -> bool:
-    token = event.get("headers", {}).get("x-admin-token", "")
     admin_token = os.environ.get("ADMIN_TOKEN", "")
-    # Если ADMIN_TOKEN не задан — доступ закрыт (пустой токен не пускает)
     if not admin_token:
         return False
-    return token == admin_token
+    # Проверяем токен из заголовка или query-параметра
+    qs = event.get("queryStringParameters") or {}
+    token_from_header = event.get("headers", {}).get("x-admin-token", "")
+    token_from_query = qs.get("token", "")
+    return token_from_header == admin_token or token_from_query == admin_token
 
 
 def compute_category(answers: dict) -> tuple[str, str]:

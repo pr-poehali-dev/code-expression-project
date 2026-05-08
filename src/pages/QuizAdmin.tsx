@@ -82,13 +82,14 @@ export default function QuizAdmin() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newCourse, setNewCourse] = useState<Partial<Course>>({ format: "online", category: "A", is_active: true, sort_order: 0 });
 
-  const headers = { "Content-Type": "application/json", "x-admin-token": token };
+  const headers = { "Content-Type": "application/json" };
+  const withToken = (action: string) => `${QUIZ_URL}?action=${action}&token=${encodeURIComponent(token.trim())}`;
 
   const loadSubmissions = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(`${QUIZ_URL}?action=admin_submissions`, { headers });
+      const r = await fetch(withToken("admin_submissions"), { headers });
       const d = await r.json();
       if (r.status === 401) { setAuthed(false); setError("Неверный токен"); return; }
       setSubmissions(d.submissions || []);
@@ -100,7 +101,7 @@ export default function QuizAdmin() {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(`${QUIZ_URL}?action=admin_courses`, { headers });
+      const r = await fetch(withToken("admin_courses"), { headers });
       const d = await r.json();
       if (r.status === 401) { setAuthed(false); setError("Неверный токен"); return; }
       setCourses(d.courses || []);
@@ -113,11 +114,9 @@ export default function QuizAdmin() {
     setLoading(true);
     setError("");
     try {
-      const r = await fetch(`${QUIZ_URL}?action=admin_submissions`, {
-        headers: { "Content-Type": "application/json", "x-admin-token": token.trim() }
-      });
+      const r = await fetch(withToken("admin_submissions"), { headers });
       if (r.status === 401) {
-        setError("Неверный токен. Проверьте значение в Ядро → Секреты → ADMIN_TOKEN");
+        setError("Неверный токен");
         return;
       }
       if (!r.ok) {
@@ -142,7 +141,7 @@ export default function QuizAdmin() {
     if (!editingCourse) return;
     setLoading(true);
     try {
-      await fetch(`${QUIZ_URL}?action=admin_update_course&id=${editingCourse.id}`, {
+      await fetch(`${withToken("admin_update_course")}&id=${editingCourse.id}`, {
         method: "PUT",
         headers,
         body: JSON.stringify(editingCourse),
@@ -157,7 +156,7 @@ export default function QuizAdmin() {
     if (!confirm("Скрыть курс из квиза?")) return;
     setLoading(true);
     try {
-      await fetch(`${QUIZ_URL}?action=admin_delete_course&id=${id}`, { method: "DELETE", headers });
+      await fetch(`${withToken("admin_delete_course")}&id=${id}`, { method: "DELETE", headers });
       loadCourses();
     } catch { setError("Ошибка удаления"); }
     finally { setLoading(false); }
@@ -166,7 +165,7 @@ export default function QuizAdmin() {
   const createCourse = async () => {
     setLoading(true);
     try {
-      await fetch(`${QUIZ_URL}?action=admin_create_course`, {
+      await fetch(withToken("admin_create_course"), {
         method: "POST",
         headers,
         body: JSON.stringify(newCourse),
