@@ -30,19 +30,77 @@ export default function QuizLanding() {
       <DokNavbar />
 
       {/* ── HERO ── */}
-      <section style={{ padding: "80px 0 60px", textAlign: "center" }} className="quiz-hero-section">
-        <div style={{ maxWidth: 760, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: ACCENT_LIGHT, border: `1px solid ${ACCENT}30`, borderRadius: 20, padding: "6px 16px", marginBottom: 28 }}>
-            <Icon name="Sparkles" size={14} style={{ color: ACCENT }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 0.8 }}>Подбор обучения</span>
+      <section style={{ padding: "72px 0 60px" }} className="quiz-hero-section">
+        <div style={{ maxWidth: 1060, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: 48, alignItems: "center" }} className="quiz-hero-grid">
+            {/* Текст */}
+            <div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: ACCENT_LIGHT, border: `1px solid ${ACCENT}30`, borderRadius: 20, padding: "6px 16px", marginBottom: 24 }}>
+                <Icon name="Sparkles" size={14} style={{ color: ACCENT }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 0.8 }}>Подбор обучения</span>
+              </div>
+              <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(32px, 4vw, 54px)", fontWeight: 700, margin: "0 0 20px", color: "#1a1a1a", lineHeight: 1.15 }}>
+                Какое обучение массажу и восстановительным техникам подойдёт именно вам?
+              </h1>
+              <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "#555", lineHeight: 1.8, margin: "0 0 24px" }}>
+                Ответьте на несколько вопросов — алгоритм подберёт подходящую программу обучения под ваш уровень, цели и удобный формат. Никакого перебора курсов вручную.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+                {[
+                  { icon: "Clock", text: "Около 2 минут" },
+                  { icon: "ShieldCheck", text: "Без обязательств" },
+                  { icon: "MonitorSmartphone", text: "Результат сразу" },
+                ].map(({ icon, text }) => (
+                  <div key={text} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#666", background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "6px 14px" }}>
+                    <Icon name={icon} size={13} style={{ color: ACCENT }} />
+                    {text}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Фото с превью */}
+            <div style={{ position: "relative" }}>
+              <div style={{ borderRadius: 24, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
+                <img
+                  src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/475f0192-c14e-47c5-b22b-ecdaaaa0217d.jpg"
+                  alt="Обучение массажу"
+                  style={{ width: "100%", height: 440, objectFit: "cover", display: "block" }}
+                  className="quiz-hero-img"
+                />
+              </div>
+              {/* Превью-плашка сверху */}
+              <div style={{
+                position: "absolute", top: 20, left: -24,
+                background: "#fff", borderRadius: 16, padding: "14px 18px",
+                boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+                display: "flex", alignItems: "center", gap: 12, minWidth: 200,
+              }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon name="GraduationCap" size={18} style={{ color: ACCENT }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>7+ программ обучения</div>
+                  <div style={{ fontSize: 11.5, color: "#999" }}>онлайн и офлайн в Москве</div>
+                </div>
+              </div>
+              {/* Превью-плашка снизу */}
+              <div style={{
+                position: "absolute", bottom: 24, right: -20,
+                background: "#fff", borderRadius: 16, padding: "14px 18px",
+                boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+                display: "flex", alignItems: "center", gap: 12, minWidth: 190,
+              }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff7ed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon name="Star" size={18} style={{ color: "#f59e0b" }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>Рейтинг 5.0</div>
+                  <div style={{ fontSize: 11.5, color: "#999" }}>MassoPRO · Яндекс</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(34px, 5vw, 58px)", fontWeight: 700, margin: "0 0 20px", color: "#1a1a1a", lineHeight: 1.15 }}>
-            Какое обучение массажу<br />и восстановительным техникам<br />подойдёт именно вам?
-          </h1>
-          <p style={{ fontSize: "clamp(15px, 2vw, 18px)", color: "#555", lineHeight: 1.75, margin: "0 0 16px", maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
-            Ответьте на несколько вопросов — алгоритм подберёт подходящую программу обучения под ваш уровень, цели и удобный формат. Никакого перебора курсов вручную.
-          </p>
-          <p style={{ fontSize: 14, color: "#aaa", margin: 0 }}>Около 2 минут · Без обязательств · Результат сразу на странице</p>
         </div>
       </section>
 
@@ -111,13 +169,17 @@ export default function QuizLanding() {
       </section>
 
       <style>{`
+        @media (max-width: 860px) {
+          .quiz-hero-grid { grid-template-columns: 1fr !important; }
+          .quiz-hero-grid > div:last-child { display: none !important; }
+        }
         @media (max-width: 768px) {
           .quiz-promise-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 600px) {
           .quiz-feelings-grid { grid-template-columns: 1fr !important; }
           .quiz-promise-wrap { padding: 20px 16px !important; }
-          .quiz-hero-section { padding: 48px 0 36px !important; }
+          .quiz-hero-section { padding: 40px 0 32px !important; }
           .quiz-feelings-section { padding: 0 0 40px !important; }
           .quiz-section { padding: 24px 0 56px !important; }
         }
