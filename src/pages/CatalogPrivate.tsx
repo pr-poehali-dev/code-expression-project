@@ -262,6 +262,22 @@ export default function CatalogPrivate() {
             </div>
           )}
 
+          {/* Квиз-бот подбора курсов */}
+          <div style={{ background: `${ACCENT}08`, border: `1px solid ${ACCENT}20`, borderRadius: 24, marginBottom: 40, padding: "48px 36px" }}>
+            <div style={{ textAlign: "center", marginBottom: 36 }}>
+              <span style={{ display: "inline-block", background: `${ACCENT}15`, color: ACCENT, fontSize: 12, fontWeight: 700, padding: "4px 14px", borderRadius: 20, letterSpacing: 0.6, marginBottom: 12 }}>
+                ПОДБОР ОБУЧЕНИЯ
+              </span>
+              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px, 3.5vw, 36px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
+                Не знаете, с чего начать?
+              </h2>
+              <p style={{ fontSize: 15, color: "#666", margin: 0, maxWidth: 440, marginLeft: "auto", marginRight: "auto" }}>
+                Пройдите короткий квиз и получите персональную подборку курсов прямо на почту
+              </p>
+            </div>
+            <CourseQuiz />
+          </div>
+
           {/* Grid */}
           {tab === "offline" ? (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }} className="cp-grid-offline">
@@ -285,23 +301,6 @@ export default function CatalogPrivate() {
           )}
         </div>
 
-        {/* Квиз-бот подбора курсов */}
-        <div style={{ background: `${ACCENT}08`, borderTop: `1px solid ${ACCENT}20`, marginTop: 60, padding: "60px 0" }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-            <div style={{ textAlign: "center", marginBottom: 40 }}>
-              <span style={{ display: "inline-block", background: `${ACCENT}15`, color: ACCENT, fontSize: 12, fontWeight: 700, padding: "4px 14px", borderRadius: 20, letterSpacing: 0.6, marginBottom: 12 }}>
-                ПОДБОР ОБУЧЕНИЯ
-              </span>
-              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
-                Не знаете, с чего начать?
-              </h2>
-              <p style={{ fontSize: 16, color: "#666", margin: 0, maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
-                Пройдите короткий квиз и получите персональную подборку курсов прямо на почту
-              </p>
-            </div>
-            <CourseQuiz />
-          </div>
-        </div>
       </main>
 
       <style>{`
