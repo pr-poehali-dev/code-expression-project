@@ -262,22 +262,6 @@ export default function CatalogPrivate() {
             </div>
           )}
 
-          {/* Квиз-бот подбора курсов */}
-          <div style={{ background: `${ACCENT}08`, border: `1px solid ${ACCENT}20`, borderRadius: 24, marginBottom: 40, padding: "48px 36px" }}>
-            <div style={{ textAlign: "center", marginBottom: 36 }}>
-              <span style={{ display: "inline-block", background: `${ACCENT}15`, color: ACCENT, fontSize: 12, fontWeight: 700, padding: "4px 14px", borderRadius: 20, letterSpacing: 0.6, marginBottom: 12 }}>
-                ПОДБОР ОБУЧЕНИЯ
-              </span>
-              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px, 3.5vw, 36px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
-                Не знаете, с чего начать?
-              </h2>
-              <p style={{ fontSize: 15, color: "#666", margin: 0, maxWidth: 440, marginLeft: "auto", marginRight: "auto" }}>
-                Пройдите короткий квиз и получите персональную подборку курсов прямо на почту
-              </p>
-            </div>
-            <CourseQuiz />
-          </div>
-
           {/* Grid */}
           {tab === "offline" ? (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 24 }} className="cp-grid-offline">
@@ -290,6 +274,24 @@ export default function CatalogPrivate() {
               {filtered.map((course) => (
                 <CourseCard key={course.id} course={course} />
               ))}
+              {tab === "online" && (
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <div style={{ background: `${ACCENT}08`, border: `1px solid ${ACCENT}20`, borderRadius: 24, padding: "48px 36px", marginBottom: 0 }}>
+                    <div style={{ textAlign: "center", marginBottom: 36 }}>
+                      <span style={{ display: "inline-block", background: `${ACCENT}15`, color: ACCENT, fontSize: 12, fontWeight: 700, padding: "4px 14px", borderRadius: 20, letterSpacing: 0.6, marginBottom: 12 }}>
+                        ПОДБОР ОБУЧЕНИЯ
+                      </span>
+                      <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px, 3.5vw, 36px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
+                        Не знаете, с чего начать?
+                      </h2>
+                      <p style={{ fontSize: 15, color: "#666", margin: 0, maxWidth: 440, marginLeft: "auto", marginRight: "auto" }}>
+                        Пройдите короткий квиз и получите персональную подборку курсов прямо на почту
+                      </p>
+                    </div>
+                    <CourseQuiz />
+                  </div>
+                </div>
+              )}
               {tab === "online" && <CpCollectionCard />}
             </div>
           )}
