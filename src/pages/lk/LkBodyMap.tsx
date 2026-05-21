@@ -116,11 +116,18 @@ export default function LkBodyMap() {
     return true;
   });
 
+  // Порядковый номер зоны по slug (из уникального списка активных)
+  const zoneNumberMap: Record<string, number> = {};
+  uniqueHotspots.filter(z => activeSlugs.has(z.slug)).forEach((z, i) => {
+    zoneNumberMap[z.slug] = i + 1;
+  });
+
   const renderHotspots = (hotspots: ZoneHotspot[]) =>
     hotspots.map(zone => {
       if (!activeSlugs.has(zone.slug)) return null;
       const isHovered = hovered === zone.slug;
       const isSelected = selected?.zone.slug === zone.slug;
+      const num = zoneNumberMap[zone.slug];
       return (
         <div
           key={`${zone.slug}-${zone.x}`}
@@ -140,12 +147,12 @@ export default function LkBodyMap() {
               ? "hsla(185,85%,32%,0.40)"
               : isHovered
               ? "hsla(185,85%,32%,0.20)"
-              : "transparent",
+              : "hsla(0,0%,0%,0.04)",
             border: isSelected
               ? `2px solid ${ACCENT}`
               : isHovered
               ? `2px solid hsla(185,85%,32%,0.7)`
-              : "2px solid transparent",
+              : "1.5px solid hsla(0,0%,0%,0.10)",
             transition: "all 0.15s",
             display: "flex",
             alignItems: "center",
@@ -153,22 +160,17 @@ export default function LkBodyMap() {
             overflow: "hidden",
           }}
         >
-          {(isHovered || isSelected) && (
-            <span style={{
-              fontSize: "clamp(7px, 0.9vw, 11px)",
-              fontWeight: 700,
-              color: "#fff",
-              fontFamily: "Montserrat, sans-serif",
-              textAlign: "center",
-              lineHeight: 1.2,
-              padding: "1px 3px",
-              pointerEvents: "none",
-              textShadow: "0 1px 3px rgba(0,0,0,0.5)",
-              whiteSpace: "nowrap",
-            }}>
-              {zone.label}
-            </span>
-          )}
+          <span style={{
+            fontSize: "clamp(7px, 0.85vw, 10px)",
+            fontWeight: 700,
+            color: isSelected ? "#fff" : isHovered ? "#fff" : "rgba(0,0,0,0.45)",
+            fontFamily: "Montserrat, sans-serif",
+            lineHeight: 1,
+            pointerEvents: "none",
+            textShadow: isSelected || isHovered ? "0 1px 3px rgba(0,0,0,0.4)" : "none",
+          }}>
+            {num}
+          </span>
         </div>
       );
     });
@@ -234,23 +236,40 @@ export default function LkBodyMap() {
           <div style={{ marginTop: 14, borderTop: "1px solid #f0f0ec", paddingTop: 12 }}>
             <div style={{ fontSize: 11, color: "#aaa", marginBottom: 8 }}>Или выбери из списка:</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-              {uniqueHotspots.filter(z => activeSlugs.has(z.slug)).map(z => (
-                <button
-                  key={z.slug}
-                  onClick={() => selectZone(z.slug)}
-                  style={{
-                    padding: "4px 10px", borderRadius: 20, fontSize: 11,
-                    border: selected?.zone.slug === z.slug ? `1.5px solid ${ACCENT}` : "1.5px solid #e8e8e4",
-                    background: selected?.zone.slug === z.slug ? "hsl(185,85%,96%)" : "#fafafa",
-                    color: selected?.zone.slug === z.slug ? ACCENT : "#666",
-                    cursor: "pointer", fontFamily: "Montserrat, sans-serif",
-                    fontWeight: selected?.zone.slug === z.slug ? 700 : 400,
-                    transition: "all 0.15s",
-                  }}
-                >
-                  {z.label}
-                </button>
-              ))}
+              {uniqueHotspots.filter(z => activeSlugs.has(z.slug)).map(z => {
+                const isSelected = selected?.zone.slug === z.slug;
+                const isHov = hovered === z.slug;
+                const num = zoneNumberMap[z.slug];
+                return (
+                  <button
+                    key={z.slug}
+                    onClick={() => selectZone(z.slug)}
+                    onMouseEnter={() => setHovered(z.slug)}
+                    onMouseLeave={() => setHovered(null)}
+                    style={{
+                      padding: "4px 10px", borderRadius: 20, fontSize: 11,
+                      border: isSelected || isHov ? `1.5px solid ${ACCENT}` : "1.5px solid #e8e8e4",
+                      background: isSelected ? ACCENT : isHov ? "hsl(185,85%,96%)" : "#fafafa",
+                      color: isSelected ? "#fff" : isHov ? ACCENT : "#666",
+                      cursor: "pointer", fontFamily: "Montserrat, sans-serif",
+                      fontWeight: isSelected || isHov ? 700 : 400,
+                      transition: "all 0.15s",
+                      display: "flex", alignItems: "center", gap: 5,
+                    }}
+                  >
+                    <span style={{
+                      width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                      background: isSelected ? "rgba(255,255,255,0.25)" : isHov ? "hsla(185,85%,32%,0.15)" : "#eee",
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 9, fontWeight: 700,
+                      color: isSelected ? "#fff" : isHov ? ACCENT : "#999",
+                    }}>
+                      {num}
+                    </span>
+                    {z.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
