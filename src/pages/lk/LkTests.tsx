@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { lkApi } from "@/lib/lkApi";
 import Icon from "@/components/ui/icon";
+import MindsetBot from "./MindsetBot";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -47,10 +48,15 @@ export default function LkTests() {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [result, setResult] = useState<{ score: number; result: TestResult | null } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [openMindset, setOpenMindset] = useState(false);
 
   useEffect(() => {
     lkApi.tests().then(setTests).finally(() => setLoading(false));
   }, []);
+
+  if (openMindset) {
+    return <MindsetBot onBack={() => setOpenMindset(false)} />;
+  }
 
   const openTest = async (slug: string) => {
     setResult(null);
@@ -252,7 +258,7 @@ export default function LkTests() {
                 )}
               </div>
               <button
-                onClick={() => openTest(test.slug)}
+                onClick={() => test.slug === "mindset" ? setOpenMindset(true) : openTest(test.slug)}
                 style={{
                   padding: "10px 20px", borderRadius: 10, border: `1.5px solid ${ACCENT}`,
                   background: test.completed ? "transparent" : ACCENT,
