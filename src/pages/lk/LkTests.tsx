@@ -294,7 +294,7 @@ export default function LkTests() {
         Пройди тест — получи персональный разбор и конкретные советы
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        {tests.map(test => {
+        {tests.filter(test => test.slug !== "barriers").map(test => {
           const colors = TOOL_COLORS[test.slug] || { color: ACCENT, bg: "hsl(185,85%,96%)" };
           return (
             <div key={test.id} style={{
