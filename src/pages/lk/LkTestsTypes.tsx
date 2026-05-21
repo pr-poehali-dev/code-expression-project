@@ -60,6 +60,15 @@ export interface BarriersHistoryItem {
   completed_at: string;
 }
 
+export interface FinanceHistoryItem {
+  id: number;
+  ifr: number;
+  ifj: number; ifu: number; ipn: number; idm: number; ifp: number;
+  jlj: number; fr: number; mpd: number; nsc: number; nck: number;
+  data: object;
+  completed_at: string;
+}
+
 export function Spinner() {
   return (
     <div style={{ display: "flex", justifyContent: "center", padding: 60 }}>

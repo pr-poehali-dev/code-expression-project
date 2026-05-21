@@ -4,8 +4,11 @@ import MindsetBot from "./MindsetBot";
 import MindsetResult, { IndexMap } from "./MindsetResult";
 import BarriersBot from "./BarriersBot";
 import BarriersResult from "./BarriersResult";
+import FinanceBot from "./FinanceBot";
+import FinanceResult from "./FinanceResult";
 import { BarrierIndexMap } from "./barriers.logic";
-import { Spinner, Test, TestDetail, TestResult, MindsetHistoryItem, BarriersHistoryItem } from "./LkTestsTypes";
+import { FinanceData } from "./finance.types";
+import { Spinner, Test, TestDetail, TestResult, MindsetHistoryItem, BarriersHistoryItem, FinanceHistoryItem } from "./LkTestsTypes";
 import LkTestQuiz from "./LkTestQuiz";
 import LkTestsList from "./LkTestsList";
 import LkTestsHistory from "./LkTestsHistory";
@@ -17,17 +20,24 @@ export default function LkTests() {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [result, setResult] = useState<{ score: number; result: TestResult | null } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
   const [openMindset, setOpenMindset] = useState(false);
   const [mindsetHistory, setMindsetHistory] = useState<MindsetHistoryItem[]>([]);
   const [viewingResult, setViewingResult] = useState<{ idx: IndexMap; date: string } | null>(null);
+
   const [openBarriers, setOpenBarriers] = useState(false);
   const [barriersHistory, setBarriersHistory] = useState<BarriersHistoryItem[]>([]);
   const [viewingBarriers, setViewingBarriers] = useState<{ idx: BarrierIndexMap; date: string } | null>(null);
+
+  const [openFinance, setOpenFinance] = useState(false);
+  const [financeHistory, setFinanceHistory] = useState<FinanceHistoryItem[]>([]);
+  const [viewingFinance, setViewingFinance] = useState<{ data: FinanceData; date: string } | null>(null);
 
   useEffect(() => {
     lkApi.tests().then(setTests).finally(() => setLoading(false));
     lkApi.mindsetHistory().then(setMindsetHistory).catch(() => {});
     lkApi.barriersHistory().then(setBarriersHistory).catch(() => {});
+    lkApi.financeHistory().then(setFinanceHistory).catch(() => {});
   }, []);
 
   if (openMindset) {
@@ -63,6 +73,24 @@ export default function LkTests() {
         date={viewingBarriers.date}
         onRetake={() => { setViewingBarriers(null); setOpenBarriers(true); }}
         onBack={() => setViewingBarriers(null)}
+        backLabel="← К истории"
+      />
+    );
+  }
+
+  if (openFinance) {
+    return <FinanceBot onBack={() => {
+      setOpenFinance(false);
+      lkApi.financeHistory().then(setFinanceHistory).catch(() => {});
+    }} />;
+  }
+
+  if (viewingFinance) {
+    return (
+      <FinanceResult
+        data={viewingFinance.data}
+        onRetake={() => { setViewingFinance(null); setOpenFinance(true); }}
+        onBack={() => setViewingFinance(null)}
         backLabel="← К истории"
       />
     );
@@ -121,17 +149,22 @@ export default function LkTests() {
       <LkTestsList
         tests={tests}
         barriersHistory={barriersHistory}
+        financeHistory={financeHistory}
         onOpenMindset={() => setOpenMindset(true)}
         onOpenBarriers={() => setOpenBarriers(true)}
+        onOpenFinance={() => setOpenFinance(true)}
         onOpenTest={openTest}
       />
       <LkTestsHistory
         mindsetHistory={mindsetHistory}
         barriersHistory={barriersHistory}
+        financeHistory={financeHistory}
         onViewMindset={setViewingResult}
         onViewBarriers={setViewingBarriers}
+        onViewFinance={setViewingFinance}
         onRetakeMindset={() => setOpenMindset(true)}
         onRetakeBarriers={() => setOpenBarriers(true)}
+        onRetakeFinance={() => setOpenFinance(true)}
       />
     </div>
   );

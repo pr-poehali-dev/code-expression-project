@@ -79,4 +79,10 @@ export const lkApi = {
     request("POST", "barriers_save", data),
 
   barriersHistory: () => request("GET", "barriers_history"),
+
+  // Finance
+  financeSave: (data: { ifr: number; indexes: object; summary: object; data: object }) =>
+    request("POST", "finance_save", data),
+
+  financeHistory: () => request("GET", "finance_history"),
 };

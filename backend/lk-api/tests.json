@@ -37,6 +37,19 @@
       "method": "GET",
       "path": "/?action=barriers_history",
       "expectedStatus": 401
+    },
+    {
+      "name": "finance_save без сессии — 401",
+      "method": "POST",
+      "path": "/?action=finance_save",
+      "body": {},
+      "expectedStatus": 401
+    },
+    {
+      "name": "finance_history без сессии — 401",
+      "method": "GET",
+      "path": "/?action=finance_history",
+      "expectedStatus": 401
     }
   ]
 }

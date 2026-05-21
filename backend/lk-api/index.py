@@ -518,6 +518,56 @@ def handle_barriers_history(event: dict) -> dict:
         conn.close()
 
 
+# ── Finance результаты ───────────────────────────────────────────────────────
+
+def handle_finance_save(event: dict) -> dict:
+    body = json.loads(event.get("body") or "{}")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        idx = body.get("indexes", {})
+        summary = body.get("summary", {})
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"INSERT INTO {tbl('lk_finance_results')} "
+            f"(user_id, ifr, ifj, ifu, ipn, idm, ifp, jlj, fr, mpd, nsc, nck, data) "
+            f"VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+            (
+                user["id"],
+                body.get("ifr", 0),
+                idx.get("ifj", 0), idx.get("ifu", 0), idx.get("ipn", 0),
+                idx.get("idm", 0), idx.get("ifp", 0),
+                summary.get("jlj", 0), summary.get("fr", 0), summary.get("mpd", 0),
+                summary.get("nsc", 0), summary.get("nck", 0),
+                json.dumps(body.get("data", {})),
+            )
+        )
+        new_id = cur.fetchone()["id"]
+        conn.commit()
+        return ok({"id": new_id, "ok": True})
+    finally:
+        conn.close()
+
+
+def handle_finance_history(event: dict) -> dict:
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT id, ifr, ifj, ifu, ipn, idm, ifp, jlj, fr, mpd, nsc, nck, data, completed_at "
+            f"FROM {tbl('lk_finance_results')} WHERE user_id = %s ORDER BY completed_at DESC LIMIT 10",
+            (user["id"],)
+        )
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
 # ── Роутер ───────────────────────────────────────────────────────────────────
 
 ROUTES = {
@@ -540,6 +590,8 @@ ROUTES = {
     ("GET",  "mindset_history"): handle_mindset_history,
     ("POST", "barriers_save"): handle_barriers_save,
     ("GET",  "barriers_history"): handle_barriers_history,
+    ("POST", "finance_save"): handle_finance_save,
+    ("GET",  "finance_history"): handle_finance_history,
 }
 
 
