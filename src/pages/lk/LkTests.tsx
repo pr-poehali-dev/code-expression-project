@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { lkApi } from "@/lib/lkApi";
 import Icon from "@/components/ui/icon";
 import MindsetBot from "./MindsetBot";
+import MindsetResult, { IndexMap } from "./MindsetResult";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -58,6 +59,7 @@ export default function LkTests() {
   const [submitting, setSubmitting] = useState(false);
   const [openMindset, setOpenMindset] = useState(false);
   const [mindsetHistory, setMindsetHistory] = useState<MindsetHistoryItem[]>([]);
+  const [viewingResult, setViewingResult] = useState<{ idx: IndexMap; date: string } | null>(null);
 
   useEffect(() => {
     lkApi.tests().then(setTests).finally(() => setLoading(false));
@@ -69,6 +71,18 @@ export default function LkTests() {
       setOpenMindset(false);
       lkApi.mindsetHistory().then(setMindsetHistory).catch(() => {});
     }} />;
+  }
+
+  if (viewingResult) {
+    return (
+      <MindsetResult
+        idx={viewingResult.idx}
+        date={viewingResult.date}
+        onRetake={() => { setViewingResult(null); setOpenMindset(true); }}
+        onBack={() => setViewingResult(null)}
+        backLabel="← К истории"
+      />
+    );
   }
 
   const openTest = async (slug: string) => {
@@ -341,17 +355,34 @@ export default function LkTests() {
                       </div>
                     )}
                   </div>
-                  <button
-                    onClick={() => setOpenMindset(true)}
-                    style={{
-                      padding: "8px 16px", borderRadius: 10, border: `1.5px solid ${ACCENT}`,
-                      background: "transparent", color: ACCENT,
-                      fontSize: 12, fontWeight: 700, cursor: "pointer",
-                      fontFamily: "Montserrat, sans-serif", flexShrink: 0,
-                    }}
-                  >
-                    Пройти снова
-                  </button>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+                    <button
+                      onClick={() => {
+                        const idx: IndexMap = { IU: item.iu, IPM: item.ipm, IDO: item.ido, IPG: item.ipg, ICS: item.ics, ISD: item.isd, IZK: item.izk };
+                        const dateStr = new Date(item.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+                        setViewingResult({ idx, date: dateStr });
+                      }}
+                      style={{
+                        padding: "7px 14px", borderRadius: 10, border: "none",
+                        background: ACCENT, color: "#fff",
+                        fontSize: 12, fontWeight: 700, cursor: "pointer",
+                        fontFamily: "Montserrat, sans-serif",
+                      }}
+                    >
+                      Смотреть
+                    </button>
+                    <button
+                      onClick={() => setOpenMindset(true)}
+                      style={{
+                        padding: "7px 14px", borderRadius: 10, border: `1.5px solid ${ACCENT}`,
+                        background: "transparent", color: ACCENT,
+                        fontSize: 12, fontWeight: 700, cursor: "pointer",
+                        fontFamily: "Montserrat, sans-serif",
+                      }}
+                    >
+                      Пройти снова
+                    </button>
+                  </div>
                 </div>
               );
             })}
