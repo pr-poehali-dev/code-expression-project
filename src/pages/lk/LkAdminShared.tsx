@@ -1,3 +1,5 @@
+import React from "react";
+
 export const ACCENT = "hsl(185,85%,32%)";
 
 export interface User {
