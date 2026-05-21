@@ -6,45 +6,47 @@ const ACCENT = "hsl(185,85%,32%)";
 const IMG_URL = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/bd5d264e-4712-4e93-adfa-b10ea45948dc.jpg";
 
 // Координаты в % от размера картинки (1280x942)
-// Левая половина = вид спереди (x: 0–50%), правая = сзади (x: 50–100%)
+// Фигура СПЕРЕДИ: тело x≈6%–41%, голова центр ~23.5%
+// Фигура СЗАДИ:   тело x≈58%–94%, голова центр ~75%
+// Высота фигур: голова y≈1.5%, стопы y≈91%
 const ZONES_FRONT: ZoneHotspot[] = [
-  { slug: "head",           label: "Голова",          x: 20.5, y: 4,    w: 7,  h: 9 },
-  { slug: "neck",           label: "Шея",             x: 22,   y: 12.5, w: 4,  h: 4.5 },
-  { slug: "shoulders",      label: "Плечи",           x: 14,   y: 15,   w: 20, h: 5 },
-  { slug: "chest",          label: "Грудь",           x: 17,   y: 19.5, w: 12, h: 9 },
-  { slug: "abdomen",        label: "Живот",           x: 18,   y: 30,   w: 10, h: 8 },
-  { slug: "hips",           label: "Бёдра",           x: 17,   y: 39,   w: 12, h: 6 },
-  { slug: "upper-arm-left", label: "Плечо (лев.)",    x: 9,    y: 17,   w: 6,  h: 12 },
-  { slug: "upper-arm-right",label: "Плечо (прав.)",   x: 31,   y: 17,   w: 6,  h: 12 },
-  { slug: "forearm-left",   label: "Предплечье (лев.)",x: 6,   y: 30,   w: 5,  h: 11 },
-  { slug: "forearm-right",  label: "Предплечье (пр.)", x: 35,  y: 30,   w: 5,  h: 11 },
-  { slug: "thigh-left",     label: "Бедро (лев.)",    x: 17,   y: 47,   w: 6,  h: 14 },
-  { slug: "thigh-right",    label: "Бедро (прав.)",   x: 24,   y: 47,   w: 6,  h: 14 },
-  { slug: "knee-left",      label: "Колено (лев.)",   x: 17,   y: 62,   w: 5.5,h: 5 },
-  { slug: "knee-right",     label: "Колено (прав.)",  x: 24,   y: 62,   w: 5.5,h: 5 },
-  { slug: "shin-left",      label: "Голень (лев.)",   x: 16.5, y: 68,   w: 5,  h: 12 },
-  { slug: "shin-right",     label: "Голень (прав.)",  x: 24,   y: 68,   w: 5,  h: 12 },
-  { slug: "foot",           label: "Стопы",           x: 16,   y: 82,   w: 14, h: 6 },
+  { slug: "head",            label: "Голова",           x: 20,   y: 1.5,  w: 8,   h: 10  },
+  { slug: "neck",            label: "Шея",              x: 22,   y: 11,   w: 4,   h: 4   },
+  { slug: "shoulders",       label: "Плечи",            x: 11,   y: 14,   w: 22,  h: 5   },
+  { slug: "chest",           label: "Грудь",            x: 17,   y: 18.5, w: 12,  h: 10  },
+  { slug: "abdomen",         label: "Живот",            x: 17.5, y: 28,   w: 10,  h: 9   },
+  { slug: "hips",            label: "Бёдра",            x: 16,   y: 37,   w: 13,  h: 7   },
+  { slug: "upper-arm-left",  label: "Плечо (лев.)",     x: 7,    y: 15,   w: 5,   h: 13  },
+  { slug: "upper-arm-right", label: "Плечо (прав.)",    x: 32,   y: 15,   w: 5,   h: 13  },
+  { slug: "forearm-left",    label: "Предплечье (лев.)",x: 4,    y: 28,   w: 4.5, h: 11  },
+  { slug: "forearm-right",   label: "Предплечье (пр.)", x: 35.5, y: 28,   w: 4.5, h: 11  },
+  { slug: "thigh-left",      label: "Бедро (лев.)",     x: 18,   y: 44,   w: 6,   h: 15  },
+  { slug: "thigh-right",     label: "Бедро (прав.)",    x: 24,   y: 44,   w: 6,   h: 15  },
+  { slug: "knee-left",       label: "Колено (лев.)",    x: 18,   y: 59,   w: 5.5, h: 5   },
+  { slug: "knee-right",      label: "Колено (прав.)",   x: 24,   y: 59,   w: 5.5, h: 5   },
+  { slug: "shin-left",       label: "Голень (лев.)",    x: 17.5, y: 64,   w: 5,   h: 14  },
+  { slug: "shin-right",      label: "Голень (прав.)",   x: 23.5, y: 64,   w: 5,   h: 14  },
+  { slug: "foot",            label: "Стопы",            x: 15,   y: 87,   w: 15,  h: 5   },
 ];
 
 const ZONES_BACK: ZoneHotspot[] = [
-  { slug: "head",           label: "Голова",          x: 70,   y: 4,    w: 7,  h: 9 },
-  { slug: "neck",           label: "Шея",             x: 71.5, y: 12.5, w: 4,  h: 4.5 },
-  { slug: "shoulders",      label: "Плечи",           x: 63,   y: 15,   w: 20, h: 5 },
-  { slug: "upper-back",     label: "Верхняя спина",   x: 66,   y: 19.5, w: 14, h: 10 },
-  { slug: "lower-back",     label: "Поясница",        x: 67,   y: 30,   w: 11, h: 7 },
-  { slug: "glutes",         label: "Ягодицы",         x: 66,   y: 39,   w: 13, h: 7 },
-  { slug: "upper-arm-left", label: "Плечо (лев.)",    x: 58,   y: 17,   w: 6,  h: 12 },
-  { slug: "upper-arm-right",label: "Плечо (прав.)",   x: 82,   y: 17,   w: 6,  h: 12 },
-  { slug: "forearm-left",   label: "Предплечье (лев.)",x: 55,  y: 30,   w: 5,  h: 11 },
-  { slug: "forearm-right",  label: "Предплечье (пр.)", x: 85.5,y: 30,   w: 5,  h: 11 },
-  { slug: "thigh-left",     label: "Бедро (лев.)",    x: 66,   y: 47,   w: 6,  h: 14 },
-  { slug: "thigh-right",    label: "Бедро (прав.)",   x: 73,   y: 47,   w: 6,  h: 14 },
-  { slug: "knee-left",      label: "Колено (лев.)",   x: 66,   y: 62,   w: 5.5,h: 5 },
-  { slug: "knee-right",     label: "Колено (прав.)",  x: 73,   y: 62,   w: 5.5,h: 5 },
-  { slug: "shin-left",      label: "Голень (лев.)",   x: 65.5, y: 68,   w: 5,  h: 12 },
-  { slug: "shin-right",     label: "Голень (прав.)",  x: 73,   y: 68,   w: 5,  h: 12 },
-  { slug: "foot",           label: "Стопы",           x: 64.5, y: 82,   w: 14, h: 6 },
+  { slug: "head",            label: "Голова",           x: 71,   y: 1.5,  w: 8,   h: 10  },
+  { slug: "neck",            label: "Шея",              x: 73,   y: 11,   w: 4,   h: 4   },
+  { slug: "shoulders",       label: "Плечи",            x: 62,   y: 14,   w: 22,  h: 5   },
+  { slug: "upper-back",      label: "Верхняя спина",    x: 68,   y: 18.5, w: 12,  h: 10  },
+  { slug: "lower-back",      label: "Поясница",         x: 68.5, y: 28,   w: 10,  h: 8   },
+  { slug: "glutes",          label: "Ягодицы",          x: 67,   y: 36,   w: 13,  h: 8   },
+  { slug: "upper-arm-left",  label: "Плечо (лев.)",     x: 58,   y: 15,   w: 5,   h: 13  },
+  { slug: "upper-arm-right", label: "Плечо (прав.)",    x: 83.5, y: 15,   w: 5,   h: 13  },
+  { slug: "forearm-left",    label: "Предплечье (лев.)",x: 55,   y: 28,   w: 4.5, h: 11  },
+  { slug: "forearm-right",   label: "Предплечье (пр.)", x: 87,   y: 28,   w: 4.5, h: 11  },
+  { slug: "thigh-left",      label: "Бедро (лев.)",     x: 68,   y: 44,   w: 6,   h: 15  },
+  { slug: "thigh-right",     label: "Бедро (прав.)",    x: 74,   y: 44,   w: 6,   h: 15  },
+  { slug: "knee-left",       label: "Колено (лев.)",    x: 68,   y: 59,   w: 5.5, h: 5   },
+  { slug: "knee-right",      label: "Колено (прав.)",   x: 74,   y: 59,   w: 5.5, h: 5   },
+  { slug: "shin-left",       label: "Голень (лев.)",    x: 67.5, y: 64,   w: 5,   h: 14  },
+  { slug: "shin-right",      label: "Голень (прав.)",   x: 73.5, y: 64,   w: 5,   h: 14  },
+  { slug: "foot",            label: "Стопы",            x: 65,   y: 87,   w: 15,  h: 5   },
 ];
 
 interface ZoneHotspot {
@@ -135,13 +137,15 @@ export default function LkBodyMap() {
             borderRadius: 8,
             cursor: "pointer",
             background: isSelected
-              ? "hsla(185,85%,32%,0.45)"
+              ? "hsla(185,85%,32%,0.40)"
               : isHovered
-              ? "hsla(185,85%,32%,0.25)"
-              : "hsla(185,85%,32%,0.08)",
-            border: isSelected || isHovered
+              ? "hsla(185,85%,32%,0.20)"
+              : "transparent",
+            border: isSelected
               ? `2px solid ${ACCENT}`
-              : "1.5px solid hsla(185,85%,32%,0.25)",
+              : isHovered
+              ? `2px solid hsla(185,85%,32%,0.7)`
+              : "2px solid transparent",
             transition: "all 0.15s",
             display: "flex",
             alignItems: "center",
