@@ -2,7 +2,7 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { QUESTIONS, BLOCK_COMMENTS } from "./mindset.types";
 import { calcIndexes, calcIGP, getType } from "./mindset.logic";
-import { BotShell, MiniIndexBar, ACCENT } from "./MindsetShared";
+import { BotShell, MiniIndexBar, ACCENT, ACCENT_LIGHT } from "./MindsetShared";
 import { lkApi } from "@/lib/lkApi";
 import MindsetResult from "./MindsetResult";
 
