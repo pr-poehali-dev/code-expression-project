@@ -29,43 +29,24 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         {tests.filter(test => test.slug !== "barriers" && test.slug !== "finance").map(test => {
           const colors = TOOL_COLORS[test.slug] || { color: ACCENT, bg: "hsl(185,85%,96%)" };
+          const handleClick = () => {
+            if (test.slug === "mindset") onOpenMindset();
+            else if (test.slug === "barriers") onOpenBarriers();
+            else if (test.slug === "finance") onOpenFinance();
+            else onOpenTest(test.slug);
+          };
           return (
-            <div key={test.id} style={{
-              background: "#fff", borderRadius: 16, padding: "22px 24px",
-              display: "flex", alignItems: "center", gap: 18,
-              boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1.5px solid #f0f0ec",
-            }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, flexShrink: 0, background: colors.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Icon name={test.icon} size={22} style={{ color: colors.color }} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: "#1a1a1a", marginBottom: 4 }}>{test.title}</div>
-                <div style={{ fontSize: 13, color: "#888", lineHeight: 1.5 }}>{test.description}</div>
-                {test.completed && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
-                    <Icon name="CheckCircle" size={14} style={{ color: ACCENT }} />
-                    <span style={{ fontSize: 12, color: ACCENT, fontWeight: 600 }}>Пройден · {test.score} баллов</span>
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={() => {
-                  if (test.slug === "mindset") onOpenMindset();
-                  else if (test.slug === "barriers") onOpenBarriers();
-                  else if (test.slug === "finance") onOpenFinance();
-                  else onOpenTest(test.slug);
-                }}
-                style={{
-                  padding: "10px 20px", borderRadius: 10, border: `1.5px solid ${ACCENT}`,
-                  background: test.completed ? "transparent" : ACCENT,
-                  color: test.completed ? ACCENT : "#fff",
-                  fontSize: 13, fontWeight: 700, cursor: "pointer",
-                  fontFamily: "Montserrat, sans-serif", flexShrink: 0,
-                }}
-              >
-                {test.completed ? "Пройти снова" : "Начать"}
-              </button>
-            </div>
+            <ToolCard
+              key={test.id}
+              icon={test.icon}
+              color={colors.color}
+              bg={colors.bg}
+              title={test.title}
+              description={test.description}
+              completed={test.completed}
+              completedLabel={test.completed ? `Пройден · ${test.score} баллов` : undefined}
+              onStart={handleClick}
+            />
           );
         })}
 
