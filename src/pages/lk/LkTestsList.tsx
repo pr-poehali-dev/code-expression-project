@@ -127,29 +127,33 @@ function ToolCard({ icon, color, bg, title, description, completed, completedLab
 }) {
   return (
     <div style={{
-      background: "#fff", borderRadius: 16, padding: "22px 24px",
-      display: "flex", alignItems: "center", gap: 18,
+      background: "#fff", borderRadius: 16, padding: "18px 20px",
       boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1.5px solid #f0f0ec",
     }}>
-      <div style={{ width: 48, height: 48, borderRadius: 14, flexShrink: 0, background: bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <Icon name={icon} size={22} style={{ color }} />
+      {/* Верхняя строка: иконка + текст + кнопка */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: bg, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2 }}>
+          <Icon name={icon} size={20} style={{ color }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", marginBottom: 3, lineHeight: 1.3 }}>{title}</div>
+          <div style={{ fontSize: 12, color: "#888", lineHeight: 1.5 }}>{description}</div>
+          {completedLabel && (
+            <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 6, flexWrap: "wrap" }}>
+              <Icon name="CheckCircle" size={12} style={{ color, flexShrink: 0 }} />
+              <span style={{ fontSize: 11, color, fontWeight: 600, lineHeight: 1.4 }}>{completedLabel}</span>
+            </div>
+          )}
+        </div>
       </div>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: "#1a1a1a", marginBottom: 4 }}>{title}</div>
-        <div style={{ fontSize: 13, color: "#888", lineHeight: 1.5 }}>{description}</div>
-        {completedLabel && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
-            <Icon name="CheckCircle" size={14} style={{ color }} />
-            <span style={{ fontSize: 12, color, fontWeight: 600 }}>{completedLabel}</span>
-          </div>
-        )}
-      </div>
+      {/* Кнопка всегда снизу — не вылазит за край */}
       <button onClick={onStart} style={{
-        padding: "10px 20px", borderRadius: 10, border: `1.5px solid ${color}`,
+        display: "block", width: "100%", marginTop: 14,
+        padding: "10px", borderRadius: 10, border: `1.5px solid ${color}`,
         background: completed ? "transparent" : color,
         color: completed ? color : "#fff",
         fontSize: 13, fontWeight: 700, cursor: "pointer",
-        fontFamily: "Montserrat, sans-serif", flexShrink: 0,
+        fontFamily: "Montserrat, sans-serif",
       }}>
         {completed ? "Пройти снова" : "Начать"}
       </button>
