@@ -11,20 +11,23 @@ interface BotShellProps {
   step: number;
   total: number;
   children: React.ReactNode;
+  hideBack?: boolean;
 }
 
-export function BotShell({ onBack, progress, step, total, children }: BotShellProps) {
+export function BotShell({ onBack, progress, step, total, children, hideBack }: BotShellProps) {
   return (
     <div style={{ minHeight: "100%", fontFamily: "Montserrat, sans-serif" }}>
       <div style={{ marginBottom: 28 }}>
-        <button onClick={onBack} style={{
-          display: "inline-flex", alignItems: "center", gap: 8,
-          background: "none", border: "none", color: "#888",
-          fontSize: 13, cursor: "pointer", padding: "0 0 16px",
-          fontFamily: "Montserrat, sans-serif",
-        }}>
-          <Icon name="ArrowLeft" size={15} /> К инструментам
-        </button>
+        {!hideBack && (
+          <button onClick={onBack} style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "none", border: "none", color: "#888",
+            fontSize: 13, cursor: "pointer", padding: "0 0 16px",
+            fontFamily: "Montserrat, sans-serif",
+          }}>
+            <Icon name="ArrowLeft" size={15} /> К инструментам
+          </button>
+        )}
 
         {step > 0 && (
           <div>

@@ -179,7 +179,7 @@ export default function MindsetBot({ onBack }: Props) {
     ];
 
     return (
-      <BotShell onBack={onBack} progress={100} step={total} total={total}>
+      <BotShell onBack={onBack} progress={100} step={total} total={total} hideBack>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
           {/* Главный результат */}
           <div style={{
