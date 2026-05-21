@@ -34,11 +34,14 @@ import NotFoundPage from "./pages/NotFoundPage";
 import CookieBanner from "./components/CookieBanner";
 import QuizAdmin from "./pages/QuizAdmin";
 import QuizLanding from "./pages/QuizLanding";
+import LkPage from "./pages/lk/LkPage";
+import { LkAuthProvider } from "./contexts/LkAuthContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <LkAuthProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -73,11 +76,13 @@ const App = () => (
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/quiz-admin" element={<QuizAdmin />} />
           <Route path="/quiz" element={<QuizLanding />} />
+          <Route path="/cabinet" element={<LkPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </LkAuthProvider>
   </QueryClientProvider>
 );
 

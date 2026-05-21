@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Login без данных — ошибка",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": {},
+      "expectedStatus": 400
+    },
+    {
+      "name": "Me без сессии — 401",
+      "method": "GET",
+      "path": "/?action=me",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Unknown action — 404",
+      "method": "GET",
+      "path": "/?action=unknown",
+      "expectedStatus": 404
+    }
+  ]
+}
