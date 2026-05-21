@@ -7,6 +7,7 @@ export const TOOL_COLORS: Record<string, { color: string; bg: string }> = {
   barriers: { color: "hsl(20,85%,52%)",  bg: "hsl(20,85%,96%)"  },
   finance:  { color: "hsl(145,60%,40%)", bg: "hsl(145,60%,95%)" },
   profile:  { color: "hsl(240,70%,55%)", bg: "hsl(240,70%,97%)" },
+  salon:    { color: "hsl(335,80%,50%)", bg: "hsl(335,80%,97%)" },
 };
 
 export interface Test {
@@ -78,6 +79,17 @@ export interface ProfileHistoryItem {
   ifz: number; idt: number; in_idx: number; ifd: number;
   idm: number; idr: number; iit: number; ids: number;
   answers: object;
+  completed_at: string;
+}
+
+export interface SalonHistoryItem {
+  id: number;
+  ips: number;
+  ipp_loss: number;
+  type_title: string;
+  ivk: number; isc: number; iz: number; iea: number;
+  ipu: number; ilk: number; ips_idx: number;
+  hidden_money: number;
   completed_at: string;
 }
 

@@ -63,6 +63,19 @@
       "method": "GET",
       "path": "/?action=profile_history",
       "expectedStatus": 401
+    },
+    {
+      "name": "salon_save без сессии — 401",
+      "method": "POST",
+      "path": "/?action=salon_save",
+      "body": {},
+      "expectedStatus": 401
+    },
+    {
+      "name": "salon_history без сессии — 401",
+      "method": "GET",
+      "path": "/?action=salon_history",
+      "expectedStatus": 401
     }
   ]
 }

@@ -1,20 +1,23 @@
 import Icon from "@/components/ui/icon";
-import { ACCENT, TOOL_COLORS, Test, BarriersHistoryItem, FinanceHistoryItem, ProfileHistoryItem } from "./LkTestsTypes";
+import { ACCENT, TOOL_COLORS, Test, BarriersHistoryItem, FinanceHistoryItem, ProfileHistoryItem, SalonHistoryItem } from "./LkTestsTypes";
 import { formatMoney } from "./finance.logic";
+import { formatMoneySalon } from "./salon.logic";
 
 interface Props {
   tests: Test[];
   barriersHistory: BarriersHistoryItem[];
   financeHistory: FinanceHistoryItem[];
   profileHistory: ProfileHistoryItem[];
+  salonHistory: SalonHistoryItem[];
   onOpenMindset: () => void;
   onOpenBarriers: () => void;
   onOpenFinance: () => void;
   onOpenProfile: () => void;
+  onOpenSalon: () => void;
   onOpenTest: (slug: string) => void;
 }
 
-export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenTest }: Props) {
+export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenTest }: Props) {
   return (
     <div>
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
@@ -32,10 +35,7 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
               display: "flex", alignItems: "center", gap: 18,
               boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1.5px solid #f0f0ec",
             }}>
-              <div style={{
-                width: 48, height: 48, borderRadius: 14, flexShrink: 0,
-                background: colors.bg, display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, flexShrink: 0, background: colors.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Icon name={test.icon} size={22} style={{ color: colors.color }} />
               </div>
               <div style={{ flex: 1 }}>
@@ -69,7 +69,7 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
           );
         })}
 
-        {/* Карточка «Внутренние барьеры» */}
+        {/* Внутренние барьеры */}
         <ToolCard
           icon="ShieldAlert" color="hsl(20,85%,50%)" bg="hsl(20,85%,96%)"
           title="Внутренние барьеры специалиста"
@@ -79,7 +79,7 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
           onStart={onOpenBarriers}
         />
 
-        {/* Карточка «Финансовая грамотность PRO» */}
+        {/* Финансовая грамотность PRO */}
         <ToolCard
           icon="TrendingUp" color="hsl(145,60%,40%)" bg="hsl(145,60%,95%)"
           title="Финансовая грамотность специалиста PRO"
@@ -89,7 +89,7 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
           onStart={onOpenFinance}
         />
 
-        {/* Карточка «Финансовый профиль PRO» */}
+        {/* Финансовый профиль PRO */}
         <ToolCard
           icon="Brain" color="hsl(240,70%,55%)" bg="hsl(240,70%,97%)"
           title="Финансовый профиль PRO"
@@ -99,7 +99,17 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
           onStart={onOpenProfile}
         />
 
-        {tests.length === 0 && barriersHistory.length === 0 && financeHistory.length === 0 && profileHistory.length === 0 && (
+        {/* Диагностика роста салона PRO */}
+        <ToolCard
+          icon="Scissors" color="hsl(335,80%,50%)" bg="hsl(335,80%,97%)"
+          title="Диагностика роста салона PRO"
+          description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока"
+          completed={salonHistory.length > 0}
+          completedLabel={salonHistory.length > 0 ? `Пройден · IPS ${salonHistory[0].ips} · потенциал +${formatMoneySalon(salonHistory[0].hidden_money)}` : undefined}
+          onStart={onOpenSalon}
+        />
+
+        {tests.length === 0 && barriersHistory.length === 0 && financeHistory.length === 0 && profileHistory.length === 0 && salonHistory.length === 0 && (
           <div style={{ textAlign: "center", padding: 48, color: "#aaa" }}>
             Тесты ещё не добавлены
           </div>
@@ -134,17 +144,13 @@ function ToolCard({ icon, color, bg, title, description, completed, completedLab
           </div>
         )}
       </div>
-      <button
-        onClick={onStart}
-        style={{
-          padding: "10px 20px", borderRadius: 10,
-          border: `1.5px solid ${color}`,
-          background: completed ? "transparent" : color,
-          color: completed ? color : "#fff",
-          fontSize: 13, fontWeight: 700, cursor: "pointer",
-          fontFamily: "Montserrat, sans-serif", flexShrink: 0,
-        }}
-      >
+      <button onClick={onStart} style={{
+        padding: "10px 20px", borderRadius: 10, border: `1.5px solid ${color}`,
+        background: completed ? "transparent" : color,
+        color: completed ? color : "#fff",
+        fontSize: 13, fontWeight: 700, cursor: "pointer",
+        fontFamily: "Montserrat, sans-serif", flexShrink: 0,
+      }}>
         {completed ? "Пройти снова" : "Начать"}
       </button>
     </div>

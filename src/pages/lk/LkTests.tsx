@@ -8,11 +8,12 @@ import FinanceBot from "./FinanceBot";
 import FinanceResult from "./FinanceResult";
 import ProfileBot from "./ProfileBot";
 import ProfileResult from "./ProfileResult";
+import SalonBot from "./SalonBot";
 import { BarrierIndexMap } from "./barriers.logic";
 import { FinanceData } from "./finance.types";
 import { PROFILE_QUESTIONS } from "./profile.types";
 import { calcProfile } from "./profile.logic";
-import { Spinner, Test, TestDetail, TestResult, MindsetHistoryItem, BarriersHistoryItem, FinanceHistoryItem, ProfileHistoryItem } from "./LkTestsTypes";
+import { Spinner, Test, TestDetail, TestResult, MindsetHistoryItem, BarriersHistoryItem, FinanceHistoryItem, ProfileHistoryItem, SalonHistoryItem } from "./LkTestsTypes";
 import LkTestQuiz from "./LkTestQuiz";
 import LkTestsList from "./LkTestsList";
 import LkTestsHistory from "./LkTestsHistory";
@@ -41,92 +42,67 @@ export default function LkTests() {
   const [profileHistory, setProfileHistory] = useState<ProfileHistoryItem[]>([]);
   const [viewingProfile, setViewingProfile] = useState<ProfileHistoryItem | null>(null);
 
+  const [openSalon, setOpenSalon] = useState(false);
+  const [salonHistory, setSalonHistory] = useState<SalonHistoryItem[]>([]);
+
   useEffect(() => {
     lkApi.tests().then(setTests).finally(() => setLoading(false));
     lkApi.mindsetHistory().then(setMindsetHistory).catch(() => {});
     lkApi.barriersHistory().then(setBarriersHistory).catch(() => {});
     lkApi.financeHistory().then(setFinanceHistory).catch(() => {});
     lkApi.profileHistory().then(setProfileHistory).catch(() => {});
+    lkApi.salonHistory().then(setSalonHistory).catch(() => {});
   }, []);
 
   if (openMindset) {
-    return <MindsetBot onBack={() => {
-      setOpenMindset(false);
-      lkApi.mindsetHistory().then(setMindsetHistory).catch(() => {});
-    }} />;
+    return <MindsetBot onBack={() => { setOpenMindset(false); lkApi.mindsetHistory().then(setMindsetHistory).catch(() => {}); }} />;
   }
-
   if (viewingResult) {
     return (
-      <MindsetResult
-        idx={viewingResult.idx}
-        date={viewingResult.date}
+      <MindsetResult idx={viewingResult.idx} date={viewingResult.date}
         onRetake={() => { setViewingResult(null); setOpenMindset(true); }}
-        onBack={() => setViewingResult(null)}
-        backLabel="← К истории"
-      />
+        onBack={() => setViewingResult(null)} backLabel="← К истории" />
     );
   }
 
   if (openBarriers) {
-    return <BarriersBot onBack={() => {
-      setOpenBarriers(false);
-      lkApi.barriersHistory().then(setBarriersHistory).catch(() => {});
-    }} />;
+    return <BarriersBot onBack={() => { setOpenBarriers(false); lkApi.barriersHistory().then(setBarriersHistory).catch(() => {}); }} />;
   }
-
   if (viewingBarriers) {
     return (
-      <BarriersResult
-        idx={viewingBarriers.idx}
-        date={viewingBarriers.date}
+      <BarriersResult idx={viewingBarriers.idx} date={viewingBarriers.date}
         onRetake={() => { setViewingBarriers(null); setOpenBarriers(true); }}
-        onBack={() => setViewingBarriers(null)}
-        backLabel="← К истории"
-      />
+        onBack={() => setViewingBarriers(null)} backLabel="← К истории" />
     );
   }
 
   if (openFinance) {
-    return <FinanceBot onBack={() => {
-      setOpenFinance(false);
-      lkApi.financeHistory().then(setFinanceHistory).catch(() => {});
-    }} />;
+    return <FinanceBot onBack={() => { setOpenFinance(false); lkApi.financeHistory().then(setFinanceHistory).catch(() => {}); }} />;
   }
-
   if (viewingFinance) {
     return (
-      <FinanceResult
-        data={viewingFinance.data}
+      <FinanceResult data={viewingFinance.data}
         onRetake={() => { setViewingFinance(null); setOpenFinance(true); }}
-        onBack={() => setViewingFinance(null)}
-        backLabel="← К истории"
-      />
+        onBack={() => setViewingFinance(null)} backLabel="← К истории" />
     );
   }
 
   if (openProfile) {
-    return <ProfileBot onBack={() => {
-      setOpenProfile(false);
-      lkApi.profileHistory().then(setProfileHistory).catch(() => {});
-    }} />;
+    return <ProfileBot onBack={() => { setOpenProfile(false); lkApi.profileHistory().then(setProfileHistory).catch(() => {}); }} />;
+  }
+  if (viewingProfile) {
+    const reconstructedAnswers = viewingProfile.answers as Record<number, number>;
+    const profileResult = calcProfile(PROFILE_QUESTIONS, reconstructedAnswers);
+    const dateStr = new Date(viewingProfile.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+    return (
+      <ProfileResult result={profileResult} answers={reconstructedAnswers}
+        onRetake={() => { setViewingProfile(null); setOpenProfile(true); }}
+        onBack={() => setViewingProfile(null)} backLabel="← К истории" date={dateStr} />
+    );
   }
 
-  if (viewingProfile) {
-    const histItem = viewingProfile;
-    const reconstructedAnswers = histItem.answers as Record<number, number>;
-    const result = calcProfile(PROFILE_QUESTIONS, reconstructedAnswers);
-    const dateStr = new Date(histItem.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
-    return (
-      <ProfileResult
-        result={result}
-        answers={reconstructedAnswers}
-        onRetake={() => { setViewingProfile(null); setOpenProfile(true); }}
-        onBack={() => setViewingProfile(null)}
-        backLabel="← К истории"
-        date={dateStr}
-      />
-    );
+  if (openSalon) {
+    return <SalonBot onBack={() => { setOpenSalon(false); lkApi.salonHistory().then(setSalonHistory).catch(() => {}); }} />;
   }
 
   const openTest = async (slug: string) => {
@@ -152,9 +128,7 @@ export default function LkTests() {
     try {
       const res = await lkApi.submitTest(activeTest.test.id, answers as Record<string, number>);
       setResult(res);
-      setTests(prev => prev.map(t =>
-        t.id === activeTest.test.id ? { ...t, completed: true, score: res.score } : t
-      ));
+      setTests(prev => prev.map(t => t.id === activeTest.test.id ? { ...t, completed: true, score: res.score } : t));
     } finally {
       setSubmitting(false);
     }
@@ -164,16 +138,10 @@ export default function LkTests() {
 
   if (activeTest) {
     return (
-      <LkTestQuiz
-        activeTest={activeTest}
-        answers={answers}
-        result={result}
-        submitting={submitting}
-        onAnswer={handleAnswer}
-        onSubmit={handleSubmit}
+      <LkTestQuiz activeTest={activeTest} answers={answers} result={result} submitting={submitting}
+        onAnswer={handleAnswer} onSubmit={handleSubmit}
         onBack={() => setActiveTest(null)}
-        onBackFromResult={() => { setActiveTest(null); setResult(null); }}
-      />
+        onBackFromResult={() => { setActiveTest(null); setResult(null); }} />
     );
   }
 
@@ -184,10 +152,12 @@ export default function LkTests() {
         barriersHistory={barriersHistory}
         financeHistory={financeHistory}
         profileHistory={profileHistory}
+        salonHistory={salonHistory}
         onOpenMindset={() => setOpenMindset(true)}
         onOpenBarriers={() => setOpenBarriers(true)}
         onOpenFinance={() => setOpenFinance(true)}
         onOpenProfile={() => setOpenProfile(true)}
+        onOpenSalon={() => setOpenSalon(true)}
         onOpenTest={openTest}
       />
       <LkTestsHistory
@@ -195,6 +165,7 @@ export default function LkTests() {
         barriersHistory={barriersHistory}
         financeHistory={financeHistory}
         profileHistory={profileHistory}
+        salonHistory={salonHistory}
         onViewMindset={setViewingResult}
         onViewBarriers={setViewingBarriers}
         onViewFinance={setViewingFinance}
@@ -203,6 +174,7 @@ export default function LkTests() {
         onRetakeBarriers={() => setOpenBarriers(true)}
         onRetakeFinance={() => setOpenFinance(true)}
         onRetakeProfile={() => setOpenProfile(true)}
+        onRetakeSalon={() => setOpenSalon(true)}
       />
     </div>
   );

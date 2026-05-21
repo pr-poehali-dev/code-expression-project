@@ -622,6 +622,58 @@ def handle_profile_history(event: dict) -> dict:
         conn.close()
 
 
+# ── Salon результаты ─────────────────────────────────────────────────────────
+
+def handle_salon_save(event: dict) -> dict:
+    body = json.loads(event.get("body") or "{}")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        idx = body.get("indexes", {})
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"INSERT INTO {tbl('lk_salon_results')} "
+            f"(user_id, ips, ipp_loss, type_title, ivk, isc, iz, iea, ipu, ilk, ips_idx, hidden_money, answers, numeric_data) "
+            f"VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+            (
+                user["id"],
+                body.get("ips", 0),
+                body.get("ipp_loss", 0),
+                body.get("type_title", ""),
+                idx.get("IVK", 0), idx.get("ISC", 0), idx.get("IZ", 0),
+                idx.get("IEA", 0), idx.get("IPU", 0), idx.get("ILK", 0),
+                idx.get("IPS", 0),
+                body.get("hidden_money", 0),
+                json.dumps(body.get("answers", {})),
+                json.dumps(body.get("numeric", {})),
+            )
+        )
+        new_id = cur.fetchone()["id"]
+        conn.commit()
+        return ok({"id": new_id, "ok": True})
+    finally:
+        conn.close()
+
+
+def handle_salon_history(event: dict) -> dict:
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT id, ips, ipp_loss, type_title, ivk, isc, iz, iea, ipu, ilk, ips_idx, hidden_money, completed_at "
+            f"FROM {tbl('lk_salon_results')} WHERE user_id = %s ORDER BY completed_at DESC LIMIT 10",
+            (user["id"],)
+        )
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
 # ── Роутер ───────────────────────────────────────────────────────────────────
 
 ROUTES = {
@@ -648,6 +700,8 @@ ROUTES = {
     ("GET",  "finance_history"): handle_finance_history,
     ("POST", "profile_save"): handle_profile_save,
     ("GET",  "profile_history"): handle_profile_history,
+    ("POST", "salon_save"): handle_salon_save,
+    ("GET",  "salon_history"): handle_salon_history,
 }
 
 

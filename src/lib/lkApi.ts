@@ -91,4 +91,10 @@ export const lkApi = {
     request("POST", "profile_save", data),
 
   profileHistory: () => request("GET", "profile_history"),
+
+  // Salon
+  salonSave: (data: { ips: number; ipp_loss: number; type_title: string; indexes: object; hidden_money: number; answers: object; numeric: object }) =>
+    request("POST", "salon_save", data),
+
+  salonHistory: () => request("GET", "salon_history"),
 };

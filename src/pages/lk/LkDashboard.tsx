@@ -44,6 +44,14 @@ const TOOLS = [
     title: "Финансовый профиль PRO",
     desc: "Определи уровень финансового мышления, привычек и зрелости",
   },
+  {
+    id: "salon" as const,
+    icon: "Scissors",
+    color: "hsl(335,80%,50%)",
+    colorBg: "hsl(335,80%,97%)",
+    title: "Диагностика роста салона PRO",
+    desc: "Где салон теряет деньги — и как увеличить прибыль без нового потока",
+  },
 ];
 
 export default function LkDashboard() {
