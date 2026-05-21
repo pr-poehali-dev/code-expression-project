@@ -213,16 +213,21 @@ export default function FinanceBot({ onBack }: Props) {
         <div style={{ background: "#fff", borderRadius: 20, padding: "24px", marginBottom: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", marginBottom: 14 }}>Что вы получите:</div>
           {[
-            ["💰", "Сколько денег вы реально хотите"],
-            ["📊", "Почему не выходите на нужный доход"],
-            ["🔢", "Ваш финансовый потолок в текущей модели"],
-            ["🎯", "Какой нужен чек и сколько клиентов"],
-            ["⚡", "Что мешает зарабатывать больше"],
-            ["📈", "Сценарии роста и симуляция «что если»"],
+            ["Banknote",    "Сколько денег вы реально хотите"],
+            ["BarChart2",   "Почему не выходите на нужный доход"],
+            ["Calculator",  "Ваш финансовый потолок в текущей модели"],
+            ["Target",      "Какой нужен чек и сколько клиентов"],
+            ["Zap",         "Что мешает зарабатывать больше"],
+            ["TrendingUp",  "Сценарии роста и симуляция «что если»"],
           ].map(([icon, text]) => (
             <div key={text as string} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 10 }}>
-              <span style={{ fontSize: 18, lineHeight: 1 }}>{icon}</span>
-              <span style={{ fontSize: 14, color: "#444", lineHeight: 1.5 }}>{text as string}</span>
+              <div style={{
+                width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                background: `${G}18`, display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Icon name={icon as string} size={14} style={{ color: G }} />
+              </div>
+              <span style={{ fontSize: 14, color: "#444", lineHeight: 1.5, marginTop: 4 }}>{text as string}</span>
             </div>
           ))}
         </div>
