@@ -20,13 +20,13 @@ const ZONES_FRONT: ZoneHotspot[] = [
   { slug: "upper-arm-right", label: "Плечо (прав.)",    x: 32,   y: 15,   w: 5,   h: 13  },
   { slug: "forearm-left",    label: "Предплечье (лев.)",x: 4,    y: 28,   w: 4.5, h: 11  },
   { slug: "forearm-right",   label: "Предплечье (пр.)", x: 35.5, y: 28,   w: 4.5, h: 11  },
-  { slug: "thigh-left",      label: "Бедро (лев.)",     x: 18,   y: 44,   w: 6,   h: 15  },
-  { slug: "thigh-right",     label: "Бедро (прав.)",    x: 24,   y: 44,   w: 6,   h: 15  },
-  { slug: "knee-left",       label: "Колено (лев.)",    x: 18,   y: 59,   w: 5.5, h: 5   },
-  { slug: "knee-right",      label: "Колено (прав.)",   x: 24,   y: 59,   w: 5.5, h: 5   },
-  { slug: "shin-left",       label: "Голень (лев.)",    x: 17.5, y: 64,   w: 5,   h: 14  },
-  { slug: "shin-right",      label: "Голень (прав.)",   x: 23.5, y: 64,   w: 5,   h: 14  },
-  { slug: "foot",            label: "Стопы",            x: 15,   y: 87,   w: 15,  h: 5   },
+  { slug: "thigh-left",      label: "Бедро (лев.)",     x: 18,   y: 44,   w: 6,   h: 14  },
+  { slug: "thigh-right",     label: "Бедро (прав.)",    x: 24,   y: 44,   w: 6,   h: 14  },
+  { slug: "knee-left",       label: "Колено (лев.)",    x: 18,   y: 58,   w: 5.5, h: 5   },
+  { slug: "knee-right",      label: "Колено (прав.)",   x: 24,   y: 58,   w: 5.5, h: 5   },
+  { slug: "shin-left",       label: "Голень (лев.)",    x: 17.5, y: 63,   w: 5,   h: 16  },
+  { slug: "shin-right",      label: "Голень (прав.)",   x: 23.5, y: 63,   w: 5,   h: 16  },
+  { slug: "foot",            label: "Стопы",            x: 15,   y: 91,   w: 15,  h: 6   },
 ];
 
 const ZONES_BACK: ZoneHotspot[] = [
@@ -40,13 +40,13 @@ const ZONES_BACK: ZoneHotspot[] = [
   { slug: "upper-arm-right", label: "Плечо (прав.)",    x: 83.5, y: 15,   w: 5,   h: 13  },
   { slug: "forearm-left",    label: "Предплечье (лев.)",x: 55,   y: 28,   w: 4.5, h: 11  },
   { slug: "forearm-right",   label: "Предплечье (пр.)", x: 87,   y: 28,   w: 4.5, h: 11  },
-  { slug: "thigh-left",      label: "Бедро (лев.)",     x: 68,   y: 44,   w: 6,   h: 15  },
-  { slug: "thigh-right",     label: "Бедро (прав.)",    x: 74,   y: 44,   w: 6,   h: 15  },
-  { slug: "knee-left",       label: "Колено (лев.)",    x: 68,   y: 59,   w: 5.5, h: 5   },
-  { slug: "knee-right",      label: "Колено (прав.)",   x: 74,   y: 59,   w: 5.5, h: 5   },
-  { slug: "shin-left",       label: "Голень (лев.)",    x: 67.5, y: 64,   w: 5,   h: 14  },
-  { slug: "shin-right",      label: "Голень (прав.)",   x: 73.5, y: 64,   w: 5,   h: 14  },
-  { slug: "foot",            label: "Стопы",            x: 65,   y: 87,   w: 15,  h: 5   },
+  { slug: "thigh-left",      label: "Бедро (лев.)",     x: 68,   y: 44,   w: 6,   h: 14  },
+  { slug: "thigh-right",     label: "Бедро (прав.)",    x: 74,   y: 44,   w: 6,   h: 14  },
+  { slug: "knee-left",       label: "Колено (лев.)",    x: 68,   y: 58,   w: 5.5, h: 5   },
+  { slug: "knee-right",      label: "Колено (прав.)",   x: 74,   y: 58,   w: 5.5, h: 5   },
+  { slug: "shin-left",       label: "Голень (лев.)",    x: 67.5, y: 63,   w: 5,   h: 16  },
+  { slug: "shin-right",      label: "Голень (прав.)",   x: 73.5, y: 63,   w: 5,   h: 16  },
+  { slug: "foot",            label: "Стопы",            x: 65,   y: 91,   w: 15,  h: 6   },
 ];
 
 interface ZoneHotspot {
