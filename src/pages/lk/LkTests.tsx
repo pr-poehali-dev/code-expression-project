@@ -102,7 +102,12 @@ export default function LkTests() {
   }
 
   if (openSalon) {
-    return <SalonBot onBack={() => { setOpenSalon(false); lkApi.salonHistory().then(setSalonHistory).catch(() => {}); }} />;
+    return (
+      <SalonBot
+        previousResult={salonHistory[0] ?? undefined}
+        onBack={() => { setOpenSalon(false); lkApi.salonHistory().then(setSalonHistory).catch(() => {}); }}
+      />
+    );
   }
 
   const openTest = async (slug: string) => {

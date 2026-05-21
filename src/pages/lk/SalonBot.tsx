@@ -7,6 +7,7 @@ import {
 } from "./salon.types";
 import { calcSalon } from "./salon.logic";
 import { lkApi } from "@/lib/lkApi";
+import { SalonHistoryItem } from "./LkTestsTypes";
 import SalonResult from "./SalonResult";
 
 const G  = SALON_ACCENT;
@@ -15,9 +16,9 @@ const GD = SALON_ACCENT_DARK;
 
 const TOTAL = SALON_QUESTIONS.length; // 14
 
-interface Props { onBack: () => void; }
+interface Props { onBack: () => void; previousResult?: SalonHistoryItem; }
 
-export default function SalonBot({ onBack }: Props) {
+export default function SalonBot({ onBack, previousResult }: Props) {
   const [questionIdx, setQuestionIdx] = useState(0); // 0 = intro
   const [answers, setAnswers] = useState<SalonAnswers>({});
   const [numericAnswers, setNumericAnswers] = useState<SalonNumericAnswers>({});
@@ -98,7 +99,7 @@ export default function SalonBot({ onBack }: Props) {
   // ── RESULT ──────────────────────────────────────────────────────────────────
   if (showResult) {
     const result = calcSalon(SALON_QUESTIONS, answers, numericAnswers);
-    return <SalonResult result={result} onRetake={handleRetake} onBack={onBack} />;
+    return <SalonResult result={result} onRetake={handleRetake} onBack={onBack} previousResult={previousResult} />;
   }
 
   // ── ЧИСЛОВОЙ ЭКРАН ───────────────────────────────────────────────────────────

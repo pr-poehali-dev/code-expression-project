@@ -3,6 +3,7 @@ import {
   SALON_ACCENT, SALON_ACCENT_LIGHT, SALON_ACCENT_DARK,
 } from "./salon.types";
 import { SalonCalcResult, SalonWeakZone, formatMoneySalon } from "./salon.logic";
+import { SalonHistoryItem } from "./LkTestsTypes";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell,
@@ -18,19 +19,51 @@ interface Props {
   onBack: () => void;
   backLabel?: string;
   date?: string;
+  previousResult?: SalonHistoryItem;
 }
 
-function IndexBar({ label, value }: { label: string; value: number }) {
+// ─── Компонент прогресс-бара с дельтой ──────────────────────────────────────
+
+function IndexBar({ label, value, prev }: { label: string; value: number; prev?: number }) {
   const color = value >= 70 ? "#22c55e" : value >= 45 ? "#eab308" : "#ef4444";
+  const delta = prev !== undefined ? value - prev : null;
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5, alignItems: "center" }}>
         <span style={{ fontSize: 13, color: "#444", fontWeight: 500 }}>{label}</span>
-        <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}%</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {delta !== null && (
+            <span style={{
+              fontSize: 11, fontWeight: 700, padding: "2px 7px", borderRadius: 20,
+              background: delta > 0 ? "#22c55e18" : delta < 0 ? "#ef444418" : "#f0f0ec",
+              color: delta > 0 ? "#22c55e" : delta < 0 ? "#ef4444" : "#aaa",
+            }}>
+              {delta > 0 ? `+${delta}` : delta < 0 ? `${delta}` : "—"}
+            </span>
+          )}
+          <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}%</span>
+        </div>
       </div>
-      <div style={{ height: 6, background: "#f0f0ec", borderRadius: 3 }}>
-        <div style={{ width: `${value}%`, height: "100%", background: color, borderRadius: 3, transition: "width 0.8s ease" }} />
+      <div style={{ height: 6, background: "#f0f0ec", borderRadius: 3, position: "relative" }}>
+        {/* Предыдущее значение — серая полоса под текущей */}
+        {prev !== undefined && (
+          <div style={{
+            position: "absolute", left: 0, top: 0,
+            width: `${prev}%`, height: "100%",
+            background: "#d1d5db", borderRadius: 3,
+          }} />
+        )}
+        <div style={{
+          position: "absolute", left: 0, top: 0,
+          width: `${value}%`, height: "100%",
+          background: color, borderRadius: 3, transition: "width 0.8s ease",
+        }} />
       </div>
+      {prev !== undefined && (
+        <div style={{ fontSize: 11, color: "#bbb", marginTop: 3 }}>
+          Было: {prev}%
+        </div>
+      )}
     </div>
   );
 }
@@ -55,10 +88,123 @@ function WeakZoneCard({ zone }: { zone: SalonWeakZone }) {
   );
 }
 
-export default function SalonResult({ result, onRetake, onBack, backLabel, date }: Props) {
+// ─── Компонент сравнения с предыдущим результатом ────────────────────────────
+
+function ProgressBlock({ current, prev }: { current: SalonCalcResult; prev: SalonHistoryItem }) {
+  const ipsDelta   = current.ips - prev.ips;
+  const ippDelta   = current.ippLoss - prev.ipp_loss; // чем ниже IPP — тем лучше
+  const prevDate   = new Date(prev.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+
+  const mainColor  = ipsDelta > 0 ? "#22c55e" : ipsDelta < 0 ? "#ef4444" : "#aaa";
+  const mainIcon   = ipsDelta > 0 ? "TrendingUp" : ipsDelta < 0 ? "TrendingDown" : "Minus";
+
+  const metrics = [
+    { label: "Возврат клиентов (IVK)",   now: current.norm.IVK, was: prev.ivk },
+    { label: "Средний чек (ISC)",         now: current.norm.ISC, was: prev.isc },
+    { label: "Загрузка (IZ)",             now: current.norm.IZ,  was: prev.iz  },
+    { label: "Администраторы (IEA)",      now: current.norm.IEA, was: prev.iea },
+    { label: "Продажи услуг (IPU)",       now: current.norm.IPU, was: prev.ipu },
+    { label: "Лояльность (ILK)",          now: current.norm.ILK, was: prev.ilk },
+  ];
+
+  const improved = metrics.filter(m => m.now > m.was).length;
+  const declined = metrics.filter(m => m.now < m.was).length;
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 20, padding: "24px", marginBottom: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: G, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>
+        📈 Прогресс с прошлого раза
+      </div>
+      <p style={{ fontSize: 12, color: "#aaa", margin: "0 0 20px" }}>
+        Сравнение с диагностикой от {prevDate}
+      </p>
+
+      {/* Главная дельта IPS */}
+      <div style={{
+        background: ipsDelta > 0 ? "#22c55e12" : ipsDelta < 0 ? "#ef444412" : "#f9f9f7",
+        border: `1.5px solid ${ipsDelta > 0 ? "#22c55e30" : ipsDelta < 0 ? "#ef444430" : "#e8e8e4"}`,
+        borderRadius: 16, padding: "20px 24px", marginBottom: 20,
+        display: "flex", alignItems: "center", gap: 16,
+      }}>
+        <div style={{
+          width: 52, height: 52, borderRadius: 14, flexShrink: 0,
+          background: `${mainColor}18`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <Icon name={mainIcon} size={24} style={{ color: mainColor }} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>Индекс прибыльности (IPS)</div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+            <span style={{ fontSize: 32, fontWeight: 900, color: mainColor, lineHeight: 1 }}>
+              {ipsDelta > 0 ? `+${ipsDelta}` : ipsDelta}
+            </span>
+            <span style={{ fontSize: 14, color: "#888" }}>
+              {prev.ips} → {current.ips}
+            </span>
+          </div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>Сводка</div>
+          <div style={{ fontSize: 12, color: "#22c55e", fontWeight: 700 }}>↑ {improved} улучшились</div>
+          {declined > 0 && <div style={{ fontSize: 12, color: "#ef4444", fontWeight: 700 }}>↓ {declined} снизились</div>}
+        </div>
+      </div>
+
+      {/* Изменение IPP (инвертированный — хорошо когда ниже) */}
+      <div style={{
+        padding: "12px 16px", borderRadius: 12, marginBottom: 16,
+        background: ippDelta < 0 ? "#22c55e12" : ippDelta > 0 ? "#ef444412" : "#f9f9f7",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: 13, color: "#444" }}>Индекс потерь прибыли (IPP)</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{
+              fontSize: 12, fontWeight: 700,
+              color: ippDelta < 0 ? "#22c55e" : ippDelta > 0 ? "#ef4444" : "#aaa",
+            }}>
+              {ippDelta < 0 ? `${ippDelta} (улучшилось)` : ippDelta > 0 ? `+${ippDelta} (хуже)` : "—"}
+            </span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>
+              {prev.ipp_loss}% → {current.ippLoss}%
+            </span>
+          </div>
+        </div>
+        <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>Чем ниже — тем лучше</div>
+      </div>
+
+      {/* Таблица изменений по индексам */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {metrics.map(m => {
+          const delta = m.now - m.was;
+          const dColor = delta > 0 ? "#22c55e" : delta < 0 ? "#ef4444" : "#aaa";
+          return (
+            <div key={m.label} style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "10px 14px", borderRadius: 10, background: "#f9f9f7",
+            }}>
+              <div style={{ flex: 1, fontSize: 13, color: "#444" }}>{m.label}</div>
+              <div style={{ fontSize: 12, color: "#aaa", minWidth: 60, textAlign: "right" }}>
+                {m.was}% → {m.now}%
+              </div>
+              <div style={{
+                fontSize: 12, fontWeight: 700, minWidth: 40, textAlign: "right",
+                color: dColor,
+              }}>
+                {delta > 0 ? `+${delta}` : delta === 0 ? "—" : delta}
+              </div>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: dColor, flexShrink: 0 }} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default function SalonResult({ result, onRetake, onBack, backLabel, date, previousResult }: Props) {
   const { norm, ippLoss, ips, level, type, weakZones, radarData, hiddenMoney } = result;
 
-  // Данные для bar chart потерь/потенциала
   const barData = [
     { name: "Текущая\nвыручка", value: hiddenMoney.currentMonthlyRevenue, color: "#94a3b8" },
     { name: "Потери от\nневозврата", value: hiddenMoney.lossFromNonReturn, color: "#ef4444" },
@@ -85,13 +231,24 @@ export default function SalonResult({ result, onRetake, onBack, backLabel, date 
         <div style={{ fontSize: 11, opacity: 0.7, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 }}>
           Индекс прибыльности салона
         </div>
-        <div style={{ fontSize: "clamp(60px,10vw,84px)", fontWeight: 900, lineHeight: 1, marginBottom: 8 }}>
-          {ips}
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 14, marginBottom: 8 }}>
+          <div style={{ fontSize: "clamp(60px,10vw,84px)", fontWeight: 900, lineHeight: 1 }}>
+            {ips}
+          </div>
+          {previousResult && (
+            <div style={{ fontSize: 20, fontWeight: 700, opacity: 0.8 }}>
+              {ips > previousResult.ips
+                ? <span style={{ color: "#86efac" }}>▲ +{ips - previousResult.ips}</span>
+                : ips < previousResult.ips
+                ? <span style={{ color: "#fca5a5" }}>▼ {ips - previousResult.ips}</span>
+                : <span style={{ opacity: 0.5 }}>= 0</span>
+              }
+            </div>
+          )}
         </div>
         <div style={{ fontSize: 18, fontWeight: 700, opacity: 0.9, marginBottom: 16 }}>
           {level.label}
         </div>
-        {/* Шкала */}
         <div style={{ display: "flex", gap: 4 }}>
           {[30, 50, 70, 85, 100].map((threshold, i) => {
             const prev = [0, 30, 50, 70, 85][i];
@@ -109,6 +266,11 @@ export default function SalonResult({ result, onRetake, onBack, backLabel, date 
           <span style={{ fontSize: 10, opacity: 0.5 }}>Высокоприбыльный</span>
         </div>
       </div>
+
+      {/* БЛОК ПРОГРЕССА (только при повторном прохождении) */}
+      {previousResult && (
+        <ProgressBlock current={result} prev={previousResult} />
+      )}
 
       {/* ТИП САЛОНА */}
       <div style={{
@@ -146,10 +308,8 @@ export default function SalonResult({ result, onRetake, onBack, backLabel, date 
         <p style={{ fontSize: 12, color: "#aaa", margin: "0 0 20px" }}>
           Сколько можно добавить к выручке без нового трафика
         </p>
-
-        {/* Главная цифра */}
         <div style={{
-          background: `linear-gradient(135deg, #22c55e15, #22c55e08)`,
+          background: "linear-gradient(135deg, #22c55e15, #22c55e08)",
           border: "1.5px solid #22c55e30", borderRadius: 16, padding: "20px 24px",
           textAlign: "center", marginBottom: 20,
         }}>
@@ -159,8 +319,6 @@ export default function SalonResult({ result, onRetake, onBack, backLabel, date 
           </div>
           <div style={{ fontSize: 13, color: "#888", marginTop: 6 }}>при работе с возвратом и допродажами</div>
         </div>
-
-        {/* Детализация */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
           {[
             { label: "Потери от невозврата", value: hiddenMoney.lossFromNonReturn, color: "#ef4444", icon: "TrendingDown" },
@@ -177,8 +335,6 @@ export default function SalonResult({ result, onRetake, onBack, backLabel, date 
             </div>
           ))}
         </div>
-
-        {/* Что если... */}
         <div style={{ background: "#f9f9f7", borderRadius: 14, padding: "16px 18px" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", marginBottom: 12 }}>Если улучшить:</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -235,29 +391,44 @@ export default function SalonResult({ result, onRetake, onBack, backLabel, date 
           <RadarChart data={radarData}>
             <PolarGrid stroke="#f0f0ec" />
             <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: "#888", fontFamily: "Montserrat, sans-serif" }} />
-            <Radar name="Салон" dataKey="value" stroke={G} fill={G} fillOpacity={0.2} strokeWidth={2} />
+            <Radar name="Сейчас" dataKey="value" stroke={G} fill={G} fillOpacity={0.2} strokeWidth={2} />
           </RadarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* ДЕТАЛЬНЫЕ ИНДЕКСЫ */}
+      {/* ДЕТАЛЬНЫЕ ИНДЕКСЫ (с дельтами если есть предыдущий) */}
       <div style={{ background: "#fff", borderRadius: 20, padding: "24px", marginBottom: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: G, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 16 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: G, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: previousResult ? 4 : 16 }}>
           Детальные индексы
         </div>
-        <IndexBar label="Возврат клиентов (IVK)"            value={norm.IVK} />
-        <IndexBar label="Средний чек / допродажи (ISC)"     value={norm.ISC} />
-        <IndexBar label="Загрузка и поток (IZ)"             value={norm.IZ} />
-        <IndexBar label="Эффективность администраторов (IEA)" value={norm.IEA} />
-        <IndexBar label="Продажи услуг (IPU)"               value={norm.IPU} />
-        <IndexBar label="Лояльность клиентов (ILK)"         value={norm.ILK} />
-        <IndexBar label="Финансовый контроль (IPS)"         value={norm.IPS} />
+        {previousResult && (
+          <p style={{ fontSize: 12, color: "#aaa", margin: "0 0 16px" }}>
+            Серая полоса — предыдущий результат
+          </p>
+        )}
+        <IndexBar label="Возврат клиентов (IVK)"              value={norm.IVK} prev={previousResult?.ivk} />
+        <IndexBar label="Средний чек / допродажи (ISC)"       value={norm.ISC} prev={previousResult?.isc} />
+        <IndexBar label="Загрузка и поток (IZ)"               value={norm.IZ}  prev={previousResult?.iz} />
+        <IndexBar label="Эффективность администраторов (IEA)" value={norm.IEA} prev={previousResult?.iea} />
+        <IndexBar label="Продажи услуг (IPU)"                 value={norm.IPU} prev={previousResult?.ipu} />
+        <IndexBar label="Лояльность клиентов (ILK)"           value={norm.ILK} prev={previousResult?.ilk} />
+        <IndexBar label="Финансовый контроль (IPS)"           value={norm.IPS} prev={previousResult?.ips_idx} />
         <div style={{ borderTop: "1px solid #f0f0ec", paddingTop: 14, marginTop: 4 }}>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 13, color: "#444", fontWeight: 600 }}>Индекс потери прибыли (IPP)</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: ippLoss >= 60 ? "#ef4444" : ippLoss >= 40 ? "#f97316" : "#22c55e" }}>{ippLoss}%</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {previousResult && (() => {
+                const d = ippLoss - previousResult.ipp_loss;
+                return (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: d < 0 ? "#22c55e" : d > 0 ? "#ef4444" : "#aaa" }}>
+                    {d < 0 ? d : d > 0 ? `+${d}` : "—"}
+                  </span>
+                );
+              })()}
+              <span style={{ fontSize: 13, fontWeight: 700, color: ippLoss >= 60 ? "#ef4444" : ippLoss >= 40 ? "#f97316" : "#22c55e" }}>{ippLoss}%</span>
+            </div>
           </div>
-          <div style={{ fontSize: 12, color: "#aaa", marginTop: 4 }}>Чем ниже — тем лучше</div>
+          <div style={{ fontSize: 12, color: "#aaa", marginTop: 4 }}>Чем ниже — тем лучше{previousResult ? ` · Было: ${previousResult.ipp_loss}%` : ""}</div>
         </div>
       </div>
 
