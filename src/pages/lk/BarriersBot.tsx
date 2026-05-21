@@ -101,15 +101,20 @@ export default function BarriersBot({ onBack }: Props) {
             <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", marginBottom: 14 }}>Что вы узнаете:</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
-                ["🔍", "Главный барьер, который тормозит ваш рост"],
-                ["💰", "Скрытые страхи вокруг денег и продаж"],
-                ["🛡️", "Уровень внутренней опоры и устойчивости"],
-                ["🔥", "Признаки эмоционального выгорания"],
-                ["🎯", "Конкретные рекомендации по каждому блоку"],
+                ["Search",        "Главный барьер, который тормозит ваш рост"],
+                ["Banknote",      "Скрытые страхи вокруг денег и продаж"],
+                ["ShieldCheck",   "Уровень внутренней опоры и устойчивости"],
+                ["Flame",         "Признаки эмоционального выгорания"],
+                ["Target",        "Конкретные рекомендации по каждому блоку"],
               ].map(([icon, text]) => (
                 <div key={text as string} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  <span style={{ fontSize: 18, lineHeight: 1 }}>{icon}</span>
-                  <span style={{ fontSize: 14, color: "#444", lineHeight: 1.5 }}>{text}</span>
+                  <div style={{
+                    width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                    background: `${WARM}18`, display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <Icon name={icon as string} size={14} style={{ color: WARM }} />
+                  </div>
+                  <span style={{ fontSize: 14, color: "#444", lineHeight: 1.5, marginTop: 4 }}>{text}</span>
                 </div>
               ))}
             </div>
