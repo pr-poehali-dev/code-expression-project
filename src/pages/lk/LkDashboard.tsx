@@ -36,6 +36,14 @@ const TOOLS = [
     title: "Финансовая грамотность",
     desc: "Проверь и прокачай знания в управлении доходом специалиста",
   },
+  {
+    id: "profile" as const,
+    icon: "ScanFace",
+    color: "hsl(240,70%,55%)",
+    colorBg: "hsl(240,70%,97%)",
+    title: "Финансовый профиль PRO",
+    desc: "Определи уровень финансового мышления, привычек и зрелости",
+  },
 ];
 
 export default function LkDashboard() {

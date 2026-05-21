@@ -1,18 +1,20 @@
 import Icon from "@/components/ui/icon";
-import { ACCENT, TOOL_COLORS, Test, BarriersHistoryItem, FinanceHistoryItem } from "./LkTestsTypes";
+import { ACCENT, TOOL_COLORS, Test, BarriersHistoryItem, FinanceHistoryItem, ProfileHistoryItem } from "./LkTestsTypes";
 import { formatMoney } from "./finance.logic";
 
 interface Props {
   tests: Test[];
   barriersHistory: BarriersHistoryItem[];
   financeHistory: FinanceHistoryItem[];
+  profileHistory: ProfileHistoryItem[];
   onOpenMindset: () => void;
   onOpenBarriers: () => void;
   onOpenFinance: () => void;
+  onOpenProfile: () => void;
   onOpenTest: (slug: string) => void;
 }
 
-export default function LkTestsList({ tests, barriersHistory, financeHistory, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenTest }: Props) {
+export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenTest }: Props) {
   return (
     <div>
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
@@ -87,7 +89,17 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, on
           onStart={onOpenFinance}
         />
 
-        {tests.length === 0 && barriersHistory.length === 0 && financeHistory.length === 0 && (
+        {/* Карточка «Финансовый профиль PRO» */}
+        <ToolCard
+          icon="Brain" color="hsl(240,70%,55%)" bg="hsl(240,70%,97%)"
+          title="Финансовый профиль PRO"
+          description="Определи свой уровень финансового мышления, привычек и зрелости"
+          completed={profileHistory.length > 0}
+          completedLabel={profileHistory.length > 0 ? `Пройден · IFL ${profileHistory[0].ifl} · ${profileHistory[0].type_title}` : undefined}
+          onStart={onOpenProfile}
+        />
+
+        {tests.length === 0 && barriersHistory.length === 0 && financeHistory.length === 0 && profileHistory.length === 0 && (
           <div style={{ textAlign: "center", padding: 48, color: "#aaa" }}>
             Тесты ещё не добавлены
           </div>

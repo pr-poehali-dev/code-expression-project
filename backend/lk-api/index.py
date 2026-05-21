@@ -568,6 +568,60 @@ def handle_finance_history(event: dict) -> dict:
         conn.close()
 
 
+# ── Profile результаты ───────────────────────────────────────────────────────
+
+def handle_profile_save(event: dict) -> dict:
+    body = json.loads(event.get("body") or "{}")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        idx = body.get("indexes", {})
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"INSERT INTO {tbl('lk_profile_results')} "
+            f"(user_id, ifl, ifu, type_title, ifz, idt, in_idx, ifd, idm, idr, iit, ids, answers) "
+            f"VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+            (
+                user["id"],
+                body.get("ifl", 0),
+                body.get("ifu", 0),
+                body.get("type_title", ""),
+                idx.get("IFZ", 0), idx.get("IDT", 0), idx.get("IN", 0), idx.get("IFD", 0),
+                idx.get("IDM", 0), idx.get("IDR", 0), idx.get("IIT", 0), idx.get("IDS", 0),
+                json.dumps(body.get("answers", {})),
+            )
+        )
+        new_id = cur.fetchone()["id"]
+        conn.commit()
+        return ok({"id": new_id, "ok": True})
+    finally:
+        conn.close()
+
+
+def handle_profile_history(event: dict) -> dict:
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT id, ifl, ifu, type_title, ifz, idt, in_idx, ifd, idm, idr, iit, ids, answers, completed_at "
+            f"FROM {tbl('lk_profile_results')} WHERE user_id = %s ORDER BY completed_at DESC LIMIT 10",
+            (user["id"],)
+        )
+        rows = []
+        for r in cur.fetchall():
+            d = dict(r)
+            d["in_idx"] = d.get("in_idx", 0)  # нормализуем имя поля
+            rows.append(d)
+        return ok(rows)
+    finally:
+        conn.close()
+
+
 # ── Роутер ───────────────────────────────────────────────────────────────────
 
 ROUTES = {
@@ -592,6 +646,8 @@ ROUTES = {
     ("GET",  "barriers_history"): handle_barriers_history,
     ("POST", "finance_save"): handle_finance_save,
     ("GET",  "finance_history"): handle_finance_history,
+    ("POST", "profile_save"): handle_profile_save,
+    ("GET",  "profile_history"): handle_profile_history,
 }
 
 

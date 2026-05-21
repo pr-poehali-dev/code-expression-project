@@ -6,6 +6,7 @@ export const TOOL_COLORS: Record<string, { color: string; bg: string }> = {
   mindset:  { color: "hsl(280,60%,55%)", bg: "hsl(280,60%,96%)" },
   barriers: { color: "hsl(20,85%,52%)",  bg: "hsl(20,85%,96%)"  },
   finance:  { color: "hsl(145,60%,40%)", bg: "hsl(145,60%,95%)" },
+  profile:  { color: "hsl(240,70%,55%)", bg: "hsl(240,70%,97%)" },
 };
 
 export interface Test {
@@ -66,6 +67,17 @@ export interface FinanceHistoryItem {
   ifj: number; ifu: number; ipn: number; idm: number; ifp: number;
   jlj: number; fr: number; mpd: number; nsc: number; nck: number;
   data: object;
+  completed_at: string;
+}
+
+export interface ProfileHistoryItem {
+  id: number;
+  ifl: number;
+  ifu: number;
+  type_title: string;
+  ifz: number; idt: number; in_idx: number; ifd: number;
+  idm: number; idr: number; iit: number; ids: number;
+  answers: object;
   completed_at: string;
 }
 

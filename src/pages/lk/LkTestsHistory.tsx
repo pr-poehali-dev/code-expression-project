@@ -1,4 +1,4 @@
-import { ACCENT, MindsetHistoryItem, BarriersHistoryItem, FinanceHistoryItem } from "./LkTestsTypes";
+import { ACCENT, MindsetHistoryItem, BarriersHistoryItem, FinanceHistoryItem, ProfileHistoryItem } from "./LkTestsTypes";
 import { IndexMap } from "./MindsetResult";
 import { BarrierIndexMap } from "./barriers.logic";
 import { FinanceData } from "./finance.types";
@@ -8,15 +8,18 @@ interface Props {
   mindsetHistory: MindsetHistoryItem[];
   barriersHistory: BarriersHistoryItem[];
   financeHistory: FinanceHistoryItem[];
+  profileHistory: ProfileHistoryItem[];
   onViewMindset: (item: { idx: IndexMap; date: string }) => void;
   onViewBarriers: (item: { idx: BarrierIndexMap; date: string }) => void;
   onViewFinance: (item: { data: FinanceData; date: string }) => void;
+  onViewProfile: (item: ProfileHistoryItem) => void;
   onRetakeMindset: () => void;
   onRetakeBarriers: () => void;
   onRetakeFinance: () => void;
+  onRetakeProfile: () => void;
 }
 
-export default function LkTestsHistory({ mindsetHistory, barriersHistory, financeHistory, onViewMindset, onViewBarriers, onViewFinance, onRetakeMindset, onRetakeBarriers, onRetakeFinance }: Props) {
+export default function LkTestsHistory({ mindsetHistory, barriersHistory, financeHistory, profileHistory, onViewMindset, onViewBarriers, onViewFinance, onViewProfile, onRetakeMindset, onRetakeBarriers, onRetakeFinance, onRetakeProfile }: Props) {
   return (
     <>
       {/* История прохождений mindset */}
@@ -264,6 +267,85 @@ export default function LkTestsHistory({ mindsetHistory, barriersHistory, financ
                       }}
                     >
                       Пересчитать
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {/* История прохождений: Финансовый профиль PRO */}
+      {profileHistory.length > 0 && (
+        <div style={{ marginTop: 36 }}>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: "#aaa", letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 16px" }}>
+            История · Финансовый профиль PRO
+          </h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {profileHistory.map((item, i) => {
+              const date  = new Date(item.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+              const time  = new Date(item.completed_at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+              const pct   = item.ifl;
+              const color = pct >= 85 ? "#14b8a6" : pct >= 70 ? "#22c55e" : pct >= 50 ? "#eab308" : pct >= 30 ? "#f97316" : "#ef4444";
+              return (
+                <div key={item.id} style={{
+                  background: "#fff", borderRadius: 14, padding: "16px 20px",
+                  display: "flex", alignItems: "center", gap: 16,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1.5px solid #f0f0ec",
+                }}>
+                  <div style={{
+                    width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                    background: `${color}18`,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <span style={{ fontSize: 16, fontWeight: 900, color, lineHeight: 1 }}>{pct}</span>
+                    <span style={{ fontSize: 9, color, fontWeight: 600 }}>IFL</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 }}>
+                      {item.type_title}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#aaa" }}>{date} · {time}</div>
+                    {i === 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
+                        {[
+                          { label: "Зрелость", val: `${item.ifz}%` },
+                          { label: "Дисципл.", val: `${item.ifd}%` },
+                          { label: "Самооцен.", val: `${item.ids}%` },
+                          { label: "Тревога", val: `${item.idt}%` },
+                        ].map(b => (
+                          <span key={b.label} style={{
+                            fontSize: 11, padding: "2px 8px", borderRadius: 20,
+                            background: "#f4f4f0", color: "#666",
+                          }}>
+                            {b.label}: <b>{b.val}</b>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+                    <button
+                      onClick={() => onViewProfile(item)}
+                      style={{
+                        padding: "7px 14px", borderRadius: 10, border: "none",
+                        background: "hsl(240,70%,55%)", color: "#fff",
+                        fontSize: 12, fontWeight: 700, cursor: "pointer",
+                        fontFamily: "Montserrat, sans-serif",
+                      }}
+                    >
+                      Смотреть
+                    </button>
+                    <button
+                      onClick={onRetakeProfile}
+                      style={{
+                        padding: "7px 14px", borderRadius: 10, border: "1.5px solid hsl(240,70%,55%)",
+                        background: "transparent", color: "hsl(240,70%,55%)",
+                        fontSize: 12, fontWeight: 700, cursor: "pointer",
+                        fontFamily: "Montserrat, sans-serif",
+                      }}
+                    >
+                      Пройти снова
                     </button>
                   </div>
                 </div>

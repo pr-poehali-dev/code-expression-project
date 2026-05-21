@@ -50,6 +50,19 @@
       "method": "GET",
       "path": "/?action=finance_history",
       "expectedStatus": 401
+    },
+    {
+      "name": "profile_save без сессии — 401",
+      "method": "POST",
+      "path": "/?action=profile_save",
+      "body": {},
+      "expectedStatus": 401
+    },
+    {
+      "name": "profile_history без сессии — 401",
+      "method": "GET",
+      "path": "/?action=profile_history",
+      "expectedStatus": 401
     }
   ]
 }

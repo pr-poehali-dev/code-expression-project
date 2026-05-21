@@ -85,4 +85,10 @@ export const lkApi = {
     request("POST", "finance_save", data),
 
   financeHistory: () => request("GET", "finance_history"),
+
+  // Profile
+  profileSave: (data: { ifl: number; ifu: number; type_title: string; indexes: object; answers: object }) =>
+    request("POST", "profile_save", data),
+
+  profileHistory: () => request("GET", "profile_history"),
 };
