@@ -58,31 +58,25 @@ export default function LkDashboard() {
   const { user, logout } = useLkAuth();
   const [tab, setTab] = useState<Tab>("home");
 
-  const navItems: { id: Tab; icon: string; label: string; adminOnly?: boolean }[] = [
-    { id: "home", icon: "Home", label: "Главная" },
-    { id: "tests", icon: "ClipboardCheck", label: "Инструменты" },
-    { id: "body", icon: "User", label: "Схема тела" },
-    ...(user?.is_admin ? [{ id: "admin" as Tab, icon: "Settings", label: "Админка", adminOnly: true }] : []),
+  const navItems: { id: Tab; icon: string; label: string }[] = [
+    { id: "home",  icon: "Home",          label: "Главная"     },
+    { id: "tests", icon: "ClipboardCheck",label: "Инструменты" },
+    { id: "body",  icon: "User",          label: "Шпаргалка"   },
+    ...(user?.is_admin ? [{ id: "admin" as Tab, icon: "Settings", label: "Админка" }] : []),
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: BG, fontFamily: "Montserrat, sans-serif", display: "flex" }}>
+    <div style={{ minHeight: "100vh", background: BG, fontFamily: "Montserrat, sans-serif" }} className="lk-root">
 
-      {/* Боковая навигация */}
-      <aside style={{
-        width: 240, background: "#fff", borderRight: "1px solid #eee",
-        display: "flex", flexDirection: "column", position: "fixed",
-        top: 0, left: 0, height: "100vh", zIndex: 100,
-        padding: "28px 0",
-      }} className="lk-sidebar">
+      {/* ── Боковой сайдбар (десктоп) ── */}
+      <aside className="lk-sidebar">
         {/* Логотип */}
         <div style={{ padding: "0 24px 28px", borderBottom: "1px solid #f0f0ec" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{
               width: 40, height: 40, borderRadius: 12,
               background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
             }}>
               <Icon name="BookOpen" size={20} style={{ color: "#fff" }} />
             </div>
@@ -96,19 +90,15 @@ export default function LkDashboard() {
         {/* Навигация */}
         <nav style={{ flex: 1, padding: "16px 12px" }}>
           {navItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => setTab(item.id)}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", gap: 12,
-                padding: "11px 14px", borderRadius: 12, border: "none",
-                background: tab === item.id ? `hsla(185,85%,32%,0.1)` : "transparent",
-                color: tab === item.id ? ACCENT : "#666",
-                fontSize: 14, fontWeight: tab === item.id ? 700 : 500,
-                cursor: "pointer", fontFamily: "Montserrat, sans-serif",
-                marginBottom: 4, transition: "all 0.15s", textAlign: "left",
-              }}
-            >
+            <button key={item.id} onClick={() => setTab(item.id)} style={{
+              width: "100%", display: "flex", alignItems: "center", gap: 12,
+              padding: "11px 14px", borderRadius: 12, border: "none",
+              background: tab === item.id ? `hsla(185,85%,32%,0.1)` : "transparent",
+              color: tab === item.id ? ACCENT : "#666",
+              fontSize: 14, fontWeight: tab === item.id ? 700 : 500,
+              cursor: "pointer", fontFamily: "Montserrat, sans-serif",
+              marginBottom: 4, transition: "all 0.15s", textAlign: "left",
+            }}>
               <Icon name={item.icon} size={18} />
               {item.label}
             </button>
@@ -121,33 +111,140 @@ export default function LkDashboard() {
             {user?.full_name || user?.username}
           </div>
           <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12 }}>{user?.email}</div>
-          <button
-            onClick={logout}
-            style={{
-              display: "flex", alignItems: "center", gap: 8, background: "none",
-              border: "none", color: "#999", fontSize: 13, cursor: "pointer",
-              padding: 0, fontFamily: "Montserrat, sans-serif",
-            }}
-          >
+          <button onClick={logout} style={{
+            display: "flex", alignItems: "center", gap: 8, background: "none",
+            border: "none", color: "#999", fontSize: 13, cursor: "pointer",
+            padding: 0, fontFamily: "Montserrat, sans-serif",
+          }}>
             <Icon name="LogOut" size={14} />
             Выйти
           </button>
         </div>
       </aside>
 
-      {/* Контент */}
-      <main style={{ marginLeft: 240, flex: 1, padding: "36px 40px" }} className="lk-main">
-        {tab === "home" && <HomeTab onNav={setTab} />}
+      {/* ── Мобильный хедер ── */}
+      <header className="lk-mobile-header">
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 8,
+            background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          }}>
+            <Icon name="BookOpen" size={16} style={{ color: "#fff" }} />
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>Кабинет</div>
+        </div>
+        <button onClick={logout} style={{
+          display: "flex", alignItems: "center", gap: 6, background: "none",
+          border: "1.5px solid #e8e8e4", borderRadius: 8, color: "#999",
+          fontSize: 12, cursor: "pointer", padding: "6px 12px",
+          fontFamily: "Montserrat, sans-serif",
+        }}>
+          <Icon name="LogOut" size={13} />
+          Выйти
+        </button>
+      </header>
+
+      {/* ── Контент ── */}
+      <main className="lk-main">
+        {tab === "home"  && <HomeTab onNav={setTab} />}
         {tab === "tests" && <LkTests />}
-        {tab === "body" && <LkBodyMap />}
+        {tab === "body"  && <LkBodyMap />}
         {tab === "admin" && user?.is_admin && <LkAdmin />}
       </main>
 
+      {/* ── Мобильный нижний таббар ── */}
+      <nav className="lk-bottombar">
+        {navItems.map(item => (
+          <button key={item.id} onClick={() => setTab(item.id)} style={{
+            flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+            justifyContent: "center", gap: 3, border: "none", background: "none",
+            color: tab === item.id ? ACCENT : "#bbb",
+            fontSize: 10, fontWeight: tab === item.id ? 700 : 500,
+            cursor: "pointer", fontFamily: "Montserrat, sans-serif",
+            padding: "8px 4px",
+          }}>
+            <Icon name={item.icon} size={20} />
+            {item.label}
+          </button>
+        ))}
+      </nav>
+
       <style>{`
+        /* ── RESET ── */
+        .lk-root { display: flex; }
+
+        /* ── SIDEBAR (десктоп) ── */
+        .lk-sidebar {
+          width: 240px;
+          background: #fff;
+          border-right: 1px solid #eee;
+          display: flex;
+          flex-direction: column;
+          position: fixed;
+          top: 0; left: 0;
+          height: 100vh;
+          z-index: 100;
+          padding: 28px 0;
+        }
+
+        /* ── MAIN ── */
+        .lk-main {
+          margin-left: 240px;
+          flex: 1;
+          padding: 36px 40px;
+          min-height: 100vh;
+        }
+
+        /* ── MOBILE HEADER (скрыт на десктопе) ── */
+        .lk-mobile-header {
+          display: none;
+        }
+
+        /* ── BOTTOM BAR (скрыт на десктопе) ── */
+        .lk-bottombar {
+          display: none;
+        }
+
+        /* ── MOBILE ── */
         @media (max-width: 768px) {
-          .lk-sidebar { width: 100% !important; height: auto !important; position: static !important; flex-direction: row !important; padding: 0 !important; overflow-x: auto; border-right: none !important; border-bottom: 1px solid #eee; }
-          .lk-sidebar aside { display: none; }
-          .lk-main { margin-left: 0 !important; padding: 20px 16px !important; }
+          .lk-root { flex-direction: column; }
+
+          .lk-sidebar { display: none; }
+
+          .lk-mobile-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 52px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            padding: 0 16px;
+            z-index: 100;
+          }
+
+          .lk-main {
+            margin-left: 0;
+            padding: 68px 16px 80px;
+          }
+
+          .lk-bottombar {
+            display: flex;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 60px;
+            background: #fff;
+            border-top: 1px solid #eee;
+            z-index: 100;
+          }
+        }
+
+        /* ── TABLET ── */
+        @media (min-width: 769px) and (max-width: 1024px) {
+          .lk-sidebar { width: 200px; }
+          .lk-main { margin-left: 200px; padding: 28px 24px; }
         }
       `}</style>
     </div>
@@ -158,31 +255,31 @@ function HomeTab({ onNav }: { onNav: (t: Tab) => void }) {
   const { user } = useLkAuth();
   return (
     <div>
-      <div style={{ marginBottom: 32 }}>
+      <div style={{ marginBottom: 28 }}>
         <h1 style={{
-          fontFamily: "Cormorant, serif", fontSize: "clamp(26px,3vw,36px)",
+          fontFamily: "Cormorant, serif", fontSize: "clamp(22px,3vw,34px)",
           fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px",
         }}>
           Привет, {user?.full_name?.split(" ")[0] || user?.username}!
         </h1>
-        <p style={{ fontSize: 15, color: "#777", margin: 0 }}>
+        <p style={{ fontSize: 14, color: "#777", margin: 0, lineHeight: 1.6 }}>
           Здесь — инструменты для профессионального роста специалиста по телу
         </p>
       </div>
 
       {/* Инструменты */}
       <div style={{ marginBottom: 12 }}>
-        <h2 style={{ fontSize: 14, fontWeight: 700, color: "#aaa", letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 16px" }}>
+        <h2 style={{ fontSize: 13, fontWeight: 700, color: "#aaa", letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 14px" }}>
           Инструменты роста
         </h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16, marginBottom: 32 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12, marginBottom: 24 }}>
           {TOOLS.map(tool => (
             <button
               key={tool.id}
               onClick={() => onNav("tests")}
               style={{
                 background: "#fff", border: "1.5px solid #f0f0ec", borderRadius: 16,
-                padding: "22px 22px", textAlign: "left", cursor: "pointer",
+                padding: "18px 20px", textAlign: "left", cursor: "pointer",
                 fontFamily: "Montserrat, sans-serif", transition: "all 0.2s",
                 boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
               }}
@@ -190,47 +287,47 @@ function HomeTab({ onNav }: { onNav: (t: Tab) => void }) {
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = "0 2px 12px rgba(0,0,0,0.04)"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}
             >
               <div style={{
-                width: 44, height: 44, borderRadius: 12,
+                width: 42, height: 42, borderRadius: 12,
                 background: tool.colorBg, display: "flex", alignItems: "center",
-                justifyContent: "center", marginBottom: 14,
+                justifyContent: "center", marginBottom: 12,
               }}>
-                <Icon name={tool.icon} size={22} style={{ color: tool.color }} />
+                <Icon name={tool.icon} size={20} style={{ color: tool.color }} />
               </div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", marginBottom: 6, lineHeight: 1.3 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 5, lineHeight: 1.3 }}>
                 {tool.title}
               </div>
-              <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6 }}>{tool.desc}</div>
+              <div style={{ fontSize: 12, color: "#888", lineHeight: 1.6 }}>{tool.desc}</div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Схема тела */}
+      {/* Шпаргалка по телу */}
       <button
         onClick={() => onNav("body")}
         style={{
           width: "100%", background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-          border: "none", borderRadius: 16, padding: "24px 28px",
-          display: "flex", alignItems: "center", gap: 20, cursor: "pointer",
+          border: "none", borderRadius: 16, padding: "20px 24px",
+          display: "flex", alignItems: "center", gap: 16, cursor: "pointer",
           fontFamily: "Montserrat, sans-serif", textAlign: "left",
           boxShadow: `0 8px 28px hsla(185,85%,32%,0.25)`,
         }}
       >
         <div style={{
-          width: 52, height: 52, borderRadius: 14, background: "rgba(255,255,255,0.2)",
+          width: 48, height: 48, borderRadius: 14, background: "rgba(255,255,255,0.2)",
           display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
         }}>
-          <Icon name="User" size={26} style={{ color: "#fff" }} />
+          <Icon name="User" size={24} style={{ color: "#fff" }} />
         </div>
-        <div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 4 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 3 }}>
             Шпаргалка по телу
           </div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)" }}>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>
             Кликни на зону тела → диагностика, техники и видео
           </div>
         </div>
-        <Icon name="ArrowRight" size={20} style={{ color: "rgba(255,255,255,0.7)", marginLeft: "auto" }} />
+        <Icon name="ArrowRight" size={18} style={{ color: "rgba(255,255,255,0.7)", flexShrink: 0 }} />
       </button>
     </div>
   );
