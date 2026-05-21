@@ -41,6 +41,14 @@ interface TestResult {
   score_max: number;
 }
 
+interface MindsetHistoryItem {
+  id: number;
+  igp: number;
+  iu: number; ipm: number; ido: number; ipg: number; ics: number; isd: number; izk: number;
+  type_title: string;
+  completed_at: string;
+}
+
 export default function LkTests() {
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,13 +57,18 @@ export default function LkTests() {
   const [result, setResult] = useState<{ score: number; result: TestResult | null } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [openMindset, setOpenMindset] = useState(false);
+  const [mindsetHistory, setMindsetHistory] = useState<MindsetHistoryItem[]>([]);
 
   useEffect(() => {
     lkApi.tests().then(setTests).finally(() => setLoading(false));
+    lkApi.mindsetHistory().then(setMindsetHistory).catch(() => {});
   }, []);
 
   if (openMindset) {
-    return <MindsetBot onBack={() => setOpenMindset(false)} />;
+    return <MindsetBot onBack={() => {
+      setOpenMindset(false);
+      lkApi.mindsetHistory().then(setMindsetHistory).catch(() => {});
+    }} />;
   }
 
   const openTest = async (slug: string) => {
@@ -278,6 +291,73 @@ export default function LkTests() {
           </div>
         )}
       </div>
+
+      {/* История прохождений mindset */}
+      {mindsetHistory.length > 0 && (
+        <div style={{ marginTop: 36 }}>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: "#aaa", letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 16px" }}>
+            История · Мышление с премиум-клиентами
+          </h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {mindsetHistory.map((item, i) => {
+              const date = new Date(item.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+              const time = new Date(item.completed_at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+              const pct = item.igp;
+              const color = pct >= 85 ? "#14b8a6" : pct >= 70 ? "#22c55e" : pct >= 50 ? "#eab308" : pct >= 30 ? "#f97316" : "#ef4444";
+              return (
+                <div key={item.id} style={{
+                  background: "#fff", borderRadius: 14, padding: "16px 20px",
+                  display: "flex", alignItems: "center", gap: 16,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1.5px solid #f0f0ec",
+                }}>
+                  <div style={{
+                    width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                    background: `${color}18`,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <span style={{ fontSize: 16, fontWeight: 900, color, lineHeight: 1 }}>{pct}</span>
+                    <span style={{ fontSize: 9, color, fontWeight: 600 }}>IGP</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 }}>
+                      {item.type_title}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#aaa" }}>{date} · {time}</div>
+                    {i === 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
+                        {[
+                          { label: "Уверен.", val: item.iu },
+                          { label: "Границы", val: item.ipg },
+                          { label: "Ценность", val: item.ics },
+                          { label: "Коммун.", val: item.izk },
+                        ].map(idx => (
+                          <span key={idx.label} style={{
+                            fontSize: 11, padding: "2px 8px", borderRadius: 20,
+                            background: "#f4f4f0", color: "#666",
+                          }}>
+                            {idx.label}: <b>{idx.val}%</b>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setOpenMindset(true)}
+                    style={{
+                      padding: "8px 16px", borderRadius: 10, border: `1.5px solid ${ACCENT}`,
+                      background: "transparent", color: ACCENT,
+                      fontSize: 12, fontWeight: 700, cursor: "pointer",
+                      fontFamily: "Montserrat, sans-serif", flexShrink: 0,
+                    }}
+                  >
+                    Пройти снова
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

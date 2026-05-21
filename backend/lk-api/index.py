@@ -422,6 +422,54 @@ def handle_admin_body_zones(event: dict) -> dict:
         conn.close()
 
 
+# ── Mindset результаты ───────────────────────────────────────────────────────
+
+def handle_mindset_save(event: dict) -> dict:
+    body = json.loads(event.get("body") or "{}")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        idx = body.get("indexes", {})
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"INSERT INTO {tbl('lk_mindset_results')} "
+            f"(user_id, igp, iu, ipm, ido, ipg, ics, isd, izk, type_title, answers) "
+            f"VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+            (
+                user["id"],
+                body.get("igp", 0),
+                idx.get("IU", 0), idx.get("IPM", 0), idx.get("IDO", 0),
+                idx.get("IPG", 0), idx.get("ICS", 0), idx.get("ISD", 0), idx.get("IZK", 0),
+                body.get("type_title", ""),
+                json.dumps(body.get("answers", {})),
+            )
+        )
+        new_id = cur.fetchone()["id"]
+        conn.commit()
+        return ok({"id": new_id, "ok": True})
+    finally:
+        conn.close()
+
+
+def handle_mindset_history(event: dict) -> dict:
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT id, igp, iu, ipm, ido, ipg, ics, isd, izk, type_title, completed_at "
+            f"FROM {tbl('lk_mindset_results')} WHERE user_id = %s ORDER BY completed_at DESC LIMIT 10",
+            (user["id"],)
+        )
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
 # ── Роутер ───────────────────────────────────────────────────────────────────
 
 ROUTES = {
@@ -440,6 +488,8 @@ ROUTES = {
     ("POST", "admin_body_zone_save"): handle_admin_body_zone_save,
     ("POST", "admin_technique_save"): handle_admin_technique_save,
     ("GET",  "admin_body_zones"): handle_admin_body_zones,
+    ("POST", "mindset_save"): handle_mindset_save,
+    ("GET",  "mindset_history"): handle_mindset_history,
 }
 
 

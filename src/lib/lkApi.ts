@@ -67,4 +67,10 @@ export const lkApi = {
 
   adminTechniqueSave: (data: object) =>
     request("POST", "admin_technique_save", data),
+
+  // Mindset
+  mindsetSave: (data: { igp: number; indexes: object; type_title: string; answers: object }) =>
+    request("POST", "mindset_save", data),
+
+  mindsetHistory: () => request("GET", "mindset_history"),
 };

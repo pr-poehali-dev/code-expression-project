@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer,
 } from "recharts";
@@ -6,6 +6,7 @@ import Icon from "@/components/ui/icon";
 import { QUESTIONS, BLOCK_COMMENTS } from "./mindset.types";
 import { calcIndexes, calcIGP, getScaleLabel, getType } from "./mindset.logic";
 import { BotShell, MiniIndexBar, ACCENT, ACCENT_LIGHT } from "./MindsetShared";
+import { lkApi } from "@/lib/lkApi";
 
 type Phase = "intro" | "quiz" | "block-end" | "result";
 
@@ -47,6 +48,12 @@ export default function MindsetBot({ onBack }: Props) {
 
       if (nextIdx >= total) {
         setPhase("result");
+        // Сохраняем результат автоматически
+        const finalAnswers = { ...answers, [q.id]: selected };
+        const idx = calcIndexes(finalAnswers);
+        const igp = calcIGP(idx);
+        const type = getType(idx);
+        lkApi.mindsetSave({ igp, indexes: idx, type_title: type.title, answers: finalAnswers }).catch(() => {});
       } else if (isLastInBlock) {
         setBlockEndData({ block: q.block, blockTitle: q.blockTitle });
         setCurrent(nextIdx);
