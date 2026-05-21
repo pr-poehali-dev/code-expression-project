@@ -3,6 +3,58 @@ import { lkApi } from "@/lib/lkApi";
 import Icon from "@/components/ui/icon";
 
 const ACCENT = "hsl(185,85%,32%)";
+const IMG_URL = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/bd5d264e-4712-4e93-adfa-b10ea45948dc.jpg";
+
+// Координаты в % от размера картинки (1280x942)
+// Левая половина = вид спереди (x: 0–50%), правая = сзади (x: 50–100%)
+const ZONES_FRONT: ZoneHotspot[] = [
+  { slug: "head",           label: "Голова",          x: 20.5, y: 4,    w: 7,  h: 9 },
+  { slug: "neck",           label: "Шея",             x: 22,   y: 12.5, w: 4,  h: 4.5 },
+  { slug: "shoulders",      label: "Плечи",           x: 14,   y: 15,   w: 20, h: 5 },
+  { slug: "chest",          label: "Грудь",           x: 17,   y: 19.5, w: 12, h: 9 },
+  { slug: "abdomen",        label: "Живот",           x: 18,   y: 30,   w: 10, h: 8 },
+  { slug: "hips",           label: "Бёдра",           x: 17,   y: 39,   w: 12, h: 6 },
+  { slug: "upper-arm-left", label: "Плечо (лев.)",    x: 9,    y: 17,   w: 6,  h: 12 },
+  { slug: "upper-arm-right",label: "Плечо (прав.)",   x: 31,   y: 17,   w: 6,  h: 12 },
+  { slug: "forearm-left",   label: "Предплечье (лев.)",x: 6,   y: 30,   w: 5,  h: 11 },
+  { slug: "forearm-right",  label: "Предплечье (пр.)", x: 35,  y: 30,   w: 5,  h: 11 },
+  { slug: "thigh-left",     label: "Бедро (лев.)",    x: 17,   y: 47,   w: 6,  h: 14 },
+  { slug: "thigh-right",    label: "Бедро (прав.)",   x: 24,   y: 47,   w: 6,  h: 14 },
+  { slug: "knee-left",      label: "Колено (лев.)",   x: 17,   y: 62,   w: 5.5,h: 5 },
+  { slug: "knee-right",     label: "Колено (прав.)",  x: 24,   y: 62,   w: 5.5,h: 5 },
+  { slug: "shin-left",      label: "Голень (лев.)",   x: 16.5, y: 68,   w: 5,  h: 12 },
+  { slug: "shin-right",     label: "Голень (прав.)",  x: 24,   y: 68,   w: 5,  h: 12 },
+  { slug: "foot",           label: "Стопы",           x: 16,   y: 82,   w: 14, h: 6 },
+];
+
+const ZONES_BACK: ZoneHotspot[] = [
+  { slug: "head",           label: "Голова",          x: 70,   y: 4,    w: 7,  h: 9 },
+  { slug: "neck",           label: "Шея",             x: 71.5, y: 12.5, w: 4,  h: 4.5 },
+  { slug: "shoulders",      label: "Плечи",           x: 63,   y: 15,   w: 20, h: 5 },
+  { slug: "upper-back",     label: "Верхняя спина",   x: 66,   y: 19.5, w: 14, h: 10 },
+  { slug: "lower-back",     label: "Поясница",        x: 67,   y: 30,   w: 11, h: 7 },
+  { slug: "glutes",         label: "Ягодицы",         x: 66,   y: 39,   w: 13, h: 7 },
+  { slug: "upper-arm-left", label: "Плечо (лев.)",    x: 58,   y: 17,   w: 6,  h: 12 },
+  { slug: "upper-arm-right",label: "Плечо (прав.)",   x: 82,   y: 17,   w: 6,  h: 12 },
+  { slug: "forearm-left",   label: "Предплечье (лев.)",x: 55,  y: 30,   w: 5,  h: 11 },
+  { slug: "forearm-right",  label: "Предплечье (пр.)", x: 85.5,y: 30,   w: 5,  h: 11 },
+  { slug: "thigh-left",     label: "Бедро (лев.)",    x: 66,   y: 47,   w: 6,  h: 14 },
+  { slug: "thigh-right",    label: "Бедро (прав.)",   x: 73,   y: 47,   w: 6,  h: 14 },
+  { slug: "knee-left",      label: "Колено (лев.)",   x: 66,   y: 62,   w: 5.5,h: 5 },
+  { slug: "knee-right",     label: "Колено (прав.)",  x: 73,   y: 62,   w: 5.5,h: 5 },
+  { slug: "shin-left",      label: "Голень (лев.)",   x: 65.5, y: 68,   w: 5,  h: 12 },
+  { slug: "shin-right",     label: "Голень (прав.)",  x: 73,   y: 68,   w: 5,  h: 12 },
+  { slug: "foot",           label: "Стопы",           x: 64.5, y: 82,   w: 14, h: 6 },
+];
+
+interface ZoneHotspot {
+  slug: string;
+  label: string;
+  x: number; // % от ширины картинки
+  y: number; // % от высоты картинки
+  w: number;
+  h: number;
+}
 
 interface Zone {
   id: number;
@@ -21,30 +73,6 @@ interface ZoneDetail {
   zone: Zone & { description: string; diagnosis: string; video_url: string };
   techniques: Technique[];
 }
-
-// SVG-карта тела — интерактивные зоны
-const BODY_ZONES_SVG: { slug: string; label: string; cx: number; cy: number; w: number; h: number }[] = [
-  { slug: "head", label: "Голова", cx: 120, cy: 30, w: 44, h: 44 },
-  { slug: "neck", label: "Шея", cx: 120, cy: 72, w: 24, h: 22 },
-  { slug: "shoulders", label: "Плечи", cx: 120, cy: 95, w: 90, h: 20 },
-  { slug: "chest", label: "Грудь", cx: 120, cy: 118, w: 60, h: 28 },
-  { slug: "upper-back", label: "В.спина", cx: 120, cy: 118, w: 60, h: 28 },
-  { slug: "abdomen", label: "Живот", cx: 120, cy: 150, w: 54, h: 26 },
-  { slug: "lower-back", label: "Поясница", cx: 120, cy: 150, w: 54, h: 26 },
-  { slug: "hips", label: "Бёдра", cx: 120, cy: 182, w: 58, h: 22 },
-  { slug: "glutes", label: "Ягодицы", cx: 120, cy: 182, w: 58, h: 22 },
-  { slug: "upper-arm-left", label: "Плечо Л", cx: 66, cy: 120, w: 22, h: 38 },
-  { slug: "upper-arm-right", label: "Плечо П", cx: 174, cy: 120, w: 22, h: 38 },
-  { slug: "forearm-left", label: "Предпл.Л", cx: 58, cy: 158, w: 18, h: 34 },
-  { slug: "forearm-right", label: "Предпл.П", cx: 182, cy: 158, w: 18, h: 34 },
-  { slug: "thigh-left", label: "Бедро Л", cx: 102, cy: 215, w: 26, h: 42 },
-  { slug: "thigh-right", label: "Бедро П", cx: 138, cy: 215, w: 26, h: 42 },
-  { slug: "knee-left", label: "Колено Л", cx: 100, cy: 258, w: 22, h: 20 },
-  { slug: "knee-right", label: "Колено П", cx: 140, cy: 258, w: 22, h: 20 },
-  { slug: "shin-left", label: "Голень Л", cx: 99, cy: 286, w: 20, h: 38 },
-  { slug: "shin-right", label: "Голень П", cx: 141, cy: 286, w: 20, h: 38 },
-  { slug: "foot", label: "Стопы", cx: 120, cy: 332, w: 52, h: 18 },
-];
 
 function getKinescopeId(url: string): string | null {
   if (!url) return null;
@@ -77,102 +105,80 @@ export default function LkBodyMap() {
 
   const activeSlugs = new Set(zones.map(z => z.slug));
 
+  // Дедупликация: не показывать одну и ту же зону дважды в списке
+  const allHotspots = [...ZONES_FRONT, ...ZONES_BACK];
+  const seenSlugs = new Set<string>();
+  const uniqueHotspots = allHotspots.filter(z => {
+    if (seenSlugs.has(z.slug)) return false;
+    seenSlugs.add(z.slug);
+    return true;
+  });
+
+  const renderHotspots = (hotspots: ZoneHotspot[]) =>
+    hotspots.map(zone => {
+      if (!activeSlugs.has(zone.slug)) return null;
+      const isHovered = hovered === zone.slug;
+      const isSelected = selected?.zone.slug === zone.slug;
+      return (
+        <div
+          key={`${zone.slug}-${zone.x}`}
+          onClick={() => selectZone(zone.slug)}
+          onMouseEnter={() => setHovered(zone.slug)}
+          onMouseLeave={() => setHovered(null)}
+          title={zone.label}
+          style={{
+            position: "absolute",
+            left: `${zone.x}%`,
+            top: `${zone.y}%`,
+            width: `${zone.w}%`,
+            height: `${zone.h}%`,
+            borderRadius: 8,
+            cursor: "pointer",
+            background: isSelected
+              ? "hsla(185,85%,32%,0.45)"
+              : isHovered
+              ? "hsla(185,85%,32%,0.25)"
+              : "hsla(185,85%,32%,0.08)",
+            border: isSelected || isHovered
+              ? `2px solid ${ACCENT}`
+              : "1.5px solid hsla(185,85%,32%,0.25)",
+            transition: "all 0.15s",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+          }}
+        >
+          {(isHovered || isSelected) && (
+            <span style={{
+              fontSize: "clamp(7px, 0.9vw, 11px)",
+              fontWeight: 700,
+              color: "#fff",
+              fontFamily: "Montserrat, sans-serif",
+              textAlign: "center",
+              lineHeight: 1.2,
+              padding: "1px 3px",
+              pointerEvents: "none",
+              textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+              whiteSpace: "nowrap",
+            }}>
+              {zone.label}
+            </span>
+          )}
+        </div>
+      );
+    });
+
   return (
     <div>
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
         Шпаргалка по телу
       </h1>
-      <p style={{ fontSize: 14, color: "#888", margin: "0 0 28px" }}>
-        Выбери зону на схеме или из списка — получи диагностику и техники
+      <p style={{ fontSize: 14, color: "#888", margin: "0 0 20px" }}>
+        Кликни на зону тела — получи диагностику и техники
       </p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 24 }} className="body-grid">
-
-        {/* SVG-схема тела */}
-        <div style={{ background: "#fff", borderRadius: 20, padding: "24px 20px", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 1, marginBottom: 16 }}>
-            Кликни на зону
-          </div>
-          {loading ? (
-            <div style={{ height: 360, display: "flex", alignItems: "center", justifyContent: "center", color: "#ccc" }}>
-              <Icon name="Loader" size={24} />
-            </div>
-          ) : (
-            <svg viewBox="0 0 240 360" style={{ width: "100%", maxWidth: 240, display: "block", margin: "0 auto" }}>
-              {/* Силуэт тела */}
-              <ellipse cx="120" cy="30" rx="22" ry="22" fill="#f0f0ec" stroke="#ddd" strokeWidth="1" />
-              <rect x="108" y="51" width="24" height="20" rx="6" fill="#f0f0ec" stroke="#ddd" strokeWidth="1" />
-              <path d="M75 72 L165 72 L170 100 L170 180 L165 210 L155 210 L150 180 L140 180 L130 270 L126 340 L114 340 L110 270 L100 180 L90 180 L85 210 L75 210 L70 180 L70 100 Z" fill="#f0f0ec" stroke="#ddd" strokeWidth="1.5" />
-              <path d="M75 72 L55 76 L45 130 L45 175 L52 175 L58 130 L68 100" fill="#f0f0ec" stroke="#ddd" strokeWidth="1.5" />
-              <path d="M165 72 L185 76 L195 130 L195 175 L188 175 L182 130 L172 100" fill="#f0f0ec" stroke="#ddd" strokeWidth="1.5" />
-              <ellipse cx="49" cy="175" rx="9" ry="7" fill="#f0f0ec" stroke="#ddd" strokeWidth="1" />
-              <ellipse cx="191" cy="175" rx="9" ry="7" fill="#f0f0ec" stroke="#ddd" strokeWidth="1" />
-              <path d="M126 270 L123 320 L115 340 L110 344 L108 340 L114 320 L112 270" fill="#f0f0ec" stroke="#ddd" strokeWidth="1.5" />
-              <path d="M114 270 L117 320 L125 340 L130 344 L132 340 L126 320 L128 270" fill="#f0f0ec" stroke="#ddd" strokeWidth="1.5" />
-
-              {/* Интерактивные зоны */}
-              {BODY_ZONES_SVG.map(zone => {
-                const active = activeSlugs.has(zone.slug);
-                const isHovered = hovered === zone.slug;
-                const isSelected = selected?.zone.slug === zone.slug;
-                if (!active) return null;
-                return (
-                  <g key={zone.slug}
-                    style={{ cursor: "pointer" }}
-                    onClick={() => selectZone(zone.slug)}
-                    onMouseEnter={() => setHovered(zone.slug)}
-                    onMouseLeave={() => setHovered(null)}
-                  >
-                    <ellipse
-                      cx={zone.cx} cy={zone.cy}
-                      rx={zone.w / 2} ry={zone.h / 2}
-                      fill={isSelected ? ACCENT : isHovered ? "hsla(185,85%,32%,0.15)" : "hsla(185,85%,32%,0.08)"}
-                      stroke={isSelected || isHovered ? ACCENT : "hsla(185,85%,32%,0.3)"}
-                      strokeWidth={isSelected ? 2 : 1.5}
-                      style={{ transition: "all 0.15s" }}
-                    />
-                    {(isHovered || isSelected) && (
-                      <text
-                        x={zone.cx} y={zone.cy + 4}
-                        textAnchor="middle" fontSize="8"
-                        fill={isSelected ? "#fff" : ACCENT}
-                        fontFamily="Montserrat, sans-serif"
-                        fontWeight="600"
-                        style={{ pointerEvents: "none" }}
-                      >
-                        {zone.label}
-                      </text>
-                    )}
-                  </g>
-                );
-              })}
-            </svg>
-          )}
-
-          {/* Список зон */}
-          <div style={{ marginTop: 16, borderTop: "1px solid #f0f0ec", paddingTop: 16 }}>
-            <div style={{ fontSize: 12, color: "#aaa", marginBottom: 8 }}>Или выбери из списка:</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {zones.map(z => (
-                <button
-                  key={z.slug}
-                  onClick={() => selectZone(z.slug)}
-                  style={{
-                    padding: "5px 10px", borderRadius: 20, fontSize: 12,
-                    border: selected?.zone.slug === z.slug ? `1.5px solid ${ACCENT}` : "1.5px solid #e8e8e4",
-                    background: selected?.zone.slug === z.slug ? "hsl(185,85%,96%)" : "#fafafa",
-                    color: selected?.zone.slug === z.slug ? ACCENT : "#666",
-                    cursor: "pointer", fontFamily: "Montserrat, sans-serif",
-                    fontWeight: selected?.zone.slug === z.slug ? 700 : 400,
-                    transition: "all 0.15s",
-                  }}
-                >
-                  {z.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: 24, alignItems: "start" }} className="body-grid">
 
         {/* Детали зоны */}
         <div>
@@ -182,109 +188,67 @@ export default function LkBodyMap() {
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
           )}
-
           {!selected && !detailLoading && (
             <div style={{
               background: "#fff", borderRadius: 20, padding: "48px 32px",
-              textAlign: "center", color: "#ccc",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+              textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
             }}>
               <Icon name="MousePointerClick" size={40} style={{ marginBottom: 16, color: "#ddd" }} />
-              <div style={{ fontSize: 15, color: "#bbb" }}>Выбери зону тела слева</div>
+              <div style={{ fontSize: 15, color: "#bbb" }}>Выбери зону на схеме справа</div>
+            </div>
+          )}
+          {selected && !detailLoading && <ZonePanel zone={selected} />}
+        </div>
+
+        {/* Карта тела */}
+        <div style={{ background: "#fff", borderRadius: 20, padding: "20px 16px", boxShadow: "0 2px 12px rgba(0,0,0,0.05)", position: "sticky", top: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 1, marginBottom: 12, textAlign: "center" }}>
+            Спереди &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Сзади
+          </div>
+
+          {loading ? (
+            <div style={{ height: 300, display: "flex", alignItems: "center", justifyContent: "center", color: "#ccc" }}>
+              <Icon name="Loader" size={24} />
+            </div>
+          ) : (
+            <div style={{ position: "relative", width: "100%" }}>
+              <img
+                src={IMG_URL}
+                alt="Анатомия тела"
+                style={{ width: "100%", display: "block", borderRadius: 12, userSelect: "none" }}
+                draggable={false}
+              />
+              {/* Горячие зоны поверх картинки */}
+              <div style={{ position: "absolute", inset: 0 }}>
+                {renderHotspots(ZONES_FRONT)}
+                {renderHotspots(ZONES_BACK)}
+              </div>
             </div>
           )}
 
-          {selected && !detailLoading && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {/* Заголовок */}
-              <div style={{ background: "#fff", borderRadius: 20, padding: "24px 28px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-                <h2 style={{ fontFamily: "Cormorant, serif", fontSize: 26, fontWeight: 700, color: "#1a1a1a", margin: "0 0 12px" }}>
-                  {selected.zone.name}
-                </h2>
-                {selected.zone.description && (
-                  <p style={{ fontSize: 14, color: "#555", lineHeight: 1.75, margin: 0 }}>
-                    {selected.zone.description}
-                  </p>
-                )}
-                {!selected.zone.description && (
-                  <p style={{ fontSize: 14, color: "#bbb", fontStyle: "italic" }}>Описание ещё не добавлено</p>
-                )}
-              </div>
-
-              {/* Диагностика */}
-              <div style={{
-                background: "#fff", borderRadius: 20, padding: "24px 28px",
-                borderLeft: `4px solid ${ACCENT}`, boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-                  <Icon name="Search" size={18} style={{ color: ACCENT }} />
-                  <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Диагностика</h3>
-                </div>
-                {selected.zone.diagnosis ? (
-                  <p style={{ fontSize: 14, color: "#444", lineHeight: 1.75, margin: 0, whiteSpace: "pre-line" }}>
-                    {selected.zone.diagnosis}
-                  </p>
-                ) : (
-                  <p style={{ fontSize: 14, color: "#bbb", fontStyle: "italic", margin: 0 }}>
-                    Текст диагностики ещё не добавлен
-                  </p>
-                )}
-                {selected.zone.video_url && (() => {
-                  const kid = getKinescopeId(selected.zone.video_url);
-                  return kid ? (
-                    <div style={{ marginTop: 16, borderRadius: 12, overflow: "hidden", aspectRatio: "16/9" }}>
-                      <iframe
-                        src={`https://kinescope.io/embed/${kid}`}
-                        style={{ width: "100%", height: "100%", border: "none" }}
-                        allow="autoplay; fullscreen"
-                        allowFullScreen
-                      />
-                    </div>
-                  ) : null;
-                })()}
-              </div>
-
-              {/* Техники */}
-              <div style={{ background: "#fff", borderRadius: 20, padding: "24px 28px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-                  <Icon name="Zap" size={18} style={{ color: ACCENT }} />
-                  <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Техники</h3>
-                </div>
-                {selected.techniques.length === 0 && (
-                  <p style={{ fontSize: 14, color: "#bbb", fontStyle: "italic", margin: 0 }}>
-                    Техники ещё не добавлены
-                  </p>
-                )}
-                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                  {selected.techniques.map((tech, i) => (
-                    <div key={tech.id} style={{ borderBottom: i < selected.techniques.length - 1 ? "1px solid #f0f0ec" : "none", paddingBottom: i < selected.techniques.length - 1 ? 16 : 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 6 }}>
-                        {i + 1}. {tech.title}
-                      </div>
-                      {tech.description && (
-                        <p style={{ fontSize: 13.5, color: "#555", lineHeight: 1.7, margin: "0 0 10px", whiteSpace: "pre-line" }}>
-                          {tech.description}
-                        </p>
-                      )}
-                      {tech.video_url && (() => {
-                        const kid = getKinescopeId(tech.video_url);
-                        return kid ? (
-                          <div style={{ borderRadius: 10, overflow: "hidden", aspectRatio: "16/9" }}>
-                            <iframe
-                              src={`https://kinescope.io/embed/${kid}`}
-                              style={{ width: "100%", height: "100%", border: "none" }}
-                              allow="autoplay; fullscreen"
-                              allowFullScreen
-                            />
-                          </div>
-                        ) : null;
-                      })()}
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {/* Список зон */}
+          <div style={{ marginTop: 14, borderTop: "1px solid #f0f0ec", paddingTop: 12 }}>
+            <div style={{ fontSize: 11, color: "#aaa", marginBottom: 8 }}>Или выбери из списка:</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+              {uniqueHotspots.filter(z => activeSlugs.has(z.slug)).map(z => (
+                <button
+                  key={z.slug}
+                  onClick={() => selectZone(z.slug)}
+                  style={{
+                    padding: "4px 10px", borderRadius: 20, fontSize: 11,
+                    border: selected?.zone.slug === z.slug ? `1.5px solid ${ACCENT}` : "1.5px solid #e8e8e4",
+                    background: selected?.zone.slug === z.slug ? "hsl(185,85%,96%)" : "#fafafa",
+                    color: selected?.zone.slug === z.slug ? ACCENT : "#666",
+                    cursor: "pointer", fontFamily: "Montserrat, sans-serif",
+                    fontWeight: selected?.zone.slug === z.slug ? 700 : 400,
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {z.label}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -293,6 +257,69 @@ export default function LkBodyMap() {
           .body-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
+    </div>
+  );
+}
+
+function ZonePanel({ zone }: { zone: ZoneDetail }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ background: "#fff", borderRadius: 20, padding: "24px 28px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
+        <h2 style={{ fontFamily: "Cormorant, serif", fontSize: 26, fontWeight: 700, color: "#1a1a1a", margin: "0 0 12px" }}>
+          {zone.zone.name}
+        </h2>
+        {zone.zone.description
+          ? <p style={{ fontSize: 14, color: "#555", lineHeight: 1.75, margin: 0 }}>{zone.zone.description}</p>
+          : <p style={{ fontSize: 14, color: "#bbb", fontStyle: "italic" }}>Описание ещё не добавлено</p>
+        }
+      </div>
+
+      <div style={{ background: "#fff", borderRadius: 20, padding: "24px 28px", borderLeft: `4px solid ${ACCENT}`, boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <Icon name="Search" size={18} style={{ color: ACCENT }} />
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Диагностика</h3>
+        </div>
+        {zone.zone.diagnosis
+          ? <p style={{ fontSize: 14, color: "#444", lineHeight: 1.75, margin: 0, whiteSpace: "pre-line" }}>{zone.zone.diagnosis}</p>
+          : <p style={{ fontSize: 14, color: "#bbb", fontStyle: "italic", margin: 0 }}>Текст диагностики ещё не добавлен</p>
+        }
+        {zone.zone.video_url && (() => {
+          const kid = getKinescopeId(zone.zone.video_url);
+          return kid ? (
+            <div style={{ marginTop: 16, borderRadius: 12, overflow: "hidden", aspectRatio: "16/9" }}>
+              <iframe src={`https://kinescope.io/embed/${kid}`} style={{ width: "100%", height: "100%", border: "none" }} allow="autoplay; fullscreen" allowFullScreen />
+            </div>
+          ) : null;
+        })()}
+      </div>
+
+      <div style={{ background: "#fff", borderRadius: 20, padding: "24px 28px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          <Icon name="Zap" size={18} style={{ color: ACCENT }} />
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Техники</h3>
+        </div>
+        {zone.techniques.length === 0
+          ? <p style={{ fontSize: 14, color: "#bbb", fontStyle: "italic", margin: 0 }}>Техники ещё не добавлены</p>
+          : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {zone.techniques.map((tech, i) => (
+                <div key={tech.id} style={{ borderBottom: i < zone.techniques.length - 1 ? "1px solid #f0f0ec" : "none", paddingBottom: i < zone.techniques.length - 1 ? 16 : 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 6 }}>{i + 1}. {tech.title}</div>
+                  {tech.description && <p style={{ fontSize: 13.5, color: "#555", lineHeight: 1.7, margin: "0 0 10px", whiteSpace: "pre-line" }}>{tech.description}</p>}
+                  {tech.video_url && (() => {
+                    const kid = getKinescopeId(tech.video_url);
+                    return kid ? (
+                      <div style={{ borderRadius: 10, overflow: "hidden", aspectRatio: "16/9" }}>
+                        <iframe src={`https://kinescope.io/embed/${kid}`} style={{ width: "100%", height: "100%", border: "none" }} allow="autoplay; fullscreen" allowFullScreen />
+                      </div>
+                    ) : null;
+                  })()}
+                </div>
+              ))}
+            </div>
+          )
+        }
+      </div>
     </div>
   );
 }
