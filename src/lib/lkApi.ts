@@ -73,4 +73,10 @@ export const lkApi = {
     request("POST", "mindset_save", data),
 
   mindsetHistory: () => request("GET", "mindset_history"),
+
+  // Barriers
+  barriersSave: (data: { iib: number; indexes: object; type_title: string; answers: object }) =>
+    request("POST", "barriers_save", data),
+
+  barriersHistory: () => request("GET", "barriers_history"),
 };

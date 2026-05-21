@@ -470,6 +470,54 @@ def handle_mindset_history(event: dict) -> dict:
         conn.close()
 
 
+# ── Barriers результаты ──────────────────────────────────────────────────────
+
+def handle_barriers_save(event: dict) -> dict:
+    body = json.loads(event.get("body") or "{}")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        idx = body.get("indexes", {})
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"INSERT INTO {tbl('lk_barriers_results')} "
+            f"(user_id, iib, ivo, iss, isd, ido, iir, iei, isp, type_title, answers) "
+            f"VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+            (
+                user["id"],
+                body.get("iib", 0),
+                idx.get("IVO", 0), idx.get("ISS", 0), idx.get("ISD", 0),
+                idx.get("IDO", 0), idx.get("IIR", 0), idx.get("IEI", 0), idx.get("ISP", 0),
+                body.get("type_title", ""),
+                json.dumps(body.get("answers", {})),
+            )
+        )
+        new_id = cur.fetchone()["id"]
+        conn.commit()
+        return ok({"id": new_id, "ok": True})
+    finally:
+        conn.close()
+
+
+def handle_barriers_history(event: dict) -> dict:
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT id, iib, ivo, iss, isd, ido, iir, iei, isp, type_title, completed_at "
+            f"FROM {tbl('lk_barriers_results')} WHERE user_id = %s ORDER BY completed_at DESC LIMIT 10",
+            (user["id"],)
+        )
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
 # ── Роутер ───────────────────────────────────────────────────────────────────
 
 ROUTES = {
@@ -490,6 +538,8 @@ ROUTES = {
     ("GET",  "admin_body_zones"): handle_admin_body_zones,
     ("POST", "mindset_save"): handle_mindset_save,
     ("GET",  "mindset_history"): handle_mindset_history,
+    ("POST", "barriers_save"): handle_barriers_save,
+    ("GET",  "barriers_history"): handle_barriers_history,
 }
 
 

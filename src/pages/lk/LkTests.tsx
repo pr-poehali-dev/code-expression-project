@@ -3,6 +3,9 @@ import { lkApi } from "@/lib/lkApi";
 import Icon from "@/components/ui/icon";
 import MindsetBot from "./MindsetBot";
 import MindsetResult, { IndexMap } from "./MindsetResult";
+import BarriersBot from "./BarriersBot";
+import BarriersResult from "./BarriersResult";
+import { BarrierIndexMap } from "./barriers.logic";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -50,6 +53,14 @@ interface MindsetHistoryItem {
   completed_at: string;
 }
 
+interface BarriersHistoryItem {
+  id: number;
+  iib: number;
+  ivo: number; iss: number; isd: number; ido: number; iir: number; iei: number; isp: number;
+  type_title: string;
+  completed_at: string;
+}
+
 export default function LkTests() {
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,10 +71,14 @@ export default function LkTests() {
   const [openMindset, setOpenMindset] = useState(false);
   const [mindsetHistory, setMindsetHistory] = useState<MindsetHistoryItem[]>([]);
   const [viewingResult, setViewingResult] = useState<{ idx: IndexMap; date: string } | null>(null);
+  const [openBarriers, setOpenBarriers] = useState(false);
+  const [barriersHistory, setBarriersHistory] = useState<BarriersHistoryItem[]>([]);
+  const [viewingBarriers, setViewingBarriers] = useState<{ idx: BarrierIndexMap; date: string } | null>(null);
 
   useEffect(() => {
     lkApi.tests().then(setTests).finally(() => setLoading(false));
     lkApi.mindsetHistory().then(setMindsetHistory).catch(() => {});
+    lkApi.barriersHistory().then(setBarriersHistory).catch(() => {});
   }, []);
 
   if (openMindset) {
@@ -80,6 +95,25 @@ export default function LkTests() {
         date={viewingResult.date}
         onRetake={() => { setViewingResult(null); setOpenMindset(true); }}
         onBack={() => setViewingResult(null)}
+        backLabel="← К истории"
+      />
+    );
+  }
+
+  if (openBarriers) {
+    return <BarriersBot onBack={() => {
+      setOpenBarriers(false);
+      lkApi.barriersHistory().then(setBarriersHistory).catch(() => {});
+    }} />;
+  }
+
+  if (viewingBarriers) {
+    return (
+      <BarriersResult
+        idx={viewingBarriers.idx}
+        date={viewingBarriers.date}
+        onRetake={() => { setViewingBarriers(null); setOpenBarriers(true); }}
+        onBack={() => setViewingBarriers(null)}
         backLabel="← К истории"
       />
     );
@@ -285,7 +319,11 @@ export default function LkTests() {
                 )}
               </div>
               <button
-                onClick={() => test.slug === "mindset" ? setOpenMindset(true) : openTest(test.slug)}
+                onClick={() => {
+                  if (test.slug === "mindset") setOpenMindset(true);
+                  else if (test.slug === "barriers") setOpenBarriers(true);
+                  else openTest(test.slug);
+                }}
                 style={{
                   padding: "10px 20px", borderRadius: 10, border: `1.5px solid ${ACCENT}`,
                   background: test.completed ? "transparent" : ACCENT,
@@ -299,7 +337,51 @@ export default function LkTests() {
             </div>
           );
         })}
-        {tests.length === 0 && (
+
+        {/* Карточка «Внутренние барьеры» — всегда показывается */}
+        <div style={{
+          background: "#fff", borderRadius: 16, padding: "22px 24px",
+          display: "flex", alignItems: "center", gap: 18,
+          boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1.5px solid #f0f0ec",
+        }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+            background: "hsl(20,85%,96%)", display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Icon name="ShieldAlert" size={22} style={{ color: "hsl(20,85%,50%)" }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#1a1a1a", marginBottom: 4 }}>
+              Внутренние барьеры специалиста
+            </div>
+            <div style={{ fontSize: 13, color: "#888", lineHeight: 1.5 }}>
+              Выяви психологические блоки, которые мешают профессиональному росту
+            </div>
+            {barriersHistory.length > 0 && (
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
+                <Icon name="CheckCircle" size={14} style={{ color: "hsl(20,85%,50%)" }} />
+                <span style={{ fontSize: 12, color: "hsl(20,85%,50%)", fontWeight: 600 }}>
+                  Пройден · IIB {barriersHistory[0].iib}
+                </span>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={() => setOpenBarriers(true)}
+            style={{
+              padding: "10px 20px", borderRadius: 10,
+              border: `1.5px solid hsl(20,85%,50%)`,
+              background: barriersHistory.length > 0 ? "transparent" : "hsl(20,85%,50%)",
+              color: barriersHistory.length > 0 ? "hsl(20,85%,50%)" : "#fff",
+              fontSize: 13, fontWeight: 700, cursor: "pointer",
+              fontFamily: "Montserrat, sans-serif", flexShrink: 0,
+            }}
+          >
+            {barriersHistory.length > 0 ? "Пройти снова" : "Начать"}
+          </button>
+        </div>
+
+        {tests.length === 0 && barriersHistory.length === 0 && (
           <div style={{ textAlign: "center", padding: 48, color: "#aaa" }}>
             Тесты ещё не добавлены
           </div>
@@ -376,6 +458,94 @@ export default function LkTests() {
                       style={{
                         padding: "7px 14px", borderRadius: 10, border: `1.5px solid ${ACCENT}`,
                         background: "transparent", color: ACCENT,
+                        fontSize: 12, fontWeight: 700, cursor: "pointer",
+                        fontFamily: "Montserrat, sans-serif",
+                      }}
+                    >
+                      Пройти снова
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* История прохождений: Внутренние барьеры */}
+      {barriersHistory.length > 0 && (
+        <div style={{ marginTop: 36 }}>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: "#aaa", letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 16px" }}>
+            История · Внутренние барьеры
+          </h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {barriersHistory.map((item, i) => {
+              const date = new Date(item.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+              const time = new Date(item.completed_at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+              const pct = item.iib;
+              const color = pct <= 30 ? "#14b8a6" : pct <= 50 ? "#22c55e" : pct <= 70 ? "#eab308" : pct <= 85 ? "#f97316" : "#ef4444";
+              return (
+                <div key={item.id} style={{
+                  background: "#fff", borderRadius: 14, padding: "16px 20px",
+                  display: "flex", alignItems: "center", gap: 16,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1.5px solid #f0f0ec",
+                }}>
+                  <div style={{
+                    width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                    background: `${color}18`,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <span style={{ fontSize: 16, fontWeight: 900, color, lineHeight: 1 }}>{pct}</span>
+                    <span style={{ fontSize: 9, color, fontWeight: 600 }}>IIB</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 }}>
+                      {item.type_title}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#aaa" }}>{date} · {time}</div>
+                    {i === 0 && (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
+                        {[
+                          { label: "Опора", val: item.ivo },
+                          { label: "Самозв.", val: item.iss },
+                          { label: "Деньги", val: item.isd },
+                          { label: "Выгор.", val: item.iei },
+                        ].map(b => (
+                          <span key={b.label} style={{
+                            fontSize: 11, padding: "2px 8px", borderRadius: 20,
+                            background: "#f4f4f0", color: "#666",
+                          }}>
+                            {b.label}: <b>{b.val}%</b>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+                    <button
+                      onClick={() => {
+                        const idx: BarrierIndexMap = {
+                          IVO: item.ivo, ISS: item.iss, ISD: item.isd,
+                          IDO: item.ido, IIR: item.iir, IEI: item.iei,
+                          ISP: item.isp, IPZ_raw: 0,
+                        };
+                        const dateStr = new Date(item.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+                        setViewingBarriers({ idx, date: dateStr });
+                      }}
+                      style={{
+                        padding: "7px 14px", borderRadius: 10, border: "none",
+                        background: "hsl(20,85%,50%)", color: "#fff",
+                        fontSize: 12, fontWeight: 700, cursor: "pointer",
+                        fontFamily: "Montserrat, sans-serif",
+                      }}
+                    >
+                      Смотреть
+                    </button>
+                    <button
+                      onClick={() => setOpenBarriers(true)}
+                      style={{
+                        padding: "7px 14px", borderRadius: 10, border: "1.5px solid hsl(20,85%,50%)",
+                        background: "transparent", color: "hsl(20,85%,50%)",
                         fontSize: 12, fontWeight: 700, cursor: "pointer",
                         fontFamily: "Montserrat, sans-serif",
                       }}
