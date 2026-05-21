@@ -131,9 +131,15 @@ export default function LkBodyMap() {
       return (
         <div
           key={`${zone.slug}-${zone.x}`}
+          data-slug={zone.slug}
           onClick={() => selectZone(zone.slug)}
           onMouseEnter={() => setHovered(zone.slug)}
-          onMouseLeave={() => setHovered(null)}
+          onMouseLeave={(e) => {
+            // Не сбрасываем если курсор перешёл на другой элемент с тем же slug
+            const rel = e.relatedTarget as HTMLElement | null;
+            if (rel?.dataset?.slug === zone.slug) return;
+            setHovered(null);
+          }}
           title={zone.label}
           style={{
             position: "absolute",
@@ -224,10 +230,9 @@ export default function LkBodyMap() {
                 style={{ width: "100%", display: "block", borderRadius: 12, userSelect: "none" }}
                 draggable={false}
               />
-              {/* Горячие зоны поверх картинки */}
+              {/* Горячие зоны поверх картинки — все в одном слое */}
               <div style={{ position: "absolute", inset: 0 }}>
-                {renderHotspots(ZONES_FRONT)}
-                {renderHotspots(ZONES_BACK)}
+                {renderHotspots([...ZONES_FRONT, ...ZONES_BACK])}
               </div>
             </div>
           )}
