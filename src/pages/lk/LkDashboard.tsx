@@ -296,6 +296,16 @@ export default function LkDashboard() {
 
 function HomeTab({ onNav }: { onNav: (t: Tab) => void }) {
   const { user } = useLkAuth();
+
+  const accessBadge = (() => {
+    if (!user?.access_expires_at) return null;
+    const exp = new Date(user.access_expires_at);
+    const daysLeft = Math.ceil((exp.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    const expired = daysLeft <= 0;
+    const soon = daysLeft > 0 && daysLeft <= 30;
+    return { daysLeft, expired, soon };
+  })();
+
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
@@ -308,6 +318,22 @@ function HomeTab({ onNav }: { onNav: (t: Tab) => void }) {
         <p style={{ fontSize: 14, color: "#777", margin: 0, lineHeight: 1.6 }}>
           Здесь — инструменты для профессионального роста специалиста по телу
         </p>
+        {accessBadge && (
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            marginTop: 12, padding: "7px 14px", borderRadius: 10,
+            fontSize: 13, fontWeight: 600,
+            background: accessBadge.expired ? "#fff0f0" : accessBadge.soon ? "hsl(40,100%,94%)" : "hsl(185,85%,94%)",
+            color: accessBadge.expired ? "#e55" : accessBadge.soon ? "hsl(40,85%,38%)" : ACCENT,
+          }}>
+            <Icon name={accessBadge.expired ? "AlertCircle" : "Clock"} size={14} />
+            {accessBadge.expired
+              ? "Срок доступа истёк"
+              : accessBadge.daysLeft === 1
+                ? "Последний день доступа"
+                : `Доступ ещё ${accessBadge.daysLeft} дн.`}
+          </div>
+        )}
       </div>
 
       {/* Инструменты */}
