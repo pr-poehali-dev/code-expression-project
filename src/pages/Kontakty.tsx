@@ -212,8 +212,9 @@ export default function Kontakty() {
   return (
     <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
       <Helmet>
-        <title>Контакты — Связаться с Dok Диалог</title>
-        <meta name="description" content="Свяжитесь с командой Dok Диалог: телефон, email, Telegram. Вопросы по платформе, тарифам и партнёрству. Ответим быстро в рабочее время." />
+        <title>Контакты — Dok Диалог</title>
+        <meta name="description" content="Свяжитесь с Dok Диалог для обсуждения участия в программе, внедрения системы в салоне или формата профессионального сопровождения." />
+        <meta property="og:title" content="Связаться с Dok Диалог" />
       </Helmet>
       <style>{`
         .k-cards-grid {
@@ -260,7 +261,7 @@ export default function Kontakty() {
           </FadeIn>
           <FadeIn delay={100}>
             <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(36px, 5vw, 64px)", fontWeight: 700, lineHeight: 1.1, color: "#1a1a1a", marginBottom: 20, letterSpacing: "-0.5px" }}>
-              Свяжитесь с нами
+              Связаться с Dok Диалог
             </h1>
           </FadeIn>
           <FadeIn delay={200}>

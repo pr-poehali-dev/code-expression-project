@@ -36,6 +36,10 @@ import QuizAdmin from "./pages/QuizAdmin";
 import QuizLanding from "./pages/QuizLanding";
 import LkPage from "./pages/lk/LkPage";
 import { LkAuthProvider } from "./contexts/LkAuthContext";
+import DlyaSpecialistov from "./pages/DlyaSpecialistov";
+import OSisteme from "./pages/OSisteme";
+import ProfessionalnyeVstrechi from "./pages/ProfessionalnyeVstrechi";
+import ZakrytayaPraktika from "./pages/ZakrytayaPraktika";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +81,10 @@ const App = () => (
           <Route path="/quiz-admin" element={<QuizAdmin />} />
           <Route path="/quiz" element={<QuizLanding />} />
           <Route path="/cabinet" element={<LkPage />} />
+          <Route path="/dlya-specialistov" element={<DlyaSpecialistov />} />
+          <Route path="/o-sisteme" element={<OSisteme />} />
+          <Route path="/professionalnye-vstrechi" element={<ProfessionalnyeVstrechi />} />
+          <Route path="/zakrytaya-praktika" element={<ZakrytayaPraktika />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

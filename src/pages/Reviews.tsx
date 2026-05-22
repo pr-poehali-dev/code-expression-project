@@ -346,8 +346,9 @@ export default function Reviews() {
   return (
     <div style={{ background: BG, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#1a1a1a" }}>
       <Helmet>
-        <title>Отзывы студентов | Dok Диалог</title>
-        <meta name="description" content="Реальные отзывы студентов курсов Dok Диалог — видеоотзывы, текстовые отзывы, результаты участников интенсивов и онлайн-курсов для массажистов." />
+        <title>Истории специалистов — Dok Диалог</title>
+        <meta name="description" content="Истории специалистов и команд, которые изменили подход к практике: мышление, стоимость, работа с клиентом, внедрение в салоне." />
+        <meta property="og:title" content="Истории специалистов — Dok Диалог" />
       </Helmet>
 
       <DokNavbar />
@@ -357,13 +358,13 @@ export default function Reviews() {
         <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: `${ACCENT}12`, borderRadius: 20, padding: "6px 16px", marginBottom: 20 }}>
             <Icon name="Star" size={14} style={{ color: ACCENT, fill: ACCENT }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: ACCENT }}>Более 500 студентов уже изменили свою практику</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: ACCENT }}>Истории специалистов и команд</span>
           </div>
           <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 16px", lineHeight: 1.2 }}>
-            Результаты говорят<br />сами за себя
+            Истории тех, кто изменил<br />подход к практике
           </h1>
           <p style={{ fontSize: 16, color: "#666", maxWidth: 520, margin: "0 auto", lineHeight: 1.7 }}>
-            Реальные истории студентов — от первых сомнений до стабильного дохода и потока клиентов
+            Специалисты и команды, которые перешли от потоковой работы к более глубокому и ценному формату
           </p>
         </div>
       </section>

@@ -151,7 +151,8 @@ export default function DiagnostikaSalona() {
     <div style={{ background: BG, color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
       <Helmet>
         <title>Диагностика массажного направления салона — Dok Диалог</title>
-        <meta name="description" content="Платная диагностика массажных услуг салона: узнайте, сколько недополучает ваш салон. Сводная таблица потерь, прогноз роста. 30 000 ₽, 3–4 часа, без остановки работы." />
+        <meta name="description" content="Профессиональная диагностика массажного направления: анализ клиентского пути, компетенций мастеров, ценности услуг и потенциала роста. 30 000 ₽." />
+        <meta property="og:title" content="Диагностика массажного направления — Dok Диалог" />
       </Helmet>
       <style>{`
         .ds-hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
@@ -188,13 +189,13 @@ export default function DiagnostikaSalona() {
               </FadeIn>
               <FadeIn delay={100}>
                 <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(34px, 5vw, 60px)", fontWeight: 700, lineHeight: 1.1, color: "#1a1a1a", marginBottom: 24, letterSpacing: "-0.5px" }}>
-                  Узнайте, сколько<br />
-                  <span style={{ color: ACCENT }}>теряет ваш салон<br />на массаже</span>
+                  Диагностика<br />
+                  <span style={{ color: ACCENT }}>массажного направления<br />салона</span>
                 </h1>
               </FadeIn>
               <FadeIn delay={200}>
                 <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", lineHeight: 1.8, color: "#4a4a4a", marginBottom: 28 }}>
-                  Большинство владельцев салонов чувствуют, что массаж мог бы приносить больше. Но не знают — сколько именно и почему. Мы проведём диагностику и дадим конкретный ответ с цифрами — ещё до того, как вы примете любое решение.
+                  Показываем, где теряется ценность услуги, качество клиентского пути, загрузка мастеров и потенциал роста направления — до того, как вы примете любое решение о внедрении.
                 </p>
               </FadeIn>
               <FadeIn delay={250}>
@@ -218,7 +219,7 @@ export default function DiagnostikaSalona() {
                     onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT_DARK; el.style.boxShadow = `0 8px 32px ${ACCENT_SHADOW_HOVER}`; el.style.transform = "translateY(-2px)"; }}
                     onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT; el.style.boxShadow = `0 4px 20px ${ACCENT_SHADOW}`; el.style.transform = "translateY(0)"; }}
                   >
-                    Заказать диагностику
+                    Обсудить диагностику
                   </a>
                   <a href="tel:+79029007474"
                     style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "transparent", color: ACCENT, padding: "16px 24px", borderRadius: 12, fontSize: 15, fontWeight: 600, textDecoration: "none", transition: "all 0.25s ease", border: `1.5px solid ${ACCENT}` }}

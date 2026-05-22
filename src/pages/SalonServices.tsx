@@ -100,8 +100,10 @@ export default function SalonServices() {
   return (
     <div style={{ background: BG, color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
       <Helmet>
-        <title>Услуги для массажных салонов — Dok Диалог</title>
-        <meta name="description" content="Запускаем массажные услуги в салонах: оценка персонала, внедрение техник, обучение мастеров. Увеличиваем выручку, сокращаем нагрузку на мастеров." />
+        <title>Для салонов — Dok Диалог</title>
+        <meta name="description" content="Внедрение премиальных восстановительных практик для салонов и wellness-пространств. Обучение команды, повышение ценности услуг, стандарты клиентского пути." />
+        <meta property="og:title" content="Для салонов — Dok Диалог" />
+        <meta property="og:description" content="Система помогает усилить команду, повысить ценность услуг и создать клиентский опыт, за который возвращаются и рекомендуют." />
       </Helmet>
       <style>{`
         .ss-hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
@@ -139,32 +141,32 @@ export default function SalonServices() {
               </FadeIn>
               <FadeIn delay={100}>
                 <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(36px, 5vw, 62px)", fontWeight: 700, lineHeight: 1.08, color: "#1a1a1a", marginBottom: 24, letterSpacing: "-0.5px" }}>
-                  Массаж в вашем салоне —<br />
-                  <span style={{ color: ACCENT }}>источник дохода,<br />а не головная боль</span>
+                  Внедрение премиальных<br />
+                  <span style={{ color: ACCENT }}>восстановительных практик<br />для салонов</span>
                 </h1>
               </FadeIn>
               <FadeIn delay={200}>
                 <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", lineHeight: 1.8, color: "#4a4a4a", marginBottom: 36 }}>
-                  Помогаем запустить или прокачать массажное направление в салоне: находим, где вы теряете деньги, внедряем техники под каждого мастера и выстраиваем систему, которая работает без вашего постоянного контроля.
+                  Система помогает усилить команду, повысить ценность услуг и создать клиентский опыт, за который возвращаются и рекомендуют — через стандарты, обучение и управляемую систему качества.
                 </p>
               </FadeIn>
               <FadeIn delay={300}>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 14, alignItems: "center" }}>
                   <a
-                    href="/tarify"
+                    href="/kontakty"
                     style={{ display: "inline-block", background: ACCENT, color: "#fff", padding: "16px 32px", borderRadius: 12, fontSize: 15, fontWeight: 600, textDecoration: "none", transition: "all 0.25s ease", boxShadow: `0 4px 20px ${ACCENT_SHADOW}` }}
                     onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT_DARK; el.style.boxShadow = `0 8px 32px ${ACCENT_SHADOW_HOVER}`; el.style.transform = "translateY(-2px)"; }}
                     onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT; el.style.boxShadow = `0 4px 20px ${ACCENT_SHADOW}`; el.style.transform = "translateY(0)"; }}
                   >
-                    Хочу подключить салон
+                    Обсудить внедрение
                   </a>
                   <a
-                    href="/kontakty"
+                    href="/diagnostika-salona"
                     style={{ display: "inline-block", background: "transparent", color: ACCENT, padding: "16px 28px", borderRadius: 12, fontSize: 15, fontWeight: 600, textDecoration: "none", transition: "all 0.25s ease", border: `1.5px solid ${ACCENT}` }}
                     onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = `${ACCENT}08`; el.style.transform = "translateY(-2px)"; }}
                     onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "transparent"; el.style.transform = "translateY(0)"; }}
                   >
-                    Задать вопрос
+                    Провести диагностику салона
                   </a>
                 </div>
               </FadeIn>

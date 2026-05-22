@@ -26,8 +26,9 @@ export default function Tarify() {
   return (
     <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
       <Helmet>
-        <title>Тарифы на обучение массажу — Выберите свой план | Dok Диалог</title>
-        <meta name="description" content="Онлайн-курсы по массажу для частных мастеров и салонов. Выберите тариф: базовый, профессиональный или корпоративный. Доступ к урокам, протоколам и профессиональному сообществу." />
+        <title>Форматы участия — Dok Диалог</title>
+        <meta name="description" content="Форматы участия в системе Dok Диалог: для специалистов и для салонов. Система, практика, закрытая практика, внедрение." />
+        <meta property="og:title" content="Форматы участия — Dok Диалог" />
       </Helmet>
       <style>{`
         .tarify-plans-grid {

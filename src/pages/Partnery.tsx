@@ -9,8 +9,9 @@ export default function Partnery() {
   return (
     <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
       <Helmet>
-        <title>Партнёрам — Сотрудничество с Dok Диалог | МассоПро</title>
-        <meta name="description" content="Станьте партнёром образовательной платформы для мастеров массажа. Совместные программы, реферальная система, корпоративное обучение персонала салонов." />
+        <title>Профессиональное сотрудничество — Dok Диалог</title>
+        <meta name="description" content="Открыты к партнёрству с салонами, wellness-пространствами, образовательными проектами и специалистами, которым близок системный подход к работе с телом и клиентом." />
+        <meta property="og:title" content="Профессиональное сотрудничество — Dok Диалог" />
       </Helmet>
       <DokNavbar />
       <PartnerHero />
