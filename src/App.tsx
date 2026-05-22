@@ -24,6 +24,7 @@ import DlyaSpecialistov from "./pages/DlyaSpecialistov";
 import OSisteme from "./pages/OSisteme";
 import ProfessionalnyeVstrechi from "./pages/ProfessionalnyeVstrechi";
 import ZakrytayaPraktika from "./pages/ZakrytayaPraktika";
+import Praktika from "./pages/Praktika";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const App = () => (
           <Route path="/o-sisteme" element={<OSisteme />} />
           <Route path="/professionalnye-vstrechi" element={<ProfessionalnyeVstrechi />} />
           <Route path="/zakrytaya-praktika" element={<ZakrytayaPraktika />} />
+          <Route path="/praktika" element={<Praktika />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

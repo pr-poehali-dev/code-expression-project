@@ -129,7 +129,7 @@ const PLANS = [
     accent: ACCENT,
     dark: false,
     featured: false,
-    cta: "Подать заявку",
+    cta: "Подробнее о тарифе",
     forWhom: [
       "Хотят выйти из хаоса",
       "Начать вести частную практику",
@@ -299,6 +299,14 @@ function PlanCard({ plan, onApply }: { plan: typeof PLANS[0]; onApply: (title: s
           style={{ display: "block", textAlign: "center" as const, padding: "13px 20px", borderRadius: 12, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "all 0.25s", border: `1.5px solid ${ACCENT}`, color: ACCENT, background: "transparent", fontFamily: "Montserrat, sans-serif" }}
           onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = `hsla(185,85%,32%,0.07)`; el.style.transform = "translateY(-1px)"; }}
           onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "transparent"; el.style.transform = "translateY(0)"; }}
+        >
+          {plan.cta}
+        </a>
+      ) : plan.id === "practika" ? (
+        <a href="/praktika"
+          style={{ display: "block", textAlign: "center" as const, padding: "13px 20px", borderRadius: 12, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "all 0.25s", background: ACCENT, color: "#fff", fontFamily: "Montserrat, sans-serif", boxShadow: `0 4px 16px ${ACCENT_SHADOW}` }}
+          onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT_DARK; el.style.transform = "translateY(-1px)"; }}
+          onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT; el.style.transform = "translateY(0)"; }}
         >
           {plan.cta}
         </a>
