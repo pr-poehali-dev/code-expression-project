@@ -76,6 +76,13 @@
       "method": "GET",
       "path": "/?action=salon_history",
       "expectedStatus": 401
+    },
+    {
+      "name": "admin_create_user без сессии — 403",
+      "method": "POST",
+      "path": "/?action=admin_create_user",
+      "body": {"username": "test", "email": "t@t.com", "password": "123456", "access_type": "12months"},
+      "expectedStatus": 403
     }
   ]
 }

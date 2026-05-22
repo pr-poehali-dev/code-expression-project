@@ -11,6 +11,7 @@ export interface User {
   is_active: boolean;
   created_at: string;
   notes: string;
+  access_expires_at: string | null;
 }
 
 export interface BodyZone {

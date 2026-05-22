@@ -9,7 +9,7 @@ export function UsersSection() {
   const [creating, setCreating] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [newPw, setNewPw] = useState<{ userId: number; pw: string } | null>(null);
-  const [form, setForm] = useState({ username: "", email: "", password: "", full_name: "", notes: "", is_admin: false });
+  const [form, setForm] = useState({ username: "", email: "", password: "", full_name: "", notes: "", is_admin: false, access_type: "12months" });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -21,7 +21,7 @@ export function UsersSection() {
     try {
       await lkApi.adminCreateUser(form);
       setCreating(false);
-      setForm({ username: "", email: "", password: "", full_name: "", notes: "", is_admin: false });
+      setForm({ username: "", email: "", password: "", full_name: "", notes: "", is_admin: false, access_type: "12months" });
       load();
       setMsg("Пользователь создан");
     } catch (e) {
@@ -94,6 +94,31 @@ export function UsersSection() {
             <input type="checkbox" checked={form.is_admin} onChange={e => setForm(p => ({ ...p, is_admin: e.target.checked }))} />
             Администратор
           </label>
+          <div style={{ marginTop: 14 }}>
+            <label style={labelStyle}>Доступ к кабинету</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              {[
+                { value: "12months", label: "12 месяцев" },
+                { value: "unlimited", label: "Безлимит" },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setForm(p => ({ ...p, access_type: opt.value }))}
+                  style={{
+                    padding: "8px 16px", borderRadius: 8, border: "1.5px solid",
+                    borderColor: form.access_type === opt.value ? ACCENT : "#e8e8e4",
+                    background: form.access_type === opt.value ? `hsl(185,85%,95%)` : "#fafafa",
+                    color: form.access_type === opt.value ? ACCENT : "#555",
+                    fontSize: 13, fontWeight: 600, cursor: "pointer",
+                    fontFamily: "Montserrat, sans-serif",
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
             <button onClick={createUser} disabled={saving} style={actionBtn(ACCENT)}>
               {saving ? "Создаю..." : "Создать"}
@@ -156,6 +181,31 @@ export function UsersSection() {
                   <input type="checkbox" checked={editUser.is_active} onChange={e => setEditUser(p => p ? { ...p, is_active: e.target.checked } : null)} />
                   Активен
                 </label>
+                <div style={{ marginBottom: 14 }}>
+                  <label style={labelStyle}>Продлить доступ</label>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {[
+                      { value: "12months", label: "+ 12 месяцев" },
+                      { value: "unlimited", label: "Безлимит" },
+                    ].map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setEditUser(p => p ? { ...p, access_type: (p as User & { access_type?: string }).access_type === opt.value ? undefined : opt.value } as User & { access_type?: string } : null)}
+                        style={{
+                          padding: "7px 14px", borderRadius: 8, border: "1.5px solid",
+                          borderColor: (editUser as User & { access_type?: string }).access_type === opt.value ? ACCENT : "#e8e8e4",
+                          background: (editUser as User & { access_type?: string }).access_type === opt.value ? "hsl(185,85%,95%)" : "#fafafa",
+                          color: (editUser as User & { access_type?: string }).access_type === opt.value ? ACCENT : "#555",
+                          fontSize: 12, fontWeight: 600, cursor: "pointer",
+                          fontFamily: "Montserrat, sans-serif",
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <button onClick={updateUser} disabled={saving} style={actionBtn(ACCENT)}>Сохранить</button>
                   <button onClick={() => setEditUser(null)} style={actionBtn("#999")}>Отмена</button>
@@ -183,6 +233,14 @@ export function UsersSection() {
                   </div>
                   <div style={{ fontSize: 12, color: "#aaa", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {u.username} · {u.email}
+                  </div>
+                  <div style={{ fontSize: 11, marginTop: 3 }}>
+                    {u.access_expires_at === null
+                      ? <span style={{ color: "hsl(140,60%,38%)", fontWeight: 600 }}>Безлимитный доступ</span>
+                      : new Date(u.access_expires_at) > new Date()
+                        ? <span style={{ color: ACCENT, fontWeight: 600 }}>Доступ до {new Date(u.access_expires_at).toLocaleDateString("ru-RU")}</span>
+                        : <span style={{ color: "#e55", fontWeight: 600 }}>Доступ истёк {new Date(u.access_expires_at).toLocaleDateString("ru-RU")}</span>
+                    }
                   </div>
                 </div>
                 <div className="admin-user-actions">
