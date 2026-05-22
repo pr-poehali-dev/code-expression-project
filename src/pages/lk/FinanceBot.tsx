@@ -19,6 +19,7 @@ export default function FinanceBot({ onBack }: Props) {
   const [data, setData] = useState<FinanceData>(defaultData());
   const [showResult, setShowResult] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [started, setStarted] = useState(false);
 
   function setLife(items: LifeItem[])    { setData(d => ({ ...d, lifeItems: items })); }
   function setGoals(g: FinanceGoals)     { setData(d => ({ ...d, goals: g })); }
@@ -52,7 +53,7 @@ export default function FinanceBot({ onBack }: Props) {
     return (
       <FinanceResult
         data={data}
-        onRetake={() => { setShowResult(false); setStep(1); setData(defaultData()); }}
+        onRetake={() => { setShowResult(false); setStep(1); setData(defaultData()); setStarted(false); }}
         onBack={onBack}
       />
     );
@@ -60,9 +61,9 @@ export default function FinanceBot({ onBack }: Props) {
 
   const stepProps = { step, data, goBack, goNext, setLife, setGoals, setModel, setExp, setEnergy, setMindset, handleFinish, saving };
 
-  // Intro — показываем пока шаг 1 и данные пустые
-  if (step === 1 && data.goals.desiredIncome === 0 && data.lifeItems.every(i => i.amount === 0)) {
-    return <FinanceIntro onBack={onBack} onStart={goNext} />;
+  // Intro — показываем до нажатия "Начать расчёт"
+  if (!started) {
+    return <FinanceIntro onBack={onBack} onStart={() => setStarted(true)} />;
   }
 
   if (step === 1) return <Step1Life {...stepProps} />;
