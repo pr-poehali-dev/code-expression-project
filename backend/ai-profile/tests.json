@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "AI profile analysis",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "ifl": 48,
+        "ifu": 52,
+        "type_title": "Денежный потолок",
+        "type_subtitle": "Доход ограничен убеждениями",
+        "norm": {
+          "IFZ": 55,
+          "IDT": 62,
+          "IN": 38,
+          "IFD": 45,
+          "IDM": 70,
+          "IDR": 50,
+          "IIT": 55,
+          "IDS": 40
+        },
+        "weak_zones": ["дефицитное мышление", "денежная тревожность", "низкие накопления"]
+      },
+      "expectedStatus": 200,
+      "expectedBody": { "text": "string" },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
