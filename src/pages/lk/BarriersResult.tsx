@@ -2,6 +2,8 @@ import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } fro
 import Icon from "@/components/ui/icon";
 import { BarrierIndexMap, calcIIB, calcIPZ, getBarrierScaleLabel, getBarrierType } from "./barriers.logic";
 import { ACCENT_LIGHT } from "./MindsetShared";
+import { useState, useEffect } from "react";
+import func2url from "../../../backend/func2url.json";
 
 const WARM = "hsl(20,85%,50%)";
 const WARM_LIGHT = "hsl(20,85%,96%)";
@@ -13,6 +15,113 @@ interface Props {
   onBack: () => void;
   backLabel?: string;
 }
+
+// ─── AI-блок ─────────────────────────────────────────────────────────────────
+
+interface AiSection { title: string; content: string }
+
+function AiBarriersBlock({ idx, iib, typeTitle }: { idx: BarrierIndexMap; iib: number; typeTitle: string }) {
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [sections, setSections] = useState<AiSection[]>([]);
+
+  useEffect(() => {
+    setStatus("loading");
+    fetch(func2url["ai-barriers"], {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idx, iib, type_title: typeTitle }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.sections) {
+          const parsed: AiSection[] = Object.entries(data.sections).map(([title, content]) => ({
+            title,
+            content: content as string,
+          }));
+          setSections(parsed);
+          setStatus("done");
+        } else {
+          setStatus("error");
+        }
+      })
+      .catch(() => setStatus("error"));
+  }, []);
+
+  const sectionIcons: Record<string, string> = {
+    "ЧТО Я ВИЖУ": "Eye",
+    "КОРЕНЬ ПРОБЛЕМЫ": "Target",
+    "3 ПРАКТИЧЕСКИХ ШАГА": "ListChecks",
+    "К ЧЕМУ ЭТО ПРИВЕДЁТ": "TrendingUp",
+  };
+
+  return (
+    <div style={{
+      background: "linear-gradient(135deg, #1c0f0a 0%, #2d1a10 100%)",
+      borderRadius: 20, padding: "24px 24px", marginBottom: 24,
+      boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 10,
+          background: "rgba(255,255,255,0.1)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <Icon name="Sparkles" size={18} style={{ color: "#fb923c" }} />
+        </div>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", letterSpacing: 0.3 }}>AI-заключение</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 1 }}>Персональный разбор от ментора</div>
+        </div>
+      </div>
+
+      {status === "loading" && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, color: "rgba(255,255,255,0.55)", fontSize: 13, padding: "8px 0" }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ animation: "spin 1s linear infinite", flexShrink: 0 }}>
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray="31.4 31.4" />
+          </svg>
+          Анализирую твой профиль...
+          <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+        </div>
+      )}
+
+      {status === "error" && (
+        <div style={{ color: "#fca5a5", fontSize: 13, lineHeight: 1.6 }}>
+          Не удалось загрузить анализ. Проверь подключение или попробуй позже.
+        </div>
+      )}
+
+      {status === "done" && sections.map((sec, i) => (
+        <div key={i} style={{ marginBottom: i < sections.length - 1 ? 20 : 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <Icon
+              name={sectionIcons[sec.title] || "ChevronRight"}
+              size={14}
+              style={{ color: "#fb923c", flexShrink: 0 }}
+            />
+            <span style={{ fontSize: 11, fontWeight: 800, color: "#fb923c", textTransform: "uppercase", letterSpacing: 1.2 }}>
+              {sec.title}
+            </span>
+          </div>
+          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.82)", lineHeight: 1.75, paddingLeft: 22 }}>
+            {sec.content.split("\n").map((line, j) => {
+              const isStep = /^\d+\./.test(line.trim()) || line.trim().startsWith("•") || line.trim().startsWith("-");
+              return line.trim() ? (
+                <p key={j} style={{ margin: isStep ? "4px 0" : "0 0 4px", fontWeight: isStep ? 600 : 400 }}>
+                  {line.trim().replace(/^[-•]\s*/, "")}
+                </p>
+              ) : null;
+            })}
+          </div>
+          {i < sections.length - 1 && (
+            <div style={{ height: 1, background: "rgba(255,255,255,0.07)", marginTop: 16 }} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Вспомогательный компонент ────────────────────────────────────────────────
 
 function IndexBar({ label, value, color, invert }: { label: string; value: number; color: string; invert?: boolean }) {
   const display = invert ? 100 - value : value;
@@ -189,6 +298,9 @@ export default function BarriersResult({ idx, date, onRetake, onBack, backLabel 
           ))}
         </div>
       </div>
+
+      {/* AI-заключение */}
+      <AiBarriersBlock idx={idx} iib={iib} typeTitle={type.title} />
 
       {/* Кнопки */}
       <div style={{ display: "flex", gap: 12 }}>
