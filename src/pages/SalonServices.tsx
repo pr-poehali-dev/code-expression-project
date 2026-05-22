@@ -328,7 +328,7 @@ export default function SalonServices() {
                   Узнать подробнее
                   <Icon name="ArrowRight" size={14} />
                 </a>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", textAlign: "center", whiteSpace: "nowrap" }}>30 000 ₽ · по понедельникам</span>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", textAlign: "center", whiteSpace: "nowrap" }}>99 000 ₽ · по понедельникам</span>
               </div>
             </div>
           </FadeIn>
