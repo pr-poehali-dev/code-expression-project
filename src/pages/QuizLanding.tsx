@@ -1,190 +1,310 @@
+import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
-import CourseQuiz from "./catalog-private/CourseQuiz";
-import Icon from "@/components/ui/icon";
 
 const ACCENT = "hsl(185, 85%, 32%)";
-const ACCENT_LIGHT = "hsla(185, 85%, 32%, 0.08)";
+const ACCENT_DARK = "hsl(185, 85%, 26%)";
+const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.28)";
 const BG = "#f8f8f6";
+const SEND_URL = "https://functions.poehali.dev/13844979-19e6-463d-bb8e-fddd2b08479f";
 
-const FEELINGS = [
-  { icon: "Compass", title: "Ясность пути", text: "Вы точно знаете, с чего начать — и не тратите время на поиск" },
-  { icon: "Zap", title: "Уверенный старт", text: "Первый шаг в профессии сделан осознанно, а не наугад" },
-  { icon: "TrendingUp", title: "Ощущение роста", text: "Уже после первого занятия вы чувствуете, что движетесь вперёд" },
-  { icon: "Heart", title: "Спокойствие", text: "Нет тревоги «а вдруг не то выбрал» — выбор подкреплён логикой" },
+type Answer = { label: string; value: string };
+type Question = { id: string; text: string; answers: Answer[] };
+
+const QUESTIONS: Question[] = [
+  {
+    id: "role",
+    text: "Кто вы?",
+    answers: [
+      { label: "Специалист, веду частную практику", value: "specialist" },
+      { label: "Специалист, работаю в найме", value: "hired" },
+      { label: "Владелец салона или wellness-пространства", value: "salon" },
+      { label: "Только начинаю путь в профессии", value: "beginner" },
+    ],
+  },
+  {
+    id: "stage",
+    text: "Как бы вы описали свою текущую ситуацию?",
+    answers: [
+      { label: "Работаю много, но доход не растёт", value: "overloaded" },
+      { label: "Хочу повысить стоимость, но не знаю как", value: "price_block" },
+      { label: "Нет системы — работаю хаотично", value: "no_system" },
+      { label: "Хочу выйти на другой уровень клиентов", value: "level_up" },
+      { label: "Хочу внедрить стандарты в команду", value: "team" },
+    ],
+  },
+  {
+    id: "goal",
+    text: "Что для вас сейчас самое важное?",
+    answers: [
+      { label: "Разобраться в мышлении и позиции специалиста", value: "mindset" },
+      { label: "Выстроить поток платёжеспособных клиентов", value: "clients" },
+      { label: "Повысить чек и перестать работать «за дёшево»", value: "price" },
+      { label: "Внедрить современные инструменты и технологии", value: "tools" },
+      { label: "Получить личное сопровождение и разборы", value: "mentoring" },
+      { label: "Обучить команду и выстроить стандарты", value: "team_training" },
+    ],
+  },
+  {
+    id: "format",
+    text: "Какой формат работы вам ближе?",
+    answers: [
+      { label: "Хочу пройти путь самостоятельно по системе", value: "self" },
+      { label: "Важно живое сопровождение и разборы", value: "live" },
+      { label: "Нужен максимальный формат — всё и надолго", value: "full" },
+      { label: "Сначала хочу познакомиться бесплатно", value: "free" },
+    ],
+  },
 ];
 
+type ResultData = {
+  title: string;
+  text: string;
+  btn: string;
+  href: string;
+};
+
+function getResult(answers: Record<string, string>): ResultData {
+  if (answers.role === "salon" || answers.goal === "team_training") {
+    return {
+      title: "Для вас — формат «Для салонов»",
+      text: "Внедрение премиальных восстановительных практик: обучение команды, стандарты клиентского пути, повышение ценности услуг.",
+      btn: "Перейти к формату для салонов",
+      href: "/dlya-salonov",
+    };
+  }
+  if (answers.format === "free" || answers.role === "beginner") {
+    return {
+      title: "Начните с бесплатного входа",
+      text: "Познакомьтесь с подходом, мышлением и системой «Dok Диалог» — бесплатно, без обязательств.",
+      btn: "Смотреть форматы участия",
+      href: "/tarify",
+    };
+  }
+  if (answers.format === "full" || answers.goal === "mentoring") {
+    return {
+      title: "Вам подходит тариф «Эксперт»",
+      text: "Безлимитный доступ ко всем инструментам и обучению, 10 личных встреч — для тех, кто хочет максимального результата.",
+      btn: "Смотреть форматы участия",
+      href: "/tarify",
+    };
+  }
+  if (answers.goal === "tools" || answers.format === "live") {
+    return {
+      title: "Вам подходит «Премиальная практика»",
+      text: "Доступ ко всем инструментам, ИИ-анализатору, внутреннему чату и 5 личным встречам для выхода на новый уровень.",
+      btn: "Смотреть форматы участия",
+      href: "/tarify",
+    };
+  }
+  return {
+    title: "Вам подходит тариф «Практика»",
+    text: "Система работы с мышлением, клиентом и ценообразованием — чтобы выйти из хаоса и выстроить устойчивую практику.",
+    btn: "Смотреть форматы участия",
+    href: "/tarify",
+  };
+}
+
+function ContactStep({ result, onDone }: { result: ResultData; onDone: () => void }) {
+  const [name, setName] = useState("");
+  const [contact, setContact] = useState("");
+  const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !contact.trim() || !agreed) { if (!agreed) setError("Необходимо дать согласие"); return; }
+    setLoading(true); setError("");
+    try {
+      const res = await fetch(SEND_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, contact, message: `Квиз диагностики формата. Рекомендация: ${result.title}. Контакт: ${contact}` }) });
+      if (res.ok) onDone();
+      else setError("Не удалось отправить.");
+    } catch { setError("Ошибка сети."); } finally { setLoading(false); }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <p style={{ margin: "0 0 8px", fontSize: 14, color: "#555", lineHeight: 1.7 }}>
+        Оставьте контакт — мы пришлём подробности по рекомендованному формату.
+      </p>
+      {[{ l: "Имя", v: name, s: setName, p: "Ваше имя" }, { l: "Telegram или телефон", v: contact, s: setContact, p: "@username или +7..." }].map(f => (
+        <div key={f.l}>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#3a3a3a", marginBottom: 5 }}>{f.l}</label>
+          <input value={f.v} onChange={e => f.s(e.target.value)} placeholder={f.p} required style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 14, outline: "none", boxSizing: "border-box" as const, fontFamily: "Montserrat" }} onFocus={e => (e.currentTarget.style.borderColor = ACCENT)} onBlur={e => (e.currentTarget.style.borderColor = "#e0e0e0")} />
+        </div>
+      ))}
+      <label style={{ display: "flex", gap: 8, cursor: "pointer", alignItems: "flex-start" }}>
+        <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 2, accentColor: ACCENT }} />
+        <span style={{ fontSize: 12, color: "#666", lineHeight: 1.6 }}>Согласен с <a href="/privacy" style={{ color: ACCENT }} target="_blank">политикой</a> и <a href="/offer" style={{ color: ACCENT }} target="_blank">офертой</a></span>
+      </label>
+      {error && <p style={{ margin: 0, fontSize: 12, color: "#e53e3e" }}>{error}</p>}
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" as const }}>
+        <button type="submit" style={{ flex: 1, background: ACCENT, color: "#fff", padding: "12px 20px", borderRadius: 12, fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", fontFamily: "Montserrat", boxShadow: `0 4px 16px ${ACCENT_SHADOW}` }}
+          onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ACCENT_DARK; el.style.transform = "translateY(-1px)"; }}
+          onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ACCENT; el.style.transform = "translateY(0)"; }}
+        >{loading ? "Отправляем..." : "Получить рекомендацию"}</button>
+        <button type="button" onClick={onDone} style={{ background: "transparent", color: "#999", border: "none", cursor: "pointer", fontSize: 13, fontFamily: "Montserrat", padding: "8px" }}>Пропустить</button>
+      </div>
+    </form>
+  );
+}
+
+type Screen = "intro" | "quiz" | "contact" | "result";
+
 export default function QuizLanding() {
+  const [screen, setScreen] = useState<Screen>("intro");
+  const [currentQ, setCurrentQ] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const result = getResult(answers);
+
+  const handleAnswer = (value: string) => {
+    const newAnswers = { ...answers, [QUESTIONS[currentQ].id]: value };
+    setAnswers(newAnswers);
+    if (currentQ < QUESTIONS.length - 1) {
+      setCurrentQ(currentQ + 1);
+    } else {
+      setScreen("contact");
+    }
+  };
+
+  const progress = Math.round((currentQ / QUESTIONS.length) * 100);
+
   return (
     <div style={{ background: BG, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#1a1a1a" }}>
       <Helmet>
-        <title>Какой курс выбрать? Пройди квиз и получи персональную рекомендацию | Dok Диалог</title>
-        <meta name="description" content="Не знаешь, с чего начать? Пройди короткий квиз — 2 минуты — и получи персональный подбор курса под твой уровень, цели и формат обучения. Старт в профессии без лишних сомнений." />
-        <meta name="keywords" content="какой курс массажа выбрать, подбор курса онлайн, с чего начать обучение массажу, квиз выбор курса, рекомендация курса массажист, обучение восстановительным техникам" />
-        <meta property="og:title" content="Какой курс выбрать? Пройди квиз и получи персональную рекомендацию" />
-        <meta property="og:description" content="2 минуты — и ты знаешь, какой курс подойдёт именно тебе. Без сомнений, без лишних поисков." />
-        <meta property="og:type" content="website" />
+        <title>Диагностика формата участия — Dok Диалог</title>
+        <meta name="description" content="Определите подходящий формат участия в системе Dok Диалог: ответьте на несколько вопросов и получите персональную рекомендацию." />
+        <meta property="og:title" content="Диагностика формата участия — Dok Диалог" />
       </Helmet>
 
       <DokNavbar />
 
-      {/* ── HERO ── */}
-      <section style={{ padding: "72px 0 60px" }} className="quiz-hero-section">
-        <div style={{ maxWidth: 1060, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: 48, alignItems: "center" }} className="quiz-hero-grid">
-            {/* Текст */}
-            <div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: ACCENT_LIGHT, border: `1px solid ${ACCENT}30`, borderRadius: 20, padding: "6px 16px", marginBottom: 24 }}>
-                <Icon name="Sparkles" size={14} style={{ color: ACCENT }} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 0.8 }}>Подбор обучения</span>
+      <main style={{ paddingTop: 120, paddingBottom: 80 }}>
+        <div style={{ maxWidth: 680, margin: "0 auto", padding: "0 24px" }}>
+
+          {/* INTRO */}
+          {screen === "intro" && (
+            <div style={{ textAlign: "center" as const }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 18 }}>
+                Диагностика
               </div>
-              <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(32px, 4vw, 54px)", fontWeight: 700, margin: "0 0 20px", color: "#1a1a1a", lineHeight: 1.15 }}>
-                Какое обучение массажу и восстановительным техникам подойдёт именно вам?
+              <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(30px, 5vw, 50px)", fontWeight: 700, lineHeight: 1.15, color: "#1a1a1a", marginBottom: 20 }}>
+                Определить подходящий формат участия
               </h1>
-              <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "#555", lineHeight: 1.8, margin: "0 0 24px" }}>
-                Ответьте на несколько вопросов — алгоритм подберёт подходящую программу обучения под ваш уровень, цели и удобный формат. Никакого перебора курсов вручную.
+              <p style={{ fontSize: 16, lineHeight: 1.8, color: "#5a5a5a", marginBottom: 16 }}>
+                Ответьте на 4 вопроса — мы определим, какой формат системы «Dok Диалог» соответствует вашей задаче и уровню практики.
               </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-                {[
-                  { icon: "Clock", text: "Около 2 минут" },
-                  { icon: "ShieldCheck", text: "Без обязательств" },
-                  { icon: "MonitorSmartphone", text: "Результат сразу" },
-                ].map(({ icon, text }) => (
-                  <div key={text} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#666", background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "6px 14px" }}>
-                    <Icon name={icon} size={13} style={{ color: ACCENT }} />
-                    {text}
-                  </div>
+              <p style={{ fontSize: 14, color: "#aaa", marginBottom: 40 }}>Займёт около 1 минуты</p>
+              <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" as const }}>
+                <button onClick={() => setScreen("quiz")}
+                  style={{ background: ACCENT, color: "#fff", padding: "15px 36px", borderRadius: 12, fontSize: 15, fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.25s", boxShadow: `0 4px 20px ${ACCENT_SHADOW}`, fontFamily: "Montserrat" }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ACCENT_DARK; el.style.transform = "translateY(-2px)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ACCENT; el.style.transform = "translateY(0)"; }}
+                >
+                  Пройти диагностику
+                </button>
+                <a href="/tarify"
+                  style={{ display: "inline-block", background: "transparent", color: ACCENT, padding: "15px 28px", borderRadius: 12, fontSize: 15, fontWeight: 600, textDecoration: "none", transition: "all 0.25s", border: `1.5px solid ${ACCENT}` }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = `hsla(185,85%,32%,0.07)`; el.style.transform = "translateY(-2px)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "transparent"; el.style.transform = "translateY(0)"; }}
+                >
+                  Смотреть тарифы
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* QUIZ */}
+          {screen === "quiz" && (
+            <div>
+              {/* Прогресс */}
+              <div style={{ marginBottom: 36 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <span style={{ fontSize: 12, color: "#aaa" }}>Вопрос {currentQ + 1} из {QUESTIONS.length}</span>
+                  <span style={{ fontSize: 12, color: ACCENT, fontWeight: 600 }}>{progress}%</span>
+                </div>
+                <div style={{ height: 4, background: "#e8e8e4", borderRadius: 4 }}>
+                  <div style={{ width: `${progress}%`, height: "100%", background: ACCENT, borderRadius: 4, transition: "width 0.4s ease" }} />
+                </div>
+              </div>
+
+              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px, 4vw, 34px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 28, lineHeight: 1.3 }}>
+                {QUESTIONS[currentQ].text}
+              </h2>
+
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
+                {QUESTIONS[currentQ].answers.map((a) => (
+                  <button
+                    key={a.value}
+                    onClick={() => handleAnswer(a.value)}
+                    style={{
+                      background: "#fff", border: "1.5px solid #e8e8e4", borderRadius: 14, padding: "16px 20px",
+                      fontSize: 14, fontWeight: 500, color: "#1a1a1a", cursor: "pointer", textAlign: "left" as const,
+                      transition: "all 0.2s", fontFamily: "Montserrat", lineHeight: 1.5,
+                    }}
+                    onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.borderColor = ACCENT; el.style.background = `hsla(185,85%,32%,0.04)`; el.style.transform = "translateX(4px)"; }}
+                    onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.borderColor = "#e8e8e4"; el.style.background = "#fff"; el.style.transform = "translateX(0)"; }}
+                  >
+                    {a.label}
+                  </button>
                 ))}
               </div>
-            </div>
 
-            {/* Фото с превью */}
-            <div style={{ position: "relative" }}>
-              <div style={{ borderRadius: 24, overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}>
-                <img
-                  src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/475f0192-c14e-47c5-b22b-ecdaaaa0217d.jpg"
-                  alt="Обучение массажу"
-                  style={{ width: "100%", height: 440, objectFit: "cover", display: "block" }}
-                  className="quiz-hero-img"
-                />
+              {currentQ > 0 && (
+                <button onClick={() => setCurrentQ(currentQ - 1)} style={{ marginTop: 20, background: "none", border: "none", cursor: "pointer", color: "#aaa", fontSize: 13, fontFamily: "Montserrat" }}>
+                  ← Назад
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* CONTACT */}
+          {screen === "contact" && (
+            <div>
+              <div style={{ background: "#fff", borderRadius: 20, padding: "36px 32px", marginBottom: 24, border: "1px solid #e8e8e4", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 10 }}>Ваш результат</div>
+                <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px, 3vw, 30px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 12, lineHeight: 1.25 }}>{result.title}</h2>
+                <p style={{ fontSize: 14, color: "#5a5a5a", lineHeight: 1.75, margin: 0 }}>{result.text}</p>
               </div>
-              {/* Превью-плашка сверху */}
-              <div className="quiz-hero-badge" style={{
-                position: "absolute", top: 20, left: -24,
-                background: "#fff", borderRadius: 16, padding: "14px 18px",
-                boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
-                display: "flex", alignItems: "center", gap: 12, minWidth: 200,
-              }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Icon name="GraduationCap" size={18} style={{ color: ACCENT }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>7+ программ обучения</div>
-                  <div style={{ fontSize: 11.5, color: "#999" }}>онлайн и офлайн в Москве</div>
-                </div>
-              </div>
-              {/* Превью-плашка снизу */}
-              <div className="quiz-hero-badge" style={{
-                position: "absolute", bottom: 24, right: -20,
-                background: "#fff", borderRadius: 16, padding: "14px 18px",
-                boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
-                display: "flex", alignItems: "center", gap: 12, minWidth: 190,
-              }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff7ed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Icon name="Star" size={18} style={{ color: "#f59e0b" }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>Рейтинг 5.0</div>
-                  <div style={{ fontSize: 11.5, color: "#999" }}>Dok Диалог</div>
-                </div>
+              <div style={{ background: "#f8f8f6", borderRadius: 18, padding: "28px 28px" }}>
+                <ContactStep result={result} onDone={() => setScreen("result")} />
               </div>
             </div>
-          </div>
+          )}
+
+          {/* RESULT */}
+          {screen === "result" && (
+            <div style={{ textAlign: "center" as const }}>
+              <div style={{ width: 72, height: 72, borderRadius: "50%", background: "hsl(185,85%,95%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", color: ACCENT }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6 9 17l-5-5"/></svg>
+              </div>
+              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 14 }}>
+                {result.title}
+              </h2>
+              <p style={{ fontSize: 15, color: "#5a5a5a", lineHeight: 1.8, marginBottom: 36 }}>{result.text}</p>
+              <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" as const }}>
+                <a href={result.href}
+                  style={{ display: "inline-block", background: ACCENT, color: "#fff", padding: "14px 28px", borderRadius: 12, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "all 0.25s", boxShadow: `0 4px 16px ${ACCENT_SHADOW}` }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT_DARK; el.style.transform = "translateY(-2px)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT; el.style.transform = "translateY(0)"; }}
+                >
+                  {result.btn}
+                </a>
+                <a href="/kontakty"
+                  style={{ display: "inline-block", background: "transparent", color: ACCENT, padding: "14px 24px", borderRadius: 12, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "all 0.25s", border: `1.5px solid ${ACCENT}` }}
+                  onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = `hsla(185,85%,32%,0.07)`; el.style.transform = "translateY(-2px)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "transparent"; el.style.transform = "translateY(0)"; }}
+                >
+                  Обсудить напрямую
+                </a>
+              </div>
+            </div>
+          )}
+
         </div>
-      </section>
-
-      {/* ── ЧТО ВЫ ПОЧУВСТВУЕТЕ ── */}
-      <section style={{ padding: "0 0 70px" }} className="quiz-feelings-section">
-        <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
-          <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px, 3vw, 32px)", fontWeight: 700, textAlign: "center", margin: "0 0 36px", color: "#1a1a1a" }}>
-            Когда выбор сделан осознанно — всё становится проще
-          </h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }} className="quiz-feelings-grid">
-            {FEELINGS.map(({ icon, title, text }) => (
-              <div key={title} style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 18, padding: "24px", display: "flex", gap: 16, alignItems: "flex-start", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Icon name={icon} size={20} style={{ color: ACCENT }} />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: "#1a1a1a", marginBottom: 6 }}>{title}</div>
-                  <div style={{ fontSize: 13.5, color: "#666", lineHeight: 1.65 }}>{text}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── ЧТО БУДЕТ ПОСЛЕ КВИЗА ── */}
-      <section style={{ padding: "0 0 40px" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 24, padding: "36px 40px", boxShadow: "0 4px 24px rgba(0,0,0,0.05)" }} className="quiz-promise-wrap">
-            <div style={{ textAlign: "center", marginBottom: 32 }}>
-              <div style={{ width: 48, height: 3, background: ACCENT, borderRadius: 2, margin: "0 auto 20px" }} />
-              <p style={{ fontSize: 16, color: "#444", lineHeight: 1.75, margin: 0, maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>
-                Вы уже на правильном пути — вы здесь. Осталось ответить на несколько вопросов, и мы подберём то, что даст результат быстрее всего.
-              </p>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }} className="quiz-promise-grid">
-              <div style={{ background: ACCENT_LIGHT, borderRadius: 16, padding: "20px", textAlign: "center" }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                  <Icon name="MonitorSmartphone" size={18} style={{ color: ACCENT }} />
-                </div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a", marginBottom: 6 }}>Результат на странице</div>
-                <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>Сразу после ответов — персональная рекомендация прямо здесь</div>
-              </div>
-              <div style={{ background: ACCENT_LIGHT, borderRadius: 16, padding: "20px", textAlign: "center" }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                  <Icon name="Mail" size={18} style={{ color: ACCENT }} />
-                </div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a", marginBottom: 6 }}>Копия на почту</div>
-                <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>Результат продублируется на ваш email — чтобы вернуться в любой момент</div>
-              </div>
-              <div style={{ background: ACCENT_LIGHT, borderRadius: 16, padding: "20px", textAlign: "center" }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                  <Icon name="Gift" size={18} style={{ color: ACCENT }} />
-                </div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a", marginBottom: 6 }}>Приятный бонус</div>
-                <div style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>Для тех, кто пройдёт квиз — небольшой подарок от нас в результатах</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── КВИЗ ── */}
-      <section style={{ padding: "40px 0 80px" }} className="quiz-section">
-        <CourseQuiz />
-      </section>
-
-      <style>{`
-        @media (max-width: 860px) {
-          .quiz-hero-grid { grid-template-columns: 1fr !important; }
-          .quiz-hero-img { height: 300px !important; }
-          .quiz-hero-badge { display: none !important; }
-        }
-        @media (max-width: 768px) {
-          .quiz-promise-grid { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 600px) {
-          .quiz-feelings-grid { grid-template-columns: 1fr !important; }
-          .quiz-promise-wrap { padding: 20px 16px !important; }
-          .quiz-hero-section { padding: 40px 0 32px !important; }
-          .quiz-feelings-section { padding: 0 0 40px !important; }
-          .quiz-section { padding: 24px 0 56px !important; }
-        }
-      `}</style>
+      </main>
 
       <DokFooter />
     </div>
