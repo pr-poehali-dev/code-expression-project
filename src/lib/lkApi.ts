@@ -12,6 +12,8 @@ export function clearSession() {
   localStorage.removeItem("lk_session");
 }
 
+export class AuthError extends Error {}
+
 async function request(method: string, action: string, body?: object, extraParams?: string) {
   const url = `${BASE}?action=${action}${extraParams || ""}`;
   const res = await fetch(url, {
@@ -23,6 +25,7 @@ async function request(method: string, action: string, body?: object, extraParam
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json();
+  if (res.status === 401) throw new AuthError(data.error || "Не авторизован");
   if (!res.ok) throw new Error(data.error || "Ошибка сервера");
   return data;
 }

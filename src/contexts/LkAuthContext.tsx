@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { lkApi, saveSession, clearSession } from "@/lib/lkApi";
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
+import { lkApi, saveSession, clearSession, AuthError } from "@/lib/lkApi";
 
 interface LkUser {
   id: number;
@@ -21,14 +21,41 @@ const Ctx = createContext<LkAuthCtx | null>(null);
 export function LkAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<LkUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const checkSession = (isInitial = false) => {
+    const session = localStorage.getItem("lk_session");
+    if (!session) {
+      if (isInitial) setLoading(false);
+      return;
+    }
+    lkApi.me()
+      .then(u => {
+        setUser(u);
+        if (isInitial) setLoading(false);
+      })
+      .catch(e => {
+        if (e instanceof AuthError) {
+          clearSession();
+          setUser(null);
+        }
+        if (isInitial) setLoading(false);
+      });
+  };
 
   useEffect(() => {
-    const session = localStorage.getItem("lk_session");
-    if (!session) { setLoading(false); return; }
-    lkApi.me()
-      .then(setUser)
-      .catch(() => clearSession())
-      .finally(() => setLoading(false));
+    checkSession(true);
+
+    // Проверяем сессию каждые 10 минут — только если вкладка активна
+    heartbeatRef.current = setInterval(() => {
+      if (!document.hidden && localStorage.getItem("lk_session")) {
+        checkSession();
+      }
+    }, 10 * 60 * 1000);
+
+    return () => {
+      if (heartbeatRef.current) clearInterval(heartbeatRef.current);
+    };
   }, []);
 
   const login = async (username: string, password: string) => {
