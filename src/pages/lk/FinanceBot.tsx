@@ -14,25 +14,56 @@ interface Props {
   onBack: () => void;
 }
 
+const STORAGE_KEY = "lk_finance_progress";
+
+function loadProgress(): { step: FinanceStep; data: FinanceData; started: boolean } | null {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
+function saveProgress(step: FinanceStep, data: FinanceData, started: boolean) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data, started }));
+  } catch { /* ignore */ }
+}
+
+function clearProgress() {
+  sessionStorage.removeItem(STORAGE_KEY);
+}
+
 export default function FinanceBot({ onBack }: Props) {
-  const [step, setStep] = useState<FinanceStep>(1);
-  const [data, setData] = useState<FinanceData>(defaultData());
+  const saved = loadProgress();
+  const [step, setStep] = useState<FinanceStep>(saved?.step ?? 1);
+  const [data, setData] = useState<FinanceData>(saved?.data ?? defaultData());
   const [showResult, setShowResult] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [started, setStarted] = useState(false);
+  const [started, setStarted] = useState(saved?.started ?? false);
 
-  function setLife(items: LifeItem[])    { setData(d => ({ ...d, lifeItems: items })); }
-  function setGoals(g: FinanceGoals)     { setData(d => ({ ...d, goals: g })); }
-  function setModel(m: CurrentModel)     { setData(d => ({ ...d, currentModel: m })); }
-  function setExp(e: Expenses)           { setData(d => ({ ...d, expenses: e })); }
-  function setEnergy(en: EnergyData)     { setData(d => ({ ...d, energy: en })); }
-  function setMindset(ms: MoneyMindset)  { setData(d => ({ ...d, mindset: ms })); }
+  function persist(newStep: FinanceStep, newData: FinanceData, newStarted: boolean) {
+    saveProgress(newStep, newData, newStarted);
+  }
+
+  function setLife(items: LifeItem[])    { setData(d => { const n = { ...d, lifeItems: items }; persist(step, n, started); return n; }); }
+  function setGoals(g: FinanceGoals)     { setData(d => { const n = { ...d, goals: g }; persist(step, n, started); return n; }); }
+  function setModel(m: CurrentModel)     { setData(d => { const n = { ...d, currentModel: m }; persist(step, n, started); return n; }); }
+  function setExp(e: Expenses)           { setData(d => { const n = { ...d, expenses: e }; persist(step, n, started); return n; }); }
+  function setEnergy(en: EnergyData)     { setData(d => { const n = { ...d, energy: en }; persist(step, n, started); return n; }); }
+  function setMindset(ms: MoneyMindset)  { setData(d => { const n = { ...d, mindset: ms }; persist(step, n, started); return n; }); }
 
   function goBack() {
     if (step === 1) { onBack(); return; }
-    setStep(s => (s - 1) as FinanceStep);
+    const s = (step - 1) as FinanceStep;
+    setStep(s);
+    persist(s, data, started);
   }
-  function goNext() { setStep(s => (s + 1) as FinanceStep); }
+  function goNext() {
+    const s = (step + 1) as FinanceStep;
+    setStep(s);
+    persist(s, data, started);
+  }
 
   async function handleFinish() {
     setSaving(true);
@@ -46,6 +77,7 @@ export default function FinanceBot({ onBack }: Props) {
       });
     } catch (_) { /* silent */ }
     setSaving(false);
+    clearProgress();
     setShowResult(true);
   }
 
@@ -53,7 +85,7 @@ export default function FinanceBot({ onBack }: Props) {
     return (
       <FinanceResult
         data={data}
-        onRetake={() => { setShowResult(false); setStep(1); setData(defaultData()); setStarted(false); }}
+        onRetake={() => { clearProgress(); setShowResult(false); setStep(1); setData(defaultData()); setStarted(false); }}
         onBack={onBack}
       />
     );
@@ -63,7 +95,7 @@ export default function FinanceBot({ onBack }: Props) {
 
   // Intro — показываем до нажатия "Начать расчёт"
   if (!started) {
-    return <FinanceIntro onBack={onBack} onStart={() => setStarted(true)} />;
+    return <FinanceIntro onBack={onBack} onStart={() => { setStarted(true); persist(step, data, true); }} />;
   }
 
   if (step === 1) return <Step1Life {...stepProps} />;

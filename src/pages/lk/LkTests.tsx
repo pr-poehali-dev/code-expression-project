@@ -45,14 +45,25 @@ export default function LkTests() {
   const [openSalon, setOpenSalon] = useState(false);
   const [salonHistory, setSalonHistory] = useState<SalonHistoryItem[]>([]);
 
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+
   useEffect(() => {
     lkApi.tests().then(setTests).finally(() => setLoading(false));
+  }, []);
+
+  // Загружаем историю один раз — только когда показывается список (нет открытых тестов)
+  const anyOpen = openMindset || openBarriers || openFinance || openProfile || openSalon
+    || !!viewingResult || !!viewingBarriers || !!viewingFinance || !!viewingProfile;
+
+  useEffect(() => {
+    if (anyOpen || historyLoaded) return;
+    setHistoryLoaded(true);
     lkApi.mindsetHistory().then(setMindsetHistory).catch(() => {});
     lkApi.barriersHistory().then(setBarriersHistory).catch(() => {});
     lkApi.financeHistory().then(setFinanceHistory).catch(() => {});
     lkApi.profileHistory().then(setProfileHistory).catch(() => {});
     lkApi.salonHistory().then(setSalonHistory).catch(() => {});
-  }, []);
+  }, [anyOpen]);
 
   if (openMindset) {
     return <MindsetBot onBack={() => { setOpenMindset(false); lkApi.mindsetHistory().then(setMindsetHistory).catch(() => {}); }} />;
@@ -77,7 +88,7 @@ export default function LkTests() {
   }
 
   if (openFinance) {
-    return <FinanceBot onBack={() => { setOpenFinance(false); lkApi.financeHistory().then(setFinanceHistory).catch(() => {}); }} />;
+    return <FinanceBot onBack={() => { setOpenFinance(false); setHistoryLoaded(false); }} />;
   }
   if (viewingFinance) {
     return (
