@@ -86,8 +86,8 @@ export default function FreeTarifHero() {
                 margin: "0 0 24px",
                 letterSpacing: "-0.5px",
               }}>
-                Большинство специалистов знают техники.{" "}
-                <span style={{ color: TEAL }}>Но не понимают, почему их практика не растёт.</span>
+                Большинство специалистов знают техники —{" "}
+                <span style={{ color: TEAL }}>но не понимают, почему их практика не растет</span>
               </h1>
             </FadeIn>
 
@@ -99,7 +99,7 @@ export default function FreeTarifHero() {
                 {[
                   "выйти из хаоса и обрести устойчивость",
                   "понять свои внутренние ограничения",
-                  "научиться работать с платёжеспособной аудиторией",
+                  "научиться работать с платежеспособной аудиторией",
                   "выстроить сильную и системную практику",
                 ].map((item, i) => (
                   <div key={i} style={{ display: "flex", gap: 10, alignItems: "center" }}>
@@ -161,7 +161,7 @@ export default function FreeTarifHero() {
 
               {/* Список того что внутри */}
               <div style={{ padding: "18px 22px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                <div style={{ fontSize: 11, color: TEXT_SUB, marginBottom: 11, letterSpacing: "0.07em" }}>Вы поймёте</div>
+                <div style={{ fontSize: 11, color: TEXT_SUB, marginBottom: 11, letterSpacing: "0.07em" }}>Вы поймете</div>
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: 9 }}>
                   {[
                     "Почему техники не решают проблему роста",

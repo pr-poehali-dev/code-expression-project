@@ -57,7 +57,7 @@ export default function EkspertSections() {
                 fontSize: "clamp(26px, 4vw, 46px)",
                 fontWeight: 700, color: "#fff", lineHeight: 1.15, marginBottom: 16,
               }}>
-                Платёжеспособная аудитория чувствует специалиста глубже, чем его техники.
+                Платежеспособная аудитория чувствует специалиста глубже, чем его техники
               </h2>
               <p style={{ fontSize: 15, color: TEXT_SUB, lineHeight: 1.8, margin: 0 }}>
                 10 персональных встреч — это работа напрямую с вашим внутренним состоянием, мышлением и профессиональной позицией.
@@ -114,7 +114,7 @@ export default function EkspertSections() {
                   borderRadius: 14, borderLeft: `2px solid ${PEARL}40`,
                 }}>
                   <p style={{ margin: 0, fontSize: 14, color: TEXT_SUB, lineHeight: 1.75, fontStyle: "italic" }}>
-                    «Вы больше не просто специалист. Вы формируете уровень, которому доверяют состояние, здоровье и жизнь.»
+                    «Вы больше не просто специалист. Вы формируете уровень, которому доверяют состояние, здоровье и жизнь»
                   </p>
                 </div>
               </div>
@@ -136,7 +136,7 @@ export default function EkspertSections() {
                   fontWeight: 700, color: "#fff", lineHeight: 1.15, marginBottom: 20,
                 }}>
                   Вы получаете систему, которая усиливает вас как специалиста{" "}
-                  <span style={{ color: PEARL }}>каждый день.</span>
+                  <span style={{ color: PEARL }}>каждый день</span>
                 </h2>
               </div>
               <div>
@@ -224,7 +224,7 @@ export default function EkspertSections() {
                   fontWeight: 700, color: "#fff", lineHeight: 1.15, marginBottom: 20,
                 }}>
                   Когда меняется состояние специалиста —{" "}
-                  <span style={{ color: PEARL }}>меняется его практика, доход и окружение.</span>
+                  <span style={{ color: PEARL }}>меняется его практика, доход и окружение</span>
                 </h2>
                 <p style={{ fontSize: 14, color: TEXT_SUB, lineHeight: 1.8, margin: "0 0 20px" }}>
                   Рост происходит не через давление. А через внутреннюю силу, профессиональную глубину и состояние.
@@ -302,8 +302,8 @@ export default function EkspertSections() {
               fontSize: "clamp(26px, 4.5vw, 52px)",
               fontWeight: 700, color: "#fff", lineHeight: 1.12, marginBottom: 20,
             }}>
-              Вы перестаёте быть специалистом, который пытается выжить.{" "}
-              <span style={{ color: PEARL }}>И становитесь человеком, которому доверяют глубоко и надолго.</span>
+              Вы перестаете быть специалистом, который пытается выжить —{" "}
+              <span style={{ color: PEARL }}>и становитесь человеком, которому доверяют глубоко и надолго</span>
             </h2>
             <p style={{ fontSize: "clamp(14px, 1.7vw, 16px)", color: TEXT_SUB, lineHeight: 1.85, marginBottom: 48 }}>
               Новый уровень мышления, практики, клиентов и жизни. Это не курс — это система, которая меняет специалиста изнутри.

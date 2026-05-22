@@ -35,7 +35,7 @@ export default function EkspertHero() {
                 color: "#fff", marginBottom: 26, letterSpacing: "-0.5px",
               }}>
                 Настоящая дорогая практика начинается там, где специалист становится{" "}
-                <span style={{ color: PEARL }}>внутренне устойчивым.</span>
+                <span style={{ color: PEARL }}>внутренне устойчивым</span>
               </h1>
             </FadeIn>
 
@@ -46,7 +46,7 @@ export default function EkspertHero() {
               <div style={{ display: "flex", flexDirection: "column" as const, gap: 9, marginBottom: 36 }}>
                 {[
                   "выйти на высокий уровень практики",
-                  "уверенно работать с платёжеспособной аудиторией",
+                  "уверенно работать с платежеспособной аудиторией",
                   "получить интеллектуальные инструменты нового поколения",
                   "выстроить стабильный высокий доход",
                   "стать специалистом, которого рекомендуют",
@@ -122,7 +122,7 @@ export default function EkspertHero() {
                 <div style={{ fontSize: 11, color: TEXT_SUB, marginBottom: 11, letterSpacing: "0.08em" }}>Система включает</div>
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
                   {[
-                    "Всё из тарифов №1 и №2",
+                    "Все из тарифов №1 и №2",
                     "Пожизненный доступ к платформе",
                     "Все обновления и новые модули",
                     "ИИ-инструменты без ограничений",

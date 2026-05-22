@@ -42,7 +42,7 @@ export default function FreeTarifSections() {
                 fontWeight: 700, color: "#fff", lineHeight: 1.12, margin: 0,
               }}>
                 Почему многие специалисты годами{" "}
-                <span style={{ color: TEAL }}>не могут выйти на новый уровень?</span>
+                <span style={{ color: TEAL }}>не могут выйти на новый уровень</span>
               </h2>
             </div>
           </FadeIn>
@@ -89,11 +89,11 @@ export default function FreeTarifSections() {
                   fontSize: "clamp(26px, 3.8vw, 46px)",
                   fontWeight: 700, color: "#fff", lineHeight: 1.12, marginBottom: 16,
                 }}>
-                  Это не просто знакомство.{" "}
-                  <span style={{ color: TEAL }}>Это смена взгляда на профессию.</span>
+                  Это не просто знакомство —{" "}
+                  <span style={{ color: TEAL }}>это смена взгляда на профессию</span>
                 </h2>
                 <p style={{ fontSize: 14, color: TEXT_SUB, lineHeight: 1.8, margin: 0 }}>
-                  Бесплатный блок создан так, чтобы вызвать внутренний сдвиг — ещё до начала платной программы.
+                  Бесплатный блок создан так, чтобы вызвать внутренний сдвиг — еще до начала платной программы.
                 </p>
               </div>
             </FadeIn>
@@ -101,7 +101,7 @@ export default function FreeTarifSections() {
             <FadeIn delay={100}>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.13em", color: TEXT_SUB, textTransform: "uppercase" as const, marginBottom: 16 }}>
-                  После просмотра вы поймёте
+                  После просмотра вы поймете
                 </div>
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: 11 }}>
                   {INSIGHTS.map((text, i) => (
@@ -180,7 +180,7 @@ export default function FreeTarifSections() {
                   fontWeight: 700, color: "#fff", lineHeight: 1.12, marginBottom: 16,
                 }}>
                   Вы увидите, как выглядит современная интеллектуальная система{" "}
-                  <span style={{ color: TEAL }}>для специалистов.</span>
+                  <span style={{ color: TEAL }}>для специалистов</span>
                 </h2>
                 <p style={{ fontSize: 14, color: TEXT_SUB, lineHeight: 1.8, margin: "0 0 22px" }}>
                   Это не «очередной курс». Это технологии, аналитика, система, профессиональная среда нового уровня.
@@ -236,7 +236,7 @@ export default function FreeTarifSections() {
                 fontWeight: 700, color: "#fff", lineHeight: 1.12, margin: 0,
               }}>
                 После бесплатного блока специалист начинает иначе воспринимать{" "}
-                <span style={{ color: TEAL }}>себя и свою практику.</span>
+                <span style={{ color: TEAL }}>себя и свою практику</span>
               </h2>
             </div>
           </FadeIn>

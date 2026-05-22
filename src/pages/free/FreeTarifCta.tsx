@@ -31,7 +31,7 @@ function FreeForm() {
         }),
       });
       if (res.ok) setSent(true);
-      else setError("Не удалось отправить. Попробуйте ещё раз.");
+      else setError("Не удалось отправить. Попробуйте еще раз.");
     } catch { setError("Ошибка сети."); }
     finally { setLoading(false); }
   };
@@ -51,7 +51,7 @@ function FreeForm() {
         Заявка принята
       </div>
       <p style={{ fontSize: 13, color: TEXT_SUB, lineHeight: 1.75 }}>
-        Свяжемся в течение рабочего дня и пришлём доступ к бесплатному блоку.
+        Свяжемся в течение рабочего дня и пришлем доступ к бесплатному блоку.
       </p>
     </div>
   );
@@ -136,7 +136,7 @@ export default function FreeTarifCta() {
                 fontSize: "clamp(28px, 4.5vw, 50px)",
                 fontWeight: 700, color: "#fff", lineHeight: 1.1, margin: 0,
               }}>
-                Это только начало.
+                Это только начало
               </h2>
               <p style={{ fontSize: 15, color: TEXT_SUB, lineHeight: 1.8, margin: "16px 0 0" }}>
                 Внутри платных программ — глубокая работа с мышлением, профессиональная система, личное сопровождение и все интеллектуальные инструменты платформы.
@@ -201,7 +201,7 @@ export default function FreeTarifCta() {
                   fontWeight: 700, color: "#fff", lineHeight: 1.1, marginBottom: 20,
                 }}>
                   Сильная практика начинается{" "}
-                  <span style={{ color: TEAL }}>с внутреннего состояния специалиста.</span>
+                  <span style={{ color: TEAL }}>с внутреннего состояния специалиста</span>
                 </h2>
                 <p style={{ fontSize: 14, color: TEXT_SUB, lineHeight: 1.85, marginBottom: 30 }}>
                   Когда меняется мышление, уверенность и внутренняя опора — меняются клиенты, доход, качество практики и уровень жизни.

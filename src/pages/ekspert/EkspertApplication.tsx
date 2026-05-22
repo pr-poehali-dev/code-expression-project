@@ -19,7 +19,7 @@ function ApplicationForm() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, contact, message: `Заявка на тариф «Dok Диалог — Эксперт» 500 000 ₽. Контакт: ${contact}` }),
       });
-      if (res.ok) setSent(true); else setError("Не удалось отправить. Попробуйте ещё раз.");
+      if (res.ok) setSent(true); else setError("Не удалось отправить. Попробуйте еще раз.");
     } catch { setError("Ошибка сети."); } finally { setLoading(false); }
   };
 
@@ -33,7 +33,7 @@ function ApplicationForm() {
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={PEARL} strokeWidth="2"><path d="M20 6 9 17l-5-5"/></svg>
       </div>
       <div style={{ fontFamily: "Cormorant, serif", fontSize: 24, fontWeight: 700, color: "#fff", marginBottom: 10 }}>Заявка принята</div>
-      <p style={{ fontSize: 14, color: TEXT_SUB, lineHeight: 1.75 }}>Свяжемся в течение рабочего дня и обсудим доступ к программе.</p>
+      <p style={{ fontSize: 14, color: TEXT_SUB, lineHeight: 1.75 }}>Свяжемся в течение рабочего дня и обсудим доступ к программе</p>
     </div>
   );
 
@@ -104,7 +104,7 @@ export default function EkspertApplication() {
               {/* Базовая часть */}
               <div style={{ marginBottom: 20 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: TEXT_SUB, textTransform: "uppercase" as const, marginBottom: 12 }}>
-                  Всё из тарифов №1 и №2
+                  Все из тарифов №1 и №2
                 </div>
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, marginBottom: 18 }}>
                   {[
