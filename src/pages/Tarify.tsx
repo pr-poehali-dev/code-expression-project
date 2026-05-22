@@ -295,7 +295,7 @@ function PlanCard({ plan, onApply }: { plan: typeof PLANS[0]; onApply: (title: s
 
       {/* CTA */}
       {plan.id === "free" ? (
-        <a href="https://school.brossok.ru" target="_blank" rel="noopener noreferrer"
+        <a href="/free"
           style={{ display: "block", textAlign: "center" as const, padding: "13px 20px", borderRadius: 12, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "all 0.25s", border: `1.5px solid ${ACCENT}`, color: ACCENT, background: "transparent", fontFamily: "Montserrat, sans-serif" }}
           onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = `hsla(185,85%,32%,0.07)`; el.style.transform = "translateY(-1px)"; }}
           onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "transparent"; el.style.transform = "translateY(0)"; }}
