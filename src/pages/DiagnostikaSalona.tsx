@@ -393,7 +393,7 @@ export default function DiagnostikaSalona() {
             <FadeIn>
               <div style={{ background: `linear-gradient(135deg, hsl(185,85%,10%) 0%, hsl(185,70%,20%) 100%)`, borderRadius: 20, padding: "clamp(28px, 4vw, 40px)" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: 16 }}>Стоимость</div>
-                <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(42px, 6vw, 64px)", fontWeight: 700, color: "#fff", lineHeight: 1, marginBottom: 8 }}>30 000 ₽</div>
+                <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(42px, 6vw, 64px)", fontWeight: 700, color: "#fff", lineHeight: 1, marginBottom: 8 }}>99 000 ₽</div>
                 <p style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, margin: "0 0 20px" }}>Разовая оплата. Выезд специалиста в ваш салон. Диагностика проходит только по понедельникам.</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {["3–4 часа без остановки работы", "Подробный отчёт с таблицей", "Прогноз и варианты роста"].map((t, i) => (
