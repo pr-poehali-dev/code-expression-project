@@ -1,0 +1,35 @@
+{
+  "tests": [
+    {
+      "name": "AI finance analysis",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "ifr": 48,
+        "ifj": 80,
+        "ifu": 55,
+        "ipn": 72,
+        "idm": 60,
+        "ifp": 40,
+        "label": "Выживание",
+        "current_income": 120000,
+        "desired_income": 300000,
+        "gap": 180000,
+        "mpd": 250000,
+        "avg_check": 4000,
+        "nsc": 10000,
+        "nck": 75,
+        "clients_per_month": 30,
+        "hours_per_week": 48,
+        "clean_profit": 70000,
+        "ceiling_reached": false,
+        "goal_description": "Выйти на 300 000 в месяц",
+        "goal_months": 12,
+        "mindset_blocks": ["боюсь поднять цены", "чувствую себя недостаточно ценным"]
+      },
+      "expectedStatus": 200,
+      "expectedBody": { "text": "string" },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
