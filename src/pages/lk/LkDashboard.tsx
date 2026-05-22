@@ -120,7 +120,30 @@ export default function LkDashboard() {
           <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a", marginBottom: 2 }}>
             {user?.full_name || user?.username}
           </div>
-          <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12 }}>{user?.email}</div>
+          <div style={{ fontSize: 12, color: "#aaa", marginBottom: 10 }}>{user?.email}</div>
+          {user?.access_expires_at && (() => {
+            const exp = new Date(user.access_expires_at);
+            const now = new Date();
+            const daysLeft = Math.ceil((exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+            const expired = daysLeft <= 0;
+            const soon = daysLeft > 0 && daysLeft <= 30;
+            return (
+              <div style={{
+                fontSize: 11, fontWeight: 600, marginBottom: 10,
+                padding: "6px 10px", borderRadius: 8,
+                background: expired ? "#fff0f0" : soon ? "hsl(40,100%,95%)" : "hsl(185,85%,95%)",
+                color: expired ? "#e55" : soon ? "hsl(40,85%,40%)" : ACCENT,
+                display: "flex", alignItems: "center", gap: 6,
+              }}>
+                <Icon name={expired ? "AlertCircle" : "Clock"} size={12} />
+                {expired
+                  ? "Доступ истёк"
+                  : daysLeft === 1
+                    ? "Последний день доступа"
+                    : `Доступ ещё ${daysLeft} дн.`}
+              </div>
+            );
+          })()}
           <button onClick={logout} style={{
             display: "flex", alignItems: "center", gap: 8, background: "none",
             border: "none", color: "#999", fontSize: 13, cursor: "pointer",

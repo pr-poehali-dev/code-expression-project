@@ -7,6 +7,7 @@ interface LkUser {
   full_name: string;
   email: string;
   is_admin: boolean;
+  access_expires_at: string | null;
 }
 
 interface LkAuthCtx {
