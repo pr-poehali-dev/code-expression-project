@@ -8,6 +8,7 @@ interface LkUser {
   email: string;
   is_admin: boolean;
   access_expires_at: string | null;
+  segment: "specialist" | "salon";
 }
 
 interface LkAuthCtx {

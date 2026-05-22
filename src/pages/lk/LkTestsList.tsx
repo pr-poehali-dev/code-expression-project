@@ -9,6 +9,7 @@ interface Props {
   financeHistory: FinanceHistoryItem[];
   profileHistory: ProfileHistoryItem[];
   salonHistory: SalonHistoryItem[];
+  showSalon?: boolean;
   onOpenMindset: () => void;
   onOpenBarriers: () => void;
   onOpenFinance: () => void;
@@ -17,7 +18,7 @@ interface Props {
   onOpenTest: (slug: string) => void;
 }
 
-export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenTest }: Props) {
+export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenTest }: Props) {
   return (
     <div>
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
@@ -80,15 +81,17 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
           onStart={onOpenProfile}
         />
 
-        {/* Диагностика роста салона PRO */}
-        <ToolCard
-          icon="Scissors" color="hsl(335,80%,50%)" bg="hsl(335,80%,97%)"
-          title="Диагностика роста салона PRO"
-          description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока"
-          completed={salonHistory.length > 0}
-          completedLabel={salonHistory.length > 0 ? `Пройден · IPS ${salonHistory[0].ips} · потенциал +${formatMoneySalon(salonHistory[0].hidden_money)}` : undefined}
-          onStart={onOpenSalon}
-        />
+        {/* Диагностика роста салона PRO — только для сегмента "салон" */}
+        {showSalon && (
+          <ToolCard
+            icon="Scissors" color="hsl(335,80%,50%)" bg="hsl(335,80%,97%)"
+            title="Диагностика роста салона PRO"
+            description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока"
+            completed={salonHistory.length > 0}
+            completedLabel={salonHistory.length > 0 ? `Пройден · IPS ${salonHistory[0].ips} · потенциал +${formatMoneySalon(salonHistory[0].hidden_money)}` : undefined}
+            onStart={onOpenSalon}
+          />
+        )}
 
         {tests.length === 0 && barriersHistory.length === 0 && financeHistory.length === 0 && profileHistory.length === 0 && salonHistory.length === 0 && (
           <div style={{ textAlign: "center", padding: 48, color: "#aaa" }}>

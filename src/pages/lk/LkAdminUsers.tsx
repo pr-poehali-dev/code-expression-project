@@ -9,7 +9,7 @@ export function UsersSection() {
   const [creating, setCreating] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [newPw, setNewPw] = useState<{ userId: number; pw: string } | null>(null);
-  const [form, setForm] = useState({ username: "", email: "", password: "", full_name: "", notes: "", is_admin: false, access_type: "12months" });
+  const [form, setForm] = useState({ username: "", email: "", password: "", full_name: "", notes: "", is_admin: false, access_type: "12months", segment: "specialist" });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -21,7 +21,7 @@ export function UsersSection() {
     try {
       await lkApi.adminCreateUser(form);
       setCreating(false);
-      setForm({ username: "", email: "", password: "", full_name: "", notes: "", is_admin: false, access_type: "12months" });
+      setForm({ username: "", email: "", password: "", full_name: "", notes: "", is_admin: false, access_type: "12months", segment: "specialist" });
       load();
       setMsg("Пользователь создан");
     } catch (e) {
@@ -119,6 +119,33 @@ export function UsersSection() {
               ))}
             </div>
           </div>
+          <div style={{ marginTop: 14 }}>
+            <label style={labelStyle}>Сегмент</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              {[
+                { value: "specialist", label: "Специалист", icon: "User" },
+                { value: "salon",      label: "Салон",       icon: "Scissors" },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setForm(p => ({ ...p, segment: opt.value }))}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "8px 16px", borderRadius: 8, border: "1.5px solid",
+                    borderColor: form.segment === opt.value ? ACCENT : "#e8e8e4",
+                    background: form.segment === opt.value ? `hsl(185,85%,95%)` : "#fafafa",
+                    color: form.segment === opt.value ? ACCENT : "#555",
+                    fontSize: 13, fontWeight: 600, cursor: "pointer",
+                    fontFamily: "Montserrat, sans-serif",
+                  }}
+                >
+                  <Icon name={opt.icon} size={13} />
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
             <button onClick={createUser} disabled={saving} style={actionBtn(ACCENT)}>
               {saving ? "Создаю..." : "Создать"}
@@ -206,6 +233,33 @@ export function UsersSection() {
                     ))}
                   </div>
                 </div>
+                <div style={{ marginBottom: 14 }}>
+                  <label style={labelStyle}>Сегмент</label>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {[
+                      { value: "specialist", label: "Специалист", icon: "User" },
+                      { value: "salon",      label: "Салон",       icon: "Scissors" },
+                    ].map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setEditUser(p => p ? { ...p, segment: opt.value as "specialist" | "salon" } : null)}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 6,
+                          padding: "7px 14px", borderRadius: 8, border: "1.5px solid",
+                          borderColor: editUser.segment === opt.value ? ACCENT : "#e8e8e4",
+                          background: editUser.segment === opt.value ? "hsl(185,85%,95%)" : "#fafafa",
+                          color: editUser.segment === opt.value ? ACCENT : "#555",
+                          fontSize: 12, fontWeight: 600, cursor: "pointer",
+                          fontFamily: "Montserrat, sans-serif",
+                        }}
+                      >
+                        <Icon name={opt.icon} size={12} />
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <button onClick={updateUser} disabled={saving} style={actionBtn(ACCENT)}>Сохранить</button>
                   <button onClick={() => setEditUser(null)} style={actionBtn("#999")}>Отмена</button>
@@ -227,6 +281,9 @@ export function UsersSection() {
                     {u.is_admin && (
                       <span style={{ fontSize: 10, background: "hsl(280,60%,95%)", color: "hsl(280,60%,55%)", padding: "2px 7px", borderRadius: 20, fontWeight: 700 }}>Admin</span>
                     )}
+                    <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 20, fontWeight: 600, background: u.segment === "salon" ? "hsl(335,80%,96%)" : "hsl(185,85%,95%)", color: u.segment === "salon" ? "hsl(335,80%,45%)" : ACCENT }}>
+                      {u.segment === "salon" ? "Салон" : "Специалист"}
+                    </span>
                     {!u.is_active && (
                       <span style={{ fontSize: 10, background: "#f5f5f0", color: "#999", padding: "2px 7px", borderRadius: 20 }}>Неактивен</span>
                     )}

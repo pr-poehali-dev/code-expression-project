@@ -342,7 +342,7 @@ function HomeTab({ onNav }: { onNav: (t: Tab) => void }) {
           Инструменты роста
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12, marginBottom: 24 }}>
-          {TOOLS.map(tool => (
+          {TOOLS.filter(tool => tool.id !== "salon" || user?.segment === "salon").map(tool => (
             <button
               key={tool.id}
               onClick={() => onNav("tests")}

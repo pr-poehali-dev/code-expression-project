@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { lkApi } from "@/lib/lkApi";
+import { useLkAuth } from "@/contexts/LkAuthContext";
 import MindsetBot from "./MindsetBot";
 import MindsetResult, { IndexMap } from "./MindsetResult";
 import BarriersBot from "./BarriersBot";
@@ -19,6 +20,8 @@ import LkTestsList from "./LkTestsList";
 import LkTestsHistory from "./LkTestsHistory";
 
 export default function LkTests() {
+  const { user } = useLkAuth();
+  const isSalon = user?.segment === "salon";
   const [tests, setTests] = useState<Test[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTest, setActiveTest] = useState<TestDetail | null>(null);
@@ -169,6 +172,7 @@ export default function LkTests() {
         financeHistory={financeHistory}
         profileHistory={profileHistory}
         salonHistory={salonHistory}
+        showSalon={isSalon}
         onOpenMindset={() => setOpenMindset(true)}
         onOpenBarriers={() => setOpenBarriers(true)}
         onOpenFinance={() => setOpenFinance(true)}

@@ -101,6 +101,7 @@ def handle_login(event: dict) -> dict:
                 "email": user["email"],
                 "is_admin": user["is_admin"],
                 "access_expires_at": user["access_expires_at"],
+                "segment": user.get("segment", "specialist"),
             }
         })
     finally:
@@ -134,6 +135,7 @@ def handle_me(event: dict) -> dict:
             "email": user["email"],
             "is_admin": user["is_admin"],
             "access_expires_at": user["access_expires_at"],
+            "segment": user.get("segment", "specialist"),
         })
     finally:
         conn.close()
@@ -287,7 +289,7 @@ def handle_admin_users(event: dict) -> dict:
         if not require_admin(event, conn):
             return err("Нет доступа", 403)
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        cur.execute(f"SELECT id, username, email, full_name, is_admin, is_active, created_at, notes, access_expires_at FROM {tbl('lk_users')} ORDER BY created_at DESC")
+        cur.execute(f"SELECT id, username, email, full_name, is_admin, is_active, created_at, notes, access_expires_at, segment FROM {tbl('lk_users')} ORDER BY created_at DESC")
         return ok([dict(r) for r in cur.fetchall()])
     finally:
         conn.close()
@@ -302,6 +304,7 @@ def handle_admin_create_user(event: dict) -> dict:
     notes = body.get("notes", "").strip()
     is_admin = bool(body.get("is_admin", False))
     access_type = body.get("access_type", "unlimited")  # "12months" или "unlimited"
+    segment = body.get("segment", "specialist")  # "specialist" или "salon"
 
     if not username or not email or not password:
         return err("Заполните логин, email и пароль")
@@ -318,8 +321,8 @@ def handle_admin_create_user(event: dict) -> dict:
         pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute(
-            f"INSERT INTO {tbl('lk_users')} (username, email, password_hash, full_name, notes, is_admin, access_expires_at) VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING id",
-            (username, email, pw_hash, full_name, notes, is_admin, access_expires_at)
+            f"INSERT INTO {tbl('lk_users')} (username, email, password_hash, full_name, notes, is_admin, access_expires_at, segment) VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+            (username, email, pw_hash, full_name, notes, is_admin, access_expires_at, segment)
         )
         new_id = cur.fetchone()["id"]
         conn.commit()
@@ -335,6 +338,7 @@ def handle_admin_update_user(event: dict) -> dict:
     body = json.loads(event.get("body") or "{}")
     user_id = body.get("id")
     access_type = body.get("access_type")  # "12months", "unlimited" или None (не менять)
+    segment = body.get("segment")  # "specialist" или "salon" или None (не менять)
 
     from datetime import timedelta
     conn = get_db()
@@ -342,21 +346,23 @@ def handle_admin_update_user(event: dict) -> dict:
         if not require_admin(event, conn):
             return err("Нет доступа", 403)
         cur = conn.cursor()
+        seg_sql = ", segment=%s" if segment else ""
+        seg_val = (segment,) if segment else ()
         if access_type == "unlimited":
             cur.execute(
-                f"UPDATE {tbl('lk_users')} SET full_name=%s, email=%s, notes=%s, is_active=%s, is_admin=%s, access_expires_at=NULL WHERE id=%s",
-                (body.get("full_name"), body.get("email"), body.get("notes"), body.get("is_active", True), body.get("is_admin", False), user_id)
+                f"UPDATE {tbl('lk_users')} SET full_name=%s, email=%s, notes=%s, is_active=%s, is_admin=%s, access_expires_at=NULL{seg_sql} WHERE id=%s",
+                (body.get("full_name"), body.get("email"), body.get("notes"), body.get("is_active", True), body.get("is_admin", False)) + seg_val + (user_id,)
             )
         elif access_type == "12months":
             new_expires = (datetime.now(timezone.utc) + timedelta(days=365)).isoformat()
             cur.execute(
-                f"UPDATE {tbl('lk_users')} SET full_name=%s, email=%s, notes=%s, is_active=%s, is_admin=%s, access_expires_at=%s WHERE id=%s",
-                (body.get("full_name"), body.get("email"), body.get("notes"), body.get("is_active", True), body.get("is_admin", False), new_expires, user_id)
+                f"UPDATE {tbl('lk_users')} SET full_name=%s, email=%s, notes=%s, is_active=%s, is_admin=%s, access_expires_at=%s{seg_sql} WHERE id=%s",
+                (body.get("full_name"), body.get("email"), body.get("notes"), body.get("is_active", True), body.get("is_admin", False), new_expires) + seg_val + (user_id,)
             )
         else:
             cur.execute(
-                f"UPDATE {tbl('lk_users')} SET full_name=%s, email=%s, notes=%s, is_active=%s, is_admin=%s WHERE id=%s",
-                (body.get("full_name"), body.get("email"), body.get("notes"), body.get("is_active", True), body.get("is_admin", False), user_id)
+                f"UPDATE {tbl('lk_users')} SET full_name=%s, email=%s, notes=%s, is_active=%s, is_admin=%s{seg_sql} WHERE id=%s",
+                (body.get("full_name"), body.get("email"), body.get("notes"), body.get("is_active", True), body.get("is_admin", False)) + seg_val + (user_id,)
             )
         conn.commit()
         return ok({"ok": True})

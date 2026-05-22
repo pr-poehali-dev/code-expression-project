@@ -12,6 +12,7 @@ export interface User {
   created_at: string;
   notes: string;
   access_expires_at: string | null;
+  segment: "specialist" | "salon";
 }
 
 export interface BodyZone {
