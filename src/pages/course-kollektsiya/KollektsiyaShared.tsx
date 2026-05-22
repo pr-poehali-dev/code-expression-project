@@ -5,10 +5,8 @@ export const GOLD = "#d4a017";
 export const GOLD_BG = "#fdf8ec";
 
 export const RETAIL_PRICE = 77600;
-export const DISCOUNT_PRICE = 23280;
 
 export const BUY_URL_RETAIL = "https://school.brossok.ru/buy/82";
-export const BUY_URL_DISCOUNT = "https://school.brossok.ru/buy/82";
 
 export const COURSES = [
   {

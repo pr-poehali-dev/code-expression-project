@@ -1,14 +1,12 @@
 import Icon from "@/components/ui/icon";
-import DiscountTimer from "@/components/ui/DiscountTimer";
-import { ACCENT, GOLD, RETAIL_PRICE, DISCOUNT_PRICE, BtnBuy } from "./KollektsiyaShared";
+import { ACCENT, GOLD, RETAIL_PRICE, BtnBuy } from "./KollektsiyaShared";
 
 interface KollektsiyaHeroProps {
-  isActive: boolean;
   buyUrl: string;
   currentPrice: number;
 }
 
-export default function KollektsiyaHero({ isActive, buyUrl, currentPrice }: KollektsiyaHeroProps) {
+export default function KollektsiyaHero({ buyUrl, currentPrice }: KollektsiyaHeroProps) {
   return (
     <section style={{
       background: `linear-gradient(135deg, #0d2b2e 0%, #0a3d40 50%, #0d2b2e 100%)`,
@@ -58,37 +56,20 @@ export default function KollektsiyaHero({ isActive, buyUrl, currentPrice }: Koll
             </p>
 
             <div style={{ marginBottom: 32 }}>
-              {isActive ? (
-                <div>
-                  <DiscountTimer
-                    oldPrice={`${RETAIL_PRICE.toLocaleString("ru-RU")} ₽`}
-                    newPrice={`${DISCOUNT_PRICE.toLocaleString("ru-RU")} ₽`}
-                    accent="hsl(185, 85%, 55%)"
-                    size="lg"
-                  />
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginTop: 8 }}>
-                    Розничная стоимость 7 курсов по отдельности — 97 080 ₽
-                  </div>
+              <div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", textDecoration: "line-through", marginBottom: 4 }}>
+                  97 080 ₽ (при покупке каждого курса отдельно)
                 </div>
-              ) : (
-                <div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", textDecoration: "line-through", marginBottom: 4 }}>
-                    97 080 ₽ (при покупке каждого курса отдельно)
-                  </div>
-                  <div style={{ fontFamily: "Cormorant, serif", fontSize: 52, fontWeight: 700, color: "#fff", lineHeight: 1 }}>
-                    {RETAIL_PRICE.toLocaleString("ru-RU")} ₽
-                  </div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>уже со скидкой 20% за опт</div>
+                <div style={{ fontFamily: "Cormorant, serif", fontSize: 52, fontWeight: 700, color: "#fff", lineHeight: 1 }}>
+                  {RETAIL_PRICE.toLocaleString("ru-RU")} ₽
                 </div>
-              )}
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginTop: 4 }}>уже со скидкой 20% за опт</div>
+              </div>
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
               <BtnBuy href={buyUrl}>
-                {isActive
-                  ? `Купить коллекцию — ${DISCOUNT_PRICE.toLocaleString("ru-RU")} ₽`
-                  : `Купить коллекцию — ${RETAIL_PRICE.toLocaleString("ru-RU")} ₽`
-                }
+                {`Купить коллекцию — ${RETAIL_PRICE.toLocaleString("ru-RU")} ₽`}
               </BtnBuy>
             </div>
           </div>

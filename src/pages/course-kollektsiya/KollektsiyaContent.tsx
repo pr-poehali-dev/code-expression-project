@@ -1,5 +1,5 @@
 import Icon from "@/components/ui/icon";
-import { ACCENT, GOLD, GOLD_BG, RETAIL_PRICE, DISCOUNT_PRICE, COURSES, OUTCOMES } from "./KollektsiyaShared";
+import { ACCENT, GOLD, GOLD_BG, RETAIL_PRICE, COURSES, OUTCOMES } from "./KollektsiyaShared";
 
 export default function KollektsiyaContent() {
   return (
@@ -156,14 +156,13 @@ export default function KollektsiyaContent() {
                 7 курсов дешевле,<br />чем 2 по отдельности
               </h3>
               <p style={{ fontSize: 15, color: "#666", lineHeight: 1.7, margin: 0 }}>
-                При покупке каждого курса отдельно вы заплатите <strong>97 080 ₽</strong>. В коллекции вы получаете все 7 курсов за <strong>{RETAIL_PRICE.toLocaleString("ru-RU")} ₽</strong> — это скидка <strong>20%</strong> за оптовую покупку. А во время акции — ещё выгоднее.
+                При покупке каждого курса отдельно вы заплатите <strong>97 080 ₽</strong>. В коллекции вы получаете все 7 курсов за <strong>{RETAIL_PRICE.toLocaleString("ru-RU")} ₽</strong> — это скидка <strong>20%</strong> за оптовую покупку.
               </p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {[
                 { label: "7 курсов по отдельности", value: "97 080 ₽", strike: true, color: "#999", bold: false },
-                { label: "Коллекция (−20% опт)", value: `${RETAIL_PRICE.toLocaleString("ru-RU")} ₽`, strike: false, color: "#1a1a1a", bold: false },
-                { label: "Акционная цена (−70%)", value: `${DISCOUNT_PRICE.toLocaleString("ru-RU")} ₽`, strike: false, color: ACCENT, bold: true },
+                { label: "Коллекция (−20% опт)", value: `${RETAIL_PRICE.toLocaleString("ru-RU")} ₽`, strike: false, color: ACCENT, bold: true },
               ].map((row, i) => (
                 <div key={i} style={{
                   display: "flex", alignItems: "center", justifyContent: "space-between",

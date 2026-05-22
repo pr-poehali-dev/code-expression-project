@@ -1,13 +1,10 @@
 import { useState } from "react";
-import DiscountTimer from "@/components/ui/DiscountTimer";
-import { useDiscountTimer } from "@/hooks/useDiscountTimer";
 
 export const ACCENT = "hsl(185, 85%, 32%)";
 export const ACCENT_DARK = "hsl(185, 85%, 26%)";
 export const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.25)";
 export const BG = "#f8f8f6";
 export const BUY_URL = "https://school.brossok.ru/buy/55";
-export const BUY_URL_DISCOUNT = "https://school.brossok.ru/buy/77";
 
 export const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/253605ec-f2b1-4a6e-92f9-96181a4448cf.jpg";
 
@@ -88,9 +85,8 @@ export const h2style: React.CSSProperties = {
 
 export function BtnPrimary({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   const [h, setH] = useState(false);
-  const { isActive } = useDiscountTimer();
   return (
-    <a href={isActive ? BUY_URL_DISCOUNT : BUY_URL} target="_blank" rel="noopener noreferrer"
+    <a href={BUY_URL} target="_blank" rel="noopener noreferrer"
       onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       style={{
         display: "inline-block", textDecoration: "none",
@@ -106,9 +102,8 @@ export function BtnPrimary({ children, style }: { children: React.ReactNode; sty
 
 export function BtnSecondary({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   const [h, setH] = useState(false);
-  const { isActive } = useDiscountTimer();
   return (
-    <a href={isActive ? BUY_URL_DISCOUNT : BUY_URL} target="_blank" rel="noopener noreferrer"
+    <a href={BUY_URL} target="_blank" rel="noopener noreferrer"
       onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       style={{
         display: "inline-block", textDecoration: "none",
@@ -142,7 +137,6 @@ export function AccordionItem({ title, children }: { title: string; children: Re
 }
 
 export function CtaBar() {
-  const { isActive } = useDiscountTimer();
   return (
     <div style={{ margin: "60px 0 0", background: "#fff", borderTop: "1px solid #e8e8e4", borderBottom: "1px solid #e8e8e4" }}>
       <style>{`
@@ -160,11 +154,7 @@ export function CtaBar() {
           <div style={{ color: "#999", fontSize: 13 }}>Безопасный старт без медобразования</div>
         </div>
         <div className="ctabar-btns">
-          {isActive ? (
-            <DiscountTimer oldPrice="4 990 ₽" newPrice="1 497 ₽" accent={ACCENT} size="sm" />
-          ) : (
-            <span style={{ fontFamily: "Cormorant, serif", fontSize: 28, fontWeight: 700 }}>4 990 ₽</span>
-          )}
+          <span style={{ fontFamily: "Cormorant, serif", fontSize: 28, fontWeight: 700 }}>4 990 ₽</span>
           <BtnPrimary>Купить курс</BtnPrimary>
           <BtnSecondary>Рассрочка</BtnSecondary>
         </div>

@@ -1,13 +1,10 @@
 import { useState } from "react";
-import DiscountTimer from "@/components/ui/DiscountTimer";
-import { useDiscountTimer } from "@/hooks/useDiscountTimer";
 
 export const ACCENT = "hsl(185, 85%, 32%)";
 export const ACCENT_DARK = "hsl(185, 85%, 26%)";
 export const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.25)";
 export const BG = "#f8f8f6";
 export const BUY_URL = "https://school.brossok.ru/buy/42";
-export const BUY_URL_DISCOUNT = "https://school.brossok.ru/buy/75";
 
 export const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/2140080c-7bbd-4e14-912f-70dc189744e8.jpg";
 export const AUTHOR_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/e1094aa6-0054-4675-a2d2-f6112eab1bf6.png";
@@ -105,9 +102,8 @@ export const h2style: React.CSSProperties = {
 
 export function BtnPrimary({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   const [h, setH] = useState(false);
-  const { isActive } = useDiscountTimer();
   return (
-    <a href={isActive ? BUY_URL_DISCOUNT : BUY_URL} target="_blank" rel="noopener noreferrer"
+    <a href={BUY_URL} target="_blank" rel="noopener noreferrer"
       onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       style={{
         display: "inline-block", textDecoration: "none",
@@ -123,9 +119,8 @@ export function BtnPrimary({ children, style }: { children: React.ReactNode; sty
 
 export function BtnSecondary({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   const [h, setH] = useState(false);
-  const { isActive } = useDiscountTimer();
   return (
-    <a href={isActive ? BUY_URL_DISCOUNT : BUY_URL} target="_blank" rel="noopener noreferrer"
+    <a href={BUY_URL} target="_blank" rel="noopener noreferrer"
       onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       style={{
         display: "inline-block", textDecoration: "none",
@@ -159,7 +154,6 @@ export function AccordionItem({ title, children }: { title: string; children: Re
 }
 
 export function CtaBar() {
-  const { isActive } = useDiscountTimer();
   return (
     <div style={{ margin: "60px 0 0", background: "#fff", borderTop: "1px solid #e8e8e4", borderBottom: "1px solid #e8e8e4" }}>
       <style>{`
@@ -177,11 +171,7 @@ export function CtaBar() {
           <div style={{ color: "#999", fontSize: 13 }}>Удивите клиента уже на первом сеансе</div>
         </div>
         <div className="ctabar-btns">
-          {isActive ? (
-            <DiscountTimer oldPrice="14 900 ₽" newPrice="4 470 ₽" accent={ACCENT} size="sm" />
-          ) : (
-            <span style={{ fontFamily: "Cormorant, serif", fontSize: 28, fontWeight: 700 }}>14 900 ₽</span>
-          )}
+          <span style={{ fontFamily: "Cormorant, serif", fontSize: 28, fontWeight: 700 }}>14 900 ₽</span>
           <BtnPrimary>Купить курс</BtnPrimary>
           <BtnSecondary>Рассрочка</BtnSecondary>
         </div>

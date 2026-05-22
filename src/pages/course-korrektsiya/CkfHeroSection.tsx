@@ -1,9 +1,7 @@
 import Icon from "@/components/ui/icon";
 import { ACCENT, BG, HERO_IMG, AUTHOR_IMG, BtnPrimary, BtnSecondary, h2style } from "./CkfShared";
-import { useDiscountTimer } from "@/hooks/useDiscountTimer";
 
 export default function CkfHeroSection() {
-  const { isActive } = useDiscountTimer();
   return (
     <>
       {/* ── 1. HERO ── */}
@@ -39,7 +37,7 @@ export default function CkfHeroSection() {
               ))}
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <BtnPrimary>{isActive ? "Купить курс — 5 070 ₽" : "Купить курс — 16 900 ₽"}</BtnPrimary>
+              <BtnPrimary>Купить курс — 16 900 ₽</BtnPrimary>
               <BtnSecondary>Оформить рассрочку</BtnSecondary>
             </div>
           </div>

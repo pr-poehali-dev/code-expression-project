@@ -1,9 +1,7 @@
 import Icon from "@/components/ui/icon";
 import { ACCENT, HERO_IMG, BtnPrimary, BtnSecondary, h2style } from "./CvmShared";
-import { useDiscountTimer } from "@/hooks/useDiscountTimer";
 
 export default function CvmHeroSection() {
-  const { isActive } = useDiscountTimer();
   return (
     <>
       {/* ── 1. HERO ── */}
@@ -39,7 +37,7 @@ export default function CvmHeroSection() {
               ))}
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <BtnPrimary>{isActive ? "Купить курс — 1 497 ₽" : "Купить курс — 4 990 ₽"}</BtnPrimary>
+              <BtnPrimary>Купить курс — 4 990 ₽</BtnPrimary>
               <BtnSecondary>Оформить рассрочку</BtnSecondary>
             </div>
           </div>

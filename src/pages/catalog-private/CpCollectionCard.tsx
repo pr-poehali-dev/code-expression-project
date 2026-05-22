@@ -1,11 +1,9 @@
 import Icon from "@/components/ui/icon";
-import { useDiscountTimer } from "@/hooks/useDiscountTimer";
 
 const ACCENT = "hsl(185, 85%, 32%)";
 const GOLD = "#d4a017";
 
 const RETAIL_PRICE = 77600;
-const DISCOUNT_PRICE = 23280;
 
 const COURSES_IN_COLLECTION = [
   { color: ACCENT, label: "Профессия массажист с нуля" },
@@ -18,10 +16,6 @@ const COURSES_IN_COLLECTION = [
 ];
 
 export default function CpCollectionCard() {
-  const { isActive, formatted } = useDiscountTimer();
-  const currentPrice = isActive ? DISCOUNT_PRICE : RETAIL_PRICE;
-  const oldPrice = isActive ? RETAIL_PRICE : null;
-
   return (
     <div style={{
       gridColumn: "1 / -1",
@@ -41,7 +35,6 @@ export default function CpCollectionCard() {
         @media (max-width: 800px) { .koll-card-inner { grid-template-columns: 1fr !important; } }`}
       </style>
 
-      {/* Фоновые блики */}
       <div style={{
         position: "absolute", inset: 0, pointerEvents: "none",
         backgroundImage: `radial-gradient(ellipse at 15% 50%, hsla(185,85%,32%,0.2) 0%, transparent 55%),
@@ -51,7 +44,6 @@ export default function CpCollectionCard() {
       <div className="koll-card-inner" style={{ position: "relative" }}>
         {/* LEFT */}
         <div>
-          {/* Badge */}
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 7,
             background: `linear-gradient(135deg, ${GOLD}28, ${GOLD}14)`,
@@ -76,7 +68,6 @@ export default function CpCollectionCard() {
             От базовых техник до маркетинга и потока клиентов — полный путь от новичка до востребованного специалиста
           </p>
 
-          {/* Курсы */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 28 }}>
             {COURSES_IN_COLLECTION.map((c, i) => (
               <div key={i} style={{
@@ -92,7 +83,6 @@ export default function CpCollectionCard() {
             ))}
           </div>
 
-          {/* CTA кнопка */}
           <a
             href="/course/kollektsiya"
             onClick={e => e.stopPropagation()}
@@ -113,7 +103,7 @@ export default function CpCollectionCard() {
           </a>
         </div>
 
-        {/* RIGHT — цены */}
+        {/* RIGHT — цена */}
         <div style={{
           background: "rgba(255,255,255,0.05)",
           border: "1px solid rgba(255,255,255,0.1)",
@@ -127,35 +117,17 @@ export default function CpCollectionCard() {
           gap: 12,
         }}>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>
-            {isActive ? "Акционная цена" : "Стоимость"}
+            Стоимость
           </div>
-
-          {oldPrice && (
-            <div style={{ fontSize: 16, color: "rgba(255,255,255,0.35)", textDecoration: "line-through" }}>
-              {oldPrice.toLocaleString("ru-RU")} ₽
-            </div>
-          )}
 
           <div style={{
             fontFamily: "Cormorant, serif",
             fontSize: 40, fontWeight: 700,
-            color: isActive ? "hsl(185,85%,60%)" : "#fff",
+            color: "#fff",
             lineHeight: 1,
           }}>
-            {currentPrice.toLocaleString("ru-RU")} ₽
+            {RETAIL_PRICE.toLocaleString("ru-RU")} ₽
           </div>
-
-          {isActive && (
-            <div style={{
-              display: "flex", alignItems: "center", gap: 5,
-              background: "#e53935",
-              borderRadius: 8, padding: "5px 12px",
-              fontSize: 12, color: "#fff", fontWeight: 700,
-              letterSpacing: 0.3,
-            }}>
-              ⏱ Скидка 70% ещё {formatted}
-            </div>
-          )}
 
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
             Вместо 97 080 ₽<br />при покупке по отдельности
@@ -166,7 +138,7 @@ export default function CpCollectionCard() {
             onClick={e => e.stopPropagation()}
             style={{
               display: "block", width: "100%", textAlign: "center",
-              background: isActive ? "#e53935" : `hsl(185,85%,38%)`,
+              background: `hsl(185,85%,38%)`,
               color: "#fff", borderRadius: 10,
               padding: "11px 16px", fontSize: 13, fontWeight: 700,
               textDecoration: "none", transition: "opacity 0.18s",
@@ -176,7 +148,7 @@ export default function CpCollectionCard() {
             onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; }}
           >
-            {isActive ? "Купить со скидкой 70%" : "Купить коллекцию"}
+            Купить коллекцию
           </a>
         </div>
       </div>

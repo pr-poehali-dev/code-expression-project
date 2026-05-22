@@ -1,9 +1,7 @@
 import Icon from "@/components/ui/icon";
 import { ACCENT, BG, HERO_IMG, BtnPrimary, BtnSecondary, h2style } from "./CourseShared";
-import { useDiscountTimer } from "@/hooks/useDiscountTimer";
 
 export default function CourseHeroSection() {
-  const { isActive } = useDiscountTimer();
   return (
     <>
       {/* ── 1. HERO ────────────────────────────── */}
@@ -45,7 +43,7 @@ export default function CourseHeroSection() {
               ))}
             </div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <BtnPrimary>{isActive ? "Купить курс — 5 970 ₽" : "Купить курс — 19 900 ₽"}</BtnPrimary>
+              <BtnPrimary>Купить курс — 19 900 ₽</BtnPrimary>
               <BtnSecondary>Оформить рассрочку</BtnSecondary>
             </div>
           </div>

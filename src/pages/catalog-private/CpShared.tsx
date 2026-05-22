@@ -13,11 +13,10 @@ export type Course = {
   priceNote?: string;
   level: "beginner" | "practitioner" | "any";
   direction: "technique" | "income";
-  tiers?: { label: string; color: string; price: string; oldPrice?: string; discountBuyUrl?: string }[];
+  tiers?: { label: string; color: string; price: string }[];
   image: string;
   detailUrl?: string;
   buyUrl?: string;
-  discountBuyUrl?: string;
   format?: "online" | "offline";
   duration?: string;
   bookUrl?: string;
@@ -38,15 +37,14 @@ export const ONLINE_COURSES: Course[] = [
       "Проводить полноценный сеанс с клиентом",
       "Находить первых клиентов и зарабатывать",
     ],
-    price: "5 970 ₽",
-    oldPrice: "19 900 ₽",
+    price: "19 900 ₽",
     priceNote: "или рассрочка",
     level: "beginner",
     direction: "income",
     format: "online",
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/5330c54a-7b7f-4b4b-bb27-5dfd7e57afb8.jpg",
     detailUrl: "/course/massazhist-s-nulya",
-    discountBuyUrl: "https://school.brossok.ru/buy/73",
+    buyUrl: "https://school.brossok.ru/buy/15",
   },
   {
     id: 2,
@@ -75,15 +73,13 @@ export const ONLINE_COURSES: Course[] = [
       "Работать с болью в спине, шее и стрессом",
       "Повышать эффективность каждого сеанса",
     ],
-    price: "5 970 ₽",
-    oldPrice: "19 900 ₽",
+    price: "19 900 ₽",
     level: "practitioner",
     direction: "technique",
     format: "online",
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/eeeaf528-cd8c-4010-b5fb-ca19d1dc4a85.jpg",
     detailUrl: "/course/gotovye-protokoly-massazha",
     buyUrl: "https://school.brossok.ru/buy/50",
-    discountBuyUrl: "https://school.brossok.ru/buy/74",
   },
   {
     id: 4,
@@ -94,15 +90,13 @@ export const ONLINE_COURSES: Course[] = [
       "Усиливать эффект массажа через ВНС",
       "Повышать лояльность и возврат клиентов",
     ],
-    price: "4 470 ₽",
-    oldPrice: "14 900 ₽",
+    price: "14 900 ₽",
     level: "any",
     direction: "technique",
     format: "online",
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/7ee6581d-0eae-4377-b509-048c05c11572.jpg",
     detailUrl: "/course/antistress-tehniki-massazha",
     buyUrl: "https://school.brossok.ru/buy/42",
-    discountBuyUrl: "https://school.brossok.ru/buy/75",
   },
   {
     id: 5,
@@ -113,15 +107,13 @@ export const ONLINE_COURSES: Course[] = [
       "Устранять отёки и улучшать внешний вид",
       "Создавать курс процедур для клиента",
     ],
-    price: "5 070 ₽",
-    oldPrice: "16 900 ₽",
+    price: "16 900 ₽",
     level: "any",
     direction: "income",
     format: "online",
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/bdd8989f-e31c-46c9-aad1-6006a7f468ec.jpg",
     detailUrl: "/course/korrektsiya-figury",
     buyUrl: "https://school.brossok.ru/buy/43",
-    discountBuyUrl: "https://school.brossok.ru/buy/76",
   },
   {
     id: 6,
@@ -132,15 +124,13 @@ export const ONLINE_COURSES: Course[] = [
       "Безопасной работе с внутренними органами",
       "Применению техник на практике",
     ],
-    price: "1 497 ₽",
-    oldPrice: "4 990 ₽",
+    price: "4 990 ₽",
     level: "beginner",
     direction: "technique",
     format: "online",
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/d9819836-a0ee-4339-b6da-de14ba2dfd2b.jpg",
     detailUrl: "/course/visceralny-massazh-s-nulya",
     buyUrl: "https://school.brossok.ru/buy/55",
-    discountBuyUrl: "https://school.brossok.ru/buy/77",
   },
   {
     id: 7,
@@ -151,16 +141,15 @@ export const ONLINE_COURSES: Course[] = [
       "Упаковать личный бренд и повысить чек",
       "Выйти на стабильный доход",
     ],
-    price: "от 1 470 ₽",
-    oldPrice: "от 4 900 ₽",
+    price: "от 4 900 ₽",
     priceNote: "3 тарифа",
     level: "any",
     direction: "income",
     format: "online",
     tiers: [
-      { label: "Старт", color: "#22c55e", price: "1 470 ₽", oldPrice: "4 900 ₽", discountBuyUrl: "https://school.brossok.ru/buy/79" },
-      { label: "Профи", color: "#f59e0b", price: "4 470 ₽", oldPrice: "14 900 ₽", discountBuyUrl: "https://school.brossok.ru/buy/80" },
-      { label: "Эксперт", color: "#ef4444", price: "10 470 ₽", oldPrice: "34 900 ₽", discountBuyUrl: "https://school.brossok.ru/buy/81" },
+      { label: "Старт", color: "#22c55e", price: "4 900 ₽" },
+      { label: "Профи", color: "#f59e0b", price: "14 900 ₽" },
+      { label: "Эксперт", color: "#ef4444", price: "34 900 ₽" },
     ],
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/ac73bf44-ff8f-4207-9d24-56da457498ea.jpg",
     detailUrl: "/course/massazhist-s-potokom-klientov",
@@ -196,15 +185,13 @@ export const POINT_COURSES: Course[] = [
       "3 программы: 2, 3 и 7 раз в неделю",
       "Без оборудования, в любое удобное время",
     ],
-    price: "1 677 ₽",
-    oldPrice: "5 590 ₽",
+    price: "5 590 ₽",
     level: "any",
     direction: "technique",
     format: "online",
     image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/0fd773ca-0152-49ae-b5a9-d70add20f7de.jpg",
     detailUrl: "/course/fitnes-beremennyh",
     buyUrl: "https://school.brossok.ru/buy/60",
-    discountBuyUrl: "https://school.brossok.ru/buy/78",
   },
 ];
 

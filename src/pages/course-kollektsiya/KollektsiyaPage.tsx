@@ -1,13 +1,11 @@
-import { useDiscountTimer } from "@/hooks/useDiscountTimer";
-import { RETAIL_PRICE, DISCOUNT_PRICE, BUY_URL_RETAIL, BUY_URL_DISCOUNT } from "./KollektsiyaShared";
+import { RETAIL_PRICE, BUY_URL_RETAIL } from "./KollektsiyaShared";
 import KollektsiyaHero from "./KollektsiyaHero";
 import KollektsiyaContent from "./KollektsiyaContent";
 import KollektsiyaCta from "./KollektsiyaCta";
 
 export default function KollektsiyaPage() {
-  const { isActive } = useDiscountTimer();
-  const buyUrl = isActive ? BUY_URL_DISCOUNT : BUY_URL_RETAIL;
-  const currentPrice = isActive ? DISCOUNT_PRICE : RETAIL_PRICE;
+  const buyUrl = BUY_URL_RETAIL;
+  const currentPrice = RETAIL_PRICE;
 
   return (
     <div style={{ background: "#f8f8f6", minHeight: "100vh", paddingTop: 80 }}>
@@ -26,9 +24,9 @@ export default function KollektsiyaPage() {
         }
       `}</style>
 
-      <KollektsiyaHero isActive={isActive} buyUrl={buyUrl} currentPrice={currentPrice} />
+      <KollektsiyaHero buyUrl={buyUrl} currentPrice={currentPrice} />
       <KollektsiyaContent />
-      <KollektsiyaCta isActive={isActive} buyUrl={buyUrl} />
+      <KollektsiyaCta buyUrl={buyUrl} />
     </div>
   );
 }

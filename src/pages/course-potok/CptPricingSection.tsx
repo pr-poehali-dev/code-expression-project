@@ -1,28 +1,14 @@
 import Icon from "@/components/ui/icon";
-import { ACCENT, COURSE_URL, COURSE_URL_DISCOUNT_START, COURSE_URL_DISCOUNT_PROFI, COURSE_URL_DISCOUNT_EXPERT, h2style, FAQS, AccordionItem, BtnStart } from "./CptShared";
-import { useDiscountTimer } from "@/hooks/useDiscountTimer";
-import DiscountTimer from "@/components/ui/DiscountTimer";
+import { ACCENT, COURSE_URL, h2style, FAQS, AccordionItem, BtnStart } from "./CptShared";
 
 export default function CptPricingSection() {
-  const { isActive, formatted } = useDiscountTimer();
   return (
     <>
       {/* ── 10. СТОИМОСТЬ / ТАРИФЫ ── */}
       <section style={{ padding: "80px 0 0" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px" }}>
           <h2 style={{ ...h2style, textAlign: "center" }}>Выберите тариф</h2>
-          {isActive && (
-            <div style={{ textAlign: "center", marginBottom: 24 }}>
-              <span style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                background: "#e53935", color: "#fff", borderRadius: 10,
-                padding: "10px 24px", fontSize: 15, fontWeight: 700, letterSpacing: 0.3,
-              }}>
-                <span>⏱</span>
-                Скидка 70% сгорит через {formatted}
-              </span>
-            </div>
-          )}
+
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }} className="cpt-4col">
 
             {/* Бесплатный */}
@@ -46,8 +32,7 @@ export default function CptPricingSection() {
             {/* Старт */}
             <div style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "32px 24px", display: "flex", flexDirection: "column", boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Стартовый</div>
-              {isActive && <div style={{ fontSize: 13, color: "#aaa", textDecoration: "line-through", marginBottom: 2 }}>4 900 ₽</div>}
-              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>{isActive ? "1 470 ₽" : "4 900 ₽"}</div>
+              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>4 900 ₽</div>
               <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Полная оплата</div>
               <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Массажист 2.0: Создание и Продвижение Личного Бренда»</div>
               <ul style={{ fontSize: 13, color: "#666", lineHeight: 1.65, margin: "0 0 20px", flex: 1, paddingLeft: 16 }}>
@@ -57,7 +42,7 @@ export default function CptPricingSection() {
                 <li>Квиз-маркетинг и таргетированная реклама</li>
                 <li>SMM, контент, блогеры, купонаторы</li>
               </ul>
-              <a href={isActive ? COURSE_URL_DISCOUNT_START : "https://school.brossok.ru/buy/11"} target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: ACCENT, color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
+              <a href="https://school.brossok.ru/buy/11" target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: ACCENT, color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
                 onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85"}
                 onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
               >Купить курс</a>
@@ -67,8 +52,7 @@ export default function CptPricingSection() {
             <div style={{ background: "#fff", border: `2px solid ${ACCENT}`, borderRadius: 20, padding: "32px 24px", display: "flex", flexDirection: "column", boxShadow: `0 8px 32px ${ACCENT}22`, position: "relative" }}>
               <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", background: ACCENT, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 14px", borderRadius: 20, whiteSpace: "nowrap" }}>Популярный</div>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Профи</div>
-              {isActive && <div style={{ fontSize: 13, color: "#aaa", textDecoration: "line-through", marginBottom: 2 }}>14 900 ₽</div>}
-              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>{isActive ? "4 470 ₽" : "14 900 ₽"}</div>
+              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>14 900 ₽</div>
               <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Полная оплата</div>
               <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Массажный Бизнес 2.0: Продвижение и Оптимизация»</div>
               <ul style={{ fontSize: 13, color: "#666", lineHeight: 1.65, margin: "0 0 20px", flex: 1, paddingLeft: 16 }}>
@@ -78,7 +62,7 @@ export default function CptPricingSection() {
                 <li>VK Реклама и Telegram Ads</li>
                 <li>Медиапланирование и воронки продаж</li>
               </ul>
-              <a href={isActive ? COURSE_URL_DISCOUNT_PROFI : "https://school.brossok.ru/buy/12"} target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: ACCENT, color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
+              <a href="https://school.brossok.ru/buy/12" target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: ACCENT, color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
                 onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85"}
                 onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
               >Купить курс</a>
@@ -87,8 +71,7 @@ export default function CptPricingSection() {
             {/* Эксперт */}
             <div style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: 20, padding: "32px 24px", display: "flex", flexDirection: "column", boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Эксперт</div>
-              {isActive && <div style={{ fontSize: 13, color: "#aaa", textDecoration: "line-through", marginBottom: 2 }}>34 900 ₽</div>}
-              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>{isActive ? "10 470 ₽" : "34 900 ₽"}</div>
+              <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: "#1a1a1a", lineHeight: 1, marginBottom: 4 }}>34 900 ₽</div>
               <div style={{ fontSize: 13, color: "#999", marginBottom: 20 }}>Полная оплата</div>
               <div style={{ fontWeight: 600, fontSize: 13, color: "#333", marginBottom: 10 }}>«Маркетинг: От Основ до Эксперта»</div>
               <ul style={{ fontSize: 13, color: "#666", lineHeight: 1.65, margin: "0 0 20px", flex: 1, paddingLeft: 16 }}>
@@ -97,7 +80,7 @@ export default function CptPricingSection() {
                 <li>Проектирование аналитики и отслеживание целей</li>
                 <li>Путь пользователя и типы событий</li>
               </ul>
-              <a href={isActive ? COURSE_URL_DISCOUNT_EXPERT : "https://school.brossok.ru/buy/13"} target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: ACCENT, color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
+              <a href="https://school.brossok.ru/buy/13" target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", background: ACCENT, color: "#fff", borderRadius: 10, padding: "11px 16px", fontSize: 13, fontWeight: 700, textDecoration: "none", transition: "opacity 0.2s" }}
                 onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85"}
                 onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
               >Купить курс</a>

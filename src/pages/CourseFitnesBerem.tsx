@@ -3,7 +3,6 @@ import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
 import Icon from "@/components/ui/icon";
 import { useEffect, useRef, useState } from "react";
-import { useDiscountTimer } from "@/hooks/useDiscountTimer";
 
 const ACCENT = "hsl(280, 60%, 45%)";
 const ACCENT_DARK = "hsl(280, 60%, 38%)";
@@ -12,7 +11,6 @@ const ACCENT_SHADOW_HOVER = "hsla(280, 60%, 45%, 0.45)";
 const BG = "#f8f8f6";
 const HERO_IMG = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/0fd773ca-0152-49ae-b5a9-d70add20f7de.jpg";
 const BUY_URL = "https://school.brossok.ru/buy/60";
-const BUY_URL_DISCOUNT = "https://school.brossok.ru/buy/78";
 
 function useInView(threshold = 0.12) {
   const ref = useRef<HTMLDivElement>(null);
@@ -155,13 +153,12 @@ function AccordionItem({ title, children }: { title: string; children: React.Rea
 }
 
 export default function CourseFitnesBerem() {
-  const { isActive } = useDiscountTimer();
-  const buyUrl = isActive ? BUY_URL_DISCOUNT : BUY_URL;
+  const buyUrl = BUY_URL;
   return (
     <div style={{ background: BG, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#1a1a1a" }}>
       <Helmet>
         <title>Фитнес для беременных (2-й триместр) — Безопасные тренировки | Dok Диалог</title>
-        <meta name="description" content="Онлайн-курс: безопасные тренировки для беременных во 2-м триместре. 3 программы по частоте занятий. Автор — Сергей Водопьянов. 1 677 ₽." />
+        <meta name="description" content="Онлайн-курс: безопасные тренировки для беременных во 2-м триместре. 3 программы по частоте занятий. Автор — Сергей Водопьянов. 5 590 ₽." />
       </Helmet>
       <DokNavbar />
 
@@ -199,9 +196,8 @@ export default function CourseFitnesBerem() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
                 <BtnPrimary href={buyUrl} style={{ fontSize: "clamp(14px, 1.6vw, 16px)", padding: "clamp(14px, 2vw, 16px) clamp(28px, 4vw, 40px)" }}>
-                  Купить курс — 1 677 ₽ →
+                  Купить курс — 5 590 ₽ →
                 </BtnPrimary>
-                <span style={{ fontSize: 15, color: "#aaa", textDecoration: "line-through", fontWeight: 500 }}>5 590 ₽</span>
               </div>
             </div>
             <div className="cfb-hero-img" style={{ borderRadius: 24, overflow: "hidden", boxShadow: "0 24px 80px rgba(0,0,0,0.12)" }}>
@@ -214,7 +210,7 @@ export default function CourseFitnesBerem() {
             {[
               { num: "2-й", label: "триместр" },
               { num: "3", label: "программы на выбор" },
-              { num: "1 677 ₽", label: "полный доступ" },
+              { num: "5 590 ₽", label: "полный доступ" },
               { num: "7+", label: "тренировок в неделю" },
             ].map((s, i) => (
               <div key={i} style={{ padding: "clamp(16px, 2vw, 28px) clamp(12px, 2vw, 24px)", borderRight: i < 3 ? "1px solid #e8e8e4" : "none", textAlign: "center" }}>
@@ -438,8 +434,7 @@ export default function CourseFitnesBerem() {
             Твоё тело сейчас проходит важный этап. И правильная нагрузка — это не про «спорт», а про состояние, в котором ты проживаешь этот период.
           </p>
           <p style={{ fontSize: "clamp(22px, 3vw, 28px)", fontFamily: "Cormorant, serif", fontWeight: 700, color: "#fff", margin: "0 0 28px" }}>
-            Полный доступ — 1 677 ₽{" "}
-            <span style={{ fontSize: "clamp(16px, 2vw, 20px)", textDecoration: "line-through", opacity: 0.6, fontWeight: 400 }}>5 590 ₽</span>
+            Полный доступ — 5 590 ₽
           </p>
           <BtnPrimary href={buyUrl} style={{ background: "#fff", color: ACCENT, fontSize: "clamp(14px, 1.6vw, 16px)", padding: "clamp(14px, 2vw, 18px) clamp(28px, 4vw, 44px)" }}>
             Купить курс →

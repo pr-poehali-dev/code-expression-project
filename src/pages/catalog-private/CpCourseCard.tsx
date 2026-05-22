@@ -1,11 +1,8 @@
 import { useState } from "react";
 import { ACCENT, ACCENT_DARK, ACCENT_SHADOW, Course } from "./CpShared";
-import DiscountTimer from "@/components/ui/DiscountTimer";
-import { useDiscountTimer } from "@/hooks/useDiscountTimer";
 
 export function CourseCard({ course }: { course: Course }) {
   const [hovered, setHovered] = useState(false);
-  const { isActive } = useDiscountTimer();
 
   return (
     <div
@@ -81,14 +78,7 @@ export function CourseCard({ course }: { course: Course }) {
                 background: `${t.color}08`,
               }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: t.color, marginBottom: 2 }}>{t.label}</div>
-                {t.oldPrice && isActive ? (
-                  <>
-                    <div style={{ fontSize: 11, color: "#aaa", textDecoration: "line-through", lineHeight: 1.2 }}>{t.oldPrice}</div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: ACCENT }}>{t.price}</div>
-                  </>
-                ) : (
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>{t.oldPrice ?? t.price}</div>
-                )}
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>{t.oldPrice ?? t.price}</div>
               </div>
             ))}
           </div>
@@ -97,17 +87,11 @@ export function CourseCard({ course }: { course: Course }) {
         <div style={{ marginTop: "auto" }}>
           {/* Price */}
           <div style={{ marginBottom: 16, display: "flex", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
-            {course.oldPrice && isActive ? (
-              <DiscountTimer oldPrice={course.oldPrice} newPrice={course.price} accent={ACCENT} size="md" />
-            ) : (
-              <>
-                <span style={{ fontSize: 22, fontWeight: 700, color: "#1a1a1a" }}>
-                  {course.oldPrice && !isActive ? course.oldPrice : course.price}
-                </span>
-                {course.priceNote && !course.oldPrice && (
-                  <span style={{ fontSize: 13, color: "#999" }}>{course.priceNote}</span>
-                )}
-              </>
+            <span style={{ fontSize: 22, fontWeight: 700, color: "#1a1a1a" }}>
+              {course.oldPrice ?? course.price}
+            </span>
+            {course.priceNote && !course.oldPrice && (
+              <span style={{ fontSize: 13, color: "#999" }}>{course.priceNote}</span>
             )}
           </div>
 
@@ -149,7 +133,7 @@ export function CourseCard({ course }: { course: Course }) {
                 Подробнее
               </button>
               <a
-                href={(isActive && course.discountBuyUrl) ? course.discountBuyUrl : (course.buyUrl ?? "https://school.brossok.ru/buy/15")}
+                href={course.buyUrl ?? "https://school.brossok.ru/buy/15"}
                 target={course.price === "Бесплатно" ? "_self" : "_blank"}
                 rel="noopener noreferrer"
                 className="cp-card-btn-primary"
