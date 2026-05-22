@@ -1,0 +1,27 @@
+{
+  "tests": [
+    {
+      "name": "AI salon analysis",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "ips": 44,
+        "ipp_loss": 38,
+        "type_title": "Слабые продажи",
+        "hidden_money": 85000,
+        "norm": {
+          "IVK": 55,
+          "ISC": 35,
+          "IPU": 30,
+          "IZ": 60,
+          "IEA": 38,
+          "ILK": 50
+        },
+        "weak_zones": ["низкие допродажи мастерами", "слабая работа администраторов", "низкий средний чек"]
+      },
+      "expectedStatus": 200,
+      "expectedBody": { "text": "string" },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
