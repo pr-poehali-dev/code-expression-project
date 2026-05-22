@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
 import LkTests from "./LkTests";
@@ -54,9 +54,19 @@ const TOOLS = [
   },
 ];
 
+const VALID_TABS: Tab[] = ["home", "tests", "body", "admin"];
+
 export default function LkDashboard() {
   const { user, logout } = useLkAuth();
-  const [tab, setTab] = useState<Tab>("home");
+  const [tab, setTab] = useState<Tab>(() => {
+    const saved = sessionStorage.getItem("lk_tab") as Tab | null;
+    return saved && VALID_TABS.includes(saved) ? saved : "home";
+  });
+
+  const handleTabChange = useCallback((t: Tab) => {
+    sessionStorage.setItem("lk_tab", t);
+    setTab(t);
+  }, []);
 
   const navItems: { id: Tab; icon: string; label: string }[] = [
     { id: "home",  icon: "Home",          label: "Главная"     },
@@ -90,7 +100,7 @@ export default function LkDashboard() {
         {/* Навигация */}
         <nav style={{ flex: 1, padding: "16px 12px" }}>
           {navItems.map(item => (
-            <button key={item.id} onClick={() => setTab(item.id)} style={{
+            <button key={item.id} onClick={() => handleTabChange(item.id)} style={{
               width: "100%", display: "flex", alignItems: "center", gap: 12,
               padding: "11px 14px", borderRadius: 12, border: "none",
               background: tab === item.id ? `hsla(185,85%,32%,0.1)` : "transparent",
@@ -147,16 +157,26 @@ export default function LkDashboard() {
 
       {/* ── Контент ── */}
       <main className="lk-main">
-        {tab === "home"  && <HomeTab onNav={setTab} />}
-        {tab === "tests" && <LkTests />}
-        {tab === "body"  && <LkBodyMap />}
-        {tab === "admin" && user?.is_admin && <LkAdmin />}
+        <div style={{ display: tab === "home" ? "block" : "none" }}>
+          <HomeTab onNav={handleTabChange} />
+        </div>
+        <div style={{ display: tab === "tests" ? "block" : "none" }}>
+          <LkTests />
+        </div>
+        <div style={{ display: tab === "body" ? "block" : "none" }}>
+          <LkBodyMap />
+        </div>
+        {user?.is_admin && (
+          <div style={{ display: tab === "admin" ? "block" : "none" }}>
+            <LkAdmin />
+          </div>
+        )}
       </main>
 
       {/* ── Мобильный нижний таббар ── */}
       <nav className="lk-bottombar">
         {navItems.map(item => (
-          <button key={item.id} onClick={() => setTab(item.id)} style={{
+          <button key={item.id} onClick={() => handleTabChange(item.id)} style={{
             flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
             justifyContent: "center", gap: 3, border: "none", background: "none",
             color: tab === item.id ? ACCENT : "#bbb",
