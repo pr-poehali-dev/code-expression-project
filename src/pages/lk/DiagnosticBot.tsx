@@ -5,6 +5,7 @@ import { backBtn, ACCENT } from "./LkTestsTypes";
 
 const COLOR = "hsl(210,85%,45%)";
 const COLOR_BG = "hsl(210,85%,96%)";
+const AI_URL = "https://functions.poehali.dev/b06e0f0c-66c4-443f-aae0-beeab4c022ac";
 
 interface Symptom {
   id: number;
@@ -90,6 +91,8 @@ export default function DiagnosticBot({ onBack }: Props) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<DiagResult | null>(null);
+  const [aiSections, setAiSections] = useState<Record<string, string> | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [expandedTech, setExpandedTech] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -109,10 +112,37 @@ export default function DiagnosticBot({ onBack }: Props) {
     setShowDropdown(matches.length > 0);
   }, [query, symptoms]);
 
+  const callAI = async (diagResult: DiagResult) => {
+    setAiLoading(true);
+    setAiSections(null);
+    try {
+      const session = localStorage.getItem("lk_session") || "";
+      const card = diagResult.card;
+      const res = await fetch(AI_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session },
+        body: JSON.stringify({
+          zone_name: card.zone_name,
+          symptom: diagResult.matched_symptom || diagResult.query,
+          possible_causes: card.possible_causes,
+          compensation_zones: card.compensation_zones,
+          emotional_factors: card.emotional_factors,
+        }),
+      });
+      const json = await res.json();
+      if (json.sections) setAiSections(json.sections);
+    } catch {
+      // AI недоступен — показываем только базовую карточку
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const search = async (q: string, slug?: string) => {
     setShowDropdown(false);
     setLoading(true);
     setResult(null);
+    setAiSections(null);
     setNotFound(false);
     setExpandedTech(null);
     try {
@@ -121,6 +151,7 @@ export default function DiagnosticBot({ onBack }: Props) {
         : await lkApi.diagSearch(q);
       if (data.found) {
         setResult(data);
+        callAI(data); // запускаем AI параллельно
       } else {
         setNotFound(true);
       }
@@ -234,6 +265,66 @@ export default function DiagnosticBot({ onBack }: Props) {
               </p>
             </div>
           )}
+
+          {/* AI-рекомендации */}
+          {aiLoading && (
+            <div style={{ background: "#fff", borderRadius: 16, padding: "18px 20px", border: `1.5px solid ${COLOR}30`, display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 20, height: 20, border: `2px solid ${COLOR_BG}`, borderTopColor: COLOR, borderRadius: "50%", animation: "spin 0.8s linear infinite", flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: "#aaa" }}>AI готовит персональные рекомендации...</span>
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+          )}
+
+          {aiSections && (() => {
+            const how = aiSections["КАК ПРОВОДИТЬ ДИАГНОСТИКУ"];
+            const psycho = aiSections["ПСИХОСОМАТИКА"];
+            const logic = aiSections["ЛОГИКА РАБОТЫ"];
+            const explain = aiSections["ЧТО ОБЪЯСНИТЬ КЛИЕНТУ"];
+
+            const AiBlock = ({ icon, title, text, color }: { icon: string; title: string; text: string; color: string }) => (
+              <div style={{ background: "#fff", borderRadius: 16, padding: "18px 20px", border: "1.5px solid #f0f0ec", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 8, background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Icon name={icon} size={14} style={{ color }} />
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 700, color, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>{title}</span>
+                  <span style={{ marginLeft: "auto", fontSize: 10, color: "#bbb", fontWeight: 600 }}>✦ AI</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {text.split("\n").filter(Boolean).map((line, i) => {
+                    const isStep = /^\d+[.)]\s/.test(line.trim()) || line.trim().startsWith("-") || line.trim().startsWith("•");
+                    const clean = line.replace(/^\d+[.)]\s*/, "").replace(/^[-•]\s*/, "").trim();
+                    return isStep ? (
+                      <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                        <span style={{ color, fontSize: 14, lineHeight: "20px", flexShrink: 0 }}>·</span>
+                        <span style={{ fontSize: 13, color: "#444", lineHeight: 1.6 }}>{clean}</span>
+                      </div>
+                    ) : (
+                      <p key={i} style={{ fontSize: 13, color: "#444", lineHeight: 1.65, margin: 0 }}>{line}</p>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+
+            return (
+              <>
+                {how && <AiBlock icon="Stethoscope" title="Как проводить диагностику" text={how} color={COLOR} />}
+                {psycho && <AiBlock icon="Heart" title="Психосоматика" text={psycho} color="hsl(335,80%,48%)" />}
+                {logic && <AiBlock icon="GitBranch" title="Логика работы" text={logic} color="hsl(280,60%,50%)" />}
+                {explain && (
+                  <div style={{ background: "hsl(185,85%,95%)", borderRadius: 16, padding: "16px 20px", border: `1.5px solid ${ACCENT}30` }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                      <Icon name="MessageCircle" size={14} style={{ color: ACCENT }} />
+                      <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Что объяснить клиенту</span>
+                      <span style={{ marginLeft: "auto", fontSize: 10, color: "#bbb", fontWeight: 600 }}>✦ AI</span>
+                    </div>
+                    <p style={{ fontSize: 13, color: "#444", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>«{explain}»</p>
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {/* Техники из шпаргалки */}
           {techZones.length > 0 && (
