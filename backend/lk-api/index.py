@@ -707,6 +707,122 @@ def handle_salon_history(event: dict) -> dict:
         conn.close()
 
 
+# ── Диагностика ──────────────────────────────────────────────────────────────
+
+def handle_diag_symptoms(event: dict) -> dict:
+    """Возвращает список всех симптомов для выбора из списка."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT id, slug, name, zone_slug FROM {tbl('diag_symptoms')} "
+            f"WHERE is_active = TRUE ORDER BY sort_order"
+        )
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
+def handle_diag_search(event: dict) -> dict:
+    """Поиск по жалобе клиента. Возвращает карточку диагностики + техники из шпаргалки."""
+    qs = event.get("queryStringParameters") or {}
+    query = qs.get("q", "").strip().lower()
+    symptom_slug = qs.get("slug", "").strip()
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # Поиск симптома: по slug или по ключевым словам в тексте
+        zone_slug = None
+        matched_symptom = None
+
+        if symptom_slug:
+            cur.execute(
+                f"SELECT * FROM {tbl('diag_symptoms')} WHERE slug = %s AND is_active = TRUE",
+                (symptom_slug,)
+            )
+            row = cur.fetchone()
+            if row:
+                zone_slug = row["zone_slug"]
+                matched_symptom = row["name"]
+        elif query:
+            # Полнотекстовый поиск по keywords array
+            cur.execute(
+                f"SELECT *, "
+                f"(SELECT COUNT(*) FROM unnest(keywords) k WHERE %s ILIKE '%%' || k || '%%' OR k ILIKE '%%' || %s || '%%') AS match_count "
+                f"FROM {tbl('diag_symptoms')} WHERE is_active = TRUE "
+                f"ORDER BY match_count DESC, sort_order LIMIT 1",
+                (query, query)
+            )
+            row = cur.fetchone()
+            if row and row["match_count"] > 0:
+                zone_slug = row["zone_slug"]
+                matched_symptom = row["name"]
+            else:
+                # Fallback: ищем по частичному совпадению названия симптома
+                cur.execute(
+                    f"SELECT * FROM {tbl('diag_symptoms')} WHERE is_active = TRUE "
+                    f"AND (name ILIKE %s OR %s = ANY(keywords)) ORDER BY sort_order LIMIT 1",
+                    (f"%{query}%", query)
+                )
+                row = cur.fetchone()
+                if row:
+                    zone_slug = row["zone_slug"]
+                    matched_symptom = row["name"]
+
+        if not zone_slug:
+            return ok({"found": False, "query": query})
+
+        # Получаем диагностическую карточку
+        cur.execute(
+            f"SELECT * FROM {tbl('diag_cards')} WHERE zone_slug = %s",
+            (zone_slug,)
+        )
+        card = cur.fetchone()
+        if not card:
+            return ok({"found": False, "query": query})
+
+        card = dict(card)
+
+        # Получаем техники из шпаргалки для основной зоны
+        techniques_by_zone = {}
+
+        all_slugs = [zone_slug] + list(card.get("compensation_slugs") or [])
+        for slug in all_slugs:
+            cur.execute(
+                f"SELECT bz.name as zone_name, bt.title, bt.description, bt.video_url "
+                f"FROM {tbl('lk_body_zones')} bz "
+                f"JOIN {tbl('lk_body_techniques')} bt ON bt.zone_id = bz.id "
+                f"WHERE bz.slug = %s ORDER BY bt.sort_order",
+                (slug,)
+            )
+            rows = cur.fetchall()
+            if rows:
+                techniques_by_zone[slug] = {
+                    "zone_name": rows[0]["zone_name"],
+                    "techniques": [{"title": r["title"], "description": r["description"], "video_url": r["video_url"]} for r in rows]
+                }
+
+        return ok({
+            "found": True,
+            "query": query,
+            "matched_symptom": matched_symptom,
+            "zone_slug": zone_slug,
+            "card": card,
+            "techniques_by_zone": techniques_by_zone,
+        })
+    finally:
+        conn.close()
+
+
 # ── Роутер ───────────────────────────────────────────────────────────────────
 
 ROUTES = {
@@ -735,6 +851,8 @@ ROUTES = {
     ("GET",  "profile_history"): handle_profile_history,
     ("POST", "salon_save"): handle_salon_save,
     ("GET",  "salon_history"): handle_salon_history,
+    ("GET",  "diag_symptoms"): handle_diag_symptoms,
+    ("GET",  "diag_search"): handle_diag_search,
 }
 
 

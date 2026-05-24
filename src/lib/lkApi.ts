@@ -100,4 +100,9 @@ export const lkApi = {
     request("POST", "salon_save", data),
 
   salonHistory: () => request("GET", "salon_history"),
+
+  // Диагностика
+  diagSymptoms: () => request("GET", "diag_symptoms"),
+  diagSearch: (q: string) => request("GET", "diag_search", undefined, `&q=${encodeURIComponent(q)}`),
+  diagSearchBySlug: (slug: string) => request("GET", "diag_search", undefined, `&slug=${encodeURIComponent(slug)}`),
 };

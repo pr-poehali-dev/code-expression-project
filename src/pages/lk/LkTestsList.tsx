@@ -10,6 +10,7 @@ interface Props {
   profileHistory: ProfileHistoryItem[];
   salonHistory: SalonHistoryItem[];
   showSalon?: boolean;
+  onOpenDiag: () => void;
   onOpenMindset: () => void;
   onOpenBarriers: () => void;
   onOpenFinance: () => void;
@@ -18,7 +19,7 @@ interface Props {
   onOpenTest: (slug: string) => void;
 }
 
-export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenTest }: Props) {
+export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, onOpenDiag, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenTest }: Props) {
   return (
     <div>
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
@@ -28,6 +29,15 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
         Пройди тест — получи персональный разбор и конкретные советы
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* Системная диагностика — первой */}
+        <ToolCard
+          icon="Stethoscope" color="hsl(210,85%,45%)" bg="hsl(210,85%,96%)"
+          title="Системная диагностика клиента"
+          description="Введите жалобу — система покажет причины, компенсации, красные флаги и техники из шпаргалки"
+          completed={false}
+          onStart={onOpenDiag}
+          startLabel="Начать диагностику"
+        />
         {tests.filter(test => test.slug !== "barriers" && test.slug !== "finance").map(test => {
           const colors = TOOL_COLORS[test.slug] || { color: ACCENT, bg: "hsl(185,85%,96%)" };
           const handleClick = () => {
@@ -103,10 +113,11 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
   );
 }
 
-function ToolCard({ icon, color, bg, title, description, completed, completedLabel, onStart }: {
+function ToolCard({ icon, color, bg, title, description, completed, completedLabel, onStart, startLabel }: {
   icon: string; color: string; bg: string;
   title: string; description: string;
   completed: boolean; completedLabel?: string;
+  startLabel?: string;
   onStart: () => void;
 }) {
   return (
@@ -139,7 +150,7 @@ function ToolCard({ icon, color, bg, title, description, completed, completedLab
         fontSize: 13, fontWeight: 700, cursor: "pointer",
         fontFamily: "Montserrat, sans-serif",
       }}>
-        {completed ? "Пройти снова" : "Начать"}
+        {completed ? "Пройти снова" : (startLabel || "Начать")}
       </button>
     </div>
   );

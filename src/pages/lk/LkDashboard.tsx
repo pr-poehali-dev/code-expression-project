@@ -13,6 +13,14 @@ type Tab = "home" | "tests" | "body" | "admin";
 
 const TOOLS = [
   {
+    id: "diag" as const,
+    icon: "Stethoscope",
+    color: "hsl(210,85%,45%)",
+    colorBg: "hsl(210,85%,96%)",
+    title: "Системная диагностика клиента",
+    desc: "Введите жалобу — получите причины, компенсации и техники из шпаргалки",
+  },
+  {
     id: "mindset" as const,
     icon: "Brain",
     color: "hsl(280,60%,55%)",
@@ -336,13 +344,38 @@ function HomeTab({ onNav }: { onNav: (t: Tab) => void }) {
         )}
       </div>
 
+      {/* Диагностика — главный инструмент */}
+      <button
+        onClick={() => onNav("tests")}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", gap: 16,
+          background: "linear-gradient(135deg, hsl(210,85%,45%), hsl(210,85%,35%))",
+          borderRadius: 18, padding: "20px 24px", border: "none", cursor: "pointer",
+          fontFamily: "Montserrat, sans-serif", textAlign: "left", marginBottom: 20,
+          boxShadow: "0 4px 20px hsla(210,85%,45%,0.25)",
+        }}
+      >
+        <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Icon name="Stethoscope" size={26} style={{ color: "#fff" }} />
+        </div>
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4, lineHeight: 1.3 }}>
+            Системная диагностика клиента
+          </div>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>
+            Жалоба → причины, компенсации, красные флаги и техники из шпаргалки
+          </div>
+        </div>
+        <Icon name="ArrowRight" size={20} style={{ color: "rgba(255,255,255,0.6)", marginLeft: "auto", flexShrink: 0 }} />
+      </button>
+
       {/* Инструменты */}
       <div style={{ marginBottom: 12 }}>
         <h2 style={{ fontSize: 13, fontWeight: 700, color: "#aaa", letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 14px" }}>
           Инструменты роста
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12, marginBottom: 24 }}>
-          {TOOLS.filter(tool => tool.id !== "salon" || user?.segment === "salon").map(tool => (
+          {TOOLS.filter(tool => tool.id !== "salon" || user?.segment === "salon").filter(tool => tool.id !== "diag").map(tool => (
             <button
               key={tool.id}
               onClick={() => onNav("tests")}

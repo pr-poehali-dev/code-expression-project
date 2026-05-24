@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { lkApi } from "@/lib/lkApi";
 import { useLkAuth } from "@/contexts/LkAuthContext";
+import DiagnosticBot from "./DiagnosticBot";
 import MindsetBot from "./MindsetBot";
 import MindsetResult, { IndexMap } from "./MindsetResult";
 import BarriersBot from "./BarriersBot";
@@ -47,6 +48,7 @@ export default function LkTests() {
 
   const [openSalon, setOpenSalon] = useState(false);
   const [salonHistory, setSalonHistory] = useState<SalonHistoryItem[]>([]);
+  const [openDiag, setOpenDiag] = useState(false);
 
   const [historyLoaded, setHistoryLoaded] = useState(false);
 
@@ -115,6 +117,10 @@ export default function LkTests() {
     );
   }
 
+  if (openDiag) {
+    return <DiagnosticBot onBack={() => setOpenDiag(false)} />;
+  }
+
   if (openSalon) {
     return (
       <SalonBot
@@ -173,6 +179,7 @@ export default function LkTests() {
         profileHistory={profileHistory}
         salonHistory={salonHistory}
         showSalon={isSalon}
+        onOpenDiag={() => setOpenDiag(true)}
         onOpenMindset={() => setOpenMindset(true)}
         onOpenBarriers={() => setOpenBarriers(true)}
         onOpenFinance={() => setOpenFinance(true)}

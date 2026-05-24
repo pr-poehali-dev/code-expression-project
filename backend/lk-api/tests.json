@@ -83,6 +83,18 @@
       "path": "/?action=admin_create_user",
       "body": {"username": "test", "email": "t@t.com", "password": "123456", "access_type": "12months"},
       "expectedStatus": 403
+    },
+    {
+      "name": "diag_symptoms без сессии — 401",
+      "method": "GET",
+      "path": "/?action=diag_symptoms",
+      "expectedStatus": 401
+    },
+    {
+      "name": "diag_search без сессии — 401",
+      "method": "GET",
+      "path": "/?action=diag_search&q=боль+в+шее",
+      "expectedStatus": 401
     }
   ]
 }
