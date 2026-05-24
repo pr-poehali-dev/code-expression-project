@@ -76,6 +76,17 @@ interface ZoneDetail {
   techniques: Technique[];
 }
 
+interface DiagCard {
+  possible_causes: string;
+  compensation_zones: string;
+  check_visual: string;
+  check_tactile: string;
+  emotional_factors: string;
+  red_flags: string;
+  recommendations: string;
+  client_explanation: string;
+}
+
 function getKinescopeId(url: string): string | null {
   if (!url) return null;
   const m = url.match(/kinescope\.io\/(?:embed\/)?([a-zA-Z0-9]+)/);
@@ -85,6 +96,7 @@ function getKinescopeId(url: string): string | null {
 export default function LkBodyMap() {
   const [zones, setZones] = useState<Zone[]>([]);
   const [selected, setSelected] = useState<ZoneDetail | null>(null);
+  const [diagCard, setDiagCard] = useState<DiagCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -95,9 +107,14 @@ export default function LkBodyMap() {
 
   const selectZone = async (slug: string) => {
     setDetailLoading(true);
+    setDiagCard(null);
     try {
-      const data = await lkApi.bodyZone(slug);
-      setSelected(data);
+      const [zoneData, diagData] = await Promise.all([
+        lkApi.bodyZone(slug),
+        lkApi.diagSearchBySlug(slug).catch(() => ({ found: false })),
+      ]);
+      setSelected(zoneData);
+      if (diagData.found && diagData.card) setDiagCard(diagData.card);
     } catch {
       setSelected(null);
     } finally {
@@ -209,7 +226,7 @@ export default function LkBodyMap() {
               <div style={{ fontSize: 15, color: "#bbb" }}>Выбери зону на схеме справа</div>
             </div>
           )}
-          {selected && !detailLoading && <ZonePanel zone={selected} />}
+          {selected && !detailLoading && <ZonePanel zone={selected} diagCard={diagCard} />}
         </div>
 
         {/* Карта тела */}
@@ -289,7 +306,26 @@ export default function LkBodyMap() {
   );
 }
 
-function ZonePanel({ zone }: { zone: ZoneDetail }) {
+function DiagRow({ icon, title, text, color }: { icon: string; title: string; text: string; color: string }) {
+  return (
+    <div style={{ paddingBottom: 14, borderBottom: "1px solid #f5f5f0", marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8 }}>
+        <Icon name={icon} size={13} style={{ color }} />
+        <span style={{ fontSize: 12, fontWeight: 700, color, textTransform: "uppercase", letterSpacing: 0.5 }}>{title}</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {text.split(",").map((item, i) => (
+          <div key={i} style={{ display: "flex", gap: 7, alignItems: "flex-start" }}>
+            <span style={{ color, fontSize: 13, lineHeight: "20px", flexShrink: 0 }}>·</span>
+            <span style={{ fontSize: 13, color: "#444", lineHeight: 1.55 }}>{item.trim()}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ZonePanel({ zone, diagCard }: { zone: ZoneDetail; diagCard: DiagCard | null }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ background: "#fff", borderRadius: 20, padding: "24px 28px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
@@ -301,6 +337,52 @@ function ZonePanel({ zone }: { zone: ZoneDetail }) {
           : <p style={{ fontSize: 14, color: "#bbb", fontStyle: "italic" }}>Описание ещё не добавлено</p>
         }
       </div>
+
+      {/* Блок системной диагностики */}
+      {diagCard && (
+        <div style={{ background: "#fff", borderRadius: 20, padding: "24px 28px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1.5px solid hsl(210,85%,92%)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: "hsl(210,85%,95%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon name="Stethoscope" size={15} style={{ color: "hsl(210,85%,45%)" }} />
+            </div>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Что нужно проверить</h3>
+          </div>
+
+          {diagCard.red_flags && (
+            <div style={{ background: "#fff5f5", borderRadius: 12, padding: "12px 14px", marginBottom: 14, border: "1px solid #fecaca" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
+                <Icon name="AlertTriangle" size={13} style={{ color: "#e55" }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#e55", textTransform: "uppercase", letterSpacing: 0.5 }}>Красные флаги</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                {diagCard.red_flags.split(",").map((item, i) => (
+                  <div key={i} style={{ display: "flex", gap: 7, alignItems: "flex-start" }}>
+                    <span style={{ color: "#e55", fontSize: 13, lineHeight: "20px", flexShrink: 0 }}>·</span>
+                    <span style={{ fontSize: 13, color: "#c44", lineHeight: 1.5 }}>{item.trim()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {diagCard.check_visual && <DiagRow icon="Eye" title="Проверить визуально" text={diagCard.check_visual} color="hsl(145,60%,38%)" />}
+          {diagCard.check_tactile && <DiagRow icon="Hand" title="Проверить руками" text={diagCard.check_tactile} color="hsl(25,85%,48%)" />}
+          {diagCard.possible_causes && <DiagRow icon="Search" title="Возможные причины" text={diagCard.possible_causes} color="hsl(210,85%,45%)" />}
+          {diagCard.compensation_zones && <DiagRow icon="GitBranch" title="Компенсаторные зоны" text={diagCard.compensation_zones} color="hsl(280,60%,50%)" />}
+          {diagCard.emotional_factors && <DiagRow icon="Heart" title="Эмоциональные факторы" text={diagCard.emotional_factors} color="hsl(335,80%,48%)" />}
+          {diagCard.recommendations && (
+            <div style={{ marginBottom: 0 }}>
+              <DiagRow icon="ClipboardCheck" title="Рекомендации" text={diagCard.recommendations} color={ACCENT} />
+            </div>
+          )}
+          {diagCard.client_explanation && (
+            <div style={{ background: "hsl(185,85%,96%)", borderRadius: 10, padding: "12px 14px", marginTop: -6 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.5 }}>Объяснить клиенту</div>
+              <p style={{ fontSize: 13, color: "#444", lineHeight: 1.6, margin: 0, fontStyle: "italic" }}>«{diagCard.client_explanation}»</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ background: "#fff", borderRadius: 20, padding: "24px 28px", borderLeft: `4px solid ${ACCENT}`, boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
