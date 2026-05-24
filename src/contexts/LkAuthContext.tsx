@@ -24,6 +24,8 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<LkUser | null>(null);
   const [loading, setLoading] = useState(true);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Сколько раз подряд получили AuthError — сбрасываем сессию только после 3 подряд
+  const authFailCountRef = useRef(0);
 
   const checkSession = (isInitial = false) => {
     const session = localStorage.getItem("lk_session");
@@ -33,13 +35,20 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
     }
     lkApi.me()
       .then(u => {
+        authFailCountRef.current = 0; // сброс счётчика при успехе
         setUser(u);
         if (isInitial) setLoading(false);
       })
       .catch(e => {
         if (e instanceof AuthError) {
-          clearSession();
-          setUser(null);
+          authFailCountRef.current += 1;
+          // Сбрасываем сессию только если 3 раза подряд получили 401
+          // Это защищает от случайных сбоев сети и перезагрузок Vite
+          if (isInitial || authFailCountRef.current >= 3) {
+            clearSession();
+            setUser(null);
+            authFailCountRef.current = 0;
+          }
         }
         if (isInitial) setLoading(false);
       });
@@ -48,12 +57,12 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     checkSession(true);
 
-    // Проверяем сессию каждые 10 минут — только если вкладка активна
+    // Проверяем сессию каждые 30 минут — только если вкладка активна
     heartbeatRef.current = setInterval(() => {
       if (!document.hidden && localStorage.getItem("lk_session")) {
         checkSession();
       }
-    }, 10 * 60 * 1000);
+    }, 30 * 60 * 1000);
 
     return () => {
       if (heartbeatRef.current) clearInterval(heartbeatRef.current);
