@@ -48,7 +48,11 @@ export default function DiagnosticBot({ onBack }: Props) {
           symptom: diagResult.matched_symptom || diagResult.query,
           possible_causes: card.possible_causes,
           compensation_zones: card.compensation_zones,
+          check_visual: card.check_visual,
+          check_tactile: card.check_tactile,
           emotional_factors: card.emotional_factors,
+          red_flags: card.red_flags,
+          recommendations: card.recommendations,
         }),
       });
       const json = await res.json();
