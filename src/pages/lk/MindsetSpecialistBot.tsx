@@ -36,7 +36,11 @@ function ResultBlock({ icon, title, text, color, italic }: { icon: string; title
 }
 
 function ActionPlan({ text }: { text: string }) {
-  const steps = text.split("\n").filter(Boolean);
+  const steps = text
+    .replace(/\\n/g, "\n")
+    .split("\n")
+    .map(s => s.replace(/^[\d]+\.\s*/, "").replace(/\\"/g, "«").replace(/\\/g, "").trim())
+    .filter(Boolean);
   return (
     <div style={{ background: "#fff", borderRadius: 14, padding: "16px 20px", border: "1.5px solid #f0f0ec" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
@@ -51,7 +55,7 @@ function ActionPlan({ text }: { text: string }) {
             <div style={{ width: 22, height: 22, borderRadius: 6, background: COLOR, color: "#fff", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
               {i + 1}
             </div>
-            <span style={{ fontSize: 13, color: "#444", lineHeight: 1.55 }}>{step.replace(/^\d+\.\s*/, "")}</span>
+            <span style={{ fontSize: 13, color: "#444", lineHeight: 1.55 }}>{step}</span>
           </div>
         ))}
       </div>
@@ -60,7 +64,7 @@ function ActionPlan({ text }: { text: string }) {
 }
 
 function TrackBlock({ text }: { text: string }) {
-  const items = text.split("\n").filter(Boolean);
+  const items = text.replace(/\\n/g, "\n").split("\n").map(s => s.replace(/\\/g, "").trim()).filter(Boolean);
   return (
     <div style={{ background: COLOR_BG, borderRadius: 14, padding: "16px 20px", border: `1.5px solid ${COLOR}30` }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
