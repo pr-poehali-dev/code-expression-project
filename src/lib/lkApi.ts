@@ -105,4 +105,5 @@ export const lkApi = {
   diagSymptoms: () => request("GET", "diag_symptoms"),
   diagSearch: (q: string) => request("GET", "diag_search", undefined, `&q=${encodeURIComponent(q)}`),
   diagSearchBySlug: (slug: string) => request("GET", "diag_search", undefined, `&slug=${encodeURIComponent(slug)}`),
+  diagSearchByZone: (zone: string) => request("GET", "diag_search", undefined, `&zone=${encodeURIComponent(zone)}`),
 };

@@ -111,7 +111,7 @@ export default function LkBodyMap() {
     try {
       const [zoneData, diagData] = await Promise.all([
         lkApi.bodyZone(slug),
-        lkApi.diagSearchBySlug(slug).catch(() => ({ found: false })),
+        lkApi.diagSearchByZone(slug).catch(() => ({ found: false })),
       ]);
       setSelected(zoneData);
       if (diagData.found && diagData.card) setDiagCard(diagData.card);

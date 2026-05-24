@@ -740,11 +740,15 @@ def handle_diag_search(event: dict) -> dict:
 
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-        # Поиск симптома: по slug или по ключевым словам в тексте
+        # Поиск симптома: по slug зоны, по slug симптома или по ключевым словам в тексте
+        zone_slug_param = qs.get("zone", "").strip()
         zone_slug = None
         matched_symptom = None
 
-        if symptom_slug:
+        if zone_slug_param:
+            # Прямой поиск по zone_slug в diag_cards
+            zone_slug = zone_slug_param
+        elif symptom_slug:
             cur.execute(
                 f"SELECT * FROM {tbl('diag_symptoms')} WHERE slug = %s AND is_active = TRUE",
                 (symptom_slug,)
