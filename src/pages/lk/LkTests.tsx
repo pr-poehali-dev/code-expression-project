@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { lkApi } from "@/lib/lkApi";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import DiagnosticBot from "./DiagnosticBot";
+import MindsetSpecialistBot from "./MindsetSpecialistBot";
 import MindsetBot from "./MindsetBot";
 import MindsetResult, { IndexMap } from "./MindsetResult";
 import BarriersBot from "./BarriersBot";
@@ -49,6 +50,10 @@ export default function LkTests() {
   const [openSalon, setOpenSalon] = useState(false);
   const [salonHistory, setSalonHistory] = useState<SalonHistoryItem[]>([]);
   const [openDiag, setOpenDiag] = useState(false);
+  const [openMindsetSpec, setOpenMindsetSpec] = useState(false);
+
+  // Безлимитный доступ: access_expires_at === null
+  const hasUnlimited = user?.access_expires_at === null;
 
   const [historyLoaded, setHistoryLoaded] = useState(false);
 
@@ -121,6 +126,10 @@ export default function LkTests() {
     return <DiagnosticBot onBack={() => setOpenDiag(false)} />;
   }
 
+  if (openMindsetSpec) {
+    return <MindsetSpecialistBot onBack={() => setOpenMindsetSpec(false)} />;
+  }
+
   if (openSalon) {
     return (
       <SalonBot
@@ -179,7 +188,9 @@ export default function LkTests() {
         profileHistory={profileHistory}
         salonHistory={salonHistory}
         showSalon={isSalon}
+        hasUnlimited={hasUnlimited}
         onOpenDiag={() => setOpenDiag(true)}
+        onOpenMindsetSpec={() => setOpenMindsetSpec(true)}
         onOpenMindset={() => setOpenMindset(true)}
         onOpenBarriers={() => setOpenBarriers(true)}
         onOpenFinance={() => setOpenFinance(true)}

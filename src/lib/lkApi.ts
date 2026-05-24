@@ -106,4 +106,8 @@ export const lkApi = {
   diagSearch: (q: string) => request("GET", "diag_search", undefined, `&q=${encodeURIComponent(q)}`),
   diagSearchBySlug: (slug: string) => request("GET", "diag_search", undefined, `&slug=${encodeURIComponent(slug)}`),
   diagSearchByZone: (zone: string) => request("GET", "diag_search", undefined, `&zone=${encodeURIComponent(zone)}`),
+
+  // Мышление специалиста
+  msCategories: () => request("GET", "ms_categories"),
+  msAnalyze: (answers: Record<number, number>) => request("POST", "ms_analyze", { answers }),
 };

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { ACCENT, TOOL_COLORS, Test, BarriersHistoryItem, FinanceHistoryItem, ProfileHistoryItem, SalonHistoryItem } from "./LkTestsTypes";
 import { formatMoney } from "./finance.logic";
@@ -10,7 +11,9 @@ interface Props {
   profileHistory: ProfileHistoryItem[];
   salonHistory: SalonHistoryItem[];
   showSalon?: boolean;
+  hasUnlimited?: boolean;
   onOpenDiag: () => void;
+  onOpenMindsetSpec: () => void;
   onOpenMindset: () => void;
   onOpenBarriers: () => void;
   onOpenFinance: () => void;
@@ -19,7 +22,7 @@ interface Props {
   onOpenTest: (slug: string) => void;
 }
 
-export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, onOpenDiag, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenTest }: Props) {
+export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, hasUnlimited = false, onOpenDiag, onOpenMindsetSpec, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenTest }: Props) {
   return (
     <div>
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
@@ -38,6 +41,25 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
           onStart={onOpenDiag}
           startLabel="Начать диагностику"
         />
+
+        {/* Мышление специалиста — только безлимит или купить за 25 000 ₽ */}
+        {hasUnlimited ? (
+          <ToolCard
+            icon="Brain" color="hsl(260,70%,52%)" bg="hsl(260,70%,97%)"
+            title="Мышление специалиста"
+            description="Выберите проблему — система найдёт причину, сценарий поведения и даст конкретный план действий"
+            completed={false}
+            onStart={onOpenMindsetSpec}
+            startLabel="Начать анализ"
+          />
+        ) : (
+          <LockedToolCard
+            icon="Brain" color="hsl(260,70%,52%)" bg="hsl(260,70%,97%)"
+            title="Мышление специалиста"
+            description="Финансы, состояние, клиенты, позиционирование и практика — глубокий анализ мышления с планом действий"
+            price="25 000 ₽"
+          />
+        )}
         {tests.filter(test => test.slug !== "barriers" && test.slug !== "finance").map(test => {
           const colors = TOOL_COLORS[test.slug] || { color: ACCENT, bg: "hsl(185,85%,96%)" };
           const handleClick = () => {
@@ -152,6 +174,52 @@ function ToolCard({ icon, color, bg, title, description, completed, completedLab
       }}>
         {completed ? "Пройти снова" : (startLabel || "Начать")}
       </button>
+    </div>
+  );
+}
+
+function LockedToolCard({ icon, color, bg, title, description, price }: {
+  icon: string; color: string; bg: string;
+  title: string; description: string; price: string;
+}) {
+  const [showInfo, setShowInfo] = useState(false);
+  return (
+    <div style={{ background: "#fff", borderRadius: 16, padding: "18px 20px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1.5px solid #f0f0ec", position: "relative", overflow: "hidden" }}>
+      {/* Плашка «только безлимит» */}
+      <div style={{ position: "absolute", top: 12, right: 14, background: "hsl(260,70%,97%)", color: "hsl(260,70%,52%)", fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, border: "1px solid hsl(260,70%,85%)" }}>
+        Безлимит
+      </div>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 14, opacity: 0.65 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: bg, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2 }}>
+          <Icon name={icon} size={20} style={{ color }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", marginBottom: 3, lineHeight: 1.3 }}>{title}</div>
+          <div style={{ fontSize: 12, color: "#888", lineHeight: 1.5 }}>{description}</div>
+        </div>
+      </div>
+      {showInfo ? (
+        <div style={{ marginTop: 14, background: "hsl(260,70%,97%)", borderRadius: 12, padding: "14px 16px", border: "1px solid hsl(260,70%,85%)" }}>
+          <div style={{ fontSize: 13, color: "hsl(260,70%,40%)", fontWeight: 600, marginBottom: 6 }}>
+            Доступно в тарифе «Безлимит» или отдельно за {price}
+          </div>
+          <div style={{ fontSize: 12, color: "#666", lineHeight: 1.55 }}>
+            Для получения доступа обратитесь к куратору или администратору.
+          </div>
+          <button onClick={() => setShowInfo(false)} style={{ marginTop: 10, background: "none", border: "none", color: "#aaa", fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "Montserrat, sans-serif" }}>Скрыть</button>
+        </div>
+      ) : (
+        <button onClick={() => setShowInfo(true)} style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          width: "100%", marginTop: 14, padding: "10px", borderRadius: 10,
+          border: `1.5px solid hsl(260,70%,70%)`, background: "hsl(260,70%,97%)",
+          color: "hsl(260,70%,52%)", fontSize: 13, fontWeight: 700, cursor: "pointer",
+          fontFamily: "Montserrat, sans-serif",
+        }}>
+          <Icon name="Lock" size={13} />
+          Получить доступ · {price}
+        </button>
+      )}
     </div>
   );
 }

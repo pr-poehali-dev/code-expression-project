@@ -707,6 +707,87 @@ def handle_salon_history(event: dict) -> dict:
         conn.close()
 
 
+# ── Мышление специалиста ─────────────────────────────────────────────────────
+
+def handle_ms_categories(event: dict) -> dict:
+    """Возвращает категории, проблемы и вопросы с вариантами для инструмента Мышление специалиста."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # Категории
+        cur.execute(f"SELECT * FROM {tbl('ms_categories')} ORDER BY sort_order")
+        categories = [dict(c) for c in cur.fetchall()]
+
+        # Проблемы
+        cur.execute(f"SELECT * FROM {tbl('ms_problems')} ORDER BY sort_order")
+        problems = [dict(p) for p in cur.fetchall()]
+
+        # Вопросы
+        cur.execute(f"SELECT * FROM {tbl('ms_questions')} ORDER BY sort_order")
+        questions = [dict(q) for q in cur.fetchall()]
+
+        # Варианты
+        cur.execute(f"SELECT * FROM {tbl('ms_options')} ORDER BY sort_order")
+        options = [dict(o) for o in cur.fetchall()]
+
+        return ok({"categories": categories, "problems": problems, "questions": questions, "options": options})
+    finally:
+        conn.close()
+
+
+def handle_ms_analyze(event: dict) -> dict:
+    """Анализирует ответы пользователя и возвращает сценарий."""
+    body = json.loads(event.get("body") or "{}")
+    # answers: {question_id: option_id}
+    answers = body.get("answers", {})
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+
+        if not answers:
+            return err("Нет ответов")
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # Собираем теги по выбранным опциям
+        option_ids = list(answers.values())
+        if not option_ids:
+            return err("Нет ответов")
+
+        placeholders = ','.join(['%s'] * len(option_ids))
+        cur.execute(
+            f"SELECT scenario_tag FROM {tbl('ms_options')} WHERE id IN ({placeholders})",
+            option_ids
+        )
+        tags = [r["scenario_tag"] for r in cur.fetchall()]
+
+        # Подсчитываем частоту тегов (исключаем 'ok')
+        from collections import Counter
+        tag_counts = Counter(t for t in tags if t != 'ok')
+
+        if not tag_counts:
+            # Все ответы позитивные
+            slug = 'no_system'  # fallback
+        else:
+            slug = tag_counts.most_common(1)[0][0]
+
+        cur.execute(f"SELECT * FROM {tbl('ms_scenarios')} WHERE slug = %s", (slug,))
+        scenario = cur.fetchone()
+        if not scenario:
+            return err("Сценарий не найден", 404)
+
+        return ok({"scenario": dict(scenario), "tag_counts": dict(tag_counts)})
+    finally:
+        conn.close()
+
+
 # ── Диагностика ──────────────────────────────────────────────────────────────
 
 def handle_diag_symptoms(event: dict) -> dict:
@@ -857,6 +938,8 @@ ROUTES = {
     ("GET",  "salon_history"): handle_salon_history,
     ("GET",  "diag_symptoms"): handle_diag_symptoms,
     ("GET",  "diag_search"): handle_diag_search,
+    ("GET",  "ms_categories"): handle_ms_categories,
+    ("POST", "ms_analyze"): handle_ms_analyze,
 }
 
 

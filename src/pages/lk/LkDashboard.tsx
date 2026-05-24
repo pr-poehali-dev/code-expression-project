@@ -369,6 +369,50 @@ function HomeTab({ onNav }: { onNav: (t: Tab) => void }) {
         <Icon name="ArrowRight" size={20} style={{ color: "rgba(255,255,255,0.6)", marginLeft: "auto", flexShrink: 0 }} />
       </button>
 
+      {/* Мышление специалиста */}
+      {user?.access_expires_at === null ? (
+        <button
+          onClick={() => onNav("tests")}
+          style={{
+            width: "100%", display: "flex", alignItems: "center", gap: 16,
+            background: "linear-gradient(135deg, hsl(260,70%,52%), hsl(260,70%,40%))",
+            borderRadius: 18, padding: "20px 24px", border: "none", cursor: "pointer",
+            fontFamily: "Montserrat, sans-serif", textAlign: "left", marginBottom: 20,
+            boxShadow: "0 4px 20px hsla(260,70%,52%,0.22)",
+          }}
+        >
+          <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="Brain" size={26} style={{ color: "#fff" }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4, lineHeight: 1.3 }}>
+              Мышление специалиста
+            </div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>
+              Финансы, состояние, клиенты — анализ мышления и план действий
+            </div>
+          </div>
+          <Icon name="ArrowRight" size={20} style={{ color: "rgba(255,255,255,0.6)", marginLeft: "auto", flexShrink: 0 }} />
+        </button>
+      ) : (
+        <div style={{
+          width: "100%", display: "flex", alignItems: "center", gap: 16,
+          background: "#fff", borderRadius: 18, padding: "18px 24px",
+          border: "1.5px solid hsl(260,70%,88%)", marginBottom: 20, boxSizing: "border-box",
+        }}>
+          <div style={{ width: 48, height: 48, borderRadius: 14, background: "hsl(260,70%,97%)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="Brain" size={22} style={{ color: "hsl(260,70%,52%)" }} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 }}>Мышление специалиста</div>
+            <div style={{ fontSize: 12, color: "#aaa" }}>Доступно в тарифе «Безлимит» или за 25 000 ₽</div>
+          </div>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "hsl(260,70%,52%)", background: "hsl(260,70%,97%)", padding: "4px 10px", borderRadius: 20, whiteSpace: "nowrap" }}>
+            <Icon name="Lock" size={11} /> Безлимит
+          </div>
+        </div>
+      )}
+
       {/* Инструменты */}
       <div style={{ marginBottom: 12 }}>
         <h2 style={{ fontSize: 13, fontWeight: 700, color: "#aaa", letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 14px" }}>

@@ -95,6 +95,19 @@
       "method": "GET",
       "path": "/?action=diag_search&q=боль+в+шее",
       "expectedStatus": 401
+    },
+    {
+      "name": "ms_categories без сессии — 401",
+      "method": "GET",
+      "path": "/?action=ms_categories",
+      "expectedStatus": 401
+    },
+    {
+      "name": "ms_analyze без сессии — 401",
+      "method": "POST",
+      "path": "/?action=ms_analyze",
+      "body": {"answers": {}},
+      "expectedStatus": 401
     }
   ]
 }
