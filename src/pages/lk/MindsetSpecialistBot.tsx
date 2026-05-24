@@ -96,6 +96,8 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedProblem, setSelectedProblem]   = useState<Problem | null>(null);
   const [answers, setAnswers] = useState<Record<number, number>>({});  // question_id → option_id
+  const [customAnswers, setCustomAnswers] = useState<Record<number, string>>({});  // question_id → свой текст
+  const [customInput, setCustomInput] = useState("");  // текущее поле ввода
   const [currentQ, setCurrentQ] = useState(0);
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [aiSections, setAiSections] = useState<Record<string, string> | null>(null);
@@ -121,17 +123,21 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
 
   const reset = () => {
     setStep("category"); setSelectedCategory(null); setSelectedProblem(null);
-    setAnswers({}); setCurrentQ(0); setScenario(null); setAiSections(null);
+    setAnswers({}); setCustomAnswers({}); setCustomInput(""); setCurrentQ(0); setScenario(null); setAiSections(null);
   };
 
   const callAI = async (
     newAnswers: Record<number, number>,
+    newCustomAnswers: Record<number, string>,
     questions: Question[],
     options: Option[]
   ): Promise<Record<string, string> | null> => {
     try {
       const session = localStorage.getItem("lk_session") || "";
       const qa_pairs = questions.map(q => {
+        // Приоритет: свой текст → выбранный вариант
+        const custom = newCustomAnswers[q.id];
+        if (custom?.trim()) return { question: q.text, answer: custom.trim() };
         const optId = newAnswers[q.id];
         const opt = options.find(o => o.id === optId);
         return { question: q.text, answer: opt?.text || "" };
@@ -152,19 +158,16 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
     }
   };
 
-  const handleAnswer = async (optionId: number) => {
-    const newAnswers = { ...answers, [currentQuestion.id]: optionId };
-    setAnswers(newAnswers);
-
+  const proceed = async (newAnswers: Record<number, number>, newCustomAnswers: Record<number, string>) => {
+    setCustomInput("");
     if (currentQ < questionsForProblem.length - 1) {
       setCurrentQ(q => q + 1);
     } else {
-      // Все вопросы отвечены — запускаем оба запроса параллельно
       setAnalyzing(true);
       try {
         const [result, sections] = await Promise.all([
           lkApi.msAnalyze(newAnswers),
-          callAI(newAnswers, questionsForProblem, data!.options),
+          callAI(newAnswers, newCustomAnswers, questionsForProblem, data!.options),
         ]);
         setScenario(result.scenario);
         setAiSections(sections);
@@ -173,6 +176,30 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
         setAnalyzing(false);
       }
     }
+  };
+
+  const handleAnswer = (optionId: number) => {
+    const newAnswers = { ...answers, [currentQuestion.id]: optionId };
+    // Если был свой текст — убираем его (выбрали вариант вместо своего)
+    const newCustom = { ...customAnswers };
+    delete newCustom[currentQuestion.id];
+    setAnswers(newAnswers);
+    setCustomAnswers(newCustom);
+    proceed(newAnswers, newCustom);
+  };
+
+  const handleCustomAnswer = () => {
+    const text = customInput.trim();
+    if (!text) return;
+    // Для алгоритма используем первый вариант (нейтральный тег), AI получит реальный текст
+    const fallbackOpt = optionsForQ[0];
+    const newAnswers = fallbackOpt
+      ? { ...answers, [currentQuestion.id]: fallbackOpt.id }
+      : answers;
+    const newCustom = { ...customAnswers, [currentQuestion.id]: text };
+    setAnswers(newAnswers);
+    setCustomAnswers(newCustom);
+    proceed(newAnswers, newCustom);
   };
 
   // ── РЕЗУЛЬТАТ ──
@@ -317,6 +344,47 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
                 {opt.text}
               </button>
             ))}
+
+            {/* Свой вариант */}
+            <div style={{ marginTop: 4, borderTop: "1px solid #f0f0ec", paddingTop: 12 }}>
+              <div style={{ fontSize: 12, color: "#bbb", marginBottom: 8, fontWeight: 600 }}>Или напишите свой ответ:</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <textarea
+                  value={customInput}
+                  onChange={e => setCustomInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter" && !e.shiftKey && customInput.trim()) {
+                      e.preventDefault();
+                      handleCustomAnswer();
+                    }
+                  }}
+                  placeholder="Опишите своими словами..."
+                  rows={2}
+                  style={{
+                    flex: 1, padding: "11px 14px", borderRadius: 12,
+                    border: customInput.trim() ? `1.5px solid ${COLOR}` : "1.5px solid #e8e8e4",
+                    fontSize: 13, fontFamily: "Montserrat, sans-serif",
+                    outline: "none", resize: "none", lineHeight: 1.5,
+                    color: "#333", transition: "border-color 0.15s",
+                  }}
+                />
+                <button
+                  onClick={handleCustomAnswer}
+                  disabled={!customInput.trim()}
+                  style={{
+                    padding: "0 16px", borderRadius: 12, border: "none",
+                    background: customInput.trim() ? COLOR : "#e8e8e4",
+                    color: "#fff", fontSize: 13, fontWeight: 700,
+                    cursor: customInput.trim() ? "pointer" : "default",
+                    fontFamily: "Montserrat, sans-serif",
+                    alignSelf: "stretch", transition: "background 0.15s",
+                    minWidth: 64,
+                  }}
+                >
+                  →
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
