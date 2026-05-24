@@ -369,7 +369,7 @@ function HomeTab({ onNav }: { onNav: (t: Tab) => void }) {
         <Icon name="ArrowRight" size={20} style={{ color: "rgba(255,255,255,0.6)", marginLeft: "auto", flexShrink: 0 }} />
       </button>
 
-      {/* Мышление специалиста */}
+      {/* Развитие специалиста */}
       {user?.access_expires_at === null ? (
         <button
           onClick={() => onNav("tests")}
@@ -386,10 +386,10 @@ function HomeTab({ onNav }: { onNav: (t: Tab) => void }) {
           </div>
           <div>
             <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4, lineHeight: 1.3 }}>
-              Мышление специалиста
+              Развитие специалиста
             </div>
             <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>
-              Финансы, состояние, клиенты — анализ мышления и план действий
+              Клиенты, позиционирование, личный бренд, практика — персональный AI-план
             </div>
           </div>
           <Icon name="ArrowRight" size={20} style={{ color: "rgba(255,255,255,0.6)", marginLeft: "auto", flexShrink: 0 }} />
@@ -404,7 +404,7 @@ function HomeTab({ onNav }: { onNav: (t: Tab) => void }) {
             <Icon name="Brain" size={22} style={{ color: "hsl(260,70%,52%)" }} />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 }}>Мышление специалиста</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 }}>Развитие специалиста</div>
             <div style={{ fontSize: 12, color: "#aaa" }}>Доступно в тарифе «Безлимит» или за 25 000 ₽</div>
           </div>
           <div style={{ fontSize: 10, fontWeight: 700, color: "hsl(260,70%,52%)", background: "hsl(260,70%,97%)", padding: "4px 10px", borderRadius: 20, whiteSpace: "nowrap" }}>

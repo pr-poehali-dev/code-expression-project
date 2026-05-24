@@ -179,12 +179,14 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
   if (step === "result" && scenario) {
     // Если есть AI-секции — используем их, иначе — шаблонный сценарий
     const ai = aiSections;
-    const mainCause     = ai?.["ГЛАВНАЯ ПРИЧИНА"]     || scenario.main_cause;
-    const innerState    = ai?.["ЧТО ПРОИСХОДИТ ВНУТРИ"] || scenario.inner_state;
-    const clientView    = ai?.["КАК ЭТО ВИДИТ КЛИЕНТ"]  || scenario.client_view;
-    const whatToChange  = ai?.["ЧТО ИЗМЕНИТЬ"]          || scenario.what_to_change;
-    const actionPlan    = ai?.["ПЛАН НА ЭТУ НЕДЕЛЮ"]    || scenario.action_plan;
-    const exerciseRaw   = ai?.["УПРАЖНЕНИЕ"]             || null;
+    // Новые ключи AI (goal-oriented), с фолбэком на старые и на сценарий
+    const mainCause    = ai?.["ЧТО Я ВИЖУ"]           || ai?.["ГЛАВНАЯ ПРИЧИНА"]      || scenario.main_cause;
+    const obstacle     = ai?.["ГЛАВНОЕ ПРЕПЯТСТВИЕ"]   || ai?.["ЧТО ПРОИСХОДИТ ВНУТРИ"] || scenario.inner_state;
+    const clientView   = ai?.["КАК ЭТО ВИДИТ КЛИЕНТ"] || scenario.client_view;
+    const whatToChange = ai?.["ЧТО ИЗМЕНИТЬ"]          || scenario.what_to_change;
+    const actionPlan   = ai?.["ПЛАН НА ЭТУ НЕДЕЛЮ"]   || scenario.action_plan;
+    const exerciseRaw  = ai?.["УПРАЖНЕНИЕ"]            || null;
+    const growthPoint  = ai?.["ТОЧКА РОСТА"]           || null;
 
     // Парсим упражнение из AI: первая строка — название, остальное — описание
     let exerciseName = scenario.exercise_name;
@@ -207,7 +209,7 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
 
         {/* Шапка */}
         <div style={{ background: `linear-gradient(135deg, ${COLOR}, hsl(260,70%,40%))`, borderRadius: 20, padding: "24px 28px", marginBottom: 20, color: "#fff" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.75, marginBottom: 6 }}>Мышление специалиста · Персональный анализ</div>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.75, marginBottom: 6 }}>Развитие специалиста · Персональный план</div>
           <div style={{ fontSize: "clamp(18px,3vw,26px)", fontFamily: "Cormorant, serif", fontWeight: 700, marginBottom: 4 }}>{selectedProblem?.name}</div>
           <div style={{ fontSize: 13, opacity: 0.85 }}>{selectedCategory?.name}</div>
           {ai && (
@@ -218,9 +220,9 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <ResultBlock icon="Target" title="Главная причина" text={mainCause} color={COLOR} />
-          <ResultBlock icon="Brain" title="Что происходит внутри" text={innerState} color="hsl(280,60%,50%)" />
-          <ResultBlock icon="Eye" title="Как это видит клиент" text={clientView} color="hsl(210,85%,45%)" />
+          <ResultBlock icon="Search" title="Что я вижу" text={mainCause} color={COLOR} />
+          <ResultBlock icon="AlertCircle" title="Главное препятствие" text={obstacle} color="hsl(20,85%,48%)" />
+          {clientView && <ResultBlock icon="Eye" title="Как это видит клиент" text={clientView} color="hsl(210,85%,45%)" />}
           <ResultBlock icon="Lightbulb" title="Что изменить" text={whatToChange} color="hsl(145,60%,38%)" />
           <ActionPlan text={actionPlan} />
 
@@ -237,6 +239,17 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
           </div>
 
           <TrackBlock text={scenario.track_items} />
+
+          {/* Точка роста — только если есть от AI */}
+          {growthPoint && (
+            <div style={{ background: `linear-gradient(135deg, ${COLOR}15, hsl(260,70%,97%))`, borderRadius: 14, padding: "16px 20px", border: `1.5px solid ${COLOR}30` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8 }}>
+                <Icon name="Sparkles" size={14} style={{ color: COLOR }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: COLOR, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Точка роста</span>
+              </div>
+              <p style={{ fontSize: 13, color: "#444", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>{growthPoint}</p>
+            </div>
+          )}
 
           {/* Когда нужен коуч */}
           <div style={{ background: "#fafaf8", borderRadius: 14, padding: "14px 18px", border: "1.5px solid #e8e8e4" }}>
@@ -356,10 +369,10 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
 
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 6px" }}>
-          Мышление специалиста
+          Развитие специалиста
         </h1>
         <p style={{ fontSize: 14, color: "#888", margin: 0, lineHeight: 1.6 }}>
-          Выберите область — система поможет разобраться в причине и получить конкретный план действий
+          Выберите цель — ответьте на несколько вопросов и получите персональный план
         </p>
       </div>
 
