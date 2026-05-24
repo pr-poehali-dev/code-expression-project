@@ -3,6 +3,8 @@ import { lkApi } from "@/lib/lkApi";
 import Icon from "@/components/ui/icon";
 import { backBtn, ACCENT } from "./LkTestsTypes";
 
+const AI_URL = "https://functions.poehali.dev/3ce8698e-6cbe-41e1-bdc9-352867567feb";
+
 const COLOR = "hsl(260,70%,52%)";
 const COLOR_BG = "hsl(260,70%,97%)";
 
@@ -96,6 +98,7 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
   const [answers, setAnswers] = useState<Record<number, number>>({});  // question_id → option_id
   const [currentQ, setCurrentQ] = useState(0);
   const [scenario, setScenario] = useState<Scenario | null>(null);
+  const [aiSections, setAiSections] = useState<Record<string, string> | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
 
   useEffect(() => {
@@ -118,7 +121,35 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
 
   const reset = () => {
     setStep("category"); setSelectedCategory(null); setSelectedProblem(null);
-    setAnswers({}); setCurrentQ(0); setScenario(null);
+    setAnswers({}); setCurrentQ(0); setScenario(null); setAiSections(null);
+  };
+
+  const callAI = async (
+    newAnswers: Record<number, number>,
+    questions: Question[],
+    options: Option[]
+  ): Promise<Record<string, string> | null> => {
+    try {
+      const session = localStorage.getItem("lk_session") || "";
+      const qa_pairs = questions.map(q => {
+        const optId = newAnswers[q.id];
+        const opt = options.find(o => o.id === optId);
+        return { question: q.text, answer: opt?.text || "" };
+      });
+      const res = await fetch(AI_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session },
+        body: JSON.stringify({
+          problem_name: selectedProblem?.name || "",
+          category_name: selectedCategory?.name || "",
+          qa_pairs,
+        }),
+      });
+      const json = await res.json();
+      return json.sections || null;
+    } catch {
+      return null;
+    }
   };
 
   const handleAnswer = async (optionId: number) => {
@@ -128,11 +159,15 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
     if (currentQ < questionsForProblem.length - 1) {
       setCurrentQ(q => q + 1);
     } else {
-      // Все вопросы отвечены — анализируем
+      // Все вопросы отвечены — запускаем оба запроса параллельно
       setAnalyzing(true);
       try {
-        const result = await lkApi.msAnalyze(newAnswers);
+        const [result, sections] = await Promise.all([
+          lkApi.msAnalyze(newAnswers),
+          callAI(newAnswers, questionsForProblem, data!.options),
+        ]);
         setScenario(result.scenario);
+        setAiSections(sections);
         setStep("result");
       } finally {
         setAnalyzing(false);
@@ -142,6 +177,28 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
 
   // ── РЕЗУЛЬТАТ ──
   if (step === "result" && scenario) {
+    // Если есть AI-секции — используем их, иначе — шаблонный сценарий
+    const ai = aiSections;
+    const mainCause     = ai?.["ГЛАВНАЯ ПРИЧИНА"]     || scenario.main_cause;
+    const innerState    = ai?.["ЧТО ПРОИСХОДИТ ВНУТРИ"] || scenario.inner_state;
+    const clientView    = ai?.["КАК ЭТО ВИДИТ КЛИЕНТ"]  || scenario.client_view;
+    const whatToChange  = ai?.["ЧТО ИЗМЕНИТЬ"]          || scenario.what_to_change;
+    const actionPlan    = ai?.["ПЛАН НА ЭТУ НЕДЕЛЮ"]    || scenario.action_plan;
+    const exerciseRaw   = ai?.["УПРАЖНЕНИЕ"]             || null;
+
+    // Парсим упражнение из AI: первая строка — название, остальное — описание
+    let exerciseName = scenario.exercise_name;
+    let exerciseText = scenario.exercise_text;
+    if (exerciseRaw) {
+      const lines = exerciseRaw.split("\n").filter(Boolean);
+      if (lines.length > 1) {
+        exerciseName = lines[0].replace(/[«»"]/g, "").trim();
+        exerciseText = lines.slice(1).join(" ").trim();
+      } else {
+        exerciseText = exerciseRaw;
+      }
+    }
+
     return (
       <div>
         <button onClick={reset} style={backBtn}>
@@ -150,18 +207,22 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
 
         {/* Шапка */}
         <div style={{ background: `linear-gradient(135deg, ${COLOR}, hsl(260,70%,40%))`, borderRadius: 20, padding: "24px 28px", marginBottom: 20, color: "#fff" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.75, marginBottom: 6 }}>Мышление специалиста · Анализ</div>
-          <div style={{ fontSize: "clamp(18px,3vw,26px)", fontFamily: "Cormorant, serif", fontWeight: 700, marginBottom: 4 }}>{scenario.name}</div>
-          <div style={{ fontSize: 13, opacity: 0.85 }}>Проблема: {selectedProblem?.name}</div>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.75, marginBottom: 6 }}>Мышление специалиста · Персональный анализ</div>
+          <div style={{ fontSize: "clamp(18px,3vw,26px)", fontFamily: "Cormorant, serif", fontWeight: 700, marginBottom: 4 }}>{selectedProblem?.name}</div>
+          <div style={{ fontSize: 13, opacity: 0.85 }}>{selectedCategory?.name}</div>
+          {ai && (
+            <div style={{ marginTop: 10, fontSize: 11, background: "rgba(255,255,255,0.18)", borderRadius: 8, padding: "4px 10px", display: "inline-block" }}>
+              ✦ Персональный AI-анализ
+            </div>
+          )}
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <ResultBlock icon="Target" title="Главная причина проблемы" text={scenario.main_cause} color={COLOR} />
-          <ResultBlock icon="Brain" title="Что происходит внутри" text={scenario.inner_state} color="hsl(280,60%,50%)" />
-          <ResultBlock icon="Eye" title="Как это видит клиент" text={scenario.client_view} color="hsl(210,85%,45%)" />
-          <ResultBlock icon="TrendingDown" title="Как это влияет на практику" text={scenario.practice_impact} color="hsl(20,85%,48%)" />
-          <ResultBlock icon="Lightbulb" title="Что нужно изменить" text={scenario.what_to_change} color="hsl(145,60%,38%)" />
-          <ActionPlan text={scenario.action_plan} />
+          <ResultBlock icon="Target" title="Главная причина" text={mainCause} color={COLOR} />
+          <ResultBlock icon="Brain" title="Что происходит внутри" text={innerState} color="hsl(280,60%,50%)" />
+          <ResultBlock icon="Eye" title="Как это видит клиент" text={clientView} color="hsl(210,85%,45%)" />
+          <ResultBlock icon="Lightbulb" title="Что изменить" text={whatToChange} color="hsl(145,60%,38%)" />
+          <ActionPlan text={actionPlan} />
 
           {/* Упражнение */}
           <div style={{ background: "#fff", borderRadius: 14, padding: "18px 20px", border: `2px solid ${COLOR}40` }}>
@@ -171,8 +232,8 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
               </div>
               <span style={{ fontSize: 12, fontWeight: 700, color: COLOR, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Коучинговое упражнение</span>
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 8 }}>«{scenario.exercise_name}»</div>
-            <p style={{ fontSize: 13, color: "#444", lineHeight: 1.65, margin: 0 }}>{scenario.exercise_text}</p>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 8 }}>«{exerciseName}»</div>
+            <p style={{ fontSize: 13, color: "#444", lineHeight: 1.65, margin: 0 }}>{exerciseText}</p>
           </div>
 
           <TrackBlock text={scenario.track_items} />
