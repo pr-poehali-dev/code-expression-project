@@ -28,6 +28,7 @@ import Praktika from "./pages/Praktika";
 import PremiumPraktika from "./pages/PremiumPraktika";
 import EkspertTarif from "./pages/EkspertTarif";
 import FreeTarif from "./pages/FreeTarif";
+import ComingSoon from "./pages/ComingSoon";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ const App = () => (
           <Route path="/premium" element={<PremiumPraktika />} />
           <Route path="/ekspert" element={<EkspertTarif />} />
           <Route path="/free" element={<FreeTarif />} />
+          <Route path="/coming-soon" element={<ComingSoon />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

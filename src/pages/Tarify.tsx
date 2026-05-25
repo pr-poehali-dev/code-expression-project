@@ -296,48 +296,13 @@ function PlanCard({ plan, onApply }: { plan: typeof PLANS[0]; onApply: (title: s
       </div>
 
       {/* CTA */}
-      {plan.id === "free" ? (
-        <a href="/free"
-          style={{ display: "block", textAlign: "center" as const, padding: "13px 20px", borderRadius: 12, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "all 0.25s", border: `1.5px solid ${ACCENT}`, color: ACCENT, background: "transparent", fontFamily: "Montserrat, sans-serif" }}
-          onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = `hsla(185,85%,32%,0.07)`; el.style.transform = "translateY(-1px)"; }}
-          onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "transparent"; el.style.transform = "translateY(0)"; }}
-        >
-          {plan.cta}
-        </a>
-      ) : plan.id === "practika" ? (
-        <a href="/praktika"
-          style={{ display: "block", textAlign: "center" as const, padding: "13px 20px", borderRadius: 12, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "all 0.25s", background: ACCENT, color: "#fff", fontFamily: "Montserrat, sans-serif", boxShadow: `0 4px 16px ${ACCENT_SHADOW}` }}
-          onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT_DARK; el.style.transform = "translateY(-1px)"; }}
-          onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT; el.style.transform = "translateY(0)"; }}
-        >
-          {plan.cta}
-        </a>
-      ) : plan.id === "premium" ? (
-        <a href="/premium"
-          style={{ display: "block", textAlign: "center" as const, padding: "13px 20px", borderRadius: 12, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "all 0.25s", background: ACCENT, color: "#fff", fontFamily: "Montserrat, sans-serif", boxShadow: `0 4px 16px ${ACCENT_SHADOW}` }}
-          onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT_DARK; el.style.transform = "translateY(-1px)"; }}
-          onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT; el.style.transform = "translateY(0)"; }}
-        >
-          {plan.cta}
-        </a>
-      ) : plan.id === "expert" ? (
-        <a href="/ekspert"
-          style={{ display: "block", textAlign: "center" as const, padding: "13px 20px", borderRadius: 12, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "all 0.25s", background: ACCENT, color: "#fff", fontFamily: "Montserrat, sans-serif", boxShadow: `0 4px 16px ${ACCENT_SHADOW}` }}
-          onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT_DARK; el.style.transform = "translateY(-1px)"; }}
-          onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT; el.style.transform = "translateY(0)"; }}
-        >
-          {plan.cta}
-        </a>
-      ) : (
-        <button
-          onClick={() => onApply(plan.title)}
-          style={{ display: "block", width: "100%", padding: "13px 20px", borderRadius: 12, fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.25s", background: ACCENT, color: "#fff", fontFamily: "Montserrat, sans-serif", boxShadow: `0 4px 16px ${ACCENT_SHADOW}` }}
-          onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ACCENT_DARK; el.style.transform = "translateY(-1px)"; }}
-          onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ACCENT; el.style.transform = "translateY(0)"; }}
-        >
-          {plan.cta}
-        </button>
-      )}
+      <a href="/coming-soon"
+        style={{ display: "block", textAlign: "center" as const, padding: "13px 20px", borderRadius: 12, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "all 0.25s", background: plan.id === "free" ? "transparent" : ACCENT, color: plan.id === "free" ? ACCENT : "#fff", border: plan.id === "free" ? `1.5px solid ${ACCENT}` : "none", fontFamily: "Montserrat, sans-serif", boxShadow: plan.id === "free" ? "none" : `0 4px 16px ${ACCENT_SHADOW}` }}
+        onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-1px)"; el.style.opacity = "0.9"; }}
+        onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.opacity = "1"; }}
+      >
+        {plan.cta}
+      </a>
     </div>
   );
 }

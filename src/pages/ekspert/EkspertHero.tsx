@@ -61,7 +61,7 @@ export default function EkspertHero() {
 
             <FadeIn delay={240}>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" as const }}>
-                <a href="#application" style={{
+                <a href="/coming-soon" style={{
                   display: "inline-block", background: PEARL, color: DARK,
                   padding: "14px 28px", borderRadius: 12,
                   fontSize: "clamp(13px, 1.4vw, 14px)", fontWeight: 700,

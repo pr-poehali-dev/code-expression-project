@@ -115,7 +115,7 @@ export const AFTER_FREE = [
 ];
 
 export const TARIFS = [
-  { title: "Практика",              price: "90 900 ₽",  href: "/praktika",  note: "Тариф №1" },
-  { title: "Премиальная практика",  price: "290 000 ₽", href: "/premium",   note: "Тариф №2" },
-  { title: "Dok Диалог Эксперт",   price: "500 000 ₽", href: "/ekspert",   note: "Тариф №3 · VIP" },
+  { title: "Практика",              price: "90 900 ₽",  href: "/coming-soon",  note: "Тариф №1" },
+  { title: "Премиальная практика",  price: "290 000 ₽", href: "/coming-soon",   note: "Тариф №2" },
+  { title: "Dok Диалог Эксперт",   price: "500 000 ₽", href: "/coming-soon",   note: "Тариф №3 · VIP" },
 ];
