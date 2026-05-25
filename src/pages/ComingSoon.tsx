@@ -35,7 +35,9 @@ export default function ComingSoon() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: `🎯 Ранняя заявка — скидка 70%\nТариф: ${selectedPlan}\nИмя: ${name || "не указано"}\nКонтакт: ${contact}`,
+          name: name.trim() || "не указано",
+          contact: contact.trim(),
+          message: `🎯 Ранняя заявка — скидка 70%\nТариф: ${selectedPlan}`,
         }),
       });
       setSent(true);
