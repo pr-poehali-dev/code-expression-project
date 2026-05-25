@@ -9,16 +9,17 @@ const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.25)";
 const SEND_URL = "https://functions.poehali.dev/13844979-19e6-463d-bb8e-fddd2b08479f";
 
 const PLANS = [
-  { value: "free",     label: "Бесплатный доступ" },
-  { value: "practika", label: "Тариф «Практика» — 90 900 ₽" },
-  { value: "premium",  label: "Тариф «Премиальная практика» — 290 000 ₽" },
-  { value: "ekspert",  label: "Тариф «Dok Диалог — Эксперт» — 500 000 ₽" },
+  { value: "free",     label: "Бесплатный доступ",                   price: null,        discounted: null },
+  { value: "practika", label: "Тариф «Практика»",                    price: "90 900 ₽",  discounted: "27 270 ₽" },
+  { value: "premium",  label: "Тариф «Премиальная практика»",         price: "290 000 ₽", discounted: "87 000 ₽" },
+  { value: "ekspert",  label: "Тариф «Dok Диалог — Эксперт»",        price: "500 000 ₽", discounted: "150 000 ₽" },
 ];
 
 export default function ComingSoon() {
   const [contact, setContact] = useState("");
   const [plan, setPlan] = useState("practika");
   const [name, setName] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
@@ -26,6 +27,7 @@ export default function ComingSoon() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contact.trim()) { setError("Укажите телефон или Telegram"); return; }
+    if (!agreed) { setError("Необходимо согласие с политикой конфиденциальности"); return; }
     setLoading(true); setError("");
     try {
       const selectedPlan = PLANS.find(p => p.value === plan)?.label ?? plan;
@@ -166,7 +168,15 @@ export default function ComingSoon() {
                         {plan === p.value && <div style={{ width: 8, height: 8, borderRadius: "50%", background: ACCENT }} />}
                       </div>
                       <input type="radio" value={p.value} checked={plan === p.value} onChange={() => setPlan(p.value)} style={{ display: "none" }} />
-                      <span style={{ fontSize: 14, color: plan === p.value ? "#1a1a1a" : "#555", fontWeight: plan === p.value ? 600 : 400 }}>{p.label}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, color: plan === p.value ? "#1a1a1a" : "#555", fontWeight: plan === p.value ? 600 : 400 }}>{p.label}</div>
+                        {p.price && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
+                            <span style={{ fontSize: 12, color: "#bbb", textDecoration: "line-through" }}>{p.price}</span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT }}>{p.discounted} со скидкой 70%</span>
+                          </div>
+                        )}
+                      </div>
                     </label>
                   ))}
                 </div>
@@ -205,6 +215,22 @@ export default function ComingSoon() {
                 {error && <div style={{ fontSize: 12, color: "#e55", marginTop: 6 }}>{error}</div>}
               </div>
 
+              {/* Чекбокс */}
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={e => setAgreed(e.target.checked)}
+                  style={{ marginTop: 2, accentColor: ACCENT, flexShrink: 0, width: 16, height: 16 }}
+                />
+                <span style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>
+                  Согласен с{" "}
+                  <a href="/privacy" target="_blank" style={{ color: ACCENT, textDecoration: "none" }}>политикой конфиденциальности</a>
+                  {" "}и{" "}
+                  <a href="/offer" target="_blank" style={{ color: ACCENT, textDecoration: "none" }}>офертой</a>
+                </span>
+              </label>
+
               <button
                 type="submit"
                 disabled={loading}
@@ -220,11 +246,6 @@ export default function ComingSoon() {
               >
                 {loading ? "Отправляем..." : "Забронировать скидку 70%"}
               </button>
-
-              <p style={{ margin: 0, fontSize: 12, color: "#aaa", textAlign: "center", lineHeight: 1.6 }}>
-                Нажимая кнопку, вы соглашаетесь с обработкой персональных данных.<br />
-                Мы не продаём данные и не рассылаем спам.
-              </p>
             </form>
           </div>
         )}
