@@ -226,6 +226,8 @@ function PlanCard({ plan, onApply }: { plan: typeof PLANS[0]; onApply: (title: s
         display: "flex",
         flexDirection: "column",
         gap: 0,
+        height: "100%",
+        boxSizing: "border-box" as const,
         boxShadow: hovered ? "0 24px 60px rgba(0,0,0,0.15)" : plan.featured ? `0 8px 40px ${ACCENT_SHADOW}` : "0 2px 16px rgba(0,0,0,0.06)",
         transform: hovered ? "translateY(-4px)" : "translateY(0)",
         transition: "all 0.25s ease",
@@ -416,7 +418,7 @@ export default function Tarify() {
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px" }}>
           <div className="tp-grid">
             {PLANS.map((plan, i) => (
-              <FadeIn key={plan.id} delay={i * 80}>
+              <FadeIn key={plan.id} delay={i * 80} style={{ height: "100%" }}>
                 <PlanCard plan={plan} onApply={(title) => setModal(title)} />
               </FadeIn>
             ))}
