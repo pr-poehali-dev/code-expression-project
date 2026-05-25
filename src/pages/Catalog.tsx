@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "@/lib/helmet";
 import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
 

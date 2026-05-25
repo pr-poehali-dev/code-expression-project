@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Helmet } from "react-helmet-async";
+import { Helmet } from "@/lib/helmet";
 import Icon from "@/components/ui/icon";
 
 const QUIZ_URL = "https://functions.poehali.dev/ce81ec2c-593c-47ad-84fc-73713cb74197";
