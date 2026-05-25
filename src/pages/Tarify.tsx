@@ -296,7 +296,8 @@ function PlanCard({ plan, onApply }: { plan: typeof PLANS[0]; onApply: (title: s
       </div>
 
       {/* CTA */}
-      <a href="/coming-soon"
+      <a
+        href={plan.id === "free" ? "/coming-soon" : plan.id === "practika" ? "/praktika" : plan.id === "premium" ? "/premium" : "/ekspert"}
         style={{ display: "block", textAlign: "center" as const, padding: "13px 20px", borderRadius: 12, fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "all 0.25s", background: plan.id === "free" ? "transparent" : ACCENT, color: plan.id === "free" ? ACCENT : "#fff", border: plan.id === "free" ? `1.5px solid ${ACCENT}` : "none", fontFamily: "Montserrat, sans-serif", boxShadow: plan.id === "free" ? "none" : `0 4px 16px ${ACCENT_SHADOW}` }}
         onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-1px)"; el.style.opacity = "0.9"; }}
         onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.opacity = "1"; }}
