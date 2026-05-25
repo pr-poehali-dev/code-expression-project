@@ -1,123 +1,30 @@
-import { useState } from "react";
 import {
   TEAL, TEAL_GLASS, TEAL_BORD, TEAL_DARK,
   DARK, DARK2, DARK3, DARK4,
   TEXT, TEXT_SUB, FadeIn, TealLine,
-  TARIFS, SEND_URL,
+  TARIFS,
 } from "./FreeTarifShared";
 
-// ── Форма записи на бесплатный доступ ────────────────────────────────────────
+// ── Кнопка перехода на coming-soon ────────────────────────────────────────────
 function FreeForm() {
-  const [name, setName] = useState("");
-  const [contact, setContact] = useState("");
-  const [agreed, setAgreed] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !contact.trim()) return;
-    if (!agreed) { setError("Необходимо дать согласие"); return; }
-    setLoading(true); setError("");
-    try {
-      const res = await fetch(SEND_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          contact,
-          message: `Заявка на БЕСПЛАТНЫЙ тариф «Dok Диалог — Старт». Контакт: ${contact}`,
-        }),
-      });
-      if (res.ok) setSent(true);
-      else setError("Не удалось отправить. Попробуйте еще раз.");
-    } catch { setError("Ошибка сети."); }
-    finally { setLoading(false); }
-  };
-
-  if (sent) return (
-    <div style={{ textAlign: "center", padding: "32px 0" }}>
-      <div style={{
-        width: 60, height: 60, borderRadius: "50%",
-        background: TEAL_GLASS, border: `1px solid ${TEAL_BORD}`,
-        display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px",
-      }}>
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={TEAL} strokeWidth="2.5">
-          <path d="M20 6 9 17l-5-5"/>
-        </svg>
-      </div>
-      <div style={{ fontFamily: "Cormorant, serif", fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 8 }}>
-        Заявка принята
-      </div>
-      <p style={{ fontSize: 13, color: TEXT_SUB, lineHeight: 1.75 }}>
-        Свяжемся в течение рабочего дня и пришлем доступ к бесплатному блоку.
-      </p>
-    </div>
-  );
-
-  const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "13px 15px", borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.07)", fontSize: 14, outline: "none",
-    boxSizing: "border-box", fontFamily: "Montserrat, sans-serif",
-    background: "rgba(255,255,255,0.03)", color: "#fff", transition: "border-color 0.25s",
-  };
-
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      {[
-        { l: "Имя", v: name, s: setName, p: "Ваше имя" },
-        { l: "Телефон или Telegram", v: contact, s: setContact, p: "+7 или @username" },
-      ].map(f => (
-        <div key={f.l}>
-          <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: TEXT_SUB, marginBottom: 6, letterSpacing: "0.06em" }}>{f.l}</label>
-          <input
-            value={f.v} onChange={e => f.s(e.target.value)}
-            placeholder={f.p} required style={inputStyle}
-            onFocus={e => (e.currentTarget.style.borderColor = `${TEAL}60`)}
-            onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)")}
-          />
-        </div>
-      ))}
-
-      <label style={{ display: "flex", gap: 10, cursor: "pointer", alignItems: "flex-start" }}>
-        <input
-          type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
-          style={{ marginTop: 2, accentColor: TEAL }}
-        />
-        <span style={{ fontSize: 12, color: TEXT_SUB, lineHeight: 1.6 }}>
-          Согласен с{" "}
-          <a href="/privacy" style={{ color: TEAL }} target="_blank">политикой конфиденциальности</a>
-          {" "}и{" "}
-          <a href="/offer" style={{ color: TEAL }} target="_blank">офертой</a>
-        </span>
-      </label>
-
-      {error && <p style={{ margin: 0, fontSize: 12, color: "#ff6b6b" }}>{error}</p>}
-
-      <button
-        type="submit"
-        style={{
-          background: TEAL, color: DARK, padding: "15px 24px", borderRadius: 12,
-          fontSize: 14, fontWeight: 700, border: "none", cursor: "pointer",
-          fontFamily: "Montserrat, sans-serif", letterSpacing: "0.04em",
-          width: "100%", transition: "all 0.3s",
-          boxShadow: `0 4px 20px rgba(0,198,188,0.22)`,
-        }}
-        onMouseEnter={e => {
-          const el = e.currentTarget as HTMLButtonElement;
-          el.style.background = TEAL_DARK;
-          el.style.transform = "translateY(-2px)";
-        }}
-        onMouseLeave={e => {
-          const el = e.currentTarget as HTMLButtonElement;
-          el.style.background = TEAL;
-          el.style.transform = "translateY(0)";
-        }}
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <p style={{ margin: 0, fontSize: 14, color: TEXT_SUB, lineHeight: 1.7 }}>
+        Платформа готовится к запуску. Оставьте заявку сейчас — и когда откроемся, вы получите бесплатный доступ <strong style={{ color: "#fff" }}>плюс скидку 70%</strong> на любой платный тариф.
+      </p>
+      <a href="/coming-soon" style={{
+        display: "block", textAlign: "center", textDecoration: "none",
+        background: TEAL, color: DARK, padding: "15px 24px", borderRadius: 12,
+        fontSize: 14, fontWeight: 700, fontFamily: "Montserrat, sans-serif",
+        letterSpacing: "0.04em", transition: "all 0.3s",
+        boxShadow: "0 4px 20px rgba(0,198,188,0.22)",
+      }}
+        onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = TEAL_DARK; el.style.transform = "translateY(-2px)"; }}
+        onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = TEAL; el.style.transform = "translateY(0)"; }}
       >
-        {loading ? "Отправляем..." : "Получить бесплатный доступ"}
-      </button>
-    </form>
+        Получить бесплатный доступ
+      </a>
+    </div>
   );
 }
 

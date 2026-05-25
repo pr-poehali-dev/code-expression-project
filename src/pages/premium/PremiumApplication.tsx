@@ -1,83 +1,48 @@
-import { useState } from "react";
-import { BLUE, BLUE_LIGHT, BLUE_BORDER, DARK, DARK2, DARK3, DARK4, TEXT_SUB, FadeIn, BlueLine, SEND_URL } from "./PremiumShared";
+import { BLUE, BLUE_LIGHT, BLUE_BORDER, DARK2, DARK3, DARK4, TEXT_SUB, FadeIn, BlueLine } from "./PremiumShared";
 
-function ApplicationForm() {
-  const [name, setName] = useState("");
-  const [contact, setContact] = useState("");
-  const [agreed, setAgreed] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !contact.trim()) return;
-    if (!agreed) { setError("Необходимо дать согласие"); return; }
-    setLoading(true); setError("");
-    try {
-      const res = await fetch(SEND_URL, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, contact, message: `Заявка на тариф «Премиальная практика» 290 000 ₽. Контакт: ${contact}` }),
-      });
-      if (res.ok) setSent(true); else setError("Не удалось отправить. Попробуйте ещё раз.");
-    } catch { setError("Ошибка сети."); } finally { setLoading(false); }
-  };
-
-  if (sent) return (
-    <div style={{ textAlign: "center", padding: "32px 0" }}>
-      <div style={{
-        width: 64, height: 64, borderRadius: "50%",
-        background: BLUE_LIGHT, border: `1px solid ${BLUE_BORDER}`,
-        display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px",
-      }}>
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth="2"><path d="M20 6 9 17l-5-5"/></svg>
-      </div>
-      <div style={{ fontFamily: "Cormorant, serif", fontSize: 24, fontWeight: 700, color: "#fff", marginBottom: 10 }}>Заявка принята</div>
-      <p style={{ fontSize: 14, color: TEXT_SUB, lineHeight: 1.75 }}>Свяжемся в течение рабочего дня и обсудим доступ к программе.</p>
-    </div>
-  );
-
-  const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "13px 15px", borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.08)", fontSize: 14, outline: "none",
-    boxSizing: "border-box", fontFamily: "Montserrat, sans-serif",
-    background: "rgba(255,255,255,0.04)", color: "#fff", transition: "border-color 0.2s",
-  };
-
+function EarlyAccessBlock() {
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ width: 6, height: 6, borderRadius: "50%", background: BLUE, animation: "pulse 2s infinite" }} />
+        <span style={{ fontSize: 11, fontWeight: 700, color: BLUE, letterSpacing: "0.14em", textTransform: "uppercase" as const }}>
+          Специальное предложение
+        </span>
+      </div>
+      <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px,3vw,26px)", fontWeight: 700, color: "#fff", lineHeight: 1.2 }}>
+        Платформа готовится к запуску —<br />
+        <span style={{ color: BLUE }}>забронируйте скидку 70%</span>
+      </div>
       {[
-        { l: "Имя", v: name, s: setName, p: "Ваше имя" },
-        { l: "Телефон или Telegram", v: contact, s: setContact, p: "+7 или @username" },
-      ].map(f => (
-        <div key={f.l}>
-          <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: TEXT_SUB, marginBottom: 6, letterSpacing: "0.06em" }}>{f.l}</label>
-          <input value={f.v} onChange={e => f.s(e.target.value)} placeholder={f.p} required style={inputStyle}
-            onFocus={e => (e.currentTarget.style.borderColor = `${BLUE}70`)}
-            onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
-          />
+        "Оставьте заявку до открытия — получите тариф со скидкой 70% от стоимости.",
+        "Это единственная скидка за всё время существования платформы. После запуска цена станет полной навсегда.",
+      ].map((text, i) => (
+        <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth="2.5" style={{ flexShrink: 0, marginTop: 2 }}><path d="M20 6 9 17l-5-5"/></svg>
+          <span style={{ fontSize: 13, color: TEXT_SUB, lineHeight: 1.7 }}>{text}</span>
         </div>
       ))}
-      <label style={{ display: "flex", gap: 10, cursor: "pointer", alignItems: "flex-start" }}>
-        <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 2, accentColor: BLUE }} />
-        <span style={{ fontSize: 12, color: TEXT_SUB, lineHeight: 1.6 }}>
-          Согласен с{" "}
-          <a href="/privacy" style={{ color: BLUE }} target="_blank">политикой конфиденциальности</a>
-          {" "}и{" "}
-          <a href="/offer" style={{ color: BLUE }} target="_blank">офертой</a>
-        </span>
-      </label>
-      {error && <p style={{ margin: 0, fontSize: 12, color: "#ff6b6b" }}>{error}</p>}
-      <button type="submit" style={{
-        background: BLUE, color: DARK, padding: "15px 24px", borderRadius: 12,
-        fontSize: 14, fontWeight: 700, border: "none", cursor: "pointer",
-        transition: "all 0.25s", fontFamily: "Montserrat, sans-serif",
-        letterSpacing: "0.04em", width: "100%",
+      <a href="/coming-soon" style={{
+        display: "block", textAlign: "center", textDecoration: "none",
+        background: BLUE, color: "#fff", padding: "15px 24px", borderRadius: 12,
+        fontSize: 14, fontWeight: 700, fontFamily: "Montserrat, sans-serif",
+        letterSpacing: "0.04em", transition: "all 0.25s",
+        boxShadow: `0 4px 20px ${BLUE}40`,
       }}
-        onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.opacity = "0.85"; el.style.transform = "translateY(-2px)"; }}
-        onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.opacity = "1"; el.style.transform = "translateY(0)"; }}
-      >{loading ? "Отправляем..." : "Получить доступ"}</button>
-    </form>
+        onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85"; (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-2px)"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)"; }}
+      >
+        Получить доступ со скидкой 70%
+      </a>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ width: 20, height: 20, borderRadius: "50%", background: BLUE_LIGHT, border: `1px solid ${BLUE_BORDER}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth="3"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <span style={{ fontSize: 12, color: TEXT_SUB, lineHeight: 1.5 }}>
+          Предложение действует только до открытия платформы
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -161,7 +126,7 @@ export default function PremiumApplication() {
                 <div style={{ fontSize: 11, color: TEXT_SUB, letterSpacing: "0.08em", marginBottom: 4 }}>Тариф</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Премиальная практика</div>
               </div>
-              <ApplicationForm />
+              <EarlyAccessBlock />
             </div>
           </FadeIn>
         </div>
