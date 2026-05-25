@@ -1,4 +1,5 @@
 import { BLUE, BLUE_LIGHT, BLUE_BORDER, DARK2, DARK3, DARK4, TEXT, TEXT_SUB, FadeIn, BlueLine, PAINS, RESULTS, TOOLS, MEETINGS_WORK, AFTER_MEETINGS } from "./PremiumShared";
+import Icon from "@/components/ui/icon";
 
 export default function PremiumSections() {
   return (
@@ -257,7 +258,9 @@ export default function PremiumSections() {
                   border: "1px solid rgba(255,255,255,0.05)",
                   height: "100%", boxSizing: "border-box" as const,
                 }}>
-                  <div style={{ fontSize: 26, marginBottom: 14 }}>{r.icon}</div>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: `${BLUE}18`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+                    <Icon name={r.icon} size={22} style={{ color: BLUE }} />
+                  </div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: BLUE, marginBottom: 14, letterSpacing: "0.04em" }}>{r.title}</div>
                   <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
                     {r.items.map((item, j) => (

@@ -1,4 +1,5 @@
 import { GOLD, DARK2, DARK3, TEXT, TEXT_SUB, FadeIn, GoldLine, PAINS, CHANGES, MODULES, FOR_WHOM } from "./PraktikaShared";
+import Icon from "@/components/ui/icon";
 
 export default function PraktikaSections() {
   return (
@@ -99,7 +100,9 @@ export default function PraktikaSections() {
                   border: "1px solid rgba(255,255,255,0.05)",
                   height: "100%", boxSizing: "border-box" as const,
                 }}>
-                  <div style={{ fontSize: 26, marginBottom: 14 }}>{c.icon}</div>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: `${GOLD}18`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+                    <Icon name={c.icon} size={22} style={{ color: GOLD }} />
+                  </div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: GOLD, marginBottom: 14, letterSpacing: "0.04em" }}>{c.title}</div>
                   <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
                     {c.items.map((item, j) => (
