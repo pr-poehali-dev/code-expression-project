@@ -1,6 +1,28 @@
 const ACCENT = "hsl(185, 85%, 32%)";
 
+function getTelegramLink(): { href: string; label: string } | null {
+  const path = window.location.pathname;
+  if (path.startsWith("/dlya-salonov") || path.startsWith("/diagnostika-salona")) {
+    return { href: "https://t.me/dokdialog", label: "✈ Telegram для салонов" };
+  }
+  if (
+    path.startsWith("/dlya-specialistov") ||
+    path.startsWith("/praktika") ||
+    path.startsWith("/premium") ||
+    path.startsWith("/ekspert") ||
+    path.startsWith("/free") ||
+    path.startsWith("/zakrytaya-praktika") ||
+    path.startsWith("/professionalnye-vstrechi") ||
+    path.startsWith("/catalog") ||
+    path.startsWith("/tarify")
+  ) {
+    return { href: "https://t.me/docdialog", label: "✈ Telegram для специалистов" };
+  }
+  return null;
+}
+
 export default function DokFooter() {
+  const tgLink = getTelegramLink();
   return (
     <footer style={{ borderTop: "1px solid #e8e8e4", background: "#fff", fontFamily: "Montserrat, sans-serif" }}>
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "56px 24px 40px" }}>
@@ -14,13 +36,15 @@ export default function DokFooter() {
             <p style={{ margin: "0 0 20px", fontSize: 13, color: "#777", lineHeight: 1.7, maxWidth: 220 }}>
               Профессиональная система работы с телом, клиентом и практикой специалиста.
             </p>
-            <a href="https://t.me/dokdialog" target="_blank" rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, color: ACCENT, textDecoration: "none", fontWeight: 600 }}
-              onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.75"}
-              onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
-            >
-              ✈ Telegram-канал
-            </a>
+            {tgLink && (
+              <a href={tgLink.href} target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, color: ACCENT, textDecoration: "none", fontWeight: 600 }}
+                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.75"}
+                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
+              >
+                {tgLink.label}
+              </a>
+            )}
           </div>
 
           {/* Система */}

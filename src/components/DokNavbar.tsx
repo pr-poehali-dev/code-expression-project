@@ -4,6 +4,27 @@ const ACCENT = "hsl(185, 85%, 32%)";
 const ACCENT_DARK = "hsl(185, 85%, 26%)";
 const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.3)";
 
+function getTelegramLink(): string | null {
+  const path = window.location.pathname;
+  if (path.startsWith("/dlya-salonov") || path.startsWith("/diagnostika-salona")) {
+    return "https://t.me/dokdialog";
+  }
+  if (
+    path.startsWith("/dlya-specialistov") ||
+    path.startsWith("/praktika") ||
+    path.startsWith("/premium") ||
+    path.startsWith("/ekspert") ||
+    path.startsWith("/free") ||
+    path.startsWith("/zakrytaya-praktika") ||
+    path.startsWith("/professionalnye-vstrechi") ||
+    path.startsWith("/catalog") ||
+    path.startsWith("/tarify")
+  ) {
+    return "https://t.me/docdialog";
+  }
+  return null;
+}
+
 const NAV_LINKS = [
   { label: "О системе", href: "/o-sisteme" },
   { label: "Для специалистов", href: "/dlya-specialistov" },
@@ -21,6 +42,7 @@ function isActive(href: string) {
 
 export default function DokNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const tgLink = getTelegramLink();
 
   return (
     <header style={{
@@ -53,14 +75,16 @@ export default function DokNavbar() {
         </nav>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }} className="dok-desktop-right">
-          <a href="https://t.me/dokdialog" target="_blank" rel="noopener noreferrer"
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 8, background: "transparent", border: "1.5px solid #e0e0e0", color: "#666", textDecoration: "none", transition: "all 0.2s", fontSize: 16 }}
-            onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.borderColor = ACCENT; el.style.color = ACCENT; }}
-            onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.borderColor = "#e0e0e0"; el.style.color = "#666"; }}
-            title="Telegram"
-          >
-            ✈
-          </a>
+          {tgLink && (
+            <a href={tgLink} target="_blank" rel="noopener noreferrer"
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: 8, background: "transparent", border: "1.5px solid #e0e0e0", color: "#666", textDecoration: "none", transition: "all 0.2s", fontSize: 16 }}
+              onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.borderColor = ACCENT; el.style.color = ACCENT; }}
+              onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.borderColor = "#e0e0e0"; el.style.color = "#666"; }}
+              title="Telegram"
+            >
+              ✈
+            </a>
+          )}
           <a href="/cabinet"
             style={{ background: ACCENT, color: "#fff", padding: "9px 20px", borderRadius: 10, fontSize: 13, fontWeight: 600, textDecoration: "none", transition: "all 0.25s ease", boxShadow: `0 4px 16px ${ACCENT_SHADOW}`, fontFamily: "Montserrat, sans-serif", whiteSpace: "nowrap" }}
             onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = ACCENT_DARK; el.style.transform = "translateY(-1px)"; }}
@@ -91,10 +115,12 @@ export default function DokNavbar() {
             </a>
           ))}
           <div style={{ marginTop: 16, display: "flex", gap: 10 }}>
-            <a href="https://t.me/dokdialog" target="_blank" rel="noopener noreferrer"
-              style={{ flex: 1, textAlign: "center", padding: "10px", borderRadius: 10, border: "1.5px solid #e0e0e0", color: "#666", textDecoration: "none", fontSize: 14 }}>
-              Telegram
-            </a>
+            {tgLink && (
+              <a href={tgLink} target="_blank" rel="noopener noreferrer"
+                style={{ flex: 1, textAlign: "center", padding: "10px", borderRadius: 10, border: "1.5px solid #e0e0e0", color: "#666", textDecoration: "none", fontSize: 14 }}>
+                Telegram
+              </a>
+            )}
             <a href="/cabinet"
               style={{ flex: 1, textAlign: "center", padding: "10px", borderRadius: 10, background: ACCENT, color: "#fff", textDecoration: "none", fontSize: 14, fontWeight: 600 }}>
               Личный кабинет
