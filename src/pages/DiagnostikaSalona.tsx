@@ -184,7 +184,7 @@ export default function DiagnostikaSalona() {
               <FadeIn>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: ACCENT, marginBottom: 20, background: `${ACCENT}12`, borderRadius: 100, padding: "5px 14px" }}>
                   <Icon name="Search" size={12} style={{ color: ACCENT }} />
-                  Платная услуга · 30 000 ₽
+                  Платная услуга · 99 000 ₽
                 </div>
               </FadeIn>
               <FadeIn delay={100}>
