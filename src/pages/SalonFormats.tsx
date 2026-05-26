@@ -193,16 +193,18 @@ export default function SalonFormats() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 20 }}>
             {EXTRA.map(ex => (
-              <div key={ex.title} style={{ background: BG, borderRadius: 16, padding: "26px 22px", border: "1px solid #eee" }}>
+              <div key={ex.title} style={{ background: BG, borderRadius: 16, padding: "26px 22px", border: "1px solid #eee", display: "flex", flexDirection: "column" }}>
                 <div style={{ fontWeight: 700, fontSize: 15, color: "#1a1a1a", marginBottom: 6, lineHeight: 1.4 }}>{ex.title}</div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: ACCENT, marginBottom: 16 }}>{ex.price}</div>
-                {ex.items.map(it => (
-                  <div key={it} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 8 }}>
-                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: ACCENT, flexShrink: 0, marginTop: 7 }} />
-                    <span style={{ fontSize: 13, color: "#666", lineHeight: 1.5 }}>{it}</span>
-                  </div>
-                ))}
-                <button onClick={() => scrollToForm("Аудит салона")} style={{ marginTop: 16, width: "100%", padding: "11px", borderRadius: 10, border: `1.5px solid ${ACCENT}`, cursor: "pointer", background: "transparent", color: ACCENT, fontSize: 13, fontWeight: 600, fontFamily: "Montserrat, sans-serif" }}>
+                <div style={{ flex: 1 }}>
+                  {ex.items.map(it => (
+                    <div key={it} style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 8 }}>
+                      <div style={{ width: 5, height: 5, borderRadius: "50%", background: ACCENT, flexShrink: 0, marginTop: 7 }} />
+                      <span style={{ fontSize: 13, color: "#666", lineHeight: 1.5 }}>{it}</span>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => scrollToForm(ex.title)} style={{ marginTop: 16, width: "100%", padding: "11px", borderRadius: 10, border: `1.5px solid ${ACCENT}`, cursor: "pointer", background: "transparent", color: ACCENT, fontSize: 13, fontWeight: 600, fontFamily: "Montserrat, sans-serif" }}>
                   Обсудить
                 </button>
               </div>
