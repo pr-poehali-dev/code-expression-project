@@ -21,28 +21,36 @@ def handler(event: dict, context) -> dict:
     contact = body.get("contact", "").strip()
     message = body.get("message", "").strip()
 
-    if not all([name, contact, message]):
+    if not name or not contact:
         return {
             "statusCode": 400,
             "headers": cors,
-            "body": {"error": "Все поля обязательны"},
+            "body": json.dumps({"error": "Имя и контакт обязательны"}),
         }
 
     smtp_password = os.environ.get("SMTP_PASSWORD", "")
     from_email = "massopro@mail.ru"
     to_email = "massopro@mail.ru"
 
+    is_b2b = "B2B-заявка" in message or "салон" in message.lower()
+    subject = f"{'[Салон] ' if is_b2b else ''}Новая заявка: {name}"
+
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"Новая заявка с сайта: {name}"
+    msg["Subject"] = subject
     msg["From"] = from_email
     msg["To"] = to_email
 
-    html = f"""
-    <h2>Новая заявка с сайта</h2>
-    <table cellpadding="8" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:15px;">
+    rows = f"""
       <tr><td><b>Имя:</b></td><td>{name}</td></tr>
       <tr><td><b>Контакт:</b></td><td>{contact}</td></tr>
-      <tr><td><b>Сообщение:</b></td><td style="white-space:pre-wrap">{message}</td></tr>
+    """
+    if message:
+        rows += f'<tr><td><b>Сообщение:</b></td><td style="white-space:pre-wrap">{message}</td></tr>'
+
+    html = f"""
+    <h2 style="color:#1a1a1a">{'🏢 B2B-заявка для салона' if is_b2b else 'Новая заявка с сайта'}</h2>
+    <table cellpadding="8" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:15px;">
+      {rows}
     </table>
     """
     msg.attach(MIMEText(html, "html"))

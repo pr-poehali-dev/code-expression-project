@@ -11,7 +11,9 @@ import Kontakty from "./pages/Kontakty";
 import Privacy from "./pages/Privacy";
 import Offer from "./pages/Offer";
 import Catalog from "./pages/Catalog";
-import SalonServices from "./pages/SalonServices";
+import DlyaSalonov from "./pages/DlyaSalonov";
+import SalonPyatShagov from "./pages/SalonPyatShagov";
+import SalonFormats from "./pages/SalonFormats";
 import DiagnostikaSalona from "./pages/DiagnostikaSalona";
 import Reviews from "./pages/Reviews";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -48,7 +50,9 @@ const App = () => (
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/offer" element={<Offer />} />
           <Route path="/catalog" element={<Catalog />} />
-          <Route path="/dlya-salonov" element={<SalonServices />} />
+          <Route path="/dlya-salonov" element={<DlyaSalonov />} />
+          <Route path="/dlya-salonov/5-shagov" element={<SalonPyatShagov />} />
+          <Route path="/dlya-salonov/formats" element={<SalonFormats />} />
           <Route path="/diagnostika-salona" element={<DiagnostikaSalona />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/quiz-admin" element={<QuizAdmin />} />
