@@ -30,6 +30,7 @@ export default function DokFooter() {
               { label: "О системе", href: "/o-sisteme" },
               { label: "Для специалистов", href: "/dlya-specialistov" },
               { label: "Для салонов", href: "/dlya-salonov" },
+              { label: "Форматы для салонов", href: "/dlya-salonov/formats" },
               { label: "Диагностика салона", href: "/diagnostika-salona" },
             ].map(l => (
               <a key={l.label} href={l.href} style={{ display: "block", fontSize: 13, color: "#666", textDecoration: "none", marginBottom: 8, transition: "color 0.2s" }}
