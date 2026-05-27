@@ -359,9 +359,6 @@ export default function ProfileResult({ result, onRetake, onBack, backLabel, dat
         </div>
       </div>
 
-      {/* AI-заключение */}
-      <AiProfileBlock result={result} />
-
       {/* Кнопки */}
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 40 }}>
         <button
