@@ -63,7 +63,7 @@ def call_openai(user_prompt: str, api_key: str) -> str:
     opener = urllib.request.build_opener()
 
     payload = json.dumps({
-        "model": "gpt-4o-mini",
+        "model": "openai/gpt-4o-mini",
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt},
@@ -73,7 +73,7 @@ def call_openai(user_prompt: str, api_key: str) -> str:
     }).encode("utf-8")
 
     req = urllib.request.Request(
-        "https://api.openai.com/v1/chat/completions",
+        "https://polza.ai/api/v1/chat/completions",
         data=payload,
         headers={
             "Authorization": f"Bearer {api_key}",
