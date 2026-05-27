@@ -199,6 +199,9 @@ export default function SalonResult({ result, onRetake, onBack, backLabel, date,
       {/* ОСНОВНОЙ КОНТЕНТ */}
       <SalonResultCharts result={result} previousResult={previousResult} />
 
+      {/* AI-заключение */}
+      <AiSalonBlock result={result} />
+
       {/* Кнопки */}
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 40 }}>
         <button onClick={onRetake} style={{

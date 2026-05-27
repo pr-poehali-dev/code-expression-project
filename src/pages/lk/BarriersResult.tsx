@@ -299,6 +299,9 @@ export default function BarriersResult({ idx, date, onRetake, onBack, backLabel 
         </div>
       </div>
 
+      {/* AI-заключение */}
+      <AiBarriersBlock idx={idx} iib={iib} typeTitle={type.title} />
+
       {/* Кнопки */}
       <div style={{ display: "flex", gap: 12 }}>
         <button onClick={onRetake} style={{

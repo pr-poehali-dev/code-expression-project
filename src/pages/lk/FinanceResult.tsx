@@ -236,6 +236,9 @@ export default function FinanceResult({ data, onRetake, onBack, backLabel = "К 
         </div>
       )}
 
+      {/* AI-заключение */}
+      <AiFinanceBlock data={data} />
+
       {/* Кнопки */}
       <div style={{ display: "flex", gap: 12, marginBottom: 32 }}>
         <button onClick={onRetake} style={{

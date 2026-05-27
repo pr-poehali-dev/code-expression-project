@@ -240,6 +240,39 @@ export default function DiagnosticResult({ result, aiSections, aiLoading, onRese
           </div>
         )}
 
+        {/* AI-рекомендации */}
+        {aiLoading && (
+          <div style={{ background: "#fff", borderRadius: 16, padding: "18px 20px", border: `1.5px solid ${COLOR}30`, display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 20, height: 20, border: `2px solid ${COLOR_BG}`, borderTopColor: COLOR, borderRadius: "50%", animation: "spin 0.8s linear infinite", flexShrink: 0 }} />
+            <span style={{ fontSize: 13, color: "#aaa" }}>AI готовит персональные рекомендации...</span>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        )}
+
+        {aiSections && (() => {
+          const how = aiSections["КАК ПРОВОДИТЬ ДИАГНОСТИКУ"];
+          const psycho = aiSections["ПСИХОСОМАТИКА"];
+          const logic = aiSections["ЛОГИКА РАБОТЫ"];
+          const explain = aiSections["ЧТО ОБЪЯСНИТЬ КЛИЕНТУ"];
+          return (
+            <>
+              {how && <AiBlock icon="Stethoscope" title="Как проводить диагностику" text={how} color={COLOR} />}
+              {psycho && <AiBlock icon="Heart" title="Психосоматика" text={psycho} color="hsl(335,80%,48%)" />}
+              {logic && <AiBlock icon="GitBranch" title="Логика работы" text={logic} color="hsl(280,60%,50%)" />}
+              {explain && (
+                <div style={{ background: "hsl(185,85%,95%)", borderRadius: 16, padding: "16px 20px", border: `1.5px solid ${ACCENT}30` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                    <Icon name="MessageCircle" size={14} style={{ color: ACCENT }} />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Что объяснить клиенту</span>
+                    <span style={{ marginLeft: "auto", fontSize: 10, color: "#bbb", fontWeight: 600 }}>✦ AI</span>
+                  </div>
+                  <p style={{ fontSize: 13, color: "#444", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>«{explain}»</p>
+                </div>
+              )}
+            </>
+          );
+        })()}
+
         {/* Техники из шпаргалки */}
         <TechniquesSection techZones={techZones} />
 

@@ -282,6 +282,9 @@ export default function MindsetResult({ idx, date, onRetake, onBack, backLabel =
         </div>
       </div>
 
+      {/* AI-заключение */}
+      <AiAnalysisBlock idx={idx} igp={igp} typeTitle={type.title} />
+
       {/* Кнопки */}
       <div style={{ display: "flex", gap: 12 }}>
         <button onClick={onRetake} style={{
