@@ -2,11 +2,6 @@ import os
 import json
 import urllib.request
 
-PROXY_HOST = "185.200.177.36"
-PROXY_PORT = 3128
-PROXY_USER = "user"
-PROXY_PASS = "pass"
-
 SYSTEM_PROMPT = """Ты — эксперт по психологии в бьюти-бизнесе. Твоя задача — дать мастеру красоты персональный разбор его внутренних барьеров, которые мешают зарабатывать больше.
 
 Стиль: прямой, конкретный, как разговор с личным ментором. Без воды, без общих фраз. Говори «ты». Называй вещи своими именами — не деликатничай, но и не осуждай.
@@ -64,11 +59,7 @@ def build_user_prompt(data: dict) -> str:
 
 
 def call_openai(user_prompt: str, api_key: str) -> str:
-    proxy_handler = urllib.request.ProxyHandler({
-        "http": f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_HOST}:{PROXY_PORT}",
-        "https": f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_HOST}:{PROXY_PORT}",
-    })
-    opener = urllib.request.build_opener(proxy_handler)
+    opener = urllib.request.build_opener()
 
     payload = json.dumps({
         "model": "gpt-4o-mini",

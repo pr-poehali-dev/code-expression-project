@@ -2,11 +2,6 @@ import os
 import json
 import urllib.request
 
-PROXY_HOST = "185.200.177.36"
-PROXY_PORT = 3128
-PROXY_USER = "user"
-PROXY_PASS = "pass"
-
 SYSTEM_PROMPT = """Ты — бизнес-консультант по бьюти-индустрии. Твоя задача — дать владельцу или управляющему салона красоты персональный разбор его бизнес-диагностики: где теряются деньги, что мешает росту и что делать прямо сейчас.
 
 Стиль: прямой, деловой, без воды. Говори «ты». Оперируй конкретными метриками из данных — показывай связь между индексом и деньгами. Не нужно объяснять что такое IVK — просто называй «возврат клиентов» или используй % из данных.
@@ -67,11 +62,7 @@ def build_user_prompt(data: dict) -> str:
 
 
 def call_openai(user_prompt: str, api_key: str) -> str:
-    proxy_handler = urllib.request.ProxyHandler({
-        "http": f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_HOST}:{PROXY_PORT}",
-        "https": f"http://{PROXY_USER}:{PROXY_PASS}@{PROXY_HOST}:{PROXY_PORT}",
-    })
-    opener = urllib.request.build_opener(proxy_handler)
+    opener = urllib.request.build_opener()
 
     payload = json.dumps({
         "model": "gpt-4o-mini",
