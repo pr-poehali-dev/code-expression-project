@@ -106,7 +106,7 @@ CORS = {
 
 
 def handler(event: dict, context) -> dict:
-    """Персональный AI-анализ для инструмента Мышление специалиста."""
+    """Персональный AI-анализ для инструмента Мышление специалиста. polza.ai"""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 

@@ -136,7 +136,7 @@ def parse_sections(text: str) -> dict:
 
 
 def handler(event: dict, context) -> dict:
-    """AI-анализ результатов 'Финансовая грамотность специалиста PRO'"""
+    """AI-анализ результатов 'Финансовая грамотность специалиста PRO'. polza.ai"""
     cors = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
