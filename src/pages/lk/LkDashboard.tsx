@@ -344,74 +344,81 @@ function HomeTab({ onNav }: { onNav: (t: Tab) => void }) {
         )}
       </div>
 
-      {/* Диагностика — главный инструмент */}
-      <button
-        onClick={() => onNav("tests")}
-        style={{
-          width: "100%", display: "flex", alignItems: "center", gap: 16,
-          background: "linear-gradient(135deg, hsl(210,85%,45%), hsl(210,85%,35%))",
-          borderRadius: 18, padding: "20px 24px", border: "none", cursor: "pointer",
-          fontFamily: "Montserrat, sans-serif", textAlign: "left", marginBottom: 20,
-          boxShadow: "0 4px 20px hsla(210,85%,45%,0.25)",
-        }}
-      >
-        <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <Icon name="Stethoscope" size={26} style={{ color: "#fff" }} />
-        </div>
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4, lineHeight: 1.3 }}>
-            Системная диагностика клиента
-          </div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>
-            Жалоба → причины, компенсации, красные флаги и техники из шпаргалки
-          </div>
-        </div>
-        <Icon name="ArrowRight" size={20} style={{ color: "rgba(255,255,255,0.6)", marginLeft: "auto", flexShrink: 0 }} />
-      </button>
+      {/* Топ-3 инструмента — премиальный ряд */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
 
-      {/* Развитие специалиста */}
-      {user?.access_expires_at === null ? (
-        <button
-          onClick={() => onNav("tests")}
-          style={{
-            width: "100%", display: "flex", alignItems: "center", gap: 16,
-            background: "linear-gradient(135deg, hsl(260,70%,52%), hsl(260,70%,40%))",
-            borderRadius: 18, padding: "20px 24px", border: "none", cursor: "pointer",
-            fontFamily: "Montserrat, sans-serif", textAlign: "left", marginBottom: 20,
-            boxShadow: "0 4px 20px hsla(260,70%,52%,0.22)",
-          }}
-        >
-          <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Icon name="Brain" size={26} style={{ color: "#fff" }} />
+        {/* Диагностика клиента */}
+        <button onClick={() => onNav("tests")} style={{
+          display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 10,
+          background: "linear-gradient(145deg, hsl(210,85%,45%), hsl(210,85%,32%))",
+          borderRadius: 18, padding: "18px 16px", border: "none", cursor: "pointer",
+          fontFamily: "Montserrat, sans-serif", textAlign: "left",
+          boxShadow: "0 4px 20px hsla(210,85%,45%,0.28)",
+        }}>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Icon name="Stethoscope" size={22} style={{ color: "#fff" }} />
           </div>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4, lineHeight: 1.3 }}>
-              Развитие специалиста
-            </div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>
-              Клиенты, позиционирование, личный бренд, практика — персональный AI-план
-            </div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", lineHeight: 1.3, marginBottom: 4 }}>Диагностика клиента</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", lineHeight: 1.45 }}>Жалоба → причины, техники, красные флаги</div>
           </div>
-          <Icon name="ArrowRight" size={20} style={{ color: "rgba(255,255,255,0.6)", marginLeft: "auto", flexShrink: 0 }} />
         </button>
-      ) : (
-        <div style={{
-          width: "100%", display: "flex", alignItems: "center", gap: 16,
-          background: "#fff", borderRadius: 18, padding: "18px 24px",
-          border: "1.5px solid hsl(260,70%,88%)", marginBottom: 20, boxSizing: "border-box",
+
+        {/* Развитие специалиста */}
+        {user?.access_expires_at === null ? (
+          <button onClick={() => onNav("tests")} style={{
+            display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 10,
+            background: "linear-gradient(145deg, hsl(260,70%,52%), hsl(260,70%,38%))",
+            borderRadius: 18, padding: "18px 16px", border: "none", cursor: "pointer",
+            fontFamily: "Montserrat, sans-serif", textAlign: "left",
+            boxShadow: "0 4px 20px hsla(260,70%,52%,0.26)",
+          }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon name="Brain" size={22} style={{ color: "#fff" }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", lineHeight: 1.3, marginBottom: 4 }}>Развитие специалиста</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", lineHeight: 1.45 }}>Персональный AI-план роста</div>
+            </div>
+          </button>
+        ) : (
+          <div style={{
+            display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 10,
+            background: "linear-gradient(145deg, hsl(260,70%,52%), hsl(260,70%,38%))",
+            borderRadius: 18, padding: "18px 16px", opacity: 0.45,
+            fontFamily: "Montserrat, sans-serif", position: "relative",
+          }}>
+            <div style={{ position: "absolute", top: 10, right: 10, background: "rgba(255,255,255,0.2)", borderRadius: 20, padding: "2px 8px", fontSize: 9, fontWeight: 700, color: "#fff" }}>
+              БЕЗЛИМИТ
+            </div>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon name="Brain" size={22} style={{ color: "#fff" }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", lineHeight: 1.3, marginBottom: 4 }}>Развитие специалиста</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", lineHeight: 1.45 }}>Персональный AI-план роста</div>
+            </div>
+          </div>
+        )}
+
+        {/* Шпаргалка по телу */}
+        <button onClick={() => onNav("body")} style={{
+          display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 10,
+          background: `linear-gradient(145deg, ${ACCENT}, ${ACCENT_DARK})`,
+          borderRadius: 18, padding: "18px 16px", border: "none", cursor: "pointer",
+          fontFamily: "Montserrat, sans-serif", textAlign: "left",
+          boxShadow: `0 4px 20px hsla(185,85%,32%,0.28)`,
         }}>
-          <div style={{ width: 48, height: 48, borderRadius: 14, background: "hsl(260,70%,97%)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Icon name="Brain" size={22} style={{ color: "hsl(260,70%,52%)" }} />
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Icon name="User" size={22} style={{ color: "#fff" }} />
           </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 }}>Развитие специалиста</div>
-            <div style={{ fontSize: 12, color: "#aaa" }}>Доступно в тарифе «Безлимит» или за 25 000 ₽</div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#fff", lineHeight: 1.3, marginBottom: 4 }}>Шпаргалка по телу</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", lineHeight: 1.45 }}>Зона → диагностика, техники и видео</div>
           </div>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "hsl(260,70%,52%)", background: "hsl(260,70%,97%)", padding: "4px 10px", borderRadius: 20, whiteSpace: "nowrap" }}>
-            <Icon name="Lock" size={11} /> Безлимит
-          </div>
-        </div>
-      )}
+        </button>
+
+      </div>
 
       {/* Инструменты */}
       <div style={{ marginBottom: 12 }}>
@@ -448,33 +455,7 @@ function HomeTab({ onNav }: { onNav: (t: Tab) => void }) {
         </div>
       </div>
 
-      {/* Шпаргалка по телу */}
-      <button
-        onClick={() => onNav("body")}
-        style={{
-          width: "100%", background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-          border: "none", borderRadius: 16, padding: "20px 24px",
-          display: "flex", alignItems: "center", gap: 16, cursor: "pointer",
-          fontFamily: "Montserrat, sans-serif", textAlign: "left",
-          boxShadow: `0 8px 28px hsla(185,85%,32%,0.25)`,
-        }}
-      >
-        <div style={{
-          width: 48, height: 48, borderRadius: 14, background: "rgba(255,255,255,0.2)",
-          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-        }}>
-          <Icon name="User" size={24} style={{ color: "#fff" }} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 3 }}>
-            Шпаргалка по телу
-          </div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>
-            Кликни на зону тела → диагностика, техники и видео
-          </div>
-        </div>
-        <Icon name="ArrowRight" size={18} style={{ color: "rgba(255,255,255,0.7)", flexShrink: 0 }} />
-      </button>
+
     </div>
   );
 }
