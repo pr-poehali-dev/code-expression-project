@@ -23,9 +23,10 @@ const blocks = getBlocks();
 
 interface Props {
   onBack: () => void;
+  onRetake?: () => void;
 }
 
-export default function BarriersBot({ onBack }: Props) {
+export default function BarriersBot({ onBack, onRetake }: Props) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -216,7 +217,7 @@ export default function BarriersBot({ onBack }: Props) {
     return (
       <BarriersResult
         idx={idx}
-        onRetake={() => { setPhase("intro"); setCurrent(0); setAnswers({}); setSelected(null); }}
+        onRetake={onRetake ?? (() => { setPhase("intro"); setCurrent(0); setAnswers({}); setSelected(null); })}
         onBack={onBack}
       />
     );

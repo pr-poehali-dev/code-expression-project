@@ -85,9 +85,9 @@ function TrackBlock({ text }: { text: string }) {
 
 // ── Основной компонент ────────────────────────────────────────────────────────
 
-interface Props { onBack: () => void; }
+interface Props { onBack: () => void; onRetake?: () => void; }
 
-export default function MindsetSpecialistBot({ onBack }: Props) {
+export default function MindsetSpecialistBot({ onBack, onRetake }: Props) {
   const [data, setData] = useState<{ categories: Category[]; problems: Problem[]; questions: Question[]; options: Option[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -230,7 +230,7 @@ export default function MindsetSpecialistBot({ onBack }: Props) {
 
     return (
       <div>
-        <button onClick={reset} style={backBtn}>
+        <button onClick={onRetake ?? reset} style={backBtn}>
           <Icon name="ArrowLeft" size={16} /> Новый анализ
         </button>
 

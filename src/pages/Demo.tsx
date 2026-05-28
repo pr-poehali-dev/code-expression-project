@@ -278,20 +278,30 @@ export default function Demo() {
   }
 
   if (activeTool === "barriers") {
+    const title = TOOLS.find(t => t.id === "barriers")!.title;
     return (
       <div style={{ minHeight: "100vh", background: "#f4f4f0", fontFamily: "Montserrat, sans-serif" }}>
+        {alreadyUsed && <AlreadyUsedModal toolTitle={alreadyUsed.title} onClose={() => { setAlreadyUsed(null); setActiveTool(null); }} />}
         <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px" }}>
-          <BarriersBot onBack={() => setActiveTool(null)} />
+          <BarriersBot
+            onBack={() => setActiveTool(null)}
+            onRetake={() => setAlreadyUsed({ title })}
+          />
         </div>
       </div>
     );
   }
 
   if (activeTool === "mindset-spec") {
+    const title = TOOLS.find(t => t.id === "mindset-spec")!.title;
     return (
       <div style={{ minHeight: "100vh", background: "#f4f4f0", fontFamily: "Montserrat, sans-serif" }}>
+        {alreadyUsed && <AlreadyUsedModal toolTitle={alreadyUsed.title} onClose={() => { setAlreadyUsed(null); setActiveTool(null); }} />}
         <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px" }}>
-          <MindsetSpecialistBot onBack={() => setActiveTool(null)} />
+          <MindsetSpecialistBot
+            onBack={() => setActiveTool(null)}
+            onRetake={() => setAlreadyUsed({ title })}
+          />
         </div>
       </div>
     );
