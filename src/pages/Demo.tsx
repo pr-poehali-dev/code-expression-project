@@ -103,7 +103,7 @@ type ActiveTool = "barriers" | "mindset-spec" | null;
 
 interface EmailModalProps {
   toolTitle: string;
-  onConfirm: (email: string) => void;
+  onConfirm: (email: string, name: string) => void;
   onClose: () => void;
 }
 
@@ -118,7 +118,7 @@ function EmailModal({ toolTitle, onConfirm, onClose }: EmailModalProps) {
     if (!name.trim()) { setError("Введите ваше имя"); return; }
     if (!email.includes("@") || !email.includes(".")) { setError("Введите корректный email"); return; }
     if (!agreed) { setError("Необходимо согласие с политикой конфиденциальности"); return; }
-    onConfirm(email.trim().toLowerCase());
+    onConfirm(email.trim().toLowerCase(), name.trim());
   }
 
   const inputStyle = (hasError: boolean): React.CSSProperties => ({
@@ -254,6 +254,8 @@ function AlreadyUsedModal({ toolTitle, onClose }: AlreadyUsedModalProps) {
   );
 }
 
+const DEMO_NOTIFY_URL = "https://functions.poehali.dev/8b11165f-5062-4976-aad6-b3b544084195";
+
 export default function Demo() {
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
   const [emailModal, setEmailModal] = useState<{ id: string; title: string } | null>(null);
@@ -269,12 +271,17 @@ export default function Demo() {
     setEmailModal({ id, title });
   }
 
-  function handleEmailConfirm(email: string) {
+  function handleEmailConfirm(email: string, name: string) {
     if (!emailModal) return;
     markToolUsed(emailModal.id, email);
-    const id = emailModal.id;
+    const { id, title } = emailModal;
     setEmailModal(null);
     setActiveTool(id as ActiveTool);
+    fetch(DEMO_NOTIFY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, tool: title }),
+    }).catch(() => {});
   }
 
   if (activeTool === "barriers") {
