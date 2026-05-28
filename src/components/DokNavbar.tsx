@@ -33,6 +33,7 @@ const NAV_LINKS = [
   { label: "Закрытая практика", href: "/zakrytaya-praktika" },
   { label: "Отзывы", href: "/reviews" },
   { label: "Контакты", href: "/kontakty" },
+  { label: "Демо", href: "/demo" },
 ];
 
 function isActive(href: string) {
