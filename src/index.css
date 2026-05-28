@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@media (max-width: 600px) {
+  .premium-tools-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

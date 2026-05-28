@@ -345,7 +345,7 @@ function HomeTab({ onNav }: { onNav: (t: Tab) => void }) {
       </div>
 
       {/* Топ-3 инструмента — премиальный ряд */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }} className="premium-tools-grid">
 
         {/* Диагностика клиента */}
         <button onClick={() => onNav("tests")} style={{
