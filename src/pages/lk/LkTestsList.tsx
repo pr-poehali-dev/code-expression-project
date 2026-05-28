@@ -146,9 +146,9 @@ function ToolCard({ icon, color, bg, title, description, completed, completedLab
     <div style={{
       background: "#fff", borderRadius: 16, padding: "18px 20px",
       boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1.5px solid #f0f0ec",
+      display: "flex", flexDirection: "column",
     }}>
-      {/* Верхняя строка: иконка + текст + кнопка */}
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 14, flex: 1 }}>
         <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: bg, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2 }}>
           <Icon name={icon} size={20} style={{ color }} />
         </div>
@@ -163,7 +163,6 @@ function ToolCard({ icon, color, bg, title, description, completed, completedLab
           )}
         </div>
       </div>
-      {/* Кнопка всегда снизу — не вылазит за край */}
       <button onClick={onStart} style={{
         display: "block", width: "100%", marginTop: 14,
         padding: "10px", borderRadius: 10, border: `1.5px solid ${color}`,
@@ -184,12 +183,12 @@ function LockedToolCard({ icon, color, bg, title, description, price }: {
 }) {
   const [showInfo, setShowInfo] = useState(false);
   return (
-    <div style={{ background: "#fff", borderRadius: 16, padding: "18px 20px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1.5px solid #f0f0ec", position: "relative", overflow: "hidden" }}>
+    <div style={{ background: "#fff", borderRadius: 16, padding: "18px 20px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1.5px solid #f0f0ec", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
       {/* Плашка «только безлимит» */}
       <div style={{ position: "absolute", top: 12, right: 14, background: "hsl(260,70%,97%)", color: "hsl(260,70%,52%)", fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, border: "1px solid hsl(260,70%,85%)" }}>
         Безлимит
       </div>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 14, opacity: 0.65 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 14, opacity: 0.65, flex: 1 }}>
         <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: bg, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2 }}>
           <Icon name={icon} size={20} style={{ color }} />
         </div>
