@@ -28,7 +28,7 @@ function AiBarriersBlock({ idx, iib, typeTitle }: { idx: BarrierIndexMap; iib: n
     setStatus("loading");
     fetch(func2url["ai-barriers"], {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Session-Id": localStorage.getItem("lk_session") || "" },
       body: JSON.stringify({ idx, iib, type_title: typeTitle }),
     })
       .then(r => r.json())

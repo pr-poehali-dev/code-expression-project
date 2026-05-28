@@ -1,6 +1,45 @@
 import os
 import json
 import urllib.request
+import psycopg2
+import psycopg2.extras
+
+SCHEMA = "t_p84565078_code_expression_proj"
+
+
+def get_db():
+    return psycopg2.connect(os.environ["DATABASE_URL"])
+
+
+def get_user_id(session_id: str, conn) -> int | None:
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT user_id FROM {SCHEMA}.lk_sessions WHERE id = %s AND expires_at > NOW()",
+        (session_id,)
+    )
+    row = cur.fetchone()
+    return row[0] if row else None
+
+
+def get_cached_ai(user_id: int, conn) -> dict | None:
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT ai_result FROM {SCHEMA}.lk_finance_results WHERE user_id = %s ORDER BY completed_at DESC LIMIT 1",
+        (user_id,)
+    )
+    row = cur.fetchone()
+    if row and row["ai_result"]:
+        return row["ai_result"]
+    return None
+
+
+def save_ai_result(user_id: int, result: dict, conn):
+    conn.cursor().execute(
+        f"UPDATE {SCHEMA}.lk_finance_results SET ai_result = %s WHERE user_id = %s AND id = ("
+        f"SELECT id FROM {SCHEMA}.lk_finance_results WHERE user_id = %s ORDER BY completed_at DESC LIMIT 1)",
+        (json.dumps(result, ensure_ascii=False), user_id, user_id)
+    )
+    conn.commit()
 
 SYSTEM_PROMPT = """Ты — финансовый наставник для специалистов бьюти-индустрии (мастера, косметологи, массажисты, тренеры). Твоя задача — дать специалисту честный, конкретный разбор его финансовой диагностики: где он застрял, что реально мешает зарабатывать больше, и что сделать прямо сейчас.
 
@@ -136,11 +175,11 @@ def parse_sections(text: str) -> dict:
 
 
 def handler(event: dict, context) -> dict:
-    """AI-анализ результатов 'Финансовая грамотность специалиста PRO'. polza.ai"""
+    """AI-анализ результатов 'Финансовая грамотность специалиста PRO'. polza.ai. Кэш в БД."""
     cors = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, X-User-Id, X-Auth-Token",
+        "Access-Control-Allow-Headers": "Content-Type, X-User-Id, X-Auth-Token, X-Session-Id",
     }
 
     if event.get("httpMethod") == "OPTIONS":
@@ -151,6 +190,19 @@ def handler(event: dict, context) -> dict:
     except Exception:
         return {"statusCode": 400, "headers": cors, "body": json.dumps({"error": "invalid json"})}
 
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+
+    if session_id:
+        conn = get_db()
+        try:
+            user_id = get_user_id(session_id, conn)
+            if user_id:
+                cached = get_cached_ai(user_id, conn)
+                if cached:
+                    return {"statusCode": 200, "headers": cors, "body": json.dumps(cached, ensure_ascii=False)}
+        finally:
+            conn.close()
+
     api_key = os.environ.get("OPENAI_API_KEY", "")
     if not api_key:
         return {"statusCode": 503, "headers": cors, "body": json.dumps({"error": "no api key"})}
@@ -158,9 +210,19 @@ def handler(event: dict, context) -> dict:
     user_prompt = build_user_prompt(data)
     text = call_openai(user_prompt, api_key)
     sections = parse_sections(text)
+    result = {"text": text, "sections": sections}
+
+    if session_id:
+        conn = get_db()
+        try:
+            user_id = get_user_id(session_id, conn)
+            if user_id:
+                save_ai_result(user_id, result, conn)
+        finally:
+            conn.close()
 
     return {
         "statusCode": 200,
         "headers": cors,
-        "body": json.dumps({"text": text, "sections": sections}, ensure_ascii=False),
+        "body": json.dumps(result, ensure_ascii=False),
     }

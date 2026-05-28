@@ -28,7 +28,7 @@ function AiAnalysisBlock({ idx, igp, typeTitle }: { idx: IndexMap; igp: number; 
     setStatus("loading");
     fetch(func2url["ai-mindset"], {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Session-Id": localStorage.getItem("lk_session") || "" },
       body: JSON.stringify({ idx, igp, type_title: typeTitle }),
     })
       .then(r => r.json())

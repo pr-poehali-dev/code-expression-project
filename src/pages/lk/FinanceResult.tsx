@@ -371,7 +371,7 @@ function AiFinanceBlock({ data }: { data: FinanceData }) {
     setStatus("loading");
     fetch(func2url["ai-finance"], {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Session-Id": localStorage.getItem("lk_session") || "" },
       body: JSON.stringify({
         ifr: r.ifr,
         ifj: r.ifj,

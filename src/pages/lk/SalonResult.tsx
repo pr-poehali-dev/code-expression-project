@@ -20,7 +20,7 @@ function AiSalonBlock({ result }: { result: SalonCalcResult }) {
     const weakZones = result.weakZones.map(z => z.label);
     fetch(func2url["ai-salon"], {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Session-Id": localStorage.getItem("lk_session") || "" },
       body: JSON.stringify({
         norm: result.norm,
         ips: result.ips,
