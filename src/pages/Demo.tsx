@@ -292,7 +292,7 @@ export default function Demo() {
       {/* Hero */}
       <div style={{
         background: `linear-gradient(135deg, ${ACCENT_DARK}, ${ACCENT})`,
-        padding: "64px 24px 56px",
+        padding: "clamp(36px,6vw,64px) 20px clamp(32px,5vw,56px)",
         textAlign: "center",
       }}>
         <div style={{ maxWidth: 680, margin: "0 auto" }}>
@@ -308,15 +308,15 @@ export default function Demo() {
           </div>
           <h1 style={{
             fontFamily: "Cormorant, serif",
-            fontSize: "clamp(28px, 5vw, 48px)",
-            fontWeight: 700, color: "#fff", margin: "0 0 16px", lineHeight: 1.2,
+            fontSize: "clamp(26px, 5vw, 48px)",
+            fontWeight: 700, color: "#fff", margin: "0 0 14px", lineHeight: 1.2,
           }}>
             Попробуй инструменты роста бесплатно
           </h1>
-          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.85)", margin: "0 0 32px", lineHeight: 1.65, maxWidth: 520, marginLeft: "auto", marginRight: "auto" }}>
+          <p style={{ fontSize: "clamp(14px,2vw,16px)", color: "rgba(255,255,255,0.85)", margin: "0 0 28px", lineHeight: 1.65, maxWidth: 520, marginLeft: "auto", marginRight: "auto" }}>
             2 инструмента доступны бесплатно — один раз. Остальные открываются с полным доступом к платформе.
           </p>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+          <div className="demo-hero-btns">
             <a href="/tarify" style={{
               padding: "13px 28px", borderRadius: 12,
               background: "#fff", color: ACCENT_DARK,
@@ -339,8 +339,8 @@ export default function Demo() {
       </div>
 
       {/* Инструменты */}
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "48px 24px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+      <div style={{ maxWidth: 960, margin: "0 auto", padding: "clamp(28px,5vw,48px) 16px" }}>
+        <div className="demo-grid">
           {TOOLS.map(tool => {
             const used = getUsedTools();
             const wasUsed = !!used[tool.id];
@@ -397,7 +397,7 @@ export default function Demo() {
                   <Icon name={tool.icon} size={22} style={{ color: tool.color }} />
                 </div>
 
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", marginBottom: 7, lineHeight: 1.3, paddingRight: 80 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", marginBottom: 7, lineHeight: 1.3 }}>
                   {tool.title}
                 </div>
                 <div style={{ fontSize: 13, color: "#888", lineHeight: 1.6 }}>
@@ -419,35 +419,34 @@ export default function Demo() {
         </div>
 
         {/* CTA-блок */}
-        <div style={{
-          marginTop: 48,
+        <div className="demo-cta" style={{
+          marginTop: 40,
           background: `linear-gradient(135deg, ${ACCENT_DARK}, ${ACCENT})`,
-          borderRadius: 24, padding: "40px 32px",
           textAlign: "center",
         }}>
           <h2 style={{
             fontFamily: "Cormorant, serif",
-            fontSize: "clamp(22px, 3vw, 34px)",
+            fontSize: "clamp(20px, 3vw, 34px)",
             fontWeight: 700, color: "#fff", margin: "0 0 12px",
           }}>
             Хочешь доступ ко всем инструментам?
           </h2>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.85)", margin: "0 0 28px", lineHeight: 1.65, maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
+          <p style={{ fontSize: "clamp(13px,2vw,15px)", color: "rgba(255,255,255,0.85)", margin: "0 0 24px", lineHeight: 1.65, maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
             Полный доступ ко всем AI-инструментам роста — на 12 месяцев или безлимитно, в зависимости от тарифа.
           </p>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+          <div className="demo-cta-btns">
             <a href="/tarify" style={{
-              padding: "14px 32px", borderRadius: 12,
+              padding: "13px 28px", borderRadius: 12,
               background: "#fff", color: ACCENT_DARK,
-              fontSize: 15, fontWeight: 700, textDecoration: "none",
+              fontSize: 14, fontWeight: 700, textDecoration: "none",
               fontFamily: "Montserrat, sans-serif",
             }}>
               Тарифы для специалистов
             </a>
             <a href="/dlya-salonov/formats" style={{
-              padding: "14px 32px", borderRadius: 12,
+              padding: "13px 28px", borderRadius: 12,
               background: "rgba(255,255,255,0.15)", color: "#fff",
-              fontSize: 15, fontWeight: 700, textDecoration: "none",
+              fontSize: 14, fontWeight: 700, textDecoration: "none",
               fontFamily: "Montserrat, sans-serif",
               border: "1.5px solid rgba(255,255,255,0.3)",
             }}>
