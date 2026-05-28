@@ -42,6 +42,7 @@ export default function Demo() {
           <BarriersBot
             onBack={() => setActiveTool(null)}
             onRetake={() => setAlreadyUsed({ title })}
+            showShare
           />
         </div>
       </div>
@@ -57,6 +58,7 @@ export default function Demo() {
           <MindsetSpecialistBot
             onBack={() => setActiveTool(null)}
             onRetake={() => setAlreadyUsed({ title })}
+            showShare
           />
         </div>
       </div>

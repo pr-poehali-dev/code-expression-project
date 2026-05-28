@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { lkApi } from "@/lib/lkApi";
 import Icon from "@/components/ui/icon";
 import { backBtn, ACCENT } from "./LkTestsTypes";
+
+const DemoShareBlock = lazy(() => import("@/pages/demo/DemoShareBlock"));
 
 const AI_URL = "https://functions.poehali.dev/3ce8698e-6cbe-41e1-bdc9-352867567feb";
 
@@ -85,9 +87,9 @@ function TrackBlock({ text }: { text: string }) {
 
 // ── Основной компонент ────────────────────────────────────────────────────────
 
-interface Props { onBack: () => void; onRetake?: () => void; }
+interface Props { onBack: () => void; onRetake?: () => void; showShare?: boolean; }
 
-export default function MindsetSpecialistBot({ onBack, onRetake }: Props) {
+export default function MindsetSpecialistBot({ onBack, onRetake, showShare = false }: Props) {
   const [data, setData] = useState<{ categories: Category[]; problems: Problem[]; questions: Question[]; options: Option[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -287,7 +289,13 @@ export default function MindsetSpecialistBot({ onBack, onRetake }: Props) {
             <p style={{ fontSize: 12, color: "#777", lineHeight: 1.6, margin: 0 }}>{scenario.coaching_note}</p>
           </div>
 
-          <button onClick={reset} style={{ marginTop: 8, padding: "13px", borderRadius: 12, border: `1.5px solid ${COLOR}`, background: "transparent", color: COLOR, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat, sans-serif" }}>
+          {showShare && (
+            <Suspense fallback={null}>
+              <DemoShareBlock />
+            </Suspense>
+          )}
+
+          <button onClick={onRetake ?? reset} style={{ marginTop: 8, padding: "13px", borderRadius: 12, border: `1.5px solid ${COLOR}`, background: "transparent", color: COLOR, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat, sans-serif" }}>
             Новый анализ
           </button>
         </div>

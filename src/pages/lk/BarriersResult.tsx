@@ -2,8 +2,10 @@ import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } fro
 import Icon from "@/components/ui/icon";
 import { BarrierIndexMap, calcIIB, calcIPZ, getBarrierScaleLabel, getBarrierType } from "./barriers.logic";
 import { ACCENT_LIGHT } from "./MindsetShared";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import func2url from "../../../backend/func2url.json";
+
+const DemoShareBlock = lazy(() => import("@/pages/demo/DemoShareBlock"));
 
 const WARM = "hsl(20,85%,50%)";
 const WARM_LIGHT = "hsl(20,85%,96%)";
@@ -14,6 +16,7 @@ interface Props {
   onRetake: () => void;
   onBack: () => void;
   backLabel?: string;
+  showShare?: boolean;
 }
 
 // ─── AI-блок ─────────────────────────────────────────────────────────────────
@@ -141,7 +144,7 @@ function IndexBar({ label, value, color, invert }: { label: string; value: numbe
   );
 }
 
-export default function BarriersResult({ idx, date, onRetake, onBack, backLabel = "К инструментам" }: Props) {
+export default function BarriersResult({ idx, date, onRetake, onBack, backLabel = "К инструментам", showShare = false }: Props) {
   const iib = calcIIB(idx);
   const ipz = calcIPZ(idx);
   const scale = getBarrierScaleLabel(iib);
@@ -301,6 +304,13 @@ export default function BarriersResult({ idx, date, onRetake, onBack, backLabel 
 
       {/* AI-заключение */}
       <AiBarriersBlock idx={idx} iib={iib} typeTitle={type.title} />
+
+      {/* Поделиться (только в demo) */}
+      {showShare && (
+        <Suspense fallback={null}>
+          <DemoShareBlock />
+        </Suspense>
+      )}
 
       {/* Кнопки */}
       <div style={{ display: "flex", gap: 12 }}>
