@@ -31,7 +31,7 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
       <p style={{ fontSize: 14, color: "#888", margin: "0 0 28px" }}>
         Пройди тест — получи персональный разбор и конкретные советы
       </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
         {/* Системная диагностика — первой */}
         <ToolCard
           icon="Stethoscope" color="hsl(210,85%,45%)" bg="hsl(210,85%,96%)"
