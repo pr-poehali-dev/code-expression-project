@@ -293,6 +293,7 @@ export default function Demo() {
       <div style={{
         background: `linear-gradient(135deg, ${ACCENT_DARK}, ${ACCENT})`,
         padding: "clamp(36px,6vw,64px) 20px clamp(32px,5vw,56px)",
+        paddingTop: "calc(68px + clamp(36px,6vw,64px))",
         textAlign: "center",
       }}>
         <div style={{ maxWidth: 680, margin: "0 auto" }}>
