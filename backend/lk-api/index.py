@@ -480,6 +480,11 @@ def handle_mindset_save(event: dict) -> dict:
             )
         )
         new_id = cur.fetchone()["id"]
+        cur.execute(
+            f"DELETE FROM {tbl('lk_mindset_results')} WHERE user_id = %s AND id NOT IN "
+            f"(SELECT id FROM {tbl('lk_mindset_results')} WHERE user_id = %s ORDER BY completed_at DESC LIMIT 3)",
+            (user["id"], user["id"])
+        )
         conn.commit()
         return ok({"id": new_id, "ok": True})
     finally:
@@ -528,6 +533,11 @@ def handle_barriers_save(event: dict) -> dict:
             )
         )
         new_id = cur.fetchone()["id"]
+        cur.execute(
+            f"DELETE FROM {tbl('lk_barriers_results')} WHERE user_id = %s AND id NOT IN "
+            f"(SELECT id FROM {tbl('lk_barriers_results')} WHERE user_id = %s ORDER BY completed_at DESC LIMIT 3)",
+            (user["id"], user["id"])
+        )
         conn.commit()
         return ok({"id": new_id, "ok": True})
     finally:
@@ -578,6 +588,11 @@ def handle_finance_save(event: dict) -> dict:
             )
         )
         new_id = cur.fetchone()["id"]
+        cur.execute(
+            f"DELETE FROM {tbl('lk_finance_results')} WHERE user_id = %s AND id NOT IN "
+            f"(SELECT id FROM {tbl('lk_finance_results')} WHERE user_id = %s ORDER BY completed_at DESC LIMIT 3)",
+            (user["id"], user["id"])
+        )
         conn.commit()
         return ok({"id": new_id, "ok": True})
     finally:
@@ -627,6 +642,11 @@ def handle_profile_save(event: dict) -> dict:
             )
         )
         new_id = cur.fetchone()["id"]
+        cur.execute(
+            f"DELETE FROM {tbl('lk_profile_results')} WHERE user_id = %s AND id NOT IN "
+            f"(SELECT id FROM {tbl('lk_profile_results')} WHERE user_id = %s ORDER BY completed_at DESC LIMIT 3)",
+            (user["id"], user["id"])
+        )
         conn.commit()
         return ok({"id": new_id, "ok": True})
     finally:
@@ -684,6 +704,11 @@ def handle_salon_save(event: dict) -> dict:
             )
         )
         new_id = cur.fetchone()["id"]
+        cur.execute(
+            f"DELETE FROM {tbl('lk_salon_results')} WHERE user_id = %s AND id NOT IN "
+            f"(SELECT id FROM {tbl('lk_salon_results')} WHERE user_id = %s ORDER BY completed_at DESC LIMIT 3)",
+            (user["id"], user["id"])
+        )
         conn.commit()
         return ok({"id": new_id, "ok": True})
     finally:
