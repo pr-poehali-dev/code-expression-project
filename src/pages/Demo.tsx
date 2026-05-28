@@ -108,17 +108,25 @@ interface EmailModalProps {
 }
 
 function EmailModal({ toolTitle, onConfirm, onClose }: EmailModalProps) {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.includes("@") || !email.includes(".")) {
-      setError("Введите корректный email");
-      return;
-    }
+    if (!name.trim()) { setError("Введите ваше имя"); return; }
+    if (!email.includes("@") || !email.includes(".")) { setError("Введите корректный email"); return; }
+    if (!agreed) { setError("Необходимо согласие с политикой конфиденциальности"); return; }
     onConfirm(email.trim().toLowerCase());
   }
+
+  const inputStyle = (hasError: boolean): React.CSSProperties => ({
+    width: "100%", padding: "13px 16px", borderRadius: 12,
+    border: hasError ? "1.5px solid #e55" : "1.5px solid #e0e0d8",
+    fontSize: 15, outline: "none", boxSizing: "border-box",
+    fontFamily: "Montserrat, sans-serif", marginBottom: 12,
+  });
 
   return (
     <div style={{
@@ -142,22 +150,40 @@ function EmailModal({ toolTitle, onConfirm, onClose }: EmailModalProps) {
             Бесплатный доступ
           </h2>
           <p style={{ fontSize: 14, color: "#777", margin: 0, lineHeight: 1.6 }}>
-            Введите email, чтобы получить результат инструмента <strong>«{toolTitle}»</strong>
+            Заполните форму, чтобы начать инструмент <strong>«{toolTitle}»</strong>
           </p>
         </div>
         <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={name}
+            onChange={e => { setName(e.target.value); setError(""); }}
+            placeholder="Ваше имя"
+            autoFocus
+            style={inputStyle(!!error && !name.trim())}
+          />
           <input
             type="email"
             value={email}
             onChange={e => { setEmail(e.target.value); setError(""); }}
             placeholder="your@email.com"
-            autoFocus
-            style={{
-              width: "100%", padding: "13px 16px", borderRadius: 12, border: error ? "1.5px solid #e55" : "1.5px solid #e0e0d8",
-              fontSize: 15, outline: "none", boxSizing: "border-box", fontFamily: "Montserrat, sans-serif",
-              marginBottom: error ? 6 : 16,
-            }}
+            style={inputStyle(!!error && (!email.includes("@") || !email.includes(".")))}
           />
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 16, cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={e => { setAgreed(e.target.checked); setError(""); }}
+              style={{ marginTop: 3, flexShrink: 0, accentColor: ACCENT, width: 16, height: 16, cursor: "pointer" }}
+            />
+            <span style={{ fontSize: 12, color: "#777", lineHeight: 1.55 }}>
+              Я согласен(а) с{" "}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer"
+                style={{ color: ACCENT, textDecoration: "underline" }}>
+                политикой конфиденциальности
+              </a>
+            </span>
+          </label>
           {error && <p style={{ fontSize: 12, color: "#e55", margin: "0 0 12px" }}>{error}</p>}
           <button type="submit" style={{
             width: "100%", padding: "13px", borderRadius: 12,
