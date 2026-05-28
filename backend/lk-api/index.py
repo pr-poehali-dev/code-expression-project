@@ -707,6 +707,78 @@ def handle_salon_history(event: dict) -> dict:
         conn.close()
 
 
+# ── Удаление истории ─────────────────────────────────────────────────────────
+
+def handle_mindset_delete(event: dict) -> dict:
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM {tbl('lk_mindset_results')} WHERE user_id = %s", (user["id"],))
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
+def handle_barriers_delete(event: dict) -> dict:
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM {tbl('lk_barriers_results')} WHERE user_id = %s", (user["id"],))
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
+def handle_finance_delete(event: dict) -> dict:
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM {tbl('lk_finance_results')} WHERE user_id = %s", (user["id"],))
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
+def handle_profile_delete(event: dict) -> dict:
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM {tbl('lk_profile_results')} WHERE user_id = %s", (user["id"],))
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
+def handle_salon_delete(event: dict) -> dict:
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM {tbl('lk_salon_results')} WHERE user_id = %s", (user["id"],))
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
 # ── Мышление специалиста ─────────────────────────────────────────────────────
 
 def handle_ms_categories(event: dict) -> dict:
@@ -928,14 +1000,19 @@ ROUTES = {
     ("GET",  "admin_body_zones"): handle_admin_body_zones,
     ("POST", "mindset_save"): handle_mindset_save,
     ("GET",  "mindset_history"): handle_mindset_history,
+    ("POST", "mindset_delete"): handle_mindset_delete,
     ("POST", "barriers_save"): handle_barriers_save,
     ("GET",  "barriers_history"): handle_barriers_history,
+    ("POST", "barriers_delete"): handle_barriers_delete,
     ("POST", "finance_save"): handle_finance_save,
     ("GET",  "finance_history"): handle_finance_history,
+    ("POST", "finance_delete"): handle_finance_delete,
     ("POST", "profile_save"): handle_profile_save,
     ("GET",  "profile_history"): handle_profile_history,
+    ("POST", "profile_delete"): handle_profile_delete,
     ("POST", "salon_save"): handle_salon_save,
     ("GET",  "salon_history"): handle_salon_history,
+    ("POST", "salon_delete"): handle_salon_delete,
     ("GET",  "diag_symptoms"): handle_diag_symptoms,
     ("GET",  "diag_search"): handle_diag_search,
     ("GET",  "ms_categories"): handle_ms_categories,

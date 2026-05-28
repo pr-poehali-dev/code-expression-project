@@ -101,6 +101,13 @@ export const lkApi = {
 
   salonHistory: () => request("GET", "salon_history"),
 
+  // Удаление истории
+  mindsetDelete: () => request("POST", "mindset_delete"),
+  barriersDelete: () => request("POST", "barriers_delete"),
+  financeDelete: () => request("POST", "finance_delete"),
+  profileDelete: () => request("POST", "profile_delete"),
+  salonDelete: () => request("POST", "salon_delete"),
+
   // Диагностика
   diagSymptoms: () => request("GET", "diag_symptoms"),
   diagSearch: (q: string) => request("GET", "diag_search", undefined, `&q=${encodeURIComponent(q)}`),

@@ -213,6 +213,11 @@ export default function LkTests() {
         onRetakeFinance={() => setOpenFinance(true)}
         onRetakeProfile={() => setOpenProfile(true)}
         onRetakeSalon={() => setOpenSalon(true)}
+        onDeleteMindset={() => lkApi.mindsetDelete().then(() => setMindsetHistory([])).catch(() => {})}
+        onDeleteBarriers={() => lkApi.barriersDelete().then(() => setBarriersHistory([])).catch(() => {})}
+        onDeleteFinance={() => lkApi.financeDelete().then(() => setFinanceHistory([])).catch(() => {})}
+        onDeleteProfile={() => lkApi.profileDelete().then(() => setProfileHistory([])).catch(() => {})}
+        onDeleteSalon={() => lkApi.salonDelete().then(() => setSalonHistory([])).catch(() => {})}
       />
     </div>
   );

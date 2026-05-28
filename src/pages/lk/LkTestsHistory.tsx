@@ -1,3 +1,4 @@
+import React from "react";
 import { ACCENT, MindsetHistoryItem, BarriersHistoryItem, FinanceHistoryItem, ProfileHistoryItem, SalonHistoryItem } from "./LkTestsTypes";
 import { IndexMap } from "./MindsetResult";
 import { BarrierIndexMap } from "./barriers.logic";
@@ -19,6 +20,11 @@ interface Props {
   onRetakeFinance: () => void;
   onRetakeProfile: () => void;
   onRetakeSalon: () => void;
+  onDeleteMindset: () => void;
+  onDeleteBarriers: () => void;
+  onDeleteFinance: () => void;
+  onDeleteProfile: () => void;
+  onDeleteSalon: () => void;
 }
 
 // ─── Универсальная карточка истории ──────────────────────────────────────────
@@ -103,12 +109,37 @@ function HistoryCard({ score, scoreLabel, color, title, date, time, tags, primar
 
 // ─── Заголовок секции ────────────────────────────────────────────────────────
 
-function HistorySection({ title, children }: { title: string; children: React.ReactNode }) {
+function HistorySection({ title, children, onDelete }: { title: string; children: React.ReactNode; onDelete?: () => void }) {
+  const [confirm, setConfirm] = React.useState(false);
+
+  const handleDelete = () => {
+    if (!confirm) { setConfirm(true); return; }
+    onDelete?.();
+    setConfirm(false);
+  };
+
   return (
     <div style={{ marginTop: 36 }}>
-      <h2 style={{ fontSize: 13, fontWeight: 700, color: "#aaa", letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 14px" }}>
-        {title}
-      </h2>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        <h2 style={{ fontSize: 13, fontWeight: 700, color: "#aaa", letterSpacing: 1.5, textTransform: "uppercase", margin: 0 }}>
+          {title}
+        </h2>
+        {onDelete && (
+          <button
+            onClick={handleDelete}
+            onBlur={() => setConfirm(false)}
+            style={{
+              fontSize: 12, fontWeight: 600, cursor: "pointer", border: "none",
+              background: confirm ? "#fee2e2" : "transparent",
+              color: confirm ? "#ef4444" : "#ccc",
+              padding: "4px 10px", borderRadius: 8,
+              fontFamily: "Montserrat, sans-serif", transition: "all 0.2s",
+            }}
+          >
+            {confirm ? "Подтвердить удаление" : "Удалить историю"}
+          </button>
+        )}
+      </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {children}
       </div>
@@ -118,12 +149,12 @@ function HistorySection({ title, children }: { title: string; children: React.Re
 
 // ─── Главный компонент ────────────────────────────────────────────────────────
 
-export default function LkTestsHistory({ mindsetHistory, barriersHistory, financeHistory, profileHistory, salonHistory, onViewMindset, onViewBarriers, onViewFinance, onViewProfile, onRetakeMindset, onRetakeBarriers, onRetakeFinance, onRetakeProfile, onRetakeSalon }: Props) {
+export default function LkTestsHistory({ mindsetHistory, barriersHistory, financeHistory, profileHistory, salonHistory, onViewMindset, onViewBarriers, onViewFinance, onViewProfile, onRetakeMindset, onRetakeBarriers, onRetakeFinance, onRetakeProfile, onRetakeSalon, onDeleteMindset, onDeleteBarriers, onDeleteFinance, onDeleteProfile, onDeleteSalon }: Props) {
   return (
     <>
       {/* Мышление с премиум-клиентами */}
       {mindsetHistory.length > 0 && (
-        <HistorySection title="История · Мышление с премиум-клиентами">
+        <HistorySection title="История · Мышление с премиум-клиентами" onDelete={onDeleteMindset}>
           {mindsetHistory.map((item, i) => {
             const date = new Date(item.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
             const time = new Date(item.completed_at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
@@ -157,7 +188,7 @@ export default function LkTestsHistory({ mindsetHistory, barriersHistory, financ
 
       {/* Внутренние барьеры */}
       {barriersHistory.length > 0 && (
-        <HistorySection title="История · Внутренние барьеры">
+        <HistorySection title="История · Внутренние барьеры" onDelete={onDeleteBarriers}>
           {barriersHistory.map((item, i) => {
             const date = new Date(item.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
             const time = new Date(item.completed_at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
@@ -192,7 +223,7 @@ export default function LkTestsHistory({ mindsetHistory, barriersHistory, financ
 
       {/* Финансовая грамотность PRO */}
       {financeHistory.length > 0 && (
-        <HistorySection title="История · Финансовая грамотность PRO">
+        <HistorySection title="История · Финансовая грамотность PRO" onDelete={onDeleteFinance}>
           {financeHistory.map((item, i) => {
             const date = new Date(item.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
             const time = new Date(item.completed_at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
@@ -225,7 +256,7 @@ export default function LkTestsHistory({ mindsetHistory, barriersHistory, financ
 
       {/* Финансовый профиль PRO */}
       {profileHistory.length > 0 && (
-        <HistorySection title="История · Финансовый профиль PRO">
+        <HistorySection title="История · Финансовый профиль PRO" onDelete={onDeleteProfile}>
           {profileHistory.map((item, i) => {
             const date = new Date(item.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
             const time = new Date(item.completed_at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
@@ -252,7 +283,7 @@ export default function LkTestsHistory({ mindsetHistory, barriersHistory, financ
 
       {/* Диагностика роста салона PRO */}
       {salonHistory.length > 0 && (
-        <HistorySection title="История · Диагностика роста салона PRO">
+        <HistorySection title="История · Диагностика роста салона PRO" onDelete={onDeleteSalon}>
           {salonHistory.map((item, i) => {
             const date = new Date(item.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
             const time = new Date(item.completed_at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
