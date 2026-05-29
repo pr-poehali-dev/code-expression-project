@@ -19,7 +19,7 @@ const SUGGESTIONS = [
 
 const WELCOME: Message = {
   role: "assistant",
-  content: "Привет! Я AI-консультант платформы MassoPro. Помогу разобраться с обучением, тарифами и инструментами. Что вас интересует?",
+  content: "Привет! Я AI-консультант платформы Dok Dialog. Помогу разобраться с обучением, тарифами и инструментами. Что вас интересует?",
 };
 
 export default function ChatWidget() {
