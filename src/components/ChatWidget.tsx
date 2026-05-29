@@ -30,14 +30,21 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box", color: "#1a1a1a", lineHeight: 1.4,
 };
 
+const CHAT_USER_KEY = "chat_widget_user";
+
+function getSavedUser() {
+  try { return JSON.parse(localStorage.getItem(CHAT_USER_KEY) || "null"); } catch { return null; }
+}
+
 export default function ChatWidget() {
+  const saved = getSavedUser();
   const [open, setOpen] = useState(false);
   // "form" — экран ввода имени/email, "chat" — чат
-  const [screen, setScreen] = useState<"form" | "chat">("form");
-  const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
-  const [userPhone, setUserPhone] = useState("");
-  const [agreed, setAgreed] = useState(false);
+  const [screen, setScreen] = useState<"form" | "chat">(saved ? "chat" : "form");
+  const [userName, setUserName] = useState(saved?.name ?? "");
+  const [userEmail, setUserEmail] = useState(saved?.email ?? "");
+  const [userPhone, setUserPhone] = useState(saved?.phone ?? "");
+  const [agreed, setAgreed] = useState(!!saved);
   const [formError, setFormError] = useState("");
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [input, setInput] = useState("");
@@ -88,6 +95,7 @@ export default function ChatWidget() {
     if (!userPhone.trim()) { setFormError("Введите ваш телефон"); return; }
     if (!agreed) { setFormError("Необходимо согласие с политикой конфиденциальности"); return; }
     setFormError("");
+    localStorage.setItem(CHAT_USER_KEY, JSON.stringify({ name: userName.trim(), email: userEmail.trim(), phone: userPhone.trim() }));
     setScreen("chat");
   }
 
