@@ -36,6 +36,8 @@ export default function ChatWidget() {
   const [screen, setScreen] = useState<"form" | "chat">("form");
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [userPhone, setUserPhone] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [formError, setFormError] = useState("");
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [input, setInput] = useState("");
@@ -64,12 +66,13 @@ export default function ChatWidget() {
         body: JSON.stringify({
           name: userName,
           email: userEmail,
+          phone: userPhone,
           messages: msgs.map(m => ({ role: m.role, content: m.content })),
         }),
       }).catch(() => {});
       setNotifySent(true);
     }, 2 * 60 * 1000);
-  }, [userName, userEmail]);
+  }, [userName, userEmail, userPhone]);
 
   // Также отправляем при закрытии окна
   useEffect(() => {
@@ -82,6 +85,8 @@ export default function ChatWidget() {
     e.preventDefault();
     if (!userName.trim()) { setFormError("Введите ваше имя"); return; }
     if (!userEmail.includes("@") || !userEmail.includes(".")) { setFormError("Введите корректный email"); return; }
+    if (!userPhone.trim()) { setFormError("Введите ваш телефон"); return; }
+    if (!agreed) { setFormError("Необходимо согласие с политикой конфиденциальности"); return; }
     setFormError("");
     setScreen("chat");
   }
@@ -126,6 +131,7 @@ export default function ChatWidget() {
           body: JSON.stringify({
             name: userName,
             email: userEmail,
+            phone: userPhone,
             messages: messages.map(m => ({ role: m.role, content: m.content })),
           }),
         }).catch(() => {});
@@ -193,7 +199,7 @@ export default function ChatWidget() {
         <div style={{
           position: "fixed", bottom: 94, right: 24, zIndex: 998,
           width: "min(380px, calc(100vw - 32px))",
-          height: "min(520px, calc(100vh - 120px))",
+          height: screen === "form" ? "min(580px, calc(100vh - 120px))" : "min(520px, calc(100vh - 120px))",
           background: "#fff", borderRadius: 20,
           boxShadow: "0 12px 48px rgba(0,0,0,0.18)",
           display: "flex", flexDirection: "column",
@@ -266,11 +272,35 @@ export default function ChatWidget() {
                   onFocus={e => (e.currentTarget.style.borderColor = ACCENT)}
                   onBlur={e => (e.currentTarget.style.borderColor = "#e8e8e4")}
                 />
+                <input
+                  type="tel"
+                  placeholder="+7 (___) ___-__-__"
+                  value={userPhone}
+                  onChange={e => { setUserPhone(e.target.value); setFormError(""); }}
+                  style={inputStyle}
+                  onFocus={e => (e.currentTarget.style.borderColor = ACCENT)}
+                  onBlur={e => (e.currentTarget.style.borderColor = "#e8e8e4")}
+                />
+                <label style={{ display: "flex", alignItems: "flex-start", gap: 9, cursor: "pointer", marginTop: 2 }}>
+                  <input
+                    type="checkbox"
+                    checked={agreed}
+                    onChange={e => { setAgreed(e.target.checked); setFormError(""); }}
+                    style={{ marginTop: 2, flexShrink: 0, accentColor: ACCENT, width: 15, height: 15, cursor: "pointer" }}
+                  />
+                  <span style={{ fontSize: 11, color: "#888", lineHeight: 1.55 }}>
+                    Я согласен(а) с{" "}
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer"
+                      style={{ color: ACCENT, textDecoration: "underline" }}>
+                      политикой конфиденциальности
+                    </a>
+                  </span>
+                </label>
                 {formError && (
-                  <div style={{ fontSize: 12, color: "#e55", marginTop: -4 }}>{formError}</div>
+                  <div style={{ fontSize: 12, color: "#e55", marginTop: -2 }}>{formError}</div>
                 )}
                 <button type="submit" style={{
-                  marginTop: 4, padding: "12px", borderRadius: 12, border: "none",
+                  marginTop: 2, padding: "12px", borderRadius: 12, border: "none",
                   background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
                   color: "#fff", fontSize: 14, fontWeight: 700,
                   cursor: "pointer", fontFamily: "Montserrat, sans-serif",

@@ -20,6 +20,7 @@ def handler(event: dict, context) -> dict:
     body = json.loads(event.get("body") or "{}")
     name = body.get("name", "").strip()
     email = body.get("email", "").strip()
+    phone = body.get("phone", "").strip()
     messages = body.get("messages", [])
 
     if not name or not email or not messages:
@@ -57,6 +58,7 @@ def handler(event: dict, context) -> dict:
       <table cellpadding="0" cellspacing="0" style="margin-bottom:20px;font-size:14px;">
         <tr><td style="padding:4px 0;"><b>Имя:</b></td><td style="padding:4px 12px;">{name}</td></tr>
         <tr><td style="padding:4px 0;"><b>Email:</b></td><td style="padding:4px 12px;">{email}</td></tr>
+        <tr><td style="padding:4px 0;"><b>Телефон:</b></td><td style="padding:4px 12px;">{phone or '—'}</td></tr>
         <tr><td style="padding:4px 0;"><b>Дата:</b></td><td style="padding:4px 12px;">{now}</td></tr>
         <tr><td style="padding:4px 0;"><b>Сообщений:</b></td><td style="padding:4px 12px;">{len(messages)}</td></tr>
       </table>
