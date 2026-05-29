@@ -62,6 +62,30 @@ export default function ChatWidget() {
     }
   }
 
+  function renderWithLinks(text: string, isUser: boolean) {
+    const urlRegex = /(https?:\/\/[^\s,，。!?]+)/g;
+    const parts = text.split(urlRegex);
+    return parts.map((part, i) =>
+      urlRegex.test(part) ? (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            color: isUser ? "rgba(255,255,255,0.9)" : ACCENT,
+            textDecoration: "underline",
+            wordBreak: "break-all",
+          }}
+        >
+          {part}
+        </a>
+      ) : (
+        <span key={i}>{part}</span>
+      )
+    );
+  }
+
   function handleKey(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -153,8 +177,11 @@ export default function ChatWidget() {
                   color: msg.role === "user" ? "#fff" : "#1a1a1a",
                   fontSize: 13, lineHeight: 1.65,
                 }}>
-                  {msg.content.split("\n").map((line, j) => (
-                    <span key={j}>{line}{j < msg.content.split("\n").length - 1 && <br />}</span>
+                  {msg.content.split("\n").map((line, j, arr) => (
+                    <span key={j}>
+                      {renderWithLinks(line, msg.role === "user")}
+                      {j < arr.length - 1 && <br />}
+                    </span>
                   ))}
                 </div>
               </div>
