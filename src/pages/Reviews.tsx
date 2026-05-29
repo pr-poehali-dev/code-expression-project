@@ -11,9 +11,10 @@ const BG = "#f8f8f6";
 
 const VIDEO_SECTIONS = [
   {
-    title: "Однодневный интенсив для массажистов",
-    subtitle: "За 1 день — диагностика практики, новые техники и готовый план роста дохода",
-    href: "/course/offline-intensiv-massazh",
+    title: "Прохождение онлайн-курса",
+    subtitle: "Специалисты о результатах после прохождения онлайн-курса Doc Dialog",
+    href: "/dlya-specialistov",
+    linkText: "Смотреть тарифы для специалистов",
     videos: [
       { id: "o4aLwoPaNMNsPmRU517kdr", name: "Марина К.", city: "Москва", experience: "Массажист, 4 года", result: "Подняла чек на 30%" },
       { id: "7on4nVofXbcgkDmWbjaZvH", name: "Ольга В.", city: "Казань", experience: "Массажист-косметолог, 2 года", result: "Запись на 3 недели вперёд" },
@@ -26,7 +27,8 @@ const VIDEO_SECTIONS = [
   {
     title: "Массажист с потоком клиентов",
     subtitle: "Системный подход к привлечению клиентов и стабильному доходу с нуля",
-    href: "/course/massazhist-s-potokom-klientov",
+    href: "/dlya-specialistov",
+    linkText: "Смотреть тарифы для специалистов",
     videos: [
       { id: "9gXRTsH48ootXdfsfSxrM3", name: "Ксения М.", city: "Москва", experience: "Массажист, 2 года", result: "Запись на 3 недели вперёд" },
       { id: "ijbAj7MbdwDvX8jdx5fgiq", name: "Наталья С.", city: "Казань", experience: "Массажист, 1,5 года", result: "Поток клиентов с нуля" },
@@ -40,9 +42,11 @@ const VIDEO_SECTIONS = [
 
 const TEXT_SECTIONS = [
   {
-    title: "Профессия массажист с нуля",
-    subtitle: "Освойте базовые техники и начните зарабатывать уже в первый месяц",
-    href: "/course/massazhist-s-nulya",
+    badge: "ДЛЯ СПЕЦИАЛИСТОВ",
+    title: "Тариф «Базовый»",
+    subtitle: "Системный старт: знания, техники и первые результаты в практике",
+    href: "/dlya-specialistov",
+    linkText: "Смотреть тарифы для специалистов",
     reviews: [
       {
         name: "Анастасия К.",
@@ -61,9 +65,11 @@ const TEXT_SECTIONS = [
     ],
   },
   {
-    title: "Восстановительный массаж PRO",
-    subtitle: "Работайте со сложными случаями и повышайте чек за счёт результата",
-    href: "/course/vosstanovitelny-massazh-pro",
+    badge: "ДЛЯ СПЕЦИАЛИСТОВ",
+    title: "Тариф «Профи»",
+    subtitle: "Углублённая работа с телом, клиентом и ростом чека",
+    href: "/dlya-specialistov",
+    linkText: "Смотреть тарифы для специалистов",
     reviews: [
       {
         name: "Марина С.",
@@ -82,86 +88,94 @@ const TEXT_SECTIONS = [
     ],
   },
   {
-    title: "Готовые протоколы массажа",
-    subtitle: "Чёткий алгоритм на каждый случай — работайте уверенно и быстро",
-    href: "/course/gotovye-protokoly-massazha",
-    reviews: [
-      {
-        name: "Ольга Т.",
-        city: "Екатеринбург",
-        experience: "Массажист, 3 года",
-        photo: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/efe7662b-d610-49cd-908c-2a2357fd7512.jpg",
-        text: "Раньше каждый сеанс был стрессом — не знала, что делать дальше. Теперь работаю по протоколу, уверенно и быстро. Клиенты довольны намного больше.",
-      },
-      {
-        name: "Дмитрий С.",
-        city: "Казань",
-        experience: "Массажист, 2 года",
-        photo: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/47eae9d8-7b20-44ed-b6c8-4ae65573c872.jpg",
-        text: "Купил курс скептически — думал, что это просто набор техник. Оказалось, что это именно система. Теперь у меня есть чёткий алгоритм на каждый случай.",
-      },
-    ],
-  },
-  {
-    title: "Антистресс-техники массажа",
-    subtitle: "Усильте эффект каждого сеанса и повысьте лояльность клиентов",
-    href: "/course/antistress-tehniki-massazha",
+    badge: "ДЛЯ СПЕЦИАЛИСТОВ",
+    title: "Тариф «Премиум»",
+    subtitle: "Полная трансформация практики: от техник до личного бренда и масштаба",
+    href: "/dlya-specialistov",
+    linkText: "Смотреть тарифы для специалистов",
     reviews: [
       {
         name: "Виктория Л.",
         city: "Москва",
         experience: "Массажист, 6 лет",
         photo: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/65880344-a8ec-4179-98dd-57fd0987daea.jpg",
-        text: "После первого же применения антистресс-техник клиентка спросила: «Что вы сделали? Я чувствую себя совсем иначе!» Теперь это мой главный инструмент.",
+        text: "После первого же применения новых техник клиентка спросила: «Что вы сделали? Я чувствую себя совсем иначе!» Теперь это мой главный инструмент.",
+      },
+      {
+        name: "Дмитрий С.",
+        city: "Казань",
+        experience: "Массажист, 2 года",
+        photo: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/47eae9d8-7b20-44ed-b6c8-4ae65573c872.jpg",
+        text: "Думал, что это просто набор техник. Оказалось — настоящая система. Теперь у меня есть чёткий алгоритм на каждый случай и стабильная запись.",
+      },
+    ],
+  },
+  {
+    badge: "ДЛЯ САЛОНОВ",
+    title: "Тариф «Старт»",
+    subtitle: "Базовый инструментарий для выстраивания работы команды в салоне",
+    href: "/dlya-salonov",
+    linkText: "Смотреть тарифы для салонов",
+    reviews: [
+      {
+        name: "Ольга Т.",
+        city: "Екатеринбург",
+        experience: "Владелец салона, 3 года",
+        photo: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/efe7662b-d610-49cd-908c-2a2357fd7512.jpg",
+        text: "Раньше каждая смена была непредсказуемой. После внедрения системы персонал работает по протоколу — клиенты довольны намного больше.",
+      },
+      {
+        name: "Наталья К.",
+        city: "Самара",
+        experience: "Управляющий салоном, 4 года",
+        photo: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/112518bb-004d-4e73-9db4-b2736ba4d343.jpg",
+        text: "После обучения команды клиенты сразу замечают разницу и записываются повторно. Средний чек вырос без дополнительных вложений в рекламу.",
+      },
+    ],
+  },
+  {
+    badge: "ДЛЯ САЛОНОВ",
+    title: "Тариф «Бизнес»",
+    subtitle: "Стандарты сервиса, удержание клиентов и управление командой",
+    href: "/dlya-salonov",
+    linkText: "Смотреть тарифы для салонов",
+    reviews: [
+      {
+        name: "Светлана Р.",
+        city: "Воронеж",
+        experience: "Владелец салона, 5 лет",
+        photo: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/c8c5855a-5d6a-44bf-b945-53801faf181c.jpg",
+        text: "Раньше не понимала, почему клиенты уходят. После системного обучения команды удержание выросло, а сарафанное радио заработало само.",
       },
       {
         name: "Игорь В.",
         city: "Ростов-на-Дону",
-        experience: "Массажист, 3 года",
+        experience: "Управляющий сетью, 3 года",
         photo: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/34f37a77-7f2a-4861-be43-5b734ab83a18.jpg",
-        text: "Скептически отнёсся к курсу — казалось, что это что-то эзотерическое. Оказалось, чистая физиология. Эффект виден буквально в течение сеанса.",
+        text: "Скептически отнёсся — казалось, что всё это теория. Оказалось, что каждый инструмент реально применим. Эффект виден уже в первый месяц.",
       },
     ],
   },
   {
-    title: "Коррекция фигуры",
-    subtitle: "Один из самых прибыльных запросов — освойте и берите в 2 раза больше",
-    href: "/course/korrektsiya-figury",
-    reviews: [
-      {
-        name: "Наталья К.",
-        city: "Самара",
-        experience: "Массажист-косметолог, 4 года",
-        photo: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/112518bb-004d-4e73-9db4-b2736ba4d343.jpg",
-        text: "После первого же сеанса по новым протоколам клиентка заметила разницу и сразу записалась на курс процедур. Теперь это моё главное направление.",
-      },
-      {
-        name: "Светлана Р.",
-        city: "Воронеж",
-        experience: "Массажист, 5 лет",
-        photo: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/c8c5855a-5d6a-44bf-b945-53801faf181c.jpg",
-        text: "Раньше не знала, как брать за работу с фигурой дорого — казалось, нет достаточного результата. После курса стала брать в 2 раза больше и получила стабильную запись.",
-      },
-    ],
-  },
-  {
-    title: "Висцеральный массаж с нуля",
-    subtitle: "Расширьте спектр услуг и работайте с запросами, за которые мало кто берётся",
-    href: "/course/visceralny-massazh-s-nulya",
+    badge: "ДЛЯ САЛОНОВ",
+    title: "Тариф «Премиум»",
+    subtitle: "Полное сопровождение: от обучения персонала до системы роста салона",
+    href: "/dlya-salonov",
+    linkText: "Смотреть тарифы для салонов",
     reviews: [
       {
         name: "Анна В.",
         city: "Нижний Новгород",
-        experience: "Массажист, 2 года",
+        experience: "Владелец салона, 2 года",
         photo: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/d2103950-a0da-42f1-a62c-1942d76ff96b.jpg",
-        text: "Боялась работать с органами — казалось, это только для врачей. После курса провела первый сеанс уже через неделю. Клиенты чувствуют результат.",
+        text: "Боялась, что команда не примет изменения. Но всё прошло органично. Мастера сами стали работать иначе — клиенты чувствуют разницу.",
       },
       {
         name: "Роман Г.",
         city: "Уфа",
-        experience: "Массажист, 3 года",
+        experience: "Владелец сети, 3 года",
         photo: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/51706198-ca05-4542-b459-8a934cfb8116.jpg",
-        text: "Курс очень доступный. Всё объяснено понятно, без медицинского жаргона. Техники простые, но реально работают — клиенты замечают разницу.",
+        text: "Всё доступно и понятно без сложного жаргона. Техники и стандарты простые, но реально работают — и мастера, и клиенты замечают разницу.",
       },
     ],
   },
@@ -315,7 +329,7 @@ function TextReviewCard({ r }: { r: { name: string; city: string; experience: st
   );
 }
 
-function SectionHeader({ title, subtitle, href, badge }: { title: string; subtitle: string; href: string; badge?: string }) {
+function SectionHeader({ title, subtitle, href, badge, linkText }: { title: string; subtitle: string; href: string; badge?: string; linkText?: string }) {
   return (
     <div style={{ marginBottom: 28 }}>
       {badge && (
@@ -332,7 +346,7 @@ function SectionHeader({ title, subtitle, href, badge }: { title: string; subtit
           onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "0.75"}
           onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.opacity = "1"}
         >
-          Перейти к курсу
+          {linkText || "Перейти к курсу"}
           <Icon name="ArrowRight" size={14} />
         </a>
       </div>
@@ -386,8 +400,8 @@ export default function Reviews() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 60 }}>
             {VIDEO_SECTIONS.map((section) => (
-              <div key={section.href}>
-                <SectionHeader title={section.title} subtitle={section.subtitle} href={section.href} badge="ОФЛАЙН" />
+              <div key={section.title}>
+                <SectionHeader title={section.title} subtitle={section.subtitle} href={section.href} badge="ОНЛАЙН" linkText={section.linkText} />
                 <div className="rev-video-desktop">
                   <VideoBlock section={section} />
                 </div>
@@ -412,13 +426,13 @@ export default function Reviews() {
             <div style={{ width: 32, height: 32, borderRadius: 8, background: "#f59e0b18", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon name="Star" size={14} style={{ color: "#f59e0b", fill: "#f59e0b" }} />
             </div>
-            <span style={{ fontFamily: "Cormorant, serif", fontSize: 26, fontWeight: 700, color: "#1a1a1a" }}>Отзывы об онлайн-курсах</span>
+            <span style={{ fontFamily: "Cormorant, serif", fontSize: 26, fontWeight: 700, color: "#1a1a1a" }}>Отзывы по тарифам</span>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 52 }}>
             {TEXT_SECTIONS.map((section) => (
-              <div key={section.href}>
-                <SectionHeader title={section.title} subtitle={section.subtitle} href={section.href} badge="ОНЛАЙН" />
+              <div key={section.title}>
+                <SectionHeader title={section.title} subtitle={section.subtitle} href={section.href} badge={section.badge} linkText={section.linkText} />
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }} className="rev-text-grid">
                   {section.reviews.map((r) => (
                     <TextReviewCard key={r.name} r={r} />
