@@ -139,7 +139,7 @@ export default function SalonFormats() {
               position: "relative", display: "flex", flexDirection: "column",
             }} className="format-pad">
               {f.featured && (
-                <div style={{ position: "absolute", top: -14, left: 32, background: ACCENT, color: "#fff", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", padding: "4px 14px", borderRadius: 20 }}>
+                <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: ACCENT, color: "#fff", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", padding: "4px 14px", borderRadius: 20, whiteSpace: "nowrap" }}>
                   Популярный выбор
                 </div>
               )}
