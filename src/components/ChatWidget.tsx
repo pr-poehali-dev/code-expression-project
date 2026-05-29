@@ -63,27 +63,25 @@ export default function ChatWidget() {
   }
 
   function renderWithLinks(text: string, isUser: boolean) {
-    const urlRegex = /(https?:\/\/[^\s,，。!?]+)/g;
-    const parts = text.split(urlRegex);
-    return parts.map((part, i) =>
-      urlRegex.test(part) ? (
-        <a
-          key={i}
-          href={part}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            color: isUser ? "rgba(255,255,255,0.9)" : ACCENT,
-            textDecoration: "underline",
-            wordBreak: "break-all",
-          }}
-        >
-          {part}
+    const urlRegex = /https?:\/\/[^\s]+/g;
+    const result: React.ReactNode[] = [];
+    let last = 0;
+    let match: RegExpExecArray | null;
+    while ((match = urlRegex.exec(text)) !== null) {
+      const raw = match[0];
+      const url = raw.replace(/[.,!?:;)»"']+$/, "");
+      const end = match.index + url.length;
+      if (match.index > last) result.push(<span key={last}>{text.slice(last, match.index)}</span>);
+      result.push(
+        <a key={match.index} href={url} target="_blank" rel="noopener noreferrer" style={{ color: isUser ? "rgba(255,255,255,0.9)" : ACCENT, textDecoration: "underline", wordBreak: "break-all" }}>
+          {url}
         </a>
-      ) : (
-        <span key={i}>{part}</span>
-      )
-    );
+      );
+      last = end;
+      urlRegex.lastIndex = end;
+    }
+    if (last < text.length) result.push(<span key={last}>{text.slice(last)}</span>);
+    return result;
   }
 
   function handleKey(e: React.KeyboardEvent) {
