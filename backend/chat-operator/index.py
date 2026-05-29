@@ -1,6 +1,6 @@
 import json
 import os
-from openai import OpenAI
+import urllib.request
 
 SYSTEM_PROMPT = """Ты — AI-консультант платформы «Dok Диалог» (docdialog.ru). Отвечаешь дружелюбно, чётко и по делу. Пиши 2-5 предложений — не перегружай. Если вопрос выходит за рамки знаний — честно говори: «Уточните у менеджера через форму на /kontakty».
 
@@ -147,16 +147,27 @@ def handler(event: dict, context) -> dict:
     if not messages:
         return {"statusCode": 400, "headers": cors, "body": json.dumps({"error": "messages required"})}
 
-    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    payload = json.dumps({
+        "model": "openai/gpt-4o-mini",
+        "messages": [{"role": "system", "content": SYSTEM_PROMPT}] + messages[-10:],
+        "max_tokens": 600,
+        "temperature": 0.5,
+    }).encode("utf-8")
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "system", "content": SYSTEM_PROMPT}] + messages[-10:],
-        max_tokens=600,
-        temperature=0.5,
+    req = urllib.request.Request(
+        "https://polza.ai/api/v1/chat/completions",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
     )
 
-    reply = response.choices[0].message.content
+    with urllib.request.build_opener().open(req, timeout=25) as resp:
+        result = json.loads(resp.read().decode("utf-8"))
+
+    reply = result["choices"][0]["message"]["content"].strip()
 
     return {
         "statusCode": 200,
