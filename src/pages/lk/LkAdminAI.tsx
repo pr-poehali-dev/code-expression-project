@@ -10,16 +10,7 @@ interface Message {
   content: string;
 }
 
-const QUICK_PROMPTS = [
-  "Напиши продающий пост в Telegram о тарифе «Профи» для массажистов",
-  "Составь скрипт продажи с отработкой возражения «дорого»",
-  "Придумай контент-план на месяц для соцсетей Dok Диалог",
-  "Напиши SEO-текст для страницы «Для специалистов»",
-  "Рассчитай юнит-экономику тарифа «Бизнес» для салона",
-  "Напиши кейс клиента: массажист поднял чек до 10 000 ₽",
-  "Предложи 5 идей для вовлекающих сторис о платформе",
-  "Составь коммерческое предложение для партнёрства с салоном",
-];
+
 
 function copyToClipboard(text: string, setCopied: (v: boolean) => void) {
   navigator.clipboard.writeText(text).then(() => {
@@ -179,29 +170,8 @@ export function AISection() {
         display: "flex", flexDirection: "column", gap: 16,
       }}>
         {messages.length === 0 && (
-          <div style={{ textAlign: "center", padding: "40px 20px" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🤖</div>
-            <div style={{ fontWeight: 700, fontSize: 16, color: "#1a1a1a", marginBottom: 8 }}>
-              Чем могу помочь?
-            </div>
-            <div style={{ fontSize: 13, color: "#999", marginBottom: 24 }}>
-              Я знаю всё о проекте Dok Диалог — курсы, тарифы, аудитория.
-              Готов писать контент, скрипты и отвечать на вопросы.
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
-              {QUICK_PROMPTS.map(p => (
-                <button key={p} onClick={() => send(p)} style={{
-                  padding: "8px 14px", borderRadius: 20,
-                  border: `1.5px solid ${ACCENT}40`,
-                  background: `${ACCENT}08`,
-                  color: ACCENT, fontSize: 12, fontWeight: 600,
-                  cursor: "pointer", fontFamily: "Montserrat, sans-serif",
-                  textAlign: "left", transition: "all 0.2s",
-                }}>
-                  {p}
-                </button>
-              ))}
-            </div>
+          <div style={{ textAlign: "center", padding: "60px 20px", color: "#bbb", fontSize: 14 }}>
+            Напишите задание — ИИ сам определит роль и даст результат
           </div>
         )}
 
