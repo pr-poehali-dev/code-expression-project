@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "No session returns 401",
+      "method": "POST",
+      "path": "/",
+      "body": {"to_email": "test@test.com", "subject": "Тест", "body_html": "<p>Текст</p>"},
+      "expectedStatus": 401
+    }
+  ]
+}
