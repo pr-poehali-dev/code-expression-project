@@ -4,8 +4,9 @@ import { ACCENT } from "./LkAdminShared";
 import { UsersSection } from "./LkAdminUsers";
 import { BodySection } from "./LkAdminBody";
 import { AISection } from "./LkAdminAI";
+import { CandidatesSection } from "./LkAdminCandidates";
 
-type Section = "users" | "body" | "ai";
+type Section = "users" | "body" | "ai" | "candidates";
 
 export default function LkAdmin() {
   const [section, setSection] = useState<Section>("ai");
@@ -18,9 +19,10 @@ export default function LkAdmin() {
 
       <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
         {[
-          { id: "ai"    as Section, icon: "Bot",   label: "ИИ-ассистент" },
-          { id: "users" as Section, icon: "Users", label: "Пользователи" },
-          { id: "body"  as Section, icon: "User",  label: "Схема тела"   },
+          { id: "ai"         as Section, icon: "Bot",       label: "ИИ-ассистент" },
+          { id: "users"      as Section, icon: "Users",     label: "Пользователи" },
+          { id: "candidates" as Section, icon: "UserCheck", label: "Кандидаты"    },
+          { id: "body"       as Section, icon: "User",      label: "Схема тела"   },
         ].map(s => (
           <button key={s.id} onClick={() => setSection(s.id)} style={{
             display: "flex", alignItems: "center", gap: 8, padding: "9px 18px",
@@ -37,9 +39,10 @@ export default function LkAdmin() {
         ))}
       </div>
 
-      {section === "ai"    && <AISection />}
-      {section === "users" && <UsersSection />}
-      {section === "body"  && <BodySection />}
+      {section === "ai"         && <AISection />}
+      {section === "users"      && <UsersSection />}
+      {section === "candidates" && <CandidatesSection />}
+      {section === "body"       && <BodySection />}
 
       <style>{`
         .admin-grid-2 {

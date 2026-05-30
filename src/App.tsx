@@ -23,6 +23,7 @@ import QuizAdmin from "./pages/QuizAdmin";
 import QuizLanding from "./pages/QuizLanding";
 import LkPage from "./pages/lk/LkPage";
 import RepPage from "./pages/rep/RepPage";
+import JobPage from "./pages/job/JobPage";
 import { LkAuthProvider } from "./contexts/LkAuthContext";
 import DlyaSpecialistov from "./pages/DlyaSpecialistov";
 import OSisteme from "./pages/OSisteme";
@@ -63,6 +64,7 @@ const App = () => (
           <Route path="/quiz" element={<QuizLanding />} />
           <Route path="/cabinet" element={<LkPage />} />
           <Route path="/rep" element={<RepPage />} />
+          <Route path="/job" element={<JobPage />} />
           <Route path="/dlya-specialistov" element={<DlyaSpecialistov />} />
           <Route path="/o-sisteme" element={<OSisteme />} />
           <Route path="/professionalnye-vstrechi" element={<ProfessionalnyeVstrechi />} />

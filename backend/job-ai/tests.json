@@ -1,0 +1,22 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Unknown action returns 404",
+      "method": "GET",
+      "path": "/?action=unknown",
+      "expectedStatus": 404
+    },
+    {
+      "name": "List requires admin",
+      "method": "GET",
+      "path": "/?action=list",
+      "expectedStatus": 403
+    }
+  ]
+}
