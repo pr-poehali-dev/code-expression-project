@@ -3,11 +3,12 @@ import Icon from "@/components/ui/icon";
 import { ACCENT } from "./LkAdminShared";
 import { UsersSection } from "./LkAdminUsers";
 import { BodySection } from "./LkAdminBody";
+import { AISection } from "./LkAdminAI";
 
-type Section = "users" | "body";
+type Section = "users" | "body" | "ai";
 
 export default function LkAdmin() {
-  const [section, setSection] = useState<Section>("users");
+  const [section, setSection] = useState<Section>("ai");
 
   return (
     <div>
@@ -17,6 +18,7 @@ export default function LkAdmin() {
 
       <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
         {[
+          { id: "ai"    as Section, icon: "Bot",   label: "ИИ-ассистент" },
           { id: "users" as Section, icon: "Users", label: "Пользователи" },
           { id: "body"  as Section, icon: "User",  label: "Схема тела"   },
         ].map(s => (
@@ -35,6 +37,7 @@ export default function LkAdmin() {
         ))}
       </div>
 
+      {section === "ai"    && <AISection />}
       {section === "users" && <UsersSection />}
       {section === "body"  && <BodySection />}
 
