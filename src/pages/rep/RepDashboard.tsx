@@ -144,10 +144,30 @@ const EMAIL_TEMPLATES = [
 // ─── Утилиты ─────────────────────────────────────────────────────────────────
 
 function copyText(text: string, setCopied: (v: boolean) => void) {
-  navigator.clipboard.writeText(text).then(() => {
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  });
+  const tryClipboard = () => {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+    return Promise.reject(new Error("no clipboard api"));
+  };
+
+  const fallback = () => {
+    const el = document.createElement("textarea");
+    el.value = text;
+    el.style.cssText = "position:fixed;top:-9999px;left:-9999px;opacity:0";
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    try { document.execCommand("copy"); } catch (_e) { /* ignore */ }
+    document.body.removeChild(el);
+  };
+
+  tryClipboard()
+    .catch(fallback)
+    .finally(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
 }
 
 function CopyBtn({ text, label = "Скопировать" }: { text: string; label?: string }) {
