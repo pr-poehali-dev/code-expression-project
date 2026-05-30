@@ -1,4 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const STORAGE_KEY = "job_interview_state";
+
+function loadState() {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (_e) { return null; }
+}
+
+function saveState(state: object) {
+  try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_e) { /* ignore */ }
+}
+
+function clearState() {
+  try { sessionStorage.removeItem(STORAGE_KEY); } catch (_e) { /* ignore */ }
+}
 
 const JOB_AI_URL = "https://functions.poehali.dev/78478eb2-9825-47e4-b184-32ad35d6d7c7";
 
@@ -42,18 +59,25 @@ const lbl: React.CSSProperties = {
 };
 
 export default function JobInterview({ onBack }: { onBack: () => void }) {
-  const [phase, setPhase] = useState<"form" | "chat" | "result">("form");
-  const [applicant, setApplicant] = useState<Applicant>({
+  const saved = loadState();
+
+  const [phase, setPhase] = useState<"form" | "chat" | "result">(saved?.phase ?? "form");
+  const [applicant, setApplicant] = useState<Applicant>(saved?.applicant ?? {
     full_name: "", age: "", city: "", phone: "",
     telegram: "", experience: "", current_job: "", motivation: "",
   });
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(saved?.messages ?? []);
   const [input, setInput] = useState("");
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState<number>(saved?.step ?? 0);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Result | null>(null);
+  const [result, setResult] = useState<Result | null>(saved?.result ?? null);
   const [error, setError] = useState("");
-  const [agreed, setAgreed] = useState(false);
+  const [agreed, setAgreed] = useState<boolean>(saved?.agreed ?? false);
+
+  // Сохраняем состояние при каждом изменении
+  useEffect(() => {
+    saveState({ phase, applicant, messages, step, result, agreed });
+  }, [phase, applicant, messages, step, result, agreed]);
 
   const TOTAL_QUESTIONS = 10;
 
@@ -109,6 +133,7 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
       const data = await res.json();
       setResult(data);
       setPhase("result");
+      clearState();
     } catch { setError("Ошибка при анализе. Попробуйте снова."); }
     finally { setLoading(false); }
   }
@@ -120,7 +145,7 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
     return (
       <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f5f0e8,#faf9f6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
         <div style={{ maxWidth: 600, width: "100%" }}>
-          <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#aaa", marginBottom: 32, display: "flex", alignItems: "center", gap: 6, padding: 0 }}>
+          <button onClick={() => { clearState(); onBack(); }} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#aaa", marginBottom: 32, display: "flex", alignItems: "center", gap: 6, padding: 0 }}>
             ← Вернуться к вакансии
           </button>
 
@@ -363,7 +388,7 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
             <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#aaa", fontWeight: 300, marginBottom: 20 }}>
               Мы свяжемся с вами в ближайшее время по указанным контактам.
             </p>
-            <button onClick={onBack} style={{ background: "none", border: "1px solid #e0d8cc", borderRadius: 50, padding: "10px 28px", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#888", cursor: "pointer" }}>
+            <button onClick={() => { clearState(); onBack(); }} style={{ background: "none", border: "1px solid #e0d8cc", borderRadius: 50, padding: "10px 28px", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#888", cursor: "pointer" }}>
               Вернуться на страницу вакансии
             </button>
           </div>
