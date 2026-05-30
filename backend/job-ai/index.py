@@ -7,9 +7,93 @@ GET  ?action=detail&id=N — карточка заявки (только для 
 """
 import json
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
+from email.utils import formataddr
 import psycopg2
 import psycopg2.extras
 from openai import OpenAI
+
+FROM_EMAIL = "massopro@mail.ru"
+TO_EMAIL = "massopro@mail.ru"
+
+SCORE_LABELS = {
+    "communication": "Коммуникация",
+    "literacy": "Грамотность речи",
+    "motivation": "Мотивация",
+    "responsibility": "Ответственность",
+    "people_skills": "Работа с людьми",
+    "stability": "Эмоциональная устойчивость",
+    "fit": "Соответствие проекту",
+}
+
+STATUS_LABELS = {
+    "recommended": "✅ Рекомендуется к онлайн-собеседованию",
+    "review": "🟡 Требуется дополнительная оценка менеджером",
+    "declined": "❌ В настоящий момент не готовы продолжить рассмотрение",
+}
+
+
+def send_result_email(applicant: dict, scores: dict, total: int, status: str, comment: str):
+    status_label = STATUS_LABELS.get(status, status)
+    scores_rows = "".join(
+        f"<tr><td style='padding:6px 12px;color:#555;'>{SCORE_LABELS.get(k, k)}</td>"
+        f"<td style='padding:6px 12px;font-weight:700;color:#1a1a1a;'>{v}/10</td></tr>"
+        for k, v in scores.items()
+    )
+
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+      <div style="background:#1a1a1a;padding:20px 28px;border-radius:12px 12px 0 0;">
+        <div style="font-size:22px;font-weight:700;color:#fff;">Dok Диалог</div>
+        <div style="font-size:12px;color:#c9a96e;margin-top:4px;letter-spacing:1px;">НОВАЯ ЗАЯВКА — ВАКАНСИЯ ПРЕДСТАВИТЕЛЯ</div>
+      </div>
+      <div style="background:#fff;border:1px solid #ede8df;border-top:none;padding:28px;border-radius:0 0 12px 12px;">
+
+        <h2 style="margin:0 0 20px;font-size:18px;color:#1a1a1a;">{applicant.get('full_name', '—')}</h2>
+
+        <table style="border-collapse:collapse;width:100%;margin-bottom:24px;">
+          <tr><td style="padding:6px 12px;color:#888;width:40%;">Возраст</td><td style="padding:6px 12px;">{applicant.get('age', '—')}</td></tr>
+          <tr style="background:#faf9f6;"><td style="padding:6px 12px;color:#888;">Город</td><td style="padding:6px 12px;">{applicant.get('city', '—')}</td></tr>
+          <tr><td style="padding:6px 12px;color:#888;">Телефон</td><td style="padding:6px 12px;"><b>{applicant.get('phone', '—')}</b></td></tr>
+          <tr style="background:#faf9f6;"><td style="padding:6px 12px;color:#888;">Telegram</td><td style="padding:6px 12px;">{applicant.get('telegram', '—')}</td></tr>
+          <tr><td style="padding:6px 12px;color:#888;">Место работы</td><td style="padding:6px 12px;">{applicant.get('current_job', '—')}</td></tr>
+        </table>
+
+        <div style="background:#f5f0e8;border-radius:10px;padding:16px 20px;margin-bottom:24px;">
+          <div style="font-size:12px;font-weight:700;color:#a8834a;letter-spacing:1px;margin-bottom:8px;">ИТОГ ОЦЕНКИ ИИ</div>
+          <div style="font-size:20px;font-weight:700;color:#1a1a1a;margin-bottom:4px;">{total} / 70 баллов</div>
+          <div style="font-size:14px;color:#555;">{status_label}</div>
+        </div>
+
+        <table style="border-collapse:collapse;width:100%;margin-bottom:24px;border:1px solid #ede8df;border-radius:10px;overflow:hidden;">
+          <tr style="background:#faf9f6;">
+            <th style="padding:8px 12px;text-align:left;font-size:12px;color:#888;font-weight:600;">Параметр</th>
+            <th style="padding:8px 12px;text-align:left;font-size:12px;color:#888;font-weight:600;">Оценка</th>
+          </tr>
+          {scores_rows}
+        </table>
+
+        {f'<div style="background:#f8f8f8;border-left:3px solid #c9a96e;padding:14px 18px;margin-bottom:24px;border-radius:0 8px 8px 0;font-style:italic;color:#444;font-size:14px;line-height:1.7;">«{comment}»</div>' if comment else ''}
+
+        {f'<div style="margin-bottom:16px;"><div style="font-size:12px;color:#888;margin-bottom:6px;">МОТИВАЦИЯ КАНДИДАТА</div><div style="font-size:14px;color:#444;line-height:1.7;">{applicant.get("motivation", "")}</div></div>' if applicant.get("motivation") else ''}
+
+      </div>
+    </div>
+    """
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = Header(f"Заявка представителя: {applicant.get('full_name', '—')} · {total}/70 баллов", "utf-8")
+    msg["From"] = formataddr((str(Header("Dok Диалог", "utf-8")), FROM_EMAIL))
+    msg["To"] = TO_EMAIL
+    msg.attach(MIMEText(html, "html", "utf-8"))
+
+    smtp_password = os.environ["SMTP_PASSWORD"]
+    with smtplib.SMTP_SSL("smtp.mail.ru", 465) as server:
+        server.login(FROM_EMAIL, smtp_password)
+        server.sendmail(FROM_EMAIL, TO_EMAIL, msg.as_string())
 
 SCHEMA = "t_p84565078_code_expression_proj"
 CORS = {
@@ -200,6 +284,11 @@ def handle_finish(body):
         conn.commit()
     finally:
         conn.close()
+
+    try:
+        send_result_email(applicant, scores, total, status, comment)
+    except Exception:
+        pass
 
     status_labels = {
         "recommended": "Рекомендуется к онлайн-собеседованию",
