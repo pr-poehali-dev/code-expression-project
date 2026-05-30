@@ -143,24 +143,24 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
   // ── ФОРМА ──────────────────────────────────────────────────────────────────
   if (phase === "form") {
     return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f5f0e8,#faf9f6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f5f0e8,#faf9f6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 16px 40px" }}>
         <div style={{ maxWidth: 600, width: "100%" }}>
-          <button onClick={() => { clearState(); onBack(); }} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#aaa", marginBottom: 32, display: "flex", alignItems: "center", gap: 6, padding: 0 }}>
+          <button onClick={() => { clearState(); onBack(); }} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#aaa", marginBottom: 28, display: "flex", alignItems: "center", gap: 6, padding: 0 }}>
             ← Вернуться к вакансии
           </button>
 
           <div className="job-tag">Первый шаг</div>
           <div className="job-divider" style={{ margin: "16px 0 24px" }} />
-          <h2 style={{ fontFamily: "'Cormorant',serif", fontSize: 36, fontWeight: 300, margin: "0 0 8px", color: "#1a1a1a" }}>
+          <h2 style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(26px,5vw,36px)", fontWeight: 300, margin: "0 0 8px", color: "#1a1a1a" }}>
             Расскажите о себе
           </h2>
-          <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, color: "#888", marginBottom: 32, fontWeight: 300, lineHeight: 1.6 }}>
+          <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, color: "#888", marginBottom: 28, fontWeight: 300, lineHeight: 1.6 }}>
             После заполнения формы запустится первичное интервью с ИИ-ассистентом.
             Это займёт около 10 минут.
           </p>
 
-          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #ede8df", padding: "32px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #ede8df", padding: "clamp(20px,4vw,32px)" }}>
+            <div className="job-form-grid" style={{ marginBottom: 16 }}>
               <div>
                 <label style={lbl}>ФИО *</label>
                 <input value={applicant.full_name} onChange={e => setApplicant(p => ({ ...p, full_name: e.target.value }))} placeholder="Иванова Мария Сергеевна" style={inp} />
@@ -219,6 +219,17 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
             </button>
           </div>
         </div>
+        <style>{`
+          .job-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+          }
+          @media (max-width: 480px) {
+            .job-form-grid { grid-template-columns: 1fr; }
+            .job-form-grid > div[style*="1 / -1"] { grid-column: 1 !important; }
+          }
+        `}</style>
       </div>
     );
   }
@@ -228,18 +239,18 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
     return (
       <div style={{ minHeight: "100vh", background: "#faf9f6", display: "flex", flexDirection: "column" }}>
         {/* Шапка */}
-        <div style={{ background: "#1a1a1a", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ fontFamily: "'Cormorant',serif", fontSize: 20, fontWeight: 400, color: "#fff" }}>
+        <div style={{ background: "#1a1a1a", padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <div style={{ fontFamily: "'Cormorant',serif", fontSize: 18, fontWeight: 400, color: "#fff", flexShrink: 0 }}>
             Dok <span style={{ color: "#c9a96e" }}>Диалог</span>
-            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.4)", fontWeight: 300, marginLeft: 12 }}>· Первичное интервью</span>
+            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 300, marginLeft: 10 }} className="job-chat-subtitle">· Первичное интервью</span>
           </div>
-          <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
+          <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.35)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "40%" }}>
             {applicant.full_name}
           </div>
         </div>
 
         {/* Прогресс */}
-        <div style={{ background: "#1a1a1a", padding: "0 24px 16px" }}>
+        <div style={{ background: "#1a1a1a", padding: "0 16px 14px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
             <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Прогресс интервью</span>
             <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "#c9a96e" }}>Вопрос {Math.min(step, TOTAL_QUESTIONS)} из {TOTAL_QUESTIONS}</span>
@@ -250,28 +261,28 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Сообщения */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "24px", display: "flex", flexDirection: "column", gap: 16, maxWidth: 720, margin: "0 auto", width: "100%" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 16, maxWidth: 720, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
           {messages.map((msg, i) => {
             const isUser = msg.role === "user";
             return (
-              <div key={i} style={{ display: "flex", flexDirection: isUser ? "row-reverse" : "row", gap: 12, alignItems: "flex-start" }}>
+              <div key={i} style={{ display: "flex", flexDirection: isUser ? "row-reverse" : "row", gap: 10, alignItems: "flex-start" }}>
                 <div style={{
-                  width: 36, height: 36, borderRadius: 12, flexShrink: 0,
+                  width: 32, height: 32, borderRadius: 10, flexShrink: 0,
                   background: isUser ? "linear-gradient(135deg,#c9a96e,#a8834a)" : "#1a1a1a",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontFamily: "'Cormorant',serif", fontSize: 14, color: "#fff", fontWeight: 600,
+                  fontFamily: "'Cormorant',serif", fontSize: 13, color: "#fff", fontWeight: 600,
                 }}>
                   {isUser ? applicant.full_name[0] || "В" : "AI"}
                 </div>
                 <div style={{
-                  maxWidth: "75%", padding: "14px 18px",
+                  maxWidth: "80%", padding: "12px 16px",
                   background: isUser ? "linear-gradient(135deg,#c9a96e,#a8834a)" : "#fff",
                   color: isUser ? "#fff" : "#1a1a1a",
                   borderRadius: isUser ? "18px 4px 18px 18px" : "4px 18px 18px 18px",
                   fontSize: 14, lineHeight: 1.7, fontFamily: "'Montserrat',sans-serif", fontWeight: 300,
                   border: isUser ? "none" : "1px solid #ede8df",
                   boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-                  whiteSpace: "pre-wrap",
+                  whiteSpace: "pre-wrap", wordBreak: "break-word",
                 }}>
                   {msg.content}
                 </div>
@@ -280,9 +291,9 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
           })}
 
           {loading && (
-            <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-              <div style={{ width: 36, height: 36, borderRadius: 12, background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant',serif", fontSize: 14, color: "#fff" }}>AI</div>
-              <div style={{ background: "#fff", border: "1px solid #ede8df", borderRadius: "4px 18px 18px 18px", padding: "16px 20px", display: "flex", gap: 6 }}>
+            <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <div style={{ width: 32, height: 32, borderRadius: 10, background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant',serif", fontSize: 13, color: "#fff" }}>AI</div>
+              <div style={{ background: "#fff", border: "1px solid #ede8df", borderRadius: "4px 18px 18px 18px", padding: "14px 18px", display: "flex", gap: 6 }}>
                 {[0,1,2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#c9a96e", opacity: 0.5, animation: `dot-pulse 1.2s ${i*0.2}s ease-in-out infinite` }} />)}
               </div>
             </div>
@@ -292,8 +303,8 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Поле ввода */}
-        <div style={{ background: "#fff", borderTop: "1px solid #ede8df", padding: "16px 24px" }}>
-          <div style={{ maxWidth: 720, margin: "0 auto", display: "flex", gap: 12, alignItems: "flex-end" }}>
+        <div style={{ background: "#fff", borderTop: "1px solid #ede8df", padding: "12px 16px", paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}>
+          <div style={{ maxWidth: 720, margin: "0 auto", display: "flex", gap: 10, alignItems: "flex-end" }}>
             <textarea
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -301,7 +312,7 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
               placeholder="Напишите ваш ответ..."
               rows={2}
               disabled={loading}
-              style={{ flex: 1, ...inp, resize: "none", lineHeight: 1.6, border: "1.5px solid #e0d8cc" }}
+              style={{ flex: 1, ...inp, resize: "none", lineHeight: 1.6, border: "1.5px solid #e0d8cc", fontSize: 14 }}
             />
             <button
               onClick={sendAnswer}
@@ -315,12 +326,15 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
               }}
             >→</button>
           </div>
-          <div style={{ maxWidth: 720, margin: "6px auto 0", fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "#bbb", textAlign: "right" }}>
+          <div style={{ maxWidth: 720, margin: "4px auto 0", fontFamily: "'Montserrat',sans-serif", fontSize: 10, color: "#bbb", textAlign: "right" }}>
             Enter — отправить · Shift+Enter — новая строка
           </div>
         </div>
 
-        <style>{`@keyframes dot-pulse { 0%,100%{opacity:0.3;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.1)} }`}</style>
+        <style>{`
+          @keyframes dot-pulse { 0%,100%{opacity:0.3;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.1)} }
+          @media (max-width: 480px) { .job-chat-subtitle { display: none; } }
+        `}</style>
       </div>
     );
   }
@@ -331,11 +345,11 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
     const statusBg = result.status === "recommended" ? "#f0f7f3" : result.status === "review" ? "#fdf8ee" : "#fdf0f0";
 
     return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f5f0e8,#faf9f6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
-        <div style={{ maxWidth: 600, width: "100%" }}>
-          <div style={{ textAlign: "center", marginBottom: 40 }}>
-            <div style={{ fontFamily: "'Cormorant',serif", fontSize: 44, color: "#c9a96e", marginBottom: 8 }}>✦</div>
-            <h2 style={{ fontFamily: "'Cormorant',serif", fontSize: 36, fontWeight: 300, margin: "0 0 8px", color: "#1a1a1a" }}>
+      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f5f0e8,#faf9f6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "60px 16px 40px" }}>
+        <div style={{ maxWidth: 560, width: "100%" }}>
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <div style={{ fontFamily: "'Cormorant',serif", fontSize: 40, color: "#c9a96e", marginBottom: 8 }}>✦</div>
+            <h2 style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(24px,5vw,36px)", fontWeight: 300, margin: "0 0 8px", color: "#1a1a1a" }}>
               Интервью завершено
             </h2>
             <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, color: "#888", fontWeight: 300 }}>
@@ -344,20 +358,20 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
           </div>
 
           {/* Статус */}
-          <div style={{ background: statusBg, border: `1px solid ${statusColor}40`, borderRadius: 16, padding: "20px 24px", marginBottom: 20, textAlign: "center" }}>
-            <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 600, color: statusColor, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 6 }}>
+          <div style={{ background: statusBg, border: `1px solid ${statusColor}40`, borderRadius: 16, padding: "20px 20px", marginBottom: 20, textAlign: "center" }}>
+            <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 600, color: statusColor, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 6 }}>
               Результат оценки
             </div>
-            <div style={{ fontFamily: "'Cormorant',serif", fontSize: 22, fontWeight: 500, color: statusColor }}>
+            <div style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(18px,4vw,22px)", fontWeight: 500, color: statusColor, lineHeight: 1.4 }}>
               {result.status_label}
             </div>
           </div>
 
-          <div style={{ textAlign: "center", marginTop: 32 }}>
+          <div style={{ textAlign: "center", marginTop: 28 }}>
             <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#aaa", fontWeight: 300, marginBottom: 20 }}>
               Мы свяжемся с вами в ближайшее время по указанным контактам.
             </p>
-            <button onClick={() => { clearState(); onBack(); }} style={{ background: "none", border: "1px solid #e0d8cc", borderRadius: 50, padding: "10px 28px", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#888", cursor: "pointer" }}>
+            <button onClick={() => { clearState(); onBack(); }} style={{ background: "none", border: "1px solid #e0d8cc", borderRadius: 50, padding: "10px 28px", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#888", cursor: "pointer", width: "100%", maxWidth: 280 }}>
               Вернуться на страницу вакансии
             </button>
           </div>

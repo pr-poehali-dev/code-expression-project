@@ -8,7 +8,7 @@ export default function JobConditions() {
           <h2 className="job-h2">Условия <em>работы</em></h2>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
+        <div className="job-cond-grid">
           {[
             {
               icon: "◇",
@@ -39,11 +39,11 @@ export default function JobConditions() {
         </div>
 
         <div style={{
-          marginTop: 32, padding: "24px 32px", borderRadius: 20,
+          marginTop: 32, padding: "24px 28px", borderRadius: 20,
           background: "linear-gradient(135deg, #1a1a1a, #2a2a2a)",
           textAlign: "center",
         }}>
-          <div style={{ fontFamily: "'Cormorant', serif", fontSize: 22, fontWeight: 400, color: "#c9a96e", marginBottom: 8, fontStyle: "italic" }}>
+          <div style={{ fontFamily: "'Cormorant', serif", fontSize: "clamp(16px,3vw,22px)", fontWeight: 400, color: "#c9a96e", marginBottom: 8, fontStyle: "italic", lineHeight: 1.4 }}>
             «Средний доход активных представителей значительно выше фиксированной офисной работы»
           </div>
           <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.4)", letterSpacing: "1px" }}>
@@ -51,6 +51,17 @@ export default function JobConditions() {
           </div>
         </div>
       </div>
+
+      <style>{`
+        .job-cond-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+        }
+        @media (max-width: 700px) {
+          .job-cond-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
     </section>
   );
 }

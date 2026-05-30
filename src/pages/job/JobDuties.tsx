@@ -30,11 +30,8 @@ export default function JobDuties() {
               desc: "Сопровождение первичной коммуникации, передача заявки команде. Развитие долгосрочных партнёрских связей с салонами.",
             },
           ].map(item => (
-            <div key={item.num} className="job-card" style={{ display: "flex", gap: 28, alignItems: "flex-start" }}>
-              <div style={{
-                fontFamily: "'Cormorant', serif", fontSize: 36, fontWeight: 300,
-                color: "#c9a96e", lineHeight: 1, flexShrink: 0, opacity: 0.6,
-              }}>{item.num}</div>
+            <div key={item.num} className="job-card job-duty-item">
+              <div className="job-duty-num">{item.num}</div>
               <div>
                 <div style={{ fontFamily: "'Cormorant', serif", fontSize: 22, fontWeight: 500, color: "#1a1a1a", marginBottom: 8 }}>{item.title}</div>
                 <div className="job-p" style={{ fontSize: 14 }}>{item.desc}</div>
@@ -43,6 +40,18 @@ export default function JobDuties() {
           ))}
         </div>
       </div>
+
+      <style>{`
+        .job-duty-item { display: flex; gap: 28px; align-items: flex-start; }
+        .job-duty-num {
+          font-family: 'Cormorant', serif; font-size: 36px; font-weight: 300;
+          color: #c9a96e; line-height: 1; flex-shrink: 0; opacity: 0.6;
+        }
+        @media (max-width: 640px) {
+          .job-duty-item { gap: 16px; }
+          .job-duty-num { font-size: 26px; }
+        }
+      `}</style>
     </section>
   );
 }

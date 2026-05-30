@@ -4,9 +4,9 @@ export default function JobWhyUs({ onApply }: { onApply: () => void }) {
       <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
         <div className="job-tag">Наши ценности</div>
         <div className="job-divider" />
-        <h2 className="job-h2">Почему вам <em>понравится</em><br />работать с нами</h2>
+        <h2 className="job-h2">Почему вам <em>понравится</em><br className="job-why-br" /> работать с нами</h2>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 20, margin: "48px 0" }}>
+        <div className="job-why-grid">
           {[
             {
               title: "Атмосфера",
@@ -41,6 +41,19 @@ export default function JobWhyUs({ onApply }: { onApply: () => void }) {
           Подать заявку и пройти интервью
         </button>
       </div>
+
+      <style>{`
+        .job-why-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+          margin: 48px 0;
+        }
+        @media (max-width: 700px) {
+          .job-why-grid { grid-template-columns: 1fr; gap: 16px; margin: 32px 0; }
+          .job-why-br { display: none; }
+        }
+      `}</style>
     </section>
   );
 }

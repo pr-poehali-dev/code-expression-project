@@ -48,9 +48,12 @@ export default function JobPage() {
         .job-list { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 300; color: #555; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
         .job-list li { display: flex; align-items: flex-start; gap: 12px; line-height: 1.6; }
         .job-list li::before { content: '—'; color: #c9a96e; flex-shrink: 0; font-weight: 400; margin-top: 1px; }
-        @media (max-width: 600px) {
-          .job-section { padding: 60px 20px; }
-          .job-card { padding: 24px 20px; }
+        @media (max-width: 640px) {
+          .job-section { padding: 56px 16px; }
+          .job-section-wide { padding: 56px 16px; }
+          .job-card { padding: 20px 16px; }
+          .job-h2 { font-size: 26px; margin-bottom: 16px; }
+          .job-btn-gold { padding: 14px 28px; font-size: 13px; width: 100%; justify-content: center; }
         }
       `}</style>
 

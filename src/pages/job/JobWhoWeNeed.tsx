@@ -8,8 +8,7 @@ export default function JobWhoWeNeed() {
           <h2 className="job-h2">Кто нам <em>подойдёт</em></h2>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-          {/* Левая карточка */}
+        <div className="job-who-grid">
           <div className="job-card">
             <div style={{ fontFamily: "'Cormorant', serif", fontSize: 22, fontWeight: 500, color: "#1a1a1a", marginBottom: 20 }}>
               Нам близки девушки
@@ -26,7 +25,6 @@ export default function JobWhoWeNeed() {
             </ul>
           </div>
 
-          {/* Правая карточка */}
           <div className="job-card" style={{ background: "linear-gradient(135deg, #fdf8f0, #f5ede0)" }}>
             <div style={{ fontFamily: "'Cormorant', serif", fontSize: 22, fontWeight: 500, color: "#1a1a1a", marginBottom: 20 }}>
               Будет плюсом
@@ -54,7 +52,16 @@ export default function JobWhoWeNeed() {
         </div>
       </div>
 
-      <style>{`@media (max-width: 640px) { .job-grid-2 { grid-template-columns: 1fr !important; } }`}</style>
+      <style>{`
+        .job-who-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+        }
+        @media (max-width: 640px) {
+          .job-who-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
     </section>
   );
 }

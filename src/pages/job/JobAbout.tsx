@@ -12,7 +12,7 @@ export default function JobAbout() {
           и коммуникации с платёжеспособной аудиторией.
         </p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 24 }}>
+        <div className="job-about-grid">
           {[
             { icon: "✦", title: "Коммуникация", desc: "Как выстраивать доверие и долгосрочные отношения с клиентом" },
             { icon: "✦", title: "Диагностика", desc: "Системный подход к работе с телом и состоянием клиента" },
@@ -30,6 +30,20 @@ export default function JobAbout() {
           ))}
         </div>
       </div>
+
+      <style>{`
+        .job-about-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 24px;
+        }
+        @media (max-width: 640px) {
+          .job-about-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+        }
+        @media (max-width: 400px) {
+          .job-about-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
     </section>
   );
 }
