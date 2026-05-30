@@ -100,6 +100,8 @@ def handle_login(event: dict) -> dict:
                 "full_name": user["full_name"],
                 "email": user["email"],
                 "is_admin": user["is_admin"],
+                "is_representative": user.get("is_representative", False),
+                "rep_permissions": user.get("rep_permissions"),
                 "access_expires_at": user["access_expires_at"],
                 "segment": user.get("segment", "specialist"),
             }
@@ -134,6 +136,8 @@ def handle_me(event: dict) -> dict:
             "full_name": user["full_name"],
             "email": user["email"],
             "is_admin": user["is_admin"],
+            "is_representative": user.get("is_representative", False),
+            "rep_permissions": user.get("rep_permissions"),
             "access_expires_at": user["access_expires_at"],
             "segment": user.get("segment", "specialist"),
         })
@@ -364,6 +368,24 @@ def handle_admin_update_user(event: dict) -> dict:
                 f"UPDATE {tbl('lk_users')} SET full_name=%s, email=%s, notes=%s, is_active=%s, is_admin=%s{seg_sql} WHERE id=%s",
                 (body.get("full_name"), body.get("email"), body.get("notes"), body.get("is_active", True), body.get("is_admin", False)) + seg_val + (user_id,)
             )
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
+def handle_admin_update_rep(event: dict) -> dict:
+    body = json.loads(event.get("body") or "{}")
+    user_id = body.get("user_id")
+    conn = get_db()
+    try:
+        if not require_admin(event, conn):
+            return err("Нет доступа", 403)
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE {tbl('lk_users')} SET is_representative=%s, rep_permissions=%s WHERE id=%s",
+            (body.get("is_representative", False), json.dumps(body.get("rep_permissions", [])), user_id)
+        )
         conn.commit()
         return ok({"ok": True})
     finally:
@@ -1020,6 +1042,7 @@ ROUTES = {
     ("POST", "admin_create_user"): handle_admin_create_user,
     ("POST", "admin_update_user"): handle_admin_update_user,
     ("POST", "admin_set_password"): handle_admin_set_password,
+    ("POST", "admin_update_rep"): handle_admin_update_rep,
     ("POST", "admin_body_zone_save"): handle_admin_body_zone_save,
     ("POST", "admin_technique_save"): handle_admin_technique_save,
     ("GET",  "admin_body_zones"): handle_admin_body_zones,

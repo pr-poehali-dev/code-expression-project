@@ -9,6 +9,8 @@ export interface User {
   full_name: string;
   is_admin: boolean;
   is_active: boolean;
+  is_representative: boolean;
+  rep_permissions: string[] | null;
   created_at: string;
   notes: string;
   access_expires_at: string | null;

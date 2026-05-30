@@ -7,6 +7,8 @@ interface LkUser {
   full_name: string;
   email: string;
   is_admin: boolean;
+  is_representative: boolean;
+  rep_permissions: string[] | null;
   access_expires_at: string | null;
   segment: "specialist" | "salon";
 }

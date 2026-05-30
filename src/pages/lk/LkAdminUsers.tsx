@@ -3,12 +3,20 @@ import { lkApi } from "@/lib/lkApi";
 import Icon from "@/components/ui/icon";
 import { ACCENT, User, Spinner, labelStyle, inputStyle, actionBtn, iconBtn } from "./LkAdminShared";
 
+const REP_PERMISSIONS = [
+  { key: "ai", label: "ИИ-ассистент" },
+  { key: "kp", label: "КП и письма" },
+  { key: "scripts", label: "Скрипты продаж" },
+  { key: "calc", label: "Расчёт выгоды" },
+];
+
 export function UsersSection() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [newPw, setNewPw] = useState<{ userId: number; pw: string } | null>(null);
+  const [repEdit, setRepEdit] = useState<{ userId: number; isRep: boolean; perms: string[] } | null>(null);
   const [form, setForm] = useState({ username: "", email: "", password: "", full_name: "", notes: "", is_admin: false, access_type: "12months", segment: "specialist" });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
@@ -41,6 +49,17 @@ export function UsersSection() {
     setSaving(true);
     try { await lkApi.adminSetPassword(newPw.userId, newPw.pw); setNewPw(null); setMsg("Пароль обновлён"); }
     finally { setSaving(false); }
+  };
+
+  const saveRep = async () => {
+    if (!repEdit) return;
+    setSaving(true);
+    try {
+      await lkApi.adminUpdateRep(repEdit.userId, repEdit.isRep, repEdit.perms);
+      setRepEdit(null);
+      load();
+      setMsg(repEdit.isRep ? "Статус представителя назначен" : "Статус представителя снят");
+    } finally { setSaving(false); }
   };
 
   if (loading) return <Spinner />;
@@ -151,6 +170,34 @@ export function UsersSection() {
               {saving ? "Создаю..." : "Создать"}
             </button>
             <button onClick={() => setCreating(false)} style={actionBtn("#999")}>Отмена</button>
+          </div>
+        </div>
+      )}
+
+      {/* Настройка представителя */}
+      {repEdit && (
+        <div style={{ background: "#fff", borderRadius: 16, padding: "18px 20px", marginBottom: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+          <h3 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 14px" }}>Статус представителя</h3>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer", marginBottom: 14 }}>
+            <input type="checkbox" checked={repEdit.isRep} onChange={e => setRepEdit(p => p ? { ...p, isRep: e.target.checked } : null)} />
+            Назначить представителем по салонам
+          </label>
+          {repEdit.isRep && (
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 8 }}>Доступные разделы:</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {REP_PERMISSIONS.map(p => (
+                  <label key={p.key} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer", padding: "6px 12px", borderRadius: 8, border: `1.5px solid ${repEdit.perms.includes(p.key) ? ACCENT : "#e8e8e4"}`, background: repEdit.perms.includes(p.key) ? "hsl(185,85%,95%)" : "#fafafa" }}>
+                    <input type="checkbox" checked={repEdit.perms.includes(p.key)} onChange={e => setRepEdit(prev => prev ? { ...prev, perms: e.target.checked ? [...prev.perms, p.key] : prev.perms.filter(x => x !== p.key) } : null)} style={{ display: "none" }} />
+                    {p.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+            <button onClick={saveRep} disabled={saving} style={actionBtn(ACCENT)}>Сохранить</button>
+            <button onClick={() => setRepEdit(null)} style={actionBtn("#999")}>Отмена</button>
           </div>
         </div>
       )}
@@ -281,6 +328,9 @@ export function UsersSection() {
                     {u.is_admin && (
                       <span style={{ fontSize: 10, background: "hsl(280,60%,95%)", color: "hsl(280,60%,55%)", padding: "2px 7px", borderRadius: 20, fontWeight: 700 }}>Admin</span>
                     )}
+                    {u.is_representative && (
+                      <span style={{ fontSize: 10, background: "hsl(38,90%,94%)", color: "hsl(38,80%,35%)", padding: "2px 7px", borderRadius: 20, fontWeight: 700 }}>Представитель</span>
+                    )}
                     <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 20, fontWeight: 600, background: u.segment === "salon" ? "hsl(335,80%,96%)" : "hsl(185,85%,95%)", color: u.segment === "salon" ? "hsl(335,80%,45%)" : ACCENT }}>
                       {u.segment === "salon" ? "Салон" : "Специалист"}
                     </span>
@@ -306,6 +356,13 @@ export function UsersSection() {
                   </button>
                   <button onClick={() => setNewPw({ userId: u.id, pw: "" })} style={iconBtn} title="Сменить пароль">
                     <Icon name="Key" size={15} />
+                  </button>
+                  <button
+                    onClick={() => setRepEdit({ userId: u.id, isRep: u.is_representative || false, perms: u.rep_permissions || [] })}
+                    style={{ ...iconBtn, borderColor: u.is_representative ? "hsl(38,80%,50%)" : "#e8e8e4", background: u.is_representative ? "hsl(38,90%,94%)" : "#fafafa" }}
+                    title="Статус представителя"
+                  >
+                    <Icon name="Briefcase" size={15} style={{ color: u.is_representative ? "hsl(38,80%,35%)" : "#888" }} />
                   </button>
                 </div>
               </div>

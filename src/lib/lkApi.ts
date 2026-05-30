@@ -63,6 +63,9 @@ export const lkApi = {
   adminSetPassword: (user_id: number, password: string) =>
     request("POST", "admin_set_password", { user_id, password }),
 
+  adminUpdateRep: (user_id: number, is_representative: boolean, rep_permissions: string[]) =>
+    request("POST", "admin_update_rep", { user_id, is_representative, rep_permissions }),
+
   adminBodyZones: () => request("GET", "admin_body_zones"),
 
   adminBodyZoneSave: (data: object) =>

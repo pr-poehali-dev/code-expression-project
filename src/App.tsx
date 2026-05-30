@@ -22,6 +22,7 @@ import ChatWidget from "./components/ChatWidget";
 import QuizAdmin from "./pages/QuizAdmin";
 import QuizLanding from "./pages/QuizLanding";
 import LkPage from "./pages/lk/LkPage";
+import RepPage from "./pages/rep/RepPage";
 import { LkAuthProvider } from "./contexts/LkAuthContext";
 import DlyaSpecialistov from "./pages/DlyaSpecialistov";
 import OSisteme from "./pages/OSisteme";
@@ -61,6 +62,7 @@ const App = () => (
           <Route path="/quiz-admin" element={<QuizAdmin />} />
           <Route path="/quiz" element={<QuizLanding />} />
           <Route path="/cabinet" element={<LkPage />} />
+          <Route path="/rep" element={<RepPage />} />
           <Route path="/dlya-specialistov" element={<DlyaSpecialistov />} />
           <Route path="/o-sisteme" element={<OSisteme />} />
           <Route path="/professionalnye-vstrechi" element={<ProfessionalnyeVstrechi />} />
