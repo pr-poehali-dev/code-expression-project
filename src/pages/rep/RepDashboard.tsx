@@ -6,7 +6,7 @@ const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_LIGHT = "hsl(185,85%,95%)";
 const REP_AI_URL = "https://functions.poehali.dev/5659445e-489a-411e-9e90-4bb21904624d";
 const REP_MAIL_URL = "https://functions.poehali.dev/df48bb51-d4fb-4584-b725-423c7c731624";
-const SITE = "https://dok-dialog.ru";
+const SITE = "https://docdialog.ru";
 
 type Tab = "ai" | "tariffs" | "mail";
 

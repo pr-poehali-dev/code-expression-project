@@ -20,7 +20,7 @@ CORS = {
     "Access-Control-Allow-Headers": "Content-Type, X-Session-Id",
 }
 FROM_EMAIL = "massopro@mail.ru"
-SITE_URL = "https://dok-dialog.ru"
+SITE_URL = "https://docdialog.ru"
 
 
 def ok(data: dict) -> dict:
