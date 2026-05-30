@@ -3,7 +3,7 @@ export default function JobHero({ onApply }: { onApply: () => void }) {
     <section style={{
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
       background: "linear-gradient(160deg, #f5f0e8 0%, #faf9f6 50%, #ede8df 100%)",
-      position: "relative", overflow: "hidden", padding: "40px 24px",
+      position: "relative", overflow: "hidden", padding: "120px 24px 60px",
     }}>
       {/* Декоративный фон */}
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, pointerEvents: "none" }}>

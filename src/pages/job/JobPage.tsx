@@ -1,4 +1,6 @@
 import { useState } from "react";
+import DokNavbar from "@/components/DokNavbar";
+import DokFooter from "@/components/DokFooter";
 import JobHero from "./JobHero";
 import JobAbout from "./JobAbout";
 import JobWhoWeNeed from "./JobWhoWeNeed";
@@ -43,6 +45,8 @@ export default function JobPage() {
         }
       `}</style>
 
+      <DokNavbar />
+
       {!showInterview ? (
         <>
           <JobHero onApply={() => setShowInterview(true)} />
@@ -51,7 +55,7 @@ export default function JobPage() {
           <JobDuties />
           <JobConditions />
           <JobWhyUs onApply={() => setShowInterview(true)} />
-          <div style={{ height: 80 }} />
+          <DokFooter />
         </>
       ) : (
         <JobInterview onBack={() => setShowInterview(false)} />
