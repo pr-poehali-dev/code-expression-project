@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
 import JobHero from "./JobHero";
@@ -11,6 +11,15 @@ import JobInterview from "./JobInterview";
 
 export default function JobPage() {
   const [showInterview, setShowInterview] = useState(false);
+
+  useEffect(() => {
+    if (showInterview) {
+      document.body.classList.add("hide-chat-widget");
+    } else {
+      document.body.classList.remove("hide-chat-widget");
+    }
+    return () => { document.body.classList.remove("hide-chat-widget"); };
+  }, [showInterview]);
 
   return (
     <div style={{ fontFamily: "'Cormorant', 'Georgia', serif", background: "#faf9f6", minHeight: "100vh", color: "#1a1a1a" }}>

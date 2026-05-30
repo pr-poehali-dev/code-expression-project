@@ -182,7 +182,7 @@ export default function ChatWidget() {
   const showSuggestions = messages.length === 1;
 
   return (
-    <>
+    <div data-chat-widget>
       {/* Кнопка-триггер */}
       <button
         onClick={() => setOpen(o => !o)}
@@ -429,6 +429,6 @@ export default function ChatWidget() {
           )}
         </div>
       )}
-    </>
+    </div>
   );
 }

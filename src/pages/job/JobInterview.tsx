@@ -353,37 +353,6 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
             </div>
           </div>
 
-          {/* Оценки */}
-          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #ede8df", padding: "28px", marginBottom: 20 }}>
-            <div style={{ fontFamily: "'Cormorant',serif", fontSize: 20, fontWeight: 500, color: "#1a1a1a", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span>Оценки</span>
-              <span style={{ color: "#c9a96e" }}>{result.total} / 70</span>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {Object.entries(result.scores).map(([key, val]) => (
-                <div key={key}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                    <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#555", fontWeight: 300 }}>{SCORE_LABELS[key] || key}</span>
-                    <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#c9a96e", fontWeight: 600 }}>{val}/10</span>
-                  </div>
-                  <div style={{ height: 4, background: "#f0ebe2", borderRadius: 2 }}>
-                    <div style={{ height: "100%", width: `${val * 10}%`, background: "linear-gradient(to right,#c9a96e,#a8834a)", borderRadius: 2, transition: "width 1s" }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Комментарий ИИ */}
-          {result.comment && (
-            <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #ede8df", padding: "24px" }}>
-              <div style={{ fontFamily: "'Cormorant',serif", fontSize: 16, fontWeight: 500, color: "#888", marginBottom: 10 }}>Комментарий ассистента</div>
-              <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 300, color: "#555", lineHeight: 1.7, fontStyle: "italic" }}>
-                «{result.comment}»
-              </div>
-            </div>
-          )}
-
           <div style={{ textAlign: "center", marginTop: 32 }}>
             <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#aaa", fontWeight: 300, marginBottom: 20 }}>
               Мы свяжемся с вами в ближайшее время по указанным контактам.

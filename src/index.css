@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body.hide-chat-widget [data-chat-widget] {
+  display: none !important;
+}
+
 @media (max-width: 600px) {
   .premium-tools-grid {
     grid-template-columns: 1fr !important;
