@@ -7,6 +7,8 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.header import Header
+from email.utils import formataddr
 
 import psycopg2
 import psycopg2.extras
@@ -161,8 +163,8 @@ def handler(event: dict, context) -> dict:
     html_content = build_html_email(to_name, subject, body_html, sender_name)
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = f"Dok Диалог <{FROM_EMAIL}>"
+    msg["Subject"] = Header(subject, "utf-8")
+    msg["From"] = formataddr((str(Header("Dok Диалог", "utf-8")), FROM_EMAIL))
     msg["To"] = to_email
     msg["Reply-To"] = FROM_EMAIL
 
