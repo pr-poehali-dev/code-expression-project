@@ -57,13 +57,13 @@ def handler(event: dict, context) -> dict:
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": cors, "body": ""}
 
-    # Проверка токена администратора
-    auth = event.get("headers", {}).get("X-Authorization", "")
+    body = json.loads(event.get("body") or "{}")
+
+    # Проверка токена администратора (передаётся в теле запроса)
     admin_token = os.environ.get("ADMIN_TOKEN", "")
-    if auth != f"Bearer {admin_token}":
+    if body.get("token") != admin_token:
         return {"statusCode": 403, "headers": cors, "body": json.dumps({"error": "Forbidden"})}
 
-    body = json.loads(event.get("body") or "{}")
     messages = body.get("messages", [])
 
     if not messages:

@@ -111,11 +111,9 @@ export function AISection() {
     try {
       const res = await fetch(AI_URL, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${ADMIN_TOKEN}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          token: ADMIN_TOKEN,
           messages: newMessages.map(m => ({ role: m.role, content: m.content })),
         }),
       });
