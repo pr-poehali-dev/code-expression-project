@@ -53,12 +53,14 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState("");
+  const [agreed, setAgreed] = useState(false);
 
   const TOTAL_QUESTIONS = 10;
 
   async function startInterview() {
     const req = applicant;
     if (!req.full_name || !req.phone) { setError("Заполните имя и телефон"); return; }
+    if (!agreed) { setError("Необходимо принять политику конфиденциальности"); return; }
     setError(""); setLoading(true);
     try {
       const res = await fetch(`${JOB_AI_URL}?action=chat`, {
@@ -169,9 +171,25 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
               <textarea value={applicant.motivation} onChange={e => setApplicant(p => ({ ...p, motivation: e.target.value }))} placeholder="Расскажите своими словами..." rows={3} style={{ ...inp, resize: "vertical", lineHeight: 1.6 }} />
             </div>
 
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginBottom: 20 }}>
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={e => setAgreed(e.target.checked)}
+                style={{ marginTop: 2, accentColor: "#c9a96e", width: 16, height: 16, flexShrink: 0, cursor: "pointer" }}
+              />
+              <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 300, color: "#888", lineHeight: 1.6 }}>
+                Я ознакомилась и принимаю{" "}
+                <a href="/privacy" target="_blank" rel="noreferrer" style={{ color: "#c9a96e", textDecoration: "underline" }}>
+                  политику конфиденциальности
+                </a>{" "}
+                и даю согласие на обработку персональных данных.
+              </span>
+            </label>
+
             {error && <div style={{ background: "#fff5f5", border: "1px solid #fcc", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "#c00", marginBottom: 16, fontFamily: "'Montserrat',sans-serif" }}>{error}</div>}
 
-            <button onClick={startInterview} disabled={loading} className="job-btn-gold" style={{ width: "100%", justifyContent: "center" }}>
+            <button onClick={startInterview} disabled={loading || !agreed} className="job-btn-gold" style={{ width: "100%", justifyContent: "center", opacity: agreed ? 1 : 0.5 }}>
               {loading ? "Запускаю интервью..." : "Начать интервью"}
             </button>
           </div>
