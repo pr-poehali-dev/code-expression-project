@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Chat - first message",
+      "method": "POST",
+      "path": "/?action=chat",
+      "body": {"messages": [], "step": 0},
+      "expectedStatus": 200,
+      "expectedBody": {"reply": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Unknown action",
+      "method": "POST",
+      "path": "/?action=unknown",
+      "body": {},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

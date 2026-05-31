@@ -36,6 +36,7 @@ import FreeTarif from "./pages/FreeTarif";
 import ComingSoon from "./pages/ComingSoon";
 import Demo from "./pages/Demo";
 import Vakansii from "./pages/Vakansii";
+import MassajPage from "./pages/massaj/MassajPage";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ const App = () => (
           <Route path="/coming-soon" element={<ComingSoon />} />
           <Route path="/demo" element={<Demo />} />
           <Route path="/vakansii" element={<Vakansii />} />
+          <Route path="/massaj" element={<MassajPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
