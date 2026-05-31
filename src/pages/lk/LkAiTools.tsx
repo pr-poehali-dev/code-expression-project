@@ -19,11 +19,11 @@ interface ToolCardProps {
 
 function ToolCard({ icon, color, bg, title, description, badge, onStart }: ToolCardProps) {
   return (
-    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 20px 18px", display: "flex", flexDirection: "column", gap: 12 }}
+    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 20px 18px", display: "flex", flexDirection: "column" }}
       onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.07)")}
       onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
     >
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 14, flex: 1, marginBottom: 16 }}>
         <div style={{ width: 44, height: 44, borderRadius: 12, background: bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <Icon name={icon} size={22} style={{ color }} />
         </div>
@@ -41,7 +41,7 @@ function ToolCard({ icon, color, bg, title, description, badge, onStart }: ToolC
       </div>
       <button
         onClick={onStart}
-        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: `linear-gradient(135deg,hsl(40,90%,50%),hsl(30,95%,50%))`, color: "#fff", border: "none", borderRadius: 10, padding: "11px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", width: "100%" }}
+        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: `linear-gradient(135deg,hsl(40,90%,50%),hsl(30,95%,50%))`, color: "#fff", border: "none", borderRadius: 10, padding: "11px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", width: "100%", marginTop: "auto" }}
       >
         <Icon name="Sparkles" size={14} />
         Открыть инструмент
@@ -132,7 +132,7 @@ export default function LkAiTools() {
       </div>
 
       {/* Сетка инструментов */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14, alignItems: "stretch" }}>
 
         {/* Генерация изображений — готово */}
         <ToolCard
