@@ -1341,6 +1341,212 @@ def handle_salon_logo_upload(event: dict) -> dict:
 
 # ── Роутер ───────────────────────────────────────────────────────────────────
 
+# ── Анализ персонала ─────────────────────────────────────────────────────────
+
+def _calc_employee_score(emp: dict, avg_revenue: float, avg_check: float) -> dict:
+    """Считает Employee Score и Loss Index по формуле из ТЗ."""
+    revenue       = float(emp.get("revenue") or 0)
+    check         = float(emp.get("avg_check") or 0)
+    clients       = float(emp.get("clients_count") or 1)
+    return_pct    = float(emp.get("return_pct") or 0) / 100
+    rebooking_pct = float(emp.get("rebooking_pct") or 0) / 100
+    service_score = float(emp.get("service_score") or 5) / 10
+
+    # Нормализуем (0–1)
+    rev_index    = min(revenue / avg_revenue, 2) / 2 if avg_revenue > 0 else 0.5
+    check_index  = min(check / avg_check, 2) / 2 if avg_check > 0 else 0.5
+    retention    = return_pct
+    rebooking    = rebooking_pct
+
+    # Employee Score (0–100)
+    score = round((
+        rev_index    * 0.40 +
+        retention    * 0.25 +
+        check_index  * 0.15 +
+        rebooking    * 0.10 +
+        service_score * 0.10
+    ) * 100)
+    score = max(0, min(100, score))
+
+    # Loss Index (потери в рублях)
+    # 1. Потери от низкого возврата
+    ideal_return = 0.70
+    actual_return = return_pct
+    loss_return = max(0, (ideal_return - actual_return) * clients * check)
+
+    # 2. Потери от низкого чека
+    loss_check = max(0, (avg_check - check) * clients) if avg_check > check else 0
+
+    # 3. Потери от слабых допродаж
+    has_upsell = bool(emp.get("has_upsell"))
+    loss_upsell = revenue * 0.15 if not has_upsell else 0
+
+    total_loss = round(loss_return + loss_check + loss_upsell)
+
+    # Потенциал роста
+    potential = round(
+        (ideal_return - actual_return) * clients * check * 0.5 +
+        loss_check * 0.5 +
+        loss_upsell * 0.5
+    )
+
+    # Категория
+    if score >= 80:   category = "star"
+    elif score >= 60: category = "strong"
+    elif score >= 40: category = "average"
+    else:             category = "problem"
+
+    return {
+        "score": score,
+        "category": category,
+        "loss_return":  round(loss_return),
+        "loss_check":   round(loss_check),
+        "loss_upsell":  round(loss_upsell),
+        "total_loss":   total_loss,
+        "potential":    potential,
+    }
+
+
+def handle_staff_analyze(event: dict) -> dict:
+    """Анализирует персонал салона: считает метрики и генерирует ИИ-отчёт."""
+    body = json.loads(event.get("body") or "{}")
+    staff = body.get("staff", [])
+    if not staff or len(staff) == 0:
+        return err("Добавьте хотя бы одного сотрудника")
+    if len(staff) > 15:
+        return err("Максимум 15 сотрудников за раз")
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+
+        salon = _get_salon_ctx(user, conn, ("name", "avg_check", "monthly_revenue"))
+        salon_avg_revenue = float(salon["monthly_revenue"] or 0) / max(len(staff), 1) if salon and salon.get("monthly_revenue") else 0
+        salon_avg_check   = float(salon["avg_check"] or 0) if salon and salon.get("avg_check") else 0
+
+        # Считаем средние по введённым данным если нет данных салона
+        revenues = [float(e.get("revenue") or 0) for e in staff if e.get("revenue")]
+        checks   = [float(e.get("avg_check") or 0) for e in staff if e.get("avg_check")]
+        avg_rev   = (sum(revenues) / len(revenues)) if revenues else salon_avg_revenue or 1
+        avg_check = (sum(checks) / len(checks)) if checks else salon_avg_check or 1
+
+        # Рассчитываем метрики по каждому
+        scored = []
+        for emp in staff:
+            metrics = _calc_employee_score(emp, avg_rev, avg_check)
+            scored.append({**emp, **metrics})
+
+        total_loss = sum(e["total_loss"] for e in scored)
+        total_potential = sum(e["potential"] for e in scored)
+        stars   = [e for e in scored if e["category"] == "star"]
+        problem = [e for e in scored if e["category"] == "problem"]
+        avg_score = round(sum(e["score"] for e in scored) / len(scored))
+
+        # ИИ-текст
+        staff_summary = "\n".join([
+            f"- {e.get('name','Сотрудник')}: роль={e.get('role','')}, выручка={e.get('revenue',0)}₽, "
+            f"чек={e.get('avg_check',0)}₽, возврат={e.get('return_pct',0)}%, "
+            f"Score={e['score']}, потери={e['total_loss']}₽"
+            for e in scored
+        ])
+        salon_name = salon["name"] if salon and salon.get("name") else "салон"
+
+        prompt = (
+            f"Ты бизнес-консультант по салонам красоты. Сделай финансовый разбор команды.\n\n"
+            f"Салон: {salon_name}\n"
+            f"Сотрудников: {len(scored)}\n"
+            f"Средний Employee Score: {avg_score}/100\n"
+            f"Общие потери в месяц: {total_loss:,} ₽\n"
+            f"Потенциал роста: +{total_potential:,} ₽/мес\n\n"
+            f"Данные по сотрудникам:\n{staff_summary}\n\n"
+            f"Напиши отчёт в 4 блоках:\n\n"
+            f"1. ОБЩАЯ КАРТИНА (2-3 предложения — что происходит с командой в целом)\n\n"
+            f"2. ГЛАВНАЯ ПРОБЛЕМА (1 ключевая проблема команды с цифрами)\n\n"
+            f"3. ТОП-3 ДЕЙСТВИЯ (конкретные шаги для быстрого роста выручки, каждое с оценкой эффекта в ₽)\n\n"
+            f"4. ПО КАЖДОМУ СОТРУДНИКУ (для каждого: 1 сильная сторона + 1 конкретное действие)\n\n"
+            f"Пиши как личный советник владельца — прямо, конкретно, с цифрами. Без воды."
+        )
+        ai_text = _call_ai_text([
+            {"role": "system", "content": "Ты финансовый консультант по бьюти-бизнесу. Даёшь конкретные советы с цифрами."},
+            {"role": "user", "content": prompt}
+        ], max_tokens=1500)
+
+        result = {
+            "staff": scored,
+            "summary": {
+                "avg_score": avg_score,
+                "total_loss": total_loss,
+                "total_potential": total_potential,
+                "stars_count":   len(stars),
+                "problem_count": len(problem),
+            },
+            "ai_text": ai_text,
+        }
+
+        # Сохраняем в БД
+        cur = conn.cursor()
+        cur.execute(
+            f"INSERT INTO {tbl('staff_audits')} (user_id, salon_id, staff_data, result) VALUES (%s,%s,%s,%s) RETURNING id",
+            (user["id"], user.get("salon_id"), json.dumps(staff), json.dumps(result))
+        )
+        audit_id = cur.fetchone()[0]
+        conn.commit()
+
+        return ok({"id": audit_id, "result": result})
+    finally:
+        conn.close()
+
+
+def handle_staff_audit_history(event: dict) -> dict:
+    """История анализов персонала."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT id, result->>'summary' as summary_json, created_at FROM {tbl('staff_audits')} "
+            f"WHERE user_id=%s ORDER BY created_at DESC LIMIT 10",
+            (user["id"],)
+        )
+        rows = []
+        for r in cur.fetchall():
+            d = dict(r)
+            try:
+                d["summary"] = json.loads(d.pop("summary_json") or "{}")
+            except Exception:
+                d["summary"] = {}
+            rows.append(d)
+        return ok(rows)
+    finally:
+        conn.close()
+
+
+def handle_staff_audit_get(event: dict) -> dict:
+    """Получить конкретный анализ персонала."""
+    qs = event.get("queryStringParameters") or {}
+    audit_id = qs.get("id")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT * FROM {tbl('staff_audits')} WHERE id=%s AND user_id=%s",
+            (audit_id, user["id"])
+        )
+        row = cur.fetchone()
+        if not row:
+            return err("Не найдено", 404)
+        return ok(dict(row))
+    finally:
+        conn.close()
+
+
 # ── Генератор постов ─────────────────────────────────────────────────────────
 
 def _call_ai_text(messages: list, max_tokens: int = 800) -> str:
@@ -1633,6 +1839,9 @@ ROUTES = {
     ("POST", "post_text"): handle_post_text,
     ("POST", "reel_ideas"): handle_reel_ideas,
     ("POST", "reel_script"): handle_reel_script,
+    ("POST", "staff_analyze"): handle_staff_analyze,
+    ("GET",  "staff_audit_history"): handle_staff_audit_history,
+    ("GET",  "staff_audit_get"): handle_staff_audit_get,
 }
 
 

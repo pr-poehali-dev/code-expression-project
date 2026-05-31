@@ -4,6 +4,7 @@ import LkAiImageGen from "./LkAiImageGen";
 import LkSalonAudit from "./LkSalonAudit";
 import LkPostGen from "./LkPostGen";
 import LkReelScript from "./LkReelScript";
+import LkStaffAudit from "./LkStaffAudit";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -81,7 +82,7 @@ function ComingSoonCard({ icon, color, bg, title, description }: ComingSoonCardP
   );
 }
 
-type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | null;
+type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | null;
 
 export default function LkAiTools() {
   const [activeTool, setActiveTool] = useState<Tool>(null);
@@ -112,6 +113,10 @@ export default function LkAiTools() {
 
   if (activeTool === "reel-script") {
     return <div><BackButton /><LkReelScript /></div>;
+  }
+
+  if (activeTool === "staff-audit") {
+    return <div><BackButton /><LkStaffAudit /></div>;
   }
 
   return (
@@ -154,6 +159,16 @@ export default function LkAiTools() {
           description="Тема → 5 заголовков на выбор → готовый текст + картинка. Пост за 2 минуты."
           badge="new"
           onStart={() => setActiveTool("post-gen")}
+        />
+
+        <ToolCard
+          icon="Users"
+          color="hsl(0,75%,50%)"
+          bg="hsl(0,75%,97%)"
+          title="Анализ персонала"
+          description="Финансовый рентген команды: кто приносит деньги, кто теряет и сколько это стоит в рублях."
+          badge="new"
+          onStart={() => setActiveTool("staff-audit")}
         />
 
         <ComingSoonCard
