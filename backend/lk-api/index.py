@@ -1547,6 +1547,95 @@ def handle_staff_audit_get(event: dict) -> dict:
         conn.close()
 
 
+# ── Сотрудники салона (CRUD) ──────────────────────────────────────────────────
+
+def handle_staff_list(event: dict) -> dict:
+    """Список сотрудников салона."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT * FROM {tbl('salon_staff')} WHERE owner_id=%s AND is_active=TRUE ORDER BY created_at",
+            (user["id"],)
+        )
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
+def handle_staff_save(event: dict) -> dict:
+    """Создать или обновить сотрудника."""
+    body = json.loads(event.get("body") or "{}")
+    name = (body.get("name") or "").strip()
+    if not name:
+        return err("Укажите имя сотрудника")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        staff_id = body.get("id")
+        fields = ("role","experience","clients_count","new_clients","return_pct",
+                  "revenue","avg_check","has_upsell","rebooking_pct","has_rebooking_offer",
+                  "service_score","has_sales_script")
+        vals = {f: body.get(f) or None for f in fields}
+        if staff_id:
+            cur.execute(
+                f"""UPDATE {tbl('salon_staff')} SET
+                    name=%s, role=%s, experience=%s, clients_count=%s, new_clients=%s,
+                    return_pct=%s, revenue=%s, avg_check=%s, has_upsell=%s,
+                    rebooking_pct=%s, has_rebooking_offer=%s, service_score=%s,
+                    has_sales_script=%s, updated_at=NOW()
+                WHERE id=%s AND owner_id=%s RETURNING id""",
+                (name, vals["role"], vals["experience"], vals["clients_count"], vals["new_clients"],
+                 vals["return_pct"], vals["revenue"], vals["avg_check"], vals["has_upsell"],
+                 vals["rebooking_pct"], vals["has_rebooking_offer"], vals["service_score"],
+                 vals["has_sales_script"], staff_id, user["id"])
+            )
+        else:
+            cur.execute(
+                f"""INSERT INTO {tbl('salon_staff')}
+                    (owner_id, salon_id, name, role, experience, clients_count, new_clients,
+                     return_pct, revenue, avg_check, has_upsell, rebooking_pct,
+                     has_rebooking_offer, service_score, has_sales_script)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+                (user["id"], user.get("salon_id"), name, vals["role"], vals["experience"],
+                 vals["clients_count"], vals["new_clients"], vals["return_pct"],
+                 vals["revenue"], vals["avg_check"], vals["has_upsell"],
+                 vals["rebooking_pct"], vals["has_rebooking_offer"], vals["service_score"],
+                 vals["has_sales_script"])
+            )
+        row = cur.fetchone()
+        conn.commit()
+        return ok({"ok": True, "id": row["id"] if row else staff_id})
+    finally:
+        conn.close()
+
+
+def handle_staff_delete(event: dict) -> dict:
+    """Мягкое удаление сотрудника."""
+    body = json.loads(event.get("body") or "{}")
+    staff_id = body.get("id")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE {tbl('salon_staff')} SET is_active=FALSE WHERE id=%s AND owner_id=%s",
+            (staff_id, user["id"])
+        )
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
 # ── Генератор постов ─────────────────────────────────────────────────────────
 
 def _call_ai_text(messages: list, max_tokens: int = 800) -> str:
@@ -1842,6 +1931,9 @@ ROUTES = {
     ("POST", "staff_analyze"): handle_staff_analyze,
     ("GET",  "staff_audit_history"): handle_staff_audit_history,
     ("GET",  "staff_audit_get"): handle_staff_audit_get,
+    ("GET",  "staff_list"): handle_staff_list,
+    ("POST", "staff_save"): handle_staff_save,
+    ("POST", "staff_delete"): handle_staff_delete,
 }
 
 

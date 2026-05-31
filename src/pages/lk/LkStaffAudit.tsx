@@ -311,15 +311,43 @@ function MemberForm({ member, idx, onChange, onRemove, canRemove }: {
 // ── Главный компонент ─────────────────────────────────────────────────────────
 export default function LkStaffAudit() {
   const { user } = useLkAuth();
-  const [staff, setStaff] = useState<StaffMember[]>([newMember()]);
+  const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [staffLoaded, setStaffLoaded] = useState(false);
   const [result, setResult] = useState<AuditResult | null>(null);
   const [step, setStep] = useState<"form" | "loading" | "result">("form");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    // Загружаем историю анализов
     fetch(`${LK_URL}?action=staff_audit_history`, { headers: { "X-Session-Id": sid() } })
       .then(r => r.json()).then(d => Array.isArray(d) && setHistory(d)).catch(() => {});
+
+    // Загружаем сотрудников из базы
+    fetch(`${LK_URL}?action=staff_list`, { headers: { "X-Session-Id": sid() } })
+      .then(r => r.json()).then(d => {
+        if (Array.isArray(d) && d.length > 0) {
+          setStaff(d.map((s: Record<string, unknown>) => ({
+            id:                  String(s.id),
+            name:                String(s.name || ""),
+            role:                String(s.role || ""),
+            experience:          s.experience != null ? String(s.experience) : "",
+            clients_count:       s.clients_count != null ? String(s.clients_count) : "",
+            new_clients:         s.new_clients != null ? String(s.new_clients) : "",
+            return_pct:          s.return_pct != null ? String(s.return_pct) : "",
+            revenue:             s.revenue != null ? String(s.revenue) : "",
+            avg_check:           s.avg_check != null ? String(s.avg_check) : "",
+            has_upsell:          s.has_upsell != null ? Boolean(s.has_upsell) : null,
+            rebooking_pct:       s.rebooking_pct != null ? String(s.rebooking_pct) : "",
+            has_rebooking_offer: s.has_rebooking_offer != null ? Boolean(s.has_rebooking_offer) : null,
+            service_score:       s.service_score != null ? String(s.service_score) : "",
+            has_sales_script:    s.has_sales_script != null ? Boolean(s.has_sales_script) : null,
+          })));
+        } else {
+          setStaff([newMember()]);
+        }
+        setStaffLoaded(true);
+      }).catch(() => { setStaff([newMember()]); setStaffLoaded(true); });
   }, []);
 
   function updateMember(id: string, key: keyof StaffMember, val: string | boolean) {
@@ -353,7 +381,7 @@ export default function LkStaffAudit() {
   if (step === "loading") {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 360, gap: 20 }}>
-        <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}`}</style>
+        <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}} @keyframes spin{to{transform:rotate(360deg)}}`}</style>
         <div style={{ width: 64, height: 64, borderRadius: 18, background: `linear-gradient(135deg,hsl(0,75%,50%),hsl(20,90%,55%))`, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Icon name="Users" size={30} style={{ color: "#fff", animation: "pulse 1.5s ease infinite" }} />
         </div>
@@ -368,8 +396,16 @@ export default function LkStaffAudit() {
     );
   }
 
+  if (!staffLoaded) {
+    return <div style={{ display: "flex", justifyContent: "center", padding: 60 }}><Icon name="Loader" size={24} style={{ color: ACCENT, animation: "spin 1s linear infinite" }} /></div>;
+  }
+
+  const dbStaff = staff.filter(m => m.id && !m.id.startsWith("_"));
+  const hasDbStaff = dbStaff.length > 0;
+
   return (
     <div style={{ maxWidth: 700 }}>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       {/* Заголовок */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
@@ -379,9 +415,26 @@ export default function LkStaffAudit() {
           <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Анализ персонала</h2>
         </div>
         <p style={{ fontSize: 13, color: "#777", margin: 0, lineHeight: 1.6 }}>
-          Введите данные по каждому сотруднику — ИИ покажет кто приносит деньги, кто их теряет и как это исправить.
+          Данные сотрудников загружены из раздела «Сотрудники». Проверьте и запустите анализ.
         </p>
       </div>
+
+      {/* Баннер если нет сотрудников в БД */}
+      {!hasDbStaff && (
+        <div style={{ background: "hsla(40,90%,50%,0.08)", border: "1px solid hsla(40,90%,50%,0.3)", borderRadius: 12, padding: "14px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
+          <Icon name="AlertCircle" size={16} style={{ color: "hsl(40,90%,45%)", flexShrink: 0 }} />
+          <div style={{ fontSize: 13, color: "#555" }}>
+            В базе нет сотрудников. <strong>Добавьте их в разделе «Сотрудники»</strong> — тогда они появятся здесь автоматически, или заполните вручную ниже.
+          </div>
+        </div>
+      )}
+
+      {hasDbStaff && (
+        <div style={{ background: "hsla(145,60%,40%,0.06)", border: "1px solid hsla(145,60%,40%,0.2)", borderRadius: 12, padding: "10px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+          <Icon name="CheckCircle" size={14} style={{ color: "hsl(145,60%,40%)", flexShrink: 0 }} />
+          <div style={{ fontSize: 12, color: "#555" }}>Загружено {dbStaff.length} сотрудников из базы. Данные можно отредактировать прямо здесь.</div>
+        </div>
+      )}
 
       {/* Сотрудники */}
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
