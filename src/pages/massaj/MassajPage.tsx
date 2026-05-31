@@ -1,13 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DokNavbar from "@/components/DokNavbar";
 import DokFooter from "@/components/DokFooter";
 import MassajInterview from "./MassajInterview";
 
+const STORAGE_KEY = "massaj_interview_state_v2";
+
+function hasSavedProgress(): boolean {
+  try {
+    const r = localStorage.getItem(STORAGE_KEY);
+    if (!r) return false;
+    const parsed = JSON.parse(r);
+    if (parsed._savedAt && Date.now() - parsed._savedAt > 86400000) return false;
+    return parsed.phase === "chat" && parsed.messages?.length > 0;
+  } catch { return false; }
+}
+
 export default function MassajPage() {
   const [showInterview, setShowInterview] = useState(false);
+  const [hasSaved, setHasSaved] = useState(false);
+
+  useEffect(() => {
+    setHasSaved(hasSavedProgress());
+  }, []);
 
   if (showInterview) {
-    return <MassajInterview onBack={() => setShowInterview(false)} />;
+    return <MassajInterview onBack={() => { setShowInterview(false); setHasSaved(false); }} />;
   }
 
   return (
@@ -78,9 +95,23 @@ export default function MassajPage() {
             Чтобы попасть в список рекомендованных специалистов, нужно пройти короткое профессиональное интервью. По итогам мы оценим вашу готовность и дадим обратную связь.
           </p>
 
+          {hasSaved && (
+            <div style={{ marginBottom: 20, background: "rgba(74,124,89,0.1)", border: "1px solid rgba(74,124,89,0.3)", borderRadius: 14, padding: "16px 20px", maxWidth: 420, margin: "0 auto 20px", textAlign: "center" }}>
+              <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 600, color: "#3a6b4a", marginBottom: 10 }}>
+                У вас есть незавершённое интервью
+              </div>
+              <button onClick={() => setShowInterview(true)} style={{ background: "linear-gradient(135deg,#4a7c59,#3a6b4a)", color: "#fff", border: "none", borderRadius: 50, padding: "11px 28px", fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer", letterSpacing: "0.5px" }}>
+                Продолжить с того места →
+              </button>
+            </div>
+          )}
+
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <button className="mj-btn" onClick={() => setShowInterview(true)}>
-              Пройти интервью
+            <button className="mj-btn" onClick={() => {
+              if (hasSaved) { try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ } }
+              setShowInterview(true);
+            }}>
+              {hasSaved ? "Начать заново" : "Пройти интервью"}
             </button>
           </div>
 

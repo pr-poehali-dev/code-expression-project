@@ -1,17 +1,41 @@
 import { useState, useEffect, useRef } from "react";
 
 const MASSAJ_AI_URL = "https://functions.poehali.dev/54d38b17-2d49-42a8-a0b4-d82bf91c8c8b";
-const STORAGE_KEY = "massaj_interview_state";
+const STORAGE_KEY = "massaj_interview_state_v2";
 const TOTAL_QUESTIONS = 15;
 
 function loadState() {
-  try { const r = sessionStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; } catch { return null; }
+  try {
+    const r = localStorage.getItem(STORAGE_KEY);
+    if (!r) return null;
+    const parsed = JSON.parse(r);
+    // Проверяем что данные не старше 24 часов
+    if (parsed._savedAt && Date.now() - parsed._savedAt > 86400000) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return parsed;
+  } catch { return null; }
 }
 function saveState(s: object) {
-  try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch { /* ignore */ }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...s, _savedAt: Date.now() })); } catch { /* ignore */ }
 }
 function clearState() {
-  try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+  try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+}
+
+async function fetchWithRetry(url: string, options: RequestInit, retries = 2): Promise<Response> {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const res = await fetch(url, options);
+      if (res.ok || res.status < 500) return res;
+      if (i < retries) await new Promise(r => setTimeout(r, 1500 * (i + 1)));
+    } catch (e) {
+      if (i === retries) throw e;
+      await new Promise(r => setTimeout(r, 1500 * (i + 1)));
+    }
+  }
+  throw new Error("Нет ответа от сервера");
 }
 
 interface Message { role: "user" | "assistant"; content: string; }
@@ -94,7 +118,7 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
     if (!agreed) { setError("Необходимо принять политику конфиденциальности"); return; }
     setError(""); setLoading(true);
     try {
-      const res = await fetch(`${MASSAJ_AI_URL}?action=chat`, {
+      const res = await fetchWithRetry(`${MASSAJ_AI_URL}?action=chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: [], step: 0 }),
@@ -103,7 +127,7 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
       setMessages([{ role: "assistant", content: data.reply }]);
       setStep(data.step ?? 0);
       setPhase("chat");
-    } catch { setError("Ошибка соединения. Попробуйте снова."); }
+    } catch { setError("Ошибка соединения. Проверьте интернет и попробуйте снова."); }
     finally { setLoading(false); }
   }
 
@@ -113,7 +137,7 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
     const newMessages: Message[] = [...messages, { role: "user", content }];
     setMessages(newMessages); setInput(""); setLoading(true);
     try {
-      const res = await fetch(`${MASSAJ_AI_URL}?action=chat`, {
+      const res = await fetchWithRetry(`${MASSAJ_AI_URL}?action=chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: newMessages, step }),
@@ -123,23 +147,28 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
       setMessages(withReply);
       setStep(data.step ?? step + 1);
       if (data.done) setTimeout(() => finishInterview(withReply), 800);
-    } catch { setError("Ошибка. Попробуйте отправить снова."); }
+    } catch {
+      // Откатываем — убираем сообщение пользователя из списка, чтобы он мог отправить снова
+      setMessages(messages);
+      setInput(content);
+      setError("Не удалось отправить. Проверьте интернет и нажмите отправить снова.");
+    }
     finally { setLoading(false); }
   }
 
   async function finishInterview(msgs: Message[]) {
     setLoading(true);
     try {
-      const res = await fetch(`${MASSAJ_AI_URL}?action=finish`, {
+      const res = await fetchWithRetry(`${MASSAJ_AI_URL}?action=finish`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ applicant, messages: msgs }),
-      });
+      }, 3);
       const data = await res.json();
       setResult(data);
       setPhase("result");
       clearState();
-    } catch { setError("Ошибка при анализе. Попробуйте снова."); }
+    } catch { setError("Ошибка при формировании результата. Подождите немного и нажмите «Завершить» снова."); }
     finally { setLoading(false); }
   }
 
