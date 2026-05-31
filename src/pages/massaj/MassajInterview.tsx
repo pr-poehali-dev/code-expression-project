@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 const MASSAJ_AI_URL = "https://functions.poehali.dev/54d38b17-2d49-42a8-a0b4-d82bf91c8c8b";
 const STORAGE_KEY = "massaj_interview_state_v2";
+const RESULT_KEY = "massaj_interview_result_v2";
 const TOTAL_QUESTIONS = 15;
 
 function loadState() {
@@ -22,6 +23,24 @@ function saveState(s: object) {
 }
 function clearState() {
   try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+}
+function saveResult(applicant: object, result: object) {
+  try { localStorage.setItem(RESULT_KEY, JSON.stringify({ applicant, result, _savedAt: Date.now() })); } catch { /* ignore */ }
+}
+function loadResult(): { applicant: Applicant; result: Result } | null {
+  try {
+    const r = localStorage.getItem(RESULT_KEY);
+    if (!r) return null;
+    const parsed = JSON.parse(r);
+    if (parsed._savedAt && Date.now() - parsed._savedAt > 7 * 86400000) {
+      localStorage.removeItem(RESULT_KEY);
+      return null;
+    }
+    return parsed;
+  } catch { return null; }
+}
+function clearResult() {
+  try { localStorage.removeItem(RESULT_KEY); } catch { /* ignore */ }
 }
 
 async function fetchWithRetry(url: string, options: RequestInit, retries = 2): Promise<Response> {
@@ -52,30 +71,51 @@ const SCORE_LABELS: Record<string, string> = {
   philosophy_fit: "Соответствие философии Dok Диалог",
 };
 
-const STATUS_INFO: Record<string, { label: string; color: string; bg: string; btnLabel: string; btnHref: string; message: string }> = {
+const STATUS_INFO: Record<string, {
+  label: string; color: string; bg: string; borderColor: string;
+  icon: string; verdict: string; message: string;
+  gapTitle: string; gapText: string;
+  nextTitle: string; nextText: string;
+  btnLabel: string; btnHref: string;
+}> = {
   recommended: {
     label: "Перспективный специалист",
-    color: "#4a7c59",
-    bg: "#f0f7f3",
-    btnLabel: "Посмотреть программы обучения",
+    color: "#4a7c59", bg: "#f0f7f3", borderColor: "#4a7c5940",
+    icon: "✦",
+    verdict: "Вы готовы к премиальному сегменту",
+    message: "Ваши ответы показали сильный потенциал: вы умеете работать с клиентом, мыслите профессионально и готовы расти. Именно такие специалисты нужны нашим партнёрским салонам.",
+    gapTitle: "Что стоит между вами и премиальными клиентами",
+    gapText: "Партнёрские салоны принимают специалистов с подтверждённым уровнем знаний. Сертификаты «Dok Диалог» — это профессиональный стандарт, который котируется в индустрии и открывает двери в заведения с высоким чеком. Без этого документа — даже сильному специалисту сложно попасть в премиальную среду.",
+    nextTitle: "Следующий шаг",
+    nextText: "Пройдите профессиональные программы «Dok Диалог», получите сертификаты и мы включим вас в кадровый резерв для рекомендаций салонам-партнёрам.",
+    btnLabel: "Посмотреть программы",
     btnHref: "/catalog",
-    message: "Ваши ответы показывают высокий потенциал для работы в премиальном сегменте. Для включения в кадровый резерв проекта и получения рекомендаций в партнёрские салоны необходимо пройти обучение по системе «Dok Диалог».",
   },
   review: {
     label: "Хороший потенциал",
-    color: "#a87c2a",
-    bg: "#fdf8ee",
+    color: "#a87c2a", bg: "#fdf8ee", borderColor: "#c9a96e40",
+    icon: "◈",
+    verdict: "Вы на правильном пути",
+    message: "У вас есть хорошая база и верный взгляд на профессию. В ответах виден опыт и желание развиваться — это ценно. Но до уровня, который требуют премиальные салоны, ещё есть шаги.",
+    gapTitle: "Что вас сдерживает",
+    gapText: "Премиальный сегмент — это не только техника рук. Это конкретные навыки: как вести клиента, как выстраивать долгосрочные отношения, как позиционировать себя. Эти знания не приходят сами — им учат. И именно это даёт программа «Dok Диалог».",
+    nextTitle: "Ваш план роста",
+    nextText: "Пройдите профессиональные курсы, усильте нужные навыки и через короткое время вы будете готовы к работе с премиальной аудиторией.",
     btnLabel: "Получить план развития",
     btnHref: "/catalog",
-    message: "У вас есть хорошая база, однако для работы в премиальном сегменте рекомендуется развить навыки коммуникации, ведения клиента и системного подхода.",
   },
   declined: {
-    label: "Требуется развитие",
-    color: "#888",
-    bg: "#fafafa",
-    btnLabel: "Ознакомиться с обучением",
+    label: "Нужна системная база",
+    color: "#777", bg: "#f7f7f7", borderColor: "#ddd",
+    icon: "◇",
+    verdict: "Потенциал есть — нужна основа",
+    message: "Вы сделали важный шаг — прошли профессиональную оценку. Это уже говорит о том, что вы хотите расти. Сейчас главное — выстроить правильную базу.",
+    gapTitle: "Почему без системы — сложно",
+    gapText: "Многие специалисты работают годами, но не могут выйти на новый уровень — не потому что нет таланта, а потому что нет системы. Без неё тяжело удержать клиента, выйти на высокий чек или попасть в хороший салон. Всё это решаемо, если знать как.",
+    nextTitle: "С чего начать",
+    nextText: "Программа «Dok Диалог» построена именно для того, чтобы дать эту систему. После прохождения вы сможете снова пройти оценку — уже с другим результатом.",
+    btnLabel: "Начать с основ",
     btnHref: "/catalog",
-    message: "На текущем этапе рекомендуем уделить внимание профессиональному развитию и формированию системного подхода к работе с клиентами. После обучения вы сможете пройти оценку повторно.",
   },
 };
 
@@ -92,13 +132,15 @@ const lbl: React.CSSProperties = {
 
 export default function MassajInterview({ onBack }: { onBack: () => void }) {
   const saved = loadState();
-  const [phase, setPhase] = useState<"form" | "chat" | "result">(saved?.phase ?? "form");
-  const [applicant, setApplicant] = useState<Applicant>(saved?.applicant ?? { full_name: "", phone: "", telegram: "", city: "", experience: "" });
+  const savedResult = loadResult();
+  const initPhase = savedResult ? "result" : (saved?.phase ?? "form");
+  const [phase, setPhase] = useState<"form" | "chat" | "result">(initPhase);
+  const [applicant, setApplicant] = useState<Applicant>(savedResult?.applicant ?? saved?.applicant ?? { full_name: "", phone: "", telegram: "", city: "", experience: "" });
   const [messages, setMessages] = useState<Message[]>(saved?.messages ?? []);
   const [input, setInput] = useState("");
   const [step, setStep] = useState<number>(saved?.step ?? 0);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Result | null>(saved?.result ?? null);
+  const [result, setResult] = useState<Result | null>(savedResult?.result ?? saved?.result ?? null);
   const [error, setError] = useState("");
   const [agreed, setAgreed] = useState<boolean>(saved?.agreed ?? false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -168,6 +210,7 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
       setResult(data);
       setPhase("result");
       clearState();
+      saveResult(applicant, data);
     } catch { setError("Ошибка при формировании результата. Подождите немного и нажмите «Завершить» снова."); }
     finally { setLoading(false); }
   }
@@ -326,70 +369,98 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
   // ── РЕЗУЛЬТАТ ───────────────────────────────────────────────────────
   if (phase === "result" && result) {
     const info = STATUS_INFO[result.status] || STATUS_INFO.declined;
+    const firstName = applicant.full_name.split(" ")[0];
 
     return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f5f0e8,#faf9f6)", padding: "48px 16px 60px" }}>
-        <div style={{ maxWidth: 560, margin: "0 auto" }}>
-          {/* Заголовок */}
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <div style={{ fontFamily: "'Cormorant',serif", fontSize: 40, color: "#c9a96e", marginBottom: 8, lineHeight: 1 }}>✦</div>
-            <h2 style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(22px,5vw,34px)", fontWeight: 400, margin: "0 0 8px", color: "#1a1a1a" }}>
-              Оценка завершена
-            </h2>
-            <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, color: "#666", fontWeight: 400 }}>
-              Спасибо, {applicant.full_name.split(" ")[0]}! Ваши ответы обработаны.
-            </p>
-          </div>
+      <div style={{ minHeight: "100vh", background: "#faf9f6", fontFamily: "Montserrat, sans-serif" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap');
+          @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+          .res-card { animation: fadeUp 0.5s ease both; }
+        `}</style>
 
-          {/* Статус + баллы */}
-          <div style={{ background: info.bg, border: `1px solid ${info.color}40`, borderRadius: 18, padding: "20px 18px", marginBottom: 16, textAlign: "center" }}>
-            <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, color: info.color, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 8 }}>Результат оценки</div>
-            <div style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(18px,4vw,26px)", fontWeight: 500, color: info.color, marginBottom: 8 }}>{info.label}</div>
-            <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 26, fontWeight: 700, color: "#1a1a1a" }}>{result.total} <span style={{ fontSize: 15, color: "#888", fontWeight: 400 }}>/ 70 баллов</span></div>
+        {/* Шапка-статус */}
+        <div style={{ background: "linear-gradient(135deg,#1a1a1a,#2a2520)", padding: "48px 20px 40px", textAlign: "center" }}>
+          <div style={{ fontFamily: "'Cormorant',serif", fontSize: 36, color: info.color, marginBottom: 12 }}>{info.icon}</div>
+          <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "2px", marginBottom: 10 }}>
+            Результат оценки · Dok Диалог
           </div>
+          <div style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(24px,5vw,38px)", fontWeight: 400, color: "#fff", marginBottom: 6, lineHeight: 1.2 }}>
+            {firstName}, {info.verdict}
+          </div>
+          <div style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(16px,3vw,20px)", fontWeight: 300, color: info.color, fontStyle: "italic" }}>
+            {info.label}
+          </div>
+          <div style={{ marginTop: 20, display: "inline-block", background: "rgba(255,255,255,0.07)", borderRadius: 50, padding: "10px 24px" }}>
+            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 22, fontWeight: 700, color: "#fff" }}>{result.total}</span>
+            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, color: "rgba(255,255,255,0.5)", marginLeft: 6 }}>/ 70 баллов</span>
+          </div>
+        </div>
 
-          {/* Описание результата */}
-          <div style={{ background: "#fff", border: "1px solid #ede8df", borderRadius: 14, padding: "18px 20px", marginBottom: 16 }}>
-            <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 400, color: "#444", lineHeight: 1.75, margin: 0 }}>
+        <div style={{ maxWidth: 580, margin: "0 auto", padding: "32px 16px 60px", display: "flex", flexDirection: "column", gap: 16 }}>
+
+          {/* Персональный комментарий ИИ */}
+          {result.comment && (
+            <div className="res-card" style={{ animationDelay: "0.05s", background: "rgba(201,169,110,0.08)", border: "1px solid rgba(201,169,110,0.3)", borderRadius: 16, padding: "20px 20px" }}>
+              <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, color: "#a8834a", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 10 }}>Личный комментарий</div>
+              <p style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(16px,3vw,19px)", fontWeight: 400, color: "#1a1a1a", lineHeight: 1.65, margin: 0, fontStyle: "italic" }}>«{result.comment}»</p>
+            </div>
+          )}
+
+          {/* Что вы показали */}
+          <div className="res-card" style={{ animationDelay: "0.1s", background: "#fff", border: "1px solid #ede8df", borderRadius: 16, padding: "20px 20px" }}>
+            <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 400, color: "#444", lineHeight: 1.8, margin: 0 }}>
               {info.message}
             </p>
           </div>
 
-          {/* Комментарий ИИ */}
-          {result.comment && (
-            <div style={{ background: "rgba(201,169,110,0.08)", border: "1px solid rgba(201,169,110,0.25)", borderRadius: 14, padding: "16px 18px", marginBottom: 16 }}>
-              <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, color: "#a8834a", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 8 }}>Комментарий</div>
-              <p style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(15px,3vw,18px)", fontWeight: 400, color: "#1a1a1a", lineHeight: 1.6, margin: 0, fontStyle: "italic" }}>«{result.comment}»</p>
-            </div>
-          )}
-
           {/* Баллы по критериям */}
-          <div style={{ background: "#fff", border: "1px solid #ede8df", borderRadius: 14, padding: "18px 20px", marginBottom: 24 }}>
-            <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, color: "#888", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 14 }}>Оценка по критериям</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div className="res-card" style={{ animationDelay: "0.15s", background: "#fff", border: "1px solid #ede8df", borderRadius: 16, padding: "20px 20px" }}>
+            <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 16 }}>Оценка по критериям</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
               {Object.entries(result.scores).map(([key, val]) => (
                 <div key={key}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 400, color: "#444" }}>{SCORE_LABELS[key] || key}</span>
-                    <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>{val}/10</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                    <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#555" }}>{SCORE_LABELS[key] || key}</span>
+                    <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>{val}<span style={{ fontWeight: 400, color: "#bbb" }}>/10</span></span>
                   </div>
-                  <div style={{ height: 4, background: "#f0ebe2", borderRadius: 4 }}>
-                    <div style={{ height: "100%", width: `${(val / 10) * 100}%`, background: "linear-gradient(to right, #c9a96e, #a8834a)", borderRadius: 4, transition: "width 0.8s" }} />
+                  <div style={{ height: 5, background: "#f0ebe2", borderRadius: 4 }}>
+                    <div style={{ height: "100%", width: `${(val / 10) * 100}%`, background: val >= 7 ? "linear-gradient(to right,#4a7c59,#6aac7a)" : val >= 5 ? "linear-gradient(to right,#c9a96e,#a8834a)" : "linear-gradient(to right,#bbb,#999)", borderRadius: 4, transition: "width 1s ease" }} />
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Кнопки */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <a href={info.btnHref} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, background: "linear-gradient(135deg, #c9a96e, #a8834a)", color: "#fff", border: "none", borderRadius: 50, padding: "15px 32px", fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: "1px", cursor: "pointer", textTransform: "uppercase", textDecoration: "none", boxShadow: "0 8px 28px rgba(201,169,110,0.35)", textAlign: "center" }}>
-              {info.btnLabel}
+          {/* Что стоит между вами и целью */}
+          <div className="res-card" style={{ animationDelay: "0.2s", background: "#1a1a1a", borderRadius: 16, padding: "24px 20px" }}>
+            <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, color: "#c9a96e", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 12 }}>{info.gapTitle}</div>
+            <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 400, color: "rgba(255,255,255,0.82)", lineHeight: 1.8, margin: 0 }}>
+              {info.gapText}
+            </p>
+          </div>
+
+          {/* Следующий шаг */}
+          <div className="res-card" style={{ animationDelay: "0.25s", background: `${info.bg}`, border: `1px solid ${info.borderColor}`, borderRadius: 16, padding: "20px 20px" }}>
+            <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, color: info.color, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 10 }}>{info.nextTitle}</div>
+            <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 400, color: "#444", lineHeight: 1.8, margin: "0 0 18px" }}>
+              {info.nextText}
+            </p>
+            <a href={info.btnHref} style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#c9a96e,#a8834a)", color: "#fff", textDecoration: "none", borderRadius: 50, padding: "15px 28px", fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", boxShadow: "0 6px 24px rgba(201,169,110,0.35)", textAlign: "center" }}>
+              {info.btnLabel} →
             </a>
-            <button onClick={() => { clearState(); onBack(); }} style={{ background: "none", border: "1px solid #e0d8cc", borderRadius: 50, padding: "12px 28px", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#888", cursor: "pointer", width: "100%" }}>
+          </div>
+
+          {/* Сноска */}
+          <div className="res-card" style={{ animationDelay: "0.3s", textAlign: "center" }}>
+            <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, color: "#bbb", lineHeight: 1.6, margin: "0 0 16px" }}>
+              Результат сохранён и будет доступен при следующем визите в течение 7 дней.
+            </p>
+            <button onClick={() => { clearResult(); clearState(); onBack(); }} style={{ background: "none", border: "1px solid #e0d8cc", borderRadius: 50, padding: "11px 24px", fontFamily: "'Montserrat',sans-serif", fontSize: 12, color: "#aaa", cursor: "pointer" }}>
               Вернуться на страницу
             </button>
           </div>
+
         </div>
       </div>
     );

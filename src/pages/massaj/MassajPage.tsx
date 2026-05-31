@@ -4,6 +4,7 @@ import DokFooter from "@/components/DokFooter";
 import MassajInterview from "./MassajInterview";
 
 const STORAGE_KEY = "massaj_interview_state_v2";
+const RESULT_KEY = "massaj_interview_result_v2";
 
 function hasSavedProgress(): boolean {
   try {
@@ -15,16 +16,28 @@ function hasSavedProgress(): boolean {
   } catch { return false; }
 }
 
+function hasSavedResult(): boolean {
+  try {
+    const r = localStorage.getItem(RESULT_KEY);
+    if (!r) return false;
+    const parsed = JSON.parse(r);
+    if (parsed._savedAt && Date.now() - parsed._savedAt > 7 * 86400000) return false;
+    return !!parsed.result;
+  } catch { return false; }
+}
+
 export default function MassajPage() {
   const [showInterview, setShowInterview] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
+  const [hasResult, setHasResult] = useState(false);
 
   useEffect(() => {
     setHasSaved(hasSavedProgress());
+    setHasResult(hasSavedResult());
   }, []);
 
   if (showInterview) {
-    return <MassajInterview onBack={() => { setShowInterview(false); setHasSaved(false); }} />;
+    return <MassajInterview onBack={() => { setShowInterview(false); setHasSaved(false); setHasResult(hasSavedResult()); }} />;
   }
 
   return (
@@ -95,8 +108,22 @@ export default function MassajPage() {
             Чтобы попасть в список рекомендованных специалистов, нужно пройти короткое профессиональное интервью. По итогам мы оценим вашу готовность и дадим обратную связь.
           </p>
 
-          {hasSaved && (
-            <div style={{ marginBottom: 20, background: "rgba(74,124,89,0.1)", border: "1px solid rgba(74,124,89,0.3)", borderRadius: 14, padding: "16px 20px", maxWidth: 420, margin: "0 auto 20px", textAlign: "center" }}>
+          {hasResult && (
+            <div style={{ background: "rgba(201,169,110,0.1)", border: "1px solid rgba(201,169,110,0.35)", borderRadius: 14, padding: "18px 20px", maxWidth: 420, margin: "0 auto 20px", textAlign: "center" }}>
+              <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 700, color: "#a8834a", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 8 }}>
+                Ваш результат готов
+              </div>
+              <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#664d1e", marginBottom: 12, lineHeight: 1.5 }}>
+                Вы уже проходили интервью. Результат сохранён и ждёт вас.
+              </div>
+              <button onClick={() => setShowInterview(true)} style={{ background: "linear-gradient(135deg,#c9a96e,#a8834a)", color: "#fff", border: "none", borderRadius: 50, padding: "11px 28px", fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 600, cursor: "pointer", letterSpacing: "0.5px", boxShadow: "0 4px 16px rgba(201,169,110,0.35)" }}>
+                Посмотреть результат →
+              </button>
+            </div>
+          )}
+
+          {hasSaved && !hasResult && (
+            <div style={{ background: "rgba(74,124,89,0.08)", border: "1px solid rgba(74,124,89,0.25)", borderRadius: 14, padding: "16px 20px", maxWidth: 420, margin: "0 auto 20px", textAlign: "center" }}>
               <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 600, color: "#3a6b4a", marginBottom: 10 }}>
                 У вас есть незавершённое интервью
               </div>
@@ -106,16 +133,18 @@ export default function MassajPage() {
             </div>
           )}
 
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <button className="mj-btn" onClick={() => {
-              if (hasSaved) { try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ } }
-              setShowInterview(true);
-            }}>
-              {hasSaved ? "Начать заново" : "Пройти интервью"}
-            </button>
-          </div>
+          {!hasResult && (
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <button className="mj-btn" onClick={() => {
+                if (hasSaved) { try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ } }
+                setShowInterview(true);
+              }}>
+                {hasSaved ? "Начать заново" : "Пройти интервью"}
+              </button>
+            </div>
+          )}
 
-          <div style={{ marginTop: 24, background: "rgba(201,169,110,0.08)", border: "1px solid rgba(201,169,110,0.2)", borderRadius: 12, padding: "14px 20px", maxWidth: 420, margin: "24px auto 0" }}>
+          <div style={{ marginTop: 20, background: "rgba(201,169,110,0.08)", border: "1px solid rgba(201,169,110,0.2)", borderRadius: 12, padding: "14px 20px", maxWidth: 420, margin: "20px auto 0" }}>
             <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 500, color: "#8a6830", lineHeight: 1.7, margin: 0 }}>
               Интервью занимает около 15 минут. Результат — сразу по окончании.
             </p>
