@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useLocation } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
 const ACCENT = "hsl(185,85%,32%)";
@@ -40,7 +39,7 @@ function getSavedUser() {
 const INTERVIEW_ROUTES = ["/massaj", "/job"];
 
 export default function ChatWidget() {
-  const { pathname } = useLocation();
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "/";
   const saved = getSavedUser();
   const [open, setOpen] = useState(false);
   // "form" — экран ввода имени/email, "chat" — чат
