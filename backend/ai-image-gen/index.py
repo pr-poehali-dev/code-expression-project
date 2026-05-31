@@ -23,11 +23,17 @@ CORS = {
     "Access-Control-Allow-Headers": "Content-Type, X-Session-Id",
 }
 
-ASPECT_ALLOWED = {"1:1", "2:3", "3:2"}
-ASPECT_MAP = {
+# Для gpt-image-1.5: aspect_ratio
+ASPECT_MAP_GPT15 = {
     "1024x1024": "1:1",
     "1024x1792": "2:3",
     "1792x1024": "3:2",
+}
+# Для dall-e-3: size в пикселях
+ASPECT_MAP_DALLE = {
+    "1024x1024": "1024x1024",
+    "1024x1792": "1024x1792",
+    "1792x1024": "1792x1024",
 }
 
 
@@ -108,11 +114,12 @@ def handler(event: dict, context) -> dict:
         if len(prompt) > 5000:
             return err("Промпт слишком длинный (максимум 5000 символов)")
 
-        # Размер: принимаем и формат 1024x1024, и 1:1
         aspect_raw = body.get("aspect_ratio", "1024x1024")
-        aspect = ASPECT_MAP.get(aspect_raw, aspect_raw)
-        if aspect not in ASPECT_ALLOWED:
-            aspect = "1:1"
+        # Нормализуем к формату 1024x1024
+        if aspect_raw not in ASPECT_MAP_DALLE:
+            aspect_raw = "1024x1024"
+        aspect_dalle = ASPECT_MAP_DALLE[aspect_raw]
+        aspect_gpt15 = ASPECT_MAP_GPT15[aspect_raw]
 
         max_images = int(body.get("max_images", 1))
         if max_images < 1: max_images = 1
@@ -136,94 +143,64 @@ def handler(event: dict, context) -> dict:
                 if ctx_parts:
                     final_prompt = f"{prompt}\n\nКонтекст: {'. '.join(ctx_parts)}"
 
-        # Запрос к polza.ai
         api_key = os.environ.get("POLZA_AI_API_KEY", "")
         if not api_key:
             return err("API ключ не настроен. Обратитесь к администратору.", 500)
 
-        payload = json.dumps({
-            "model": "openai/gpt-image-1.5",
-            "input": {
-                "prompt": final_prompt,
-                "aspect_ratio": aspect,
-                "max_images": max_images,
-            }
-        }).encode("utf-8")
+        conn.close()
 
-        req = urllib.request.Request(
-            "https://polza.ai/api/v1/media",
-            data=payload,
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-            method="POST",
-        )
-
-        def call_polza(payload_bytes):
+        def call_model(model, input_body, timeout=90):
+            payload = json.dumps({"model": model, "input": input_body}).encode("utf-8")
             r = urllib.request.Request(
                 "https://polza.ai/api/v1/media",
-                data=payload_bytes,
+                data=payload,
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
                 method="POST",
             )
-            with urllib.request.urlopen(r, timeout=110) as resp:
+            with urllib.request.urlopen(r, timeout=timeout) as resp:
                 raw = resp.read().decode("utf-8")
-                print(f"[polza.ai] body_preview={raw[:300]}")
+                print(f"[polza.ai][{model}] {raw[:300]}")
                 return json.loads(raw)
 
-        # polza.ai возвращает 1 изображение за запрос — делаем max_images запросов
-        images_out = []
-        single_payload = json.dumps({
-            "model": "openai/gpt-image-1.5",
-            "input": {"prompt": final_prompt, "aspect_ratio": aspect, "max_images": 1},
-        }).encode("utf-8")
+        def extract_url(result):
+            for item in (result.get("data") or result.get("images") or []):
+                if isinstance(item, dict):
+                    if item.get("url"):
+                        return item["url"]
+                    b64 = item.get("b64_json") or item.get("base64") or ""
+                    if b64:
+                        return upload_to_s3(b64, "png", user["id"])
+            return None
 
-        user_id = user["id"]
-        conn.close()  # закрываем до долгих запросов — переоткроем после каждого
+        # Пробуем dall-e-3 (быстрее) → fallback gpt-image-1.5
+        image_url = None
+        last_error = ""
 
-        for i in range(max_images):
+        for model, input_body, tmt in [
+            ("openai/dall-e-3",    {"prompt": final_prompt, "size": aspect_dalle, "quality": "standard"}, 60),
+            ("openai/gpt-image-1", {"prompt": final_prompt, "size": aspect_dalle}, 90),
+            ("openai/gpt-image-1.5", {"prompt": final_prompt, "aspect_ratio": aspect_gpt15, "max_images": 1}, 90),
+        ]:
             try:
-                result = call_polza(single_payload)
-                raw_images = result.get("data") or result.get("images") or []
-                for img in raw_images:
-                    url = img.get("url", "") if isinstance(img, dict) else ""
-                    b64 = (img.get("b64_json") or img.get("base64") or "") if isinstance(img, dict) else img
-                    if b64 and not url:
-                        url = upload_to_s3(b64, "png", user_id)
-                    if url:
-                        images_out.append({"url": url})
-                        # Сохраняем сразу — новое соединение на каждую запись
-                        try:
-                            c = get_db()
-                            cur = c.cursor()
-                            cur.execute(
-                                f"INSERT INTO {SCHEMA}.ai_generated_images (user_id, url, prompt, aspect_ratio) VALUES (%s, %s, %s, %s)",
-                                (user_id, url, prompt[:500], aspect)
-                            )
-                            c.commit()
-                            c.close()
-                        except Exception as db_err:
-                            print(f"[db] save error: {db_err}")
+                result = call_model(model, input_body, tmt)
+                image_url = extract_url(result)
+                if image_url:
+                    print(f"[polza.ai] success with {model}")
+                    break
             except urllib.error.HTTPError as e:
-                error_body = e.read().decode("utf-8", errors="ignore")
-                print(f"[polza.ai] HTTPError {e.code}: {error_body[:300]}")
-                if not images_out:
-                    return err(f"Ошибка генерации: {e.code}. {error_body[:200]}", 502)
-                break
+                body = e.read().decode("utf-8", errors="ignore")
+                print(f"[polza.ai][{model}] HTTP {e.code}: {body[:200]}")
+                last_error = f"{e.code}: {body[:150]}"
             except Exception as e:
-                msg = str(e)
-                print(f"[polza.ai] Exception: {msg}")
-                if not images_out:
-                    if "timed out" in msg.lower() or "timeout" in msg.lower():
-                        return err("Сервис не ответил за 110 секунд. Попробуйте ещё раз.", 504)
-                    return err(f"Ошибка соединения: {msg}", 502)
-                break
+                print(f"[polza.ai][{model}] err: {e}")
+                last_error = str(e)
 
-        if not images_out:
-            return err("Сервис не вернул изображений. Попробуйте ещё раз.", 502)
+        if not image_url:
+            if "timed out" in last_error.lower() or "timeout" in last_error.lower():
+                return err("Сервис генерации перегружен. Попробуйте через минуту.", 504)
+            return err(f"Не удалось сгенерировать изображение. {last_error[:100]}", 502)
 
-        return ok({"images": images_out, "prompt_used": final_prompt})
+        return ok({"images": [{"url": image_url}], "prompt_used": final_prompt})
 
     finally:
         try:
