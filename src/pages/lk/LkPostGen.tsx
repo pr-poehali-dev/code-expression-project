@@ -54,7 +54,7 @@ export default function LkPostGen() {
     if (!topic.trim()) { setError("Введите тему поста"); return; }
     setLoading(true); setError("");
     try {
-      const res = await fetch(`${POST_GEN_URL}?action=titles`, {
+      const res = await fetch(`${POST_GEN_URL}?action=post_titles`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
         body: JSON.stringify({ topic, goal, tone }),
@@ -72,7 +72,7 @@ export default function LkPostGen() {
     setSelectedTitle(title);
     setLoading(true); setError(""); setPostText(""); setImageUrl(null);
     try {
-      const res = await fetch(`${POST_GEN_URL}?action=text`, {
+      const res = await fetch(`${POST_GEN_URL}?action=post_text`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
         body: JSON.stringify({ title, topic, goal, tone }),
