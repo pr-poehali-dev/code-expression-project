@@ -1,0 +1,7 @@
+{
+  "tests": [
+    {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+    {"name": "titles без сессии — 401", "method": "POST", "path": "/?action=titles", "body": {"topic": "маникюр"}, "expectedStatus": 401},
+    {"name": "text без сессии — 401", "method": "POST", "path": "/?action=text", "body": {"title": "Тест"}, "expectedStatus": 401}
+  ]
+}

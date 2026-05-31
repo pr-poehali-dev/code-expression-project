@@ -2,6 +2,7 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import LkAiImageGen from "./LkAiImageGen";
 import LkSalonAudit from "./LkSalonAudit";
+import LkPostGen from "./LkPostGen";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -79,7 +80,7 @@ function ComingSoonCard({ icon, color, bg, title, description }: ComingSoonCardP
   );
 }
 
-type Tool = "image-gen" | "salon-audit" | null;
+type Tool = "image-gen" | "salon-audit" | "post-gen" | null;
 
 export default function LkAiTools() {
   const [activeTool, setActiveTool] = useState<Tool>(null);
@@ -102,6 +103,10 @@ export default function LkAiTools() {
 
   if (activeTool === "salon-audit") {
     return <div><BackButton /><LkSalonAudit /></div>;
+  }
+
+  if (activeTool === "post-gen") {
+    return <div><BackButton /><LkPostGen /></div>;
   }
 
   return (
@@ -136,12 +141,14 @@ export default function LkAiTools() {
         />
 
         {/* Скоро */}
-        <ComingSoonCard
+        <ToolCard
           icon="FileText"
           color="hsl(210,80%,50%)"
           bg="hsl(210,80%,96%)"
-          title="Генерация текста для постов"
-          description="Напишите тему — ИИ создаст готовый пост для Instagram или ВКонтакте в стиле вашего салона."
+          title="Генератор постов"
+          description="Тема → 5 заголовков на выбор → готовый текст + картинка. Пост за 2 минуты."
+          badge="new"
+          onStart={() => setActiveTool("post-gen")}
         />
 
         <ComingSoonCard

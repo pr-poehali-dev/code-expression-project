@@ -1341,6 +1341,120 @@ def handle_salon_logo_upload(event: dict) -> dict:
 
 # ── Роутер ───────────────────────────────────────────────────────────────────
 
+# ── Генератор постов ─────────────────────────────────────────────────────────
+
+def _call_ai_text(messages: list, max_tokens: int = 800) -> str:
+    import urllib.request as urlreq
+    api_key = os.environ.get("POLZA_AI_API_KEY", "")
+    if not api_key:
+        raise ValueError("POLZA_AI_API_KEY не задан")
+    payload = json.dumps({"model": "openai/gpt-4.1-mini", "messages": messages, "temperature": 0.85, "max_tokens": max_tokens}).encode("utf-8")
+    req = urlreq.Request("https://polza.ai/api/v1/chat/completions", data=payload, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, method="POST")
+    with urlreq.urlopen(req, timeout=60) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+    return data["choices"][0]["message"]["content"].strip()
+
+
+def _get_salon_ctx(user: dict, conn, fields=("name","target_audience","description","tone_of_voice","main_goal")) -> dict | None:
+    if not user.get("salon_id"):
+        return None
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT {','.join(fields)} FROM {tbl('salons')} WHERE id=%s", (user["salon_id"],))
+    return cur.fetchone()
+
+
+def handle_post_titles(event: dict) -> dict:
+    """Генерирует 5 заголовков поста по теме, цели и тону."""
+    body  = json.loads(event.get("body") or "{}")
+    topic = (body.get("topic") or "").strip()
+    goal  = (body.get("goal")  or "").strip()
+    tone  = (body.get("tone")  or "").strip()
+    if not topic:
+        return err("Укажите тему поста")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _get_salon_ctx(user, conn, ("name","target_audience","description"))
+        salon_ctx = ""
+        if salon:
+            parts = [p for p in [
+                f"Салон: {salon['name']}" if salon.get("name") else "",
+                f"Аудитория: {salon['target_audience']}" if salon.get("target_audience") else "",
+                f"О салоне: {salon['description']}" if salon.get("description") else "",
+            ] if p]
+            salon_ctx = "\n".join(parts)
+        prompt = (
+            f"Ты — копирайтер для салона красоты. Придумай 5 цепляющих заголовков для поста.\n\n"
+            f"Тема: {topic}\n"
+            + (f"Цель поста: {goal}\n" if goal else "")
+            + (f"Тон: {tone}\n" if tone else "")
+            + (f"Контекст салона:\n{salon_ctx}\n" if salon_ctx else "")
+            + "\nТребования:\n- До 10 слов\n- Разные по подаче (вопрос, факт, обещание, интрига, польза)\n- Без хэштегов\n- На русском языке\n\n"
+            "Верни ТОЛЬКО список из 5 заголовков:\n1. ...\n2. ...\n3. ...\n4. ...\n5. ..."
+        )
+        content = _call_ai_text([
+            {"role": "system", "content": "Ты профессиональный копирайтер для бьюти-бизнеса."},
+            {"role": "user", "content": prompt}
+        ], max_tokens=400)
+        import re
+        titles = []
+        for line in content.split("\n"):
+            line = re.sub(r"^\d+[\.\)]\s*", "", line.strip())
+            line = re.sub(r"^[-–]\s*", "", line)
+            if line:
+                titles.append(line)
+        return ok({"titles": titles[:5]})
+    finally:
+        conn.close()
+
+
+def handle_post_text(event: dict) -> dict:
+    """Генерирует текст поста по выбранному заголовку."""
+    body  = json.loads(event.get("body") or "{}")
+    title = (body.get("title") or "").strip()
+    topic = (body.get("topic") or "").strip()
+    goal  = (body.get("goal")  or "").strip()
+    tone  = (body.get("tone")  or "").strip()
+    if not title:
+        return err("Заголовок не передан")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _get_salon_ctx(user, conn, ("name","target_audience","tone_of_voice","main_goal"))
+        salon_ctx = ""
+        if salon:
+            parts = [p for p in [
+                f"Салон: {salon['name']}" if salon.get("name") else "",
+                f"Аудитория: {salon['target_audience']}" if salon.get("target_audience") else "",
+                f"Стиль: {salon['tone_of_voice']}" if salon.get("tone_of_voice") else "",
+                f"Цель бизнеса: {salon['main_goal']}" if salon.get("main_goal") else "",
+            ] if p]
+            salon_ctx = "\n".join(parts)
+        prompt = (
+            f"Напиши текст поста для социальной сети салона красоты.\n\n"
+            f"Заголовок: {title}\n"
+            + (f"Тема: {topic}\n" if topic else "")
+            + (f"Цель поста: {goal}\n" if goal else "")
+            + (f"Тон: {tone}\n" if tone else "")
+            + (f"Контекст салона:\n{salon_ctx}\n" if salon_ctx else "")
+            + "\nСтруктура: заголовок → 2-3 абзаца → призыв → хэштеги.\n"
+            "Требования: живой язык, без клише, эмодзи умеренно, 150-250 слов, хэштеги отдельной строкой."
+        )
+        content = _call_ai_text([
+            {"role": "system", "content": "Ты SMM-копирайтер для бьюти-бизнеса. Пишешь живые тексты."},
+            {"role": "user", "content": prompt}
+        ], max_tokens=800)
+        salon_name = salon["name"] if salon and salon.get("name") else ""
+        image_prompt = f"Красивое фото для поста салона красоты. Тема: {title}.{' Салон: ' + salon_name + '.' if salon_name else ''} Стиль: светлый, эстетичный. Вертикальный формат."
+        return ok({"text": content, "image_prompt": image_prompt})
+    finally:
+        conn.close()
+
+
 ROUTES = {
     ("POST", "login"): handle_login,
     ("POST", "logout"): handle_logout,
@@ -1385,6 +1499,8 @@ ROUTES = {
     ("POST", "audit_save"): handle_audit_save,
     ("GET",  "audit_history"): handle_audit_history,
     ("GET",  "audit_get"): handle_audit_get,
+    ("POST", "post_titles"): handle_post_titles,
+    ("POST", "post_text"): handle_post_text,
 }
 
 
