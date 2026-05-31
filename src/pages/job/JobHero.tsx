@@ -35,10 +35,26 @@ export default function JobHero({ onApply }: { onApply: () => void }) {
         </p>
 
         <button className="job-btn-gold" onClick={onApply}>
-          Пройти тест
+          Пройти интервью
         </button>
 
-        <div style={{ marginTop: 48, display: "flex", justifyContent: "center", gap: "clamp(20px,5vw,40px)", flexWrap: "wrap" }}>
+        <div style={{
+          marginTop: 28, marginBottom: 12,
+          display: "inline-block",
+          background: "rgba(201,169,110,0.08)",
+          border: "1px solid rgba(201,169,110,0.2)",
+          borderRadius: 12,
+          padding: "14px 20px",
+          maxWidth: 480,
+          width: "100%",
+        }}>
+          <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 300, color: "#a8834a", lineHeight: 1.7, margin: 0 }}>
+            Мы ценим ваше и своё время — результат придёт сразу после интервью.
+            Если вы подходите, менеджер свяжется с вами в ближайшее время для следующего шага.
+          </p>
+        </div>
+
+        <div style={{ marginTop: 24, display: "flex", justifyContent: "center", gap: "clamp(20px,5vw,40px)", flexWrap: "wrap" }}>
           {[
             { num: "Удалённо", label: "Свободный график" },
             { num: "Премиум", label: "Ниша красоты и wellness" },
