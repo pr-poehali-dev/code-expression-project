@@ -143,57 +143,55 @@ def handler(event: dict, context) -> dict:
                 if ctx_parts:
                     final_prompt = f"{prompt}\n\nКонтекст: {'. '.join(ctx_parts)}"
 
-        openai_key = os.environ.get("OPENAI_API_KEY", "")
-        if not openai_key:
+        api_key = os.environ.get("POLZA_AI_API_KEY", "")
+        if not api_key:
             return err("API ключ не настроен.", 500)
 
         conn.close()
 
-        # OpenAI Images API — gpt-image-1, возвращает b64_json
         payload = json.dumps({
-            "model": "gpt-image-1",
-            "prompt": final_prompt,
-            "size": aspect_dalle,
-            "n": 1,
+            "model": "openai/gpt-image-1.5",
+            "input": {
+                "prompt": final_prompt,
+                "aspect_ratio": aspect_gpt15,
+                "max_images": 1,
+            }
         }).encode("utf-8")
 
         req = urllib.request.Request(
-            "https://api.openai.com/v1/images/generations",
+            "https://polza.ai/api/v1/media",
             data=payload,
-            headers={
-                "Authorization": f"Bearer {openai_key}",
-                "Content-Type": "application/json",
-            },
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
             method="POST",
         )
 
         try:
             with urllib.request.urlopen(req, timeout=110) as resp:
                 raw = resp.read().decode("utf-8")
-                print(f"[openai] {raw[:200]}")
+                print(f"[polza.ai] {raw[:300]}")
                 result = json.loads(raw)
         except urllib.error.HTTPError as e:
             body = e.read().decode("utf-8", errors="ignore")
-            print(f"[openai] HTTP {e.code}: {body[:300]}")
-            return err(f"Ошибка генерации: {body[:200]}", 502)
+            print(f"[polza.ai] HTTP {e.code}: {body[:300]}")
+            return err(f"Ошибка сервиса генерации: {body[:150]}", 502)
         except Exception as e:
             msg = str(e)
-            print(f"[openai] err: {msg}")
+            print(f"[polza.ai] err: {msg}")
             if "timed out" in msg.lower() or "timeout" in msg.lower():
-                return err("Сервис не ответил. Попробуйте ещё раз.", 504)
-            return err(f"Ошибка: {msg}", 502)
+                return err("Сервис сейчас перегружен — попробуйте ещё раз через 1-2 минуты.", 504)
+            return err(f"Ошибка соединения: {msg}", 502)
 
-        # Извлекаем b64 → загружаем в S3 → возвращаем CDN URL
         image_url = None
-        for item in (result.get("data") or []):
-            b64 = item.get("b64_json", "")
-            url = item.get("url", "")
-            if b64:
-                image_url = upload_to_s3(b64, "png", user["id"])
-                break
-            elif url:
-                image_url = url
-                break
+        for item in (result.get("data") or result.get("images") or []):
+            if isinstance(item, dict):
+                url = item.get("url", "")
+                b64 = item.get("b64_json") or item.get("base64") or ""
+                if url:
+                    image_url = url
+                    break
+                if b64:
+                    image_url = upload_to_s3(b64, "png", user["id"])
+                    break
 
         if not image_url:
             return err("Сервис не вернул изображение. Попробуйте ещё раз.", 502)
