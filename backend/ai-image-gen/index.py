@@ -172,13 +172,14 @@ def handler(event: dict, context) -> dict:
                         return upload_to_s3(b64, "png", user["id"])
             return None
 
-        # Пробуем dall-e-3 (быстрее) → fallback gpt-image-1.5
+        # Перебираем варианты: dall-e-3 с разными quality → gpt-image-1.5
         image_url = None
         last_error = ""
 
         for model, input_body, tmt in [
-            ("openai/dall-e-3",    {"prompt": final_prompt, "size": aspect_dalle, "quality": "standard"}, 60),
-            ("openai/gpt-image-1", {"prompt": final_prompt, "size": aspect_dalle}, 90),
+            ("openai/dall-e-3", {"prompt": final_prompt, "size": aspect_dalle, "quality": "high"},   60),
+            ("openai/dall-e-3", {"prompt": final_prompt, "size": aspect_dalle, "quality": "medium"}, 60),
+            ("openai/dall-e-3", {"prompt": final_prompt, "size": aspect_dalle, "quality": "basic"},  60),
             ("openai/gpt-image-1.5", {"prompt": final_prompt, "aspect_ratio": aspect_gpt15, "max_images": 1}, 90),
         ]:
             try:
