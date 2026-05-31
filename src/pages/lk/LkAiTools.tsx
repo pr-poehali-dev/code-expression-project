@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import LkAiImageGen from "./LkAiImageGen";
 import LkSalonAudit from "./LkSalonAudit";
 import LkPostGen from "./LkPostGen";
+import LkReelScript from "./LkReelScript";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -80,7 +81,7 @@ function ComingSoonCard({ icon, color, bg, title, description }: ComingSoonCardP
   );
 }
 
-type Tool = "image-gen" | "salon-audit" | "post-gen" | null;
+type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | null;
 
 export default function LkAiTools() {
   const [activeTool, setActiveTool] = useState<Tool>(null);
@@ -107,6 +108,10 @@ export default function LkAiTools() {
 
   if (activeTool === "post-gen") {
     return <div><BackButton /><LkPostGen /></div>;
+  }
+
+  if (activeTool === "reel-script") {
+    return <div><BackButton /><LkReelScript /></div>;
   }
 
   return (
@@ -169,12 +174,14 @@ export default function LkAiTools() {
           onStart={() => setActiveTool("salon-audit")}
         />
 
-        <ComingSoonCard
+        <ToolCard
           icon="Video"
           color="hsl(335,80%,50%)"
           bg="hsl(335,80%,97%)"
           title="Сценарий для рилса"
-          description="Готовый сценарий короткого видео под вашу услугу, аудиторию и задачу продвижения."
+          description="Идея → покадровый сценарий + обложка. Снимаете сами по готовой инструкции."
+          badge="new"
+          onStart={() => setActiveTool("reel-script")}
         />
 
         <ComingSoonCard

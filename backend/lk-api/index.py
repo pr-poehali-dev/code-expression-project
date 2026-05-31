@@ -1363,6 +1363,136 @@ def _get_salon_ctx(user: dict, conn, fields=("name","target_audience","descripti
     return cur.fetchone()
 
 
+# ── Сценарий для рилса ───────────────────────────────────────────────────────
+
+def handle_reel_ideas(event: dict) -> dict:
+    """Генерирует 5 идей для рилса по теме, цели и тону."""
+    body    = json.loads(event.get("body") or "{}")
+    service = (body.get("service") or "").strip()
+    goal    = (body.get("goal")    or "").strip()
+    tone    = (body.get("tone")    or "").strip()
+    if not service:
+        return err("Укажите услугу или тему")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _get_salon_ctx(user, conn, ("name", "target_audience", "description"))
+        salon_ctx = ""
+        if salon:
+            parts = [p for p in [
+                f"Салон: {salon['name']}" if salon.get("name") else "",
+                f"Аудитория: {salon['target_audience']}" if salon.get("target_audience") else "",
+            ] if p]
+            salon_ctx = "\n".join(parts)
+        prompt = (
+            f"Ты — SMM-специалист для салона красоты. Придумай 5 идей для короткого рилса (15–60 сек).\n\n"
+            f"Услуга/тема: {service}\n"
+            + (f"Цель рилса: {goal}\n" if goal else "")
+            + (f"Стиль: {tone}\n" if tone else "")
+            + (f"Контекст салона:\n{salon_ctx}\n" if salon_ctx else "")
+            + "\nКаждая идея — это 1 строка: цепляющий заголовок + в скобках краткая суть (что происходит в видео).\n"
+            "Примеры формата:\n"
+            "Почему маникюр облетает за 3 дня (показываем 3 главные ошибки при уходе)\n"
+            "До/после: реальное преображение за 60 минут (тайм-лапс процедуры)\n\n"
+            "Верни ТОЛЬКО пронумерованный список из 5 идей, без пояснений:\n1. ...\n2. ...\n3. ...\n4. ...\n5. ..."
+        )
+        content = _call_ai_text([
+            {"role": "system", "content": "Ты SMM-специалист для бьюти-бизнеса. Придумываешь вирусные идеи для коротких видео."},
+            {"role": "user", "content": prompt}
+        ], max_tokens=400)
+        import re
+        ideas = []
+        for line in content.split("\n"):
+            line = re.sub(r"^\d+[\.\)]\s*", "", line.strip())
+            line = re.sub(r"^[-–]\s*", "", line)
+            if line:
+                ideas.append(line)
+        return ok({"ideas": ideas[:5]})
+    finally:
+        conn.close()
+
+
+def handle_reel_script(event: dict) -> dict:
+    """Генерирует полный сценарий рилса по выбранной идее."""
+    body    = json.loads(event.get("body") or "{}")
+    idea    = (body.get("idea")    or "").strip()
+    service = (body.get("service") or "").strip()
+    goal    = (body.get("goal")    or "").strip()
+    tone    = (body.get("tone")    or "").strip()
+    if not idea:
+        return err("Идея не передана")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _get_salon_ctx(user, conn, ("name", "target_audience", "tone_of_voice"))
+        salon_ctx = ""
+        if salon:
+            parts = [p for p in [
+                f"Салон: {salon['name']}" if salon.get("name") else "",
+                f"Аудитория: {salon['target_audience']}" if salon.get("target_audience") else "",
+                f"Стиль общения: {salon['tone_of_voice']}" if salon.get("tone_of_voice") else "",
+            ] if p]
+            salon_ctx = "\n".join(parts)
+        prompt = (
+            f"Напиши полный сценарий короткого рилса (15–45 секунд) для салона красоты.\n\n"
+            f"Идея: {idea}\n"
+            + (f"Услуга/тема: {service}\n" if service else "")
+            + (f"Цель: {goal}\n" if goal else "")
+            + (f"Стиль: {tone}\n" if tone else "")
+            + (f"Контекст салона:\n{salon_ctx}\n" if salon_ctx else "")
+            + """
+Структура сценария:
+
+🎬 КРЮЧОК (0–3 сек)
+[Что показываем на экране]
+[Текст/голос]
+
+🎥 КАДР 1 (3–10 сек)
+[Что показываем]
+[Текст/голос]
+
+🎥 КАДР 2 (10–25 сек)
+[Что показываем]
+[Текст/голос]
+
+🎥 КАДР 3 (25–40 сек)
+[Что показываем]
+[Текст/голос]
+
+📌 ФИНАЛ (40–45 сек)
+[Что показываем]
+[Призыв к действию]
+
+🎵 МУЗЫКА: [рекомендация жанра/настроения]
+📝 ОПИСАНИЕ ПОД ВИДЕО: [готовый текст 2-3 предложения + хэштеги]
+
+Требования:
+- Каждый кадр — конкретная инструкция оператору
+- Текст/голос — дословно что говорить или показывать титром
+- Живо, без канцелярита
+- На русском языке"""
+        )
+        content = _call_ai_text([
+            {"role": "system", "content": "Ты режиссёр коротких вертикальных видео для бьюти-бизнеса. Пишешь конкретные покадровые сценарии."},
+            {"role": "user", "content": prompt}
+        ], max_tokens=1200)
+        # Промпт для превью
+        salon_name = salon["name"] if salon and salon.get("name") else ""
+        image_prompt = (
+            f"Обложка для рилса салона красоты. Тема: {idea}."
+            f"{' Салон: ' + salon_name + '.' if salon_name else ''}"
+            " Стиль: яркий, привлекательный, вертикальный формат 9:16."
+            " Профессиональная фотография, красивое освещение, бьюти-эстетика."
+        )
+        return ok({"script": content, "image_prompt": image_prompt})
+    finally:
+        conn.close()
+
+
 def handle_post_titles(event: dict) -> dict:
     """Генерирует 5 заголовков поста по теме, цели и тону."""
     body  = json.loads(event.get("body") or "{}")
@@ -1501,6 +1631,8 @@ ROUTES = {
     ("GET",  "audit_get"): handle_audit_get,
     ("POST", "post_titles"): handle_post_titles,
     ("POST", "post_text"): handle_post_text,
+    ("POST", "reel_ideas"): handle_reel_ideas,
+    ("POST", "reel_script"): handle_reel_script,
 }
 
 
