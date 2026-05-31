@@ -491,13 +491,30 @@ export default function LkSalonAudit() {
         <div style={{ marginTop: 28, background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "18px 20px" }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 }}>Предыдущие аудиты</div>
           {history.map(h => (
-            <div key={h.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #f5f5f2" }}>
+            <div
+              key={h.id}
+              onClick={async () => {
+                setStep("loading");
+                try {
+                  const r = await fetch(`${LK_URL}?action=audit_get&id=${h.id}`, { headers: { "X-Session-Id": sid() } });
+                  const d = await r.json();
+                  if (d.result) { setResult(d.result); setStep("result"); }
+                  else { setStep("form"); }
+                } catch { setStep("form"); }
+              }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #f5f5f2", cursor: "pointer" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#fafaf8")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+            >
               <div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>{h.score_total} баллов</div>
                 <div style={{ fontSize: 11, color: "#bbb" }}>{new Date(h.created_at).toLocaleDateString("ru-RU")}</div>
               </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: h.score_total >= 70 ? "hsl(145,60%,40%)" : h.score_total >= 40 ? "hsl(40,90%,50%)" : "hsl(0,75%,55%)" }}>
-                {h.score_total >= 70 ? "Хорошо" : h.score_total >= 40 ? "Средне" : "Слабо"}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: h.score_total >= 70 ? "hsl(145,60%,40%)" : h.score_total >= 40 ? "hsl(40,90%,50%)" : "hsl(0,75%,55%)" }}>
+                  {h.score_total >= 70 ? "Хорошо" : h.score_total >= 40 ? "Средне" : "Слабо"}
+                </div>
+                <Icon name="ChevronRight" size={14} style={{ color: "#ccc" }} />
               </div>
             </div>
           ))}
