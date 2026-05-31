@@ -5,6 +5,7 @@ import LkTests from "./LkTests";
 import LkBodyMap from "./LkBodyMap";
 import LkAdmin from "./LkAdmin";
 import LkSalonProfile from "./LkSalonProfile";
+import LkAiImageGen from "./LkAiImageGen";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -33,7 +34,7 @@ const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string }[] = [
   { id: "home",      icon: "Home",          label: "Главная"         },
   { id: "tools",     icon: "Wrench",        label: "Инструменты"     },
   { id: "academy",   icon: "GraduationCap", label: "Академия"        },
-  { id: "ai",        icon: "Sparkles",      label: "ИИ-инструменты", badge: "soon" },
+  { id: "ai",        icon: "Sparkles",      label: "ИИ-инструменты", badge: "new" },
   { id: "shop",      icon: "ShoppingBag",   label: "Магазин"         },
   { id: "employees", icon: "Users",         label: "Сотрудники"      },
   { id: "purchases", icon: "Receipt",       label: "Покупки"         },
@@ -281,7 +282,7 @@ export default function LkDashboard() {
         {tab === "home" && <HomeTab onNav={handleTabChange} role={role} hasSalon={hasSalon} />}
         {tab === "tools" && <LkTests />}
         {tab === "academy" && <ComingSoonTab title="Академия" description="Курсы и обучение для вашей роли. Раздел находится в разработке." icon="GraduationCap" />}
-        {tab === "ai" && <ComingSoonTab title="ИИ-инструменты" description="Генерация постов, рилсов, маркетинговых материалов с учётом профиля вашего салона." icon="Sparkles" />}
+        {tab === "ai" && <LkAiImageGen />}
         {tab === "shop" && <ComingSoonTab title="Магазин" description="Курсы, техники и программы обучения. Скоро откроется." icon="ShoppingBag" />}
         {tab === "employees" && <ComingSoonTab title="Сотрудники" description="Добавление, управление ролями и просмотр прогресса обучения. В разработке." icon="Users" />}
         {tab === "purchases" && <ComingSoonTab title="История покупок" description="Подписки, курсы и дополнительные продукты. Скоро будет доступно." icon="Receipt" />}
