@@ -146,30 +146,30 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
   // ── ФОРМА ──────────────────────────────────────────────────────────
   if (phase === "form") {
     return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f5f0e8,#faf9f6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 16px 40px" }}>
-        <div style={{ maxWidth: 560, width: "100%" }}>
-          <button onClick={() => { clearState(); onBack(); }} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#777", marginBottom: 28, display: "flex", alignItems: "center", gap: 6, padding: 0 }}>
+      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f5f0e8,#faf9f6)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "80px 16px 40px" }}>
+        <div style={{ maxWidth: 520, width: "100%" }}>
+          <button onClick={() => { clearState(); onBack(); }} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#777", marginBottom: 24, display: "flex", alignItems: "center", gap: 6, padding: 0 }}>
             ← Вернуться
           </button>
 
-          <div style={{ display: "inline-block", fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase", color: "#c9a96e", marginBottom: 14 }}>Первый шаг</div>
-          <div style={{ width: 40, height: 1, background: "#c9a96e", marginBottom: 20 }} />
-          <h2 style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(24px,5vw,36px)", fontWeight: 400, margin: "0 0 8px", color: "#1a1a1a" }}>
+          <div style={{ display: "inline-block", fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase", color: "#c9a96e", marginBottom: 12 }}>Первый шаг</div>
+          <div style={{ width: 40, height: 1, background: "#c9a96e", marginBottom: 18 }} />
+          <h2 style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(22px,5vw,34px)", fontWeight: 400, margin: "0 0 8px", color: "#1a1a1a" }}>
             Расскажите о себе
           </h2>
-          <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, color: "#555", marginBottom: 28, fontWeight: 400, lineHeight: 1.6 }}>
+          <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, color: "#555", marginBottom: 24, fontWeight: 400, lineHeight: 1.6 }}>
             После заполнения формы запустится профессиональное интервью с ИИ-ассистентом. Займёт около 15 минут.
           </p>
 
-          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #ede8df", padding: "clamp(20px,4vw,32px)" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }} className="mj-form-grid">
+          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #ede8df", padding: "clamp(18px,4vw,28px)" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 14 }}>
               <div>
                 <label style={lbl}>Имя и фамилия *</label>
                 <input value={applicant.full_name} onChange={e => setApplicant(p => ({ ...p, full_name: e.target.value }))} placeholder="Иванова Мария" style={inp} />
               </div>
               <div>
                 <label style={lbl}>Телефон *</label>
-                <input value={applicant.phone} onChange={e => setApplicant(p => ({ ...p, phone: e.target.value }))} placeholder="+7 900 000 00 00" style={inp} />
+                <input value={applicant.phone} onChange={e => setApplicant(p => ({ ...p, phone: e.target.value }))} placeholder="+7 900 000 00 00" style={inp} inputMode="tel" />
               </div>
               <div>
                 <label style={lbl}>Telegram</label>
@@ -186,7 +186,7 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
             </div>
 
             <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginBottom: 20 }}>
-              <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 2, accentColor: "#c9a96e", width: 16, height: 16, flexShrink: 0, cursor: "pointer" }} />
+              <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 3, accentColor: "#c9a96e", width: 16, height: 16, flexShrink: 0, cursor: "pointer" }} />
               <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 400, color: "#555", lineHeight: 1.6 }}>
                 Я ознакомилась и принимаю{" "}
                 <a href="/privacy" target="_blank" rel="noreferrer" style={{ color: "#c9a96e", textDecoration: "underline" }}>политику конфиденциальности</a>{" "}
@@ -199,13 +199,12 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
             <button
               onClick={startInterview}
               disabled={loading || !agreed}
-              style={{ display: "inline-flex", alignItems: "center", gap: 10, background: agreed ? "linear-gradient(135deg, #c9a96e, #a8834a)" : "#ddd", color: "#fff", border: "none", borderRadius: 50, padding: "16px 40px", fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: "1px", cursor: agreed ? "pointer" : "default", textTransform: "uppercase", width: "100%", justifyContent: "center", transition: "all 0.3s" }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, background: agreed ? "linear-gradient(135deg, #c9a96e, #a8834a)" : "#ddd", color: "#fff", border: "none", borderRadius: 50, padding: "15px 32px", fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: "1px", cursor: agreed ? "pointer" : "default", textTransform: "uppercase", width: "100%", transition: "all 0.3s" }}
             >
               {loading ? "Запускаю интервью..." : "Начать оценку"}
             </button>
           </div>
         </div>
-        <style>{`.mj-form-grid { @media (max-width:480px) { grid-template-columns: 1fr !important; } }`}</style>
       </div>
     );
   }
@@ -213,23 +212,23 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
   // ── ЧАТ ────────────────────────────────────────────────────────────
   if (phase === "chat") {
     return (
-      <div style={{ minHeight: "100vh", background: "#faf9f6", display: "flex", flexDirection: "column" }}>
+      <div style={{ height: "100dvh", background: "#faf9f6", display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* Шапка */}
-        <div style={{ background: "#1a1a1a", padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-          <div style={{ fontFamily: "'Cormorant',serif", fontSize: 18, fontWeight: 400, color: "#fff", flexShrink: 0 }}>
+        <div style={{ background: "#1a1a1a", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexShrink: 0 }}>
+          <div style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(15px,3vw,18px)", fontWeight: 400, color: "#fff", flexShrink: 0 }}>
             Dok <span style={{ color: "#c9a96e" }}>Диалог</span>
-            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.65)", fontWeight: 400, marginLeft: 10 }}>· Оценка специалиста</span>
+            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.55)", fontWeight: 400, marginLeft: 8 }}>· Оценка</span>
           </div>
-          <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.65)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "40%" }}>
+          <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.65)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "45%" }}>
             {applicant.full_name}
           </div>
         </div>
 
         {/* Прогресс */}
-        <div style={{ background: "#1a1a1a", padding: "0 16px 14px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.7)" }}>Прогресс оценки</span>
-            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, color: "#c9a96e" }}>Вопрос {Math.min(step, TOTAL_QUESTIONS)} из {TOTAL_QUESTIONS}</span>
+        <div style={{ background: "#1a1a1a", padding: "0 16px 12px", flexShrink: 0 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.6)" }}>Прогресс оценки</span>
+            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "#c9a96e" }}>Вопрос {Math.min(step, TOTAL_QUESTIONS)} из {TOTAL_QUESTIONS}</span>
           </div>
           <div style={{ height: 3, background: "rgba(255,255,255,0.1)", borderRadius: 2 }}>
             <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(to right,#c9a96e,#a8834a)", borderRadius: 2, transition: "width 0.5s" }} />
@@ -237,37 +236,39 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Сообщения */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 16, maxWidth: 720, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
-          {messages.map((msg, i) => {
-            const isUser = msg.role === "user";
-            return (
-              <div key={i} style={{ display: "flex", flexDirection: isUser ? "row-reverse" : "row", gap: 10, alignItems: "flex-start" }}>
-                <div style={{ width: 32, height: 32, borderRadius: 10, flexShrink: 0, background: isUser ? "linear-gradient(135deg,#c9a96e,#a8834a)" : "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant',serif", fontSize: 13, color: "#fff", fontWeight: 600 }}>
-                  {isUser ? (applicant.full_name[0] || "В") : "Б"}
+        <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 14, WebkitOverflowScrolling: "touch" }}>
+          <div style={{ maxWidth: 680, margin: "0 auto", width: "100%", display: "flex", flexDirection: "column", gap: 14 }}>
+            {messages.map((msg, i) => {
+              const isUser = msg.role === "user";
+              return (
+                <div key={i} style={{ display: "flex", flexDirection: isUser ? "row-reverse" : "row", gap: 8, alignItems: "flex-start" }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 9, flexShrink: 0, background: isUser ? "linear-gradient(135deg,#c9a96e,#a8834a)" : "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant',serif", fontSize: 13, color: "#fff", fontWeight: 600 }}>
+                    {isUser ? (applicant.full_name[0] || "В") : "Б"}
+                  </div>
+                  <div style={{ maxWidth: "85%", padding: "11px 14px", background: isUser ? "linear-gradient(135deg,#c9a96e,#a8834a)" : "#fff", color: isUser ? "#fff" : "#1a1a1a", borderRadius: isUser ? "16px 4px 16px 16px" : "4px 16px 16px 16px", fontSize: 14, lineHeight: 1.7, fontFamily: "'Montserrat',sans-serif", fontWeight: 400, border: isUser ? "none" : "1px solid #ede8df", boxShadow: "0 2px 10px rgba(0,0,0,0.05)", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                    {msg.content}
+                  </div>
                 </div>
-                <div style={{ maxWidth: "80%", padding: "12px 16px", background: isUser ? "linear-gradient(135deg,#c9a96e,#a8834a)" : "#fff", color: isUser ? "#fff" : "#1a1a1a", borderRadius: isUser ? "18px 4px 18px 18px" : "4px 18px 18px 18px", fontSize: 14, lineHeight: 1.7, fontFamily: "'Montserrat',sans-serif", fontWeight: 400, border: isUser ? "none" : "1px solid #ede8df", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                  {msg.content}
+              );
+            })}
+
+            {loading && (
+              <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <div style={{ width: 30, height: 30, borderRadius: 9, background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant',serif", fontSize: 13, color: "#fff" }}>Б</div>
+                <div style={{ background: "#fff", border: "1px solid #ede8df", borderRadius: "4px 16px 16px 16px", padding: "13px 16px", display: "flex", gap: 6 }}>
+                  {[0, 1, 2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#c9a96e", opacity: 0.5, animation: `dot-pulse 1.2s ${i * 0.2}s ease-in-out infinite` }} />)}
                 </div>
               </div>
-            );
-          })}
+            )}
 
-          {loading && (
-            <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <div style={{ width: 32, height: 32, borderRadius: 10, background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant',serif", fontSize: 13, color: "#fff" }}>Б</div>
-              <div style={{ background: "#fff", border: "1px solid #ede8df", borderRadius: "4px 18px 18px 18px", padding: "14px 18px", display: "flex", gap: 6 }}>
-                {[0, 1, 2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#c9a96e", opacity: 0.5, animation: `dot-pulse 1.2s ${i * 0.2}s ease-in-out infinite` }} />)}
-              </div>
-            </div>
-          )}
-
-          {error && <div style={{ background: "#fff5f5", border: "1px solid #fcc", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#c00", fontFamily: "'Montserrat',sans-serif" }}>{error}</div>}
-          <div ref={bottomRef} />
+            {error && <div style={{ background: "#fff5f5", border: "1px solid #fcc", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#c00", fontFamily: "'Montserrat',sans-serif" }}>{error}</div>}
+            <div ref={bottomRef} />
+          </div>
         </div>
 
         {/* Поле ввода */}
-        <div style={{ background: "#fff", borderTop: "1px solid #ede8df", padding: "12px 16px", paddingBottom: "max(12px, env(safe-area-inset-bottom, 12px))" }}>
-          <div style={{ maxWidth: 720, margin: "0 auto", display: "flex", gap: 10, alignItems: "flex-end" }}>
+        <div style={{ background: "#fff", borderTop: "1px solid #ede8df", padding: "10px 16px", paddingBottom: "max(10px, env(safe-area-inset-bottom, 10px))", flexShrink: 0 }}>
+          <div style={{ maxWidth: 680, margin: "0 auto", display: "flex", gap: 10, alignItems: "flex-end" }}>
             <textarea
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -275,15 +276,15 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
               placeholder="Напишите ваш ответ..."
               rows={2}
               disabled={loading}
-              style={{ flex: 1, ...inp, resize: "none", lineHeight: 1.6, border: "1.5px solid #e0d8cc", fontSize: 14 }}
+              style={{ flex: 1, ...inp, resize: "none", lineHeight: 1.6, border: "1.5px solid #e0d8cc", fontSize: 14, maxHeight: 120 }}
             />
             <button
               onClick={sendAnswer}
               disabled={loading || !input.trim()}
-              style={{ width: 46, height: 46, borderRadius: 12, border: "none", flexShrink: 0, background: input.trim() && !loading ? "linear-gradient(135deg,#c9a96e,#a8834a)" : "#e8e4dc", color: "#fff", cursor: input.trim() && !loading ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, transition: "all 0.2s" }}
+              style={{ width: 44, height: 44, borderRadius: 12, border: "none", flexShrink: 0, background: input.trim() && !loading ? "linear-gradient(135deg,#c9a96e,#a8834a)" : "#e8e4dc", color: "#fff", cursor: input.trim() && !loading ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, transition: "all 0.2s" }}
             >→</button>
           </div>
-          <div style={{ maxWidth: 720, margin: "4px auto 0", fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "#999", textAlign: "right" }}>
+          <div style={{ maxWidth: 680, margin: "3px auto 0", fontFamily: "'Montserrat',sans-serif", fontSize: 10, color: "#bbb", textAlign: "right" }}>
             Enter — отправить · Shift+Enter — новая строка
           </div>
         </div>
@@ -298,12 +299,12 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
     const info = STATUS_INFO[result.status] || STATUS_INFO.declined;
 
     return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f5f0e8,#faf9f6)", padding: "60px 16px 60px" }}>
-        <div style={{ maxWidth: 600, margin: "0 auto" }}>
+      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f5f0e8,#faf9f6)", padding: "48px 16px 60px" }}>
+        <div style={{ maxWidth: 560, margin: "0 auto" }}>
           {/* Заголовок */}
-          <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <div style={{ fontFamily: "'Cormorant',serif", fontSize: 44, color: "#c9a96e", marginBottom: 8, lineHeight: 1 }}>✦</div>
-            <h2 style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(24px,5vw,36px)", fontWeight: 400, margin: "0 0 8px", color: "#1a1a1a" }}>
+          <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <div style={{ fontFamily: "'Cormorant',serif", fontSize: 40, color: "#c9a96e", marginBottom: 8, lineHeight: 1 }}>✦</div>
+            <h2 style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(22px,5vw,34px)", fontWeight: 400, margin: "0 0 8px", color: "#1a1a1a" }}>
               Оценка завершена
             </h2>
             <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, color: "#666", fontWeight: 400 }}>
@@ -312,14 +313,14 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
           </div>
 
           {/* Статус + баллы */}
-          <div style={{ background: info.bg, border: `1px solid ${info.color}40`, borderRadius: 20, padding: "24px", marginBottom: 20, textAlign: "center" }}>
+          <div style={{ background: info.bg, border: `1px solid ${info.color}40`, borderRadius: 18, padding: "20px 18px", marginBottom: 16, textAlign: "center" }}>
             <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, color: info.color, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 8 }}>Результат оценки</div>
-            <div style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(20px,4vw,28px)", fontWeight: 500, color: info.color, marginBottom: 8 }}>{info.label}</div>
-            <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 28, fontWeight: 700, color: "#1a1a1a" }}>{result.total} <span style={{ fontSize: 16, color: "#888", fontWeight: 400 }}>/ 70 баллов</span></div>
+            <div style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(18px,4vw,26px)", fontWeight: 500, color: info.color, marginBottom: 8 }}>{info.label}</div>
+            <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 26, fontWeight: 700, color: "#1a1a1a" }}>{result.total} <span style={{ fontSize: 15, color: "#888", fontWeight: 400 }}>/ 70 баллов</span></div>
           </div>
 
           {/* Описание результата */}
-          <div style={{ background: "#fff", border: "1px solid #ede8df", borderRadius: 16, padding: "20px 24px", marginBottom: 20 }}>
+          <div style={{ background: "#fff", border: "1px solid #ede8df", borderRadius: 14, padding: "18px 20px", marginBottom: 16 }}>
             <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 400, color: "#444", lineHeight: 1.75, margin: 0 }}>
               {info.message}
             </p>
@@ -327,15 +328,15 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
 
           {/* Комментарий ИИ */}
           {result.comment && (
-            <div style={{ background: "rgba(201,169,110,0.08)", border: "1px solid rgba(201,169,110,0.25)", borderRadius: 16, padding: "18px 22px", marginBottom: 20 }}>
+            <div style={{ background: "rgba(201,169,110,0.08)", border: "1px solid rgba(201,169,110,0.25)", borderRadius: 14, padding: "16px 18px", marginBottom: 16 }}>
               <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, color: "#a8834a", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 8 }}>Комментарий</div>
-              <p style={{ fontFamily: "'Cormorant',serif", fontSize: 18, fontWeight: 400, color: "#1a1a1a", lineHeight: 1.6, margin: 0, fontStyle: "italic" }}>«{result.comment}»</p>
+              <p style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(15px,3vw,18px)", fontWeight: 400, color: "#1a1a1a", lineHeight: 1.6, margin: 0, fontStyle: "italic" }}>«{result.comment}»</p>
             </div>
           )}
 
           {/* Баллы по критериям */}
-          <div style={{ background: "#fff", border: "1px solid #ede8df", borderRadius: 16, padding: "20px 24px", marginBottom: 24 }}>
-            <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, color: "#888", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 16 }}>Оценка по критериям</div>
+          <div style={{ background: "#fff", border: "1px solid #ede8df", borderRadius: 14, padding: "18px 20px", marginBottom: 24 }}>
+            <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 700, color: "#888", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 14 }}>Оценка по критериям</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {Object.entries(result.scores).map(([key, val]) => (
                 <div key={key}>
@@ -351,12 +352,12 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
             </div>
           </div>
 
-          {/* Кнопка */}
-          <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: 14 }}>
-            <a href={info.btnHref} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, background: "linear-gradient(135deg, #c9a96e, #a8834a)", color: "#fff", border: "none", borderRadius: 50, padding: "16px 40px", fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: "1px", cursor: "pointer", textTransform: "uppercase", textDecoration: "none", boxShadow: "0 8px 32px rgba(201,169,110,0.35)" }}>
+          {/* Кнопки */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <a href={info.btnHref} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, background: "linear-gradient(135deg, #c9a96e, #a8834a)", color: "#fff", border: "none", borderRadius: 50, padding: "15px 32px", fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 600, letterSpacing: "1px", cursor: "pointer", textTransform: "uppercase", textDecoration: "none", boxShadow: "0 8px 28px rgba(201,169,110,0.35)", textAlign: "center" }}>
               {info.btnLabel}
             </a>
-            <button onClick={() => { clearState(); onBack(); }} style={{ background: "none", border: "1px solid #e0d8cc", borderRadius: 50, padding: "12px 28px", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#888", cursor: "pointer" }}>
+            <button onClick={() => { clearState(); onBack(); }} style={{ background: "none", border: "1px solid #e0d8cc", borderRadius: 50, padding: "12px 28px", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#888", cursor: "pointer", width: "100%" }}>
               Вернуться на страницу
             </button>
           </div>
