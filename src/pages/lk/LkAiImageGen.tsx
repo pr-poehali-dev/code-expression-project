@@ -12,8 +12,8 @@ function getSessionId() {
 
 const ASPECT_OPTIONS = [
   { value: "1024x1024", label: "Квадрат", sub: "1:1 — для постов", icon: "Square" },
-  { value: "1024x1792", label: "Портрет", sub: "9:16 — для сторис/рилс", icon: "Smartphone" },
-  { value: "1792x1024", label: "Пейзаж", sub: "16:9 — для баннеров", icon: "Monitor" },
+  { value: "1024x1792", label: "Портрет", sub: "2:3 — для сторис/рилс", icon: "Smartphone" },
+  { value: "1792x1024", label: "Пейзаж", sub: "3:2 — для баннеров", icon: "Monitor" },
 ];
 
 interface GeneratedImage {

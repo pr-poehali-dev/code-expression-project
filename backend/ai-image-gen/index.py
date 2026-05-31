@@ -23,11 +23,11 @@ CORS = {
     "Access-Control-Allow-Headers": "Content-Type, X-Session-Id",
 }
 
-ASPECT_ALLOWED = {"1:1", "9:16", "16:9"}
+ASPECT_ALLOWED = {"1:1", "2:3", "3:2"}
 ASPECT_MAP = {
     "1024x1024": "1:1",
-    "1024x1792": "9:16",
-    "1792x1024": "16:9",
+    "1024x1792": "2:3",
+    "1792x1024": "3:2",
 }
 
 
