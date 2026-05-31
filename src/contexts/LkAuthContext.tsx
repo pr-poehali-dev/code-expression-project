@@ -1,7 +1,13 @@
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
 import { lkApi, saveSession, clearSession, AuthError } from "@/lib/lkApi";
 
-interface LkUser {
+export interface LkSalon {
+  id: number;
+  name: string;
+  logo_url: string | null;
+}
+
+export interface LkUser {
   id: number;
   username: string;
   full_name: string;
@@ -11,6 +17,9 @@ interface LkUser {
   rep_permissions: string[] | null;
   access_expires_at: string | null;
   segment: "specialist" | "salon";
+  role: "owner" | "admin" | "master" | "body_specialist";
+  salon_id: number | null;
+  salon: LkSalon | null;
 }
 
 interface LkAuthCtx {

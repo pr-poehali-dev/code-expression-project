@@ -108,6 +108,26 @@
       "path": "/?action=ms_analyze",
       "body": {"answers": {}},
       "expectedStatus": 401
+    },
+    {
+      "name": "salon_profile без сессии — 401",
+      "method": "GET",
+      "path": "/?action=salon_profile",
+      "expectedStatus": 401
+    },
+    {
+      "name": "salon_profile_save без сессии — 401",
+      "method": "POST",
+      "path": "/?action=salon_profile_save",
+      "body": {"name": "Тест"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "salon_logo_upload без сессии — 401",
+      "method": "POST",
+      "path": "/?action=salon_logo_upload",
+      "body": {},
+      "expectedStatus": 401
     }
   ]
 }

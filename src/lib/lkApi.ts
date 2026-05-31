@@ -120,4 +120,10 @@ export const lkApi = {
   // Мышление специалиста
   msCategories: () => request("GET", "ms_categories"),
   msAnalyze: (answers: Record<number, number>) => request("POST", "ms_analyze", { answers }),
+
+  // Профиль салона
+  salonProfileGet: () => request("GET", "salon_profile"),
+  salonProfileSave: (data: object) => request("POST", "salon_profile_save", data),
+  salonLogoUpload: (file_base64: string, file_name: string) =>
+    request("POST", "salon_logo_upload", { file_base64, file_name }),
 };

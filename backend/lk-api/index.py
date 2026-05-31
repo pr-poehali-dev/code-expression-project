@@ -92,6 +92,13 @@ def handle_login(event: dict) -> dict:
         )
         conn.commit()
 
+        salon = None
+        if user.get("salon_id"):
+            cur.execute(f"SELECT id, name, logo_url FROM {tbl('salons')} WHERE id = %s", (user["salon_id"],))
+            s = cur.fetchone()
+            if s:
+                salon = dict(s)
+
         return ok({
             "session_id": session_id,
             "user": {
@@ -104,6 +111,9 @@ def handle_login(event: dict) -> dict:
                 "rep_permissions": user.get("rep_permissions"),
                 "access_expires_at": user["access_expires_at"],
                 "segment": user.get("segment", "specialist"),
+                "role": user.get("role", "body_specialist"),
+                "salon_id": user.get("salon_id"),
+                "salon": salon,
             }
         })
     finally:
@@ -130,6 +140,13 @@ def handle_me(event: dict) -> dict:
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
+        salon = None
+        if user.get("salon_id"):
+            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            cur.execute(f"SELECT id, name, logo_url FROM {tbl('salons')} WHERE id = %s", (user["salon_id"],))
+            s = cur.fetchone()
+            if s:
+                salon = dict(s)
         return ok({
             "id": user["id"],
             "username": user["username"],
@@ -140,6 +157,9 @@ def handle_me(event: dict) -> dict:
             "rep_permissions": user.get("rep_permissions"),
             "access_expires_at": user["access_expires_at"],
             "segment": user.get("segment", "specialist"),
+            "role": user.get("role", "body_specialist"),
+            "salon_id": user.get("salon_id"),
+            "salon": salon,
         })
     finally:
         conn.close()
@@ -1027,6 +1047,168 @@ def handle_diag_search(event: dict) -> dict:
         conn.close()
 
 
+# ── Профиль салона ───────────────────────────────────────────────────────────
+
+def handle_salon_profile_get(event: dict) -> dict:
+    """Получить профиль салона текущего пользователя."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon_id = user.get("salon_id")
+        if not salon_id:
+            return ok({"salon": None, "services": []})
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(f"SELECT * FROM {tbl('salons')} WHERE id = %s", (salon_id,))
+        salon = cur.fetchone()
+        if not salon:
+            return ok({"salon": None, "services": []})
+        cur.execute(
+            f"SELECT * FROM {tbl('salon_services')} WHERE salon_id = %s ORDER BY sort_order, id",
+            (salon_id,)
+        )
+        services = [dict(r) for r in cur.fetchall()]
+        return ok({"salon": dict(salon), "services": services})
+    finally:
+        conn.close()
+
+
+def handle_salon_profile_save(event: dict) -> dict:
+    """Сохранить профиль салона (создать или обновить). Только для owner."""
+    body = json.loads(event.get("body") or "{}")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+
+        name = (body.get("name") or "").strip()
+        if not name:
+            return err("Укажите название салона")
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        salon_id = user.get("salon_id")
+        if salon_id:
+            cur.execute(
+                f"""UPDATE {tbl('salons')} SET
+                    name=%s, city=%s, address=%s, description=%s,
+                    avg_check=%s, monthly_revenue=%s, clients_count=%s, masters_count=%s,
+                    target_audience=%s, tone_of_voice=%s,
+                    social_instagram=%s, social_vk=%s, social_telegram=%s, main_goal=%s,
+                    updated_at=NOW()
+                WHERE id=%s""",
+                (
+                    name,
+                    body.get("city"), body.get("address"), body.get("description"),
+                    body.get("avg_check") or None, body.get("monthly_revenue") or None,
+                    body.get("clients_count") or None, body.get("masters_count") or None,
+                    body.get("target_audience"), body.get("tone_of_voice"),
+                    body.get("social_instagram"), body.get("social_vk"), body.get("social_telegram"),
+                    body.get("main_goal"),
+                    salon_id,
+                )
+            )
+        else:
+            cur.execute(
+                f"""INSERT INTO {tbl('salons')}
+                    (owner_id, name, city, address, description,
+                     avg_check, monthly_revenue, clients_count, masters_count,
+                     target_audience, tone_of_voice,
+                     social_instagram, social_vk, social_telegram, main_goal)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+                (
+                    user["id"], name,
+                    body.get("city"), body.get("address"), body.get("description"),
+                    body.get("avg_check") or None, body.get("monthly_revenue") or None,
+                    body.get("clients_count") or None, body.get("masters_count") or None,
+                    body.get("target_audience"), body.get("tone_of_voice"),
+                    body.get("social_instagram"), body.get("social_vk"), body.get("social_telegram"),
+                    body.get("main_goal"),
+                )
+            )
+            salon_id = cur.fetchone()["id"]
+            cur.execute(
+                f"UPDATE {tbl('lk_users')} SET salon_id=%s, role='owner' WHERE id=%s",
+                (salon_id, user["id"])
+            )
+
+        # Сохраняем услуги (полная замена)
+        services = body.get("services", [])
+        cur.execute(f"SELECT id FROM {tbl('salon_services')} WHERE salon_id = %s", (salon_id,))
+        existing_ids = {r["id"] for r in cur.fetchall()}
+        incoming_ids = {s["id"] for s in services if s.get("id")}
+
+        # Удаляем убранные (через UPDATE is_deleted не нужен, просто ставим пустое название)
+        for old_id in existing_ids - incoming_ids:
+            cur.execute(f"UPDATE {tbl('salon_services')} SET name='' WHERE id=%s", (old_id,))
+
+        for i, svc in enumerate(services):
+            svc_name = (svc.get("name") or "").strip()
+            if not svc_name:
+                continue
+            if svc.get("id") and svc["id"] in existing_ids:
+                cur.execute(
+                    f"UPDATE {tbl('salon_services')} SET name=%s, price_min=%s, price_max=%s, duration_min=%s, sort_order=%s WHERE id=%s",
+                    (svc_name, svc.get("price_min") or None, svc.get("price_max") or None,
+                     svc.get("duration_min") or None, i, svc["id"])
+                )
+            else:
+                cur.execute(
+                    f"INSERT INTO {tbl('salon_services')} (salon_id, name, price_min, price_max, duration_min, sort_order) VALUES (%s,%s,%s,%s,%s,%s)",
+                    (salon_id, svc_name, svc.get("price_min") or None, svc.get("price_max") or None,
+                     svc.get("duration_min") or None, i)
+                )
+
+        conn.commit()
+        return ok({"ok": True, "salon_id": salon_id})
+    finally:
+        conn.close()
+
+
+def handle_salon_logo_upload(event: dict) -> dict:
+    """Загрузить логотип салона в S3. Принимает base64 в JSON."""
+    import base64
+    import boto3
+    import mimetypes
+    body = json.loads(event.get("body") or "{}")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon_id = user.get("salon_id")
+        if not salon_id:
+            return err("Сначала создайте профиль салона")
+
+        file_b64 = body.get("file_base64", "")
+        file_name = body.get("file_name", "logo.png")
+        if not file_b64:
+            return err("Файл не передан")
+
+        data = base64.b64decode(file_b64)
+        ext = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else "png"
+        content_type = mimetypes.types_map.get(f".{ext}", "image/png")
+        key = f"salons/{salon_id}/logo.{ext}"
+
+        s3 = boto3.client(
+            "s3",
+            endpoint_url="https://bucket.poehali.dev",
+            aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+            aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+        )
+        s3.put_object(Bucket="files", Key=key, Body=data, ContentType=content_type)
+        logo_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+
+        cur = conn.cursor()
+        cur.execute(f"UPDATE {tbl('salons')} SET logo_url=%s, updated_at=NOW() WHERE id=%s", (logo_url, salon_id))
+        conn.commit()
+        return ok({"ok": True, "logo_url": logo_url})
+    finally:
+        conn.close()
+
+
 # ── Роутер ───────────────────────────────────────────────────────────────────
 
 ROUTES = {
@@ -1065,6 +1247,9 @@ ROUTES = {
     ("GET",  "diag_search"): handle_diag_search,
     ("GET",  "ms_categories"): handle_ms_categories,
     ("POST", "ms_analyze"): handle_ms_analyze,
+    ("GET",  "salon_profile"): handle_salon_profile_get,
+    ("POST", "salon_profile_save"): handle_salon_profile_save,
+    ("POST", "salon_logo_upload"): handle_salon_logo_upload,
 }
 
 
