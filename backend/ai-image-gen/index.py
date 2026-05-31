@@ -161,15 +161,19 @@ def handler(event: dict, context) -> dict:
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=55) as resp:
-                result = json.loads(resp.read().decode("utf-8"))
+            with urllib.request.urlopen(req, timeout=110) as resp:
+                raw = resp.read().decode("utf-8")
+                print(f"[polza.ai] status=200 body_preview={raw[:500]}")
+                result = json.loads(raw)
         except urllib.error.HTTPError as e:
             error_body = e.read().decode("utf-8", errors="ignore")
+            print(f"[polza.ai] HTTPError {e.code}: {error_body[:500]}")
             return err(f"Ошибка генерации: {e.code}. {error_body[:300]}", 502)
         except Exception as e:
             msg = str(e)
+            print(f"[polza.ai] Exception: {msg}")
             if "timed out" in msg.lower() or "timeout" in msg.lower():
-                return err("Превышено время ожидания. Генерация картинок занимает 30-60 секунд — попробуйте ещё раз.", 504)
+                return err("Сервис генерации не ответил за 110 секунд. Попробуйте ещё раз или уменьшите количество изображений.", 504)
             return err(f"Ошибка соединения с сервисом: {msg}", 502)
 
         # Извлекаем изображения из ответа
