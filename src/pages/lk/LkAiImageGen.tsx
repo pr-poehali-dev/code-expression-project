@@ -88,7 +88,7 @@ export default function LkAiImageGen() {
           </div>
           <div>
             <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Генерация изображений</h2>
-            <div style={{ fontSize: 12, color: "#aaa" }}>GPT Image 1.5 · polza.ai</div>
+
           </div>
         </div>
         <p style={{ fontSize: 13, color: "#777", margin: 0, lineHeight: 1.6 }}>
