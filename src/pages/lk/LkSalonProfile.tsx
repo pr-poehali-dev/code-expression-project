@@ -4,6 +4,7 @@ import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
 
 const ACCENT = "hsl(185,85%,32%)";
+const ACCENT_DARK = "hsl(185,85%,24%)";
 
 interface Service { id?: number; name: string; price_min: string; price_max: string; duration_min: string; }
 
