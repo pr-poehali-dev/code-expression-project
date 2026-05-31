@@ -22,7 +22,8 @@ const ROLE_TABS: Record<string, Tab[]> = {
 };
 
 function getAllowedTabs(role: string, isAdmin: boolean): Tab[] {
-  const tabs = ROLE_TABS[role] || ROLE_TABS["body_specialist"];
+  const effectiveRole = isAdmin ? "owner" : role;
+  const tabs = ROLE_TABS[effectiveRole] || ROLE_TABS["body_specialist"];
   if (isAdmin) return [...new Set([...tabs, "admin" as Tab])];
   return tabs;
 }
@@ -153,7 +154,7 @@ function HomeTab({ onNav, role, hasSalon }: { onNav: (t: Tab) => void; role: str
 // ── Главный компонент ─────────────────────────────────────────────────────────
 export default function LkDashboard() {
   const { user, logout } = useLkAuth();
-  const role = user?.role || "body_specialist";
+  const role = user?.is_admin ? "owner" : (user?.role || "body_specialist");
   const hasSalon = !!user?.salon_id;
   const allowedTabs = getAllowedTabs(role, !!user?.is_admin);
 
