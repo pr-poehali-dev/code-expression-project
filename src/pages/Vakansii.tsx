@@ -162,7 +162,7 @@ export default function Vakansii() {
               </div>
 
               <span className="vak-btn">
-                Подробнее и пройти тест →
+                Подробнее →
               </span>
             </a>
           ))}
