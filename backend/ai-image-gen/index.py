@@ -143,59 +143,60 @@ def handler(event: dict, context) -> dict:
                 if ctx_parts:
                     final_prompt = f"{prompt}\n\nКонтекст: {'. '.join(ctx_parts)}"
 
-        api_key = os.environ.get("POLZA_AI_API_KEY", "")
-        if not api_key:
-            return err("API ключ не настроен. Обратитесь к администратору.", 500)
+        openai_key = os.environ.get("OPENAI_API_KEY", "")
+        if not openai_key:
+            return err("API ключ не настроен.", 500)
 
         conn.close()
 
-        def call_model(model, input_body, timeout=90):
-            payload = json.dumps({"model": model, "input": input_body}).encode("utf-8")
-            r = urllib.request.Request(
-                "https://polza.ai/api/v1/media",
-                data=payload,
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                method="POST",
-            )
-            with urllib.request.urlopen(r, timeout=timeout) as resp:
+        # OpenAI Images API — gpt-image-1, возвращает b64_json
+        payload = json.dumps({
+            "model": "gpt-image-1",
+            "prompt": final_prompt,
+            "size": aspect_dalle,
+            "n": 1,
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            "https://api.openai.com/v1/images/generations",
+            data=payload,
+            headers={
+                "Authorization": f"Bearer {openai_key}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=110) as resp:
                 raw = resp.read().decode("utf-8")
-                print(f"[polza.ai][{model}] {raw[:300]}")
-                return json.loads(raw)
+                print(f"[openai] {raw[:200]}")
+                result = json.loads(raw)
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", errors="ignore")
+            print(f"[openai] HTTP {e.code}: {body[:300]}")
+            return err(f"Ошибка генерации: {body[:200]}", 502)
+        except Exception as e:
+            msg = str(e)
+            print(f"[openai] err: {msg}")
+            if "timed out" in msg.lower() or "timeout" in msg.lower():
+                return err("Сервис не ответил. Попробуйте ещё раз.", 504)
+            return err(f"Ошибка: {msg}", 502)
 
-        def extract_url(result):
-            for item in (result.get("data") or result.get("images") or []):
-                if isinstance(item, dict):
-                    if item.get("url"):
-                        return item["url"]
-                    b64 = item.get("b64_json") or item.get("base64") or ""
-                    if b64:
-                        return upload_to_s3(b64, "png", user["id"])
-            return None
-
+        # Извлекаем b64 → загружаем в S3 → возвращаем CDN URL
         image_url = None
-        last_error = ""
-
-        for model, input_body, tmt in [
-            ("openai/gpt-image-1.5", {"prompt": final_prompt, "aspect_ratio": aspect_gpt15, "max_images": 1}, 110),
-        ]:
-            try:
-                result = call_model(model, input_body, tmt)
-                image_url = extract_url(result)
-                if image_url:
-                    print(f"[polza.ai] success with {model}")
-                    break
-            except urllib.error.HTTPError as e:
-                body = e.read().decode("utf-8", errors="ignore")
-                print(f"[polza.ai][{model}] HTTP {e.code}: {body[:200]}")
-                last_error = f"{e.code}: {body[:150]}"
-            except Exception as e:
-                print(f"[polza.ai][{model}] err: {e}")
-                last_error = str(e)
+        for item in (result.get("data") or []):
+            b64 = item.get("b64_json", "")
+            url = item.get("url", "")
+            if b64:
+                image_url = upload_to_s3(b64, "png", user["id"])
+                break
+            elif url:
+                image_url = url
+                break
 
         if not image_url:
-            if "timed out" in last_error.lower() or "timeout" in last_error.lower():
-                return err("Сервис генерации перегружен. Попробуйте через минуту.", 504)
-            return err(f"Не удалось сгенерировать изображение. {last_error[:100]}", 502)
+            return err("Сервис не вернул изображение. Попробуйте ещё раз.", 502)
 
         return ok({"images": [{"url": image_url}], "prompt_used": final_prompt})
 
