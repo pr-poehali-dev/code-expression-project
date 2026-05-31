@@ -24,12 +24,12 @@ export default function JobHero({ onApply }: { onApply: () => void }) {
           <em style={{ fontStyle: "italic", color: "#c9a96e" }}>проекта Dok Диалог</em>
         </h1>
 
-        <p className="job-p" style={{ fontSize: "clamp(14px,2vw,16px)", maxWidth: 580, margin: "0 auto 14px", color: "#666" }}>
+        <p className="job-p" style={{ fontSize: "clamp(15px,2vw,17px)", maxWidth: 580, margin: "0 auto 14px", color: "#333" }}>
           Работа с премиальными салонами и wellness-пространствами<br />
           в сфере красоты, тела и сервиса.
         </p>
 
-        <p className="job-p" style={{ maxWidth: 520, margin: "0 auto 36px", color: "#888", fontSize: 14 }}>
+        <p className="job-p" style={{ maxWidth: 520, margin: "0 auto 36px", color: "#555", fontSize: 15 }}>
           Мы ищем девушек, которые умеют красиво общаться, выстраивать доверие,
           достойно представлять проект и создавать приятное впечатление.
         </p>
@@ -48,7 +48,7 @@ export default function JobHero({ onApply }: { onApply: () => void }) {
           maxWidth: 480,
           width: "100%",
         }}>
-          <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 300, color: "#a8834a", lineHeight: 1.7, margin: 0 }}>
+          <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 500, color: "#8a6830", lineHeight: 1.7, margin: 0 }}>
             Мы ценим ваше и своё время — результат придёт сразу после интервью.
             Если вы подходите, менеджер свяжется с вами в ближайшее время для следующего шага.
           </p>
@@ -62,7 +62,7 @@ export default function JobHero({ onApply }: { onApply: () => void }) {
           ].map(item => (
             <div key={item.label} style={{ textAlign: "center", minWidth: 80 }}>
               <div style={{ fontFamily: "'Cormorant', serif", fontSize: "clamp(20px,4vw,28px)", fontWeight: 600, color: "#c9a96e" }}>{item.num}</div>
-              <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 11, color: "#999", marginTop: 4, fontWeight: 300, letterSpacing: "0.5px" }}>{item.label}</div>
+              <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 12, color: "#666", marginTop: 4, fontWeight: 500, letterSpacing: "0.5px" }}>{item.label}</div>
             </div>
           ))}
         </div>

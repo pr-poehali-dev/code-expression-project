@@ -6,7 +6,7 @@ export default function JobAbout() {
         <div className="job-divider" />
         <h2 className="job-h2" style={{ color: "#fff" }}>Что такое <em>Dok Диалог</em></h2>
 
-        <p className="job-p" style={{ color: "rgba(255,255,255,0.65)", maxWidth: 640, margin: "0 auto 48px" }}>
+        <p className="job-p" style={{ color: "rgba(255,255,255,0.85)", maxWidth: 640, margin: "0 auto 48px" }}>
           Dok Диалог — образовательная и технологическая платформа для специалистов по телу,
           салонов и wellness-пространств. Мы обучаем премиальному сервису, системной диагностике
           и коммуникации с платёжеспособной аудиторией.
@@ -25,7 +25,7 @@ export default function JobAbout() {
             }}>
               <div style={{ color: "#c9a96e", fontSize: 18, marginBottom: 12 }}>{item.icon}</div>
               <div style={{ fontFamily: "'Cormorant', serif", fontSize: 20, fontWeight: 500, color: "#fff", marginBottom: 8 }}>{item.title}</div>
-              <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 13, fontWeight: 300, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>{item.desc}</div>
+              <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 14, fontWeight: 400, color: "rgba(255,255,255,0.8)", lineHeight: 1.6 }}>{item.desc}</div>
             </div>
           ))}
         </div>

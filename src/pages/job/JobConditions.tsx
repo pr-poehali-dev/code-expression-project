@@ -31,7 +31,7 @@ export default function JobConditions() {
               <div style={{ fontFamily: "'Cormorant', serif", fontSize: 24, fontWeight: 500, color: "#1a1a1a", marginBottom: 16 }}>{item.title}</div>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
                 {item.items.map(i => (
-                  <li key={i} style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 13, fontWeight: 300, color: "#666", lineHeight: 1.5 }}>{i}</li>
+                  <li key={i} style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 14, fontWeight: 400, color: "#444", lineHeight: 1.6 }}>{i}</li>
                 ))}
               </ul>
             </div>
@@ -46,7 +46,7 @@ export default function JobConditions() {
           <div style={{ fontFamily: "'Cormorant', serif", fontSize: "clamp(16px,3vw,22px)", fontWeight: 400, color: "#c9a96e", marginBottom: 8, fontStyle: "italic", lineHeight: 1.4 }}>
             «Средний доход активных представителей значительно выше фиксированной офисной работы»
           </div>
-          <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.4)", letterSpacing: "1px" }}>
+          <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: 12, color: "rgba(255,255,255,0.65)", letterSpacing: "1px" }}>
             DOK ДИАЛОГ
           </div>
         </div>

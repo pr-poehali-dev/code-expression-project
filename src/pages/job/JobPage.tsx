@@ -29,10 +29,10 @@ export default function JobPage() {
         .job-section { padding: 80px 24px; max-width: 900px; margin: 0 auto; }
         .job-section-wide { padding: 80px 24px; max-width: 1100px; margin: 0 auto; }
         .job-divider { width: 48px; height: 1px; background: #c9a96e; margin: 20px auto; }
-        .job-tag { display: inline-block; font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: #c9a96e; margin-bottom: 16px; }
-        .job-h2 { font-size: clamp(28px, 4vw, 44px); font-weight: 300; color: #1a1a1a; margin: 0 0 24px; line-height: 1.2; }
+        .job-tag { display: inline-block; font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #c9a96e; margin-bottom: 16px; }
+        .job-h2 { font-size: clamp(28px, 4vw, 44px); font-weight: 400; color: #1a1a1a; margin: 0 0 24px; line-height: 1.2; }
         .job-h2 em { font-style: italic; color: #c9a96e; }
-        .job-p { font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 300; line-height: 1.8; color: #555; }
+        .job-p { font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 400; line-height: 1.8; color: #444; }
         .job-card { background: #fff; border: 1px solid #ede8df; border-radius: 20px; padding: 32px; }
         .job-btn-gold {
           display: inline-flex; align-items: center; gap: 10px;
@@ -45,9 +45,9 @@ export default function JobPage() {
           transition: all 0.3s;
         }
         .job-btn-gold:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,169,110,0.45); }
-        .job-list { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 300; color: #555; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+        .job-list { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 400; color: #444; list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
         .job-list li { display: flex; align-items: flex-start; gap: 12px; line-height: 1.6; }
-        .job-list li::before { content: '—'; color: #c9a96e; flex-shrink: 0; font-weight: 400; margin-top: 1px; }
+        .job-list li::before { content: '—'; color: #c9a96e; flex-shrink: 0; font-weight: 500; margin-top: 1px; }
         @media (max-width: 640px) {
           .job-section { padding: 56px 16px; }
           .job-section-wide { padding: 56px 16px; }

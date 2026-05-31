@@ -32,7 +32,7 @@ export default function JobWhyUs({ onApply }: { onApply: () => void }) {
           ))}
         </div>
 
-        <p className="job-p" style={{ maxWidth: 520, margin: "0 auto 40px", color: "#888", fontStyle: "italic", fontSize: 16 }}>
+        <p className="job-p" style={{ maxWidth: 520, margin: "0 auto 40px", color: "#555", fontStyle: "italic", fontSize: 16 }}>
           Если вы узнали себя в этом описании —<br />
           мы рады познакомиться с вами.
         </p>

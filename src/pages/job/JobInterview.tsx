@@ -54,8 +54,8 @@ const inp: React.CSSProperties = {
 };
 
 const lbl: React.CSSProperties = {
-  display: "block", fontSize: 12, fontWeight: 500, color: "#888",
-  marginBottom: 6, fontFamily: "'Montserrat', sans-serif", letterSpacing: "0.5px",
+  display: "block", fontSize: 13, fontWeight: 600, color: "#555",
+  marginBottom: 6, fontFamily: "'Montserrat', sans-serif", letterSpacing: "0.3px",
 };
 
 export default function JobInterview({ onBack }: { onBack: () => void }) {
@@ -145,7 +145,7 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
     return (
       <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f5f0e8,#faf9f6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 16px 40px" }}>
         <div style={{ maxWidth: 600, width: "100%" }}>
-          <button onClick={() => { clearState(); onBack(); }} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#aaa", marginBottom: 28, display: "flex", alignItems: "center", gap: 6, padding: 0 }}>
+          <button onClick={() => { clearState(); onBack(); }} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'Montserrat',sans-serif", fontSize: 13, color: "#777", marginBottom: 28, display: "flex", alignItems: "center", gap: 6, padding: 0 }}>
             ← Вернуться к вакансии
           </button>
 
@@ -154,7 +154,7 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
           <h2 style={{ fontFamily: "'Cormorant',serif", fontSize: "clamp(26px,5vw,36px)", fontWeight: 300, margin: "0 0 8px", color: "#1a1a1a" }}>
             Расскажите о себе
           </h2>
-          <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, color: "#888", marginBottom: 28, fontWeight: 300, lineHeight: 1.6 }}>
+          <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, color: "#555", marginBottom: 28, fontWeight: 400, lineHeight: 1.6 }}>
             После заполнения формы запустится первичное интервью с ИИ-ассистентом.
             Это займёт около 10 минут.
           </p>
@@ -203,7 +203,7 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
                 onChange={e => setAgreed(e.target.checked)}
                 style={{ marginTop: 2, accentColor: "#c9a96e", width: 16, height: 16, flexShrink: 0, cursor: "pointer" }}
               />
-              <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 300, color: "#888", lineHeight: 1.6 }}>
+              <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 13, fontWeight: 400, color: "#555", lineHeight: 1.6 }}>
                 Я ознакомилась и принимаю{" "}
                 <a href="/privacy" target="_blank" rel="noreferrer" style={{ color: "#c9a96e", textDecoration: "underline" }}>
                   политику конфиденциальности
@@ -242,9 +242,9 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
         <div style={{ background: "#1a1a1a", padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <div style={{ fontFamily: "'Cormorant',serif", fontSize: 18, fontWeight: 400, color: "#fff", flexShrink: 0 }}>
             Dok <span style={{ color: "#c9a96e" }}>Диалог</span>
-            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 300, marginLeft: 10 }} className="job-chat-subtitle">· Первичное интервью</span>
+            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.65)", fontWeight: 400, marginLeft: 10 }} className="job-chat-subtitle">· Первичное интервью</span>
           </div>
-          <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.35)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "40%" }}>
+          <div style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.65)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "40%" }}>
             {applicant.full_name}
           </div>
         </div>
@@ -252,7 +252,7 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
         {/* Прогресс */}
         <div style={{ background: "#1a1a1a", padding: "0 16px 14px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Прогресс интервью</span>
+            <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.7)" }}>Прогресс интервью</span>
             <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "#c9a96e" }}>Вопрос {Math.min(step, TOTAL_QUESTIONS)} из {TOTAL_QUESTIONS}</span>
           </div>
           <div style={{ height: 3, background: "rgba(255,255,255,0.1)", borderRadius: 2 }}>
@@ -279,7 +279,7 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
                   background: isUser ? "linear-gradient(135deg,#c9a96e,#a8834a)" : "#fff",
                   color: isUser ? "#fff" : "#1a1a1a",
                   borderRadius: isUser ? "18px 4px 18px 18px" : "4px 18px 18px 18px",
-                  fontSize: 14, lineHeight: 1.7, fontFamily: "'Montserrat',sans-serif", fontWeight: 300,
+                  fontSize: 14, lineHeight: 1.7, fontFamily: "'Montserrat',sans-serif", fontWeight: 400,
                   border: isUser ? "none" : "1px solid #ede8df",
                   boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
                   whiteSpace: "pre-wrap", wordBreak: "break-word",
@@ -326,7 +326,7 @@ export default function JobInterview({ onBack }: { onBack: () => void }) {
               }}
             >→</button>
           </div>
-          <div style={{ maxWidth: 720, margin: "4px auto 0", fontFamily: "'Montserrat',sans-serif", fontSize: 10, color: "#bbb", textAlign: "right" }}>
+          <div style={{ maxWidth: 720, margin: "4px auto 0", fontFamily: "'Montserrat',sans-serif", fontSize: 11, color: "#999", textAlign: "right" }}>
             Enter — отправить · Shift+Enter — новая строка
           </div>
         </div>

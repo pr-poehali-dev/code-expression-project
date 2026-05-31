@@ -44,8 +44,8 @@ export default function JobDuties() {
       <style>{`
         .job-duty-item { display: flex; gap: 28px; align-items: flex-start; }
         .job-duty-num {
-          font-family: 'Cormorant', serif; font-size: 36px; font-weight: 300;
-          color: #c9a96e; line-height: 1; flex-shrink: 0; opacity: 0.6;
+          font-family: 'Cormorant', serif; font-size: 36px; font-weight: 400;
+          color: #c9a96e; line-height: 1; flex-shrink: 0; opacity: 0.85;
         }
         @media (max-width: 640px) {
           .job-duty-item { gap: 16px; }
