@@ -1087,6 +1087,96 @@ def handle_image_delete(event: dict) -> dict:
         conn.close()
 
 
+# ── Аудит салона ─────────────────────────────────────────────────────────────
+
+def handle_audit_save(event: dict) -> dict:
+    """Сохранить анкету аудита и результат ИИ."""
+    body = json.loads(event.get("body") or "{}")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        answers = body.get("answers", {})
+        result  = body.get("result")
+        audit_id = body.get("id")
+        scores = {k: body.get(k) for k in ("score_clients","score_marketing","score_sales","score_staff","score_management","score_total")}
+        status = "completed" if result else "draft"
+        if audit_id:
+            cur.execute(
+                f"""UPDATE {tbl('salon_audits')} SET
+                    answers=%s, result=%s, status=%s, updated_at=NOW(),
+                    score_clients=%s, score_marketing=%s, score_sales=%s,
+                    score_staff=%s, score_management=%s, score_total=%s
+                WHERE id=%s AND user_id=%s RETURNING id""",
+                (json.dumps(answers), json.dumps(result) if result else None, status,
+                 scores["score_clients"], scores["score_marketing"], scores["score_sales"],
+                 scores["score_staff"], scores["score_management"], scores["score_total"],
+                 audit_id, user["id"])
+            )
+            row = cur.fetchone()
+            audit_id = row["id"] if row else audit_id
+        else:
+            cur.execute(
+                f"""INSERT INTO {tbl('salon_audits')}
+                    (user_id, salon_id, answers, result, status,
+                     score_clients, score_marketing, score_sales, score_staff, score_management, score_total)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+                (user["id"], user.get("salon_id"), json.dumps(answers),
+                 json.dumps(result) if result else None, status,
+                 scores["score_clients"], scores["score_marketing"], scores["score_sales"],
+                 scores["score_staff"], scores["score_management"], scores["score_total"])
+            )
+            audit_id = cur.fetchone()["id"]
+        conn.commit()
+        return ok({"ok": True, "id": audit_id})
+    finally:
+        conn.close()
+
+
+def handle_audit_history(event: dict) -> dict:
+    """История аудитов пользователя (последние 10)."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"""SELECT id, status, score_total, score_clients, score_marketing,
+                score_sales, score_staff, score_management, created_at
+                FROM {tbl('salon_audits')} WHERE user_id=%s AND status='completed'
+                ORDER BY created_at DESC LIMIT 10""",
+            (user["id"],)
+        )
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
+def handle_audit_get(event: dict) -> dict:
+    """Получить конкретный аудит по id."""
+    qs = event.get("queryStringParameters") or {}
+    audit_id = qs.get("id")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT * FROM {tbl('salon_audits')} WHERE id=%s AND user_id=%s",
+            (audit_id, user["id"])
+        )
+        row = cur.fetchone()
+        if not row:
+            return err("Не найдено", 404)
+        return ok(dict(row))
+    finally:
+        conn.close()
+
+
 # ── Профиль салона ───────────────────────────────────────────────────────────
 
 def handle_salon_profile_get(event: dict) -> dict:
@@ -1292,6 +1382,9 @@ ROUTES = {
     ("POST", "salon_logo_upload"): handle_salon_logo_upload,
     ("GET",  "image_history"): handle_image_history,
     ("POST", "image_delete"): handle_image_delete,
+    ("POST", "audit_save"): handle_audit_save,
+    ("GET",  "audit_history"): handle_audit_history,
+    ("GET",  "audit_get"): handle_audit_get,
 }
 
 

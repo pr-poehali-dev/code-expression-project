@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import LkAiImageGen from "./LkAiImageGen";
+import LkSalonAudit from "./LkSalonAudit";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -78,24 +79,29 @@ function ComingSoonCard({ icon, color, bg, title, description }: ComingSoonCardP
   );
 }
 
-type Tool = "image-gen" | null;
+type Tool = "image-gen" | "salon-audit" | null;
 
 export default function LkAiTools() {
   const [activeTool, setActiveTool] = useState<Tool>(null);
 
-  if (activeTool === "image-gen") {
+  function BackButton() {
     return (
-      <div>
-        <button
-          onClick={() => setActiveTool(null)}
-          style={{ display: "flex", alignItems: "center", gap: 7, background: "none", border: "none", color: "#888", fontSize: 13, cursor: "pointer", fontFamily: "Montserrat,sans-serif", padding: 0, marginBottom: 24 }}
-        >
-          <Icon name="ArrowLeft" size={15} />
-          Назад к ИИ-инструментам
-        </button>
-        <LkAiImageGen />
-      </div>
+      <button
+        onClick={() => setActiveTool(null)}
+        style={{ display: "flex", alignItems: "center", gap: 7, background: "none", border: "none", color: "#888", fontSize: 13, cursor: "pointer", fontFamily: "Montserrat,sans-serif", padding: 0, marginBottom: 24 }}
+      >
+        <Icon name="ArrowLeft" size={15} />
+        Назад к ИИ-инструментам
+      </button>
     );
+  }
+
+  if (activeTool === "image-gen") {
+    return <div><BackButton /><LkAiImageGen /></div>;
+  }
+
+  if (activeTool === "salon-audit") {
+    return <div><BackButton /><LkSalonAudit /></div>;
   }
 
   return (
@@ -146,12 +152,14 @@ export default function LkAiTools() {
           description="Персональные сценарии диалогов для администраторов и мастеров — под конкретную ситуацию."
         />
 
-        <ComingSoonCard
-          icon="TrendingUp"
-          color="hsl(280,60%,55%)"
-          bg="hsl(280,60%,96%)"
-          title="Анализ и рекомендации"
-          description="ИИ проанализирует показатели вашего салона и даст конкретные шаги для роста выручки."
+        <ToolCard
+          icon="BarChart2"
+          color="hsl(185,85%,32%)"
+          bg="hsl(185,85%,95%)"
+          title="Цифровой бизнес-разбор"
+          description="Заполните анкету — ИИ проанализирует салон и выдаст персональный план роста выручки."
+          badge="new"
+          onStart={() => setActiveTool("salon-audit")}
         />
 
         <ComingSoonCard
