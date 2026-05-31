@@ -160,52 +160,54 @@ def handler(event: dict, context) -> dict:
             method="POST",
         )
 
-        try:
-            with urllib.request.urlopen(req, timeout=110) as resp:
+        def call_polza(payload_bytes):
+            r = urllib.request.Request(
+                "https://polza.ai/api/v1/media",
+                data=payload_bytes,
+                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(r, timeout=110) as resp:
                 raw = resp.read().decode("utf-8")
-                print(f"[polza.ai] status=200 body_preview={raw[:500]}")
-                result = json.loads(raw)
-        except urllib.error.HTTPError as e:
-            error_body = e.read().decode("utf-8", errors="ignore")
-            print(f"[polza.ai] HTTPError {e.code}: {error_body[:500]}")
-            return err(f"Ошибка генерации: {e.code}. {error_body[:300]}", 502)
-        except Exception as e:
-            msg = str(e)
-            print(f"[polza.ai] Exception: {msg}")
-            if "timed out" in msg.lower() or "timeout" in msg.lower():
-                return err("Сервис генерации не ответил за 110 секунд. Попробуйте ещё раз или уменьшите количество изображений.", 504)
-            return err(f"Ошибка соединения с сервисом: {msg}", 502)
+                print(f"[polza.ai] body_preview={raw[:300]}")
+                return json.loads(raw)
 
-        # Извлекаем изображения из ответа
+        # polza.ai возвращает 1 изображение за запрос — делаем max_images запросов
         images_out = []
-        raw_images = []
+        single_payload = json.dumps({
+            "model": "openai/gpt-image-1.5",
+            "input": {"prompt": final_prompt, "aspect_ratio": aspect, "max_images": 1},
+        }).encode("utf-8")
 
-        # polza.ai возвращает output.images[] или data[]
-        if isinstance(result.get("output"), dict):
-            raw_images = result["output"].get("images", [])
-        elif isinstance(result.get("data"), list):
-            raw_images = result["data"]
-        elif isinstance(result.get("images"), list):
-            raw_images = result["images"]
-
-        for img in raw_images:
-            if isinstance(img, dict):
-                b64 = img.get("b64_json") or img.get("base64") or img.get("data", "")
-                url = img.get("url", "")
-            elif isinstance(img, str):
-                b64 = img
-                url = ""
-            else:
-                continue
-
-            if b64:
-                cdn_url = upload_to_s3(b64, "png", user["id"])
-                images_out.append({"url": cdn_url})
-            elif url:
-                images_out.append({"url": url})
+        for i in range(max_images):
+            try:
+                result = call_polza(single_payload)
+                raw_images = result.get("data") or result.get("images") or []
+                for img in raw_images:
+                    url = img.get("url", "") if isinstance(img, dict) else ""
+                    b64 = img.get("b64_json") or img.get("base64") or "" if isinstance(img, dict) else img
+                    if url:
+                        images_out.append({"url": url})
+                    elif b64:
+                        cdn_url = upload_to_s3(b64, "png", user["id"])
+                        images_out.append({"url": cdn_url})
+            except urllib.error.HTTPError as e:
+                error_body = e.read().decode("utf-8", errors="ignore")
+                print(f"[polza.ai] HTTPError {e.code}: {error_body[:300]}")
+                if not images_out:
+                    return err(f"Ошибка генерации: {e.code}. {error_body[:200]}", 502)
+                break
+            except Exception as e:
+                msg = str(e)
+                print(f"[polza.ai] Exception: {msg}")
+                if not images_out:
+                    if "timed out" in msg.lower() or "timeout" in msg.lower():
+                        return err("Сервис не ответил за 110 секунд. Попробуйте ещё раз.", 504)
+                    return err(f"Ошибка соединения: {msg}", 502)
+                break
 
         if not images_out:
-            return err(f"Сервис не вернул изображений. Ответ: {json.dumps(result)[:300]}", 502)
+            return err("Сервис не вернул изображений. Попробуйте ещё раз.", 502)
 
         return ok({"images": images_out, "prompt_used": final_prompt})
 
