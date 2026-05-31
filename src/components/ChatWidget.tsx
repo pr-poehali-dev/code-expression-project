@@ -186,6 +186,7 @@ export default function ChatWidget() {
 
   const isInterviewPage = INTERVIEW_ROUTES.some(r => pathname.startsWith(r));
   if (isInterviewPage) return null;
+  if (pathname.startsWith("/cabinet")) return null;
 
   return (
     <div data-chat-widget>
