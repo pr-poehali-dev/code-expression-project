@@ -161,13 +161,16 @@ def handler(event: dict, context) -> dict:
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=120) as resp:
+            with urllib.request.urlopen(req, timeout=55) as resp:
                 result = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
             error_body = e.read().decode("utf-8", errors="ignore")
-            return err(f"Ошибка генерации: {e.code}. {error_body[:200]}", 502)
+            return err(f"Ошибка генерации: {e.code}. {error_body[:300]}", 502)
         except Exception as e:
-            return err(f"Ошибка соединения с сервисом: {str(e)}", 502)
+            msg = str(e)
+            if "timed out" in msg.lower() or "timeout" in msg.lower():
+                return err("Превышено время ожидания. Генерация картинок занимает 30-60 секунд — попробуйте ещё раз.", 504)
+            return err(f"Ошибка соединения с сервисом: {msg}", 502)
 
         # Извлекаем изображения из ответа
         images_out = []
