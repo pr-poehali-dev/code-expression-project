@@ -179,18 +179,23 @@ def handler(event: dict, context) -> dict:
             "input": {"prompt": final_prompt, "aspect_ratio": aspect, "max_images": 1},
         }).encode("utf-8")
 
+        cur = conn.cursor()
         for i in range(max_images):
             try:
                 result = call_polza(single_payload)
                 raw_images = result.get("data") or result.get("images") or []
                 for img in raw_images:
                     url = img.get("url", "") if isinstance(img, dict) else ""
-                    b64 = img.get("b64_json") or img.get("base64") or "" if isinstance(img, dict) else img
+                    b64 = (img.get("b64_json") or img.get("base64") or "") if isinstance(img, dict) else img
+                    if b64 and not url:
+                        url = upload_to_s3(b64, "png", user["id"])
                     if url:
                         images_out.append({"url": url})
-                    elif b64:
-                        cdn_url = upload_to_s3(b64, "png", user["id"])
-                        images_out.append({"url": cdn_url})
+                        # Сохраняем в БД — картинка не пропадёт при перезагрузке
+                        cur.execute(
+                            f"INSERT INTO {SCHEMA}.ai_generated_images (user_id, url, prompt, aspect_ratio) VALUES (%s, %s, %s, %s)",
+                            (user["id"], url, prompt[:500], aspect)
+                        )
             except urllib.error.HTTPError as e:
                 error_body = e.read().decode("utf-8", errors="ignore")
                 print(f"[polza.ai] HTTPError {e.code}: {error_body[:300]}")
@@ -209,6 +214,7 @@ def handler(event: dict, context) -> dict:
         if not images_out:
             return err("Сервис не вернул изображений. Попробуйте ещё раз.", 502)
 
+        conn.commit()
         return ok({"images": images_out, "prompt_used": final_prompt})
 
     finally:

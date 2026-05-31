@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
+
+const LK_API_URL = "https://functions.poehali.dev/1c0ad024-179b-4644-9621-377174bbeba3";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -18,7 +20,17 @@ const ASPECT_OPTIONS = [
 
 interface GeneratedImage {
   url: string;
+  prompt?: string;
+  created_at?: string;
+  id?: number;
   downloading?: boolean;
+}
+
+async function lkGet(action: string) {
+  const res = await fetch(`${LK_API_URL}?action=${action}`, {
+    headers: { "X-Session-Id": localStorage.getItem("lk_session") || "" },
+  });
+  return res.json();
 }
 
 export default function LkAiImageGen() {
@@ -31,8 +43,18 @@ export default function LkAiImageGen() {
   const [useSalonCtx, setUseSalonCtx] = useState(hasSalon);
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<GeneratedImage[]>([]);
+  const [history, setHistory] = useState<GeneratedImage[]>([]);
   const [error, setError] = useState("");
   const [promptUsed, setPromptUsed] = useState("");
+
+  const loadHistory = useCallback(async () => {
+    try {
+      const data = await lkGet("image_history");
+      if (Array.isArray(data)) setHistory(data.filter((i: GeneratedImage) => i.url));
+    } catch { /* тихо */ }
+  }, []);
+
+  useEffect(() => { loadHistory(); }, [loadHistory]);
 
   async function handleGenerate() {
     if (!prompt.trim()) { setError("Введите описание изображения"); return; }
@@ -53,6 +75,7 @@ export default function LkAiImageGen() {
       if (!res.ok) { setError(data.error || "Ошибка генерации"); return; }
       setImages((data.images || []).map((img: { url: string }) => ({ url: img.url })));
       setPromptUsed(data.prompt_used || "");
+      loadHistory();
     } catch {
       setError("Ошибка соединения. Попробуйте ещё раз.");
     } finally {
@@ -60,21 +83,24 @@ export default function LkAiImageGen() {
     }
   }
 
-  async function handleDownload(imgUrl: string, idx: number) {
-    setImages(prev => prev.map((img, i) => i === idx ? { ...img, downloading: true } : img));
+  async function downloadUrl(imgUrl: string, name: string) {
     try {
       const res = await fetch(imgUrl);
       const blob = await res.blob();
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `pro-dialog-image-${idx + 1}.png`;
+      a.download = name;
       a.click();
       URL.revokeObjectURL(a.href);
     } catch {
       alert("Не удалось скачать изображение");
-    } finally {
-      setImages(prev => prev.map((img, i) => i === idx ? { ...img, downloading: false } : img));
     }
+  }
+
+  async function handleDownload(imgUrl: string, idx: number) {
+    setImages(prev => prev.map((img, i) => i === idx ? { ...img, downloading: true } : img));
+    await downloadUrl(imgUrl, `pro-dialog-${idx + 1}.png`);
+    setImages(prev => prev.map((img, i) => i === idx ? { ...img, downloading: false } : img));
   }
 
   const charCount = prompt.length;
@@ -193,9 +219,9 @@ export default function LkAiImageGen() {
         <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 22px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>Готово — {images.length} {images.length === 1 ? "изображение" : "изображения"}</div>
-            <div style={{ fontSize: 11, color: "#aaa", display: "flex", alignItems: "center", gap: 5 }}>
-              <Icon name="Info" size={12} />
-              Скачайте до закрытия страницы
+            <div style={{ fontSize: 11, color: "hsl(145,60%,40%)", display: "flex", alignItems: "center", gap: 5 }}>
+              <Icon name="CheckCircle" size={12} />
+              Сохранено в истории
             </div>
           </div>
 
@@ -231,6 +257,42 @@ export default function LkAiImageGen() {
             <Icon name="RotateCcw" size={13} />
             Новая генерация
           </button>
+        </div>
+      )}
+
+      {/* История */}
+      {history.length > 0 && (
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 22px", marginTop: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", display: "flex", alignItems: "center", gap: 8 }}>
+              <Icon name="Clock" size={15} style={{ color: ACCENT }} />
+              История генераций
+            </div>
+            <div style={{ fontSize: 11, color: "#bbb" }}>последние 20</div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: 10 }}>
+            {history.map((img, i) => (
+              <div key={img.id ?? i} style={{ borderRadius: 10, overflow: "hidden", border: "1px solid #eee", position: "relative", background: "#f8f8f5" }}>
+                <img
+                  src={img.url}
+                  alt=""
+                  style={{ width: "100%", display: "block", aspectRatio: "1", objectFit: "cover" }}
+                  onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+                {img.prompt && (
+                  <div style={{ padding: "6px 8px", fontSize: 10, color: "#999", lineHeight: 1.4, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                    {img.prompt}
+                  </div>
+                )}
+                <button
+                  onClick={() => downloadUrl(img.url, `pro-dialog-history-${i + 1}.png`)}
+                  style={{ position: "absolute", top: 6, right: 6, background: "rgba(0,0,0,0.65)", border: "none", borderRadius: 6, padding: "5px 8px", display: "flex", alignItems: "center", gap: 4, color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", backdropFilter: "blur(4px)" }}
+                >
+                  <Icon name="Download" size={11} />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

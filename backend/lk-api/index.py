@@ -1047,6 +1047,46 @@ def handle_diag_search(event: dict) -> dict:
         conn.close()
 
 
+# ── История сгенерированных изображений ──────────────────────────────────────
+
+def handle_image_history(event: dict) -> dict:
+    """Получить последние 20 сгенерированных изображений пользователя."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT id, url, prompt, aspect_ratio, created_at FROM {tbl('ai_generated_images')} "
+            f"WHERE user_id = %s ORDER BY created_at DESC LIMIT 20",
+            (user["id"],)
+        )
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
+def handle_image_delete(event: dict) -> dict:
+    """Удалить изображение из истории по id."""
+    body = json.loads(event.get("body") or "{}")
+    image_id = body.get("id")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE {tbl('ai_generated_images')} SET url='' WHERE id=%s AND user_id=%s",
+            (image_id, user["id"])
+        )
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
 # ── Профиль салона ───────────────────────────────────────────────────────────
 
 def handle_salon_profile_get(event: dict) -> dict:
@@ -1250,6 +1290,8 @@ ROUTES = {
     ("GET",  "salon_profile"): handle_salon_profile_get,
     ("POST", "salon_profile_save"): handle_salon_profile_save,
     ("POST", "salon_logo_upload"): handle_salon_logo_upload,
+    ("GET",  "image_history"): handle_image_history,
+    ("POST", "image_delete"): handle_image_delete,
 }
 
 
