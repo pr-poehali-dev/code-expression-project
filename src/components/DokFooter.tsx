@@ -87,6 +87,7 @@ export default function DokFooter() {
           <div>
             <p style={{ margin: "0 0 14px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.14em", color: "#aaa" }}>Прочее</p>
             {[
+              { label: "Вакансии", href: "/vakansii" },
               { label: "Контакты", href: "/kontakty" },
               { label: "Профессиональное сотрудничество", href: "/partnery" },
               { label: "Политика конфиденциальности", href: "/privacy" },
