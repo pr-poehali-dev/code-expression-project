@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
 const ACCENT = "hsl(185,85%,32%)";
@@ -36,7 +37,10 @@ function getSavedUser() {
   try { return JSON.parse(localStorage.getItem(CHAT_USER_KEY) || "null"); } catch { return null; }
 }
 
+const INTERVIEW_ROUTES = ["/massaj", "/job"];
+
 export default function ChatWidget() {
+  const { pathname } = useLocation();
   const saved = getSavedUser();
   const [open, setOpen] = useState(false);
   // "form" — экран ввода имени/email, "chat" — чат
@@ -180,6 +184,9 @@ export default function ChatWidget() {
   }
 
   const showSuggestions = messages.length === 1;
+
+  const isInterviewPage = INTERVIEW_ROUTES.some(r => pathname.startsWith(r));
+  if (isInterviewPage) return null;
 
   return (
     <div data-chat-widget>
