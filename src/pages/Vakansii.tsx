@@ -110,14 +110,14 @@ export default function Vakansii() {
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
-                    <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 11, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", color: "#999" }}>
+                    <span style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 12, fontWeight: 600, letterSpacing: "1.5px", textTransform: "uppercase", color: "#c9a96e" }}>
                       {v.tag}
                     </span>
                   </div>
                   <h3 style={{ fontFamily: "'Cormorant', serif", fontSize: "clamp(22px,3vw,30px)", fontWeight: 500, margin: "0 0 4px", color: "#1a1a1a", lineHeight: 1.2 }}>
                     {v.title}
                   </h3>
-                  <div style={{ fontFamily: "'Cormorant', serif", fontSize: 18, fontWeight: 300, color: "#888", fontStyle: "italic" }}>
+                  <div style={{ fontFamily: "'Cormorant', serif", fontSize: 19, fontWeight: 400, color: "#555", fontStyle: "italic" }}>
                     {v.subtitle}
                   </div>
                 </div>
@@ -141,7 +141,7 @@ export default function Vakansii() {
 
               <div style={{ width: 40, height: 1, background: "#e0d8cc", marginBottom: 20 }} />
 
-              <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 300, color: "#666", lineHeight: 1.7, margin: "0 0 24px" }}>
+              <p style={{ fontFamily: "'Montserrat',sans-serif", fontSize: 14, fontWeight: 400, color: "#444", lineHeight: 1.7, margin: "0 0 24px" }}>
                 {v.description}
               </p>
 
@@ -154,7 +154,7 @@ export default function Vakansii() {
                     fontFamily: "'Montserrat',sans-serif",
                     fontSize: 12,
                     fontWeight: 400,
-                    color: "#a8834a",
+                    color: "#7a5c28",
                   }}>
                     {c}
                   </span>
