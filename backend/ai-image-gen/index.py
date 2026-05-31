@@ -179,7 +179,9 @@ def handler(event: dict, context) -> dict:
             "input": {"prompt": final_prompt, "aspect_ratio": aspect, "max_images": 1},
         }).encode("utf-8")
 
-        cur = conn.cursor()
+        user_id = user["id"]
+        conn.close()  # закрываем до долгих запросов — переоткроем после каждого
+
         for i in range(max_images):
             try:
                 result = call_polza(single_payload)
@@ -188,14 +190,21 @@ def handler(event: dict, context) -> dict:
                     url = img.get("url", "") if isinstance(img, dict) else ""
                     b64 = (img.get("b64_json") or img.get("base64") or "") if isinstance(img, dict) else img
                     if b64 and not url:
-                        url = upload_to_s3(b64, "png", user["id"])
+                        url = upload_to_s3(b64, "png", user_id)
                     if url:
                         images_out.append({"url": url})
-                        # Сохраняем в БД — картинка не пропадёт при перезагрузке
-                        cur.execute(
-                            f"INSERT INTO {SCHEMA}.ai_generated_images (user_id, url, prompt, aspect_ratio) VALUES (%s, %s, %s, %s)",
-                            (user["id"], url, prompt[:500], aspect)
-                        )
+                        # Сохраняем сразу — новое соединение на каждую запись
+                        try:
+                            c = get_db()
+                            cur = c.cursor()
+                            cur.execute(
+                                f"INSERT INTO {SCHEMA}.ai_generated_images (user_id, url, prompt, aspect_ratio) VALUES (%s, %s, %s, %s)",
+                                (user_id, url, prompt[:500], aspect)
+                            )
+                            c.commit()
+                            c.close()
+                        except Exception as db_err:
+                            print(f"[db] save error: {db_err}")
             except urllib.error.HTTPError as e:
                 error_body = e.read().decode("utf-8", errors="ignore")
                 print(f"[polza.ai] HTTPError {e.code}: {error_body[:300]}")
@@ -214,8 +223,10 @@ def handler(event: dict, context) -> dict:
         if not images_out:
             return err("Сервис не вернул изображений. Попробуйте ещё раз.", 502)
 
-        conn.commit()
         return ok({"images": images_out, "prompt_used": final_prompt})
 
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except Exception:
+            pass
