@@ -243,7 +243,7 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
             return (
               <div key={i} style={{ display: "flex", flexDirection: isUser ? "row-reverse" : "row", gap: 10, alignItems: "flex-start" }}>
                 <div style={{ width: 32, height: 32, borderRadius: 10, flexShrink: 0, background: isUser ? "linear-gradient(135deg,#c9a96e,#a8834a)" : "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant',serif", fontSize: 13, color: "#fff", fontWeight: 600 }}>
-                  {isUser ? (applicant.full_name[0] || "В") : "M"}
+                  {isUser ? (applicant.full_name[0] || "В") : "Б"}
                 </div>
                 <div style={{ maxWidth: "80%", padding: "12px 16px", background: isUser ? "linear-gradient(135deg,#c9a96e,#a8834a)" : "#fff", color: isUser ? "#fff" : "#1a1a1a", borderRadius: isUser ? "18px 4px 18px 18px" : "4px 18px 18px 18px", fontSize: 14, lineHeight: 1.7, fontFamily: "'Montserrat',sans-serif", fontWeight: 400, border: isUser ? "none" : "1px solid #ede8df", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                   {msg.content}
@@ -254,7 +254,7 @@ export default function MassajInterview({ onBack }: { onBack: () => void }) {
 
           {loading && (
             <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <div style={{ width: 32, height: 32, borderRadius: 10, background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant',serif", fontSize: 13, color: "#fff" }}>M</div>
+              <div style={{ width: 32, height: 32, borderRadius: 10, background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Cormorant',serif", fontSize: 13, color: "#fff" }}>Б</div>
               <div style={{ background: "#fff", border: "1px solid #ede8df", borderRadius: "4px 18px 18px 18px", padding: "14px 18px", display: "flex", gap: 6 }}>
                 {[0, 1, 2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#c9a96e", opacity: 0.5, animation: `dot-pulse 1.2s ${i * 0.2}s ease-in-out infinite` }} />)}
               </div>
