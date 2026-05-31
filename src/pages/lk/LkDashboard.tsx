@@ -5,7 +5,7 @@ import LkTests from "./LkTests";
 import LkBodyMap from "./LkBodyMap";
 import LkAdmin from "./LkAdmin";
 import LkSalonProfile from "./LkSalonProfile";
-import LkAiImageGen from "./LkAiImageGen";
+import LkAiTools from "./LkAiTools";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -282,7 +282,7 @@ export default function LkDashboard() {
         {tab === "home" && <HomeTab onNav={handleTabChange} role={role} hasSalon={hasSalon} />}
         {tab === "tools" && <LkTests />}
         {tab === "academy" && <ComingSoonTab title="Академия" description="Курсы и обучение для вашей роли. Раздел находится в разработке." icon="GraduationCap" />}
-        {tab === "ai" && <LkAiImageGen />}
+        {tab === "ai" && <LkAiTools />}
         {tab === "shop" && <ComingSoonTab title="Магазин" description="Курсы, техники и программы обучения. Скоро откроется." icon="ShoppingBag" />}
         {tab === "employees" && <ComingSoonTab title="Сотрудники" description="Добавление, управление ролями и просмотр прогресса обучения. В разработке." icon="Users" />}
         {tab === "purchases" && <ComingSoonTab title="История покупок" description="Подписки, курсы и дополнительные продукты. Скоро будет доступно." icon="Receipt" />}
