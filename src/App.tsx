@@ -20,7 +20,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import CookieBanner from "./components/CookieBanner";
 import ChatWidget from "./components/ChatWidget";
 import LkPage from "./pages/lk/LkPage";
-import LkJoinPage from "./pages/lk/LkJoinPage";
+
 import RepPage from "./pages/rep/RepPage";
 import { LkAuthProvider } from "./contexts/LkAuthContext";
 import { EnergyProvider } from "./contexts/EnergyContext";
@@ -61,8 +61,7 @@ const App = () => (
           <Route path="/offer" element={<Offer />} />
           <Route path="/reviews" element={<Reviews />} />
           <Route path="/cabinet" element={<LkPage />} />
-          <Route path="/join" element={<LkJoinPage />} />
-          <Route path="/join/:token" element={<LkJoinPage />} />
+
           <Route path="/rep" element={<RepPage />} />
           <Route path="/praktika" element={<Praktika />} />
           <Route path="/premium" element={<PremiumPraktika />} />
