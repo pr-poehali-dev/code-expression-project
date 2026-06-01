@@ -14,7 +14,7 @@ const ACCENT_DARK = "hsl(185,85%,24%)";
 const BG = "#f4f4f0";
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
-type Tab = "home" | "tools" | "academy" | "ai" | "shop" | "employees" | "purchases" | "profile" | "salon" | "admin";
+type Tab = "home" | "tools" | "academy" | "ai" | "shop" | "employees" | "purchases" | "profile" | "salon" | "admin" | "more";
 
 // ── Доступ по ролям ───────────────────────────────────────────────────────────
 const ROLE_TABS: Record<string, Tab[]> = {
@@ -30,6 +30,14 @@ function getAllowedTabs(role: string, isAdmin: boolean): Tab[] {
   if (isAdmin) return [...new Set([...tabs, "admin" as Tab])];
   return tabs;
 }
+
+// Приоритетные вкладки для мобильного таббара (4 штуки + «Ещё»)
+const MOBILE_PRIMARY: Record<string, Tab[]> = {
+  owner:          ["home", "ai", "employees", "salon"],
+  admin:          ["home", "tools", "ai", "profile"],
+  master:         ["home", "tools", "ai", "profile"],
+  body_specialist:["home", "tools", "ai", "profile"],
+};
 
 // ── Навигационные пункты ─────────────────────────────────────────────────────
 const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string }[] = [
@@ -170,14 +178,22 @@ export default function LkDashboard() {
   };
 
   const [tab, setTab] = useState<Tab>(getInitialTab);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const handleTabChange = useCallback((t: Tab) => {
     if (!allowedTabs.includes(t)) return;
+    setMoreOpen(false);
     sessionStorage.setItem("lk_tab", t);
     setTab(t);
   }, [allowedTabs]);
 
   const visibleNav = NAV_ITEMS.filter(n => allowedTabs.includes(n.id));
+
+  // Мобильный таббар: 4 приоритетных вкладки + «Ещё»
+  const mobilePrimary = (MOBILE_PRIMARY[role] || MOBILE_PRIMARY["body_specialist"])
+    .filter(id => allowedTabs.includes(id));
+  const moreItems = visibleNav.filter(n => !mobilePrimary.includes(n.id));
+  const mobileNav = NAV_ITEMS.filter(n => mobilePrimary.includes(n.id));
 
   const ROLE_LABELS: Record<string, string> = {
     owner: "Владелец", admin: "Администратор",
@@ -296,7 +312,7 @@ export default function LkDashboard() {
 
       {/* ── Мобильный нижний таббар ── */}
       <nav className="lk-bottombar">
-        {visibleNav.slice(0, 5).map(item => (
+        {mobileNav.map(item => (
           <button key={item.id} onClick={() => handleTabChange(item.id)} style={{
             flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
             justifyContent: "center", gap: 3, border: "none", background: "none",
@@ -308,7 +324,42 @@ export default function LkDashboard() {
             {item.label}
           </button>
         ))}
+        {moreItems.length > 0 && (
+          <button onClick={() => setMoreOpen(p => !p)} style={{
+            flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+            justifyContent: "center", gap: 3, border: "none", background: "none",
+            color: moreOpen ? ACCENT : "#bbb",
+            fontSize: 9, fontWeight: moreOpen ? 700 : 500,
+            cursor: "pointer", fontFamily: "Montserrat, sans-serif", padding: "7px 2px",
+          }}>
+            <Icon name="MoreHorizontal" size={20} />
+            Ещё
+          </button>
+        )}
       </nav>
+
+      {/* ── Шторка «Ещё» ── */}
+      {moreOpen && (
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200 }} onClick={() => setMoreOpen(false)}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.35)" }} />
+          <div onClick={e => e.stopPropagation()} style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "#fff", borderRadius: "20px 20px 0 0", padding: "8px 0 calc(72px + env(safe-area-inset-bottom,0px))", boxShadow: "0 -4px 24px rgba(0,0,0,0.12)" }}>
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: "#e0e0e0", margin: "0 auto 16px" }} />
+            {moreItems.map(item => (
+              <button key={item.id} onClick={() => handleTabChange(item.id)} style={{
+                width: "100%", display: "flex", alignItems: "center", gap: 14,
+                padding: "14px 24px", border: "none", background: tab === item.id ? `hsla(185,85%,32%,0.06)` : "none",
+                cursor: "pointer", fontFamily: "Montserrat, sans-serif", textAlign: "left",
+              }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: tab === item.id ? `hsla(185,85%,32%,0.1)` : "#f5f5f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon name={item.icon} size={18} style={{ color: tab === item.id ? ACCENT : "#888" }} />
+                </div>
+                <span style={{ fontSize: 14, fontWeight: tab === item.id ? 700 : 500, color: tab === item.id ? ACCENT : "#1a1a1a" }}>{item.label}</span>
+                {item.badge && <span style={{ fontSize: 9, fontWeight: 700, background: ACCENT, color: "#fff", borderRadius: 4, padding: "2px 6px", marginLeft: "auto" }}>{item.badge.toUpperCase()}</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <style>{`
         .lk-root { display: flex; }
