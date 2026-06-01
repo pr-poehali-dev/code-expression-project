@@ -89,6 +89,7 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [welcomeBonus, setWelcomeBonus] = useState(false);
   const hasDraft = !!(draft.form?.name);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -158,7 +159,7 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
     if (!form.name.trim()) { setError("Укажите название салона"); return; }
     setSaving(true); setError("");
     try {
-      await lkApi.salonProfileSave({
+      const result = await lkApi.salonProfileSave({
         ...form,
         avg_check:       form.avg_check ? Number(form.avg_check) : null,
         monthly_revenue: form.monthly_revenue ? Number(form.monthly_revenue) : null,
@@ -171,9 +172,10 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
           price_max:    s.price_max ? Number(s.price_max) : null,
           duration_min: s.duration_min ? Number(s.duration_min) : null,
         })),
-      });
+      }) as { welcome_bonus?: boolean };
       clearDraft();
       setSaved(true);
+      if (result?.welcome_bonus) setWelcomeBonus(true);
       setTimeout(() => setSaved(false), 3000);
       if (onSaved) setTimeout(onSaved, 800);
     } catch (e: unknown) {
@@ -379,6 +381,37 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
           Данные профиля — это <strong>ваш контекст для ИИ</strong>. Чем подробнее заполнено, тем точнее будут результаты инструментов: посты, расчёты, рекомендации — всё будет про ваш конкретный салон.
         </div>
       </div>
+
+      {/* Баннер приветственного бонуса */}
+      {welcomeBonus && (
+        <div style={{ marginTop: 20, borderRadius: 20, overflow: "hidden", animation: "fadeIn 0.5s ease", boxShadow: "0 8px 32px rgba(0,0,0,0.12)" }}>
+          <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}} @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}`}</style>
+          <div style={{ background: "linear-gradient(135deg, hsl(280,70%,55%), hsl(220,80%,55%), hsl(185,85%,42%))", padding: "28px 28px 24px", color: "#fff", textAlign: "center" }}>
+            <div style={{ fontSize: 52, marginBottom: 12, animation: "float 2s ease infinite" }}>🎁</div>
+            <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 8, letterSpacing: -0.5 }}>
+              Добро пожаловать!
+            </div>
+            <div style={{ fontSize: 14, opacity: 0.9, lineHeight: 1.6, marginBottom: 20 }}>
+              Мы зачислили на баланс вашего салона
+            </div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.2)", borderRadius: 16, padding: "14px 28px", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.3)" }}>
+              <span style={{ fontSize: 36 }}>⚡</span>
+              <div style={{ textAlign: "left" }}>
+                <div style={{ fontSize: 32, fontWeight: 900, lineHeight: 1 }}>100</div>
+                <div style={{ fontSize: 13, opacity: 0.85 }}>энергий в подарок</div>
+              </div>
+            </div>
+            <div style={{ marginTop: 20, fontSize: 13, opacity: 0.8, lineHeight: 1.6 }}>
+              Используйте ИИ-инструменты прямо сейчас —<br />генерируйте посты, анализируйте команду и многое другое.
+            </div>
+            <button
+              onClick={() => setWelcomeBonus(false)}
+              style={{ marginTop: 20, background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 600, padding: "10px 24px", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+              Начать работу →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

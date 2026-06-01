@@ -1266,6 +1266,26 @@ def handle_salon_profile_save(event: dict) -> dict:
                 (salon_id, user["id"])
             )
 
+            # Приветственный бонус 100 ⚡ — только если ещё не получал
+            welcome_bonus = False
+            if not user.get("welcome_bonus_given"):
+                WELCOME_BONUS = 100
+                cur.execute(
+                    f"UPDATE {tbl('salons')} SET credits_balance=%s WHERE id=%s",
+                    (WELCOME_BONUS, salon_id)
+                )
+                cur.execute(
+                    f"INSERT INTO {tbl('credit_transactions')} "
+                    f"(salon_id, user_id, action, amount, tool_key, type) "
+                    f"VALUES (%s,%s,'Приветственный подарок 🎁',%s,NULL,'credit')",
+                    (salon_id, user["id"], WELCOME_BONUS)
+                )
+                cur.execute(
+                    f"UPDATE {tbl('lk_users')} SET welcome_bonus_given=TRUE WHERE id=%s",
+                    (user["id"],)
+                )
+                welcome_bonus = True
+
         # Сохраняем услуги (полная замена)
         services = body.get("services", [])
         cur.execute(f"SELECT id FROM {tbl('salon_services')} WHERE salon_id = %s", (salon_id,))
@@ -1294,7 +1314,7 @@ def handle_salon_profile_save(event: dict) -> dict:
                 )
 
         conn.commit()
-        return ok({"ok": True, "salon_id": salon_id})
+        return ok({"ok": True, "salon_id": salon_id, "welcome_bonus": locals().get("welcome_bonus", False)})
     finally:
         conn.close()
 
