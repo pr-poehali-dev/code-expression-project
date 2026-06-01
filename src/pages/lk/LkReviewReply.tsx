@@ -46,11 +46,25 @@ export default function LkReviewReply() {
   const [copied, setCopied]         = useState(false);
   const [error, setError]           = useState("");
   const [history, setHistory]       = useState<HistoryItem[]>([]);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     fetch(`${LK_URL}?action=review_reply_history`, { headers: { "X-Session-Id": sid() } })
       .then(r => r.json()).then(d => Array.isArray(d) && setHistory(d)).catch(() => {});
   }, []);
+
+  async function handleDelete(id: number, e: React.MouseEvent) {
+    e.stopPropagation();
+    setDeletingId(id);
+    try {
+      await fetch(`${LK_URL}?action=review_reply_delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
+        body: JSON.stringify({ id }),
+      });
+      setHistory(p => p.filter(h => h.id !== id));
+    } finally { setDeletingId(null); }
+  }
 
   async function handleGenerate() {
     if (!reviewText.trim()) { setError("Вставьте текст отзыва"); return; }
@@ -214,21 +228,30 @@ export default function LkReviewReply() {
               const s = SENTIMENTS.find(s => s.value === h.sentiment) || SENTIMENTS[0];
               return (
                 <div key={h.id}
-                  onClick={() => { setReviewText(h.review_text); setReply(h.reply_text); setSentiment(h.sentiment); }}
-                  style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 4px", borderBottom: "1px solid #f5f5f2", cursor: "pointer" }}
+                  style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 4px", borderBottom: "1px solid #f5f5f2", borderRadius: 8 }}
                   onMouseEnter={e => (e.currentTarget.style.background = "#fafaf8")}
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
-                  <div style={{ width: 28, height: 28, borderRadius: 7, background: s.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 7, background: s.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1, cursor: "pointer" }}
+                    onClick={() => { setReviewText(h.review_text); setReply(h.reply_text); setSentiment(h.sentiment); }}>
                     <Icon name={s.icon} size={13} style={{ color: s.color }} />
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ flex: 1, minWidth: 0, cursor: "pointer" }}
+                    onClick={() => { setReviewText(h.review_text); setReply(h.reply_text); setSentiment(h.sentiment); }}>
                     <div style={{ fontSize: 12, color: "#555", lineHeight: 1.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {h.review_text}
                     </div>
                     <div style={{ fontSize: 11, color: "#bbb", marginTop: 2 }}>{new Date(h.created_at).toLocaleDateString("ru-RU")}</div>
                   </div>
-                  <Icon name="ChevronRight" size={14} style={{ color: "#ddd", flexShrink: 0 }} />
+                  <button
+                    onClick={e => handleDelete(h.id, e)}
+                    disabled={deletingId === h.id}
+                    style={{ width: 28, height: 28, borderRadius: 7, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: deletingId === h.id ? 0.4 : 1 }}
+                    onMouseEnter={e => (e.currentTarget.style.background = "hsl(0,75%,97%)")}
+                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                  >
+                    <Icon name={deletingId === h.id ? "Loader" : "Trash2"} size={13} style={{ color: "hsl(0,75%,55%)", animation: deletingId === h.id ? "spin 1s linear infinite" : "none" }} />
+                  </button>
                 </div>
               );
             })}

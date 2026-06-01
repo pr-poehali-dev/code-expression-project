@@ -1710,6 +1710,28 @@ def handle_review_reply(event: dict) -> dict:
         conn.close()
 
 
+def handle_review_reply_delete(event: dict) -> dict:
+    """Удаляет запись из истории ответов на отзывы."""
+    body    = json.loads(event.get("body") or "{}")
+    item_id = body.get("id")
+    if not item_id:
+        return err("Не передан id")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor()
+        cur.execute(
+            f"DELETE FROM {tbl('review_replies')} WHERE id=%s AND user_id=%s",
+            (item_id, user["id"])
+        )
+        conn.commit()
+        return ok({"deleted": cur.rowcount > 0})
+    finally:
+        conn.close()
+
+
 def handle_review_reply_history(event: dict) -> dict:
     """История ответов на отзывы."""
     conn = get_db()
@@ -2117,6 +2139,7 @@ ROUTES = {
     ("POST", "staff_delete"): handle_staff_delete,
     ("POST", "review_reply"): handle_review_reply,
     ("GET",  "review_reply_history"): handle_review_reply_history,
+    ("POST", "review_reply_delete"): handle_review_reply_delete,
     ("POST", "script_generate"): handle_script_generate,
     ("GET",  "script_history"): handle_script_history,
 }
