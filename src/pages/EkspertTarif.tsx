@@ -1,6 +1,6 @@
 import { Helmet } from "@/lib/helmet";
-import DokFooter from "@/components/DokFooter";
-import DokNavbar from "@/components/DokNavbar";
+import BizFooter from "@/components/BizFooter";
+import BizNavbar from "@/components/BizNavbar";
 import { DARK, TEXT } from "./ekspert/EkspertShared";
 import EkspertHero from "./ekspert/EkspertHero";
 import EkspertSections from "./ekspert/EkspertSections";
@@ -54,11 +54,11 @@ export default function EkspertTarif() {
         }
       `}</style>
 
-      <DokNavbar />
+      <BizNavbar />
       <EkspertHero />
       <EkspertSections />
       <EkspertApplication />
-      <DokFooter />
+      <BizFooter />
     </div>
   );
 }
