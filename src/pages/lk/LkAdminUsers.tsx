@@ -117,8 +117,7 @@ export function UsersSection() {
             <label style={labelStyle}>Доступ к кабинету</label>
             <div style={{ display: "flex", gap: 8 }}>
               {[
-                { value: "12months", label: "12 месяцев" },
-                { value: "unlimited", label: "Безлимит" },
+                { value: "12months", label: "1 год" },
               ].map(opt => (
                 <button
                   key={opt.value}
@@ -259,8 +258,7 @@ export function UsersSection() {
                   <label style={labelStyle}>Продлить доступ</label>
                   <div style={{ display: "flex", gap: 8 }}>
                     {[
-                      { value: "12months", label: "+ 12 месяцев" },
-                      { value: "unlimited", label: "Безлимит" },
+                      { value: "12months", label: "+ 1 год" },
                     ].map(opt => (
                       <button
                         key={opt.value}
@@ -343,7 +341,7 @@ export function UsersSection() {
                   </div>
                   <div style={{ fontSize: 11, marginTop: 3 }}>
                     {u.access_expires_at === null
-                      ? <span style={{ color: "hsl(140,60%,38%)", fontWeight: 600 }}>Безлимитный доступ</span>
+                      ? <span style={{ color: "#aaa", fontWeight: 500 }}>Дата не задана</span>
                       : new Date(u.access_expires_at) > new Date()
                         ? <span style={{ color: ACCENT, fontWeight: 600 }}>Доступ до {new Date(u.access_expires_at).toLocaleDateString("ru-RU")}</span>
                         : <span style={{ color: "#e55", fontWeight: 600 }}>Доступ истёк {new Date(u.access_expires_at).toLocaleDateString("ru-RU")}</span>
