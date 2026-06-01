@@ -214,12 +214,22 @@ export default function LkDashboard() {
   const [tab, setTab] = useState<Tab>(getInitialTab);
   const [moreOpen, setMoreOpen] = useState(false);
 
+  // Вкладки, требующие наличия салона
+  const SALON_REQUIRED: Tab[] = ["tools", "ai", "shop", "employees", "purchases"];
+
   const handleTabChange = useCallback((t: Tab) => {
     if (!allowedTabs.includes(t)) return;
+    // Если нет салона — перенаправляем на его создание
+    if (!hasSalon && SALON_REQUIRED.includes(t)) {
+      setMoreOpen(false);
+      sessionStorage.setItem("lk_tab", "salon");
+      setTab("salon");
+      return;
+    }
     setMoreOpen(false);
     sessionStorage.setItem("lk_tab", t);
     setTab(t);
-  }, [allowedTabs]);
+  }, [allowedTabs, hasSalon]);
 
   const visibleNav = NAV_ITEMS.filter(n => allowedTabs.includes(n.id));
 
@@ -273,25 +283,33 @@ export default function LkDashboard() {
 
         {/* Навигация */}
         <nav style={{ flex: 1, padding: "10px 12px", overflowY: "auto" }}>
-          {visibleNav.map(item => (
-            <button key={item.id} onClick={() => handleTabChange(item.id)} style={{
-              width: "100%", display: "flex", alignItems: "center", gap: 11,
-              padding: "10px 12px", borderRadius: 10, border: "none",
-              background: tab === item.id ? `hsla(185,85%,32%,0.1)` : "transparent",
-              color: tab === item.id ? ACCENT : "#666",
-              fontSize: 13, fontWeight: tab === item.id ? 700 : 500,
-              cursor: "pointer", fontFamily: "Montserrat, sans-serif",
-              marginBottom: 2, transition: "all 0.15s", textAlign: "left",
-            }}>
-              <Icon name={item.icon} size={17} />
-              <span style={{ flex: 1 }}>{item.label}</span>
-              {item.badge && (
-                <span style={{ fontSize: 9, fontWeight: 700, background: "hsl(40,90%,50%)", color: "#fff", borderRadius: 4, padding: "2px 5px", letterSpacing: 0.5, textTransform: "uppercase" }}>
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          ))}
+          {visibleNav.map(item => {
+            const locked = !hasSalon && SALON_REQUIRED.includes(item.id);
+            const active = tab === item.id;
+            return (
+              <button key={item.id} onClick={() => handleTabChange(item.id)} style={{
+                width: "100%", display: "flex", alignItems: "center", gap: 11,
+                padding: "10px 12px", borderRadius: 10, border: "none",
+                background: active ? `hsla(185,85%,32%,0.1)` : "transparent",
+                color: locked ? "#ccc" : active ? ACCENT : "#666",
+                fontSize: 13, fontWeight: active ? 700 : 500,
+                cursor: "pointer", fontFamily: "Montserrat, sans-serif",
+                marginBottom: 2, transition: "all 0.15s", textAlign: "left",
+                opacity: locked ? 0.7 : 1,
+              }}>
+                <Icon name={item.icon} size={17} />
+                <span style={{ flex: 1 }}>{item.label}</span>
+                {locked
+                  ? <Icon name="Lock" size={12} style={{ color: "#ccc" }} />
+                  : item.badge && (
+                    <span style={{ fontSize: 9, fontWeight: 700, background: "hsl(40,90%,50%)", color: "#fff", borderRadius: 4, padding: "2px 5px", letterSpacing: 0.5, textTransform: "uppercase" }}>
+                      {item.badge}
+                    </span>
+                  )
+                }
+              </button>
+            );
+          })}
         </nav>
 
         {/* Баланс энергии */}
@@ -356,18 +374,23 @@ export default function LkDashboard() {
 
       {/* ── Мобильный нижний таббар ── */}
       <nav className="lk-bottombar">
-        {mobileNav.map(item => (
-          <button key={item.id} onClick={() => handleTabChange(item.id)} style={{
-            flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-            justifyContent: "center", gap: 3, border: "none", background: "none",
-            color: tab === item.id ? ACCENT : "#bbb",
-            fontSize: 9, fontWeight: tab === item.id ? 700 : 500,
-            cursor: "pointer", fontFamily: "Montserrat, sans-serif", padding: "7px 2px",
-          }}>
-            <Icon name={item.icon} size={20} />
-            {item.label}
-          </button>
-        ))}
+        {mobileNav.map(item => {
+          const locked = !hasSalon && SALON_REQUIRED.includes(item.id);
+          return (
+            <button key={item.id} onClick={() => handleTabChange(item.id)} style={{
+              flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+              justifyContent: "center", gap: 3, border: "none", background: "none",
+              color: locked ? "#ddd" : tab === item.id ? ACCENT : "#bbb",
+              fontSize: 9, fontWeight: tab === item.id ? 700 : 500,
+              cursor: "pointer", fontFamily: "Montserrat, sans-serif", padding: "7px 2px",
+              position: "relative",
+            }}>
+              <Icon name={item.icon} size={20} />
+              {locked && <Icon name="Lock" size={9} style={{ position: "absolute", top: 5, right: "calc(50% - 14px)", color: "#ccc" }} />}
+              {item.label}
+            </button>
+          );
+        })}
         {moreItems.length > 0 && (
           <button onClick={() => setMoreOpen(p => !p)} style={{
             flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
@@ -388,19 +411,24 @@ export default function LkDashboard() {
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.35)" }} />
           <div onClick={e => e.stopPropagation()} style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "#fff", borderRadius: "20px 20px 0 0", padding: "8px 0 calc(72px + env(safe-area-inset-bottom,0px))", boxShadow: "0 -4px 24px rgba(0,0,0,0.12)" }}>
             <div style={{ width: 36, height: 4, borderRadius: 2, background: "#e0e0e0", margin: "0 auto 16px" }} />
-            {moreItems.map(item => (
-              <button key={item.id} onClick={() => handleTabChange(item.id)} style={{
-                width: "100%", display: "flex", alignItems: "center", gap: 14,
-                padding: "14px 24px", border: "none", background: tab === item.id ? `hsla(185,85%,32%,0.06)` : "none",
-                cursor: "pointer", fontFamily: "Montserrat, sans-serif", textAlign: "left",
-              }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: tab === item.id ? `hsla(185,85%,32%,0.1)` : "#f5f5f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Icon name={item.icon} size={18} style={{ color: tab === item.id ? ACCENT : "#888" }} />
-                </div>
-                <span style={{ fontSize: 14, fontWeight: tab === item.id ? 700 : 500, color: tab === item.id ? ACCENT : "#1a1a1a" }}>{item.label}</span>
-                {item.badge && <span style={{ fontSize: 9, fontWeight: 700, background: ACCENT, color: "#fff", borderRadius: 4, padding: "2px 6px", marginLeft: "auto" }}>{item.badge.toUpperCase()}</span>}
-              </button>
-            ))}
+            {moreItems.map(item => {
+              const locked = !hasSalon && SALON_REQUIRED.includes(item.id);
+              return (
+                <button key={item.id} onClick={() => handleTabChange(item.id)} style={{
+                  width: "100%", display: "flex", alignItems: "center", gap: 14,
+                  padding: "14px 24px", border: "none", background: tab === item.id ? `hsla(185,85%,32%,0.06)` : "none",
+                  cursor: "pointer", fontFamily: "Montserrat, sans-serif", textAlign: "left",
+                  opacity: locked ? 0.5 : 1,
+                }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: tab === item.id ? `hsla(185,85%,32%,0.1)` : "#f5f5f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Icon name={locked ? "Lock" : item.icon} size={18} style={{ color: tab === item.id ? ACCENT : "#888" }} />
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: tab === item.id ? 700 : 500, color: tab === item.id ? ACCENT : "#1a1a1a" }}>{item.label}</span>
+                  {!locked && item.badge && <span style={{ fontSize: 9, fontWeight: 700, background: ACCENT, color: "#fff", borderRadius: 4, padding: "2px 6px", marginLeft: "auto" }}>{item.badge.toUpperCase()}</span>}
+                  {locked && <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto" }}>Нужен салон</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
