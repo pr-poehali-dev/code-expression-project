@@ -60,7 +60,7 @@ export default function ComingSoon() {
     <div style={{ background: DARK, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#fff" }}>
       <Helmet>
         <title>Скоро открытие — Про Диалог</title>
-        <meta name="description" content="Платформа «Про Диалог» скоро откроется. Оставьте заявку сейчас и получите скидку 70% — это единственная акция, которая будет." />
+        <meta name="description" content="Курсы платформы «Про Диалог» скоро появятся в постоянной продаже. Оставьте заявку сейчас и получите скидку 70% — после запуска такой цены не будет." />
       </Helmet>
 
       <BizNavbar />
@@ -76,7 +76,7 @@ export default function ComingSoon() {
           }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT, animation: "cs-pulse 2s infinite" }} />
             <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-              Скоро открытие
+              Курсы скоро в продаже
             </span>
           </div>
 
@@ -86,15 +86,15 @@ export default function ComingSoon() {
             fontWeight: 700, lineHeight: 1.15,
             color: "#fff", margin: "0 0 20px", letterSpacing: "-0.5px",
           }}>
-            Платформа готовится<br />
-            <span style={{ color: ACCENT }}>к запуску</span>
+            Курсы выходят<br />
+            <span style={{ color: ACCENT }}>в постоянную продажу</span>
           </h1>
 
           <p style={{ fontSize: "clamp(15px, 2vw, 16px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.8, margin: "0 auto 10px", maxWidth: 520 }}>
-            Мы финально настраиваем все инструменты, чтобы с первого дня вы получили полноценный доступ к системе.
+            Платформа уже работает. Скоро курсы станут доступны для постоянной покупки по полной цене.
           </p>
           <p style={{ fontSize: "clamp(15px, 2vw, 16px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.8, margin: 0, maxWidth: 520, marginLeft: "auto", marginRight: "auto" }}>
-            Но пока платформа ещё не открылась — у вас есть редкая возможность.
+            Пока этого не произошло — у вас есть возможность зафиксировать цену со скидкой 70%.
           </p>
         </div>
 
@@ -106,7 +106,7 @@ export default function ComingSoon() {
           boxShadow: "0 8px 40px rgba(45,212,191,0.08)",
         }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: ACCENT, marginBottom: 16 }}>
-            Только для ранних участников
+            Специальная цена до запуска продаж
           </div>
 
           <h2 style={{
@@ -115,15 +115,15 @@ export default function ComingSoon() {
             fontWeight: 700, color: "#fff",
             margin: "0 0 22px", lineHeight: 1.2,
           }}>
-            Оставьте заявку сейчас —<br />
-            <span style={{ color: ACCENT }}>получите скидку 70%</span>
+            Зафиксируйте цену сейчас —<br />
+            <span style={{ color: ACCENT }}>скидка 70% до старта продаж</span>
           </h2>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[
-              "Когда платформа откроется — вы получите доступ к выбранному тарифу со скидкой 70% от стоимости.",
-              "Это не маркетинговый ход и не временная акция. Это наш способ сказать спасибо тем, кто поверил нам до старта.",
-              "Подобных скидок больше не будет никогда. Ни на запуске, ни после — цена останется полной.",
+              "Оставьте заявку сейчас — когда курсы выйдут в продажу, вы получите доступ к выбранному тарифу со скидкой 70%.",
+              "Это разовая возможность: после того как откроется постоянная продажа, цена станет полной навсегда.",
+              "Никакого маркетинга — просто честная цена для тех, кто принял решение раньше других.",
             ].map((text, i) => (
               <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                 <div style={{
@@ -157,7 +157,7 @@ export default function ComingSoon() {
               Заявка принята
             </h3>
             <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.7, margin: 0, maxWidth: 400, marginLeft: "auto", marginRight: "auto" }}>
-              Когда платформа откроется — мы свяжемся с вами первыми и предоставим доступ со скидкой 70%.
+              Когда курсы выйдут в постоянную продажу — мы свяжемся с вами первыми и предоставим доступ со скидкой 70%.
             </p>
           </div>
         ) : (
@@ -167,10 +167,10 @@ export default function ComingSoon() {
             borderRadius: 20, padding: "36px 40px",
           }}>
             <h3 style={{ fontFamily: "Cormorant, serif", fontSize: 26, fontWeight: 700, color: "#fff", margin: "0 0 6px" }}>
-              Оставить заявку
+              Зафиксировать цену со скидкой 70%
             </h3>
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", margin: "0 0 28px", lineHeight: 1.6 }}>
-              Укажите желаемый тариф и контакт — мы напишем вам при открытии.
+              Укажите интересующий тариф и контакт — как только откроется постоянная продажа, мы сразу напишем.
             </p>
 
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -276,8 +276,8 @@ export default function ComingSoon() {
         {/* Дисклеймер */}
         <div style={{ textAlign: "center", marginTop: 28 }}>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.25)", lineHeight: 1.7, margin: 0 }}>
-            Скидка действует только для тех, кто оставил заявку <strong style={{ color: "rgba(255,255,255,0.35)" }}>до открытия платформы</strong>.<br />
-            После запуска цены будут полными и никаких скидок больше не будет.
+            Скидка действует только для тех, кто оставил заявку <strong style={{ color: "rgba(255,255,255,0.35)" }}>до открытия постоянной продажи курсов</strong>.<br />
+            После запуска доступ будет продаваться по полной цене — без акций и скидок.
           </p>
         </div>
       </main>
