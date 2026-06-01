@@ -22,6 +22,29 @@ const EMPTY_FORM: SalonForm = {
   social_instagram: "", social_vk: "", social_telegram: "", main_goal: "",
 };
 
+const DRAFT_KEY = "lk_salon_draft";
+const SERVICES_KEY = "lk_salon_services_draft";
+
+function saveDraft(form: SalonForm, services: Service[]) {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(form));
+    localStorage.setItem(SERVICES_KEY, JSON.stringify(services));
+  } catch (_) { /* ignore */ }
+}
+
+function loadDraft(): { form: SalonForm | null; services: Service[] | null } {
+  try {
+    const f = localStorage.getItem(DRAFT_KEY);
+    const s = localStorage.getItem(SERVICES_KEY);
+    return { form: f ? JSON.parse(f) : null, services: s ? JSON.parse(s) : null };
+  } catch (_) { return { form: null, services: null }; }
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+  localStorage.removeItem(SERVICES_KEY);
+}
+
 const TONE_OPTIONS = ["Тёплый и дружелюбный", "Профессиональный и экспертный", "Люксовый и статусный", "Молодёжный и энергичный"];
 
 // ── Секция с заголовком ──────────────────────────────────────────────────────
@@ -58,22 +81,25 @@ const inputStyle: React.CSSProperties = {
 
 export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
   const { user } = useLkAuth();
-  const [form, setForm] = useState<SalonForm>(EMPTY_FORM);
-  const [services, setServices] = useState<Service[]>([{ name: "", price_min: "", price_max: "", duration_min: "" }]);
+  const draft = loadDraft();
+  const [form, setForm] = useState<SalonForm>(draft.form || EMPTY_FORM);
+  const [services, setServices] = useState<Service[]>(draft.services || [{ name: "", price_min: "", price_max: "", duration_min: "" }]);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const hasDraft = !!(draft.form?.name);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const isNew = !user?.salon_id;
 
-  // Загружаем профиль
+  // Загружаем профиль (сервер имеет приоритет над черновиком)
   useEffect(() => {
     if (!user?.salon_id) { setLoading(false); return; }
     lkApi.salonProfileGet().then((data: { salon: Record<string, unknown> | null; services: Record<string, unknown>[] }) => {
       if (data.salon) {
+        clearDraft(); // Есть сохранённый профиль — черновик не нужен
         const s = data.salon;
         setForm({
           name:            String(s.name || ""),
@@ -104,6 +130,11 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
       }
     }).catch(() => {}).finally(() => setLoading(false));
   }, [user?.salon_id]);
+
+  // Автосохранение в localStorage при каждом изменении
+  useEffect(() => {
+    if (!loading) saveDraft(form, services);
+  }, [form, services, loading]);
 
   function f(k: keyof SalonForm, v: string) { setForm(p => ({ ...p, [k]: v })); }
 
@@ -141,10 +172,10 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
           duration_min: s.duration_min ? Number(s.duration_min) : null,
         })),
       });
+      clearDraft();
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-      // Обновляем страницу чтобы user.salon обновился
-      setTimeout(() => window.location.reload(), 500);
+      if (onSaved) setTimeout(onSaved, 800);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Ошибка сохранения");
     } finally { setSaving(false); }
@@ -165,7 +196,7 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       {/* Заголовок */}
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: hasDraft && isNew ? 12 : 24 }}>
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 6px" }}>
           {isNew ? "Создайте профиль салона" : "Профиль салона"}
         </h2>
@@ -173,6 +204,20 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
           Эта информация используется ИИ-инструментами для создания персонализированного контента под ваш салон.
         </p>
       </div>
+
+      {/* Баннер восстановленного черновика */}
+      {hasDraft && isNew && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, background: "hsl(40,90%,96%)", border: "1px solid hsl(40,90%,82%)", borderRadius: 12, padding: "11px 16px", marginBottom: 20 }}>
+          <Icon name="RotateCcw" size={15} style={{ color: "hsl(40,90%,40%)", flexShrink: 0 }} />
+          <div style={{ fontSize: 13, color: "hsl(40,90%,35%)", fontWeight: 600 }}>
+            Данные восстановлены — продолжайте заполнять с того места, где остановились.
+          </div>
+          <button onClick={() => { clearDraft(); setForm(EMPTY_FORM); setServices([{ name: "", price_min: "", price_max: "", duration_min: "" }]); }}
+            style={{ marginLeft: "auto", fontSize: 11, color: "hsl(40,90%,50%)", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}>
+            Очистить
+          </button>
+        </div>
+      )}
 
       {/* ── Логотип ── */}
       <Section title="Логотип" icon="Image">
