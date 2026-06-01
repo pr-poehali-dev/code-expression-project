@@ -34,6 +34,7 @@ import JobPage from "./pages/job/JobPage";
 import { LkAuthProvider } from "./contexts/LkAuthContext";
 import { EnergyProvider } from "./contexts/EnergyContext";
 import EnergyGate from "./components/EnergyGate";
+import ScrollToTop from "./components/ScrollToTop";
 import DlyaSpecialistov from "./pages/DlyaSpecialistov";
 import OSisteme from "./pages/OSisteme";
 import ProfessionalnyeVstrechi from "./pages/ProfessionalnyeVstrechi";
@@ -60,6 +61,7 @@ const App = () => (
       <ChatWidget />
       <EnergyGate />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/vozmozhnosti" element={<Vozmozhnosti />} />
