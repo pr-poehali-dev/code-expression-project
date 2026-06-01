@@ -164,11 +164,14 @@ def handler(event: dict, context) -> dict:
         aspect_dalle = ASPECT_MAP_DALLE[aspect_raw]
         aspect_gpt15 = ASPECT_MAP_GPT15[aspect_raw]
 
-        # Проверяем баланс
+        # Проверяем баланс и сразу списываем ДО вызова ИИ
+        # (генерация занимает 2+ минуты, после таймаута функции DB-запросы не выполняются)
         cost = get_tool_cost(conn)
         balance = get_salon_balance(salon_id, conn)
         if balance < cost:
             return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
+
+        deduct_energy(salon_id, user["id"], cost, conn)
 
         use_salon_context = body.get("use_salon_context", False)
         final_prompt = prompt
@@ -186,6 +189,8 @@ def handler(event: dict, context) -> dict:
                     ctx_parts.append(f"Стиль: {salon['tone_of_voice']}")
                 if ctx_parts:
                     final_prompt = f"{prompt}\n\nКонтекст: {'. '.join(ctx_parts)}"
+
+        conn.close()
 
         api_key = os.environ.get("POLZA_AI_API_KEY", "")
         if not api_key:
@@ -238,13 +243,13 @@ def handler(event: dict, context) -> dict:
         if not image_url:
             return err("Сервис не вернул изображение. Попробуйте ещё раз.", 502)
 
-        # Списываем энергию и сохраняем в историю
-        conn2 = get_db()
+        # Сохраняем в историю
         try:
-            deduct_energy(salon_id, user["id"], cost, conn2)
-            save_image_history(user["id"], image_url, prompt, aspect_gpt15, conn2)
-        finally:
-            conn2.close()
+            conn3 = get_db()
+            save_image_history(user["id"], image_url, prompt, aspect_gpt15, conn3)
+            conn3.close()
+        except Exception as e:
+            print(f"[ai-image-gen] history save error: {e}")
 
         return ok({"images": [{"url": image_url}], "prompt_used": final_prompt, "energy_spent": cost})
 
