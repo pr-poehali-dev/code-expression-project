@@ -91,6 +91,10 @@ def get_salon_balance(salon_id, conn) -> int:
 def deduct_energy(salon_id, user_id, cost, conn):
     cur = conn.cursor()
     cur.execute(
+        f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s",
+        (cost, salon_id)
+    )
+    cur.execute(
         f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
         f"VALUES (%s, %s, %s, %s, %s, 'debit')",
         (salon_id, user_id, "Диагностический помощник", cost, TOOL_KEY)

@@ -5,41 +5,75 @@ import psycopg2
 import psycopg2.extras
 
 SCHEMA = "t_p84565078_code_expression_proj"
+TOOL_KEY = "mindset_analysis"
+
+CORS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-User-Id, X-Auth-Token, X-Session-Id",
+}
 
 
 def get_db():
     return psycopg2.connect(os.environ["DATABASE_URL"])
 
 
-def get_user_id(session_id: str, conn) -> int | None:
-    cur = conn.cursor()
-    cur.execute(
-        f"SELECT user_id FROM {SCHEMA}.lk_sessions WHERE id = %s AND expires_at > NOW()",
-        (session_id,)
-    )
-    row = cur.fetchone()
-    return row[0] if row else None
-
-
-def get_cached_ai(user_id: int, conn) -> dict | None:
+def get_session_user(session_id: str, conn):
+    if not session_id:
+        return None
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"SELECT ai_result FROM {SCHEMA}.lk_mindset_results WHERE user_id = %s ORDER BY completed_at DESC LIMIT 1",
+        f"SELECT u.* FROM {SCHEMA}.lk_sessions s JOIN {SCHEMA}.lk_users u ON u.id=s.user_id "
+        f"WHERE s.id=%s AND s.expires_at>NOW() AND u.is_active=TRUE", (session_id,)
+    )
+    return cur.fetchone()
+
+
+def get_tool_cost(conn) -> int:
+    cur = conn.cursor()
+    cur.execute(f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key=%s", (TOOL_KEY,))
+    row = cur.fetchone()
+    return row[0] if row else 3
+
+
+def get_balance(salon_id, conn) -> int:
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount ELSE -amount END),0) "
+        f"FROM {SCHEMA}.credit_transactions WHERE salon_id=%s", (salon_id,)
+    )
+    return cur.fetchone()[0]
+
+
+def deduct(salon_id, user_id, cost, conn):
+    cur = conn.cursor()
+    cur.execute(f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s", (cost, salon_id))
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.credit_transactions (salon_id,user_id,action,amount,tool_key,type) "
+        f"VALUES (%s,%s,%s,%s,%s,'debit')",
+        (salon_id, user_id, "Анализ мышления специалиста", cost, TOOL_KEY)
+    )
+    conn.commit()
+
+
+def get_cached_ai(user_id: int, conn):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT ai_result FROM {SCHEMA}.lk_mindset_results WHERE user_id=%s ORDER BY completed_at DESC LIMIT 1",
         (user_id,)
     )
     row = cur.fetchone()
-    if row and row["ai_result"]:
-        return row["ai_result"]
-    return None
+    return row["ai_result"] if row and row["ai_result"] else None
 
 
 def save_ai_result(user_id: int, result: dict, conn):
     conn.cursor().execute(
-        f"UPDATE {SCHEMA}.lk_mindset_results SET ai_result = %s WHERE user_id = %s AND id = ("
-        f"SELECT id FROM {SCHEMA}.lk_mindset_results WHERE user_id = %s ORDER BY completed_at DESC LIMIT 1)",
+        f"UPDATE {SCHEMA}.lk_mindset_results SET ai_result=%s WHERE user_id=%s AND id=("
+        f"SELECT id FROM {SCHEMA}.lk_mindset_results WHERE user_id=%s ORDER BY completed_at DESC LIMIT 1)",
         (json.dumps(result, ensure_ascii=False), user_id, user_id)
     )
     conn.commit()
+
 
 SYSTEM_PROMPT = """Ты — эксперт по психологии в бьюти-бизнесе. Твоя задача — дать мастеру красоты персональный разбор его психологического профиля для работы с премиум-клиентами.
 
@@ -71,130 +105,99 @@ def build_user_prompt(data: dict) -> str:
         f"Тип мышления мастера: «{type_title}»",
         f"Общий индекс готовности к премиум-клиентам (IGP): {igp}/100",
         "",
-        "Детальные показатели (0-100, выше = лучше, кроме инвертированных):",
+        "Детальные показатели (0-100):",
         f"• Уверенность (IU): {idx.get('IU', 0)}",
         f"• Премиальное мышление (IPM): {idx.get('IPM', 0)}",
         f"• Профессиональные границы (IPG): {idx.get('IPG', 0)}",
-        f"• Ценность себя / самоценность (ICS): {idx.get('ICS', 0)}",
+        f"• Ценность себя (ICS): {idx.get('ICS', 0)}",
         f"• Зрелость коммуникации (IZK): {idx.get('IZK', 0)}",
-        f"• Зависимость от одобрения (IDO, инверт.): {idx.get('IDO', 0)} — высокое значение = проблема",
-        f"• Страх денег (ISD, инверт.): {idx.get('ISD', 0)} — высокое значение = проблема",
+        f"• Зависимость от одобрения (IDO): {idx.get('IDO', 0)} (высокое = проблема)",
+        f"• Страх денег (ISD): {idx.get('ISD', 0)} (высокое = проблема)",
     ]
-
     weak = []
-    if idx.get("IU", 100) < 50:
-        weak.append("низкая уверенность в себе")
-    if idx.get("IPM", 100) < 50:
-        weak.append("слабое премиальное позиционирование")
-    if idx.get("IPG", 100) < 50:
-        weak.append("размытые профессиональные границы")
-    if idx.get("ICS", 100) < 50:
-        weak.append("низкая самоценность")
-    if idx.get("IZK", 100) < 50:
-        weak.append("незрелость коммуникации")
-    if idx.get("IDO", 0) > 60:
-        weak.append("сильная зависимость от одобрения клиентов")
-    if idx.get("ISD", 0) > 60:
-        weak.append("выраженный страх больших денег")
-
+    if idx.get("IU", 100) < 50: weak.append("низкая уверенность")
+    if idx.get("IPM", 100) < 50: weak.append("слабое премиальное позиционирование")
+    if idx.get("IPG", 100) < 50: weak.append("размытые границы")
+    if idx.get("ICS", 100) < 50: weak.append("низкая самоценность")
+    if idx.get("IZK", 100) < 50: weak.append("незрелость коммуникации")
+    if idx.get("IDO", 0) > 60: weak.append("зависимость от одобрения")
+    if idx.get("ISD", 0) > 60: weak.append("страх больших денег")
     if weak:
-        lines.append("")
-        lines.append("Слабые зоны: " + ", ".join(weak))
-
+        lines += ["", "Слабые зоны: " + ", ".join(weak)]
     return "\n".join(lines)
 
 
 def call_openai(user_prompt: str, api_key: str) -> str:
-    opener = urllib.request.build_opener()
-
     payload = json.dumps({
         "model": "openai/gpt-4o-mini",
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt},
-        ],
-        "max_tokens": 700,
-        "temperature": 0.75,
+        "messages": [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user_prompt}],
+        "max_tokens": 700, "temperature": 0.75,
     }).encode("utf-8")
-
     req = urllib.request.Request(
-        "https://polza.ai/api/v1/chat/completions",
-        data=payload,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        method="POST",
+        "https://polza.ai/api/v1/chat/completions", data=payload,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, method="POST",
     )
-
-    with opener.open(req, timeout=25) as resp:
-        result = json.loads(resp.read().decode("utf-8"))
-        return result["choices"][0]["message"]["content"].strip()
+    with urllib.request.urlopen(req, timeout=25) as resp:
+        return json.loads(resp.read().decode("utf-8"))["choices"][0]["message"]["content"].strip()
 
 
 def parse_sections(text: str) -> dict:
     sections = {}
-    blocks = text.split("###")
-    for block in blocks:
+    for block in text.split("###"):
         block = block.strip()
         if not block:
             continue
         lines = block.split("\n", 1)
-        title = lines[0].strip()
-        content = lines[1].strip() if len(lines) > 1 else ""
-        sections[title] = content
+        sections[lines[0].strip()] = lines[1].strip() if len(lines) > 1 else ""
     return sections
 
 
 def handler(event: dict, context) -> dict:
-    """AI-анализ результатов теста 'Мышление с премиум-клиентами'. polza.ai. Кэш в БД."""
-    cors = {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, X-User-Id, X-Auth-Token, X-Session-Id",
-    }
-
+    """AI-анализ 'Мышление с премиум-клиентами'. Списывает энергию ДО вызова AI."""
     if event.get("httpMethod") == "OPTIONS":
-        return {"statusCode": 200, "headers": cors, "body": ""}
+        return {"statusCode": 200, "headers": CORS, "body": ""}
 
     try:
         data = json.loads(event.get("body") or "{}")
     except Exception:
-        return {"statusCode": 400, "headers": cors, "body": json.dumps({"error": "invalid json"})}
+        return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "invalid json"})}
 
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
 
-    if session_id:
-        conn = get_db()
-        try:
-            user_id = get_user_id(session_id, conn)
-            if user_id:
-                cached = get_cached_ai(user_id, conn)
-                if cached:
-                    return {"statusCode": 200, "headers": cors, "body": json.dumps(cached, ensure_ascii=False)}
-        finally:
-            conn.close()
+    conn = get_db()
+    try:
+        user = get_session_user(session_id, conn)
+
+        if user:
+            cached = get_cached_ai(user["id"], conn)
+            if cached:
+                return {"statusCode": 200, "headers": CORS, "body": json.dumps(cached, ensure_ascii=False)}
+
+            salon_id = user.get("salon_id")
+            if salon_id:
+                cost = get_tool_cost(conn)
+                balance = get_balance(salon_id, conn)
+                if balance < cost:
+                    return {"statusCode": 402, "headers": CORS,
+                            "body": json.dumps({"error": f"Недостаточно энергии. Нужно {cost}, доступно {balance}."})}
+                deduct(salon_id, user["id"], cost, conn)
+    finally:
+        conn.close()
 
     api_key = os.environ.get("OPENAI_API_KEY", "")
     if not api_key:
-        return {"statusCode": 503, "headers": cors, "body": json.dumps({"error": "no api key"})}
+        return {"statusCode": 503, "headers": CORS, "body": json.dumps({"error": "no api key"})}
 
     user_prompt = build_user_prompt(data)
     text = call_openai(user_prompt, api_key)
     sections = parse_sections(text)
     result = {"text": text, "sections": sections}
 
-    if session_id:
-        conn = get_db()
+    if user:
+        conn2 = get_db()
         try:
-            user_id = get_user_id(session_id, conn)
-            if user_id:
-                save_ai_result(user_id, result, conn)
+            save_ai_result(user["id"], result, conn2)
         finally:
-            conn.close()
+            conn2.close()
 
-    return {
-        "statusCode": 200,
-        "headers": cors,
-        "body": json.dumps(result, ensure_ascii=False),
-    }
+    return {"statusCode": 200, "headers": CORS, "body": json.dumps(result, ensure_ascii=False)}

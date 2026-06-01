@@ -5,41 +5,75 @@ import psycopg2
 import psycopg2.extras
 
 SCHEMA = "t_p84565078_code_expression_proj"
+TOOL_KEY = "barriers_analysis"
+
+CORS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-User-Id, X-Auth-Token, X-Session-Id",
+}
 
 
 def get_db():
     return psycopg2.connect(os.environ["DATABASE_URL"])
 
 
-def get_user_id(session_id: str, conn) -> int | None:
-    cur = conn.cursor()
-    cur.execute(
-        f"SELECT user_id FROM {SCHEMA}.lk_sessions WHERE id = %s AND expires_at > NOW()",
-        (session_id,)
-    )
-    row = cur.fetchone()
-    return row[0] if row else None
-
-
-def get_cached_ai(user_id: int, conn) -> dict | None:
+def get_session_user(session_id: str, conn):
+    if not session_id:
+        return None
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"SELECT ai_result FROM {SCHEMA}.lk_barriers_results WHERE user_id = %s ORDER BY completed_at DESC LIMIT 1",
+        f"SELECT u.* FROM {SCHEMA}.lk_sessions s JOIN {SCHEMA}.lk_users u ON u.id=s.user_id "
+        f"WHERE s.id=%s AND s.expires_at>NOW() AND u.is_active=TRUE", (session_id,)
+    )
+    return cur.fetchone()
+
+
+def get_tool_cost(conn) -> int:
+    cur = conn.cursor()
+    cur.execute(f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key=%s", (TOOL_KEY,))
+    row = cur.fetchone()
+    return row[0] if row else 3
+
+
+def get_balance(salon_id, conn) -> int:
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount ELSE -amount END),0) "
+        f"FROM {SCHEMA}.credit_transactions WHERE salon_id=%s", (salon_id,)
+    )
+    return cur.fetchone()[0]
+
+
+def deduct(salon_id, user_id, cost, conn):
+    cur = conn.cursor()
+    cur.execute(f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s", (cost, salon_id))
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.credit_transactions (salon_id,user_id,action,amount,tool_key,type) "
+        f"VALUES (%s,%s,%s,%s,%s,'debit')",
+        (salon_id, user_id, "Анализ внутренних барьеров", cost, TOOL_KEY)
+    )
+    conn.commit()
+
+
+def get_cached_ai(user_id: int, conn):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT ai_result FROM {SCHEMA}.lk_barriers_results WHERE user_id=%s ORDER BY completed_at DESC LIMIT 1",
         (user_id,)
     )
     row = cur.fetchone()
-    if row and row["ai_result"]:
-        return row["ai_result"]
-    return None
+    return row["ai_result"] if row and row["ai_result"] else None
 
 
 def save_ai_result(user_id: int, result: dict, conn):
     conn.cursor().execute(
-        f"UPDATE {SCHEMA}.lk_barriers_results SET ai_result = %s WHERE user_id = %s AND id = ("
-        f"SELECT id FROM {SCHEMA}.lk_barriers_results WHERE user_id = %s ORDER BY completed_at DESC LIMIT 1)",
+        f"UPDATE {SCHEMA}.lk_barriers_results SET ai_result=%s WHERE user_id=%s AND id=("
+        f"SELECT id FROM {SCHEMA}.lk_barriers_results WHERE user_id=%s ORDER BY completed_at DESC LIMIT 1)",
         (json.dumps(result, ensure_ascii=False), user_id, user_id)
     )
     conn.commit()
+
 
 SYSTEM_PROMPT = """Ты — эксперт по психологии в бьюти-бизнесе. Твоя задача — дать мастеру красоты персональный разбор его внутренних барьеров, которые мешают зарабатывать больше.
 
@@ -72,122 +106,97 @@ def build_user_prompt(data: dict) -> str:
         f"Общий индекс внутренних барьеров (IIB): {iib}/100 — чем выше, тем сильнее барьеры",
         "",
         "Детальные показатели (0-100, высокое значение = сильный барьер):",
-        f"• Синдром самозванца (ISS): {idx.get('ISS', 0)} — {'критично' if idx.get('ISS', 0) > 65 else 'умеренно' if idx.get('ISS', 0) > 40 else 'слабо'}",
-        f"• Страх денег и продаж (ISD): {idx.get('ISD', 0)} — {'критично' if idx.get('ISD', 0) > 65 else 'умеренно' if idx.get('ISD', 0) > 40 else 'слабо'}",
-        f"• Страх проявленности (ISP): {idx.get('ISP', 0)} — {'критично' if idx.get('ISP', 0) > 65 else 'умеренно' if idx.get('ISP', 0) > 40 else 'слабо'}",
-        f"• Зависимость от оценки (IDO): {idx.get('IDO', 0)} — {'критично' if idx.get('IDO', 0) > 65 else 'умеренно' if idx.get('IDO', 0) > 40 else 'слабо'}",
-        f"• Избегание роста (IIR): {idx.get('IIR', 0)} — {'критично' if idx.get('IIR', 0) > 65 else 'умеренно' if idx.get('IIR', 0) > 40 else 'слабо'}",
-        f"• Эмоциональное истощение (IEI): {idx.get('IEI', 0)} — {'критично' if idx.get('IEI', 0) > 65 else 'умеренно' if idx.get('IEI', 0) > 40 else 'слабо'}",
-        f"• Внутренняя опора (IVO): {idx.get('IVO', 0)} — {'сильная' if idx.get('IVO', 0) > 65 else 'средняя' if idx.get('IVO', 0) > 40 else 'слабая'} (высокое — хорошо)",
+        f"• Синдром самозванца (ISS): {idx.get('ISS', 0)}",
+        f"• Страх денег и продаж (ISD): {idx.get('ISD', 0)}",
+        f"• Страх проявленности (ISP): {idx.get('ISP', 0)}",
+        f"• Зависимость от оценки (IDO): {idx.get('IDO', 0)}",
+        f"• Избегание роста (IIR): {idx.get('IIR', 0)}",
+        f"• Эмоциональное истощение (IEI): {idx.get('IEI', 0)}",
+        f"• Внутренняя опора (IVO): {idx.get('IVO', 0)} (высокое — хорошо)",
     ]
-
-    critical = []
-    for key, label in [("ISS", "синдром самозванца"), ("ISD", "страх денег"), ("ISP", "страх проявленности"),
-                       ("IDO", "зависимость от оценки"), ("IIR", "избегание роста"), ("IEI", "выгорание")]:
-        if idx.get(key, 0) > 60:
-            critical.append(label)
-
+    critical = [l for k, l in [("ISS","синдром самозванца"),("ISD","страх денег"),("ISP","страх проявленности"),
+                                ("IDO","зависимость от оценки"),("IIR","избегание роста"),("IEI","выгорание")]
+                if idx.get(k, 0) > 60]
     if idx.get("IVO", 100) < 40:
         critical.append("слабая внутренняя опора")
-
     if critical:
-        lines.append("")
-        lines.append("Критические зоны: " + ", ".join(critical))
-
+        lines += ["", "Критические зоны: " + ", ".join(critical)]
     return "\n".join(lines)
 
 
 def call_openai(user_prompt: str, api_key: str) -> str:
-    opener = urllib.request.build_opener()
-
     payload = json.dumps({
         "model": "openai/gpt-4o-mini",
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt},
-        ],
-        "max_tokens": 700,
-        "temperature": 0.75,
+        "messages": [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user_prompt}],
+        "max_tokens": 700, "temperature": 0.75,
     }).encode("utf-8")
-
     req = urllib.request.Request(
-        "https://polza.ai/api/v1/chat/completions",
-        data=payload,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        method="POST",
+        "https://polza.ai/api/v1/chat/completions", data=payload,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, method="POST",
     )
-
-    with opener.open(req, timeout=25) as resp:
-        result = json.loads(resp.read().decode("utf-8"))
-        return result["choices"][0]["message"]["content"].strip()
+    with urllib.request.urlopen(req, timeout=25) as resp:
+        return json.loads(resp.read().decode("utf-8"))["choices"][0]["message"]["content"].strip()
 
 
 def parse_sections(text: str) -> dict:
     sections = {}
-    blocks = text.split("###")
-    for block in blocks:
+    for block in text.split("###"):
         block = block.strip()
         if not block:
             continue
         lines = block.split("\n", 1)
-        title = lines[0].strip()
-        content = lines[1].strip() if len(lines) > 1 else ""
-        sections[title] = content
+        sections[lines[0].strip()] = lines[1].strip() if len(lines) > 1 else ""
     return sections
 
 
 def handler(event: dict, context) -> dict:
-    """AI-анализ результатов теста 'Внутренние барьеры'. polza.ai. Кэш в БД."""
-    cors = {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, X-User-Id, X-Auth-Token, X-Session-Id",
-    }
-
+    """AI-анализ 'Внутренние барьеры'. Списывает энергию ДО вызова AI."""
     if event.get("httpMethod") == "OPTIONS":
-        return {"statusCode": 200, "headers": cors, "body": ""}
+        return {"statusCode": 200, "headers": CORS, "body": ""}
 
     try:
         data = json.loads(event.get("body") or "{}")
     except Exception:
-        return {"statusCode": 400, "headers": cors, "body": json.dumps({"error": "invalid json"})}
+        return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "invalid json"})}
 
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
 
-    if session_id:
-        conn = get_db()
-        try:
-            user_id = get_user_id(session_id, conn)
-            if user_id:
-                cached = get_cached_ai(user_id, conn)
-                if cached:
-                    return {"statusCode": 200, "headers": cors, "body": json.dumps(cached, ensure_ascii=False)}
-        finally:
-            conn.close()
+    conn = get_db()
+    try:
+        user = get_session_user(session_id, conn)
+
+        # Если авторизован — проверяем кэш и списываем энергию
+        if user:
+            cached = get_cached_ai(user["id"], conn)
+            if cached:
+                return {"statusCode": 200, "headers": CORS, "body": json.dumps(cached, ensure_ascii=False)}
+
+            salon_id = user.get("salon_id")
+            if salon_id:
+                cost = get_tool_cost(conn)
+                balance = get_balance(salon_id, conn)
+                if balance < cost:
+                    return {"statusCode": 402, "headers": CORS,
+                            "body": json.dumps({"error": f"Недостаточно энергии. Нужно {cost}, доступно {balance}."})}
+                # Списываем ДО вызова AI
+                deduct(salon_id, user["id"], cost, conn)
+    finally:
+        conn.close()
 
     api_key = os.environ.get("OPENAI_API_KEY", "")
     if not api_key:
-        return {"statusCode": 503, "headers": cors, "body": json.dumps({"error": "no api key"})}
+        return {"statusCode": 503, "headers": CORS, "body": json.dumps({"error": "no api key"})}
 
     user_prompt = build_user_prompt(data)
     text = call_openai(user_prompt, api_key)
     sections = parse_sections(text)
     result = {"text": text, "sections": sections}
 
-    if session_id:
-        conn = get_db()
+    if user:
+        conn2 = get_db()
         try:
-            user_id = get_user_id(session_id, conn)
-            if user_id:
-                save_ai_result(user_id, result, conn)
+            save_ai_result(user["id"], result, conn2)
         finally:
-            conn.close()
+            conn2.close()
 
-    return {
-        "statusCode": 200,
-        "headers": cors,
-        "body": json.dumps(result, ensure_ascii=False),
-    }
+    return {"statusCode": 200, "headers": CORS, "body": json.dumps(result, ensure_ascii=False)}

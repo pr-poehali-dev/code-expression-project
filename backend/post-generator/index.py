@@ -1,5 +1,5 @@
 """
-Генератор постов для салона красоты. v2 — списание энергии.
+Генератор постов для салона красоты. v3 — списание ДО AI.
 Шаг 1: POST ?action=titles  — генерирует 5 заголовков по теме/цели/тону + контекст салона (бесплатно)
 Шаг 2: POST ?action=text    — генерирует текст поста по выбранному заголовку (списывает 1 эн.)
 """
@@ -62,6 +62,7 @@ def get_salon_balance(salon_id, conn) -> int:
 
 def deduct_energy(salon_id, user_id, cost, action, conn):
     cur = conn.cursor()
+    cur.execute(f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s", (cost, salon_id))
     cur.execute(
         f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
         f"VALUES (%s, %s, %s, %s, %s, 'debit')",
@@ -186,6 +187,9 @@ def handle_text(event, user, conn):
     if not title:
         return err("Заголовок не передан")
 
+    # Списываем ДО вызова ИИ
+    deduct_energy(salon_id, user["id"], cost, "Генерация поста", conn)
+
     salon = get_salon_context(user, conn)
     conn.close()
 
@@ -224,13 +228,6 @@ def handle_text(event, user, conn):
         {"role": "system", "content": "Ты профессиональный SMM-копирайтер для бьюти-бизнеса. Пишешь живые, вовлекающие тексты."},
         {"role": "user", "content": prompt}
     ], max_tokens=800)
-
-    # Списываем только после успешного ответа ИИ
-    conn2 = get_db()
-    try:
-        deduct_energy(salon_id, user["id"], cost, "Генерация поста", conn2)
-    finally:
-        conn2.close()
 
     salon_name = salon["name"] if salon and salon.get("name") else ""
     image_prompt = f"Красивое фото для поста салона красоты. Тема: {title}. {f'Салон: {salon_name}.' if salon_name else ''} Стиль: светлый, эстетичный, профессиональный. Вертикальный формат."

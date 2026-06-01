@@ -93,6 +93,10 @@ def get_salon_balance(salon_id, conn) -> int:
 def deduct_energy(salon_id, user_id, cost, conn):
     cur = conn.cursor()
     cur.execute(
+        f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s",
+        (cost, salon_id)
+    )
+    cur.execute(
         f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
         f"VALUES (%s, %s, %s, %s, %s, 'debit')",
         (salon_id, user_id, "Мышление специалиста", cost, TOOL_KEY)
@@ -189,18 +193,13 @@ def handler(event: dict, context) -> dict:
         if not api_key:
             return err("API ключ не настроен", 503)
 
+        # Списываем ДО вызова ИИ
+        deduct_energy(salon_id, user["id"], cost, conn)
         conn.close()
 
         user_prompt = build_prompt(data)
         text = call_openai(user_prompt, api_key)
         sections = parse_sections(text)
-
-        # Списываем после успешного ответа
-        conn2 = get_db()
-        try:
-            deduct_energy(salon_id, user["id"], cost, conn2)
-        finally:
-            conn2.close()
 
         return ok({"sections": sections})
 

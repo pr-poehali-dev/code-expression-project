@@ -63,6 +63,10 @@ def get_salon_balance(salon_id, conn) -> int:
 def deduct_energy(salon_id, user_id, cost, action, conn):
     cur = conn.cursor()
     cur.execute(
+        f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s",
+        (cost, salon_id)
+    )
+    cur.execute(
         f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
         f"VALUES (%s, %s, %s, %s, %s, 'debit')",
         (salon_id, user_id, action, cost, TOOL_KEY)
@@ -228,7 +232,6 @@ def handler(event: dict, context) -> dict:
         if not salon_id:
             return err("Салон не найден", 400)
 
-        # Проверяем баланс до запуска ИИ
         cost = get_tool_cost(conn)
         balance = get_salon_balance(salon_id, conn)
         if balance < cost:
@@ -247,17 +250,12 @@ def handler(event: dict, context) -> dict:
             if row:
                 salon_name = row["name"]
 
+        # Списываем ДО вызова ИИ
+        deduct_energy(salon_id, user["id"], cost, "Анализ салона", conn)
         conn.close()
 
         prompt = build_prompt(answers, salon_name)
         result = call_ai(prompt)
-
-        # Списываем энергию после успешного ответа ИИ
-        conn2 = get_db()
-        try:
-            deduct_energy(salon_id, user["id"], cost, "Анализ салона", conn2)
-        finally:
-            conn2.close()
 
         return ok({"result": result})
 

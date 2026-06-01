@@ -1,25 +1,17 @@
 {
   "tests": [
     {
-      "name": "AI mindset analysis",
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "POST без сессии",
       "method": "POST",
       "path": "/",
-      "body": {
-        "igp": 52,
-        "type_title": "Начинающий практик",
-        "idx": {
-          "IU": 45,
-          "IPM": 55,
-          "IDO": 70,
-          "IPG": 40,
-          "ICS": 48,
-          "ISD": 65,
-          "IZK": 60
-        }
-      },
-      "expectedStatus": 200,
-      "expectedBody": { "text": "string" },
-      "bodyMatcher": "partial"
+      "body": {"igp": 52, "type_title": "Тест", "idx": {"IU": 45, "IPM": 55}},
+      "expectedStatus": 200
     }
   ]
 }

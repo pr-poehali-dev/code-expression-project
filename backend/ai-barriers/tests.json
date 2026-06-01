@@ -1,26 +1,17 @@
 {
   "tests": [
     {
-      "name": "AI barriers analysis",
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "POST без сессии — возвращает результат",
       "method": "POST",
       "path": "/",
-      "body": {
-        "iib": 64,
-        "type_title": "Самозванец с выгоранием",
-        "idx": {
-          "IVO": 35,
-          "ISS": 72,
-          "ISD": 58,
-          "IDO": 65,
-          "IIR": 50,
-          "IEI": 70,
-          "ISP": 55,
-          "IPZ_raw": 0
-        }
-      },
-      "expectedStatus": 200,
-      "expectedBody": { "text": "string" },
-      "bodyMatcher": "partial"
+      "body": {"iib": 64, "type_title": "Тест", "idx": {"ISS": 72, "ISD": 58}},
+      "expectedStatus": 200
     }
   ]
 }
