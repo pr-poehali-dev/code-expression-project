@@ -19,10 +19,11 @@ interface Props {
   onOpenFinance: () => void;
   onOpenProfile: () => void;
   onOpenSalon: () => void;
+  onOpenBodyMap: () => void;
   onOpenTest: (slug: string) => void;
 }
 
-export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, hasUnlimited = false, onOpenDiag, onOpenMindsetSpec, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenTest }: Props) {
+export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, hasUnlimited = false, onOpenDiag, onOpenMindsetSpec, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenBodyMap, onOpenTest }: Props) {
   return (
     <div>
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
@@ -40,6 +41,16 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
           completed={false}
           onStart={onOpenDiag}
           startLabel="Начать диагностику"
+        />
+
+        {/* Шпаргалка по телу */}
+        <ToolCard
+          icon="BookOpen" color="hsl(210,85%,45%)" bg="hsl(210,85%,96%)"
+          title="Шпаргалка по телу"
+          description="Кликните на зону тела — получите диагностику, возможные причины, красные флаги и техники работы"
+          completed={false}
+          onStart={onOpenBodyMap}
+          startLabel="Открыть шпаргалку"
         />
 
         {/* Развитие специалиста — только безлимит или купить за 25 000 ₽ */}

@@ -20,6 +20,7 @@ import { Spinner, Test, TestDetail, TestResult, MindsetHistoryItem, BarriersHist
 import LkTestQuiz from "./LkTestQuiz";
 import LkTestsList from "./LkTestsList";
 import LkTestsHistory from "./LkTestsHistory";
+import LkBodyMap from "./LkBodyMap";
 
 export default function LkTests() {
   const { user } = useLkAuth();
@@ -51,6 +52,7 @@ export default function LkTests() {
   const [salonHistory, setSalonHistory] = useState<SalonHistoryItem[]>([]);
   const [openDiag, setOpenDiag] = useState(false);
   const [openMindsetSpec, setOpenMindsetSpec] = useState(false);
+  const [openBodyMap, setOpenBodyMap] = useState(false);
 
   // Безлимитный доступ: access_expires_at === null
   const hasUnlimited = user?.access_expires_at === null;
@@ -130,6 +132,10 @@ export default function LkTests() {
     return <MindsetSpecialistBot onBack={() => setOpenMindsetSpec(false)} />;
   }
 
+  if (openBodyMap) {
+    return <LkBodyMap onBack={() => setOpenBodyMap(false)} />;
+  }
+
   if (openSalon) {
     return (
       <SalonBot
@@ -196,6 +202,7 @@ export default function LkTests() {
         onOpenFinance={() => setOpenFinance(true)}
         onOpenProfile={() => setOpenProfile(true)}
         onOpenSalon={() => setOpenSalon(true)}
+        onOpenBodyMap={() => setOpenBodyMap(true)}
         onOpenTest={openTest}
       />
       <LkTestsHistory

@@ -93,7 +93,7 @@ function getKinescopeId(url: string): string | null {
   return m ? m[1] : null;
 }
 
-export default function LkBodyMap() {
+export default function LkBodyMap({ onBack }: { onBack?: () => void } = {}) {
   const [zones, setZones] = useState<Zone[]>([]);
   const [selected, setSelected] = useState<ZoneDetail | null>(null);
   const [diagCard, setDiagCard] = useState<DiagCard | null>(null);
@@ -201,6 +201,12 @@ export default function LkBodyMap() {
 
   return (
     <div>
+      {onBack && (
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 7, background: "none", border: "none", color: "#888", fontSize: 13, cursor: "pointer", fontFamily: "Montserrat,sans-serif", padding: 0, marginBottom: 20 }}>
+          <Icon name="ArrowLeft" size={15} />
+          Назад к инструментам
+        </button>
+      )}
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
         Шпаргалка по телу
       </h1>
