@@ -8,6 +8,7 @@ import LkStaffAudit from "./LkStaffAudit";
 import LkReviewReply from "./LkReviewReply";
 import LkClientScripts from "./LkClientScripts";
 import SalonBot from "./SalonBot";
+import LkBodyMap from "./LkBodyMap";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -85,7 +86,7 @@ function ComingSoonCard({ icon, color, bg, title, description }: ComingSoonCardP
   );
 }
 
-type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | "review-reply" | "client-scripts" | "salon-diag" | null;
+type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | "review-reply" | "client-scripts" | "salon-diag" | "body-map" | null;
 
 export default function LkAiTools() {
   const [activeTool, setActiveTool] = useState<Tool>(null);
@@ -132,6 +133,10 @@ export default function LkAiTools() {
 
   if (activeTool === "salon-diag") {
     return <SalonBot onBack={() => setActiveTool(null)} />;
+  }
+
+  if (activeTool === "body-map") {
+    return <div><BackButton /><LkBodyMap /></div>;
   }
 
   return (
@@ -234,6 +239,30 @@ export default function LkAiTools() {
           description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока клиентов."
           badge="new"
           onStart={() => setActiveTool("salon-diag")}
+        />
+      </div>
+
+      {/* Инструменты развития специалиста */}
+      <div style={{ marginTop: 32, marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+          <div style={{ width: 30, height: 30, borderRadius: 8, background: "hsl(210,85%,95%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Icon name="BookOpen" size={16} style={{ color: "hsl(210,85%,45%)" }} />
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>Инструменты развития специалиста</div>
+        </div>
+        <p style={{ fontSize: 13, color: "#aaa", margin: 0, lineHeight: 1.5 }}>
+          Для специалистов по телу — диагностика, техники и шпаргалки
+        </p>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14, alignItems: "stretch" }}>
+        <ToolCard
+          icon="BookOpen"
+          color="hsl(210,85%,45%)"
+          bg="hsl(210,85%,96%)"
+          title="Шпаргалка по телу"
+          description="Кликните на зону тела — получите диагностику, возможные причины, красные флаги и техники работы."
+          badge="new"
+          onStart={() => setActiveTool("body-map")}
         />
       </div>
 
