@@ -128,7 +128,7 @@ export default function EkspertApplication() {
                   <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Dok Диалог — Эксперт</div>
                 </div>
                 <span style={{
-                  fontSize: 10, color: DARK, background: PEARL,
+                  fontSize: 10, color: DARK2, background: PEARL,
                   padding: "2px 8px", borderRadius: 20, fontWeight: 700, letterSpacing: "0.06em",
                 }}>VIP</span>
               </div>
