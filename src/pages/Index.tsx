@@ -104,8 +104,8 @@ export default function Index() {
                 pointerEvents: "none", zIndex: 2,
               }} />
               <img
-                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/8473159f-05f1-44ee-b4e8-68a9b5932c70.jpg"
-                alt="Премиальный интерьер салона красоты"
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/17441cfe-b66d-4a86-ad10-5a1fca3bfed4.png"
+                alt="Платформа Про Диалог — инструменты для роста салона"
                 style={{
                   width: "100%", aspectRatio: "3/4", objectFit: "cover",
                   borderRadius: 4, display: "block",
