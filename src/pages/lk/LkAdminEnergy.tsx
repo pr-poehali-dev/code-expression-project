@@ -9,6 +9,7 @@ interface ToolCost {
   id: number; tool_key: string; name: string;
   category: string; energy_cost: number; is_free: boolean;
 }
+interface Salon { id: number; name: string; credits_balance: number; username: string; full_name: string; }
 
 const CATEGORY_LABELS: Record<string, string> = {
   marketing: "Маркетинг",
@@ -26,6 +27,7 @@ export function EnergySection() {
   const [saved, setSaved]     = useState<string | null>(null);
 
   // Пополнение баланса
+  const [salons, setSalons]   = useState<Salon[]>([]);
   const [salonId, setSalonId] = useState("");
   const [amount, setAmount]   = useState("");
   const [topupLoading, setTopupLoading] = useState(false);
@@ -35,6 +37,9 @@ export function EnergySection() {
     fetch(`${LK_URL}?action=tool_costs`, { headers: { "X-Session-Id": sid() } })
       .then(r => r.json()).then(d => Array.isArray(d) && setTools(d))
       .catch(() => {}).finally(() => setLoading(false));
+    fetch(`${LK_URL}?action=admin_salons`, { headers: { "X-Session-Id": sid() } })
+      .then(r => r.json()).then(d => Array.isArray(d) && setSalons(d))
+      .catch(() => {});
   }, []);
 
   async function saveCost(tool: ToolCost) {
@@ -80,15 +85,26 @@ export function EnergySection() {
       <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 22px", marginBottom: 20 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", marginBottom: 14 }}>⚡ Пополнить баланс салона</div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: "#777", marginBottom: 5 }}>ID салона</div>
-            <input style={{ ...inp, width: 100 }} value={salonId} onChange={e => setSalonId(e.target.value)} placeholder="salon_id" />
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "#777", marginBottom: 5 }}>Салон</div>
+            <select
+              value={salonId}
+              onChange={e => setSalonId(e.target.value)}
+              style={{ ...inp, width: "100%", cursor: "pointer" }}
+            >
+              <option value="">Выберите салон...</option>
+              {salons.map(s => (
+                <option key={s.id} value={s.id}>
+                  {s.name} ({s.username}) — {s.credits_balance} ⚡
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <div style={{ fontSize: 11, fontWeight: 600, color: "#777", marginBottom: 5 }}>Количество ⚡</div>
-            <input style={{ ...inp, width: 100 }} type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="150" />
+            <input style={{ ...inp, width: 120 }} type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="150" />
           </div>
-          <button onClick={handleTopup} disabled={topupLoading} style={{ padding: "9px 18px", borderRadius: 9, border: "none", background: ACCENT, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+          <button onClick={handleTopup} disabled={topupLoading || !salonId || !amount} style={{ padding: "9px 18px", borderRadius: 9, border: "none", background: (!salonId || !amount) ? "#ccc" : ACCENT, color: "#fff", fontSize: 13, fontWeight: 700, cursor: (!salonId || !amount) ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif" }}>
             {topupLoading ? "..." : "Начислить"}
           </button>
         </div>

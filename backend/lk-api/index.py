@@ -2264,6 +2264,25 @@ def handle_staff_delete(event: dict) -> dict:
         conn.close()
 
 
+def handle_admin_salons(event: dict) -> dict:
+    """Список всех салонов с балансом (для админки)."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user or not user.get("is_admin"):
+            return err("Только для администраторов", 403)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT s.id, s.name, s.credits_balance, u.username, u.full_name "
+            f"FROM {tbl('salons')} s "
+            f"JOIN {tbl('lk_users')} u ON u.id = s.owner_id "
+            f"WHERE s.is_active=TRUE ORDER BY s.id"
+        )
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
 # ── Система энергии ──────────────────────────────────────────────────────────
 
 def _get_tool_cost(conn, tool_key: str) -> dict | None:
@@ -2785,6 +2804,7 @@ ROUTES = {
     ("POST", "script_generate"): handle_script_generate,
     ("GET",  "script_history"): handle_script_history,
     # Энергия
+    ("GET",  "admin_salons"): handle_admin_salons,
     ("GET",  "energy_balance"): handle_energy_balance,
     ("GET",  "energy_history"): handle_energy_history,
     ("POST", "energy_topup"): handle_energy_topup,
