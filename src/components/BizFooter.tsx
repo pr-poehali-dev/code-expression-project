@@ -66,7 +66,7 @@ export default function BizFooter() {
 
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 28, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
           <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.25)", fontWeight: 300 }}>© 2026 Про Диалог. Все права защищены.</p>
-          <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.2)", fontWeight: 300 }}>ИП · ИНН · ОГРНИП</p>
+          <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.2)", fontWeight: 300 }}>ИП Водопьянов С. Г. · ОГРНИП 321508100047334</p>
         </div>
       </div>
 
