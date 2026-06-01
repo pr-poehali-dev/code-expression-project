@@ -11,6 +11,7 @@ import LkEmployees from "./LkEmployees";
 import LkTeam from "./LkTeam";
 import LkEnergy from "./LkEnergy";
 import LkProfile from "./LkProfile";
+import LkSupport from "./LkSupport";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -18,14 +19,14 @@ const TEAL_BRIGHT = "#2DD4BF";
 const BG = "#F4F6F8";
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
-type Tab = "home" | "tools" | "academy" | "ai" | "shop" | "employees" | "purchases" | "profile" | "salon" | "admin" | "more";
+type Tab = "home" | "tools" | "academy" | "ai" | "shop" | "employees" | "purchases" | "profile" | "salon" | "admin" | "support" | "more";
 
 // ── Доступ по ролям ───────────────────────────────────────────────────────────
 const ROLE_TABS: Record<string, Tab[]> = {
-  owner:          ["home", "tools", "academy", "ai", "shop", "employees", "purchases", "salon", "profile"],
-  admin:          ["home", "tools", "academy", "ai", "profile"],
-  master:         ["home", "tools", "academy", "ai", "profile"],
-  body_specialist:["home", "tools", "academy", "ai", "profile"],
+  owner:          ["home", "tools", "academy", "ai", "shop", "employees", "purchases", "salon", "profile", "support"],
+  admin:          ["home", "tools", "academy", "ai", "profile", "support"],
+  master:         ["home", "tools", "academy", "ai", "profile", "support"],
+  body_specialist:["home", "tools", "academy", "ai", "profile", "support"],
 };
 
 function getAllowedTabs(role: string, isAdmin: boolean): Tab[] {
@@ -54,6 +55,7 @@ const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string }[] = [
   { id: "purchases", icon: "Receipt",       label: "Покупки"         },
   { id: "salon",     icon: "Building2",     label: "Мой салон"       },
   { id: "profile",   icon: "UserCircle",    label: "Профиль"         },
+  { id: "support",   icon: "Headphones",    label: "Тех. поддержка" },
   { id: "admin",     icon: "Settings",      label: "Админка"         },
 ];
 
@@ -375,6 +377,7 @@ export default function LkDashboard() {
         {tab === "purchases" && <LkEnergy />}
         {tab === "salon" && <LkSalonProfile onSaved={() => handleTabChange("home")} />}
         {tab === "profile" && <LkProfile />}
+        {tab === "support" && <LkSupport />}
         {tab === "body" && <LkBodyMap />}
         {user?.is_admin && tab === "admin" && <LkAdmin />}
       </main>

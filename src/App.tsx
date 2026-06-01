@@ -24,7 +24,6 @@ import DiagnostikaSalona from "./pages/DiagnostikaSalona";
 import Reviews from "./pages/Reviews";
 import NotFoundPage from "./pages/NotFoundPage";
 import CookieBanner from "./components/CookieBanner";
-import ChatWidget from "./components/ChatWidget";
 import QuizAdmin from "./pages/QuizAdmin";
 import QuizLanding from "./pages/QuizLanding";
 import LkPage from "./pages/lk/LkPage";
@@ -58,7 +57,6 @@ const App = () => (
       <Toaster />
       <Sonner />
       <CookieBanner />
-      <ChatWidget />
       <EnergyGate />
       <BrowserRouter>
         <ScrollToTop />
