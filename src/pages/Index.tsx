@@ -114,7 +114,7 @@ export default function Index() {
                 }}
               />
               {/* floating badge */}
-              <div style={{
+              <div className="hero-badge" style={{
                 position: "absolute", bottom: 20, left: 20, right: 20, zIndex: 3,
                 background: "rgba(8,14,28,0.7)", backdropFilter: "blur(16px)",
                 border: "1px solid rgba(45,212,191,0.25)", borderRadius: 4,

@@ -7,6 +7,24 @@ body.hide-chat-widget [data-chat-widget] {
 }
 
 @media (max-width: 600px) {
+  .hero-badge {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+    bottom: 12px !important;
+    left: 12px !important;
+    right: 12px !important;
+  }
+  .hero-badge > div:first-child {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  .hero-badge > div:last-child > div:first-child {
+    font-size: 12px !important;
+  }
+  .hero-badge > div:last-child > div:last-child {
+    font-size: 11px !important;
+  }
+
   .premium-tools-grid {
     grid-template-columns: 1fr !important;
   }
