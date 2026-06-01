@@ -22,27 +22,27 @@ const EMPTY_FORM: SalonForm = {
   social_instagram: "", social_vk: "", social_telegram: "", main_goal: "",
 };
 
-const DRAFT_KEY = "lk_salon_draft";
-const SERVICES_KEY = "lk_salon_services_draft";
+function draftKey(userId: number) { return `lk_salon_draft_${userId}`; }
+function servicesKey(userId: number) { return `lk_salon_services_draft_${userId}`; }
 
-function saveDraft(form: SalonForm, services: Service[]) {
+function saveDraft(userId: number, form: SalonForm, services: Service[]) {
   try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(form));
-    localStorage.setItem(SERVICES_KEY, JSON.stringify(services));
+    localStorage.setItem(draftKey(userId), JSON.stringify(form));
+    localStorage.setItem(servicesKey(userId), JSON.stringify(services));
   } catch (_) { /* ignore */ }
 }
 
-function loadDraft(): { form: SalonForm | null; services: Service[] | null } {
+function loadDraft(userId: number): { form: SalonForm | null; services: Service[] | null } {
   try {
-    const f = localStorage.getItem(DRAFT_KEY);
-    const s = localStorage.getItem(SERVICES_KEY);
+    const f = localStorage.getItem(draftKey(userId));
+    const s = localStorage.getItem(servicesKey(userId));
     return { form: f ? JSON.parse(f) : null, services: s ? JSON.parse(s) : null };
   } catch (_) { return { form: null, services: null }; }
 }
 
-function clearDraft() {
-  localStorage.removeItem(DRAFT_KEY);
-  localStorage.removeItem(SERVICES_KEY);
+function clearDraft(userId: number) {
+  localStorage.removeItem(draftKey(userId));
+  localStorage.removeItem(servicesKey(userId));
 }
 
 const TONE_OPTIONS = ["Тёплый и дружелюбный", "Профессиональный и экспертный", "Люксовый и статусный", "Молодёжный и энергичный"];
@@ -81,7 +81,8 @@ const inputStyle: React.CSSProperties = {
 
 export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
   const { user } = useLkAuth();
-  const draft = loadDraft();
+  const uid = user?.id ?? 0;
+  const draft = loadDraft(uid);
   const [form, setForm] = useState<SalonForm>(draft.form || EMPTY_FORM);
   const [services, setServices] = useState<Service[]>(draft.services || [{ name: "", price_min: "", price_max: "", duration_min: "" }]);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -100,7 +101,7 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
     if (!user?.salon_id) { setLoading(false); return; }
     lkApi.salonProfileGet().then((data: { salon: Record<string, unknown> | null; services: Record<string, unknown>[] }) => {
       if (data.salon) {
-        clearDraft(); // Есть сохранённый профиль — черновик не нужен
+        clearDraft(uid); // Есть сохранённый профиль — черновик не нужен
         const s = data.salon;
         setForm({
           name:            String(s.name || ""),
@@ -134,8 +135,8 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
 
   // Автосохранение в localStorage при каждом изменении
   useEffect(() => {
-    if (!loading) saveDraft(form, services);
-  }, [form, services, loading]);
+    if (!loading && uid) saveDraft(uid, form, services);
+  }, [form, services, loading, uid]);
 
   function f(k: keyof SalonForm, v: string) { setForm(p => ({ ...p, [k]: v })); }
 
@@ -173,7 +174,7 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
           duration_min: s.duration_min ? Number(s.duration_min) : null,
         })),
       }) as { welcome_bonus?: boolean };
-      clearDraft();
+      clearDraft(uid);
       setSaved(true);
       if (result?.welcome_bonus) setWelcomeBonus(true);
       setTimeout(() => setSaved(false), 3000);
@@ -207,6 +208,28 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
         </p>
       </div>
 
+      {/* Баннер подарка для нового пользователя */}
+      {isNew && !hasDraft && (
+        <div style={{ background: "linear-gradient(135deg, #0F172A, #112B3C)", borderRadius: 16, padding: "24px 28px", marginBottom: 28, display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(45,212,191,0.15)", border: "1px solid rgba(45,212,191,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="Gift" size={24} style={{ color: "#2DD4BF" }} />
+          </div>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4 }}>
+              Заполните профиль и получите 100 энергий в подарок
+            </div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
+              Укажите название, услуги и описание салона — и мы зачислим бонус сразу после сохранения.
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(45,212,191,0.15)", border: "1px solid rgba(45,212,191,0.3)", borderRadius: 10, padding: "10px 18px", flexShrink: 0 }}>
+            <Icon name="Zap" size={18} style={{ color: "#2DD4BF" }} />
+            <span style={{ fontSize: 22, fontWeight: 800, color: "#2DD4BF" }}>100</span>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>энергий</span>
+          </div>
+        </div>
+      )}
+
       {/* Баннер восстановленного черновика */}
       {hasDraft && isNew && (
         <div style={{ display: "flex", alignItems: "center", gap: 10, background: "hsl(40,90%,96%)", border: "1px solid hsl(40,90%,82%)", borderRadius: 12, padding: "11px 16px", marginBottom: 20 }}>
@@ -214,7 +237,7 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
           <div style={{ fontSize: 13, color: "hsl(40,90%,35%)", fontWeight: 600 }}>
             Данные восстановлены — продолжайте заполнять с того места, где остановились.
           </div>
-          <button onClick={() => { clearDraft(); setForm(EMPTY_FORM); setServices([{ name: "", price_min: "", price_max: "", duration_min: "" }]); }}
+          <button onClick={() => { clearDraft(uid); setForm(EMPTY_FORM); setServices([{ name: "", price_min: "", price_max: "", duration_min: "" }]); }}
             style={{ marginLeft: "auto", fontSize: 11, color: "hsl(40,90%,50%)", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}>
             Очистить
           </button>
