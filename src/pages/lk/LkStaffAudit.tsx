@@ -52,6 +52,15 @@ interface HistoryItem { id: number; summary: { avg_score: number; total_loss: nu
 
 const ROLES = ["Администратор", "Мастер маникюра", "Парикмахер", "Косметолог", "Массажист", "Бровист", "Другое"];
 
+const STAFF_DRAFT_KEY = "lk_staff_audit_draft";
+function saveStaffDraft(staff: StaffMember[]) {
+  try { localStorage.setItem(STAFF_DRAFT_KEY, JSON.stringify(staff)); } catch (_) { /* ignore */ }
+}
+function loadStaffDraft(): StaffMember[] | null {
+  try { const d = localStorage.getItem(STAFF_DRAFT_KEY); return d ? JSON.parse(d) : null; } catch (_) { return null; }
+}
+function clearStaffDraft() { localStorage.removeItem(STAFF_DRAFT_KEY); }
+
 function newMember(): StaffMember {
   return { id: Math.random().toString(36).slice(2), name: "", role: "", experience: "", clients_count: "", new_clients: "", return_pct: "", revenue: "", avg_check: "", has_upsell: null, rebooking_pct: "", has_rebooking_offer: null, service_score: "", has_sales_script: null };
 }
@@ -466,6 +475,7 @@ export default function LkStaffAudit() {
   const { user } = useLkAuth();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [staffLoaded, setStaffLoaded] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
   const [result, setResult] = useState<AuditResult | null>(null);
   const [step, setStep] = useState<"form" | "loading" | "result">("form");
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -476,11 +486,13 @@ export default function LkStaffAudit() {
     fetch(`${LK_URL}?action=staff_audit_history`, { headers: { "X-Session-Id": sid() } })
       .then(r => r.json()).then(d => Array.isArray(d) && setHistory(d)).catch(() => {});
 
-    // Загружаем сотрудников из базы
+    // Загружаем сотрудников из базы; если нет — проверяем черновик
     fetch(`${LK_URL}?action=staff_list`, { headers: { "X-Session-Id": sid() } })
       .then(r => r.json()).then(d => {
         if (Array.isArray(d) && d.length > 0) {
-          setStaff(d.map((s: Record<string, unknown>) => ({
+          // Данные с сервера: сначала проверяем черновик — он мог содержать несохранённые изменения
+          const draft = loadStaffDraft();
+          const serverStaff = d.map((s: Record<string, unknown>) => ({
             id:                  String(s.id),
             name:                String(s.name || ""),
             role:                String(s.role || ""),
@@ -495,13 +507,37 @@ export default function LkStaffAudit() {
             has_rebooking_offer: s.has_rebooking_offer != null ? Boolean(s.has_rebooking_offer) : null,
             service_score:       s.service_score != null ? String(s.service_score) : "",
             has_sales_script:    s.has_sales_script != null ? Boolean(s.has_sales_script) : null,
-          })));
+          }));
+          // Если черновик новее (больше заполненных полей) — используем его
+          if (draft && draft.length > 0 && draft.some(m => m.name)) {
+            setStaff(draft);
+            setHasDraft(true);
+          } else {
+            setStaff(serverStaff);
+          }
         } else {
-          setStaff([newMember()]);
+          // Нет данных на сервере — проверяем черновик
+          const draft = loadStaffDraft();
+          if (draft && draft.length > 0 && draft.some(m => m.name)) {
+            setStaff(draft);
+            setHasDraft(true);
+          } else {
+            setStaff([newMember()]);
+          }
         }
         setStaffLoaded(true);
-      }).catch(() => { setStaff([newMember()]); setStaffLoaded(true); });
+      }).catch(() => {
+        const draft = loadStaffDraft();
+        setStaff(draft && draft.length > 0 ? draft : [newMember()]);
+        if (draft) setHasDraft(true);
+        setStaffLoaded(true);
+      });
   }, []);
+
+  // Автосохранение черновика при каждом изменении
+  useEffect(() => {
+    if (staffLoaded && step === "form") saveStaffDraft(staff);
+  }, [staff, staffLoaded, step]);
 
   function updateMember(id: string, key: keyof StaffMember, val: string | boolean) {
     setStaff(p => p.map(m => m.id === id ? { ...m, [key]: val } : m));
@@ -519,6 +555,8 @@ export default function LkStaffAudit() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Ошибка анализа"); setStep("form"); return; }
+      clearStaffDraft();
+      setHasDraft(false);
       setResult(data.result);
       setStep("result");
     } catch (e: unknown) {
@@ -571,6 +609,18 @@ export default function LkStaffAudit() {
           Данные сотрудников загружены из раздела «Сотрудники». Проверьте и запустите анализ.
         </p>
       </div>
+
+      {/* Баннер восстановленного черновика */}
+      {hasDraft && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, background: "hsl(40,90%,96%)", border: "1px solid hsl(40,90%,82%)", borderRadius: 12, padding: "11px 16px", marginBottom: 16 }}>
+          <Icon name="RotateCcw" size={15} style={{ color: "hsl(40,90%,40%)", flexShrink: 0 }} />
+          <div style={{ fontSize: 13, color: "hsl(40,90%,35%)", fontWeight: 600 }}>Данные восстановлены — продолжайте с того места, где остановились.</div>
+          <button onClick={() => { clearStaffDraft(); setHasDraft(false); setStaff([newMember()]); }}
+            style={{ marginLeft: "auto", fontSize: 11, color: "hsl(40,90%,50%)", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}>
+            Очистить
+          </button>
+        </div>
+      )}
 
       {/* Баннер если нет сотрудников в БД */}
       {!hasDbStaff && (
