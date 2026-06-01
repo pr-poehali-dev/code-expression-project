@@ -86,7 +86,8 @@ function HomeTab({ onNav, role, hasSalon }: { onNav: (t: Tab) => void; role: str
     { tab: "academy" as Tab,icon: "GraduationCap", color: "hsl(280,60%,55%)", bg: "hsl(280,60%,96%)", title: "Академия",         desc: "Курсы и обучение" },
     { tab: "ai" as Tab,     icon: "Sparkles",      color: "hsl(40,90%,50%)",  bg: "hsl(40,90%,96%)",  title: "ИИ-инструменты",  desc: "Генерация контента — скоро" },
     ...(role === "owner" ? [
-      { tab: "salon" as Tab, icon: "Building2",    color: "hsl(145,60%,40%)", bg: "hsl(145,60%,95%)", title: "Мой салон",        desc: hasSalon ? "Профиль заполнен" : "Заполните профиль салона" },
+      { tab: "salon" as Tab,      icon: "Building2", color: "hsl(145,60%,40%)", bg: "hsl(145,60%,95%)", title: "Мой салон",  desc: hasSalon ? "Профиль заполнен" : "Заполните профиль салона" },
+      { tab: "employees" as Tab,  icon: "Users",     color: "hsl(185,85%,32%)", bg: "hsl(185,85%,95%)", title: "Команда",    desc: "Пригласить и управлять сотрудниками" },
     ] : []),
   ];
 
