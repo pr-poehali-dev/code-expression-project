@@ -51,14 +51,24 @@ export default function OProekte() {
               Мы создаём платформу, где технологии служат живому бизнесу, а не усложняют его. Простые инструменты, понятные владельцу салона и его команде.
             </p>
           </div>
-          <div className="about-hero-img">
-            <div style={{
-              width: "100%", aspectRatio: "4/3", borderRadius: 4, border: "1px dashed rgba(255,255,255,0.18)", background: "rgba(255,255,255,0.025)",
-              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12,
-            }}>
-              <Icon name="Image" size={32} style={{ color: "rgba(255,255,255,0.3)" }} />
-              <div style={{ fontWeight: 400, color: "rgba(255,255,255,0.45)", fontSize: 14, letterSpacing: "0.5px" }}>Фото основателя</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>Размер: 600 × 450 px</div>
+          <div className="about-hero-img" style={{ display: "flex", justifyContent: "center" }}>
+            <div style={{ position: "relative", width: "100%", maxWidth: 420 }}>
+              <div style={{
+                position: "absolute", inset: -1, borderRadius: 6,
+                background: "linear-gradient(135deg, rgba(45,212,191,0.35), transparent 50%, rgba(45,212,191,0.12))",
+                pointerEvents: "none", zIndex: 2,
+              }} />
+              <img
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/f5d495f7-6be9-4853-b77a-1eefed414230.jpg"
+                alt="Основатель Про Диалог"
+                style={{
+                  width: "100%", aspectRatio: "3/4", objectFit: "cover",
+                  objectPosition: "center top",
+                  borderRadius: 4, display: "block",
+                  boxShadow: "0 32px 80px rgba(0,0,0,0.55)",
+                  position: "relative", zIndex: 1,
+                }}
+              />
             </div>
           </div>
         </div>
