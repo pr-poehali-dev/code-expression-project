@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
@@ -27,9 +26,9 @@ export default function CookieBanner() {
     }}>
       <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.6)", flex: 1, lineHeight: 1.6, fontWeight: 300 }}>
         Мы используем cookies.{" "}
-        <Link to="/privacy" style={{ color: "#2DD4BF", textDecoration: "none", fontWeight: 500 }}>
+        <a href="/privacy" style={{ color: "#2DD4BF", textDecoration: "none", fontWeight: 500 }}>
           Политика конфиденциальности
-        </Link>
+        </a>
       </p>
       <button onClick={accept} style={{
         background: "linear-gradient(135deg,#2DD4BF,#14B8A6)",
