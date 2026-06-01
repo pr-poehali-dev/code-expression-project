@@ -12,11 +12,12 @@ interface ToolCost {
 interface Salon { id: number; name: string; credits_balance: number; username: string; full_name: string; }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  marketing: "Маркетинг",
-  analytics: "Аналитика",
-  images:    "Изображения",
-  specialist:"Специалисты",
-  free:      "Бесплатные",
+  marketing:     "Маркетинг",
+  analytics:     "Аналитика",
+  images:        "Изображения",
+  specialist:    "Специалисты",
+  communication: "Коммуникации",
+  free:          "Бесплатные",
 };
 
 export function EnergySection() {
