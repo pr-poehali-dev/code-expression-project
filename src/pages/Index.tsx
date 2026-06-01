@@ -52,11 +52,11 @@ export default function Index() {
               <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Платформа роста салона</span>
             </div>
 
-            <h1 style={{ fontFamily: SERIF, fontSize: "clamp(46px,6.5vw,82px)", fontWeight: 500, color: "#fff", lineHeight: 1.02, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
-              Про Диалог
+            <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
+              Бизнес начинается<br />с диалога
             </h1>
-            <p style={{ fontSize: "clamp(18px,2.4vw,23px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.55, margin: "0 0 40px", fontWeight: 300, maxWidth: 520 }}>
-              Цифровой помощник для владельца салона красоты и его команды. Рост прибыли, возвращаемость клиентов и эффективность сотрудников — в едином кабинете.
+            <p style={{ fontSize: "clamp(18px,2.4vw,23px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.55, margin: "0 0 40px", fontWeight: 300, maxWidth: 540 }}>
+              Диалог — это разговор двоих: вы слышите клиента, а клиент слышит вас. <span style={{ color: "#fff" }}>Про&nbsp;Диалог</span> помогает вести этот разговор осознанно — с клиентом, командой и в маркетинге. Там, где есть диалог, рождается доверие. А доверие приносит прибыль.
             </p>
 
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
