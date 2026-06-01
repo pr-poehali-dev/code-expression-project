@@ -105,14 +105,20 @@ export default function LkEnergy() {
                 Выберите пакет энергии. Оплата через ЮKassa — будет доступна в ближайшее время.
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 12 }}>
-                {packages.map(pkg => {
+                {packages.map((pkg, idx) => {
                   const c = PKG_COLORS[pkg.code] || PKG_COLORS.start;
-                  const perRub = (pkg.energy_amount / pkg.price_rub * 100).toFixed(1);
+                  const baseRate = packages[0] ? packages[0].energy_amount / packages[0].price_rub : 1;
+                  const thisRate = pkg.energy_amount / pkg.price_rub;
+                  const savePct  = idx > 0 ? Math.round((thisRate / baseRate - 1) * 100) : 0;
                   return (
                     <div key={pkg.code} style={{ background: "#fff", borderRadius: 16, border: `1.5px solid ${c.border}`, padding: "20px 22px" }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                         <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a" }}>{pkg.name}</div>
-                        <div style={{ background: c.bg, color: c.color, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "3px 8px" }}>{perRub} ⚡/100₽</div>
+                        {savePct > 0 && (
+                          <div style={{ background: c.bg, color: c.color, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "3px 8px" }}>
+                            Выгоднее на {savePct}%
+                          </div>
+                        )}
                       </div>
                       <div style={{ fontSize: "clamp(28px,5vw,36px)", fontWeight: 800, color: c.color, lineHeight: 1, marginBottom: 4 }}>
                         ⚡ {pkg.energy_amount.toLocaleString()}
