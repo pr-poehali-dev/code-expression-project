@@ -123,11 +123,17 @@ export default function LkEnergy() {
                       <div style={{ fontSize: "clamp(28px,5vw,36px)", fontWeight: 800, color: c.color, lineHeight: 1, marginBottom: 4 }}>
                         ⚡ {pkg.energy_amount.toLocaleString()}
                       </div>
-                      <div style={{ fontSize: 12, color: "#aaa", marginBottom: 18 }}>энергий</div>
+                      <div style={{ fontSize: 12, color: "#aaa", marginBottom: 14 }}>энергий</div>
+                      <div style={{ fontSize: 22, fontWeight: 800, color: "#1a1a1a", marginBottom: 4 }}>
+                        {pkg.price_rub.toLocaleString()} ₽
+                      </div>
+                      <div style={{ fontSize: 11, color: "#bbb", marginBottom: 14 }}>
+                        {Math.round(pkg.price_rub / pkg.energy_amount * 10) / 10} ₽ за энергию
+                      </div>
                       <button
                         disabled
                         style={{ width: "100%", padding: "12px", borderRadius: 11, border: "none", background: `linear-gradient(135deg,${c.color},${c.color}cc)`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "not-allowed", fontFamily: "Montserrat,sans-serif", opacity: 0.6 }}>
-                        {pkg.price_rub.toLocaleString()} ₽ · Скоро
+                        Купить · Скоро
                       </button>
                     </div>
                   );
