@@ -97,15 +97,37 @@ export default function Index() {
           </div>
 
           <div style={{ display: "flex", justifyContent: "center" }} className="hero-img">
-            <div style={{
-              width: "100%", maxWidth: 460, aspectRatio: "3/4",
-              background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 4, display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", gap: 12,
-            }}>
-              <Icon name="Image" size={32} style={{ color: "rgba(255,255,255,0.3)" }} />
-              <div style={{ fontWeight: 400, color: "rgba(255,255,255,0.45)", fontSize: 14, letterSpacing: "0.5px" }}>Интерьер салона / кабинет</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>Размер: 720 × 960 px</div>
+            <div style={{ position: "relative", width: "100%", maxWidth: 460 }}>
+              <div style={{
+                position: "absolute", inset: -1, borderRadius: 6,
+                background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))",
+                pointerEvents: "none", zIndex: 2,
+              }} />
+              <img
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/8473159f-05f1-44ee-b4e8-68a9b5932c70.jpg"
+                alt="Премиальный интерьер салона красоты"
+                style={{
+                  width: "100%", aspectRatio: "3/4", objectFit: "cover",
+                  borderRadius: 4, display: "block",
+                  boxShadow: "0 32px 80px rgba(0,0,0,0.5)",
+                  position: "relative", zIndex: 1,
+                }}
+              />
+              {/* floating badge */}
+              <div style={{
+                position: "absolute", bottom: 20, left: 20, right: 20, zIndex: 3,
+                background: "rgba(8,14,28,0.7)", backdropFilter: "blur(16px)",
+                border: "1px solid rgba(45,212,191,0.25)", borderRadius: 4,
+                padding: "16px 18px", display: "flex", alignItems: "center", gap: 14,
+              }}>
+                <div style={{ width: 40, height: 40, borderRadius: 4, background: "rgba(45,212,191,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon name="TrendingUp" size={20} style={{ color: TEAL }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>Рост выручки салона</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 300 }}>через коммуникацию и ИИ</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
