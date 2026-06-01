@@ -5,6 +5,7 @@ import LkSalonAudit from "./LkSalonAudit";
 import LkPostGen from "./LkPostGen";
 import LkReelScript from "./LkReelScript";
 import LkStaffAudit from "./LkStaffAudit";
+import LkReviewReply from "./LkReviewReply";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -82,7 +83,7 @@ function ComingSoonCard({ icon, color, bg, title, description }: ComingSoonCardP
   );
 }
 
-type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | null;
+type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | "review-reply" | null;
 
 export default function LkAiTools() {
   const [activeTool, setActiveTool] = useState<Tool>(null);
@@ -117,6 +118,10 @@ export default function LkAiTools() {
 
   if (activeTool === "staff-audit") {
     return <div><BackButton /><LkStaffAudit /></div>;
+  }
+
+  if (activeTool === "review-reply") {
+    return <div><BackButton /><LkReviewReply /></div>;
   }
 
   return (
@@ -199,12 +204,14 @@ export default function LkAiTools() {
           onStart={() => setActiveTool("reel-script")}
         />
 
-        <ComingSoonCard
+        <ToolCard
           icon="Star"
           color="hsl(185,85%,32%)"
           bg="hsl(185,85%,95%)"
           title="Ответы на отзывы"
           description="ИИ составит вежливый и профессиональный ответ на любой отзыв — положительный или негативный."
+          badge="new"
+          onStart={() => setActiveTool("review-reply")}
         />
       </div>
 

@@ -1547,6 +1547,93 @@ def handle_staff_audit_get(event: dict) -> dict:
         conn.close()
 
 
+# ── Ответы на отзывы ─────────────────────────────────────────────────────────
+
+def handle_review_reply(event: dict) -> dict:
+    """Генерирует профессиональный ответ на отзыв клиента."""
+    body = json.loads(event.get("body") or "{}")
+    review_text = (body.get("review_text") or "").strip()
+    sentiment   = body.get("sentiment") or "positive"
+    tone        = body.get("tone") or "warm"
+
+    if not review_text:
+        return err("Вставьте текст отзыва")
+    if len(review_text) > 3000:
+        return err("Отзыв слишком длинный (максимум 3000 символов)")
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+
+        salon = _get_salon_ctx(user, conn, ("name", "target_audience", "tone_of_voice"))
+        salon_name = salon["name"] if salon and salon.get("name") else "наш салон"
+        salon_audience = salon.get("target_audience", "") if salon else ""
+        salon_tone_hint = salon.get("tone_of_voice", "") if salon else ""
+
+        TONE_PROMPTS = {
+            "professional": "Пиши официально и профессионально, без лишних эмоций. Чётко и по делу.",
+            "warm":         "Пиши тепло, с заботой и личным отношением. Немного эмоций, но без пафоса.",
+            "brief":        "Пиши очень кратко — 2–3 предложения. Только суть, без воды.",
+        }
+        SENTIMENT_HINTS = {
+            "positive": "Это положительный отзыв. Поблагодари, выдели конкретный плюс из отзыва, пригласи снова.",
+            "negative": "Это негативный отзыв. Прими критику с достоинством, извинись, объясни что будет сделано, пригласи вернуться.",
+            "neutral":  "Это нейтральный отзыв. Поблагодари за обратную связь, ответь на суть, пригласи снова.",
+        }
+
+        prompt = (
+            f"Ты — менеджер по работе с клиентами салона красоты «{salon_name}».\n"
+            + (f"Аудитория салона: {salon_audience}\n" if salon_audience else "")
+            + f"\nОтзыв клиента:\n«{review_text}»\n\n"
+            f"Задача: написать ответ от лица салона.\n\n"
+            f"Тип отзыва: {SENTIMENT_HINTS.get(sentiment, '')}\n"
+            f"Стиль: {TONE_PROMPTS.get(tone, '')}\n\n"
+            f"Требования:\n"
+            f"- Обращайся к клиенту уважительно (не называй по имени если оно не указано)\n"
+            f"- Подпись: команда салона «{salon_name}» или просто название\n"
+            f"- Без шаблонных фраз вроде «Уважаемый клиент» в начале\n"
+            f"- На русском языке\n"
+            f"- Только текст ответа, без заголовков и пояснений"
+        )
+
+        reply = _call_ai_text([
+            {"role": "system", "content": "Ты эксперт по клиентскому сервису в бьюти-индустрии. Пишешь живые, человечные ответы на отзывы."},
+            {"role": "user",   "content": prompt}
+        ], max_tokens=500)
+
+        cur = conn.cursor()
+        cur.execute(
+            f"INSERT INTO {tbl('review_replies')} (user_id, review_text, reply_text, sentiment, tone) "
+            f"VALUES (%s,%s,%s,%s,%s) RETURNING id",
+            (user["id"], review_text, reply, sentiment, tone)
+        )
+        row_id = cur.fetchone()[0]
+        conn.commit()
+        return ok({"reply": reply, "id": row_id})
+    finally:
+        conn.close()
+
+
+def handle_review_reply_history(event: dict) -> dict:
+    """История ответов на отзывы."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT id, review_text, reply_text, sentiment, created_at "
+            f"FROM {tbl('review_replies')} WHERE user_id=%s ORDER BY created_at DESC LIMIT 20",
+            (user["id"],)
+        )
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
 # ── Сотрудники салона (CRUD) ──────────────────────────────────────────────────
 
 def handle_staff_list(event: dict) -> dict:
@@ -1934,6 +2021,8 @@ ROUTES = {
     ("GET",  "staff_list"): handle_staff_list,
     ("POST", "staff_save"): handle_staff_save,
     ("POST", "staff_delete"): handle_staff_delete,
+    ("POST", "review_reply"): handle_review_reply,
+    ("GET",  "review_reply_history"): handle_review_reply_history,
 }
 
 
