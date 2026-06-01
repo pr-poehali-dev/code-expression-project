@@ -1590,38 +1590,45 @@ def _send_invite_email(to_email: str, full_name: str, salon_name: str, role_labe
     import ssl
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
+    from email.header import Header
 
     smtp_password = os.environ.get("SMTP_PASSWORD", "")
     if not smtp_password:
-        return  # Секрет не задан — тихо пропускаем
+        return
 
     sender = "massopro@mail.ru"
-    subject = f"Приглашение в команду «{salon_name}»"
+    subject = f"Priglashenie v komandu - Pro Dialog"
 
-    html = f"""
-<!DOCTYPE html>
+    html = f"""<!DOCTYPE html>
 <html>
 <body style="margin:0;padding:0;background:#f4f4f0;font-family:'Helvetica Neue',Arial,sans-serif;">
   <div style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-    <div style="background:linear-gradient(135deg,hsl(185,85%,32%),hsl(185,85%,22%));padding:28px 32px;">
-      <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Про Диалог</div>
+    <div style="background:linear-gradient(135deg,#1a9fae,#136e7a);padding:28px 32px;">
+      <div style="font-size:22px;font-weight:800;color:#fff;">Pro Dialog</div>
     </div>
     <div style="padding:32px 32px 24px;">
-      <p style="font-size:16px;font-weight:700;color:#1a1a1a;margin:0 0 8px;">Привет, {full_name}!</p>
-      <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 20px;">
-        Вас приглашают вступить в команду салона <strong>«{salon_name}»</strong> в платформе Про Диалог.<br>
-        Ваша роль: <strong>{role_label}</strong>.
+      <p style="font-size:16px;font-weight:700;color:#1a1a1a;margin:0 0 8px;">
+        {full_name}, vas priglashayut v komandu!
       </p>
-      <a href="{invite_url}" style="display:inline-block;background:linear-gradient(135deg,hsl(185,85%,32%),hsl(185,85%,22%));color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:14px 28px;border-radius:12px;">
-        Принять приглашение →
+      <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 8px;">
+        Salon: <strong>{salon_name}</strong>
+      </p>
+      <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 20px;">
+        Rol: <strong>{role_label}</strong>
+      </p>
+      <a href="{invite_url}"
+         style="display:inline-block;background:#1a9fae;color:#fff;text-decoration:none;
+                font-size:14px;font-weight:700;padding:14px 28px;border-radius:12px;">
+        Prinyat priglashenie
       </a>
       <p style="font-size:12px;color:#aaa;margin:20px 0 0;line-height:1.6;">
-        Ссылка действительна 7 дней. Если кнопка не работает, скопируйте адрес:<br>
-        <span style="color:#555;word-break:break-all;">{invite_url}</span>
+        Ssylka deystvitelna 7 dney.<br>
+        Esli knopka ne rabotaet, skopiruyte adres:<br>
+        <a href="{invite_url}" style="color:#1a9fae;word-break:break-all;">{invite_url}</a>
       </p>
     </div>
     <div style="padding:16px 32px;background:#f8f8f5;border-top:1px solid #eee;">
-      <p style="font-size:11px;color:#bbb;margin:0;">Про Диалог — платформа для бьюти-бизнеса · pro-dialog.ru</p>
+      <p style="font-size:11px;color:#bbb;margin:0;">Pro Dialog — platforma dlya byuti-biznesa</p>
     </div>
   </div>
 </body>
@@ -1629,14 +1636,15 @@ def _send_invite_email(to_email: str, full_name: str, salon_name: str, role_labe
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"]    = f"Про Диалог <{sender}>"
+    msg["From"]    = f"Pro Dialog <{sender}>"
     msg["To"]      = to_email
+    msg["MIME-Version"] = "1.0"
     msg.attach(MIMEText(html, "html", "utf-8"))
 
     ctx = ssl.create_default_context()
     with smtplib.SMTP_SSL("smtp.mail.ru", 465, context=ctx) as srv:
         srv.login(sender, smtp_password)
-        srv.sendmail(sender, [to_email], msg.as_bytes())
+        srv.sendmail(sender, [to_email], msg.as_string())
 
 
 def handle_team_invite(event: dict) -> dict:
