@@ -1,6 +1,6 @@
 import { Helmet } from "@/lib/helmet";
-import DokFooter from "@/components/DokFooter";
-import DokNavbar from "@/components/DokNavbar";
+import BizFooter from "@/components/BizFooter";
+import BizNavbar from "@/components/BizNavbar";
 import { DARK, TEXT } from "./praktika/PraktikaShared";
 import PraktikaHero from "./praktika/PraktikaHero";
 import PraktikaSections from "./praktika/PraktikaSections";
@@ -43,11 +43,11 @@ export default function Praktika() {
         }
       `}</style>
 
-      <DokNavbar />
+      <BizNavbar />
       <PraktikaHero />
       <PraktikaSections />
       <PraktikaApplication />
-      <DokFooter />
+      <BizFooter />
     </div>
   );
 }
