@@ -1,6 +1,6 @@
 import { Helmet } from "@/lib/helmet";
-import DokFooter from "@/components/DokFooter";
-import DokNavbar from "@/components/DokNavbar";
+import BizFooter from "@/components/BizFooter";
+import BizNavbar from "@/components/BizNavbar";
 import { DARK, TEXT } from "./premium/PremiumShared";
 import PremiumHero from "./premium/PremiumHero";
 import PremiumSections from "./premium/PremiumSections";
@@ -54,11 +54,11 @@ export default function PremiumPraktika() {
         }
       `}</style>
 
-      <DokNavbar />
+      <BizNavbar />
       <PremiumHero />
       <PremiumSections />
       <PremiumApplication />
-      <DokFooter />
+      <BizFooter />
     </div>
   );
 }
