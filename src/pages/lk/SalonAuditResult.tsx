@@ -120,7 +120,7 @@ export default function SalonAuditResult({ result, onReset }: Props) {
       </div>
 
       {/* Проблемы и точки роста */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 12, marginBottom: 16 }}>
         <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "18px 20px" }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "hsl(0,75%,55%)", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 }}>Основные проблемы</div>
           {result.main_problems?.map((p, i) => (
