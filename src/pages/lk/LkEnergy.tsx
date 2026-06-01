@@ -27,6 +27,8 @@ export default function LkEnergy() {
   const [transactions, setTx]         = useState<Transaction[]>([]);
   const [tab, setTab]                 = useState<"buy" | "history">("buy");
   const [loading, setLoading]         = useState(true);
+  const [historyPage, setHistoryPage] = useState(1);
+  const PAGE_SIZE = 20;
 
   useEffect(() => {
     fetch(`${LK_URL}?action=energy_balance`, { headers: { "X-Session-Id": sid() } })
@@ -92,7 +94,7 @@ export default function LkEnergy() {
           {/* Табы */}
           <div style={{ display: "flex", gap: 4, background: "#f0f0ec", borderRadius: 11, padding: 4, marginBottom: 20 }}>
             {([{ id: "buy", label: "Пакеты энергии" }, { id: "history", label: "История" }] as { id: typeof tab; label: string }[]).map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, padding: "9px", borderRadius: 8, border: "none", background: tab === t.id ? "#fff" : "transparent", color: tab === t.id ? "#1a1a1a" : "#888", fontSize: 13, fontWeight: tab === t.id ? 700 : 500, cursor: "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: tab === t.id ? "0 1px 4px rgba(0,0,0,0.08)" : "none" }}>
+              <button key={t.id} onClick={() => { setTab(t.id); setHistoryPage(1); }} style={{ flex: 1, padding: "9px", borderRadius: 8, border: "none", background: tab === t.id ? "#fff" : "transparent", color: tab === t.id ? "#1a1a1a" : "#888", fontSize: 13, fontWeight: tab === t.id ? 700 : 500, cursor: "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: tab === t.id ? "0 1px 4px rgba(0,0,0,0.08)" : "none" }}>
                 {t.label}
               </button>
             ))}
@@ -146,34 +148,55 @@ export default function LkEnergy() {
             </div>
           ) : (
             /* История */
-            <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", overflow: "hidden" }}>
-              {transactions.length === 0 ? (
-                <div style={{ padding: "40px 20px", textAlign: "center" }}>
-                  <div style={{ fontSize: 32, marginBottom: 12 }}>⚡</div>
-                  <div style={{ fontSize: 14, color: "#aaa" }}>Операций пока нет</div>
-                </div>
-              ) : (
+            (() => {
+              const visible = transactions.slice(0, historyPage * PAGE_SIZE);
+              const hasMore = transactions.length > visible.length;
+              return (
                 <div>
-                  {transactions.map((tx, i) => (
-                    <div key={tx.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", borderBottom: i < transactions.length - 1 ? "1px solid #f5f5f2" : "none" }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 10, background: tx.type === "credit" ? "hsl(145,60%,96%)" : "hsl(0,75%,97%)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <Icon name={tx.type === "credit" ? "Plus" : "Minus"} size={16} style={{ color: tx.type === "credit" ? "hsl(145,60%,35%)" : "hsl(0,75%,55%)" }} />
+                  <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", overflow: "hidden" }}>
+                    {transactions.length === 0 ? (
+                      <div style={{ padding: "40px 20px", textAlign: "center" }}>
+                        <div style={{ fontSize: 32, marginBottom: 12 }}>⚡</div>
+                        <div style={{ fontSize: 14, color: "#aaa" }}>Операций пока нет</div>
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tx.action}</div>
-                        <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>
-                          {tx.full_name && <span>{tx.full_name} · </span>}
-                          {new Date(tx.created_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}
-                        </div>
+                    ) : (
+                      <div>
+                        {visible.map((tx, i) => (
+                          <div key={tx.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", borderBottom: i < visible.length - 1 ? "1px solid #f5f5f2" : "none" }}>
+                            <div style={{ width: 36, height: 36, borderRadius: 10, background: tx.type === "credit" ? "hsl(145,60%,96%)" : "hsl(0,75%,97%)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              <Icon name={tx.type === "credit" ? "Plus" : "Minus"} size={16} style={{ color: tx.type === "credit" ? "hsl(145,60%,35%)" : "hsl(0,75%,55%)" }} />
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{tx.action}</div>
+                              <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>
+                                {tx.full_name && <span>{tx.full_name} · </span>}
+                                {new Date(tx.created_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}
+                              </div>
+                            </div>
+                            <div style={{ fontSize: 15, fontWeight: 800, color: tx.type === "credit" ? "hsl(145,60%,35%)" : "hsl(0,75%,55%)", flexShrink: 0 }}>
+                              {tx.type === "credit" ? "+" : "−"}{tx.amount} ⚡
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: tx.type === "credit" ? "hsl(145,60%,35%)" : "hsl(0,75%,55%)", flexShrink: 0 }}>
-                        {tx.type === "credit" ? "+" : "−"}{tx.amount} ⚡
-                      </div>
+                    )}
+                  </div>
+                  {hasMore && (
+                    <button
+                      onClick={() => setHistoryPage(p => p + 1)}
+                      style={{ width: "100%", marginTop: 12, padding: "12px", borderRadius: 12, border: "1.5px solid #E2E8F0", background: "#fff", fontSize: 13, fontWeight: 600, color: "#555", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+                    >
+                      Показать ещё ({transactions.length - visible.length})
+                    </button>
+                  )}
+                  {transactions.length > 0 && (
+                    <div style={{ marginTop: 8, fontSize: 11, color: "#bbb", textAlign: "center" }}>
+                      Показано {visible.length} из {transactions.length} операций
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })()
           )}
         </>
       )}
