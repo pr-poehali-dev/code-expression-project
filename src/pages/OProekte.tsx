@@ -69,6 +69,21 @@ export default function OProekte() {
                   position: "relative", zIndex: 1,
                 }}
               />
+              {/* floating badge */}
+              <div style={{
+                position: "absolute", bottom: 20, left: 20, right: 20, zIndex: 3,
+                background: "rgba(8,14,28,0.72)", backdropFilter: "blur(16px)",
+                border: "1px solid rgba(45,212,191,0.25)", borderRadius: 4,
+                padding: "16px 18px", display: "flex", alignItems: "center", gap: 14,
+              }}>
+                <div style={{ width: 40, height: 40, borderRadius: 4, background: "rgba(45,212,191,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon name="User" size={20} style={{ color: "#2DD4BF" }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>Сергей Водопьянов</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 300 }}>17 лет в салонном бизнесе</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
