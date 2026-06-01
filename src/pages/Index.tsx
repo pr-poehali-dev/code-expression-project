@@ -244,8 +244,9 @@ export default function Index() {
 
       <style>{`
         @media (max-width: 880px) {
-          .hero-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
-          .hero-img { display: none !important; }
+          .hero-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .hero-img { display: flex !important; order: -1; }
+          .hero-img img { aspect-ratio: 16/9 !important; max-height: 280px; object-fit: cover; }
         }
       `}</style>
     </div>
