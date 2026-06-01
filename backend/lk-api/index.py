@@ -1679,7 +1679,7 @@ def handle_team_invite(event: dict) -> dict:
         invite_id = cur.fetchone()[0]
         conn.commit()
 
-        invite_url  = f"https://doqdialog.ru/join?token={token}"
+        invite_url  = f"https://promtdialog.ru/join?token={token}"
         salon_name  = salon.get("name") or "салон"
         role_label  = ROLE_LABELS.get(role_code, role_code)
         email_sent  = False
