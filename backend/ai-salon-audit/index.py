@@ -11,6 +11,7 @@ import psycopg2
 import psycopg2.extras
 
 SCHEMA = "t_p84565078_code_expression_proj"
+TOOL_KEY = "salon_audit"
 CORS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -40,6 +41,33 @@ def get_session_user(event, conn):
         f"WHERE s.id=%s AND s.expires_at>NOW() AND u.is_active=TRUE", (sid,)
     )
     return cur.fetchone()
+
+
+def get_tool_cost(conn) -> int:
+    cur = conn.cursor()
+    cur.execute(f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key = %s", (TOOL_KEY,))
+    row = cur.fetchone()
+    return row[0] if row else 10
+
+
+def get_salon_balance(salon_id, conn) -> int:
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount ELSE -amount END), 0) "
+        f"FROM {SCHEMA}.credit_transactions WHERE salon_id = %s",
+        (salon_id,)
+    )
+    return cur.fetchone()[0]
+
+
+def deduct_energy(salon_id, user_id, cost, action, conn):
+    cur = conn.cursor()
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
+        f"VALUES (%s, %s, %s, %s, %s, 'debit')",
+        (salon_id, user_id, action, cost, TOOL_KEY)
+    )
+    conn.commit()
 
 
 def build_prompt(answers: dict, salon_name: str) -> str:
@@ -176,7 +204,6 @@ def call_ai(prompt: str) -> dict:
         data = json.loads(resp.read().decode("utf-8"))
 
     content = data["choices"][0]["message"]["content"].strip()
-    # Убираем возможные markdown-блоки
     if content.startswith("```"):
         content = content.split("```")[1]
         if content.startswith("json"):
@@ -197,16 +224,25 @@ def handler(event: dict, context) -> dict:
         if not user:
             return err("Не авторизован", 401)
 
+        salon_id = user.get("salon_id")
+        if not salon_id:
+            return err("Салон не найден", 400)
+
+        # Проверяем баланс до запуска ИИ
+        cost = get_tool_cost(conn)
+        balance = get_salon_balance(salon_id, conn)
+        if balance < cost:
+            return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
+
         body = json.loads(event.get("body") or "{}")
         answers = body.get("answers", {})
         if not answers:
             return err("Анкета не заполнена")
 
-        # Имя салона — из профиля или из анкеты
         salon_name = ""
-        if user.get("salon_id"):
+        if salon_id:
             cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-            cur.execute(f"SELECT name FROM {SCHEMA}.salons WHERE id=%s", (user["salon_id"],))
+            cur.execute(f"SELECT name FROM {SCHEMA}.salons WHERE id=%s", (salon_id,))
             row = cur.fetchone()
             if row:
                 salon_name = row["name"]
@@ -215,6 +251,13 @@ def handler(event: dict, context) -> dict:
 
         prompt = build_prompt(answers, salon_name)
         result = call_ai(prompt)
+
+        # Списываем энергию после успешного ответа ИИ
+        conn2 = get_db()
+        try:
+            deduct_energy(salon_id, user["id"], cost, "Анализ салона", conn2)
+        finally:
+            conn2.close()
 
         return ok({"result": result})
 

@@ -1,7 +1,7 @@
 """
-Генератор постов для салона красоты.
-Шаг 1: POST ?action=titles  — генерирует 5 заголовков по теме/цели/тону + контекст салона
-Шаг 2: POST ?action=text    — генерирует текст поста по выбранному заголовку
+Генератор постов для салона красоты. v2 — списание энергии.
+Шаг 1: POST ?action=titles  — генерирует 5 заголовков по теме/цели/тону + контекст салона (бесплатно)
+Шаг 2: POST ?action=text    — генерирует текст поста по выбранному заголовку (списывает 1 эн.)
 """
 import json
 import os
@@ -11,6 +11,7 @@ import psycopg2
 import psycopg2.extras
 
 SCHEMA = "t_p84565078_code_expression_proj"
+TOOL_KEY = "post_gen"
 CORS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -40,6 +41,33 @@ def get_session_user(event, conn):
         f"WHERE s.id=%s AND s.expires_at>NOW() AND u.is_active=TRUE", (sid,)
     )
     return cur.fetchone()
+
+
+def get_tool_cost(conn) -> int:
+    cur = conn.cursor()
+    cur.execute(f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key = %s", (TOOL_KEY,))
+    row = cur.fetchone()
+    return row[0] if row else 1
+
+
+def get_salon_balance(salon_id, conn) -> int:
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount ELSE -amount END), 0) "
+        f"FROM {SCHEMA}.credit_transactions WHERE salon_id = %s",
+        (salon_id,)
+    )
+    return cur.fetchone()[0]
+
+
+def deduct_energy(salon_id, user_id, cost, action, conn):
+    cur = conn.cursor()
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
+        f"VALUES (%s, %s, %s, %s, %s, 'debit')",
+        (salon_id, user_id, action, cost, TOOL_KEY)
+    )
+    conn.commit()
 
 
 def get_salon_context(user, conn):
@@ -77,7 +105,7 @@ def call_ai(messages, max_tokens=1000):
 
 
 def handle_titles(event, user, conn):
-    """Генерирует 5 заголовков постов."""
+    """Генерирует 5 заголовков постов — бесплатно."""
     body = json.loads(event.get("body") or "{}")
     topic = (body.get("topic") or "").strip()
     goal  = (body.get("goal")  or "").strip()
@@ -139,7 +167,16 @@ def handle_titles(event, user, conn):
 
 
 def handle_text(event, user, conn):
-    """Генерирует текст поста по выбранному заголовку."""
+    """Генерирует текст поста — списывает 1 энергию."""
+    salon_id = user.get("salon_id")
+    if not salon_id:
+        return err("Салон не найден", 400)
+
+    cost = get_tool_cost(conn)
+    balance = get_salon_balance(salon_id, conn)
+    if balance < cost:
+        return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
+
     body  = json.loads(event.get("body") or "{}")
     title = (body.get("title") or "").strip()
     topic = (body.get("topic") or "").strip()
@@ -187,6 +224,13 @@ def handle_text(event, user, conn):
         {"role": "system", "content": "Ты профессиональный SMM-копирайтер для бьюти-бизнеса. Пишешь живые, вовлекающие тексты."},
         {"role": "user", "content": prompt}
     ], max_tokens=800)
+
+    # Списываем только после успешного ответа ИИ
+    conn2 = get_db()
+    try:
+        deduct_energy(salon_id, user["id"], cost, "Генерация поста", conn2)
+    finally:
+        conn2.close()
 
     salon_name = salon["name"] if salon and salon.get("name") else ""
     image_prompt = f"Красивое фото для поста салона красоты. Тема: {title}. {f'Салон: {salon_name}.' if salon_name else ''} Стиль: светлый, эстетичный, профессиональный. Вертикальный формат."

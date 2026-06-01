@@ -7,11 +7,17 @@
       "expectedStatus": 200
     },
     {
-      "name": "Нет данных — 400",
+      "name": "POST без сессии — 401",
       "method": "POST",
       "path": "/",
       "body": {},
-      "expectedStatus": 400
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET — 405",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 405
     }
   ]
 }

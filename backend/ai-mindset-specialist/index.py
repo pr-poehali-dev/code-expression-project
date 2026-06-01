@@ -1,10 +1,21 @@
 """
 AI-анализ инструмента «Мышление специалиста».
 Принимает проблему, вопросы и ответы пользователя, возвращает персональный разбор по структуре.
+Списывает энергию по тарифу cheat_sheet.
 """
 import os
 import json
 import urllib.request
+import psycopg2
+import psycopg2.extras
+
+SCHEMA = "t_p84565078_code_expression_proj"
+TOOL_KEY = "cheat_sheet"
+CORS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Session-Id",
+}
 
 SYSTEM_PROMPT = """Ты — эксперт по развитию и коучингу для специалистов по телу (массажисты, остеопаты, мануальные терапевты).
 Твоя задача — дать специалисту персональный план развития на основе его цели и ответов.
@@ -38,10 +49,61 @@ SYSTEM_PROMPT = """Ты — эксперт по развитию и коучин
 Объём: 300-400 слов суммарно. Никаких вводных. Начинай сразу с первого блока."""
 
 
+def get_db():
+    return psycopg2.connect(os.environ["DATABASE_URL"])
+
+
+def ok(data, status=200):
+    return {"statusCode": status, "headers": CORS, "body": json.dumps(data, ensure_ascii=False, default=str)}
+
+
+def err(msg, status=400):
+    return {"statusCode": status, "headers": CORS, "body": json.dumps({"error": msg}, ensure_ascii=False)}
+
+
+def get_session_user(event, conn):
+    sid = (event.get("headers") or {}).get("X-Session-Id", "")
+    if not sid:
+        return None
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT u.* FROM {SCHEMA}.lk_sessions s JOIN {SCHEMA}.lk_users u ON u.id=s.user_id "
+        f"WHERE s.id=%s AND s.expires_at>NOW() AND u.is_active=TRUE", (sid,)
+    )
+    return cur.fetchone()
+
+
+def get_tool_cost(conn) -> int:
+    cur = conn.cursor()
+    cur.execute(f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key = %s", (TOOL_KEY,))
+    row = cur.fetchone()
+    return row[0] if row else 2
+
+
+def get_salon_balance(salon_id, conn) -> int:
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount ELSE -amount END), 0) "
+        f"FROM {SCHEMA}.credit_transactions WHERE salon_id = %s",
+        (salon_id,)
+    )
+    return cur.fetchone()[0]
+
+
+def deduct_energy(salon_id, user_id, cost, conn):
+    cur = conn.cursor()
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
+        f"VALUES (%s, %s, %s, %s, %s, 'debit')",
+        (salon_id, user_id, "Мышление специалиста", cost, TOOL_KEY)
+    )
+    conn.commit()
+
+
 def build_prompt(data: dict) -> str:
     problem = data.get("problem_name", "")
     category = data.get("category_name", "")
-    qa_pairs = data.get("qa_pairs", [])  # [{question, answer}]
+    qa_pairs = data.get("qa_pairs", [])
 
     lines = [
         f"Категория: {category}",
@@ -57,8 +119,6 @@ def build_prompt(data: dict) -> str:
 
 
 def call_openai(user_prompt: str, api_key: str) -> str:
-    opener = urllib.request.build_opener()
-
     payload = json.dumps({
         "model": "openai/gpt-4o-mini",
         "messages": [
@@ -72,14 +132,10 @@ def call_openai(user_prompt: str, api_key: str) -> str:
     req = urllib.request.Request(
         "https://polza.ai/api/v1/chat/completions",
         data=payload,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
         method="POST",
     )
-
-    with opener.open(req, timeout=30) as resp:
+    with urllib.request.urlopen(req, timeout=30) as resp:
         result = json.loads(resp.read().decode("utf-8"))
         return result["choices"][0]["message"]["content"].strip()
 
@@ -98,36 +154,64 @@ def parse_sections(text: str) -> dict:
     return sections
 
 
-CORS = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Session-Id",
-}
-
-
 def handler(event: dict, context) -> dict:
-    """Персональный AI-анализ для инструмента Мышление специалиста. polza.ai"""
+    """Персональный AI-анализ для инструмента Мышление специалиста. Списывает энергию cheat_sheet."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
+    if event.get("httpMethod") != "POST":
+        return err("Method not allowed", 405)
+
+    conn = get_db()
     try:
-        data = json.loads(event.get("body") or "{}")
-    except Exception:
-        return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "invalid json"})}
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
 
-    api_key = os.environ.get("OPENAI_API_KEY", "")
-    if not api_key:
-        return {"statusCode": 503, "headers": CORS, "body": json.dumps({"error": "no api key"})}
+        salon_id = user.get("salon_id")
+        if not salon_id:
+            return err("Салон не найден", 400)
 
-    if not data.get("problem_name") or not data.get("qa_pairs"):
-        return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "missing data"})}
+        cost = get_tool_cost(conn)
+        balance = get_salon_balance(salon_id, conn)
+        if balance < cost:
+            return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
 
-    user_prompt = build_prompt(data)
-    text = call_openai(user_prompt, api_key)
-    sections = parse_sections(text)
+        try:
+            data = json.loads(event.get("body") or "{}")
+        except Exception:
+            return err("Некорректный запрос", 400)
 
-    return {
-        "statusCode": 200,
-        "headers": CORS,
-        "body": json.dumps({"sections": sections}, ensure_ascii=False),
-    }
+        if not data.get("problem_name") or not data.get("qa_pairs"):
+            return err("Недостаточно данных", 400)
+
+        api_key = os.environ.get("OPENAI_API_KEY", "")
+        if not api_key:
+            return err("API ключ не настроен", 503)
+
+        conn.close()
+
+        user_prompt = build_prompt(data)
+        text = call_openai(user_prompt, api_key)
+        sections = parse_sections(text)
+
+        # Списываем после успешного ответа
+        conn2 = get_db()
+        try:
+            deduct_energy(salon_id, user["id"], cost, conn2)
+        finally:
+            conn2.close()
+
+        return ok({"sections": sections})
+
+    except Exception as e:
+        msg = str(e)
+        print(f"[ai-mindset-specialist] error: {msg}")
+        if "timed out" in msg.lower() or "timeout" in msg.lower():
+            return err("Сервис не ответил. Попробуйте ещё раз.", 504)
+        return err(f"Ошибка: {msg}", 502)
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
