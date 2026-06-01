@@ -115,17 +115,17 @@ export default function Index() {
               />
               {/* floating badge */}
               <div className="hero-badge" style={{
-                position: "absolute", bottom: 20, left: 20, right: 20, zIndex: 3,
-                background: "rgba(8,14,28,0.7)", backdropFilter: "blur(16px)",
+                position: "absolute", bottom: 16, right: 16, left: "auto", zIndex: 3,
+                background: "rgba(8,14,28,0.75)", backdropFilter: "blur(16px)",
                 border: "1px solid rgba(45,212,191,0.25)", borderRadius: 4,
-                padding: "16px 18px", display: "flex", alignItems: "center", gap: 14,
+                padding: "10px 14px", display: "flex", alignItems: "center", gap: 10,
               }}>
-                <div style={{ width: 40, height: 40, borderRadius: 4, background: "rgba(45,212,191,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Icon name="TrendingUp" size={20} style={{ color: TEAL }} />
+                <div style={{ width: 30, height: 30, borderRadius: 4, background: "rgba(45,212,191,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon name="TrendingUp" size={15} style={{ color: TEAL }} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>Рост выручки салона</div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 300 }}>через коммуникацию и ИИ</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#fff" }}>Рост выручки салона</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontWeight: 300 }}>через коммуникацию и ИИ</div>
                 </div>
               </div>
             </div>
