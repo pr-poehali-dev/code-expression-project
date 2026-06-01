@@ -7,6 +7,7 @@ import LkAdmin from "./LkAdmin";
 import LkSalonProfile from "./LkSalonProfile";
 import LkAiTools from "./LkAiTools";
 import LkEmployees from "./LkEmployees";
+import LkTeam from "./LkTeam";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -285,7 +286,7 @@ export default function LkDashboard() {
         {tab === "academy" && <ComingSoonTab title="Академия" description="Курсы и обучение для вашей роли. Раздел находится в разработке." icon="GraduationCap" />}
         {tab === "ai" && <LkAiTools />}
         {tab === "shop" && <ComingSoonTab title="Магазин" description="Курсы, техники и программы обучения. Скоро откроется." icon="ShoppingBag" />}
-        {tab === "employees" && <LkEmployees />}
+        {tab === "employees" && <LkTeam />}
         {tab === "purchases" && <ComingSoonTab title="История покупок" description="Подписки, курсы и дополнительные продукты. Скоро будет доступно." icon="Receipt" />}
         {tab === "salon" && <LkSalonProfile onSaved={() => handleTabChange("home")} />}
         {tab === "profile" && <ComingSoonTab title="Профиль" description="Данные аккаунта, смена пароля и уведомления. В разработке." icon="UserCircle" />}

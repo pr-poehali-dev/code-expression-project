@@ -1547,6 +1547,344 @@ def handle_staff_audit_get(event: dict) -> dict:
         conn.close()
 
 
+# ── Команда / приглашения ─────────────────────────────────────────────────────
+
+# Права по умолчанию для каждой роли
+ROLE_DEFAULT_PERMISSIONS = {
+    "owner": {
+        "ai_tools": True, "analytics": True, "finance": True,
+        "team": True, "salon_profile": True, "diagnostics": True,
+    },
+    "admin": {
+        "ai_tools": True, "analytics": False, "finance": False,
+        "team": False, "salon_profile": False, "diagnostics": True,
+    },
+    "master": {
+        "ai_tools": True, "analytics": False, "finance": False,
+        "team": False, "salon_profile": False, "diagnostics": True,
+    },
+    "body_specialist": {
+        "ai_tools": True, "analytics": False, "finance": False,
+        "team": False, "salon_profile": False, "diagnostics": True,
+    },
+}
+
+ROLE_LABELS = {
+    "owner": "Владелец", "admin": "Администратор",
+    "master": "Мастер", "body_specialist": "Специалист по телу",
+}
+
+
+def _require_owner(user: dict, conn) -> dict | None:
+    """Возвращает salon если пользователь — владелец, иначе None."""
+    if user.get("role") != "owner" or not user.get("salon_id"):
+        return None
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT * FROM {tbl('salons')} WHERE id=%s AND owner_id=%s", (user["salon_id"], user["id"]))
+    return cur.fetchone()
+
+
+def handle_team_invite(event: dict) -> dict:
+    """Владелец создаёт приглашение для сотрудника."""
+    body      = json.loads(event.get("body") or "{}")
+    full_name = (body.get("full_name") or "").strip()
+    email     = (body.get("email") or "").strip().lower()
+    phone     = (body.get("phone") or "").strip()
+    role_code = (body.get("role_code") or "master").strip()
+
+    if not full_name:
+        return err("Укажите имя сотрудника")
+    if role_code not in ROLE_DEFAULT_PERMISSIONS or role_code == "owner":
+        return err("Недопустимая роль")
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _require_owner(user, conn)
+        if not salon:
+            return err("Только владелец салона может приглашать сотрудников", 403)
+
+        token = secrets.token_urlsafe(32)
+        cur = conn.cursor()
+        cur.execute(
+            f"INSERT INTO {tbl('salon_invites')} (salon_id, invited_by, token, full_name, email, phone, role_code) "
+            f"VALUES (%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+            (salon["id"], user["id"], token, full_name, email or None, phone or None, role_code)
+        )
+        invite_id = cur.fetchone()[0]
+        conn.commit()
+        invite_url = f"https://doqdialog.ru/join/{token}"
+        return ok({"id": invite_id, "token": token, "invite_url": invite_url, "full_name": full_name, "role_code": role_code})
+    finally:
+        conn.close()
+
+
+def handle_team_list(event: dict) -> dict:
+    """Список участников команды + активные приглашения."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _require_owner(user, conn)
+        if not salon:
+            return err("Только владелец может просматривать команду", 403)
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        # Участники
+        cur.execute(
+            f"SELECT sm.id, sm.user_id, sm.role_code, sm.permissions, sm.monthly_credit_limit, sm.is_active, sm.joined_at, "
+            f"u.full_name, u.email, u.username "
+            f"FROM {tbl('salon_members')} sm "
+            f"JOIN {tbl('lk_users')} u ON u.id = sm.user_id "
+            f"WHERE sm.salon_id=%s ORDER BY sm.joined_at",
+            (salon["id"],)
+        )
+        members = [dict(r) for r in cur.fetchall()]
+
+        # Ожидающие приглашения
+        cur.execute(
+            f"SELECT id, token, full_name, email, phone, role_code, status, created_at, expires_at "
+            f"FROM {tbl('salon_invites')} "
+            f"WHERE salon_id=%s AND status='pending' AND expires_at > NOW() ORDER BY created_at DESC",
+            (salon["id"],)
+        )
+        invites = [dict(r) for r in cur.fetchall()]
+
+        # Баланс
+        credits = salon.get("credits_balance", 0)
+        return ok({"members": members, "invites": invites, "credits_balance": credits})
+    finally:
+        conn.close()
+
+
+def handle_team_member_update(event: dict) -> dict:
+    """Владелец меняет роль / права / лимит сотруднику."""
+    body       = json.loads(event.get("body") or "{}")
+    member_id  = body.get("member_id")
+    role_code  = body.get("role_code")
+    permissions = body.get("permissions")   # dict или None
+    limit      = body.get("monthly_credit_limit")  # int или None
+
+    if not member_id:
+        return err("Не передан member_id")
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _require_owner(user, conn)
+        if not salon:
+            return err("Нет прав", 403)
+
+        # Проверяем что member принадлежит этому салону
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(f"SELECT * FROM {tbl('salon_members')} WHERE id=%s AND salon_id=%s", (member_id, salon["id"]))
+        member = cur.fetchone()
+        if not member:
+            return err("Сотрудник не найден", 404)
+
+        sets, vals = [], []
+        if role_code and role_code in ROLE_DEFAULT_PERMISSIONS and role_code != "owner":
+            sets.append("role_code=%s"); vals.append(role_code)
+            # Обновляем роль и в lk_users
+            cur.execute(f"UPDATE {tbl('lk_users')} SET role=%s WHERE id=%s", (role_code, member["user_id"]))
+        if permissions is not None:
+            sets.append("permissions=%s"); vals.append(json.dumps(permissions))
+        if limit is not None:
+            sets.append("monthly_credit_limit=%s"); vals.append(limit if limit > 0 else None)
+
+        if sets:
+            vals += [member_id]
+            cur.execute(f"UPDATE {tbl('salon_members')} SET {','.join(sets)} WHERE id=%s", vals)
+            conn.commit()
+
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
+def handle_team_member_remove(event: dict) -> dict:
+    """Владелец удаляет сотрудника из команды (деактивирует, не удаляет пользователя)."""
+    body      = json.loads(event.get("body") or "{}")
+    member_id = body.get("member_id")
+    if not member_id:
+        return err("Не передан member_id")
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _require_owner(user, conn)
+        if not salon:
+            return err("Нет прав", 403)
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(f"SELECT * FROM {tbl('salon_members')} WHERE id=%s AND salon_id=%s", (member_id, salon["id"]))
+        member = cur.fetchone()
+        if not member:
+            return err("Сотрудник не найден", 404)
+
+        # Деактивируем, не удаляем
+        cur.execute(f"UPDATE {tbl('salon_members')} SET is_active=FALSE WHERE id=%s", (member_id,))
+        # Отвязываем пользователя от салона
+        cur.execute(f"UPDATE {tbl('lk_users')} SET salon_id=NULL WHERE id=%s", (member["user_id"],))
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
+def handle_invite_info(event: dict) -> dict:
+    """Публичная: информация по токену приглашения (без авторизации)."""
+    qs    = event.get("queryStringParameters") or {}
+    token = qs.get("token", "").strip()
+    if not token:
+        return err("Токен не передан")
+
+    conn = get_db()
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT i.*, s.name AS salon_name, s.logo_url AS salon_logo "
+            f"FROM {tbl('salon_invites')} i "
+            f"JOIN {tbl('salons')} s ON s.id = i.salon_id "
+            f"WHERE i.token=%s",
+            (token,)
+        )
+        invite = cur.fetchone()
+        if not invite:
+            return err("Приглашение не найдено", 404)
+        if invite["status"] != "pending":
+            return err("Это приглашение уже использовано или недействительно", 410)
+        if invite["expires_at"] < datetime.now(timezone.utc):
+            return err("Срок действия приглашения истёк", 410)
+
+        return ok({
+            "full_name":   invite["full_name"],
+            "role_code":   invite["role_code"],
+            "role_label":  ROLE_LABELS.get(invite["role_code"], invite["role_code"]),
+            "salon_name":  invite["salon_name"],
+            "salon_logo":  invite["salon_logo"],
+            "expires_at":  str(invite["expires_at"]),
+        })
+    finally:
+        conn.close()
+
+
+def handle_invite_accept(event: dict) -> dict:
+    """Сотрудник принимает приглашение: создаётся аккаунт или привязывается существующий."""
+    body     = json.loads(event.get("body") or "{}")
+    token    = (body.get("token") or "").strip()
+    username = (body.get("username") or "").strip().lower()
+    password = (body.get("password") or "")
+    full_name_override = (body.get("full_name") or "").strip()
+
+    if not token:
+        return err("Токен не передан")
+    if not username or not password:
+        return err("Введите логин и пароль")
+    if len(password) < 6:
+        return err("Пароль не менее 6 символов")
+
+    conn = get_db()
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT i.*, s.name AS salon_name FROM {tbl('salon_invites')} i "
+            f"JOIN {tbl('salons')} s ON s.id = i.salon_id "
+            f"WHERE i.token=%s AND i.status='pending' AND i.expires_at > NOW()",
+            (token,)
+        )
+        invite = cur.fetchone()
+        if not invite:
+            return err("Приглашение недействительно или истекло", 410)
+
+        # Проверяем уникальность логина
+        cur.execute(f"SELECT id FROM {tbl('lk_users')} WHERE username=%s", (username,))
+        if cur.fetchone():
+            return err("Логин уже занят, выберите другой")
+
+        full_name = full_name_override or invite["full_name"] or username
+        pw_hash   = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+        role_code = invite["role_code"]
+        salon_id  = invite["salon_id"]
+
+        # Создаём пользователя
+        cur.execute(
+            f"INSERT INTO {tbl('lk_users')} (username, password_hash, full_name, role, salon_id, is_active, segment) "
+            f"VALUES (%s,%s,%s,%s,%s,TRUE,'salon') RETURNING id",
+            (username, pw_hash, full_name, role_code, salon_id)
+        )
+        new_user_id = cur.fetchone()["id"]
+
+        # Добавляем в salon_members
+        default_perms = ROLE_DEFAULT_PERMISSIONS.get(role_code, {})
+        cur.execute(
+            f"INSERT INTO {tbl('salon_members')} (salon_id, user_id, role_code, invited_by, permissions) "
+            f"VALUES (%s,%s,%s,%s,%s) "
+            f"ON CONFLICT (salon_id, user_id) DO UPDATE SET role_code=EXCLUDED.role_code, is_active=TRUE",
+            (salon_id, new_user_id, role_code, invite["invited_by"], json.dumps(default_perms))
+        )
+
+        # Закрываем приглашение
+        cur.execute(
+            f"UPDATE {tbl('salon_invites')} SET status='accepted', used_by=%s WHERE id=%s",
+            (new_user_id, invite["id"])
+        )
+        conn.commit()
+
+        # Автоматически входим
+        session_id = secrets.token_hex(32)
+        ua = (event.get("headers") or {}).get("User-Agent", "")
+        cur.execute(
+            f"INSERT INTO {tbl('lk_sessions')} (id, user_id, user_agent) VALUES (%s,%s,%s)",
+            (session_id, new_user_id, ua)
+        )
+        conn.commit()
+
+        return ok({
+            "session_id": session_id,
+            "user": {
+                "id": new_user_id, "username": username, "full_name": full_name,
+                "role": role_code, "salon_id": salon_id,
+                "salon": {"id": salon_id, "name": invite["salon_name"]},
+                "is_admin": False, "segment": "salon",
+            }
+        })
+    finally:
+        conn.close()
+
+
+def handle_credits_history(event: dict) -> dict:
+    """История расхода кредитов по команде (для владельца)."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _require_owner(user, conn)
+        if not salon:
+            return err("Нет прав", 403)
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT ct.id, ct.action, ct.amount, ct.created_at, u.full_name "
+            f"FROM {tbl('credit_transactions')} ct "
+            f"JOIN {tbl('lk_users')} u ON u.id = ct.user_id "
+            f"WHERE ct.salon_id=%s ORDER BY ct.created_at DESC LIMIT 50",
+            (salon["id"],)
+        )
+        rows = [dict(r) for r in cur.fetchall()]
+        return ok({"transactions": rows, "credits_balance": salon.get("credits_balance", 0)})
+    finally:
+        conn.close()
+
+
 # ── Скрипты общения с клиентом ───────────────────────────────────────────────
 
 def handle_script_generate(event: dict) -> dict:
@@ -2142,6 +2480,14 @@ ROUTES = {
     ("POST", "review_reply_delete"): handle_review_reply_delete,
     ("POST", "script_generate"): handle_script_generate,
     ("GET",  "script_history"): handle_script_history,
+    # Команда / приглашения
+    ("POST", "team_invite"): handle_team_invite,
+    ("GET",  "team_list"): handle_team_list,
+    ("POST", "team_member_update"): handle_team_member_update,
+    ("POST", "team_member_remove"): handle_team_member_remove,
+    ("GET",  "invite_info"): handle_invite_info,
+    ("POST", "invite_accept"): handle_invite_accept,
+    ("GET",  "credits_history"): handle_credits_history,
 }
 
 
