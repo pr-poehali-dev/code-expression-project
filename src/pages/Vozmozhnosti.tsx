@@ -78,7 +78,7 @@ export default function Vozmozhnosti() {
           <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
             Возможности платформы
           </h1>
-          <p style={{ fontSize: "clamp(17px,2.2vw,21px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.6, margin: "0 auto 40px", fontWeight: 300, maxWidth: 640 }}>
+          <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 auto 40px", fontWeight: 300, maxWidth: 640 }}>
             Всё необходимое для роста салона в едином кабинете — маркетинг, управление, продажи и развитие команды. Спокойные, выверенные инструменты для ежедневной работы.
           </p>
 

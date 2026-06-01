@@ -89,7 +89,7 @@ export default function DlyaKogo() {
           <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
             Для кого Про Диалог
           </h1>
-          <p style={{ fontSize: "clamp(17px,2.2vw,21px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.6, margin: "0 auto", fontWeight: 300, maxWidth: 640 }}>
+          <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 auto", fontWeight: 300, maxWidth: 640 }}>
             Платформа создана для каждого члена команды салона — от владельца до специалиста. У каждой роли свой набор инструментов и своя зона роста.
           </p>
         </div>

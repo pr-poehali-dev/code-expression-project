@@ -44,10 +44,10 @@ export default function OProekte() {
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(40px,5.5vw,68px)", fontWeight: 500, color: "#fff", lineHeight: 1.05, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
               О проекте<br />Про Диалог
             </h1>
-            <p style={{ fontSize: 19, color: "rgba(255,255,255,0.7)", margin: "0 0 18px", lineHeight: 1.7, fontWeight: 300 }}>
+            <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.7)", margin: "0 0 18px", lineHeight: 1.7, fontWeight: 300 }}>
               Про Диалог вырос из многолетней практики в индустрии красоты. Мы видели, как салоны теряют клиентов и деньги не из-за плохого сервиса, а из-за отсутствия правильного диалога.
             </p>
-            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7, fontWeight: 300 }}>
+            <p style={{ fontSize: "clamp(13px,1.4vw,15px)", color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7, fontWeight: 300 }}>
               Мы создаём платформу, где технологии служат живому бизнесу, а не усложняют его. Простые инструменты, понятные владельцу салона и его команде.
             </p>
           </div>

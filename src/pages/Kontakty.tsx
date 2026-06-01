@@ -140,7 +140,7 @@ export default function Kontakty() {
           <h1 style={{ fontFamily: SERIF, fontSize: "clamp(32px,5vw,52px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
             Связаться с Про Диалог
           </h1>
-          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", margin: 0, fontWeight: 300, lineHeight: 1.6, maxWidth: 520 }}>
+          <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.55)", margin: 0, fontWeight: 300, lineHeight: 1.7, maxWidth: 520 }}>
             Есть вопрос по платформе, тарифам или партнёрству? Выберите удобный способ — ответим быстро.
           </p>
         </div>
