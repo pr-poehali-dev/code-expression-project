@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
-
-const ACCENT = "hsl(185, 85%, 32%)";
+import { Link } from "react-router-dom";
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const accepted = localStorage.getItem("cookie_accepted");
-    if (!accepted) setVisible(true);
+    if (!localStorage.getItem("cookie_accepted")) setVisible(true);
   }, []);
 
   function accept() {
@@ -19,42 +17,28 @@ export default function CookieBanner() {
 
   return (
     <div style={{
-      position: "fixed",
-      bottom: 24,
-      left: "50%",
-      transform: "translateX(-50%)",
-      zIndex: 9999,
-      background: "#fff",
-      border: "1px solid #e5e7eb",
-      borderRadius: 12,
-      boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
-      padding: "16px 24px",
-      display: "flex",
-      alignItems: "center",
-      gap: 20,
-      maxWidth: 600,
-      width: "calc(100vw - 32px)",
+      position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+      zIndex: 9998, width: "calc(100vw - 32px)", maxWidth: 560,
+      background: "rgba(8,14,28,0.94)", backdropFilter: "blur(16px)",
+      border: "1px solid rgba(45,212,191,0.18)",
+      borderRadius: 4, boxShadow: "0 16px 48px rgba(0,0,0,0.4)",
+      padding: "16px 20px", display: "flex", alignItems: "center", gap: 16,
+      fontFamily: "Inter, sans-serif",
     }}>
-      <p style={{ margin: 0, fontSize: 14, color: "#444", flex: 1, lineHeight: 1.5 }}>
-        Мы используем cookies для улучшения работы сайта. Продолжая использование сайта, вы соглашаетесь с нашей{" "}
-        <a href="/privacy" style={{ color: ACCENT, textDecoration: "underline" }}>политикой конфиденциальности</a>.
+      <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.6)", flex: 1, lineHeight: 1.6, fontWeight: 300 }}>
+        Мы используем cookies.{" "}
+        <Link to="/privacy" style={{ color: "#2DD4BF", textDecoration: "none", fontWeight: 500 }}>
+          Политика конфиденциальности
+        </Link>
       </p>
-      <button
-        onClick={accept}
-        style={{
-          background: ACCENT,
-          color: "#fff",
-          border: "none",
-          borderRadius: 8,
-          padding: "8px 20px",
-          fontSize: 14,
-          fontWeight: 600,
-          cursor: "pointer",
-          whiteSpace: "nowrap",
-          flexShrink: 0,
-        }}
-      >
-        Понятно
+      <button onClick={accept} style={{
+        background: "linear-gradient(135deg,#2DD4BF,#14B8A6)",
+        color: "#0F172A", border: "none", borderRadius: 2,
+        padding: "9px 22px", fontSize: 13, fontWeight: 600,
+        cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
+        fontFamily: "Inter, sans-serif", letterSpacing: "0.2px",
+      }}>
+        Принять
       </button>
     </div>
   );
