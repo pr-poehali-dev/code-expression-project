@@ -70,13 +70,21 @@ export default function Akademiya() {
       {/* ── ПЛЕЙСХОЛДЕР МЕДИА ── */}
       <section style={{ background: "#F8FAFC", padding: "120px 32px 0" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div style={{
-            width: "100%", height: 320, borderRadius: 4, border: "1px dashed #CBD5E1", background: "#fff",
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12,
-          }}>
-            <Icon name="Image" size={32} style={{ color: "#94A3B8" }} />
-            <div style={{ fontWeight: 400, color: "#94A3B8", fontSize: 14, letterSpacing: "0.5px" }}>Фото / видео об академии</div>
-            <div style={{ fontSize: 12, color: "#CBD5E1" }}>Размер: 1280 × 320 px</div>
+          <div style={{ position: "relative", borderRadius: 6, overflow: "hidden", boxShadow: "0 24px 64px rgba(15,23,42,0.18)" }}>
+            <img
+              src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/4a7b5d70-b350-442c-a621-708565ae81dd.jpg"
+              alt="Академия Про Диалог — обучение команды салона"
+              style={{ width: "100%", height: 360, objectFit: "cover", display: "block" }}
+            />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.3) 50%, transparent 100%)" }} />
+            <div style={{ position: "absolute", top: "50%", left: 40, transform: "translateY(-50%)", maxWidth: 440 }} className="akad-img-text">
+              <h3 style={{ fontFamily: SERIF, fontSize: "clamp(24px,3vw,34px)", fontWeight: 600, color: "#fff", margin: "0 0 12px", lineHeight: 1.15 }}>
+                Обучение, которое работает в реальном салоне
+              </h3>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.65)", margin: 0, lineHeight: 1.6, fontWeight: 300 }}>
+                Практические программы для всей команды — от управления до личного бренда мастера.
+              </p>
+            </div>
           </div>
         </div>
       </section>
