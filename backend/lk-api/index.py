@@ -1584,6 +1584,61 @@ def _require_owner(user: dict, conn) -> dict | None:
     return cur.fetchone()
 
 
+def _send_invite_email(to_email: str, full_name: str, salon_name: str, role_label: str, invite_url: str) -> None:
+    """Отправляет письмо-приглашение сотруднику через SMTP Mail.ru."""
+    import smtplib
+    import ssl
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+
+    smtp_password = os.environ.get("SMTP_PASSWORD", "")
+    if not smtp_password:
+        return  # Секрет не задан — тихо пропускаем
+
+    sender = "massopro@mail.ru"
+    subject = f"Приглашение в команду «{salon_name}»"
+
+    html = f"""
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f4f4f0;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <div style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background:linear-gradient(135deg,hsl(185,85%,32%),hsl(185,85%,22%));padding:28px 32px;">
+      <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Про Диалог</div>
+    </div>
+    <div style="padding:32px 32px 24px;">
+      <p style="font-size:16px;font-weight:700;color:#1a1a1a;margin:0 0 8px;">Привет, {full_name}!</p>
+      <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 20px;">
+        Вас приглашают вступить в команду салона <strong>«{salon_name}»</strong> в платформе Про Диалог.<br>
+        Ваша роль: <strong>{role_label}</strong>.
+      </p>
+      <a href="{invite_url}" style="display:inline-block;background:linear-gradient(135deg,hsl(185,85%,32%),hsl(185,85%,22%));color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:14px 28px;border-radius:12px;">
+        Принять приглашение →
+      </a>
+      <p style="font-size:12px;color:#aaa;margin:20px 0 0;line-height:1.6;">
+        Ссылка действительна 7 дней. Если кнопка не работает, скопируйте адрес:<br>
+        <span style="color:#555;word-break:break-all;">{invite_url}</span>
+      </p>
+    </div>
+    <div style="padding:16px 32px;background:#f8f8f5;border-top:1px solid #eee;">
+      <p style="font-size:11px;color:#bbb;margin:0;">Про Диалог — платформа для бьюти-бизнеса · pro-dialog.ru</p>
+    </div>
+  </div>
+</body>
+</html>"""
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"]    = f"Про Диалог <{sender}>"
+    msg["To"]      = to_email
+    msg.attach(MIMEText(html, "html", "utf-8"))
+
+    ctx = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.mail.ru", 465, context=ctx) as srv:
+        srv.login(sender, smtp_password)
+        srv.sendmail(sender, [to_email], msg.as_bytes())
+
+
 def handle_team_invite(event: dict) -> dict:
     """Владелец создаёт приглашение для сотрудника."""
     body      = json.loads(event.get("body") or "{}")
@@ -1615,8 +1670,25 @@ def handle_team_invite(event: dict) -> dict:
         )
         invite_id = cur.fetchone()[0]
         conn.commit()
-        invite_url = f"https://doqdialog.ru/join/{token}"
-        return ok({"id": invite_id, "token": token, "invite_url": invite_url, "full_name": full_name, "role_code": role_code})
+
+        invite_url  = f"https://doqdialog.ru/join?token={token}"
+        salon_name  = salon.get("name") or "салон"
+        role_label  = ROLE_LABELS.get(role_code, role_code)
+        email_sent  = False
+
+        if email:
+            try:
+                _send_invite_email(email, full_name, salon_name, role_label, invite_url)
+                email_sent = True
+            except Exception:
+                pass  # Не прерываем — ссылку всё равно вернём
+
+        return ok({
+            "id": invite_id, "token": token,
+            "invite_url": invite_url,
+            "full_name": full_name, "role_code": role_code,
+            "email_sent": email_sent,
+        })
     finally:
         conn.close()
 

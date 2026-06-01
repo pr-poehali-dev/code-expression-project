@@ -188,7 +188,7 @@ function InviteForm({ onInvited }: { onInvited: (invite: Invite) => void }) {
   const [roleCode, setRoleCode] = useState("master");
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
-  const [result, setResult]     = useState<{ invite_url: string; full_name: string } | null>(null);
+  const [result, setResult]     = useState<{ invite_url: string; full_name: string; email_sent?: boolean; email?: string } | null>(null);
   const [copied, setCopied]     = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -211,9 +211,19 @@ function InviteForm({ onInvited }: { onInvited: (invite: Invite) => void }) {
 
   function copyLink() {
     if (!result) return;
-    navigator.clipboard.writeText(result.invite_url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    const tryFallback = () => {
+      const ta = document.createElement("textarea");
+      ta.value = result.invite_url; ta.style.cssText = "position:fixed;top:-9999px;left:-9999px";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { document.execCommand("copy"); } catch (_) { /* ignore */ }
+      document.body.removeChild(ta);
+      setCopied(true); setTimeout(() => setCopied(false), 2500);
+    };
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(result.invite_url)
+        .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500); })
+        .catch(tryFallback);
+    } else { tryFallback(); }
   }
 
   function reset() { setResult(null); setFullName(""); setEmail(""); setPhone(""); }
@@ -226,7 +236,13 @@ function InviteForm({ onInvited }: { onInvited: (invite: Invite) => void }) {
         </div>
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: "hsl(145,60%,25%)" }}>Приглашение создано</div>
-          <div style={{ fontSize: 12, color: "hsl(145,60%,40%)" }}>Отправьте ссылку {result.full_name}</div>
+          <div style={{ fontSize: 12, color: "hsl(145,60%,40%)" }}>
+            {result.email_sent
+              ? `Письмо отправлено на ${email}`
+              : email
+                ? "Не удалось отправить письмо — скопируйте ссылку"
+                : `Отправьте ссылку ${result.full_name}`}
+          </div>
         </div>
       </div>
       <div style={{ background: "#fff", borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: "#555", wordBreak: "break-all", lineHeight: 1.6 }}>
@@ -302,12 +318,24 @@ function PendingInvite({ invite }: { invite: Invite }) {
   const roleLabel = ROLE_OPTIONS.find(r => r.code === invite.role_code)?.label || invite.role_code;
 
   function copy() {
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const tryFallback = () => {
+      const ta = document.createElement("textarea");
+      ta.value = url; ta.style.cssText = "position:fixed;top:-9999px;left:-9999px";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      try { document.execCommand("copy"); } catch (_) { /* ignore */ }
+      document.body.removeChild(ta);
+      setCopied(true); setTimeout(() => setCopied(false), 2000);
+    };
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url)
+        .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); })
+        .catch(tryFallback);
+    } else { tryFallback(); }
   }
 
-  const daysLeft = Math.max(0, Math.round((new Date(invite.expires_at).getTime() - Date.now()) / 86400000));
+  // Нормализуем строку даты — PostgreSQL может вернуть без "Z"
+  const expiresTs = new Date(invite.expires_at.replace(" ", "T").replace(/(\+\d{2})$/, "$1:00")).getTime();
+  const daysLeft = isNaN(expiresTs) ? 7 : Math.max(0, Math.round((expiresTs - Date.now()) / 86400000));
 
   return (
     <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #eee", padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
