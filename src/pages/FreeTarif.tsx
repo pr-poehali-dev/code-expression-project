@@ -1,6 +1,6 @@
 import { Helmet } from "@/lib/helmet";
-import DokNavbar from "@/components/DokNavbar";
-import DokFooter from "@/components/DokFooter";
+import BizNavbar from "@/components/BizNavbar";
+import BizFooter from "@/components/BizFooter";
 import { DARK, TEXT } from "./free/FreeTarifShared";
 import FreeTarifHero from "./free/FreeTarifHero";
 import FreeTarifSections from "./free/FreeTarifSections";
@@ -47,11 +47,11 @@ export default function FreeTarif() {
         }
       `}</style>
 
-      <DokNavbar />
+      <BizNavbar />
       <FreeTarifHero />
       <FreeTarifSections />
       <FreeTarifCta />
-      <DokFooter />
+      <BizFooter />
     </div>
   );
 }
