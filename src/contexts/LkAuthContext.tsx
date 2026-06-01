@@ -82,18 +82,21 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (username: string, password: string) => {
+    sessionStorage.removeItem("lk_tab");
     const data = await lkApi.login(username, password);
     saveSession(data.session_id);
     setUser(data.user);
   };
 
   const register = async (full_name: string, email: string, password: string) => {
+    sessionStorage.removeItem("lk_tab");
     const data = await lkApi.register(full_name, email, password);
     saveSession(data.session_id);
     setUser(data.user);
   };
 
   const logout = async () => {
+    sessionStorage.removeItem("lk_tab");
     await lkApi.logout().catch(() => {});
     clearSession();
     setUser(null);

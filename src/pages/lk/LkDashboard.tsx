@@ -199,10 +199,15 @@ export default function LkDashboard() {
   const allowedTabs = getAllowedTabs(role, !!user?.is_admin);
 
   const getInitialTab = (): Tab => {
-    const saved = sessionStorage.getItem("lk_tab") as Tab | null;
-    if (saved && allowedTabs.includes(saved)) return saved;
-    // Если владелец без салона — отправляем на заполнение
+    // Если владелец без салона — всегда на заполнение профиля
     if (role === "owner" && !hasSalon) return "salon";
+    // Проверяем сохранённую вкладку, но только если она не требует салона
+    const saved = sessionStorage.getItem("lk_tab") as Tab | null;
+    const needsSalon: Tab[] = ["ai", "shop", "employees"];
+    if (saved && allowedTabs.includes(saved)) {
+      if (needsSalon.includes(saved) && !hasSalon) return "salon";
+      return saved;
+    }
     return "home";
   };
 
