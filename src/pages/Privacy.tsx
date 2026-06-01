@@ -1,44 +1,15 @@
-import { useEffect, useRef, useState } from "react";
-import { Helmet } from "@/lib/helmet";
-import DokFooter from "@/components/DokFooter";
-import DokNavbar from "@/components/DokNavbar";
+import BizNavbar from "@/components/BizNavbar";
+import BizFooter from "@/components/BizFooter";
 
-function useInView(threshold = 0.1) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [threshold]);
-  return { ref, visible };
-}
-
-function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
-  const { ref, visible } = useInView();
-  return (
-    <div ref={ref} style={{
-      opacity: visible ? 1 : 0,
-      transform: visible ? "translateY(0)" : "translateY(20px)",
-      transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
-    }}>
-      {children}
-    </div>
-  );
-}
-
-const ACCENT = "hsl(185, 85%, 32%)";
+const DARK = "#0F172A";
+const GRAY = "#64748B";
+const SERIF = "'Cormorant Garamond', serif";
 
 const SECTIONS = [
   {
     title: "1. Термины",
     items: [
-      { num: "1.1.", text: "Сайт — сайт, расположенный в сети Интернет по адресу https://docdialog.ru. Все исключительные права на Сайт и его отдельные элементы (включая программное обеспечение, дизайн) принадлежат Оператору в полном объеме. Передача исключительных прав Пользователю не является предметом настоящей Политики конфиденциальности." },
+      { num: "1.1.", text: "Сайт — сайт, расположенный в сети Интернет по адресу https://promtdialog.ru. Все исключительные права на Сайт и его отдельные элементы (включая программное обеспечение, дизайн) принадлежат Оператору в полном объеме. Передача исключительных прав Пользователю не является предметом настоящей Политики конфиденциальности." },
       { num: "1.2.", text: "Пользователь — лицо использующее Сайт." },
       { num: "1.3.", text: "Персональные данные — персональные данные Пользователя, которые Пользователь предоставляет о себе самостоятельно при Регистрации или в процессе использования Сайта." },
       { num: "1.4.", text: "Обработка персональных данных — любое действие (операция) или совокупность действий (операций), совершаемых с использованием средств автоматизации или без использования таких средств с персональными данными, включая сбор, запись, систематизацию, накопление, хранение, уточнение (обновление, изменение), извлечение, использование, передачу (распространение, предоставление, доступ), обезличивание, блокирование, удаление, уничтожение персональных данных." },
@@ -51,8 +22,8 @@ const SECTIONS = [
     title: "2. Состав информации о Пользователях",
     items: [
       { num: "2.1.", text: "Оператор обрабатывает следующие персональные данные:", list: ["Имя Пользователя", "Адрес электронной почты", "Номер телефона", "Почтовый адрес"] },
-      { num: "2.2.", text: "Обработка указанных выше персональных данных осуществляется Оператором исключительно в целях заключения и исполнения договоров дистанционной продажи товаров, размещенных на Сайте. Персональные данные Оператором не распространяются и не передаются третьим лицам." },
-      { num: "2.3.", text: "Для получения интернет-рассылки о рекламных акциях и получения рекламно-информационных материалов необходимо указать только имя Пользователя и адрес электронной почты. Пользователь может в любой момент отказаться от рассылки путем направления Оператору запроса по адресу: massopro@mail.ru." },
+      { num: "2.2.", text: "Обработка указанных выше персональных данных осуществляется Оператором исключительно в целях заключения и исполнения договоров. Персональные данные Оператором не распространяются и не передаются третьим лицам." },
+      { num: "2.3.", text: "Для получения интернет-рассылки о рекламных акциях и получения рекламно-информационных материалов необходимо указать только имя Пользователя и адрес электронной почты." },
     ],
   },
   {
@@ -82,7 +53,7 @@ const SECTIONS = [
     items: [
       { num: "5.1.", text: "Оператор осуществляет надлежащую защиту персональных данных в соответствии с законодательством РФ и принимает необходимые организационные и технические меры для их защиты." },
       { num: "5.2.", text: "Оператор принимает меры для защиты персональных данных от неправомерного или случайного доступа к ним, их уничтожения, изменения, блокирования, копирования, предоставления, распространения." },
-      { num: "5.3.", text: "В целях обеспечения информационной безопасности Оператором предпринимаются следующие меры:", list: ["обязательное использование брандмауэров, антивирусных систем;", "резервное копирование данных;", "использование стандартных отраслевых мер безопасности."], afterList: "Персональная информация хранится на сервере компании и может быть использована для последующего информирования клиентов о новых акциях и услугах, а также для проведения маркетинговых, статистических и иных исследований." },
+      { num: "5.3.", text: "В целях обеспечения информационной безопасности предпринимаются следующие меры:", list: ["обязательное использование брандмауэров, антивирусных систем;", "резервное копирование данных;", "использование стандартных отраслевых мер безопасности."] },
     ],
   },
   {
@@ -99,7 +70,7 @@ const SECTIONS = [
       { num: "7.2.", text: "Все возможные споры, вытекающие из настоящего Соглашения, подлежат разрешению в соответствии с действующим законодательством по месту регистрации Оператора. Перед обращением в суд Пользователь должен соблюсти обязательный досудебный порядок и направить Оператору претензию в письменном виде. Срок ответа на претензию составляет 30 (тридцать) рабочих дней." },
       { num: "7.3.", text: "Если по тем или иным причинам одно или несколько положений Политики конфиденциальности будут признаны недействительными, это не оказывает влияния на действительность или применимость остальных положений." },
       { num: "7.4.", text: "Оператор имеет право в любой момент изменять Политику конфиденциальности в одностороннем порядке. Все изменения вступают в силу на следующий день после размещения на Сайте." },
-      { num: "7.5.", text: "Пользователь обязуется самостоятельно следить за изменениями Политики конфиденциальности путем ознакомления с актуальной редакцией на странице docdialog.ru/privacy." },
+      { num: "7.5.", text: "Пользователь обязуется самостоятельно следить за изменениями Политики конфиденциальности путем ознакомления с актуальной редакцией на странице https://promtdialog.ru/privacy." },
     ],
   },
   {
@@ -107,122 +78,91 @@ const SECTIONS = [
     items: [
       { num: "8.1.", text: "Индивидуальный предприниматель Водопьянов Сергей Геннадьевич (ОГРНИП 321508100047334)" },
       { num: "8.2.", text: "Телефон: +7 (902) 900-74-74" },
-      { num: "8.3.", text: "E-mail: massopro@mail.ru" },
-      { num: "8.4.", text: "Сайт: https://docdialog.ru" },
+      { num: "8.3.", text: "Электронная почта: massopro@mail.ru" },
+      { num: "8.4.", text: "Сайт: https://promtdialog.ru" },
     ],
   },
 ];
 
-type SectionItem = {
-  num: string;
-  text: string;
-  list?: string[];
-  subItems?: string[];
-  afterList?: string;
-};
-
 export default function Privacy() {
   return (
-    <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
-      <Helmet>
-        <title>Политика конфиденциальности — Dok Диалог</title>
-        <meta name="description" content="Политика конфиденциальности платформы Dok Диалог. Порядок сбора, хранения и обработки персональных данных пользователей." />
-      </Helmet>
-      <DokNavbar />
+    <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
+      <BizNavbar />
 
       {/* Hero */}
-      <section style={{ paddingTop: 144, paddingBottom: 56 }}>
-        <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 24px" }}>
-          <FadeIn>
-            <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: ACCENT, marginBottom: 20 }}>
-              Правовые документы
-            </div>
-          </FadeIn>
-          <FadeIn delay={100}>
-            <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 700, lineHeight: 1.1, color: "#1a1a1a", marginBottom: 24, letterSpacing: "-0.5px" }}>
-              Политика конфиденциальности
-            </h1>
-          </FadeIn>
-          <FadeIn delay={200}>
-            <div style={{ background: "#fff", borderRadius: 16, padding: "20px 24px", boxShadow: "0 2px 16px rgba(0,0,0,0.05)", fontSize: 13, color: "#666", lineHeight: 1.8 }}>
-              <div><strong style={{ color: "#3a3a3a" }}>УТВЕРЖДЕНА</strong></div>
-              <div>Приказ ИП Водопьянов С.Г. № 2 от 24.03.2008 г.</div>
-              <div>Размещена на сайте: docdialog.ru/privacy</div>
-              <div>Дата размещения: 27.03.2008 г.</div>
-            </div>
-          </FadeIn>
+      <section style={{
+        background: "linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #0F2D2A 100%)",
+        padding: "120px 32px 80px",
+      }}>
+        <div style={{ maxWidth: 760, margin: "0 auto" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#2DD4BF", textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 16 }}>
+            Правовые документы
+          </div>
+          <h1 style={{ fontFamily: SERIF, fontSize: "clamp(32px,5vw,52px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+            Политика конфиденциальности
+          </h1>
+          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", margin: 0, fontWeight: 300 }}>
+            Сайт <a href="https://promtdialog.ru" style={{ color: "#2DD4BF", textDecoration: "none" }}>promtdialog.ru</a> · Последнее обновление: 2026
+          </p>
         </div>
       </section>
 
-      {/* Intro */}
-      <section style={{ paddingBottom: 48 }}>
-        <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 24px" }}>
-          <FadeIn>
-            <div style={{ background: "#fff", borderRadius: 20, padding: "32px 36px", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-              {[
-                "Настоящая Политика конфиденциальности регулирует порядок обработки и использования персональных данных физических лиц, пользующихся сервисами Сайта https://docdialog.ru Индивидуальным предпринимателем Водопьяновым Сергеем Геннадьевичем (далее — Оператор).",
-                "Передавая Оператору персональные данные посредством использования Сайта и регистрации на Сайте, Пользователь дает свое согласие (добровольное и бессрочное) на использование персональных данных на условиях, изложенных в настоящей Политике конфиденциальности. Данное согласие является сознательным. Пользователь дает согласие на обработку персональных данных свободно, своей волей и в своем интересе. Согласие не является письменным, так как Оператор не обрабатывает специальные и биометрические персональные данные. Согласие дается в соответствии с п. 1 ст. 9 Федерального закона от 27.07.2006 N 152-ФЗ (ред. от 22.02.2017) \"О персональных данных\".",
-                "Если Пользователь не согласен с условиями настоящей Политики конфиденциальности, он обязан прекратить использование Сайта.",
-                "Безусловным акцептом настоящей Политики конфиденциальности является начало использования Сайта Пользователем.",
-                "Оператор может обновлять Политику по мере необходимости. Рекомендуем Пользователям периодически проверять актуальность данной Политики. Продолжая пользоваться Сайтом после изменения Политики, Вы подтверждаете согласие с внесенными изменениями.",
-              ].map((p, i) => (
-                <p key={i} style={{ fontSize: "clamp(14px, 2vw, 15px)", lineHeight: 1.8, color: "#444", margin: i === 0 ? "0 0 16px" : "0 0 16px" }}>{p}</p>
-              ))}
-            </div>
-          </FadeIn>
-        </div>
-      </section>
+      {/* Content */}
+      <section style={{ padding: "72px 32px 96px", background: "#F8FAFC" }}>
+        <div style={{ maxWidth: 760, margin: "0 auto" }}>
 
-      {/* Sections */}
-      <section style={{ paddingBottom: 100 }}>
-        <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            {SECTIONS.map((section, si) => (
-              <FadeIn key={si} delay={si * 50}>
-                <div style={{ background: "#fff", borderRadius: 20, padding: "32px 36px", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-                  <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px, 3vw, 26px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid #f0f0ee" }}>
-                    {section.title}
-                  </h2>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                    {section.items.map((item: SectionItem, ii) => (
-                      <div key={ii}>
-                        <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: ACCENT, flexShrink: 0, paddingTop: 1 }}>{item.num}</span>
-                          <div style={{ flex: 1 }}>
-                            <p style={{ fontSize: "clamp(13px, 1.8vw, 14px)", lineHeight: 1.8, color: "#444", margin: 0 }}>{item.text}</p>
-                            {item.list && (
-                              <ul style={{ margin: "10px 0 0", paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4 }}>
-                                {item.list.map((li, li_i) => (
-                                  <li key={li_i} style={{ fontSize: "clamp(13px, 1.8vw, 14px)", lineHeight: 1.7, color: "#444" }}>{li}</li>
-                                ))}
-                              </ul>
-                            )}
-                            {item.afterList && (
-                              <p style={{ fontSize: "clamp(13px, 1.8vw, 14px)", lineHeight: 1.8, color: "#444", margin: "10px 0 0" }}>{item.afterList}</p>
-                            )}
-                            {item.subItems && (
-                              <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
-                                {item.subItems.map((sub, si2) => (
-                                  <div key={si2} style={{ display: "flex", gap: 10, paddingLeft: 8 }}>
-                                    <span style={{ color: ACCENT, flexShrink: 0, fontSize: 13 }}>—</span>
-                                    <p style={{ fontSize: "clamp(13px, 1.8vw, 14px)", lineHeight: 1.7, color: "#555", margin: 0 }}>{sub}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+          {/* Intro */}
+          <div style={{ background: "#fff", borderRadius: 4, padding: "28px 32px", marginBottom: 24, border: "1px solid #E2E8F0" }}>
+            <p style={{ margin: 0, fontSize: 15, color: GRAY, lineHeight: 1.8, fontWeight: 300 }}>
+              Настоящая Политика конфиденциальности персональных данных (далее — Политика конфиденциальности) действует в отношении всей информации, которую сайт{" "}
+              <a href="https://promtdialog.ru" style={{ color: "#2DD4BF", textDecoration: "none", fontWeight: 500 }}>promtdialog.ru</a>{" "}
+              может получить о Пользователе во время использования сайта, его сервисов, программ и продуктов.
+            </p>
+          </div>
+
+          {/* Sections */}
+          {SECTIONS.map((section, si) => (
+            <div key={si} style={{ background: "#fff", borderRadius: 4, padding: "28px 32px", marginBottom: 12, border: "1px solid #E2E8F0" }}>
+              <h2 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: DARK, margin: "0 0 20px", letterSpacing: "-0.2px" }}>
+                {section.title}
+              </h2>
+              {section.items.map((item, ii) => (
+                <div key={ii} style={{ marginBottom: ii < section.items.length - 1 ? 16 : 0, paddingBottom: ii < section.items.length - 1 ? 16 : 0, borderBottom: ii < section.items.length - 1 ? "1px solid #F1F5F9" : "none" }}>
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#2DD4BF", flexShrink: 0, minWidth: 36, marginTop: 1 }}>{item.num}</span>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ margin: 0, fontSize: 14, color: GRAY, lineHeight: 1.8, fontWeight: 300 }}>{item.text}</p>
+                      {"list" in item && item.list && (
+                        <ul style={{ margin: "10px 0 0", paddingLeft: 20 }}>
+                          {item.list.map((li, lii) => (
+                            <li key={lii} style={{ fontSize: 14, color: GRAY, lineHeight: 1.8, fontWeight: 300, marginBottom: 4 }}>{li}</li>
+                          ))}
+                        </ul>
+                      )}
+                      {"subItems" in item && item.subItems && (
+                        <div style={{ marginTop: 10 }}>
+                          {item.subItems.map((sub, sii) => (
+                            <p key={sii} style={{ margin: "0 0 6px", fontSize: 14, color: GRAY, lineHeight: 1.8, fontWeight: 300 }}>{sub}</p>
+                          ))}
                         </div>
-                      </div>
-                    ))}
+                      )}
+                    </div>
                   </div>
                 </div>
-              </FadeIn>
-            ))}
+              ))}
+            </div>
+          ))}
+
+          {/* Back link */}
+          <div style={{ textAlign: "center", marginTop: 32 }}>
+            <a href="/" style={{ fontSize: 14, color: "#2DD4BF", textDecoration: "none", fontWeight: 500 }}>
+              ← На главную
+            </a>
           </div>
         </div>
       </section>
 
-      <DokFooter />
+      <BizFooter />
     </div>
   );
 }
