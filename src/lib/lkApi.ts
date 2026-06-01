@@ -70,6 +70,9 @@ export const lkApi = {
   bodyZone: (slug: string) =>
     request("GET", "body_zone", undefined, `&slug=${slug}`),
 
+  bodyZoneView: (slug: string) =>
+    request("GET", "body_zone_view", undefined, `&slug=${slug}`),
+
   // Админка
   adminUsers: () => request("GET", "admin_users"),
 

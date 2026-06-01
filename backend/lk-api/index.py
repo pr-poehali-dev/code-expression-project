@@ -1216,6 +1216,44 @@ def handle_diag_search(event: dict) -> dict:
         conn.close()
 
 
+# ── Шпаргалка по телу — просмотр зоны ───────────────────────────────────────
+
+def handle_body_zone_view(event: dict) -> dict:
+    """Просмотр зоны тела: списывает 1 энергию (cheat_sheet), возвращает данные зоны."""
+    qs = event.get("queryStringParameters") or {}
+    slug = qs.get("slug", "").strip()
+    if not slug:
+        return err("Не передан slug зоны")
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+
+        energy_err = check_and_spend_energy(event, conn, "cheat_sheet")
+        if energy_err:
+            return energy_err
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT * FROM {tbl('lk_body_zones')} WHERE slug=%s", (slug,)
+        )
+        zone = cur.fetchone()
+        if not zone:
+            return err("Зона не найдена", 404)
+
+        cur.execute(
+            f"SELECT title, description, video_url, sort_order FROM {tbl('lk_body_techniques')} "
+            f"WHERE zone_id=%s ORDER BY sort_order",
+            (zone["id"],)
+        )
+        techniques = [dict(t) for t in cur.fetchall()]
+        return ok({"zone": dict(zone), "techniques": techniques})
+    finally:
+        conn.close()
+
+
 # ── История сгенерированных изображений ──────────────────────────────────────
 
 def handle_image_history(event: dict) -> dict:
@@ -2989,6 +3027,7 @@ ROUTES = {
     ("GET",  "salon_profile"): handle_salon_profile_get,
     ("POST", "salon_profile_save"): handle_salon_profile_save,
     ("POST", "salon_logo_upload"): handle_salon_logo_upload,
+    ("GET",  "body_zone_view"): handle_body_zone_view,
     ("GET",  "image_history"): handle_image_history,
     ("POST", "image_delete"): handle_image_delete,
     ("POST", "audit_save"): handle_audit_save,

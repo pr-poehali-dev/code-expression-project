@@ -109,8 +109,9 @@ export default function LkBodyMap() {
     setDetailLoading(true);
     setDiagCard(null);
     try {
+      // bodyZoneView — списывает 1 энергию и возвращает зону с техниками
       const [zoneData, diagData] = await Promise.all([
-        lkApi.bodyZone(slug),
+        lkApi.bodyZoneView(slug),
         lkApi.diagSearchByZone(slug).catch(() => ({ found: false })),
       ]);
       setSelected(zoneData);
