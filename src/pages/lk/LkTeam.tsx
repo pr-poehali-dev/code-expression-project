@@ -334,7 +334,7 @@ function PendingInvite({ invite }: { invite: Invite }) {
   }
 
   // Нормализуем строку даты — PostgreSQL может вернуть без "Z"
-  const expiresTs = new Date(invite.expires_at.replace(" ", "T").replace(/(\+\d{2})$/, "$1:00")).getTime();
+  const expiresTs = invite.expires_at ? new Date(invite.expires_at.replace(" ", "T").replace(/(\+\d{2})$/, "$1:00")).getTime() : NaN;
   const daysLeft = isNaN(expiresTs) ? 7 : Math.max(0, Math.round((expiresTs - Date.now()) / 86400000));
 
   return (
