@@ -70,7 +70,8 @@ export default function LkPostGen() {
   // Шаг 2 → 3: генерируем текст по заголовку
   async function handleSelectTitle(title: string) {
     setSelectedTitle(title);
-    setLoading(true); setError(""); setPostText(""); setImageUrl(null);
+    setLoading(true); setError("");
+    // НЕ сбрасываем postText здесь — сбросим только после получения нового
     try {
       const res = await fetch(`${POST_GEN_URL}?action=post_text`, {
         method: "POST",
@@ -81,6 +82,7 @@ export default function LkPostGen() {
       if (!res.ok) { setError(data.error || "Ошибка генерации текста"); setStep("titles"); return; }
       setPostText(data.text || "");
       setImagePrompt(data.image_prompt || "");
+      setImageUrl(null);
       setStep("post");
     } catch { setError("Ошибка соединения."); setStep("titles"); }
     finally { setLoading(false); }
@@ -113,8 +115,30 @@ export default function LkPostGen() {
     URL.revokeObjectURL(a.href);
   }
 
+  const [copied, setCopied] = useState(false);
+
   function copyText() {
-    navigator.clipboard.writeText(postText);
+    // Fallback для окружений где Clipboard API заблокирован
+    const tryFallback = () => {
+      const ta = document.createElement("textarea");
+      ta.value = postText;
+      ta.style.cssText = "position:fixed;top:-9999px;left:-9999px";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try { document.execCommand("copy"); } catch (_) { /* ignore */ }
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    };
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(postText)
+        .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); })
+        .catch(tryFallback);
+    } else {
+      tryFallback();
+    }
   }
 
   function reset() {
@@ -258,9 +282,9 @@ export default function LkPostGen() {
           <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 22px", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>Текст поста</div>
-              <button onClick={copyText} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: ACCENT, background: `hsla(185,85%,32%,0.08)`, border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
-                <Icon name="Copy" size={13} />
-                Копировать
+              <button onClick={copyText} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: copied ? "hsl(145,60%,35%)" : ACCENT, background: copied ? "hsl(145,60%,96%)" : `hsla(185,85%,32%,0.08)`, border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.2s" }}>
+                <Icon name={copied ? "Check" : "Copy"} size={13} />
+                {copied ? "Скопировано!" : "Копировать"}
               </button>
             </div>
             <textarea
