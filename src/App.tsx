@@ -26,6 +26,7 @@ import LkJoinPage from "./pages/lk/LkJoinPage";
 import RepPage from "./pages/rep/RepPage";
 import JobPage from "./pages/job/JobPage";
 import { LkAuthProvider } from "./contexts/LkAuthContext";
+import { EnergyProvider } from "./contexts/EnergyContext";
 import DlyaSpecialistov from "./pages/DlyaSpecialistov";
 import OSisteme from "./pages/OSisteme";
 import ProfessionalnyeVstrechi from "./pages/ProfessionalnyeVstrechi";
@@ -44,6 +45,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LkAuthProvider>
+    <EnergyProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -87,6 +89,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </EnergyProvider>
     </LkAuthProvider>
   </QueryClientProvider>
 );

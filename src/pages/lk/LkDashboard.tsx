@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
+import { useEnergy } from "@/contexts/EnergyContext";
 import Icon from "@/components/ui/icon";
 import LkTests from "./LkTests";
 import LkBodyMap from "./LkBodyMap";
@@ -8,6 +9,7 @@ import LkSalonProfile from "./LkSalonProfile";
 import LkAiTools from "./LkAiTools";
 import LkEmployees from "./LkEmployees";
 import LkTeam from "./LkTeam";
+import LkEnergy from "./LkEnergy";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -45,13 +47,39 @@ const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string }[] = [
   { id: "tools",     icon: "Wrench",        label: "Инструменты"     },
   { id: "academy",   icon: "GraduationCap", label: "Академия"        },
   { id: "ai",        icon: "Sparkles",      label: "ИИ-инструменты", badge: "new" },
-  { id: "shop",      icon: "ShoppingBag",   label: "Магазин"         },
+  { id: "shop",      icon: "Zap",           label: "Энергия"         },
   { id: "employees", icon: "Users",         label: "Сотрудники"      },
   { id: "purchases", icon: "Receipt",       label: "Покупки"         },
   { id: "salon",     icon: "Building2",     label: "Мой салон"       },
   { id: "profile",   icon: "UserCircle",    label: "Профиль"         },
   { id: "admin",     icon: "Settings",      label: "Админка"         },
 ];
+
+// ── Виджет баланса энергии ────────────────────────────────────────────────────
+function EnergyBadge({ onNav, sidebar }: { onNav: (t: Tab) => void; sidebar?: boolean }) {
+  const { balance } = useEnergy();
+  const low = balance < 50;
+  const empty = balance === 0;
+  const color = empty ? "hsl(0,75%,55%)" : low ? "hsl(40,90%,42%)" : "hsl(185,85%,32%)";
+  const bg    = empty ? "hsl(0,75%,97%)"  : low ? "hsl(40,90%,96%)" : "hsl(185,85%,96%)";
+
+  if (sidebar) return (
+    <button onClick={() => onNav("shop")} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: `1px solid ${empty ? "hsl(0,75%,88%)" : low ? "hsl(40,90%,80%)" : "#eee"}`, background: bg, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+      <span style={{ fontSize: 18 }}>⚡</span>
+      <div style={{ flex: 1, textAlign: "left" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color }}>{balance.toLocaleString()} энергий</div>
+        <div style={{ fontSize: 10, color: "#aaa" }}>{empty ? "Пополните баланс" : low ? "Заканчивается" : "Баланс салона"}</div>
+      </div>
+    </button>
+  );
+
+  return (
+    <button onClick={() => onNav("shop")} style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 8, border: `1.5px solid ${empty ? "hsl(0,75%,85%)" : low ? "hsl(40,90%,75%)" : "#e8e8e4"}`, background: bg, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+      <span style={{ fontSize: 14 }}>⚡</span>
+      <span style={{ fontSize: 12, fontWeight: 700, color }}>{balance}</span>
+    </button>
+  );
+}
 
 // ── Заглушки для будущих разделов ─────────────────────────────────────────────
 function ComingSoonTab({ title, description, icon }: { title: string; description: string; icon: string }) {
@@ -261,6 +289,13 @@ export default function LkDashboard() {
           ))}
         </nav>
 
+        {/* Баланс энергии */}
+        {user?.salon_id && (
+          <div style={{ padding: "0 12px 10px" }}>
+            <EnergyBadge onNav={handleTabChange} sidebar />
+          </div>
+        )}
+
         {/* Пользователь */}
         <div style={{ padding: "14px 24px", borderTop: "1px solid #f0f0ec" }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: "#1a1a1a", marginBottom: 1 }}>{user?.full_name || user?.username}</div>
@@ -290,10 +325,13 @@ export default function LkDashboard() {
           </div>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>Про Диалог</div>
         </div>
-        <button onClick={logout} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1.5px solid #e8e8e4", borderRadius: 8, color: "#999", fontSize: 12, cursor: "pointer", padding: "5px 10px", fontFamily: "Montserrat, sans-serif" }}>
-          <Icon name="LogOut" size={12} />
-          Выйти
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {user?.salon_id && <EnergyBadge onNav={handleTabChange} />}
+          <button onClick={logout} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1.5px solid #e8e8e4", borderRadius: 8, color: "#999", fontSize: 12, cursor: "pointer", padding: "5px 10px", fontFamily: "Montserrat, sans-serif" }}>
+            <Icon name="LogOut" size={12} />
+            Выйти
+          </button>
+        </div>
       </header>
 
       {/* ── Контент ── */}
@@ -302,9 +340,9 @@ export default function LkDashboard() {
         {tab === "tools" && <LkTests />}
         {tab === "academy" && <ComingSoonTab title="Академия" description="Курсы и обучение для вашей роли. Раздел находится в разработке." icon="GraduationCap" />}
         {tab === "ai" && <LkAiTools />}
-        {tab === "shop" && <ComingSoonTab title="Магазин" description="Курсы, техники и программы обучения. Скоро откроется." icon="ShoppingBag" />}
+        {tab === "shop" && <LkEnergy />}
         {tab === "employees" && <LkTeam />}
-        {tab === "purchases" && <ComingSoonTab title="История покупок" description="Подписки, курсы и дополнительные продукты. Скоро будет доступно." icon="Receipt" />}
+        {tab === "purchases" && <LkEnergy />}
         {tab === "salon" && <LkSalonProfile onSaved={() => handleTabChange("home")} />}
         {tab === "profile" && <ComingSoonTab title="Профиль" description="Данные аккаунта, смена пароля и уведомления. В разработке." icon="UserCircle" />}
         {tab === "body" && <LkBodyMap />}

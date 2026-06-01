@@ -1097,6 +1097,8 @@ def handle_audit_save(event: dict) -> dict:
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
+        energy_err = check_and_spend_energy(event, conn, "salon_audit")
+        if energy_err: return energy_err
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         answers = body.get("answers", {})
         result  = body.get("result")
@@ -1421,6 +1423,8 @@ def handle_staff_analyze(event: dict) -> dict:
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
+        energy_err = check_and_spend_energy(event, conn, "staff_audit")
+        if energy_err: return energy_err
 
         salon = _get_salon_ctx(user, conn, ("name", "avg_check", "monthly_revenue"))
         salon_avg_revenue = float(salon["monthly_revenue"] or 0) / max(len(staff), 1) if salon and salon.get("monthly_revenue") else 0
@@ -2260,6 +2264,219 @@ def handle_staff_delete(event: dict) -> dict:
         conn.close()
 
 
+# ── Система энергии ──────────────────────────────────────────────────────────
+
+def _get_tool_cost(conn, tool_key: str) -> dict | None:
+    """Возвращает запись стоимости инструмента."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT * FROM {tbl('tool_costs')} WHERE tool_key=%s", (tool_key,))
+    return cur.fetchone()
+
+
+def _get_salon_energy(conn, salon_id: int) -> int:
+    """Текущий баланс энергии салона."""
+    cur = conn.cursor()
+    cur.execute(f"SELECT credits_balance FROM {tbl('salons')} WHERE id=%s", (salon_id,))
+    row = cur.fetchone()
+    return row[0] if row else 0
+
+
+def _get_member_monthly_spent(conn, salon_id: int, user_id: int) -> int:
+    """Сколько энергии потратил сотрудник в текущем месяце."""
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT COALESCE(SUM(amount),0) FROM {tbl('credit_transactions')} "
+        f"WHERE salon_id=%s AND user_id=%s AND type='debit' "
+        f"AND date_trunc('month', created_at) = date_trunc('month', NOW())",
+        (salon_id, user_id)
+    )
+    return cur.fetchone()[0]
+
+
+def _spend_energy(conn, salon_id: int, user_id: int, tool_key: str, amount: int, action: str):
+    """Списывает энергию с баланса салона и записывает транзакцию."""
+    cur = conn.cursor()
+    cur.execute(
+        f"UPDATE {tbl('salons')} SET credits_balance = credits_balance - %s WHERE id=%s",
+        (amount, salon_id)
+    )
+    cur.execute(
+        f"INSERT INTO {tbl('credit_transactions')} (salon_id, user_id, action, amount, tool_key, type) "
+        f"VALUES (%s,%s,%s,%s,%s,'debit')",
+        (salon_id, user_id, action, amount, tool_key)
+    )
+
+
+def check_and_spend_energy(event: dict, conn, tool_key: str) -> dict | None:
+    """
+    Проверяет баланс и лимиты, списывает энергию.
+    Возвращает None если всё ок, или err-ответ если недостаточно энергии.
+    """
+    user = get_session_user(event, conn)
+    if not user or not user.get("salon_id"):
+        return None  # Не привязан к салону — пропускаем (индивидуальный)
+
+    salon_id = user["salon_id"]
+    tool = _get_tool_cost(conn, tool_key)
+    if not tool or tool["is_free"] or tool["energy_cost"] == 0:
+        return None  # Бесплатный инструмент
+
+    cost = tool["energy_cost"]
+    balance = _get_salon_energy(conn, salon_id)
+    if balance < cost:
+        return err(
+            f"Недостаточно энергии. Нужно {cost} ⚡, доступно {balance} ⚡. Пополните баланс.",
+            402
+        )
+
+    # Проверяем лимит сотрудника
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT monthly_credit_limit FROM {tbl('salon_members')} "
+        f"WHERE salon_id=%s AND user_id=%s AND is_active=TRUE",
+        (salon_id, user["id"])
+    )
+    member = cur.fetchone()
+    if member and member["monthly_credit_limit"]:
+        spent = _get_member_monthly_spent(conn, salon_id, user["id"])
+        if spent + cost > member["monthly_credit_limit"]:
+            return err(
+                f"Достигнут месячный лимит энергии ({member['monthly_credit_limit']} ⚡). "
+                f"Обратитесь к владельцу салона.",
+                402
+            )
+
+    _spend_energy(conn, salon_id, user["id"], tool_key, cost, tool["name"])
+    conn.commit()
+    return None
+
+
+def handle_energy_balance(event: dict) -> dict:
+    """Баланс энергии салона + расход сотрудника за месяц."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        if not user.get("salon_id"):
+            return ok({"balance": 0, "monthly_spent": 0, "packages": []})
+
+        balance = _get_salon_energy(conn, user["salon_id"])
+        monthly_spent = _get_member_monthly_spent(conn, user["salon_id"], user["id"])
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT code, name, price_rub, energy_amount FROM {tbl('energy_packages')} "
+            f"WHERE is_active=TRUE ORDER BY sort_order"
+        )
+        packages = [dict(r) for r in cur.fetchall()]
+        return ok({"balance": balance, "monthly_spent": monthly_spent, "packages": packages})
+    finally:
+        conn.close()
+
+
+def handle_energy_history(event: dict) -> dict:
+    """История транзакций энергии по салону (для владельца)."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _require_owner(user, conn)
+        if not salon:
+            return err("Только для владельца", 403)
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT ct.id, ct.type, ct.action, ct.amount, ct.tool_key, ct.created_at, "
+            f"u.full_name "
+            f"FROM {tbl('credit_transactions')} ct "
+            f"LEFT JOIN {tbl('lk_users')} u ON u.id = ct.user_id "
+            f"WHERE ct.salon_id=%s ORDER BY ct.created_at DESC LIMIT 100",
+            (salon["id"],)
+        )
+        rows = [dict(r) for r in cur.fetchall()]
+        return ok({"transactions": rows, "balance": salon.get("credits_balance", 0)})
+    finally:
+        conn.close()
+
+
+def handle_energy_topup(event: dict) -> dict:
+    """Администратор: ручное пополнение баланса (для тестирования до ЮКассы)."""
+    body = json.loads(event.get("body") or "{}")
+    amount = int(body.get("amount") or 0)
+    if amount <= 0:
+        return err("Укажите количество энергии")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user or not user.get("is_admin"):
+            return err("Только для администраторов", 403)
+        salon_id = body.get("salon_id") or user.get("salon_id")
+        if not salon_id:
+            return err("Укажите salon_id")
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE {tbl('salons')} SET credits_balance = credits_balance + %s WHERE id=%s",
+            (amount, salon_id)
+        )
+        cur.execute(
+            f"INSERT INTO {tbl('credit_transactions')} (salon_id, user_id, action, amount, tool_key, type) "
+            f"VALUES (%s,%s,'Пополнение баланса',%s,NULL,'credit')",
+            (salon_id, user["id"], amount)
+        )
+        conn.commit()
+        cur.execute(f"SELECT credits_balance FROM {tbl('salons')} WHERE id=%s", (salon_id,))
+        new_balance = cur.fetchone()[0]
+        return ok({"ok": True, "new_balance": new_balance})
+    finally:
+        conn.close()
+
+
+def handle_tool_costs_list(event: dict) -> dict:
+    """Список стоимостей всех инструментов."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(f"SELECT * FROM {tbl('tool_costs')} ORDER BY category, id")
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
+def handle_tool_costs_update(event: dict) -> dict:
+    """Админ: обновить стоимость инструмента."""
+    body = json.loads(event.get("body") or "{}")
+    tool_key = body.get("tool_key")
+    energy_cost = body.get("energy_cost")
+    is_free = body.get("is_free")
+    if not tool_key:
+        return err("tool_key обязателен")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user or not user.get("is_admin"):
+            return err("Только для администраторов", 403)
+        cur = conn.cursor()
+        sets, vals = [], []
+        if energy_cost is not None:
+            sets.append("energy_cost=%s"); vals.append(int(energy_cost))
+        if is_free is not None:
+            sets.append("is_free=%s"); vals.append(bool(is_free))
+        if not sets:
+            return err("Нечего обновлять")
+        sets.append("updated_at=NOW()")
+        vals.append(tool_key)
+        cur.execute(f"UPDATE {tbl('tool_costs')} SET {','.join(sets)} WHERE tool_key=%s", vals)
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
 # ── Генератор постов ─────────────────────────────────────────────────────────
 
 def _call_ai_text(messages: list, max_tokens: int = 800) -> str:
@@ -2347,6 +2564,8 @@ def handle_reel_script(event: dict) -> dict:
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
+        energy_err = check_and_spend_energy(event, conn, "reel_script")
+        if energy_err: return energy_err
         salon = _get_salon_ctx(user, conn, ("name", "target_audience", "tone_of_voice"))
         salon_ctx = ""
         if salon:
@@ -2473,6 +2692,8 @@ def handle_post_text(event: dict) -> dict:
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
+        energy_err = check_and_spend_energy(event, conn, "post_gen")
+        if energy_err: return energy_err
         salon = _get_salon_ctx(user, conn, ("name","target_audience","tone_of_voice","main_goal"))
         salon_ctx = ""
         if salon:
@@ -2563,6 +2784,12 @@ ROUTES = {
     ("POST", "review_reply_delete"): handle_review_reply_delete,
     ("POST", "script_generate"): handle_script_generate,
     ("GET",  "script_history"): handle_script_history,
+    # Энергия
+    ("GET",  "energy_balance"): handle_energy_balance,
+    ("GET",  "energy_history"): handle_energy_history,
+    ("POST", "energy_topup"): handle_energy_topup,
+    ("GET",  "tool_costs"): handle_tool_costs_list,
+    ("POST", "tool_costs_update"): handle_tool_costs_update,
     # Команда / приглашения
     ("POST", "team_invite"): handle_team_invite,
     ("GET",  "team_list"): handle_team_list,
