@@ -21,13 +21,13 @@ function emptyMember(): StaffMember {
   return { name: "", role: "", experience: "", clients_count: "", new_clients: "", return_pct: "", revenue: "", avg_check: "", has_upsell: null, rebooking_pct: "", has_rebooking_offer: null, service_score: "", has_sales_script: null };
 }
 
-const inp: React.CSSProperties = { width: "100%", padding: "9px 12px", borderRadius: 9, border: "1.5px solid #e8e8e4", fontSize: 12, fontFamily: "Montserrat,sans-serif", background: "#fafaf8", boxSizing: "border-box", color: "#1a1a1a", outline: "none" };
+const inp: React.CSSProperties = { width: "100%", padding: "9px 12px", borderRadius: 9, border: "1.5px solid #E2E8F0", fontSize: 12, fontFamily: "Montserrat,sans-serif", background: "#fff", boxSizing: "border-box", color: "#0F172A", outline: "none" };
 
 function YesNo({ value, onChange }: { value: boolean | null; onChange: (v: boolean) => void }) {
   return (
     <div style={{ display: "flex", gap: 6 }}>
       {[true, false].map(v => (
-        <button key={String(v)} onClick={() => onChange(v)} style={{ flex: 1, padding: "7px 0", borderRadius: 8, border: `1.5px solid ${value === v ? ACCENT : "#e8e8e4"}`, background: value === v ? `hsla(185,85%,32%,0.07)` : "#fff", fontSize: 12, fontWeight: value === v ? 700 : 400, color: value === v ? ACCENT : "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+        <button key={String(v)} onClick={() => onChange(v)} style={{ flex: 1, padding: "7px 0", borderRadius: 8, border: `1.5px solid ${value === v ? ACCENT : "#E2E8F0"}`, background: value === v ? `hsla(185,85%,32%,0.07)` : "#fff", fontSize: 12, fontWeight: value === v ? 700 : 400, color: value === v ? ACCENT : "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
           {v ? "Да" : "Нет"}
         </button>
       ))}
@@ -108,7 +108,7 @@ function MemberForm({ member, onChange, onSave, onCancel, saving }: {
       <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Оценка сотрудника (1–10)</div>
       <div style={{ display: "flex", gap: 5, marginBottom: 16 }}>
         {[1,2,3,4,5,6,7,8,9,10].map(n => (
-          <button key={n} onClick={() => onChange("service_score", String(n))} style={{ width: 30, height: 30, borderRadius: 7, border: `1.5px solid ${String(n) === member.service_score ? ACCENT : "#e8e8e4"}`, background: String(n) === member.service_score ? `hsla(185,85%,32%,0.1)` : "#fff", fontSize: 11, fontWeight: 700, color: String(n) === member.service_score ? ACCENT : "#888", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+          <button key={n} onClick={() => onChange("service_score", String(n))} style={{ width: 30, height: 30, borderRadius: 7, border: `1.5px solid ${String(n) === member.service_score ? ACCENT : "#E2E8F0"}`, background: String(n) === member.service_score ? `hsla(185,85%,32%,0.1)` : "#fff", fontSize: 11, fontWeight: 700, color: String(n) === member.service_score ? ACCENT : "#888", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
             {n}
           </button>
         ))}
@@ -218,7 +218,7 @@ export default function LkEmployees() {
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 6px" }}>Сотрудники</h2>
+        <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 6px" }}>Сотрудники</h2>
         <p style={{ fontSize: 13, color: "#888", margin: 0 }}>Данные сотрудников используются в ИИ-анализе персонала</p>
       </div>
 
@@ -249,12 +249,12 @@ export default function LkEmployees() {
                       saving={saving}
                     />
                   ) : (
-                    <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #eee", padding: "14px 18px", display: "flex", alignItems: "center", gap: 14 }}>
+                    <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8ECF0", padding: "14px 18px", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
                       <div style={{ width: 40, height: 40, borderRadius: 11, background: `hsla(185,85%,32%,0.08)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         <Icon name="User" size={18} style={{ color: ACCENT }} />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a" }}>{m.name}</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>{m.name}</div>
                         <div style={{ display: "flex", gap: 10, marginTop: 3, flexWrap: "wrap" }}>
                           {m.role && <span style={{ fontSize: 11, color: "#888" }}>{m.role}</span>}
                           {m.revenue && <span style={{ fontSize: 11, color: "hsl(145,60%,40%)", fontWeight: 600 }}>{Number(m.revenue).toLocaleString()} ₽/мес</span>}

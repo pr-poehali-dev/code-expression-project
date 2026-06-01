@@ -27,7 +27,7 @@ interface Scenario  {
 
 function ResultBlock({ icon, title, text, color, italic }: { icon: string; title: string; text: string; color: string; italic?: boolean }) {
   return (
-    <div style={{ background: "#fff", borderRadius: 14, padding: "16px 20px", border: "1.5px solid #f0f0ec", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
+    <div style={{ background: "#fff", borderRadius: 14, padding: "16px 20px", border: "1.5px solid #E8ECF0", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
         <div style={{ width: 28, height: 28, borderRadius: 8, background: `${color}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <Icon name={icon} size={13} style={{ color }} />
@@ -46,7 +46,7 @@ function ActionPlan({ text }: { text: string }) {
     .map(s => s.replace(/^[\d]+[.)]\s*/, "").trim())
     .filter(Boolean);
   return (
-    <div style={{ background: "#fff", borderRadius: 14, padding: "16px 20px", border: "1.5px solid #f0f0ec" }}>
+    <div style={{ background: "#fff", borderRadius: 14, padding: "16px 20px", border: "1.5px solid #E8ECF0", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <div style={{ width: 28, height: 28, borderRadius: 8, background: `${COLOR}18`, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Icon name="ListChecks" size={13} style={{ color: COLOR }} />
@@ -263,7 +263,7 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
               </div>
               <span style={{ fontSize: 12, fontWeight: 700, color: COLOR, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Коучинговое упражнение</span>
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 8 }}>«{exerciseName}»</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 8 }}>«{exerciseName}»</div>
             <p style={{ fontSize: 13, color: "#444", lineHeight: 1.65, margin: 0 }}>{exerciseText}</p>
           </div>
 
@@ -281,7 +281,7 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
           )}
 
           {/* Когда нужен коуч */}
-          <div style={{ background: "#fafaf8", borderRadius: 14, padding: "14px 18px", border: "1.5px solid #e8e8e4" }}>
+          <div style={{ background: "#fff", borderRadius: 14, padding: "14px 18px", border: "1.5px solid #E8ECF0", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
               <Icon name="UserCheck" size={13} style={{ color: "#888" }} />
               <span style={{ fontSize: 11, fontWeight: 700, color: "#888", textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Когда нужна очная коуч-сессия</span>
@@ -317,13 +317,13 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
             {selectedCategory?.name} · {selectedProblem?.name}
           </div>
           <div style={{ fontSize: 12, color: "#bbb", marginBottom: 8 }}>Вопрос {currentQ + 1} из {questionsForProblem.length}</div>
-          <div style={{ height: 4, background: "#f0f0ec", borderRadius: 4 }}>
+          <div style={{ height: 4, background: "#F1F5F9", borderRadius: 4 }}>
             <div style={{ height: "100%", width: `${progress}%`, background: COLOR, borderRadius: 4, transition: "width 0.3s" }} />
           </div>
         </div>
 
         <div style={{ background: "#fff", borderRadius: 20, padding: "28px 24px", boxShadow: "0 2px 12px rgba(0,0,0,0.05)", marginBottom: 16 }}>
-          <p style={{ fontSize: "clamp(15px,2.5vw,18px)", fontWeight: 700, color: "#1a1a1a", lineHeight: 1.5, margin: 0 }}>
+          <p style={{ fontSize: "clamp(15px,2.5vw,18px)", fontWeight: 700, color: "#0F172A", lineHeight: 1.5, margin: 0 }}>
             {currentQuestion.text}
           </p>
         </div>
@@ -341,20 +341,20 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
                 onClick={() => handleAnswer(opt.id)}
                 style={{
                   width: "100%", padding: "14px 18px", borderRadius: 14,
-                  border: "1.5px solid #e8e8e4", background: "#fff",
+                  border: "1.5px solid #E2E8F0", background: "#fff",
                   textAlign: "left", fontSize: 14, fontFamily: "Montserrat, sans-serif",
                   color: "#333", cursor: "pointer", lineHeight: 1.4,
                   transition: "all 0.15s",
                 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = COLOR; (e.currentTarget as HTMLElement).style.background = COLOR_BG; (e.currentTarget as HTMLElement).style.color = COLOR; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#e8e8e4"; (e.currentTarget as HTMLElement).style.background = "#fff"; (e.currentTarget as HTMLElement).style.color = "#333"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E2E8F0"; (e.currentTarget as HTMLElement).style.background = "#fff"; (e.currentTarget as HTMLElement).style.color = "#333"; }}
               >
                 {opt.text}
               </button>
             ))}
 
             {/* Свой вариант */}
-            <div style={{ marginTop: 4, borderTop: "1px solid #f0f0ec", paddingTop: 12 }}>
+            <div style={{ marginTop: 4, borderTop: "1px solid #F1F5F9", paddingTop: 12 }}>
               <div style={{ fontSize: 12, color: "#bbb", marginBottom: 8, fontWeight: 600 }}>Или напишите свой ответ:</div>
               <div style={{ display: "flex", gap: 8 }}>
                 <textarea
@@ -370,10 +370,10 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
                   rows={2}
                   style={{
                     flex: 1, padding: "11px 14px", borderRadius: 12,
-                    border: customInput.trim() ? `1.5px solid ${COLOR}` : "1.5px solid #e8e8e4",
+                    border: customInput.trim() ? `1.5px solid ${COLOR}` : "1.5px solid #E2E8F0",
                     fontSize: 13, fontFamily: "Montserrat, sans-serif",
                     outline: "none", resize: "none", lineHeight: 1.5,
-                    color: "#333", transition: "border-color 0.15s",
+                    background: "#fff", color: "#0F172A", transition: "border-color 0.15s",
                   }}
                 />
                 <button
@@ -408,7 +408,7 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
         </button>
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>{selectedCategory.name}</div>
-          <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px,3vw,28px)", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>
+          <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(20px,3vw,28px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>
             Выберите проблему
           </h2>
         </div>
@@ -419,13 +419,13 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
               onClick={() => { setSelectedProblem(p); setCurrentQ(0); setAnswers({}); setStep("questions"); }}
               style={{
                 width: "100%", padding: "14px 18px", borderRadius: 14,
-                border: "1.5px solid #e8e8e4", background: "#fff",
+                border: "1.5px solid #E2E8F0", background: "#fff",
                 textAlign: "left", fontSize: 14, fontFamily: "Montserrat, sans-serif",
                 color: "#333", cursor: "pointer", display: "flex", alignItems: "center", gap: 12,
                 transition: "all 0.15s",
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = COLOR; (e.currentTarget as HTMLElement).style.background = COLOR_BG; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#e8e8e4"; (e.currentTarget as HTMLElement).style.background = "#fff"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E2E8F0"; (e.currentTarget as HTMLElement).style.background = "#fff"; }}
             >
               <Icon name="ChevronRight" size={14} style={{ color: "#bbb", flexShrink: 0 }} />
               {p.name}
@@ -444,7 +444,7 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
       </button>
 
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 6px" }}>
+        <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px,3vw,32px)", fontWeight: 700, color: "#0F172A", margin: "0 0 6px" }}>
           Развитие специалиста
         </h1>
         <p style={{ fontSize: 14, color: "#888", margin: 0, lineHeight: 1.6 }}>
@@ -458,7 +458,7 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
             key={cat.id}
             onClick={() => { setSelectedCategory(cat); setStep("problem"); }}
             style={{
-              background: "#fff", border: "1.5px solid #f0f0ec", borderRadius: 16,
+              background: "#fff", border: "1.5px solid #E8ECF0", borderRadius: 16,
               padding: "20px", textAlign: "left", cursor: "pointer",
               fontFamily: "Montserrat, sans-serif", transition: "all 0.2s",
               boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
@@ -469,7 +469,7 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
             <div style={{ width: 44, height: 44, borderRadius: 12, background: `${cat.color}18`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
               <Icon name={cat.icon} size={20} style={{ color: cat.color }} />
             </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", marginBottom: 4 }}>{cat.name}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>{cat.name}</div>
             <div style={{ fontSize: 11, color: "#aaa" }}>
               {data.problems.filter(p => p.category_id === cat.id).length} тем
             </div>

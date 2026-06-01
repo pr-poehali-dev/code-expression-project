@@ -112,7 +112,7 @@ export default function LkStaffAudit() {
           <Icon name="Users" size={30} style={{ color: "#fff", animation: "pulse 1.5s ease infinite" }} />
         </div>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 18, fontWeight: 700, color: "#1a1a1a", marginBottom: 8 }}>Считаю показатели команды...</div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A", marginBottom: 8 }}>Считаю показатели команды...</div>
           <div style={{ fontSize: 13, color: "#888", lineHeight: 1.7 }}>Рассчитываю Employee Score, потери и потенциал роста.<br />Обычно 15–30 секунд.</div>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
@@ -139,7 +139,7 @@ export default function LkStaffAudit() {
           <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg,hsl(0,75%,50%),hsl(20,90%,55%))`, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon name="Users" size={20} style={{ color: "#fff" }} />
           </div>
-          <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Анализ персонала</h2>
+          <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>Анализ персонала</h2>
         </div>
         <p style={{ fontSize: 13, color: "#777", margin: 0, lineHeight: 1.6 }}>
           Данные сотрудников загружены из раздела «Сотрудники». Проверьте и запустите анализ.
@@ -207,7 +207,7 @@ export default function LkStaffAudit() {
 
       {/* История */}
       {history.length > 0 && (
-        <div style={{ marginTop: 28, background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "18px 20px" }}>
+        <div style={{ marginTop: 28, background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "18px 20px", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 }}>Предыдущие анализы</div>
           {history.map(h => (
             <div key={h.id}
@@ -220,12 +220,12 @@ export default function LkStaffAudit() {
                   else setStep("form");
                 } catch { setStep("form"); }
               }}
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #f5f5f2", cursor: "pointer" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#fafaf8")}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #F1F5F9", cursor: "pointer" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#F1F5F9")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>Score {h.summary?.avg_score || "—"}/100</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A" }}>Score {h.summary?.avg_score || "—"}/100</div>
                 <div style={{ fontSize: 11, color: "#bbb" }}>{new Date(h.created_at).toLocaleDateString("ru-RU")}</div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

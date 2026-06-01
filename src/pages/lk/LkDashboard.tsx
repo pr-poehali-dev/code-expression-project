@@ -14,7 +14,8 @@ import LkProfile from "./LkProfile";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
-const BG = "#f4f4f0";
+const TEAL_BRIGHT = "#2DD4BF";
+const BG = "#F4F6F8";
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
 type Tab = "home" | "tools" | "academy" | "ai" | "shop" | "employees" | "purchases" | "profile" | "salon" | "admin" | "more";
@@ -61,21 +62,21 @@ function EnergyBadge({ onNav, sidebar }: { onNav: (t: Tab) => void; sidebar?: bo
   const { balance } = useEnergy();
   const low = balance < 50;
   const empty = balance === 0;
-  const color = empty ? "hsl(0,75%,55%)" : low ? "hsl(40,90%,42%)" : "hsl(185,85%,32%)";
+  const color = empty ? "hsl(0,85%,68%)" : low ? "hsl(40,95%,60%)" : "#2DD4BF";
   const bg    = empty ? "hsl(0,75%,97%)"  : low ? "hsl(40,90%,96%)" : "hsl(185,85%,96%)";
 
   if (sidebar) return (
-    <button onClick={() => onNav("shop")} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: `1px solid ${empty ? "hsl(0,75%,88%)" : low ? "hsl(40,90%,80%)" : "#eee"}`, background: bg, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+    <button onClick={() => onNav("shop")} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: `1px solid ${empty ? "rgba(248,113,113,0.3)" : low ? "rgba(251,191,36,0.3)" : "rgba(45,212,191,0.25)"}`, background: empty ? "rgba(248,113,113,0.08)" : low ? "rgba(251,191,36,0.08)" : "rgba(45,212,191,0.1)", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
       <span style={{ fontSize: 18 }}>⚡</span>
       <div style={{ flex: 1, textAlign: "left" }}>
         <div style={{ fontSize: 12, fontWeight: 700, color }}>{balance.toLocaleString()} энергий</div>
-        <div style={{ fontSize: 10, color: "#aaa" }}>{empty ? "Пополните баланс" : low ? "Заканчивается" : "Баланс салона"}</div>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{empty ? "Пополните баланс" : low ? "Заканчивается" : "Баланс салона"}</div>
       </div>
     </button>
   );
 
   return (
-    <button onClick={() => onNav("shop")} style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 8, border: `1.5px solid ${empty ? "hsl(0,75%,85%)" : low ? "hsl(40,90%,75%)" : "#e8e8e4"}`, background: bg, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+    <button onClick={() => onNav("shop")} style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 8, border: `1.5px solid ${empty ? "rgba(248,113,113,0.35)" : low ? "rgba(251,191,36,0.35)" : "rgba(45,212,191,0.3)"}`, background: empty ? "rgba(248,113,113,0.1)" : low ? "rgba(251,191,36,0.1)" : "rgba(45,212,191,0.12)", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
       <span style={{ fontSize: 14 }}>⚡</span>
       <span style={{ fontSize: 12, fontWeight: 700, color }}>{balance}</span>
     </button>
@@ -124,13 +125,13 @@ function HomeTab({ onNav, role, hasSalon }: { onNav: (t: Tab) => void; role: str
     <div>
       {/* Приветствие */}
       <div style={{ marginBottom: 32 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
           {ROLE_LABELS[role] || "Специалист"} · Про Диалог
         </div>
-        <h1 style={{ fontSize: "clamp(22px,3vw,30px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
+        <h1 style={{ fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px", letterSpacing: "-0.3px" }}>
           Добро пожаловать{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}!
         </h1>
-        <p style={{ fontSize: 14, color: "#777", margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 14, color: "#64748B", margin: 0, lineHeight: 1.6 }}>
           {role === "owner" && !hasSalon
             ? "Чтобы ИИ-инструменты работали под ваш салон — заполните профиль салона."
             : "Выберите раздел для работы или воспользуйтесь быстрым переходом ниже."}
@@ -158,24 +159,25 @@ function HomeTab({ onNav, role, hasSalon }: { onNav: (t: Tab) => void; role: str
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 14 }}>
         {quickItems.map(item => (
           <button key={item.tab} onClick={() => onNav(item.tab)} style={{
-            background: "#fff", border: "1px solid #eee", borderRadius: 16, padding: "18px 18px",
-            textAlign: "left", cursor: "pointer", fontFamily: "Montserrat, sans-serif", transition: "box-shadow 0.15s",
+            background: "#fff", border: "1px solid #E8ECF0", borderRadius: 16, padding: "20px 20px",
+            textAlign: "left", cursor: "pointer", fontFamily: "Montserrat, sans-serif", transition: "all 0.18s",
+            boxShadow: "0 1px 3px rgba(15,23,42,0.04)",
           }}
-            onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.07)")}
-            onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
+            onMouseEnter={e => { const el = e.currentTarget; el.style.boxShadow = "0 12px 32px rgba(15,23,42,0.1)"; el.style.transform = "translateY(-3px)"; el.style.borderColor = "#D6DEE6"; }}
+            onMouseLeave={e => { const el = e.currentTarget; el.style.boxShadow = "0 1px 3px rgba(15,23,42,0.04)"; el.style.transform = "translateY(0)"; el.style.borderColor = "#E8ECF0"; }}
           >
-            <div style={{ width: 40, height: 40, borderRadius: 11, background: item.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: item.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
               <Icon name={item.icon} size={20} style={{ color: item.color }} />
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 4 }}>{item.title}</div>
-            <div style={{ fontSize: 12, color: "#aaa" }}>{item.desc}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>{item.title}</div>
+            <div style={{ fontSize: 12, color: "#64748B" }}>{item.desc}</div>
           </button>
         ))}
       </div>
 
       {/* Новости платформы */}
-      <div style={{ marginTop: 32, background: "#fff", borderRadius: 16, padding: "20px 22px", border: "1px solid #eee" }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>Новости платформы</div>
+      <div style={{ marginTop: 32, background: "#fff", borderRadius: 16, padding: "22px 24px", border: "1px solid #E8ECF0", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>Новости платформы</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {[
             { date: "31 мая 2025", text: "Платформа переименована в «Про Диалог» — новое позиционирование, новые инструменты." },
@@ -251,14 +253,14 @@ export default function LkDashboard() {
       {/* ── Боковой сайдбар ── */}
       <aside className="lk-sidebar">
         {/* Логотип */}
-        <div style={{ padding: "0 24px 20px", borderBottom: "1px solid #f0f0ec" }}>
+        <div style={{ padding: "0 24px 20px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Icon name="MessageSquare" size={18} style={{ color: "#fff" }} />
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: `linear-gradient(135deg,${TEAL_BRIGHT},#14B8A6)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 16px rgba(45,212,191,0.3)" }}>
+              <Icon name="MessageSquare" size={18} style={{ color: "#0F172A" }} />
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.2 }}>Про Диалог</div>
-              <div style={{ fontSize: 11, color: "#bbb", letterSpacing: 0.5 }}>Личный кабинет</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", lineHeight: 1.2 }}>Про Диалог</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 0.5 }}>Личный кабинет</div>
             </div>
           </div>
         </div>
@@ -267,17 +269,17 @@ export default function LkDashboard() {
         {user?.salon && (
           <div
             onClick={() => handleTabChange("salon")}
-            style={{ margin: "12px 12px 0", padding: "10px 12px", borderRadius: 10, background: tab === "salon" ? `hsla(185,85%,32%,0.08)` : "#f8f8f5", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, border: "1px solid #eee" }}
+            style={{ margin: "12px 12px 0", padding: "10px 12px", borderRadius: 10, background: tab === "salon" ? "rgba(45,212,191,0.12)" : "rgba(255,255,255,0.04)", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, border: `1px solid ${tab === "salon" ? "rgba(45,212,191,0.3)" : "rgba(255,255,255,0.08)"}` }}
           >
             {user.salon.logo_url
               ? <img src={user.salon.logo_url} alt="" style={{ width: 28, height: 28, borderRadius: 7, objectFit: "cover" }} />
-              : <div style={{ width: 28, height: 28, borderRadius: 7, background: `hsla(185,85%,32%,0.12)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Icon name="Building2" size={14} style={{ color: ACCENT }} />
+              : <div style={{ width: 28, height: 28, borderRadius: 7, background: "rgba(45,212,191,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Icon name="Building2" size={14} style={{ color: TEAL_BRIGHT }} />
                 </div>
             }
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "#1a1a1a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.salon.name}</div>
-              <div style={{ fontSize: 10, color: "#aaa" }}>{ROLE_LABELS[role]}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.salon.name}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{ROLE_LABELS[role]}</div>
             </div>
           </div>
         )}
@@ -290,20 +292,24 @@ export default function LkDashboard() {
             return (
               <button key={item.id} onClick={() => handleTabChange(item.id)} style={{
                 width: "100%", display: "flex", alignItems: "center", gap: 11,
-                padding: "10px 12px", borderRadius: 10, border: "none",
-                background: active ? `hsla(185,85%,32%,0.1)` : "transparent",
-                color: locked ? "#ccc" : active ? ACCENT : "#666",
+                padding: "10px 12px", borderRadius: 10,
+                border: active ? "1px solid rgba(45,212,191,0.25)" : "1px solid transparent",
+                background: active ? "rgba(45,212,191,0.12)" : "transparent",
+                color: locked ? "rgba(255,255,255,0.25)" : active ? TEAL_BRIGHT : "rgba(255,255,255,0.6)",
                 fontSize: 13, fontWeight: active ? 700 : 500,
                 cursor: "pointer", fontFamily: "Montserrat, sans-serif",
                 marginBottom: 2, transition: "all 0.15s", textAlign: "left",
                 opacity: locked ? 0.7 : 1,
-              }}>
+              }}
+              onMouseEnter={e => { if (!active && !locked) (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; }}
+              onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+              >
                 <Icon name={item.icon} size={17} />
                 <span style={{ flex: 1 }}>{item.label}</span>
                 {locked
-                  ? <Icon name="Lock" size={12} style={{ color: "#ccc" }} />
+                  ? <Icon name="Lock" size={12} style={{ color: "rgba(255,255,255,0.25)" }} />
                   : item.badge && (
-                    <span style={{ fontSize: 9, fontWeight: 700, background: "hsl(40,90%,50%)", color: "#fff", borderRadius: 4, padding: "2px 5px", letterSpacing: 0.5, textTransform: "uppercase" }}>
+                    <span style={{ fontSize: 9, fontWeight: 700, background: "hsl(40,90%,50%)", color: "#0F172A", borderRadius: 4, padding: "2px 5px", letterSpacing: 0.5, textTransform: "uppercase" }}>
                       {item.badge}
                     </span>
                   )
@@ -321,9 +327,9 @@ export default function LkDashboard() {
         )}
 
         {/* Пользователь */}
-        <div style={{ padding: "14px 24px", borderTop: "1px solid #f0f0ec" }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "#1a1a1a", marginBottom: 1 }}>{user?.full_name || user?.username}</div>
-          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 8 }}>{user?.email}</div>
+        <div style={{ padding: "14px 24px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#fff", marginBottom: 1 }}>{user?.full_name || user?.username}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>{user?.email}</div>
           {user?.access_expires_at && (() => {
             const daysLeft = Math.ceil((new Date(user.access_expires_at).getTime() - Date.now()) / 86400000);
             const expired = daysLeft <= 0;
@@ -334,7 +340,7 @@ export default function LkDashboard() {
               </div>
             );
           })()}
-          <button onClick={logout} style={{ display: "flex", alignItems: "center", gap: 7, background: "none", border: "none", color: "#bbb", fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "Montserrat, sans-serif" }}>
+          <button onClick={logout} style={{ display: "flex", alignItems: "center", gap: 7, background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "Montserrat, sans-serif" }}>
             <Icon name="LogOut" size={13} />
             Выйти
           </button>
@@ -344,14 +350,14 @@ export default function LkDashboard() {
       {/* ── Мобильный хедер ── */}
       <header className="lk-mobile-header">
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 8, background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Icon name="MessageSquare" size={15} style={{ color: "#fff" }} />
+          <div style={{ width: 30, height: 30, borderRadius: 8, background: `linear-gradient(135deg,${TEAL_BRIGHT},#14B8A6)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Icon name="MessageSquare" size={15} style={{ color: "#0F172A" }} />
           </div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>Про Диалог</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Про Диалог</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {user?.salon_id && <EnergyBadge onNav={handleTabChange} />}
-          <button onClick={logout} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1.5px solid #e8e8e4", borderRadius: 8, color: "#999", fontSize: 12, cursor: "pointer", padding: "5px 10px", fontFamily: "Montserrat, sans-serif" }}>
+          <button onClick={logout} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1.5px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "rgba(255,255,255,0.6)", fontSize: 12, cursor: "pointer", padding: "5px 10px", fontFamily: "Montserrat, sans-serif" }}>
             <Icon name="LogOut" size={12} />
             Выйти
           </button>
@@ -381,13 +387,13 @@ export default function LkDashboard() {
             <button key={item.id} onClick={() => handleTabChange(item.id)} style={{
               flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
               justifyContent: "center", gap: 3, border: "none", background: "none",
-              color: locked ? "#ddd" : tab === item.id ? ACCENT : "#bbb",
+              color: locked ? "rgba(255,255,255,0.2)" : tab === item.id ? TEAL_BRIGHT : "rgba(255,255,255,0.5)",
               fontSize: 9, fontWeight: tab === item.id ? 700 : 500,
               cursor: "pointer", fontFamily: "Montserrat, sans-serif", padding: "7px 2px",
               position: "relative",
             }}>
               <Icon name={item.icon} size={20} />
-              {locked && <Icon name="Lock" size={9} style={{ position: "absolute", top: 5, right: "calc(50% - 14px)", color: "#ccc" }} />}
+              {locked && <Icon name="Lock" size={9} style={{ position: "absolute", top: 5, right: "calc(50% - 14px)", color: "rgba(255,255,255,0.3)" }} />}
               {item.label}
             </button>
           );
@@ -396,7 +402,7 @@ export default function LkDashboard() {
           <button onClick={() => setMoreOpen(p => !p)} style={{
             flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
             justifyContent: "center", gap: 3, border: "none", background: "none",
-            color: moreOpen ? ACCENT : "#bbb",
+            color: moreOpen ? TEAL_BRIGHT : "rgba(255,255,255,0.5)",
             fontSize: 9, fontWeight: moreOpen ? 700 : 500,
             cursor: "pointer", fontFamily: "Montserrat, sans-serif", padding: "7px 2px",
           }}>
@@ -436,16 +442,16 @@ export default function LkDashboard() {
 
       <style>{`
         .lk-root { display: flex; }
-        .lk-sidebar { width: 230px; background: #fff; border-right: 1px solid #eee; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; padding: 24px 0 0; }
-        .lk-main { margin-left: 230px; flex: 1; padding: 36px 40px; min-height: 100vh; }
+        .lk-sidebar { width: 248px; background: radial-gradient(120% 80% at 30% 0%, #112B3C 0%, #0F172A 55%, #060B16 100%); border-right: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; padding: 24px 0 0; }
+        .lk-main { margin-left: 248px; flex: 1; padding: 40px 44px; min-height: 100vh; }
         .lk-mobile-header { display: none; }
         .lk-bottombar { display: none; }
         @media (max-width: 768px) {
           .lk-root { flex-direction: column; }
           .lk-sidebar { display: none; }
-          .lk-mobile-header { display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; height: 50px; background: #fff; border-bottom: 1px solid #eee; padding: 0 16px; z-index: 100; }
-          .lk-main { margin-left: 0; padding: 64px 16px 76px; }
-          .lk-bottombar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #eee; z-index: 100; padding-bottom: env(safe-area-inset-bottom, 0); }
+          .lk-mobile-header { display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; height: 52px; background: #0F172A; border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0 16px; z-index: 100; }
+          .lk-main { margin-left: 0; padding: 66px 16px 80px; }
+          .lk-bottombar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #0F172A; border-top: 1px solid rgba(255,255,255,0.06); z-index: 100; padding-bottom: env(safe-area-inset-bottom, 0); }
         }
       `}</style>
     </div>

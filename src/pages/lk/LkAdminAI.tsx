@@ -41,14 +41,14 @@ function MessageBubble({ msg }: { msg: Message }) {
       <div style={{ maxWidth: "78%", minWidth: 0 }}>
         <div style={{
           background: isUser ? ACCENT : "#fff",
-          color: isUser ? "#fff" : "#1a1a1a",
+          color: isUser ? "#fff" : "#0F172A",
           borderRadius: isUser ? "16px 4px 16px 16px" : "4px 16px 16px 16px",
           padding: "12px 16px",
           fontSize: 14,
           lineHeight: 1.7,
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
-          border: isUser ? "none" : "1px solid #e8e8e4",
+          border: isUser ? "none" : "1px solid #E8ECF0",
           boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
         }}>
           {msg.content}
@@ -144,7 +144,7 @@ export function AISection() {
             <Icon name="Bot" size={18} style={{ color: ACCENT }} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 15, color: "#1a1a1a" }}>ИИ-ассистент Dok Диалог</div>
+            <div style={{ fontWeight: 700, fontSize: 15, color: "#0F172A" }}>ИИ-ассистент Dok Диалог</div>
             <div style={{ fontSize: 12, color: "#999" }}>Копирайтер · Маркетолог · SEO · Продажи · Финансы · PR</div>
           </div>
         </div>
@@ -152,7 +152,7 @@ export function AISection() {
           <button onClick={clearChat} style={{
             display: "flex", alignItems: "center", gap: 6,
             padding: "6px 14px", borderRadius: 8,
-            border: "1.5px solid #e8e8e4", background: "#fff",
+            border: "1.5px solid #E2E8F0", background: "#fff",
             color: "#999", fontSize: 13, cursor: "pointer",
             fontFamily: "Montserrat, sans-serif",
           }}>
@@ -165,8 +165,8 @@ export function AISection() {
       {/* Область сообщений */}
       <div style={{
         flex: 1, overflowY: "auto", padding: "16px",
-        background: "#fafaf8", borderRadius: 16,
-        border: "1px solid #e8e8e4",
+        background: "#fff", borderRadius: 16,
+        border: "1px solid #E8ECF0", boxShadow: "0 1px 3px rgba(15,23,42,0.05)",
         display: "flex", flexDirection: "column", gap: 16,
       }}>
         {messages.length === 0 && (
@@ -184,7 +184,7 @@ export function AISection() {
             <div style={{ width: 32, height: 32, borderRadius: 10, background: "#f0f0ed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <Icon name="Bot" size={16} style={{ color: "#666" }} />
             </div>
-            <div style={{ background: "#fff", border: "1px solid #e8e8e4", borderRadius: "4px 16px 16px 16px", padding: "14px 18px", display: "flex", gap: 5, alignItems: "center" }}>
+            <div style={{ background: "#fff", border: "1px solid #E8ECF0", borderRadius: "4px 16px 16px 16px", padding: "14px 18px", display: "flex", gap: 5, alignItems: "center" }}>
               {[0, 1, 2].map(i => (
                 <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: ACCENT, opacity: 0.4, animation: `dot-pulse 1.2s ${i * 0.2}s ease-in-out infinite` }} />
               ))}
@@ -213,13 +213,14 @@ export function AISection() {
           rows={2}
           style={{
             flex: 1, padding: "12px 14px", borderRadius: 12,
-            border: "1.5px solid #e8e8e4", fontSize: 14,
+            border: "1.5px solid #E2E8F0", fontSize: 14,
             fontFamily: "Montserrat, sans-serif", resize: "none",
             outline: "none", lineHeight: 1.5,
+            background: "#fff", color: "#0F172A",
             transition: "border-color 0.2s",
           }}
           onFocus={e => (e.target.style.borderColor = ACCENT)}
-          onBlur={e => (e.target.style.borderColor = "#e8e8e4")}
+          onBlur={e => (e.target.style.borderColor = "#E2E8F0")}
         />
         <button
           onClick={() => send()}

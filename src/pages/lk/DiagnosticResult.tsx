@@ -7,12 +7,12 @@ import { COLOR, COLOR_BG, DiagResult, getKinescopeId } from "./DiagnosticTypes";
 
 function Section({ icon, title, children, color = "#555" }: { icon: string; title: string; children: React.ReactNode; color?: string }) {
   return (
-    <div style={{ background: "#fff", borderRadius: 16, padding: "18px 20px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1.5px solid #f0f0ec" }}>
+    <div style={{ background: "#fff", borderRadius: 16, padding: "18px 20px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1.5px solid #E8ECF0" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <div style={{ width: 30, height: 30, borderRadius: 8, background: `${color}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <Icon name={icon} size={15} style={{ color }} />
         </div>
-        <span style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>{title}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{title}</span>
       </div>
       {children}
     </div>
@@ -36,7 +36,7 @@ function TextBlock({ text }: { text: string }) {
 
 function AiBlock({ icon, title, text, color }: { icon: string; title: string; text: string; color: string }) {
   return (
-    <div style={{ background: "#fff", borderRadius: 16, padding: "18px 20px", border: "1.5px solid #f0f0ec", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
+    <div style={{ background: "#fff", borderRadius: 16, padding: "18px 20px", border: "1.5px solid #E8ECF0", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <div style={{ width: 30, height: 30, borderRadius: 8, background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <Icon name={icon} size={14} style={{ color }} />
@@ -69,7 +69,7 @@ function TechniquesSection({ techZones }: { techZones: [string, { zone_name: str
 
   if (techZones.length === 0) {
     return (
-      <div style={{ background: "#fafaf8", borderRadius: 14, padding: "16px 20px", fontSize: 13, color: "#aaa", textAlign: "center" }}>
+      <div style={{ background: "#fff", borderRadius: 14, padding: "16px 20px", fontSize: 13, color: "#94A3B8", textAlign: "center", border: "1.5px solid #E8ECF0", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
         Техники для этой зоны пока не добавлены в шпаргалку
       </div>
     );
@@ -82,7 +82,7 @@ function TechniquesSection({ techZones }: { techZones: [string, { zone_name: str
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {techZones.map(([slug, zone]) => (
-          <div key={slug} style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #f0f0ec", overflow: "hidden" }}>
+          <div key={slug} style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #E8ECF0", overflow: "hidden" }}>
             <button
               onClick={() => setExpandedTech(expandedTech === slug ? null : slug)}
               style={{
@@ -96,7 +96,7 @@ function TechniquesSection({ techZones }: { techZones: [string, { zone_name: str
                   <Icon name="BookOpen" size={14} style={{ color: COLOR }} />
                 </div>
                 <div style={{ textAlign: "left" }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>{zone.zone_name}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{zone.zone_name}</div>
                   <div style={{ fontSize: 11, color: "#aaa" }}>{zone.techniques.length} техник</div>
                 </div>
               </div>
@@ -104,12 +104,12 @@ function TechniquesSection({ techZones }: { techZones: [string, { zone_name: str
             </button>
 
             {expandedTech === slug && (
-              <div style={{ borderTop: "1px solid #f0f0ec", padding: "12px 18px 16px", display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ borderTop: "1px solid #F1F5F9", padding: "12px 18px 16px", display: "flex", flexDirection: "column", gap: 14 }}>
                 {zone.techniques.map((tech, i) => {
                   const kId = getKinescopeId(tech.video_url);
                   return (
                     <div key={i}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", marginBottom: 4 }}>{tech.title}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>{tech.title}</div>
                       {tech.description && (
                         <div style={{ fontSize: 12, color: "#666", lineHeight: 1.55, marginBottom: kId ? 10 : 0 }}>{tech.description}</div>
                       )}

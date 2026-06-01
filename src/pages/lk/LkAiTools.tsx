@@ -23,9 +23,9 @@ interface ToolCardProps {
 
 function ToolCard({ icon, color, bg, title, description, badge, onStart }: ToolCardProps) {
   return (
-    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 20px 18px", display: "flex", flexDirection: "column" }}
+    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 20px 18px", display: "flex", flexDirection: "column", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}
       onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.07)")}
-      onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
+      onMouseLeave={e => (e.currentTarget.style.boxShadow = "0 1px 3px rgba(15,23,42,0.05)")}
     >
       <div style={{ display: "flex", alignItems: "flex-start", gap: 14, flex: 1, marginBottom: 16 }}>
         <div style={{ width: 44, height: 44, borderRadius: 12, background: bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -33,7 +33,7 @@ function ToolCard({ icon, color, bg, title, description, badge, onStart }: ToolC
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a" }}>{title}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>{title}</div>
             {badge && (
               <span style={{ fontSize: 9, fontWeight: 700, background: "hsl(40,90%,50%)", color: "#fff", borderRadius: 4, padding: "2px 6px", letterSpacing: 0.5, textTransform: "uppercase", flexShrink: 0 }}>
                 {badge}
@@ -64,7 +64,7 @@ interface ComingSoonCardProps {
 
 function ComingSoonCard({ icon, color, bg, title, description }: ComingSoonCardProps) {
   return (
-    <div style={{ background: "#fafaf8", borderRadius: 16, border: "1px dashed #e0e0db", padding: "20px 20px 18px", display: "flex", flexDirection: "column", gap: 12, opacity: 0.75 }}>
+    <div style={{ background: "#fff", borderRadius: 16, border: "1px dashed #E2E8F0", padding: "20px 20px 18px", display: "flex", flexDirection: "column", gap: 12, opacity: 0.75 }}>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
         <div style={{ width: 44, height: 44, borderRadius: 12, background: bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <Icon name={icon} size={22} style={{ color }} />
@@ -142,7 +142,7 @@ export default function LkAiTools() {
           <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,hsl(40,90%,50%),hsl(30,95%,55%))", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon name="Sparkles" size={18} style={{ color: "#fff" }} />
           </div>
-          <h1 style={{ fontSize: "clamp(20px,2.5vw,28px)", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>
+          <h1 style={{ fontSize: "clamp(20px,2.5vw,28px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>
             ИИ-инструменты
           </h1>
         </div>

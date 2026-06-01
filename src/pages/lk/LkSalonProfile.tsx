@@ -50,12 +50,12 @@ const TONE_OPTIONS = ["Тёплый и дружелюбный", "Професс�
 // ── Секция с заголовком ──────────────────────────────────────────────────────
 function Section({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", overflow: "hidden", marginBottom: 16 }}>
-      <div style={{ padding: "16px 20px 12px", borderBottom: "1px solid #f5f5f2", display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ width: 30, height: 30, borderRadius: 8, background: `hsla(185,85%,32%,0.08)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", overflow: "hidden", marginBottom: 16, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
+      <div style={{ padding: "16px 20px 12px", borderBottom: "1px solid #F1F5F9", display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ width: 30, height: 30, borderRadius: 8, background: `hsla(185,85%,32%,0.1)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Icon name={icon} size={15} style={{ color: ACCENT }} />
         </div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>{title}</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{title}</div>
       </div>
       <div style={{ padding: "16px 20px" }}>{children}</div>
     </div>
@@ -66,17 +66,17 @@ function Section({ title, icon, children }: { title: string; icon: string; child
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#555", marginBottom: 5 }}>{label}</label>
+      <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#475569", marginBottom: 5 }}>{label}</label>
       {children}
-      {hint && <div style={{ fontSize: 11, color: "#bbb", marginTop: 4 }}>{hint}</div>}
+      {hint && <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 4 }}>{hint}</div>}
     </div>
   );
 }
 
 const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "10px 13px", borderRadius: 10, border: "1.5px solid #e8e8e4",
+  width: "100%", padding: "11px 13px", borderRadius: 10, border: "1.5px solid #E2E8F0",
   fontSize: 13, outline: "none", fontFamily: "Montserrat, sans-serif",
-  background: "#fafaf8", boxSizing: "border-box", color: "#1a1a1a",
+  background: "#fff", boxSizing: "border-box", color: "#0F172A",
 };
 
 export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
@@ -200,7 +200,7 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
 
       {/* Заголовок */}
       <div style={{ marginBottom: hasDraft && isNew ? 12 : 24 }}>
-        <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 6px" }}>
+        <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 6px" }}>
           {isNew ? "Создайте профиль салона" : "Профиль салона"}
         </h2>
         <p style={{ fontSize: 13, color: "#888", margin: 0, lineHeight: 1.6 }}>
@@ -249,7 +249,7 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div
             onClick={() => fileRef.current?.click()}
-            style={{ width: 80, height: 80, borderRadius: 16, border: "2px dashed #ddd", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden", background: "#fafaf8", flexShrink: 0, position: "relative" }}
+            style={{ width: 80, height: 80, borderRadius: 16, border: "2px dashed #E2E8F0", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden", background: "#fff", flexShrink: 0, position: "relative" }}
           >
             {uploading
               ? <Icon name="Loader" size={22} style={{ color: "#bbb", animation: "spin 1s linear infinite" }} />
@@ -259,7 +259,7 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
             }
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a", marginBottom: 4 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 4 }}>
               {logoUrl ? "Логотип загружен" : "Загрузить логотип"}
             </div>
             <div style={{ fontSize: 12, color: "#aaa", marginBottom: 8 }}>PNG или JPG, до 2 МБ. Лучше всего на белом фоне.</div>

@@ -7,16 +7,16 @@ const ACCENT = "hsl(185,85%,32%)";
 const SERIF = "'Cormorant Garamond', serif";
 
 const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "11px 14px", borderRadius: 8,
-  border: "1.5px solid #e8e8e4", fontSize: 14, outline: "none",
+  width: "100%", padding: "12px 14px", borderRadius: 8,
+  border: "1.5px solid #E2E8F0", fontSize: 14, outline: "none",
   fontFamily: "Montserrat, sans-serif", boxSizing: "border-box",
-  background: "#fff", color: "#1a1a1a", transition: "border-color 0.2s",
+  background: "#fff", color: "#0F172A", transition: "border-color 0.2s",
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: "#fff", borderRadius: 16, padding: "28px 28px 24px", marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.04)", border: "1px solid #f0f0ec" }}>
-      <h2 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 600, color: "#1a1a1a", margin: "0 0 20px" }}>{title}</h2>
+    <div style={{ background: "#fff", borderRadius: 16, padding: "28px 28px 24px", marginBottom: 16, boxShadow: "0 1px 3px rgba(15,23,42,0.05)", border: "1px solid #E8ECF0" }}>
+      <h2 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: "#0F172A", margin: "0 0 20px" }}>{title}</h2>
       {children}
     </div>
   );
@@ -118,25 +118,25 @@ export default function LkProfile() {
       <Section title="Данные аккаунта">
         <form onSubmit={handleSaveInfo}>
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "#777", display: "block", marginBottom: 7, textTransform: "uppercase", letterSpacing: "0.7px" }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "#64748B", display: "block", marginBottom: 7, textTransform: "uppercase", letterSpacing: "0.7px" }}>
               Имя
             </label>
             <input
               value={fullName} onChange={e => setFullName(e.target.value)}
               placeholder="Иван Иванов" required style={inputStyle}
               onFocus={e => (e.target as HTMLInputElement).style.borderColor = ACCENT}
-              onBlur={e => (e.target as HTMLInputElement).style.borderColor = "#e8e8e4"}
+              onBlur={e => (e.target as HTMLInputElement).style.borderColor = "#E2E8F0"}
             />
           </div>
           <div style={{ marginBottom: 4 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "#777", display: "block", marginBottom: 7, textTransform: "uppercase", letterSpacing: "0.7px" }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "#64748B", display: "block", marginBottom: 7, textTransform: "uppercase", letterSpacing: "0.7px" }}>
               Email
             </label>
             <input
               type="email" value={email} onChange={e => setEmail(e.target.value)}
               placeholder="email@example.com" required style={inputStyle}
               onFocus={e => (e.target as HTMLInputElement).style.borderColor = ACCENT}
-              onBlur={e => (e.target as HTMLInputElement).style.borderColor = "#e8e8e4"}
+              onBlur={e => (e.target as HTMLInputElement).style.borderColor = "#E2E8F0"}
             />
           </div>
 

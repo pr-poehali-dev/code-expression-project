@@ -87,7 +87,7 @@ export default function LkAiImageGen() {
             <Icon name="Sparkles" size={20} style={{ color: "#fff" }} />
           </div>
           <div>
-            <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Генерация изображений</h2>
+            <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>Генерация изображений</h2>
 
           </div>
         </div>
@@ -97,19 +97,19 @@ export default function LkAiImageGen() {
       </div>
 
       {/* Форма */}
-      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 22px", marginBottom: 16 }}>
+      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 22px", marginBottom: 16, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
 
         {/* Контекст салона */}
         {hasSalon && (
           <div
             onClick={() => setUseSalonCtx(p => !p)}
-            style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 10, background: useSalonCtx ? `hsla(185,85%,32%,0.06)` : "#f8f8f5", border: `1.5px solid ${useSalonCtx ? ACCENT : "#e8e8e4"}`, marginBottom: 18, cursor: "pointer", userSelect: "none" }}
+            style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 10, background: useSalonCtx ? `hsla(185,85%,32%,0.06)` : "#fff", border: `1.5px solid ${useSalonCtx ? ACCENT : "#E2E8F0"}`, marginBottom: 18, cursor: "pointer", userSelect: "none" }}
           >
             <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${useSalonCtx ? ACCENT : "#ccc"}`, background: useSalonCtx ? ACCENT : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               {useSalonCtx && <Icon name="Check" size={11} style={{ color: "#fff" }} />}
             </div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>Учитывать контекст салона</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A" }}>Учитывать контекст салона</div>
               <div style={{ fontSize: 11, color: "#aaa" }}>ИИ добавит данные вашего салона к промпту</div>
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function LkAiImageGen() {
             maxLength={5000}
             rows={4}
             placeholder="Опишите что хотите получить. Например: уютный интерьер салона красоты, мягкий свет, цветы на столе, стиль минимализм, пастельные тона"
-            style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: `1.5px solid ${error && !prompt.trim() ? "#fcc" : "#e8e8e4"}`, fontSize: 13, fontFamily: "Montserrat,sans-serif", resize: "vertical", outline: "none", background: "#fafaf8", boxSizing: "border-box", color: "#1a1a1a", lineHeight: 1.6 }}
+            style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: `1.5px solid ${error && !prompt.trim() ? "#fcc" : "#E2E8F0"}`, fontSize: 13, fontFamily: "Montserrat,sans-serif", resize: "vertical", outline: "none", background: "#fff", boxSizing: "border-box", color: "#0F172A", lineHeight: 1.6 }}
           />
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
             {["Пост для Instagram", "Баннер с акцией", "Фото команды", "Атмосфера салона"].map(hint => (
@@ -143,7 +143,7 @@ export default function LkAiImageGen() {
           <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 8 }}>Формат</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>
             {ASPECT_OPTIONS.map(opt => (
-              <button key={opt.value} onClick={() => setAspect(opt.value)} style={{ padding: "10px 8px", borderRadius: 10, border: `1.5px solid ${aspect === opt.value ? ACCENT : "#e8e8e4"}`, background: aspect === opt.value ? `hsla(185,85%,32%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "center" }}>
+              <button key={opt.value} onClick={() => setAspect(opt.value)} style={{ padding: "10px 8px", borderRadius: 10, border: `1.5px solid ${aspect === opt.value ? ACCENT : "#E2E8F0"}`, background: aspect === opt.value ? `hsla(185,85%,32%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "center" }}>
                 <Icon name={opt.icon} size={18} style={{ color: aspect === opt.value ? ACCENT : "#bbb", marginBottom: 4 }} />
                 <div style={{ fontSize: 12, fontWeight: 700, color: aspect === opt.value ? ACCENT : "#333" }}>{opt.label}</div>
                 <div style={{ fontSize: 10, color: "#aaa" }}>{opt.sub}</div>
@@ -175,13 +175,13 @@ export default function LkAiImageGen() {
 
       {/* Результат */}
       {imageUrl && (
-        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 22px" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 22px", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
             <Icon name="CheckCircle" size={15} style={{ color: "hsl(145,60%,40%)" }} />
             Изображение готово
           </div>
 
-          <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #eee", marginBottom: 14 }}>
+          <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #F1F5F9", marginBottom: 14 }}>
             <img src={imageUrl} alt="Результат" style={{ width: "100%", display: "block" }} />
           </div>
 

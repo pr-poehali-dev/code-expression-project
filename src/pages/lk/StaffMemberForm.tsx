@@ -7,7 +7,7 @@ export function YesNo({ value, onChange }: { value: boolean | null; onChange: (v
   return (
     <div style={{ display: "flex", gap: 6 }}>
       {[true, false].map(v => (
-        <button key={String(v)} onClick={() => onChange(v)} style={{ flex: 1, padding: "7px 0", borderRadius: 8, border: `1.5px solid ${value === v ? ACCENT : "#e8e8e4"}`, background: value === v ? `hsla(185,85%,32%,0.07)` : "#fff", fontSize: 12, fontWeight: value === v ? 700 : 400, color: value === v ? ACCENT : "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+        <button key={String(v)} onClick={() => onChange(v)} style={{ flex: 1, padding: "7px 0", borderRadius: 8, border: `1.5px solid ${value === v ? ACCENT : "#E2E8F0"}`, background: value === v ? `hsla(185,85%,32%,0.07)` : "#fff", fontSize: 12, fontWeight: value === v ? 700 : 400, color: value === v ? ACCENT : "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
           {v ? "Да" : "Нет"}
         </button>
       ))}
@@ -27,13 +27,13 @@ export function MemberForm({ member, idx, onChange, onRemove, canRemove }: {
   const hasData = member.name || member.revenue;
 
   return (
-    <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #eee", overflow: "hidden" }}>
+    <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8ECF0", overflow: "hidden", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
       <div onClick={() => setOpen(p => !p)} style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
         <div style={{ width: 32, height: 32, borderRadius: 8, background: `hsla(185,85%,32%,0.09)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <Icon name="User" size={15} style={{ color: ACCENT }} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>{member.name || `Сотрудник ${idx + 1}`}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{member.name || `Сотрудник ${idx + 1}`}</div>
           {member.role && <div style={{ fontSize: 11, color: "#aaa" }}>{member.role}</div>}
         </div>
         {canRemove && (
@@ -42,7 +42,7 @@ export function MemberForm({ member, idx, onChange, onRemove, canRemove }: {
         <Icon name={open ? "ChevronUp" : "ChevronDown"} size={16} style={{ color: "#bbb" }} />
       </div>
       {open && (
-        <div style={{ padding: "0 18px 18px", borderTop: "1px solid #f5f5f2" }}>
+        <div style={{ padding: "0 18px 18px", borderTop: "1px solid #F1F5F9" }}>
           {/* Основное */}
           <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10, marginTop: 14 }}>Основное</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
@@ -114,7 +114,7 @@ export function MemberForm({ member, idx, onChange, onRemove, canRemove }: {
             <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#777", marginBottom: 4 }}>Общая оценка сотрудника</label>
             <div style={{ display: "flex", gap: 5 }}>
               {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                <button key={n} onClick={() => onChange(member.id, "service_score", String(n))} style={{ width: 32, height: 32, borderRadius: 8, border: `1.5px solid ${String(n) === member.service_score ? ACCENT : "#e8e8e4"}`, background: String(n) === member.service_score ? `hsla(185,85%,32%,0.1)` : "#fff", fontSize: 12, fontWeight: 700, color: String(n) === member.service_score ? ACCENT : "#888", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                <button key={n} onClick={() => onChange(member.id, "service_score", String(n))} style={{ width: 32, height: 32, borderRadius: 8, border: `1.5px solid ${String(n) === member.service_score ? ACCENT : "#E2E8F0"}`, background: String(n) === member.service_score ? `hsla(185,85%,32%,0.1)` : "#fff", fontSize: 12, fontWeight: 700, color: String(n) === member.service_score ? ACCENT : "#888", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                   {n}
                 </button>
               ))}

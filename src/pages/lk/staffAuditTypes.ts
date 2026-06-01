@@ -47,7 +47,7 @@ export function sid() { return localStorage.getItem("lk_session") || ""; }
 
 export const ROLES = ["Администратор", "Мастер маникюра", "Парикмахер", "Косметолог", "Массажист", "Бровист", "Другое"];
 
-export const inp: React.CSSProperties = { width: "100%", padding: "9px 12px", borderRadius: 9, border: "1.5px solid #e8e8e4", fontSize: 12, fontFamily: "Montserrat,sans-serif", background: "#fafaf8", boxSizing: "border-box", color: "#1a1a1a", outline: "none" };
+export const inp: React.CSSProperties = { width: "100%", padding: "9px 12px", borderRadius: 9, border: "1.5px solid #E2E8F0", fontSize: 12, fontFamily: "Montserrat,sans-serif", background: "#fff", boxSizing: "border-box", color: "#0F172A", outline: "none" };
 
 export function newMember(): StaffMember {
   return { id: Math.random().toString(36).slice(2), name: "", role: "", experience: "", clients_count: "", new_clients: "", return_pct: "", revenue: "", avg_check: "", has_upsell: null, rebooking_pct: "", has_rebooking_offer: null, service_score: "", has_sales_script: null };

@@ -19,9 +19,9 @@ const ASPECT_OPTIONS = [
 type Step = "input" | "ideas" | "script";
 
 const inp: React.CSSProperties = {
-  width: "100%", padding: "10px 13px", borderRadius: 10, border: "1.5px solid #e8e8e4",
-  fontSize: 13, fontFamily: "Montserrat,sans-serif", background: "#fafaf8",
-  boxSizing: "border-box", color: "#1a1a1a", outline: "none",
+  width: "100%", padding: "10px 13px", borderRadius: 10, border: "1.5px solid #E2E8F0",
+  fontSize: 13, fontFamily: "Montserrat,sans-serif", background: "#fff",
+  boxSizing: "border-box", color: "#0F172A", outline: "none",
 };
 
 export default function LkReelScript() {
@@ -123,7 +123,7 @@ export default function LkReelScript() {
           <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg,hsl(335,80%,50%),hsl(310,70%,50%))`, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon name="Video" size={20} style={{ color: "#fff" }} />
           </div>
-          <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Сценарий для рилса</h2>
+          <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>Сценарий для рилса</h2>
         </div>
         <p style={{ fontSize: 13, color: "#777", margin: 0, lineHeight: 1.6 }}>
           Выберите идею — ИИ напишет покадровый сценарий и обложку для вашего рилса.
@@ -162,7 +162,7 @@ export default function LkReelScript() {
 
       {/* ── Шаг 1: Вводные ── */}
       {step === "input" && (
-        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "22px 22px 20px" }}>
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "22px 22px 20px", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 6 }}>Услуга или тема *</label>
             <input style={inp} value={service} onChange={e => setService(e.target.value)} placeholder="Например: маникюр, массаж спины, уход за лицом" />
@@ -209,15 +209,15 @@ export default function LkReelScript() {
       {/* ── Шаг 2: Выбор идеи ── */}
       {step === "ideas" && (
         <div>
-          <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 22px", marginBottom: 14 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", marginBottom: 4 }}>Выберите идею</div>
+          <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 22px", marginBottom: 14, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>Выберите идею</div>
             <div style={{ fontSize: 12, color: "#aaa", marginBottom: 16 }}>Нажмите — ИИ напишет полный покадровый сценарий</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {ideas.map((idea, i) => (
                 <button key={i} onClick={() => handleSelectIdea(idea)} disabled={loading}
-                  style={{ textAlign: "left", padding: "14px 16px", borderRadius: 12, border: "1.5px solid #e8e8e4", background: "#fff", fontSize: 13, fontWeight: 600, color: "#1a1a1a", cursor: loading ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif", display: "flex", alignItems: "center", gap: 12, transition: "all 0.15s" }}
+                  style={{ textAlign: "left", padding: "14px 16px", borderRadius: 12, border: "1.5px solid #E2E8F0", background: "#fff", fontSize: 13, fontWeight: 600, color: "#0F172A", cursor: loading ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif", display: "flex", alignItems: "center", gap: 12, transition: "all 0.15s" }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = "hsl(335,80%,50%)"; e.currentTarget.style.background = `hsla(335,80%,50%,0.04)`; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = "#e8e8e4"; e.currentTarget.style.background = "#fff"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "#E2E8F0"; e.currentTarget.style.background = "#fff"; }}
                 >
                   <div style={{ width: 26, height: 26, borderRadius: 8, background: `hsla(335,80%,50%,0.1)`, color: "hsl(335,80%,50%)", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</div>
                   <span style={{ flex: 1 }}>{idea}</span>
@@ -240,10 +240,10 @@ export default function LkReelScript() {
       {step === "script" && (
         <div>
           {/* Сценарий */}
-          <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 22px", marginBottom: 14 }}>
+          <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 22px", marginBottom: 14, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>Сценарий рилса</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>Сценарий рилса</div>
                 <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>{selectedIdea}</div>
               </div>
               <button onClick={copyScript} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: ACCENT, background: `hsla(185,85%,32%,0.08)`, border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
@@ -256,8 +256,8 @@ export default function LkReelScript() {
           </div>
 
           {/* Превью */}
-          <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 22px", marginBottom: 14 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", marginBottom: 14 }}>Обложка рилса</div>
+          <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 22px", marginBottom: 14, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 14 }}>Обложка рилса</div>
 
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#aaa", marginBottom: 6 }}>Описание обложки</label>
@@ -266,7 +266,7 @@ export default function LkReelScript() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
               {ASPECT_OPTIONS.map(opt => (
-                <button key={opt.value} onClick={() => setAspect(opt.value)} style={{ padding: "10px 8px", borderRadius: 10, border: `1.5px solid ${aspect === opt.value ? "hsl(335,80%,50%)" : "#e8e8e4"}`, background: aspect === opt.value ? `hsla(335,80%,50%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "center" }}>
+                <button key={opt.value} onClick={() => setAspect(opt.value)} style={{ padding: "10px 8px", borderRadius: 10, border: `1.5px solid ${aspect === opt.value ? "hsl(335,80%,50%)" : "#E2E8F0"}`, background: aspect === opt.value ? `hsla(335,80%,50%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "center" }}>
                   <Icon name={opt.icon} size={18} style={{ color: aspect === opt.value ? "hsl(335,80%,50%)" : "#bbb", marginBottom: 3 }} />
                   <div style={{ fontSize: 12, fontWeight: 700, color: aspect === opt.value ? "hsl(335,80%,50%)" : "#333" }}>{opt.label}</div>
                   <div style={{ fontSize: 10, color: "#aaa" }}>{opt.sub}</div>

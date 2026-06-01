@@ -93,7 +93,7 @@ export default function LkReviewReply() {
     setReply(""); setReviewText(""); setError("");
   }
 
-  const inp: React.CSSProperties = { width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid #e8e8e4", fontSize: 13, fontFamily: "Montserrat,sans-serif", background: "#fafaf8", boxSizing: "border-box", color: "#1a1a1a", outline: "none", resize: "vertical" };
+  const inp: React.CSSProperties = { width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid #E2E8F0", fontSize: 13, fontFamily: "Montserrat,sans-serif", background: "#fff", boxSizing: "border-box", color: "#0F172A", outline: "none", resize: "vertical" };
 
   return (
     <div style={{ maxWidth: 680 }}>
@@ -105,7 +105,7 @@ export default function LkReviewReply() {
           <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg,hsl(185,85%,32%),hsl(185,85%,22%))`, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon name="Star" size={20} style={{ color: "#fff" }} />
           </div>
-          <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Ответы на отзывы</h2>
+          <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>Ответы на отзывы</h2>
         </div>
         <p style={{ fontSize: 13, color: "#777", margin: 0, lineHeight: 1.6 }}>
           Вставьте отзыв — ИИ напишет профессиональный ответ с учётом стиля и специфики вашего салона.
@@ -154,7 +154,7 @@ export default function LkReviewReply() {
             <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 10 }}>Тип отзыва</div>
             <div style={{ display: "flex", gap: 8 }}>
               {SENTIMENTS.map(s => (
-                <button key={s.value} onClick={() => setSentiment(s.value)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "12px 8px", borderRadius: 12, border: `1.5px solid ${sentiment === s.value ? s.color : "#eee"}`, background: sentiment === s.value ? s.bg : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                <button key={s.value} onClick={() => setSentiment(s.value)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "12px 8px", borderRadius: 12, border: `1.5px solid ${sentiment === s.value ? s.color : "#E2E8F0"}`, background: sentiment === s.value ? s.bg : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                   <Icon name={s.icon} size={18} style={{ color: sentiment === s.value ? s.color : "#bbb" }} />
                   <span style={{ fontSize: 11, fontWeight: 700, color: sentiment === s.value ? s.color : "#aaa" }}>{s.label}</span>
                 </button>
@@ -178,7 +178,7 @@ export default function LkReviewReply() {
             <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 10 }}>Стиль ответа</div>
             <div style={{ display: "flex", gap: 8 }}>
               {TONES.map(t => (
-                <button key={t.value} onClick={() => setTone(t.value)} style={{ flex: 1, padding: "11px 10px", borderRadius: 11, border: `1.5px solid ${tone === t.value ? ACCENT : "#eee"}`, background: tone === t.value ? `hsla(185,85%,32%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "center" }}>
+                <button key={t.value} onClick={() => setTone(t.value)} style={{ flex: 1, padding: "11px 10px", borderRadius: 11, border: `1.5px solid ${tone === t.value ? ACCENT : "#E2E8F0"}`, background: tone === t.value ? `hsla(185,85%,32%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "center" }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: tone === t.value ? ACCENT : "#555" }}>{t.label}</div>
                   <div style={{ fontSize: 10, color: "#aaa", marginTop: 2 }}>{t.desc}</div>
                 </button>
@@ -195,7 +195,7 @@ export default function LkReviewReply() {
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {PLATFORMS.map(p => (
                 <button key={String(p.value)} onClick={() => setPlatform(platform === p.value ? null : p.value)}
-                  style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: `1.5px solid ${platform === p.value ? ACCENT : "#eee"}`, background: platform === p.value ? `hsla(185,85%,32%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                  style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: `1.5px solid ${platform === p.value ? ACCENT : "#E2E8F0"}`, background: platform === p.value ? `hsla(185,85%,32%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                   <span style={{ fontSize: 14 }}>{p.emoji}</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: platform === p.value ? ACCENT : "#555" }}>{p.label}</span>
                   {p.maxChars && <span style={{ fontSize: 10, color: "#bbb" }}>до {p.maxChars}</span>}
@@ -221,15 +221,15 @@ export default function LkReviewReply() {
 
       {/* История */}
       {history.length > 1 && (
-        <div style={{ marginTop: 30, background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "18px 20px" }}>
+        <div style={{ marginTop: 30, background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "18px 20px", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "#bbb", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 14 }}>История ответов</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {history.slice(0, 8).map(h => {
               const s = SENTIMENTS.find(s => s.value === h.sentiment) || SENTIMENTS[0];
               return (
                 <div key={h.id}
-                  style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 4px", borderBottom: "1px solid #f5f5f2", borderRadius: 8 }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "#fafaf8")}
+                  style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 4px", borderBottom: "1px solid #F1F5F9", borderRadius: 8 }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "#F1F5F9")}
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
                   <div style={{ width: 28, height: 28, borderRadius: 7, background: s.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1, cursor: "pointer" }}

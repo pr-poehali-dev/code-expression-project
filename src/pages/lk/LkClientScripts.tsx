@@ -60,7 +60,7 @@ export default function LkClientScripts() {
 
   function handleReset() { setScript(""); setError(""); }
 
-  const inp: React.CSSProperties = { width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid #e8e8e4", fontSize: 13, fontFamily: "Montserrat,sans-serif", background: "#fafaf8", boxSizing: "border-box", color: "#1a1a1a", outline: "none", resize: "vertical" };
+  const inp: React.CSSProperties = { width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid #E2E8F0", fontSize: 13, fontFamily: "Montserrat,sans-serif", background: "#fff", boxSizing: "border-box", color: "#0F172A", outline: "none", resize: "vertical" };
 
   const selectedRole = ROLES.find(r => r.value === role);
 
@@ -74,7 +74,7 @@ export default function LkClientScripts() {
           <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon name="MessageSquare" size={20} style={{ color: "#fff" }} />
           </div>
-          <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Скрипты общения с клиентом</h2>
+          <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>Скрипты общения с клиентом</h2>
         </div>
         <p style={{ fontSize: 13, color: "#777", margin: 0, lineHeight: 1.6 }}>
           Выберите роль сотрудника, опишите ситуацию — ИИ напишет готовый сценарий диалога.
@@ -127,7 +127,7 @@ export default function LkClientScripts() {
             <div style={{ display: "flex", gap: 10 }}>
               {ROLES.map(r => (
                 <button key={r.value} onClick={() => setRole(r.value)}
-                  style={{ flex: 1, padding: "14px 10px", borderRadius: 13, border: `1.5px solid ${role === r.value ? ACCENT : "#eee"}`, background: role === r.value ? `hsla(145,60%,35%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "center" }}>
+                  style={{ flex: 1, padding: "14px 10px", borderRadius: 13, border: `1.5px solid ${role === r.value ? ACCENT : "#E8ECF0"}`, background: role === r.value ? `hsla(145,60%,35%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "center" }}>
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: 7 }}>
                     <Icon name={r.icon} size={20} style={{ color: role === r.value ? ACCENT : "#ccc" }} />
                   </div>
@@ -172,7 +172,7 @@ export default function LkClientScripts() {
 
       {/* История */}
       {history.length > 1 && (
-        <div style={{ marginTop: 30, background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "18px 20px" }}>
+        <div style={{ marginTop: 30, background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "18px 20px", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "#bbb", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 14 }}>История скриптов</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {history.slice(0, 8).map(h => {
@@ -180,8 +180,8 @@ export default function LkClientScripts() {
               return (
                 <div key={h.id}
                   onClick={() => { setRole(h.role); setSituation(h.situation); setScript(h.script_text); }}
-                  style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 4px", borderBottom: "1px solid #f5f5f2", cursor: "pointer", borderRadius: 8 }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "#fafaf8")}
+                  style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 4px", borderBottom: "1px solid #F1F5F9", cursor: "pointer", borderRadius: 8 }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "#F1F5F9")}
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
                   <div style={{ width: 28, height: 28, borderRadius: 7, background: `hsla(145,60%,35%,0.09)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>

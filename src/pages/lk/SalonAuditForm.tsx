@@ -2,9 +2,9 @@ import Icon from "@/components/ui/icon";
 import { ACCENT, ACCENT_DARK, BLOCKS, LK_URL, Answers, HistoryItem, sid } from "./salon-audit.types";
 
 const inp: React.CSSProperties = {
-  width: "100%", padding: "10px 13px", borderRadius: 10, border: "1.5px solid #e8e8e4",
-  fontSize: 13, fontFamily: "Montserrat,sans-serif", background: "#fafaf8",
-  boxSizing: "border-box", color: "#1a1a1a", outline: "none",
+  width: "100%", padding: "10px 13px", borderRadius: 10, border: "1.5px solid #E2E8F0",
+  fontSize: 13, fontFamily: "Montserrat,sans-serif", background: "#fff",
+  boxSizing: "border-box", color: "#0F172A", outline: "none",
 };
 
 interface Props {
@@ -35,7 +35,7 @@ export default function SalonAuditForm({
             <Icon name="BarChart2" size={20} style={{ color: "#fff" }} />
           </div>
           <div>
-            <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Цифровой бизнес-разбор</h2>
+            <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>Цифровой бизнес-разбор</h2>
           </div>
         </div>
         <p style={{ fontSize: 13, color: "#777", margin: 0, lineHeight: 1.6 }}>
@@ -55,14 +55,14 @@ export default function SalonAuditForm({
       </div>
 
       {/* Блок анкеты */}
-      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "22px 22px 20px", marginBottom: 14 }}>
+      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "22px 22px 20px", marginBottom: 14, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
           <div style={{ width: 32, height: 32, borderRadius: 9, background: `hsla(185,85%,32%,0.09)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon name={block.icon} size={16} style={{ color: ACCENT }} />
           </div>
           <div>
             <div style={{ fontSize: 11, color: "#bbb", marginBottom: 1 }}>Блок {currentBlock + 1} из {BLOCKS.length}</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a" }}>{block.title}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>{block.title}</div>
           </div>
         </div>
 
@@ -76,7 +76,7 @@ export default function SalonAuditForm({
                     const val = opt === "Да";
                     const active = answers[field.key] === val;
                     return (
-                      <button key={opt} onClick={() => onAnswer(field.key, val)} style={{ flex: 1, padding: "9px 0", borderRadius: 10, border: `1.5px solid ${active ? ACCENT : "#e8e8e4"}`, background: active ? `hsla(185,85%,32%,0.07)` : "#fff", fontSize: 13, fontWeight: active ? 700 : 400, color: active ? ACCENT : "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                      <button key={opt} onClick={() => onAnswer(field.key, val)} style={{ flex: 1, padding: "9px 0", borderRadius: 10, border: `1.5px solid ${active ? ACCENT : "#E2E8F0"}`, background: active ? `hsla(185,85%,32%,0.07)` : "#fff", fontSize: 13, fontWeight: active ? 700 : 400, color: active ? ACCENT : "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                         {opt}
                       </button>
                     );
@@ -126,18 +126,18 @@ export default function SalonAuditForm({
 
       {/* История */}
       {history.length > 0 && (
-        <div style={{ marginTop: 28, background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "18px 20px" }}>
+        <div style={{ marginTop: 28, background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "18px 20px", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 }}>Предыдущие аудиты</div>
           {history.map(h => (
             <div
               key={h.id}
               onClick={() => onHistoryClick(h.id)}
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #f5f5f2", cursor: "pointer" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#fafaf8")}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #F1F5F9", cursor: "pointer" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#F1F5F9")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>{h.score_total} баллов</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A" }}>{h.score_total} баллов</div>
                 <div style={{ fontSize: 11, color: "#bbb" }}>{new Date(h.created_at).toLocaleDateString("ru-RU")}</div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

@@ -77,13 +77,13 @@ export function EnergySection() {
     cat, label, items: tools.filter(t => t.category === cat),
   })).filter(g => g.items.length > 0);
 
-  const inp: React.CSSProperties = { padding: "7px 10px", borderRadius: 8, border: "1.5px solid #e8e8e4", fontSize: 13, fontFamily: "Montserrat,sans-serif", background: "#fafaf8", color: "#1a1a1a", outline: "none", width: 70, textAlign: "center" };
+  const inp: React.CSSProperties = { padding: "7px 10px", borderRadius: 8, border: "1.5px solid #E2E8F0", fontSize: 13, fontFamily: "Montserrat,sans-serif", background: "#fff", color: "#0F172A", outline: "none", width: 70, textAlign: "center" };
 
   return (
     <div>
       {/* Ручное пополнение */}
-      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 22px", marginBottom: 20 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", marginBottom: 14 }}>⚡ Пополнить баланс салона</div>
+      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 22px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 14 }}>⚡ Пополнить баланс салона</div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end" }}>
           <div style={{ flex: 1, minWidth: 200 }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: "#777", marginBottom: 5 }}>Салон</div>
@@ -112,9 +112,9 @@ export function EnergySection() {
       </div>
 
       {/* Таблица стоимостей */}
-      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", overflow: "hidden" }}>
-        <div style={{ padding: "16px 22px", borderBottom: "1px solid #f0f0ec" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>Стоимость инструментов</div>
+      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", overflow: "hidden", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
+        <div style={{ padding: "16px 22px", borderBottom: "1px solid #F1F5F9" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>Стоимость инструментов</div>
           <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>Изменения применяются сразу для всех салонов</div>
         </div>
         {loading ? (
@@ -130,9 +130,9 @@ export function EnergySection() {
                 const changed = val !== String(tool.energy_cost);
                 const isSaved = saved === tool.tool_key;
                 return (
-                  <div key={tool.tool_key} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 22px", borderBottom: "1px solid #f5f5f2" }}>
+                  <div key={tool.tool_key} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 22px", borderBottom: "1px solid #F1F5F9" }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, color: "#1a1a1a", fontWeight: 500 }}>{tool.name}</div>
+                      <div style={{ fontSize: 13, color: "#0F172A", fontWeight: 500 }}>{tool.name}</div>
                       <div style={{ fontSize: 11, color: "#bbb", marginTop: 1 }}>{tool.tool_key}</div>
                     </div>
                     {tool.is_free ? (
@@ -140,7 +140,7 @@ export function EnergySection() {
                     ) : (
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <input
-                          style={{ ...inp, borderColor: changed ? ACCENT : "#e8e8e4" }}
+                          style={{ ...inp, borderColor: changed ? ACCENT : "#E2E8F0" }}
                           type="number" min="0" max="100"
                           value={val}
                           onChange={e => setEdited(p => ({ ...p, [tool.tool_key]: e.target.value }))}

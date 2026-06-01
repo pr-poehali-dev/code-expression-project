@@ -29,7 +29,7 @@ export default function DiagnosticSearch({
         <Icon name="ArrowLeft" size={16} /> Назад
       </button>
 
-      <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 6px" }}>
+      <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px,3vw,32px)", fontWeight: 700, color: "#0F172A", margin: "0 0 6px" }}>
         Системная диагностика
       </h1>
       <p style={{ fontSize: 14, color: "#888", margin: "0 0 28px", lineHeight: 1.6 }}>
@@ -51,9 +51,9 @@ export default function DiagnosticSearch({
               placeholder="Боль в шее, поясница, тревога..."
               style={{
                 width: "100%", padding: "13px 16px 13px 42px",
-                borderRadius: 12, border: "1.5px solid #e8e8e4",
+                borderRadius: 12, border: "1.5px solid #E2E8F0",
                 fontSize: 14, fontFamily: "Montserrat, sans-serif",
-                outline: "none", boxSizing: "border-box",
+                outline: "none", boxSizing: "border-box", background: "#fff", color: "#0F172A",
               }}
             />
           </div>
@@ -78,7 +78,7 @@ export default function DiagnosticSearch({
           <div style={{
             position: "absolute", top: "100%", left: 0, right: 60,
             background: "#fff", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-            border: "1.5px solid #f0f0ec", zIndex: 50, overflow: "hidden", marginTop: 4,
+            border: "1.5px solid #E8ECF0", zIndex: 50, overflow: "hidden", marginTop: 4,
           }}>
             {filtered.map(s => (
               <button
@@ -110,13 +110,13 @@ export default function DiagnosticSearch({
               key={s.slug}
               onClick={() => onSelect(s)}
               style={{
-                padding: "7px 14px", borderRadius: 20, border: "1.5px solid #e8e8e4",
-                background: "#fafaf8", fontSize: 12, fontWeight: 600,
-                color: "#555", cursor: "pointer", fontFamily: "Montserrat, sans-serif",
+                padding: "7px 14px", borderRadius: 20, border: "1.5px solid #E2E8F0",
+                background: "#fff", fontSize: 12, fontWeight: 600,
+                color: "#475569", cursor: "pointer", fontFamily: "Montserrat, sans-serif",
                 transition: "all 0.15s",
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = COLOR; (e.currentTarget as HTMLElement).style.color = COLOR; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#e8e8e4"; (e.currentTarget as HTMLElement).style.color = "#555"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E2E8F0"; (e.currentTarget as HTMLElement).style.color = "#475569"; }}
             >
               {s.name}
             </button>
@@ -155,7 +155,7 @@ export default function DiagnosticSearch({
             <div key={item.icon} style={{
               background: "#fff", borderRadius: 12, padding: "12px 14px",
               display: "flex", alignItems: "center", gap: 10,
-              border: "1.5px solid #f0f0ec",
+              border: "1.5px solid #E8ECF0",
             }}>
               <Icon name={item.icon} size={14} style={{ color: COLOR, flexShrink: 0 }} />
               <span style={{ fontSize: 12, color: "#666" }}>{item.label}</span>

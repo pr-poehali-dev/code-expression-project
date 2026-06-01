@@ -18,8 +18,8 @@ interface InviteInfo {
 
 const inp: React.CSSProperties = {
   width: "100%", padding: "12px 14px", borderRadius: 10,
-  border: "1.5px solid #e8e8e4", fontSize: 14, fontFamily: "Montserrat,sans-serif",
-  background: "#fafaf8", boxSizing: "border-box", color: "#1a1a1a", outline: "none",
+  border: "1.5px solid #E2E8F0", fontSize: 14, fontFamily: "Montserrat,sans-serif",
+  background: "#fff", boxSizing: "border-box", color: "#0F172A", outline: "none",
 };
 
 export default function LkJoinPage() {
@@ -95,7 +95,7 @@ export default function LkJoinPage() {
               <div style={{ width: 56, height: 56, borderRadius: 16, background: "hsl(0,75%,97%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
                 <Icon name="AlertCircle" size={28} style={{ color: "hsl(0,75%,55%)" }} />
               </div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#1a1a1a", marginBottom: 8 }}>Приглашение недействительно</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 8 }}>Приглашение недействительно</div>
               <div style={{ fontSize: 13, color: "#888" }}>{loadErr}</div>
               <a href="/cabinet" style={{ display: "inline-block", marginTop: 20, fontSize: 13, color: ACCENT, fontWeight: 600 }}>Войти в кабинет →</a>
             </div>
@@ -104,7 +104,7 @@ export default function LkJoinPage() {
               <div style={{ width: 56, height: 56, borderRadius: 16, background: "hsl(145,60%,96%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
                 <Icon name="CheckCircle2" size={28} style={{ color: "hsl(145,60%,35%)" }} />
               </div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#1a1a1a", marginBottom: 6 }}>Добро пожаловать!</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>Добро пожаловать!</div>
               <div style={{ fontSize: 13, color: "#888" }}>Перенаправляем в кабинет...</div>
             </div>
           ) : invite && (
@@ -119,14 +119,14 @@ export default function LkJoinPage() {
                   </div>
                 )}
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>{invite.salon_name}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{invite.salon_name}</div>
                   <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>приглашает вас в команду</div>
                 </div>
               </div>
 
               {/* Роль */}
               <div style={{ textAlign: "center", marginBottom: 24 }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#1a1a1a", marginBottom: 4 }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
                   {invite.full_name}
                 </div>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: `hsla(185,85%,32%,0.08)`, borderRadius: 8, padding: "5px 14px" }}>
