@@ -36,6 +36,8 @@ ASPECT_MAP_DALLE = {
     "1792x1024": "1792x1024",
 }
 
+TOOL_KEY = "image_gen"
+
 
 def get_db():
     return psycopg2.connect(os.environ["DATABASE_URL"])
@@ -62,8 +64,47 @@ def get_session_user(event, conn):
     return cur.fetchone()
 
 
+def get_tool_cost(conn) -> int:
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key = %s",
+        (TOOL_KEY,)
+    )
+    row = cur.fetchone()
+    return row[0] if row else 5
+
+
+def get_salon_balance(salon_id, conn) -> int:
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount ELSE -amount END), 0) "
+        f"FROM {SCHEMA}.credit_transactions WHERE salon_id = %s",
+        (salon_id,)
+    )
+    return cur.fetchone()[0]
+
+
+def deduct_energy(salon_id, user_id, amount, conn):
+    cur = conn.cursor()
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
+        f"VALUES (%s, %s, %s, %s, %s, 'debit')",
+        (salon_id, user_id, "Создание изображения", amount, TOOL_KEY)
+    )
+    conn.commit()
+
+
+def save_image_history(user_id, url, prompt, aspect_ratio, conn):
+    cur = conn.cursor()
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.ai_generated_images (user_id, url, prompt, aspect_ratio) "
+        f"VALUES (%s, %s, %s, %s)",
+        (user_id, url, prompt, aspect_ratio)
+    )
+    conn.commit()
+
+
 def get_salon_context(user, conn):
-    """Получаем данные салона для использования в промпте."""
     salon_id = user.get("salon_id")
     if not salon_id:
         return None
@@ -76,7 +117,6 @@ def get_salon_context(user, conn):
 
 
 def upload_to_s3(image_b64: str, ext: str, user_id: int) -> str:
-    """Загружаем изображение в S3 во временную папку, возвращаем CDN URL."""
     data = base64.b64decode(image_b64)
     ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     uid = uuid.uuid4().hex[:8]
@@ -107,6 +147,10 @@ def handler(event: dict, context) -> dict:
         if not user:
             return err("Не авторизован", 401)
 
+        salon_id = user.get("salon_id")
+        if not salon_id:
+            return err("Салон не найден", 400)
+
         body = json.loads(event.get("body") or "{}")
         prompt = (body.get("prompt") or "").strip()
         if not prompt:
@@ -115,17 +159,17 @@ def handler(event: dict, context) -> dict:
             return err("Промпт слишком длинный (максимум 5000 символов)")
 
         aspect_raw = body.get("aspect_ratio", "1024x1024")
-        # Нормализуем к формату 1024x1024
         if aspect_raw not in ASPECT_MAP_DALLE:
             aspect_raw = "1024x1024"
         aspect_dalle = ASPECT_MAP_DALLE[aspect_raw]
         aspect_gpt15 = ASPECT_MAP_GPT15[aspect_raw]
 
-        max_images = int(body.get("max_images", 1))
-        if max_images < 1: max_images = 1
-        if max_images > 4: max_images = 4
+        # Проверяем баланс
+        cost = get_tool_cost(conn)
+        balance = get_salon_balance(salon_id, conn)
+        if balance < cost:
+            return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
 
-        # Если пользователь хочет использовать контекст салона — добавляем в промпт
         use_salon_context = body.get("use_salon_context", False)
         final_prompt = prompt
         if use_salon_context:
@@ -146,8 +190,6 @@ def handler(event: dict, context) -> dict:
         api_key = os.environ.get("POLZA_AI_API_KEY", "")
         if not api_key:
             return err("API ключ не настроен.", 500)
-
-        conn.close()
 
         payload = json.dumps({
             "model": "openai/gpt-image-1.5",
@@ -171,9 +213,9 @@ def handler(event: dict, context) -> dict:
                 print(f"[polza.ai] {raw[:300]}")
                 result = json.loads(raw)
         except urllib.error.HTTPError as e:
-            body = e.read().decode("utf-8", errors="ignore")
-            print(f"[polza.ai] HTTP {e.code}: {body[:300]}")
-            return err(f"Ошибка сервиса генерации: {body[:150]}", 502)
+            body_text = e.read().decode("utf-8", errors="ignore")
+            print(f"[polza.ai] HTTP {e.code}: {body_text[:300]}")
+            return err(f"Ошибка сервиса генерации: {body_text[:150]}", 502)
         except Exception as e:
             msg = str(e)
             print(f"[polza.ai] err: {msg}")
@@ -196,7 +238,15 @@ def handler(event: dict, context) -> dict:
         if not image_url:
             return err("Сервис не вернул изображение. Попробуйте ещё раз.", 502)
 
-        return ok({"images": [{"url": image_url}], "prompt_used": final_prompt})
+        # Списываем энергию и сохраняем в историю
+        conn2 = get_db()
+        try:
+            deduct_energy(salon_id, user["id"], cost, conn2)
+            save_image_history(user["id"], image_url, prompt, aspect_gpt15, conn2)
+        finally:
+            conn2.close()
+
+        return ok({"images": [{"url": image_url}], "prompt_used": final_prompt, "energy_spent": cost})
 
     finally:
         try:
