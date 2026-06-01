@@ -1,49 +1,48 @@
+import { Link } from "react-router-dom";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
-import { Link } from "react-router-dom";
+import Icon from "@/components/ui/icon";
 
-const TEAL = "#14B8A6";
+const TEAL = "#2DD4BF";
 const DARK = "#0F172A";
 const GRAY = "#64748B";
+const SERIF = "'Cormorant Garamond', serif";
+
+const STATS = [
+  { value: "200+", label: "салонов на платформе" },
+  { value: "20+", label: "инструментов" },
+  { value: "40+", label: "программ обучения" },
+  { value: "4.9", label: "средняя оценка" },
+];
 
 const CASES = [
   {
-    icon: "💇",
     result: "+22%",
     metric: "к повторной записи",
-    title: "Салон красоты «Виктория», Москва",
+    title: "Салон красоты «Виктория»",
+    location: "Москва",
     role: "Администратор",
-    desc: "Внедрили скрипты повторной записи и алгоритм возврата клиентов. За 2 месяца возвращаемость выросла с 41% до 63%.",
+    desc: "Внедрили скрипты повторной записи и алгоритм возврата клиентов. За два месяца возвращаемость выросла с 41% до 63%.",
     tools: ["Скрипты общения", "Повторная запись"],
-    color: TEAL,
   },
   {
-    icon: "🤲",
     result: "+35%",
     metric: "к личному доходу",
-    title: "Специалист по телу Ольга К., Санкт-Петербург",
+    title: "Специалист по телу Ольга К.",
+    location: "Санкт-Петербург",
     role: "Специалист",
-    desc: "Начала вести соцсети с помощью генератора постов. Записала 4 Reels — получила 18 новых клиентов на курс массажа.",
+    desc: "Начала вести социальные сети с генератором контента. Четыре Reels принесли 18 новых клиентов на курс.",
     tools: ["Генератор постов", "Идеи для Reels"],
-    color: "#8B5CF6",
   },
   {
-    icon: "🏠",
     result: "+18%",
-    metric: "к продажам доп. услуг",
-    title: "Студия nail & brow «Линия», Казань",
+    metric: "к продажам услуг",
+    title: "Студия nail & brow «Линия»",
+    location: "Казань",
     role: "Администратор",
-    desc: "После обучения по скриптам допродаж средний чек вырос с 2800 до 3300 ₽. Секрет — правильный момент предложения.",
+    desc: "После обучения скриптам допродаж средний чек вырос с 2800 до 3300 рублей. Решающим стал правильный момент предложения.",
     tools: ["Скрипты общения", "Работа с возражениями"],
-    color: "#F59E0B",
   },
-];
-
-const STATS = [
-  { value: "200+", label: "Салонов используют платформу" },
-  { value: "20+", label: "ИИ-инструментов в кабинете" },
-  { value: "40+", label: "Программ обучения в академии" },
-  { value: "4.9★", label: "Средняя оценка от пользователей" },
 ];
 
 export default function Keysy() {
@@ -51,57 +50,68 @@ export default function Keysy() {
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <BizNavbar />
 
-      {/* Hero */}
-      <section style={{ background: `linear-gradient(135deg, ${DARK}, #1E293B)`, padding: "120px 24px 80px", textAlign: "center" }}>
-        <div style={{ maxWidth: 680, margin: "0 auto" }}>
-          <h1 style={{ fontSize: "clamp(32px,5vw,52px)", fontWeight: 900, color: "#fff", margin: "0 0 20px", letterSpacing: "-1px" }}>
-            Реальные результаты
+      {/* ── HERO ── */}
+      <section style={{
+        background: `radial-gradient(120% 100% at 80% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`,
+        paddingTop: 76, position: "relative", overflow: "hidden",
+      }}>
+        <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
+
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "center", position: "relative" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
+            <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Кейсы</span>
+          </div>
+          <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
+            Результаты наших клиентов
           </h1>
-          <p style={{ fontSize: "clamp(16px,2vw,20px)", color: "rgba(255,255,255,0.6)", margin: 0, lineHeight: 1.6 }}>
-            Истории салонов и специалистов, которые уже используют Про Диалог
+          <p style={{ fontSize: "clamp(17px,2.2vw,21px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.6, margin: "0 auto", fontWeight: 300, maxWidth: 620 }}>
+            Истории салонов и специалистов, которые уже используют Про Диалог в ежедневной работе.
           </p>
         </div>
       </section>
 
-      {/* Stats */}
-      <section style={{ background: TEAL, padding: "48px 24px" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 20, textAlign: "center" }}>
+      {/* ── СТАТИСТИКА ── */}
+      <section style={{ background: DARK, padding: "0 32px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "rgba(255,255,255,0.06)" }} className="stats-grid">
           {STATS.map((s, i) => (
-            <div key={i} style={{ padding: "16px" }}>
-              <div style={{ fontSize: "clamp(32px,4vw,44px)", fontWeight: 900, color: "#fff", marginBottom: 6 }}>{s.value}</div>
-              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", fontWeight: 500 }}>{s.label}</div>
+            <div key={i} style={{ background: DARK, padding: "56px 24px", textAlign: "center" }}>
+              <div style={{ fontFamily: SERIF, fontSize: "clamp(40px,5vw,56px)", fontWeight: 600, color: "#fff", lineHeight: 1 }}>{s.value}</div>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginTop: 12, letterSpacing: "0.5px" }}>{s.label}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Cases */}
-      <section style={{ padding: "80px 24px", background: "#F8FAFC" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <h2 style={{ fontSize: "clamp(26px,4vw,40px)", fontWeight: 800, color: DARK, textAlign: "center", margin: "0 0 48px" }}>Истории успеха</h2>
+      {/* ── КЕЙСЫ ── */}
+      <section style={{ padding: "120px 32px", background: "#F8FAFC" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Истории</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+              Истории успеха
+            </h2>
+          </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 24 }}>
+          <div className="cases-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
             {CASES.map((c, i) => (
-              <div key={i} style={{ background: "#fff", borderRadius: 20, overflow: "hidden", border: "1.5px solid #E2E8F0", boxShadow: "0 4px 16px rgba(0,0,0,0.05)" }}>
-                {/* Header */}
-                <div style={{ background: `${c.color}12`, padding: "28px", borderBottom: `3px solid ${c.color}25` }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
-                    <div style={{ fontSize: 40 }}>{c.icon}</div>
-                    <div>
-                      <div style={{ fontSize: 36, fontWeight: 900, color: c.color, lineHeight: 1 }}>{c.result}</div>
-                      <div style={{ fontSize: 13, color: GRAY, fontWeight: 500 }}>{c.metric}</div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: DARK }}>{c.title}</div>
-                  <div style={{ fontSize: 12, color: GRAY, marginTop: 2 }}>Роль: {c.role}</div>
-                </div>
+              <div key={i} style={{ background: "#fff", padding: "44px 36px", display: "flex", flexDirection: "column", transition: "all 0.3s", cursor: "default" }}
+                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.05)"}
+                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "#fff"}
+              >
+                <Icon name="Quote" size={24} style={{ color: TEAL, marginBottom: 24 }} />
+                <div style={{ fontFamily: SERIF, fontSize: 56, fontWeight: 600, color: TEAL, lineHeight: 1 }}>{c.result}</div>
+                <div style={{ fontSize: 14, color: GRAY, marginTop: 6, marginBottom: 28, fontWeight: 300 }}>{c.metric}</div>
 
-                {/* Body */}
-                <div style={{ padding: "24px 28px" }}>
-                  <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.7, margin: "0 0 20px" }}>{c.desc}</p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                <p style={{ fontSize: 15, color: "#475569", lineHeight: 1.7, margin: "0 0 28px", fontWeight: 300, flex: 1 }}>{c.desc}</p>
+
+                <div style={{ paddingTop: 24, borderTop: "1px solid #EAEEF3" }}>
+                  <div style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 600, color: DARK }}>{c.title}</div>
+                  <div style={{ fontSize: 13, color: GRAY, marginTop: 4, marginBottom: 18 }}>{c.location} · {c.role}</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {c.tools.map((t, ti) => (
-                      <span key={ti} style={{ fontSize: 12, fontWeight: 600, color: c.color, background: `${c.color}12`, borderRadius: 6, padding: "4px 10px", border: `1px solid ${c.color}25` }}>{t}</span>
+                      <span key={ti} style={{ fontSize: 12, fontWeight: 400, color: DARK, border: "1px solid #EAEEF3", borderRadius: 2, padding: "5px 12px" }}>{t}</span>
                     ))}
                   </div>
                 </div>
@@ -111,33 +121,51 @@ export default function Keysy() {
         </div>
       </section>
 
-      {/* Placeholder for more cases */}
-      <section style={{ padding: "0 24px 80px", background: "#F8FAFC" }}>
+      {/* ── ПЛЕЙСХОЛДЕР ВИДЕО ── */}
+      <section style={{ padding: "0 32px 120px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ width: "100%", height: 200, borderRadius: 20, border: "2px dashed #CBD5E1", background: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            <div style={{ fontSize: 36 }}>📸</div>
-            <div style={{ fontWeight: 600, color: "#94A3B8", fontSize: 15 }}>Видео-отзывы клиентов</div>
-            <div style={{ fontSize: 13, color: "#CBD5E1" }}>Рекомендуемый размер: 1100 × 200 px</div>
+          <div style={{
+            width: "100%", height: 240, borderRadius: 4, border: "1px dashed #CBD5E1", background: "#fff",
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12,
+          }}>
+            <Icon name="Video" size={32} style={{ color: "#94A3B8" }} />
+            <div style={{ fontWeight: 400, color: "#94A3B8", fontSize: 14, letterSpacing: "0.5px" }}>Видео-отзывы клиентов</div>
+            <div style={{ fontSize: 12, color: "#CBD5E1" }}>Размер: 1100 × 240 px</div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section style={{ background: DARK, padding: "72px 24px", textAlign: "center" }}>
-        <div style={{ maxWidth: 560, margin: "0 auto" }}>
-          <h2 style={{ fontSize: "clamp(26px,4vw,40px)", fontWeight: 800, color: "#fff", margin: "0 0 16px" }}>
-            Ваш результат следующий
+      {/* ── CTA ── */}
+      <section style={{ background: "#fff", padding: "120px 32px" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
+            Ваш результат — следующий
           </h2>
-          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", margin: "0 0 32px" }}>
-            Начните с бесплатных 100 ⚡ и проверьте платформу на своём салоне
+          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 40px", fontWeight: 300, position: "relative" }}>
+            Начните со 100 энергий в подарок и проверьте платформу на своём салоне.
           </p>
-          <Link to="/cabinet" style={{ display: "inline-block", padding: "14px 36px", borderRadius: 12, background: "linear-gradient(135deg,#14B8A6,#0D9488)", color: "#fff", fontSize: 16, fontWeight: 700, textDecoration: "none" }}>
-            Попробовать бесплатно
+          <Link to="/cabinet" style={{
+            display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 44px", borderRadius: 2,
+            background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, letterSpacing: "0.3px",
+            textDecoration: "none", position: "relative", transition: "all 0.3s",
+          }}
+            onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 16px 40px rgba(45,212,191,0.3)"; }}
+            onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
+          >
+            Попробовать бесплатно <Icon name="ArrowRight" size={16} />
           </Link>
         </div>
       </section>
 
       <BizFooter />
+
+      <style>{`
+        @media (max-width: 880px) {
+          .stats-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .cases-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }

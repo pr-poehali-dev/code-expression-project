@@ -1,59 +1,57 @@
+import { Link } from "react-router-dom";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
-import { Link } from "react-router-dom";
+import Icon from "@/components/ui/icon";
 
-const TEAL = "#14B8A6";
+const TEAL = "#2DD4BF";
 const DARK = "#0F172A";
 const GRAY = "#64748B";
+const SERIF = "'Cormorant Garamond', serif";
 
 const SECTIONS = [
   {
     tag: "Маркетинг",
-    icon: "📣",
-    title: "ИИ для маркетинга",
-    desc: "Контент, который привлекает клиентов — без копирайтера и дизайнера",
-    color: "#8B5CF6",
+    icon: "Megaphone",
+    title: "Маркетинг",
+    desc: "Контент, который привлекает клиентов — без копирайтера и дизайнера.",
     tools: [
-      { icon: "✍️", name: "Генератор постов", desc: "Текст для Instagram, ВКонтакте и Telegram с хэштегами за 2 минуты" },
-      { icon: "🎬", name: "Идеи для Reels", desc: "Сценарий короткого видео под вашу целевую аудиторию" },
-      { icon: "🖼️", name: "Идеи изображений", desc: "Готовый бриф для дизайнера или Midjourney" },
-      { icon: "⭐", name: "Ответы на отзывы", desc: "Профессиональные ответы на позитивные и негативные отзывы" },
+      { icon: "PenLine", name: "Генератор постов", desc: "Готовый текст для социальных сетей с уместными хэштегами за пару минут." },
+      { icon: "Video", name: "Идеи для Reels", desc: "Сценарий короткого видео под интересы вашей целевой аудитории." },
+      { icon: "Image", name: "Концепции изображений", desc: "Структурированный бриф для дизайнера или нейросети." },
+      { icon: "Star", name: "Ответы на отзывы", desc: "Выверенные ответы на отзывы любой тональности." },
     ],
   },
   {
     tag: "Управление",
-    icon: "📊",
-    title: "ИИ для управления",
-    desc: "Аналитика и инсайты, которые помогают принимать правильные решения",
-    color: "#F59E0B",
+    icon: "BarChart3",
+    title: "Управление",
+    desc: "Аналитика и решения, которые помогают видеть бизнес целиком.",
     tools: [
-      { icon: "🧑‍💼", name: "Анализ персонала", desc: "Кто приносит прибыль, кто создаёт потери — честная картина по каждому" },
-      { icon: "📋", name: "Цифровой бизнес-разбор", desc: "Персональный план роста выручки на основе данных вашего салона" },
-      { icon: "🔬", name: "Диагностика салона", desc: "Полный аудит: маркетинг, сервис, финансы, команда" },
+      { icon: "UserSearch", name: "Анализ персонала", desc: "Объективная картина по каждому сотруднику: кто приносит прибыль." },
+      { icon: "ClipboardList", name: "Цифровой бизнес-разбор", desc: "Персональный план роста выручки на основе данных вашего салона." },
+      { icon: "Stethoscope", name: "Диагностика салона", desc: "Полный аудит маркетинга, сервиса, финансов и команды." },
     ],
   },
   {
     tag: "Продажи",
-    icon: "💬",
-    title: "ИИ для продаж",
-    desc: "Готовые инструменты для увеличения среднего чека и возвращаемости",
-    color: "#EF4444",
+    icon: "MessagesSquare",
+    title: "Продажи",
+    desc: "Готовые инструменты для роста среднего чека и возвращаемости.",
     tools: [
-      { icon: "💬", name: "Скрипты общения", desc: "Сценарии для администраторов на любую ситуацию: запись, допродажа, конфликт" },
-      { icon: "🛡️", name: "Работа с возражениями", desc: "Готовые ответы на «дорого», «подумаю», «не сейчас»" },
-      { icon: "🔄", name: "Повторная запись", desc: "Алгоритм возврата клиента через 2–4 недели после визита" },
+      { icon: "MessagesSquare", name: "Скрипты общения", desc: "Сценарии для администраторов на любую ситуацию: запись, допродажа, конфликт." },
+      { icon: "ShieldCheck", name: "Работа с возражениями", desc: "Выверенные ответы на «дорого», «подумаю» и «не сейчас»." },
+      { icon: "RotateCcw", name: "Повторная запись", desc: "Алгоритм возврата клиента через несколько недель после визита." },
     ],
   },
   {
     tag: "Специалисты",
-    icon: "🔍",
-    title: "ИИ для специалистов",
-    desc: "Инструменты, которые повышают качество работы и доверие клиентов",
-    color: TEAL,
+    icon: "Stethoscope",
+    title: "Специалисты",
+    desc: "Инструменты, которые повышают качество работы и доверие клиентов.",
     tools: [
-      { icon: "🔍", name: "Диагностика клиента", desc: "Структурированный опрос и анализ для специалистов по телу" },
-      { icon: "📝", name: "Шпаргалки мастера", desc: "Краткие памятки по техникам, противопоказаниям, продуктам" },
-      { icon: "💆", name: "Программы восстановления", desc: "Индивидуальный план работы с клиентом на курс" },
+      { icon: "ScanLine", name: "Диагностика клиента", desc: "Структурированный опрос и анализ для специалистов по телу." },
+      { icon: "FileText", name: "Шпаргалки мастера", desc: "Краткие памятки по техникам, противопоказаниям и продуктам." },
+      { icon: "HeartPulse", name: "Программы восстановления", desc: "Индивидуальный план работы с клиентом на полный курс." },
     ],
   },
 ];
@@ -63,49 +61,66 @@ export default function Vozmozhnosti() {
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <BizNavbar />
 
-      {/* Hero */}
-      <section style={{ background: `linear-gradient(135deg, ${DARK}, #1E293B)`, padding: "120px 24px 80px", textAlign: "center" }}>
-        <div style={{ maxWidth: 720, margin: "0 auto" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(20,184,166,0.15)", border: "1px solid rgba(20,184,166,0.3)", borderRadius: 100, padding: "6px 16px", marginBottom: 24 }}>
-            <span style={{ fontSize: 13, color: TEAL, fontWeight: 600 }}>20+ инструментов</span>
+      {/* ── HERO ── */}
+      <section style={{
+        background: `radial-gradient(120% 100% at 80% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`,
+        paddingTop: 76, position: "relative", overflow: "hidden",
+      }}>
+        <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
+
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "center", position: "relative" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
+            <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Возможности</span>
           </div>
-          <h1 style={{ fontSize: "clamp(32px,5vw,52px)", fontWeight: 900, color: "#fff", margin: "0 0 20px", letterSpacing: "-1px", lineHeight: 1.1 }}>
+
+          <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
             Возможности платформы
           </h1>
-          <p style={{ fontSize: "clamp(16px,2vw,20px)", color: "rgba(255,255,255,0.6)", margin: "0 0 36px", lineHeight: 1.6 }}>
-            Всё необходимое для роста салона в одном кабинете — маркетинг, управление, продажи и развитие команды
+          <p style={{ fontSize: "clamp(17px,2.2vw,21px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.6, margin: "0 auto 40px", fontWeight: 300, maxWidth: 640 }}>
+            Всё необходимое для роста салона в едином кабинете — маркетинг, управление, продажи и развитие команды. Спокойные, выверенные инструменты для ежедневной работы.
           </p>
-          <Link to="/cabinet" style={{ display: "inline-block", padding: "14px 32px", borderRadius: 12, background: "linear-gradient(135deg,#14B8A6,#0D9488)", color: "#fff", fontSize: 16, fontWeight: 700, textDecoration: "none", boxShadow: "0 8px 24px rgba(20,184,166,0.4)" }}>
+
+          <Link to="/cabinet" style={{
+            display: "inline-block", padding: "16px 38px", borderRadius: 2, fontSize: 15, fontWeight: 500, letterSpacing: "0.3px",
+            background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A",
+            textDecoration: "none", transition: "all 0.3s",
+          }}
+            onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 16px 40px rgba(45,212,191,0.3)"; }}
+            onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
+          >
             Попробовать бесплатно
           </Link>
         </div>
       </section>
 
-      {/* Sections */}
+      {/* ── РАЗДЕЛЫ ── */}
       {SECTIONS.map((s, si) => (
-        <section key={si} style={{ padding: "72px 24px", background: si % 2 === 0 ? "#fff" : "#F8FAFC" }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 20, marginBottom: 40, flexWrap: "wrap" }}>
-              <div style={{ width: 56, height: 56, borderRadius: 16, background: `${s.color}18`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, flexShrink: 0 }}>{s.icon}</div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: s.color, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 6 }}>{s.tag}</div>
-                <h2 style={{ fontSize: "clamp(24px,3vw,36px)", fontWeight: 800, color: DARK, margin: "0 0 8px", letterSpacing: "-0.3px" }}>{s.title}</h2>
-                <p style={{ fontSize: 16, color: GRAY, margin: 0 }}>{s.desc}</p>
+        <section key={si} style={{ padding: "120px 32px", background: si % 2 === 0 ? "#fff" : "#F8FAFC" }}>
+          <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 24, marginBottom: 64, flexWrap: "wrap" }}>
+              <div style={{ width: 56, height: 56, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name={s.icon} size={26} style={{ color: TEAL }} />
+              </div>
+              <div style={{ maxWidth: 640 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 14 }}>{s.tag}</div>
+                <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,48px)", fontWeight: 500, color: DARK, margin: "0 0 12px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>{s.title}</h2>
+                <p style={{ fontSize: 18, color: GRAY, margin: 0, fontWeight: 300, lineHeight: 1.6 }}>{s.desc}</p>
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 16 }}>
+            <div className="tools-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
               {s.tools.map((t, ti) => (
-                <div key={ti} style={{
-                  background: "#fff", border: "1.5px solid #E2E8F0", borderRadius: 16, padding: "24px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)", transition: "all 0.2s",
-                }}
-                  onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = s.color; el.style.transform = "translateY(-3px)"; el.style.boxShadow = `0 8px 24px ${s.color}20`; }}
-                  onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "#E2E8F0"; el.style.transform = "translateY(0)"; el.style.boxShadow = "0 2px 8px rgba(0,0,0,0.04)"; }}
+                <div key={ti} style={{ background: si % 2 === 0 ? "#fff" : "#F8FAFC", padding: "40px 32px", transition: "all 0.3s", cursor: "default" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.05)"}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = si % 2 === 0 ? "#fff" : "#F8FAFC"; }}
                 >
-                  <div style={{ fontSize: 28, marginBottom: 12 }}>{t.icon}</div>
-                  <h3 style={{ fontSize: 17, fontWeight: 700, color: DARK, margin: "0 0 8px" }}>{t.name}</h3>
-                  <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.6 }}>{t.desc}</p>
+                  <div style={{ width: 48, height: 48, borderRadius: 2, border: "1px solid #EAEEF3", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+                    <Icon name={t.icon} size={22} style={{ color: TEAL }} />
+                  </div>
+                  <h3 style={{ fontFamily: SERIF, fontSize: 23, fontWeight: 600, color: DARK, margin: "0 0 10px" }}>{t.name}</h3>
+                  <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{t.desc}</p>
                 </div>
               ))}
             </div>
@@ -113,18 +128,29 @@ export default function Vozmozhnosti() {
         </section>
       ))}
 
-      {/* CTA */}
-      <section style={{ background: DARK, padding: "72px 24px", textAlign: "center" }}>
-        <div style={{ maxWidth: 600, margin: "0 auto" }}>
-          <h2 style={{ fontSize: "clamp(26px,4vw,40px)", fontWeight: 800, color: "#fff", margin: "0 0 16px" }}>Готовы начать?</h2>
-          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", margin: "0 0 32px" }}>Создайте профиль салона и получите 100 ⚡ в подарок</p>
-          <Link to="/cabinet" style={{ display: "inline-block", padding: "14px 36px", borderRadius: 12, background: "linear-gradient(135deg,#14B8A6,#0D9488)", color: "#fff", fontSize: 16, fontWeight: 700, textDecoration: "none" }}>
+      {/* ── CTA ── */}
+      <section style={{ background: "#fff", padding: "120px 32px" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
+            Готовы начать?
+          </h2>
+          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 40px", fontWeight: 300, position: "relative" }}>
+            Создайте профиль салона и получите доступ ко всем инструментам платформы. Без карты и обязательств.
+          </p>
+          <Link to="/cabinet" style={{ display: "inline-block", padding: "16px 44px", borderRadius: 2, background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, textDecoration: "none", letterSpacing: "0.3px", position: "relative" }}>
             Попробовать бесплатно
           </Link>
         </div>
       </section>
 
       <BizFooter />
+
+      <style>{`
+        @media (max-width: 880px) {
+          .tools-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }

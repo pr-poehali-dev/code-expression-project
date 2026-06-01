@@ -1,10 +1,12 @@
+import { Link } from "react-router-dom";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
-import { Link } from "react-router-dom";
+import Icon from "@/components/ui/icon";
 
-const TEAL = "#14B8A6";
+const TEAL = "#2DD4BF";
 const DARK = "#0F172A";
 const GRAY = "#64748B";
+const SERIF = "'Cormorant Garamond', serif";
 
 const PACKAGES = [
   {
@@ -12,9 +14,8 @@ const PACKAGES = [
     name: "Старт",
     price: 990,
     energy: 150,
-    color: "#64748B",
-    desc: "Попробуйте платформу",
-    features: ["150 ⚡ энергий", "Все инструменты", "Техподдержка"],
+    desc: "Знакомство с платформой",
+    features: ["150 энергий", "Все инструменты", "Техническая поддержка"],
     popular: false,
   },
   {
@@ -22,9 +23,8 @@ const PACKAGES = [
     name: "Бизнес",
     price: 2990,
     energy: 550,
-    color: TEAL,
     desc: "Для активного использования",
-    features: ["550 ⚡ энергий", "Все инструменты", "Приоритетная поддержка", "Экономия 15%"],
+    features: ["550 энергий", "Все инструменты", "Приоритетная поддержка", "Экономия 15%"],
     popular: true,
   },
   {
@@ -32,9 +32,8 @@ const PACKAGES = [
     name: "Рост",
     price: 4990,
     energy: 1200,
-    color: "#8B5CF6",
-    desc: "Для всей команды",
-    features: ["1200 ⚡ энергий", "Все инструменты", "Приоритетная поддержка", "Экономия 33%"],
+    desc: "Для всей команды салона",
+    features: ["1200 энергий", "Все инструменты", "Приоритетная поддержка", "Экономия 33%"],
     popular: false,
   },
   {
@@ -42,18 +41,23 @@ const PACKAGES = [
     name: "Премиум",
     price: 9990,
     energy: 3000,
-    color: "#F59E0B",
     desc: "Максимальная мощность",
-    features: ["3000 ⚡ энергий", "Все инструменты", "VIP-поддержка", "Экономия 50%", "Личный менеджер"],
+    features: ["3000 энергий", "Все инструменты", "VIP-поддержка", "Экономия 50%", "Личный менеджер"],
     popular: false,
   },
 ];
 
+const EXPLAINER = [
+  { icon: "Zap", title: "Что такое энергия", desc: "Внутренняя валюта платформы. Расходуется при использовании интеллектуальных инструментов." },
+  { icon: "Battery", title: "Не сгорает", desc: "Приобретённые энергии хранятся на балансе салона без ограничения срока." },
+  { icon: "Users", title: "Для всей команды", desc: "Один баланс на весь салон — все сотрудники используют общий запас." },
+];
+
 const FAQ = [
-  { q: "Что такое энергия ⚡?", a: "Энергия — это внутренняя валюта платформы. Каждый ИИ-инструмент тратит определённое количество энергий. Чем мощнее инструмент, тем больше расход." },
-  { q: "Можно ли попробовать бесплатно?", a: "Да! При создании первого профиля салона вы получаете 100 ⚡ в подарок. Этого достаточно для знакомства с платформой." },
-  { q: "Не использованные энергии сгорают?", a: "Нет. Купленные энергии хранятся на балансе вашего салона без ограничения срока." },
-  { q: "Можно добавить несколько сотрудников?", a: "Да, вы можете пригласить команду в кабинет. Все используют общий баланс энергий салона." },
+  { q: "Что такое энергия", a: "Энергия — это внутренняя валюта платформы. Каждый инструмент расходует определённое количество энергий: чем сложнее задача, тем выше расход." },
+  { q: "Можно ли попробовать бесплатно", a: "Да. При создании первого профиля салона вы получаете 100 энергий в подарок — этого достаточно для знакомства с платформой." },
+  { q: "Не использованные энергии сгорают", a: "Нет. Приобретённые энергии хранятся на балансе вашего салона без ограничения срока." },
+  { q: "Можно добавить несколько сотрудников", a: "Да. Вы можете пригласить команду в кабинет — все используют общий баланс энергий салона." },
 ];
 
 export default function Tseny() {
@@ -61,89 +65,98 @@ export default function Tseny() {
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <BizNavbar />
 
-      {/* Hero */}
-      <section style={{ background: `linear-gradient(135deg, ${DARK}, #1E293B)`, padding: "120px 24px 80px", textAlign: "center" }}>
-        <div style={{ maxWidth: 680, margin: "0 auto" }}>
-          <h1 style={{ fontSize: "clamp(32px,5vw,52px)", fontWeight: 900, color: "#fff", margin: "0 0 20px", letterSpacing: "-1px" }}>
-            Простые тарифы
+      {/* ── HERO ── */}
+      <section style={{
+        background: `radial-gradient(120% 100% at 80% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`,
+        paddingTop: 76, position: "relative", overflow: "hidden",
+      }}>
+        <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
+
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "center", position: "relative" }}>
+          <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
+            Тарифы
           </h1>
-          <p style={{ fontSize: "clamp(16px,2vw,20px)", color: "rgba(255,255,255,0.6)", margin: "0 0 16px", lineHeight: 1.6 }}>
-            Платите только за то, что используете. Никаких скрытых платежей.
+          <p style={{ fontSize: "clamp(17px,2.2vw,21px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.6, margin: "0 auto 32px", fontWeight: 300, maxWidth: 600 }}>
+            Платите только за то, что используете. Без скрытых платежей и абонентской платы.
           </p>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(20,184,166,0.15)", border: "1px solid rgba(20,184,166,0.3)", borderRadius: 100, padding: "8px 18px" }}>
-            <span style={{ fontSize: 18 }}>🎁</span>
-            <span style={{ fontSize: 14, color: TEAL, fontWeight: 600 }}>100 ⚡ бесплатно при регистрации</span>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "9px 20px" }}>
+            <Icon name="Gift" size={16} style={{ color: TEAL }} />
+            <span style={{ fontSize: 13, color: TEAL, fontWeight: 500, letterSpacing: "0.5px" }}>100 энергий бесплатно при регистрации</span>
           </div>
         </div>
       </section>
 
-      {/* Energy explainer */}
-      <section style={{ background: "#F8FAFC", padding: "56px 24px" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto" }}>
-          <div style={{ background: "#fff", borderRadius: 20, padding: "36px", border: "1.5px solid #E2E8F0", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24 }} className="energy-grid">
-            <div style={{ textAlign: "center", padding: "16px" }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>⚡</div>
-              <h3 style={{ fontSize: 17, fontWeight: 700, color: DARK, margin: "0 0 8px" }}>Что такое энергия</h3>
-              <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.6 }}>Внутренняя валюта платформы. Тратится при использовании ИИ-инструментов.</p>
-            </div>
-            <div style={{ textAlign: "center", padding: "16px", borderLeft: "1px solid #E2E8F0", borderRight: "1px solid #E2E8F0" }} className="energy-middle">
-              <div style={{ fontSize: 40, marginBottom: 12 }}>🔋</div>
-              <h3 style={{ fontSize: 17, fontWeight: 700, color: DARK, margin: "0 0 8px" }}>Не сгорает</h3>
-              <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.6 }}>Купленные энергии хранятся без ограничения срока. Используйте когда удобно.</p>
-            </div>
-            <div style={{ textAlign: "center", padding: "16px" }}>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>👥</div>
-              <h3 style={{ fontSize: 17, fontWeight: 700, color: DARK, margin: "0 0 8px" }}>Для всей команды</h3>
-              <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.6 }}>Один баланс на весь салон. Все сотрудники используют общий запас.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Packages */}
-      <section style={{ padding: "56px 24px 80px", background: "#fff" }}>
+      {/* ── ОБЪЯСНЕНИЕ ЭНЕРГИИ ── */}
+      <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <h2 style={{ fontSize: "clamp(26px,4vw,40px)", fontWeight: 800, color: DARK, margin: "0 0 12px" }}>Выберите пакет</h2>
-            <p style={{ fontSize: 17, color: GRAY, margin: 0 }}>Оплата через ЮKassa — будет доступна в ближайшее время</p>
+          <div className="energy-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
+            {EXPLAINER.map((e, i) => (
+              <div key={i} style={{ background: "#fff", padding: "48px 40px", textAlign: "center" }}>
+                <div style={{ width: 56, height: 56, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 28px" }}>
+                  <Icon name={e.icon} size={24} style={{ color: TEAL }} />
+                </div>
+                <h3 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 600, color: DARK, margin: "0 0 12px" }}>{e.title}</h3>
+                <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{e.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ПАКЕТЫ ── */}
+      <section style={{ padding: "120px 32px", background: "#fff" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Пакеты</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+              Выберите пакет
+            </h2>
+            <p style={{ fontSize: 17, color: GRAY, margin: 0, fontWeight: 300 }}>Оплата через ЮKassa — будет доступна в ближайшее время</p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 20 }}>
+          <div className="pkg-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 20 }}>
             {PACKAGES.map((pkg) => (
               <div key={pkg.code} style={{
-                border: pkg.popular ? `2px solid ${TEAL}` : "1.5px solid #E2E8F0",
-                borderRadius: 20, overflow: "hidden",
-                boxShadow: pkg.popular ? "0 12px 40px rgba(20,184,166,0.2)" : "none",
-                position: "relative",
+                border: pkg.popular ? `1px solid ${TEAL}` : "1px solid #E2E8F0",
+                borderRadius: 4, overflow: "hidden", position: "relative",
+                display: "flex", flexDirection: "column",
+                background: pkg.popular ? "rgba(45,212,191,0.04)" : "#fff",
               }}>
                 {pkg.popular && (
-                  <div style={{ background: TEAL, color: "#fff", textAlign: "center", fontSize: 12, fontWeight: 700, padding: "7px", letterSpacing: "0.5px" }}>
+                  <div style={{ background: TEAL, color: DARK, textAlign: "center", fontSize: 11, fontWeight: 600, padding: "8px", letterSpacing: "1.5px" }}>
                     ПОПУЛЯРНЫЙ
                   </div>
                 )}
-                <div style={{ padding: "28px 24px" }}>
-                  <h3 style={{ fontSize: 22, fontWeight: 800, color: DARK, margin: "0 0 6px" }}>{pkg.name}</h3>
-                  <p style={{ fontSize: 13, color: GRAY, margin: "0 0 20px" }}>{pkg.desc}</p>
+                <div style={{ padding: "32px 28px", display: "flex", flexDirection: "column", flex: 1 }}>
+                  <h3 style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 600, color: DARK, margin: "0 0 6px" }}>{pkg.name}</h3>
+                  <p style={{ fontSize: 13, color: GRAY, margin: "0 0 28px", fontWeight: 300 }}>{pkg.desc}</p>
 
-                  <div style={{ margin: "0 0 8px" }}>
-                    <span style={{ fontSize: 36, fontWeight: 900, color: pkg.color }}>{pkg.price.toLocaleString()} ₽</span>
+                  <div style={{ marginBottom: 12 }}>
+                    <span style={{ fontFamily: SERIF, fontSize: 44, fontWeight: 600, color: DARK, lineHeight: 1 }}>{pkg.price.toLocaleString("ru-RU")}</span>
+                    <span style={{ fontSize: 18, color: GRAY, fontWeight: 300, marginLeft: 4 }}>₽</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 24 }}>
-                    <span style={{ fontSize: 22 }}>⚡</span>
-                    <span style={{ fontSize: 22, fontWeight: 800, color: pkg.color }}>{pkg.energy.toLocaleString()}</span>
-                    <span style={{ fontSize: 14, color: GRAY }}>энергий</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28 }}>
+                    <Icon name="Zap" size={18} style={{ color: TEAL }} />
+                    <span style={{ fontSize: 18, fontWeight: 500, color: DARK }}>{pkg.energy.toLocaleString("ru-RU")}</span>
+                    <span style={{ fontSize: 14, color: GRAY, fontWeight: 300 }}>энергий</span>
                   </div>
 
-                  <div style={{ borderTop: "1px solid #F1F5F9", paddingTop: 20, marginBottom: 24 }}>
+                  <div style={{ borderTop: "1px solid #EAEEF3", paddingTop: 24, marginBottom: 28, display: "flex", flexDirection: "column", gap: 12, flex: 1 }}>
                     {pkg.features.map((f, fi) => (
-                      <div key={fi} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                        <div style={{ width: 18, height: 18, borderRadius: "50%", background: `${pkg.color}20`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: pkg.color, fontWeight: 700, flexShrink: 0 }}>✓</div>
-                        <span style={{ fontSize: 13, color: "#334155" }}>{f}</span>
+                      <div key={fi} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                        <Icon name="Check" size={16} style={{ color: TEAL, flexShrink: 0, marginTop: 2 }} />
+                        <span style={{ fontSize: 14, color: "#334155", lineHeight: 1.4, fontWeight: 300 }}>{f}</span>
                       </div>
                     ))}
                   </div>
 
-                  <button disabled style={{ width: "100%", padding: "12px", borderRadius: 10, border: "none", background: pkg.popular ? `linear-gradient(135deg,${TEAL},#0D9488)` : "#F1F5F9", color: pkg.popular ? "#fff" : GRAY, fontSize: 14, fontWeight: 700, cursor: "not-allowed", fontFamily: "Inter, sans-serif", opacity: 0.75 }}>
+                  <button disabled style={{
+                    width: "100%", padding: "14px", borderRadius: 2, border: pkg.popular ? "none" : "1px solid #E2E8F0",
+                    background: pkg.popular ? "linear-gradient(135deg,#2DD4BF,#14B8A6)" : "#F8FAFC",
+                    color: pkg.popular ? DARK : GRAY, fontSize: 14, fontWeight: 500, letterSpacing: "0.3px",
+                    cursor: "not-allowed", fontFamily: "Inter, sans-serif", opacity: 0.85,
+                  }}>
                     Скоро
                   </button>
                 </div>
@@ -153,30 +166,45 @@ export default function Tseny() {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section style={{ background: "#F8FAFC", padding: "72px 24px" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto" }}>
-          <h2 style={{ fontSize: "clamp(24px,3vw,36px)", fontWeight: 800, color: DARK, textAlign: "center", margin: "0 0 48px" }}>Частые вопросы</h2>
-          {FAQ.map((item, i) => (
-            <div key={i} style={{ background: "#fff", borderRadius: 14, padding: "24px", marginBottom: 12, border: "1.5px solid #E2E8F0" }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: DARK, margin: "0 0 10px" }}>{item.q}</h3>
-              <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.7 }}>{item.a}</p>
-            </div>
-          ))}
+      {/* ── FAQ ── */}
+      <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
+        <div style={{ maxWidth: 800, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 64 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Вопросы</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,52px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+              Частые вопросы
+            </h2>
+          </div>
+          <div style={{ border: "1px solid #EAEEF3" }}>
+            {FAQ.map((item, i) => (
+              <div key={i} style={{ background: "#fff", padding: "32px 36px", borderBottom: i < FAQ.length - 1 ? "1px solid #EAEEF3" : "none" }}>
+                <h3 style={{ fontFamily: SERIF, fontSize: 23, fontWeight: 600, color: DARK, margin: "0 0 12px" }}>{item.q}</h3>
+                <p style={{ fontSize: 15, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{item.a}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section style={{ background: "linear-gradient(135deg,#0D9488,#14B8A6)", padding: "72px 24px", textAlign: "center" }}>
-        <div style={{ maxWidth: 560, margin: "0 auto" }}>
-          <h2 style={{ fontSize: "clamp(26px,4vw,40px)", fontWeight: 900, color: "#fff", margin: "0 0 16px" }}>
+      {/* ── CTA ── */}
+      <section style={{ background: "#fff", padding: "120px 32px" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
             Начните бесплатно
           </h2>
-          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.85)", margin: "0 0 32px" }}>
-            Создайте профиль салона и получите 100 ⚡ в подарок прямо сейчас
+          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 40px", fontWeight: 300, position: "relative" }}>
+            100 энергий в подарок при создании первого салона. Без карты и обязательств.
           </p>
-          <Link to="/cabinet" style={{ display: "inline-block", padding: "15px 40px", borderRadius: 12, background: "#fff", color: "#0D9488", fontSize: 16, fontWeight: 800, textDecoration: "none" }}>
-            Попробовать бесплатно
+          <Link to="/cabinet" style={{
+            display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 44px", borderRadius: 2,
+            background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, letterSpacing: "0.3px",
+            textDecoration: "none", position: "relative", transition: "all 0.3s",
+          }}
+            onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 16px 40px rgba(45,212,191,0.3)"; }}
+            onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
+          >
+            Попробовать бесплатно <Icon name="ArrowRight" size={16} />
           </Link>
         </div>
       </section>
@@ -184,9 +212,12 @@ export default function Tseny() {
       <BizFooter />
 
       <style>{`
-        @media (max-width: 640px) {
+        @media (max-width: 880px) {
           .energy-grid { grid-template-columns: 1fr !important; }
-          .energy-middle { border-left: none !important; border-right: none !important; border-top: 1px solid #E2E8F0; border-bottom: 1px solid #E2E8F0; }
+          .pkg-grid { grid-template-columns: repeat(2,1fr) !important; }
+        }
+        @media (max-width: 560px) {
+          .pkg-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>

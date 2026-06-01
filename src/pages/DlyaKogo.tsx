@@ -1,67 +1,65 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
-import { Link } from "react-router-dom";
+import Icon from "@/components/ui/icon";
 
-const TEAL = "#14B8A6";
+const TEAL = "#2DD4BF";
 const DARK = "#0F172A";
 const GRAY = "#64748B";
+const SERIF = "'Cormorant Garamond', serif";
 
 const ROLES = [
   {
     id: "owner",
-    icon: "👔",
+    icon: "Crown",
     title: "Владельцу салона",
-    subtitle: "Управляйте бизнесом с данными, а не интуицией",
-    color: "#8B5CF6",
-    pain: "Много работаете, но прибыль не растёт. Непонятно, где теряются деньги и что мешает масштабироваться.",
+    subtitle: "Управление бизнесом на основе данных, а не интуиции",
+    pain: "Много работы, но прибыль не растёт. Непонятно, где теряются деньги и что мешает масштабироваться.",
     tools: [
-      { icon: "📋", name: "Цифровой бизнес-разбор", desc: "Персональный план роста выручки" },
-      { icon: "🧑‍💼", name: "Анализ персонала", desc: "Кто реально приносит прибыль" },
-      { icon: "🔬", name: "Диагностика салона", desc: "Аудит всех направлений бизнеса" },
-      { icon: "📈", name: "Финансовые расчёты", desc: "Точки безубыточности и прогнозы" },
+      { icon: "ClipboardList", name: "Цифровой бизнес-разбор", desc: "Персональный план роста выручки на основе данных салона." },
+      { icon: "UserSearch", name: "Анализ персонала", desc: "Объективная картина: кто действительно приносит прибыль." },
+      { icon: "ScanLine", name: "Диагностика салона", desc: "Полный аудит всех направлений бизнеса." },
+      { icon: "BarChart3", name: "Финансовые расчёты", desc: "Точки безубыточности и прогнозы выручки." },
     ],
   },
   {
     id: "admin",
-    icon: "💼",
+    icon: "Briefcase",
     title: "Администратору",
-    subtitle: "Продавайте больше без давления и скриптов в голове",
-    color: "#F59E0B",
-    pain: "Клиенты уходят без повторной записи. Не знаете, как мягко предложить доп. услугу или отработать возражение.",
+    subtitle: "Больше продаж без давления и скриптов в голове",
+    pain: "Клиенты уходят без повторной записи. Сложно мягко предложить услугу или отработать возражение.",
     tools: [
-      { icon: "💬", name: "Скрипты общения", desc: "Готовые сценарии на любую ситуацию" },
-      { icon: "🛡️", name: "Работа с возражениями", desc: "Ответы на «дорого» и «подумаю»" },
-      { icon: "🔄", name: "Повторная запись", desc: "Алгоритм возврата клиента" },
-      { icon: "⭐", name: "Ответы на отзывы", desc: "Профессиональная репутация онлайн" },
+      { icon: "MessagesSquare", name: "Скрипты общения", desc: "Готовые сценарии на любую ситуацию." },
+      { icon: "ShieldCheck", name: "Работа с возражениями", desc: "Выверенные ответы на «дорого» и «подумаю»." },
+      { icon: "RotateCcw", name: "Повторная запись", desc: "Алгоритм возврата клиента после визита." },
+      { icon: "Star", name: "Ответы на отзывы", desc: "Профессиональная репутация в сети." },
     ],
   },
   {
     id: "master",
-    icon: "✂️",
+    icon: "Scissors",
     title: "Мастеру",
-    subtitle: "Растите личный доход и базу постоянных клиентов",
-    color: TEAL,
-    pain: "Клиенты не возвращаются именно к вам. Соцсети не ведёте, потому что не знаете, о чём писать.",
+    subtitle: "Рост личного дохода и базы постоянных клиентов",
+    pain: "Клиенты не возвращаются именно к вам. Социальные сети молчат, потому что неясно, о чём писать.",
     tools: [
-      { icon: "✍️", name: "Генератор постов", desc: "Контент о себе и своей работе" },
-      { icon: "🎬", name: "Идеи для Reels", desc: "Сценарии коротких видео" },
-      { icon: "📝", name: "Шпаргалки мастера", desc: "Памятки по техникам и продуктам" },
-      { icon: "💬", name: "Скрипты допродаж", desc: "Предложите уход правильно" },
+      { icon: "PenLine", name: "Генератор постов", desc: "Контент о себе и своей работе за пару минут." },
+      { icon: "Video", name: "Идеи для Reels", desc: "Сценарии коротких видео под вашу аудиторию." },
+      { icon: "FileText", name: "Шпаргалки мастера", desc: "Памятки по техникам и продуктам." },
+      { icon: "MessagesSquare", name: "Скрипты допродаж", desc: "Корректное предложение домашнего ухода." },
     ],
   },
   {
     id: "specialist",
-    icon: "🤲",
+    icon: "HandHeart",
     title: "Специалисту по телу",
-    subtitle: "Работайте глубже — с контекстом каждого клиента",
-    color: "#EF4444",
-    pain: "Каждый клиент уникален, но нет времени всё держать в голове. Хочется давать персональный результат.",
+    subtitle: "Работа глубже — с контекстом каждого клиента",
+    pain: "Каждый клиент уникален, но держать всё в голове невозможно. Хочется давать персональный результат.",
     tools: [
-      { icon: "🔍", name: "Диагностика клиента", desc: "Структурированный опрос и анализ" },
-      { icon: "💆", name: "Программы восстановления", desc: "Индивидуальный план на курс" },
-      { icon: "📝", name: "Шпаргалки специалиста", desc: "Противопоказания, протоколы" },
-      { icon: "✍️", name: "Контент о практике", desc: "Посты для личного бренда" },
+      { icon: "Stethoscope", name: "Диагностика клиента", desc: "Структурированный опрос и анализ состояния." },
+      { icon: "HeartPulse", name: "Программы восстановления", desc: "Индивидуальный план работы на полный курс." },
+      { icon: "FileText", name: "Шпаргалки специалиста", desc: "Противопоказания и рабочие протоколы." },
+      { icon: "PenLine", name: "Контент о практике", desc: "Посты для личного профессионального бренда." },
     ],
   },
 ];
@@ -74,83 +72,113 @@ export default function DlyaKogo() {
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <BizNavbar />
 
-      {/* Hero */}
-      <section style={{ background: `linear-gradient(135deg, ${DARK}, #1E293B)`, padding: "120px 24px 80px", textAlign: "center" }}>
-        <div style={{ maxWidth: 720, margin: "0 auto" }}>
-          <h1 style={{ fontSize: "clamp(32px,5vw,52px)", fontWeight: 900, color: "#fff", margin: "0 0 20px", letterSpacing: "-1px", lineHeight: 1.1 }}>
+      {/* ── HERO ── */}
+      <section style={{
+        background: `radial-gradient(120% 100% at 80% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`,
+        paddingTop: 76, position: "relative", overflow: "hidden",
+      }}>
+        <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
+
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "center", position: "relative" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
+            <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Для кого</span>
+          </div>
+
+          <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
             Для кого Про Диалог
           </h1>
-          <p style={{ fontSize: "clamp(16px,2vw,20px)", color: "rgba(255,255,255,0.6)", margin: 0, lineHeight: 1.6 }}>
-            Платформа создана для каждого члена команды салона — от владельца до специалиста
+          <p style={{ fontSize: "clamp(17px,2.2vw,21px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.6, margin: "0 auto", fontWeight: 300, maxWidth: 640 }}>
+            Платформа создана для каждого члена команды салона — от владельца до специалиста. У каждой роли свой набор инструментов и своя зона роста.
           </p>
         </div>
       </section>
 
-      {/* Role selector */}
-      <section style={{ padding: "64px 24px", background: "#F8FAFC" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      {/* ── ИНТЕРАКТИВНЫЙ БЛОК ── */}
+      <section style={{ padding: "120px 32px", background: "#F8FAFC" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           {/* Tabs */}
-          <div style={{ display: "flex", gap: 12, marginBottom: 40, flexWrap: "wrap", justifyContent: "center" }}>
-            {ROLES.map(r => (
-              <button key={r.id} onClick={() => setActiveId(r.id)}
-                style={{
-                  display: "flex", alignItems: "center", gap: 10, padding: "12px 24px",
-                  borderRadius: 12, border: "2px solid", cursor: "pointer",
-                  fontFamily: "Inter, sans-serif", fontSize: 15, fontWeight: 600,
-                  transition: "all 0.2s",
-                  borderColor: activeId === r.id ? r.color : "#E2E8F0",
-                  background: activeId === r.id ? `${r.color}15` : "#fff",
-                  color: activeId === r.id ? r.color : GRAY,
-                  boxShadow: activeId === r.id ? `0 4px 16px ${r.color}25` : "none",
-                }}>
-                <span style={{ fontSize: 20 }}>{r.icon}</span>
-                {r.title}
-              </button>
-            ))}
+          <div style={{ display: "flex", gap: 12, marginBottom: 56, flexWrap: "wrap", justifyContent: "center" }}>
+            {ROLES.map(r => {
+              const isActive = activeId === r.id;
+              return (
+                <button key={r.id} onClick={() => setActiveId(r.id)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 10, padding: "13px 24px",
+                    borderRadius: 2, border: "1px solid", cursor: "pointer",
+                    fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 500, letterSpacing: "0.3px",
+                    transition: "all 0.3s",
+                    borderColor: isActive ? TEAL : "#E2E8F0",
+                    background: isActive ? "rgba(45,212,191,0.08)" : "#fff",
+                    color: isActive ? DARK : GRAY,
+                  }}
+                  onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.borderColor = "#CBD5E1"; }}
+                  onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.borderColor = "#E2E8F0"; }}
+                >
+                  <Icon name={r.icon} size={18} style={{ color: TEAL }} />
+                  {r.title}
+                </button>
+              );
+            })}
           </div>
 
           {/* Active role content */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, alignItems: "start" }} className="role-grid">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }} className="role-grid">
             {/* Left: description */}
-            <div style={{ background: "#fff", borderRadius: 20, padding: "36px", border: "1.5px solid #E2E8F0" }}>
-              <div style={{ fontSize: 48, marginBottom: 20 }}>{active.icon}</div>
-              <h2 style={{ fontSize: 28, fontWeight: 800, color: DARK, margin: "0 0 12px" }}>{active.title}</h2>
-              <p style={{ fontSize: 17, fontWeight: 600, color: active.color, margin: "0 0 16px" }}>{active.subtitle}</p>
-              <div style={{ background: "#F8FAFC", borderRadius: 12, padding: "16px 20px", borderLeft: `4px solid ${active.color}` }}>
-                <p style={{ margin: 0, fontSize: 14, color: "#475569", lineHeight: 1.7 }}>{active.pain}</p>
+            <div style={{ background: "#fff", padding: "48px 44px" }}>
+              <div style={{ width: 64, height: 64, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 28 }}>
+                <Icon name={active.icon} size={30} style={{ color: TEAL }} />
               </div>
-              <Link to="/cabinet" style={{ display: "inline-block", marginTop: 28, padding: "13px 28px", borderRadius: 10, background: active.color, color: "#fff", fontSize: 15, fontWeight: 700, textDecoration: "none" }}>
-                Попробовать →
+              <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,3.5vw,40px)", fontWeight: 500, color: DARK, margin: "0 0 12px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>{active.title}</h2>
+              <p style={{ fontSize: 16, fontWeight: 400, color: TEAL, margin: "0 0 28px", lineHeight: 1.5 }}>{active.subtitle}</p>
+              <div style={{ borderLeft: `1px solid ${TEAL}`, paddingLeft: 20 }}>
+                <p style={{ margin: 0, fontSize: 15, color: "#475569", lineHeight: 1.7, fontWeight: 300 }}>{active.pain}</p>
+              </div>
+              <Link to="/cabinet" style={{
+                display: "inline-flex", alignItems: "center", gap: 10, marginTop: 36, padding: "15px 32px", borderRadius: 2,
+                background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 500, letterSpacing: "0.3px",
+                textDecoration: "none", transition: "all 0.3s",
+              }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 16px 40px rgba(45,212,191,0.3)"; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
+              >
+                Попробовать <Icon name="ArrowRight" size={16} />
               </Link>
             </div>
 
             {/* Right: tools */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: GRAY, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 4 }}>Инструменты для этой роли</div>
-              {active.tools.map((t, i) => (
-                <div key={i} style={{ background: "#fff", border: "1.5px solid #E2E8F0", borderRadius: 14, padding: "18px 20px", display: "flex", alignItems: "center", gap: 16 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: `${active.color}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{t.icon}</div>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: DARK, marginBottom: 3 }}>{t.name}</div>
-                    <div style={{ fontSize: 13, color: GRAY }}>{t.desc}</div>
+            <div style={{ background: "#fff", padding: "48px 44px" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 28 }}>Инструменты для этой роли</div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {active.tools.map((t, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 18, padding: "20px 0", borderTop: i === 0 ? "none" : "1px solid #EAEEF3" }}>
+                    <div style={{ width: 46, height: 46, borderRadius: 2, border: "1px solid #EAEEF3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Icon name={t.icon} size={22} style={{ color: TEAL }} />
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: SERIF, fontSize: 21, fontWeight: 600, color: DARK, marginBottom: 4 }}>{t.name}</div>
+                      <div style={{ fontSize: 14, color: GRAY, lineHeight: 1.6, fontWeight: 300 }}>{t.desc}</div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section style={{ background: DARK, padding: "72px 24px", textAlign: "center" }}>
-        <div style={{ maxWidth: 560, margin: "0 auto" }}>
-          <h2 style={{ fontSize: "clamp(26px,4vw,38px)", fontWeight: 800, color: "#fff", margin: "0 0 16px" }}>
-            Начните с 100 ⚡ бесплатно
+      {/* ── CTA ── */}
+      <section style={{ background: "#fff", padding: "120px 32px" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
+            Начните с 100 энергий бесплатно
           </h2>
-          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.55)", margin: "0 0 28px" }}>
-            Зарегистрируйтесь, создайте профиль салона и получите подарок
+          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 40px", fontWeight: 300, position: "relative" }}>
+            Создайте профиль салона и получите доступ ко всем инструментам платформы. Без карты и обязательств.
           </p>
-          <Link to="/cabinet" style={{ display: "inline-block", padding: "14px 36px", borderRadius: 12, background: "linear-gradient(135deg,#14B8A6,#0D9488)", color: "#fff", fontSize: 16, fontWeight: 700, textDecoration: "none" }}>
+          <Link to="/cabinet" style={{ display: "inline-block", padding: "16px 44px", borderRadius: 2, background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, textDecoration: "none", letterSpacing: "0.3px", position: "relative" }}>
             Создать профиль
           </Link>
         </div>

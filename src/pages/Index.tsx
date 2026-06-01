@@ -1,32 +1,34 @@
 import { Link } from "react-router-dom";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
+import Icon from "@/components/ui/icon";
 
-const TEAL = "#14B8A6";
+const TEAL = "#2DD4BF";
 const DARK = "#0F172A";
 const GRAY = "#64748B";
+const SERIF = "'Cormorant Garamond', serif";
 
 const RESULTS = [
-  { icon: "📈", title: "Рост клиентов", desc: "Возвращаемость клиентов через правильную коммуникацию и ИИ-скрипты" },
-  { icon: "💰", title: "Рост среднего чека", desc: "Инструменты допродаж и работы с возражениями для администраторов и мастеров" },
-  { icon: "👥", title: "Сильная команда", desc: "Анализ персонала, обучение и контроль эффективности каждого сотрудника" },
-  { icon: "📊", title: "Контроль бизнеса", desc: "Цифровой разбор и аналитика — понимайте, где теряете деньги" },
+  { icon: "TrendingUp", title: "Рост клиентов", desc: "Возвращаемость клиентов через выстроенную коммуникацию и интеллектуальные сценарии." },
+  { icon: "Wallet", title: "Рост среднего чека", desc: "Инструменты допродаж и работы с возражениями для администраторов и мастеров." },
+  { icon: "Users", title: "Сильная команда", desc: "Анализ персонала, обучение и контроль эффективности каждого сотрудника." },
+  { icon: "BarChart3", title: "Контроль бизнеса", desc: "Цифровой разбор и аналитика — вы точно знаете, где теряете деньги." },
 ];
 
 const TOOLS = [
-  { icon: "🧑‍💼", title: "Анализ персонала", desc: "Узнайте, кто приносит прибыль, а кто создаёт потери.", tag: "Управление" },
-  { icon: "📋", title: "Цифровой бизнес-разбор", desc: "Персональный план роста выручки за 15 минут.", tag: "Аналитика" },
-  { icon: "✍️", title: "Генератор постов", desc: "Пост с текстом и идеей изображения за 2 минуты.", tag: "Маркетинг" },
-  { icon: "💬", title: "Скрипты общения", desc: "Готовые сценарии для сотрудников на любую ситуацию.", tag: "Продажи" },
-  { icon: "🔍", title: "Диагностика клиента", desc: "Для специалистов по телу — опрос и программа работы.", tag: "Специалисты" },
-  { icon: "📣", title: "Ответы на отзывы", desc: "ИИ формирует профессиональные ответы на любой отзыв.", tag: "Репутация" },
+  { icon: "UserSearch", title: "Анализ персонала", desc: "Кто приносит прибыль, а кто создаёт потери — объективная картина по каждому.", tag: "Управление" },
+  { icon: "ClipboardList", title: "Цифровой бизнес-разбор", desc: "Персональный план роста выручки на основе данных вашего салона.", tag: "Аналитика" },
+  { icon: "PenLine", title: "Генератор контента", desc: "Пост, рилс и концепция изображения — готовы за две минуты.", tag: "Маркетинг" },
+  { icon: "MessagesSquare", title: "Скрипты общения", desc: "Выверенные сценарии для сотрудников на любую ситуацию.", tag: "Продажи" },
+  { icon: "Stethoscope", title: "Диагностика клиента", desc: "Структурированный опрос и программа работы для специалистов по телу.", tag: "Специалисты" },
+  { icon: "Star", title: "Ответы на отзывы", desc: "Безупречные ответы на отзывы любой тональности.", tag: "Репутация" },
 ];
 
 const PROBLEMS = [
-  "Салон теряет клиентов, которые не возвращаются",
-  "Сотрудники не умеют продавать и работать с возражениями",
-  "Нет времени на маркетинг — соцсети молчат неделями",
-  "Непонятно, где именно теряются деньги",
+  "Клиенты приходят однажды и не возвращаются",
+  "Сотрудники не умеют предлагать и работать с возражениями",
+  "На маркетинг не остаётся времени — соцсети молчат неделями",
+  "Непонятно, на каком этапе теряется прибыль",
 ];
 
 export default function Index() {
@@ -36,106 +38,126 @@ export default function Index() {
 
       {/* ── HERO ── */}
       <section style={{
-        background: `linear-gradient(135deg, ${DARK} 0%, #1E293B 60%, #0F2D2A 100%)`,
+        background: `radial-gradient(120% 100% at 80% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`,
         minHeight: "100vh", display: "flex", alignItems: "center",
-        paddingTop: 68, position: "relative", overflow: "hidden",
+        paddingTop: 76, position: "relative", overflow: "hidden",
       }}>
-        <div style={{ position: "absolute", top: "10%", right: "-5%", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(20,184,166,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "-10%", left: "-5%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(20,184,166,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
 
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 24px", width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }} className="hero-grid">
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "100px 32px", width: "100%", display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 72, alignItems: "center" }} className="hero-grid">
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(20,184,166,0.15)", border: "1px solid rgba(20,184,166,0.3)", borderRadius: 100, padding: "6px 16px", marginBottom: 28 }}>
-              <div style={{ width: 7, height: 7, borderRadius: "50%", background: TEAL }} />
-              <span style={{ fontSize: 13, color: TEAL, fontWeight: 600 }}>Платформа роста салона</span>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
+              <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Платформа роста салона</span>
             </div>
 
-            <h1 style={{ fontSize: "clamp(36px,5vw,58px)", fontWeight: 900, color: "#fff", lineHeight: 1.1, margin: "0 0 20px", letterSpacing: "-1px" }}>
+            <h1 style={{ fontFamily: SERIF, fontSize: "clamp(46px,6.5vw,82px)", fontWeight: 500, color: "#fff", lineHeight: 1.02, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
               Про Диалог
             </h1>
-            <p style={{ fontSize: "clamp(18px,2.5vw,22px)", color: "rgba(255,255,255,0.65)", lineHeight: 1.5, margin: "0 0 16px", fontWeight: 400 }}>
-              Цифровой помощник для владельца салона и его команды
+            <p style={{ fontSize: "clamp(18px,2.4vw,23px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.55, margin: "0 0 40px", fontWeight: 300, maxWidth: 520 }}>
+              Цифровой помощник для владельца салона красоты и его команды. Рост прибыли, возвращаемость клиентов и эффективность сотрудников — в едином кабинете.
             </p>
 
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 40 }}>
-              {["ИИ-инструменты", "Аналитика бизнеса", "Рост клиентов", "Обучение персонала", "Управление командой"].map(t => (
-                <span key={t} style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "5px 12px" }}>
-                  ✅ {t}
-                </span>
-              ))}
-            </div>
-
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
               <Link to="/cabinet" style={{
-                padding: "15px 32px", borderRadius: 12, fontSize: 16, fontWeight: 700,
-                background: "linear-gradient(135deg,#14B8A6,#0D9488)", color: "#fff",
-                textDecoration: "none", boxShadow: "0 8px 28px rgba(20,184,166,0.45)",
-              }}>
+                padding: "16px 38px", borderRadius: 2, fontSize: 15, fontWeight: 500, letterSpacing: "0.3px",
+                background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A",
+                textDecoration: "none", transition: "all 0.3s",
+              }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 16px 40px rgba(45,212,191,0.3)"; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
+              >
                 Попробовать бесплатно
               </Link>
               <Link to="/vozmozhnosti" style={{
-                padding: "15px 32px", borderRadius: 12, fontSize: 16, fontWeight: 600,
-                border: "1.5px solid rgba(255,255,255,0.25)", color: "#fff",
-                textDecoration: "none",
-              }}>
-                Смотреть возможности →
+                padding: "16px 38px", borderRadius: 2, fontSize: 15, fontWeight: 400, letterSpacing: "0.3px",
+                border: "1px solid rgba(255,255,255,0.22)", color: "#fff",
+                textDecoration: "none", display: "flex", alignItems: "center", gap: 10, transition: "all 0.3s",
+              }}
+                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.5)"}
+                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.22)"}
+              >
+                Смотреть возможности <Icon name="ArrowRight" size={16} />
               </Link>
+            </div>
+
+            <div style={{ display: "flex", gap: 36, marginTop: 56, flexWrap: "wrap" }}>
+              {[["200+", "салонов"], ["20+", "инструментов"], ["4.9", "средняя оценка"]].map(([v, l], i) => (
+                <div key={i}>
+                  <div style={{ fontFamily: SERIF, fontSize: 34, fontWeight: 600, color: "#fff", lineHeight: 1 }}>{v}</div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 4, letterSpacing: "0.5px" }}>{l}</div>
+                </div>
+              ))}
             </div>
           </div>
 
           <div style={{ display: "flex", justifyContent: "center" }} className="hero-img">
             <div style={{
-              width: "100%", maxWidth: 480, aspectRatio: "16/10",
-              background: "rgba(255,255,255,0.04)", border: "1.5px dashed rgba(255,255,255,0.15)",
-              borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", gap: 8,
+              width: "100%", maxWidth: 460, aspectRatio: "3/4",
+              background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 4, display: "flex", flexDirection: "column", alignItems: "center",
+              justifyContent: "center", gap: 12,
             }}>
-              <div style={{ fontSize: 36 }}>🖥️</div>
-              <div style={{ fontWeight: 600, color: "rgba(255,255,255,0.5)", fontSize: 14 }}>Скриншот кабинета</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>Размер: 960 × 600 px</div>
+              <Icon name="Image" size={32} style={{ color: "rgba(255,255,255,0.3)" }} />
+              <div style={{ fontWeight: 400, color: "rgba(255,255,255,0.45)", fontSize: 14, letterSpacing: "0.5px" }}>Интерьер салона / кабинет</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>Размер: 720 × 960 px</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── ПРОБЛЕМЫ ── */}
-      <section style={{ background: "#F8FAFC", padding: "80px 24px" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <h2 style={{ fontSize: "clamp(28px,4vw,40px)", fontWeight: 800, color: DARK, margin: "0 0 12px", letterSpacing: "-0.5px" }}>
-              Узнаёте свой салон?
+      <section style={{ background: "#fff", padding: "120px 32px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ maxWidth: 640, marginBottom: 64 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Знакомо?</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,52px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+              Салон работает,<br />а прибыль стоит на месте
             </h2>
-            <p style={{ fontSize: 18, color: GRAY, margin: 0 }}>Про Диалог помогает решить эти задачи</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 0, border: "1px solid #EAEEF3" }}>
             {PROBLEMS.map((p, i) => (
-              <div key={i} style={{ background: "#fff", borderRadius: 16, padding: "24px", border: "1.5px solid #E2E8F0", display: "flex", alignItems: "flex-start", gap: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(20,184,166,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>❗</div>
-                <p style={{ margin: 0, fontSize: 15, color: "#334155", lineHeight: 1.6, fontWeight: 500 }}>{p}</p>
+              <div key={i} style={{ padding: "36px 32px", borderRight: "1px solid #EAEEF3", borderBottom: "1px solid #EAEEF3", display: "flex", flexDirection: "column", gap: 18 }}>
+                <Icon name="Minus" size={20} style={{ color: TEAL }} />
+                <p style={{ margin: 0, fontSize: 16, color: "#334155", lineHeight: 1.6, fontWeight: 400 }}>{p}</p>
               </div>
             ))}
           </div>
+          <p style={{ fontSize: 18, color: GRAY, margin: "40px 0 0", fontWeight: 300, lineHeight: 1.6, maxWidth: 620 }}>
+            Про Диалог решает эти задачи системно — давая команде инструменты, аналитику и обучение в едином пространстве.
+          </p>
         </div>
       </section>
 
       {/* ── РЕЗУЛЬТАТЫ ── */}
-      <section style={{ padding: "80px 24px", background: "#fff" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: TEAL, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 12 }}>Результаты</div>
-            <h2 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 800, color: DARK, margin: "0 0 16px", letterSpacing: "-0.5px" }}>
-              Что получает салон с Про Диалог
+      <section style={{ padding: "120px 32px", background: "#F8FAFC" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Результат</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+              Что получает салон
             </h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
             {RESULTS.map((r, i) => (
-              <div key={i} style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", borderRadius: 20, padding: "32px 24px", transition: "all 0.25s", cursor: "default" }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = TEAL; el.style.boxShadow = "0 8px 32px rgba(20,184,166,0.12)"; el.style.transform = "translateY(-4px)"; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "#E2E8F0"; el.style.boxShadow = "none"; el.style.transform = "translateY(0)"; }}
+              <div key={i} style={{ background: "#fff", padding: "44px 32px", transition: "all 0.3s", cursor: "default" }}
+                onMouseEnter={e => {
+                  const el = e.currentTarget as HTMLDivElement; el.style.background = DARK;
+                  const h3 = el.querySelector("h3") as HTMLElement; const p = el.querySelector("p") as HTMLElement;
+                  if (h3) h3.style.color = "#fff"; if (p) p.style.color = "rgba(255,255,255,0.55)";
+                }}
+                onMouseLeave={e => {
+                  const el = e.currentTarget as HTMLDivElement; el.style.background = "#fff";
+                  const h3 = el.querySelector("h3") as HTMLElement; const p = el.querySelector("p") as HTMLElement;
+                  if (h3) h3.style.color = DARK; if (p) p.style.color = GRAY;
+                }}
               >
-                <div style={{ fontSize: 40, marginBottom: 16 }}>{r.icon}</div>
-                <h3 style={{ fontSize: 20, fontWeight: 700, color: DARK, margin: "0 0 10px" }}>{r.title}</h3>
-                <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.6 }}>{r.desc}</p>
+                <div style={{ width: 52, height: 52, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 28 }}>
+                  <Icon name={r.icon} size={24} style={{ color: TEAL }} />
+                </div>
+                <h3 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 600, color: DARK, margin: "0 0 12px", transition: "color 0.3s" }}>{r.title}</h3>
+                <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300, transition: "color 0.3s" }}>{r.desc}</p>
               </div>
             ))}
           </div>
@@ -143,59 +165,60 @@ export default function Index() {
       </section>
 
       {/* ── ИНСТРУМЕНТЫ ── */}
-      <section style={{ background: DARK, padding: "80px 24px" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: TEAL, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 12 }}>Инструменты</div>
-            <h2 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 800, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px" }}>
+      <section style={{ background: DARK, padding: "120px 32px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", bottom: "-10%", left: "50%", transform: "translateX(-50%)", width: 800, height: 500, background: "radial-gradient(circle, rgba(45,212,191,0.06) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative" }}>
+          <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Инструменты</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
               Что внутри платформы
             </h2>
-            <p style={{ fontSize: 18, color: "rgba(255,255,255,0.5)", margin: 0 }}>20+ ИИ-инструментов для всей команды салона</p>
+            <p style={{ fontSize: 17, color: "rgba(255,255,255,0.5)", margin: 0, fontWeight: 300 }}>Более двадцати интеллектуальных инструментов для всей команды салона</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 1, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.08)" }}>
             {TOOLS.map((t, i) => (
-              <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "24px", transition: "all 0.25s", cursor: "default" }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = "rgba(20,184,166,0.08)"; el.style.borderColor = "rgba(20,184,166,0.25)"; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = "rgba(255,255,255,0.04)"; el.style.borderColor = "rgba(255,255,255,0.08)"; }}
+              <div key={i} style={{ background: DARK, padding: "36px 32px", transition: "all 0.3s", cursor: "default" }}
+                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.06)"}
+                onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = DARK}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
-                  <div style={{ fontSize: 32 }}>{t.icon}</div>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: TEAL, background: "rgba(20,184,166,0.15)", borderRadius: 6, padding: "3px 9px", border: "1px solid rgba(20,184,166,0.25)" }}>{t.tag}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+                  <Icon name={t.icon} size={26} style={{ color: TEAL }} />
+                  <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.4)", letterSpacing: "1.5px", textTransform: "uppercase" }}>{t.tag}</span>
                 </div>
-                <h3 style={{ fontSize: 17, fontWeight: 700, color: "#fff", margin: "0 0 8px" }}>{t.title}</h3>
-                <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.6 }}>{t.desc}</p>
+                <h3 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: "#fff", margin: "0 0 10px" }}>{t.title}</h3>
+                <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{t.desc}</p>
               </div>
             ))}
           </div>
-          <div style={{ textAlign: "center", marginTop: 40 }}>
-            <Link to="/vozmozhnosti" style={{ display: "inline-block", padding: "14px 32px", borderRadius: 12, border: "1.5px solid rgba(20,184,166,0.4)", color: TEAL, fontSize: 15, fontWeight: 600, textDecoration: "none" }}>
-              Все возможности платформы →
+          <div style={{ textAlign: "center", marginTop: 56 }}>
+            <Link to="/vozmozhnosti" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "15px 34px", borderRadius: 2, border: "1px solid rgba(45,212,191,0.4)", color: TEAL, fontSize: 14, fontWeight: 500, textDecoration: "none", letterSpacing: "0.3px" }}>
+              Все возможности платформы <Icon name="ArrowRight" size={16} />
             </Link>
           </div>
         </div>
       </section>
 
       {/* ── CTA ── */}
-      <section style={{ background: "linear-gradient(135deg,#0D9488,#14B8A6)", padding: "80px 24px", textAlign: "center" }}>
-        <div style={{ maxWidth: 640, margin: "0 auto" }}>
-          <h2 style={{ fontSize: "clamp(28px,4vw,44px)", fontWeight: 900, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px" }}>
-            Начните бесплатно сегодня
+      <section style={{ background: "#fff", padding: "120px 32px" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
+            Начните сегодня
           </h2>
-          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.85)", margin: "0 0 36px" }}>
-            100 энергий в подарок при создании первого салона. Без карты.
+          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 40px", fontWeight: 300, position: "relative" }}>
+            100 энергий в подарок при создании первого салона. Без карты и обязательств.
           </p>
-          <Link to="/cabinet" style={{ display: "inline-block", padding: "16px 40px", borderRadius: 14, background: "#fff", color: "#0D9488", fontSize: 17, fontWeight: 800, textDecoration: "none", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
+          <Link to="/cabinet" style={{ display: "inline-block", padding: "16px 44px", borderRadius: 2, background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, textDecoration: "none", letterSpacing: "0.3px", position: "relative" }}>
             Попробовать бесплатно
           </Link>
-          <p style={{ marginTop: 20, fontSize: 13, color: "rgba(255,255,255,0.6)" }}>Уже используют более 200 салонов</p>
         </div>
       </section>
 
       <BizFooter />
 
       <style>{`
-        @media (max-width: 768px) {
-          .hero-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+        @media (max-width: 880px) {
+          .hero-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
           .hero-img { display: none !important; }
         }
       `}</style>

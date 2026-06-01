@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import BrandLogo from "@/components/BrandLogo";
 
 const COLS = [
   {
@@ -21,7 +22,7 @@ const COLS = [
   {
     title: "Правовое",
     links: [
-      { label: "Политика конфиденциальности", href: "/privacy" },
+      { label: "Конфиденциальность", href: "/privacy" },
       { label: "Договор оферты", href: "/offer" },
     ],
   },
@@ -29,38 +30,32 @@ const COLS = [
 
 export default function BizFooter() {
   return (
-    <footer style={{ background: "#0F172A", fontFamily: "Inter, sans-serif", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 32px" }}>
-
-        {/* Top */}
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 40, marginBottom: 56 }} className="footer-grid">
-          {/* Brand */}
+    <footer style={{ background: "#080E1C", fontFamily: "Inter, sans-serif", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "72px 32px 36px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 48, marginBottom: 64 }} className="footer-grid">
           <div>
-            <Link to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#14B8A6,#0D9488)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 900, color: "#fff" }}>П</div>
-              <div style={{ fontSize: 17, fontWeight: 800, color: "#fff" }}>Про Диалог</div>
-            </Link>
-            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", lineHeight: 1.7, margin: "0 0 24px", maxWidth: 280 }}>
+            <div style={{ marginBottom: 22 }}>
+              <BrandLogo variant="light" size="md" />
+            </div>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.42)", lineHeight: 1.8, margin: "0 0 28px", maxWidth: 300, fontWeight: 300 }}>
               Платформа роста салона через коммуникацию, персонал, обучение и искусственный интеллект.
             </p>
-            <a href="/cabinet" style={{
-              display: "inline-block", padding: "10px 22px", borderRadius: 8,
-              background: "linear-gradient(135deg,#14B8A6,#0D9488)", color: "#fff",
-              fontSize: 14, fontWeight: 600, textDecoration: "none",
-              boxShadow: "0 4px 14px rgba(20,184,166,0.35)",
+            <Link to="/cabinet" style={{
+              display: "inline-block", padding: "12px 28px", borderRadius: 2,
+              background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A",
+              fontSize: 14, fontWeight: 500, textDecoration: "none", letterSpacing: "0.3px",
             }}>
-              Попробовать бесплатно
-            </a>
+              Начать бесплатно
+            </Link>
           </div>
 
-          {/* Nav cols */}
           {COLS.map(col => (
             <div key={col.title}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: 16 }}>{col.title}</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "2px", textTransform: "uppercase", marginBottom: 20 }}>{col.title}</div>
               {col.links.map(l => (
-                <Link key={l.label} to={l.href} style={{ display: "block", fontSize: 14, color: "rgba(255,255,255,0.55)", textDecoration: "none", marginBottom: 10, transition: "color 0.2s" }}
-                  onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = "#14B8A6"}
-                  onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.55)"}
+                <Link key={l.label} to={l.href} style={{ display: "block", fontSize: 14, color: "rgba(255,255,255,0.52)", textDecoration: "none", marginBottom: 13, transition: "color 0.25s", fontWeight: 300 }}
+                  onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = "#2DD4BF"}
+                  onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.52)"}
                 >
                   {l.label}
                 </Link>
@@ -69,16 +64,15 @@ export default function BizFooter() {
           ))}
         </div>
 
-        {/* Divider */}
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-          <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.25)" }}>© 2026 Про Диалог. Все права защищены.</p>
-          <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.2)" }}>ИП · ИНН · ОГРНИП</p>
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 28, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+          <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.25)", fontWeight: 300 }}>© 2026 Про Диалог. Все права защищены.</p>
+          <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.2)", fontWeight: 300 }}>ИП · ИНН · ОГРНИП</p>
         </div>
       </div>
 
       <style>{`
         @media (max-width: 768px) {
-          .footer-grid { grid-template-columns: 1fr 1fr !important; }
+          .footer-grid { grid-template-columns: 1fr 1fr !important; gap: 32px !important; }
         }
         @media (max-width: 480px) {
           .footer-grid { grid-template-columns: 1fr !important; }

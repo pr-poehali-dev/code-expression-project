@@ -1,4 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="8" fill="hsl(185, 85%, 32%)"/>
-  <text x="16" y="23" font-family="Georgia, serif" font-size="20" font-weight="700" fill="white" text-anchor="middle">D</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2DD4BF"/>
+      <stop offset="1" stop-color="#0D9488"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="11" fill="#0F172A"/>
+  <circle cx="24" cy="24" r="18" stroke="url(#g)" stroke-width="1.5" fill="none"/>
+  <text x="24" y="33" font-family="Georgia, serif" font-size="24" font-weight="600" fill="url(#g)" text-anchor="middle">П</text>
 </svg>
