@@ -1676,18 +1676,21 @@ def handle_team_invite(event: dict) -> dict:
         role_label  = ROLE_LABELS.get(role_code, role_code)
         email_sent  = False
 
+        email_error = None
         if email:
             try:
                 _send_invite_email(email, full_name, salon_name, role_label, invite_url)
                 email_sent = True
-            except Exception:
-                pass  # Не прерываем — ссылку всё равно вернём
+            except Exception as ex:
+                email_error = str(ex)
+                print(f"[team_invite] email error to {email}: {ex}")
 
         return ok({
             "id": invite_id, "token": token,
             "invite_url": invite_url,
             "full_name": full_name, "role_code": role_code,
             "email_sent": email_sent,
+            "email_error": email_error,
         })
     finally:
         conn.close()
