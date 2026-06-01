@@ -82,6 +82,12 @@ export const lkApi = {
   adminDeleteUser: (user_id: number) =>
     request("POST", "admin_delete_user", { user_id }),
 
+  profileUpdate: (full_name: string, email: string) =>
+    request("POST", "profile_update", { full_name, email }),
+
+  changePassword: (current_password: string, new_password: string) =>
+    request("POST", "change_password", { current_password, new_password }),
+
   adminSetPassword: (user_id: number, password: string) =>
     request("POST", "admin_set_password", { user_id, password }),
 

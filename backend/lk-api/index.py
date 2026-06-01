@@ -539,6 +539,67 @@ def handle_admin_delete_user(event: dict) -> dict:
         conn.close()
 
 
+def handle_profile_update(event: dict) -> dict:
+    """Обновление данных собственного профиля: имя и email."""
+    body = json.loads(event.get("body") or "{}")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        full_name = (body.get("full_name") or "").strip()
+        email = (body.get("email") or "").strip().lower()
+        if not full_name:
+            return err("Укажите имя")
+        if not email or "@" not in email:
+            return err("Укажите корректный email")
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        # Проверяем уникальность email (исключая себя)
+        cur.execute(f"SELECT id FROM {tbl('lk_users')} WHERE email=%s AND id!=%s", (email, user["id"]))
+        if cur.fetchone():
+            return err("Этот email уже используется другим пользователем")
+        cur.execute(
+            f"UPDATE {tbl('lk_users')} SET full_name=%s, email=%s WHERE id=%s",
+            (full_name, email, user["id"])
+        )
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
+def handle_change_password(event: dict) -> dict:
+    """Смена пароля текущего пользователя."""
+    body = json.loads(event.get("body") or "{}")
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        current_pw = body.get("current_password") or ""
+        new_pw = body.get("new_password") or ""
+        if not current_pw:
+            return err("Введите текущий пароль")
+        if len(new_pw) < 6:
+            return err("Новый пароль должен содержать минимум 6 символов")
+        # Проверяем текущий пароль
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(f"SELECT password_hash FROM {tbl('lk_users')} WHERE id=%s", (user["id"],))
+        row = cur.fetchone()
+        try:
+            valid = bcrypt.checkpw(current_pw.encode(), row["password_hash"].encode())
+        except Exception:
+            valid = False
+        if not valid:
+            return err("Неверный текущий пароль")
+        pw_hash = bcrypt.hashpw(new_pw.encode(), bcrypt.gensalt()).decode()
+        cur.execute(f"UPDATE {tbl('lk_users')} SET password_hash=%s WHERE id=%s", (pw_hash, user["id"]))
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
 def handle_admin_body_zone_save(event: dict) -> dict:
     body = json.loads(event.get("body") or "{}")
     conn = get_db()
@@ -2897,6 +2958,8 @@ ROUTES = {
     ("POST", "admin_set_password"): handle_admin_set_password,
     ("POST", "admin_update_rep"): handle_admin_update_rep,
     ("POST", "admin_delete_user"): handle_admin_delete_user,
+    ("POST", "profile_update"): handle_profile_update,
+    ("POST", "change_password"): handle_change_password,
     ("POST", "admin_body_zone_save"): handle_admin_body_zone_save,
     ("POST", "admin_technique_save"): handle_admin_technique_save,
     ("GET",  "admin_body_zones"): handle_admin_body_zones,

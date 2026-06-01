@@ -10,6 +10,7 @@ import LkAiTools from "./LkAiTools";
 import LkEmployees from "./LkEmployees";
 import LkTeam from "./LkTeam";
 import LkEnergy from "./LkEnergy";
+import LkProfile from "./LkProfile";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -367,7 +368,7 @@ export default function LkDashboard() {
         {tab === "employees" && <LkTeam />}
         {tab === "purchases" && <LkEnergy />}
         {tab === "salon" && <LkSalonProfile onSaved={() => handleTabChange("home")} />}
-        {tab === "profile" && <ComingSoonTab title="Профиль" description="Данные аккаунта, смена пароля и уведомления. В разработке." icon="UserCircle" />}
+        {tab === "profile" && <LkProfile />}
         {tab === "body" && <LkBodyMap />}
         {user?.is_admin && tab === "admin" && <LkAdmin />}
       </main>
