@@ -120,6 +120,77 @@ def handle_login(event: dict) -> dict:
         conn.close()
 
 
+def handle_register(event: dict) -> dict:
+    """Самостоятельная регистрация нового владельца салона."""
+    body = json.loads(event.get("body") or "{}")
+    full_name = (body.get("full_name") or "").strip()
+    email = (body.get("email") or "").strip().lower()
+    password = body.get("password") or ""
+
+    if not full_name:
+        return err("Укажите ваше имя")
+    if not email or "@" not in email:
+        return err("Укажите корректный email")
+    if len(password) < 6:
+        return err("Пароль должен содержать минимум 6 символов")
+
+    # username = email до @
+    username = email.split("@")[0]
+
+    conn = get_db()
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        # Проверяем уникальность email
+        cur.execute(f"SELECT id FROM {tbl('lk_users')} WHERE email = %s", (email,))
+        if cur.fetchone():
+            return err("Пользователь с таким email уже зарегистрирован")
+        # Уникальный username
+        base = username
+        suffix = 0
+        while True:
+            cur.execute(f"SELECT id FROM {tbl('lk_users')} WHERE username = %s", (username,))
+            if not cur.fetchone():
+                break
+            suffix += 1
+            username = f"{base}{suffix}"
+
+        pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+        cur.execute(
+            f"INSERT INTO {tbl('lk_users')} (username, email, password_hash, full_name, is_active, segment, role, welcome_bonus_given) "
+            f"VALUES (%s,%s,%s,%s,TRUE,'salon','owner',FALSE) RETURNING id",
+            (username, email, pw_hash, full_name)
+        )
+        user_id = cur.fetchone()["id"]
+
+        session_id = secrets.token_hex(32)
+        ua = (event.get("headers") or {}).get("User-Agent", "")
+        cur.execute(
+            f"INSERT INTO {tbl('lk_sessions')} (id, user_id, user_agent) VALUES (%s, %s, %s)",
+            (session_id, user_id, ua)
+        )
+        conn.commit()
+
+        return ok({
+            "session_id": session_id,
+            "user": {
+                "id": user_id,
+                "username": username,
+                "full_name": full_name,
+                "email": email,
+                "is_admin": False,
+                "is_representative": False,
+                "rep_permissions": None,
+                "access_expires_at": None,
+                "segment": "salon",
+                "role": "owner",
+                "salon_id": None,
+                "salon": None,
+            }
+        })
+    finally:
+        conn.close()
+
+
 def handle_logout(event: dict) -> dict:
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
     if not session_id:
@@ -2766,6 +2837,7 @@ def handle_post_text(event: dict) -> dict:
 
 ROUTES = {
     ("POST", "login"): handle_login,
+    ("POST", "register"): handle_register,
     ("POST", "logout"): handle_logout,
     ("GET",  "me"): handle_me,
     ("GET",  "tests"): handle_tests,

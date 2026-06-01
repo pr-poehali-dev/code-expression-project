@@ -34,6 +34,9 @@ export const lkApi = {
   login: (username: string, password: string) =>
     request("POST", "login", { username, password }),
 
+  register: (full_name: string, email: string, password: string) =>
+    request("POST", "register", { full_name, email, password }),
+
   logout: () => request("POST", "logout"),
 
   me: () => request("GET", "me"),

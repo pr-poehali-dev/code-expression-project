@@ -1,26 +1,73 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
+import BrandLogo from "@/components/BrandLogo";
 
-const ACCENT = "hsl(185,85%,32%)";
-const ACCENT_DARK = "hsl(185,85%,24%)";
+const TEAL = "#2DD4BF";
+const DARK = "#0F172A";
+const GRAY = "#64748B";
+const SERIF = "'Cormorant Garamond', serif";
+
+const inputStyle = (focused: boolean): React.CSSProperties => ({
+  width: "100%",
+  padding: "12px 14px",
+  borderRadius: 4,
+  border: `1px solid ${focused ? TEAL : "#E2E8F0"}`,
+  fontSize: 14,
+  outline: "none",
+  fontFamily: "Inter, sans-serif",
+  boxSizing: "border-box",
+  color: DARK,
+  background: "#fff",
+  transition: "border-color 0.2s",
+});
 
 export default function LkLogin() {
-  const { login } = useLkAuth();
+  const { login, register } = useLkAuth();
+  const [tab, setTab] = useState<"login" | "register">("login");
+
+  // Login fields
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+
+  // Register fields
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [agreed, setAgreed] = useState(false);
+
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // focus states
+  const [focus, setFocus] = useState<Record<string, boolean>>({});
+  const onFocus = (k: string) => setFocus(p => ({ ...p, [k]: true }));
+  const onBlur = (k: string) => setFocus(p => ({ ...p, [k]: false }));
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
       await login(username, password);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Ошибка входа");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка входа");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!agreed) { setError("Необходимо принять политику конфиденциальности"); return; }
+    setError("");
+    setLoading(true);
+    try {
+      await register(fullName, email, regPassword);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка регистрации");
     } finally {
       setLoading(false);
     }
@@ -28,125 +75,243 @@ export default function LkLogin() {
 
   return (
     <div style={{
-      minHeight: "100vh", background: "#f8f8f6",
+      minHeight: "100vh",
+      background: `radial-gradient(120% 100% at 70% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`,
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontFamily: "Montserrat, sans-serif", padding: "24px",
+      fontFamily: "Inter, sans-serif", padding: "24px", position: "relative", overflow: "hidden",
     }}>
-      <div style={{ width: "100%", maxWidth: 420 }}>
-        {/* Лого */}
-        <div style={{ textAlign: "center", marginBottom: 36 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: 16,
-            background: `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-            display: "inline-flex", alignItems: "center", justifyContent: "center",
-            marginBottom: 16, boxShadow: `0 8px 24px hsla(185,85%,32%,0.3)`,
-          }}>
-            <Icon name="BookOpen" size={28} style={{ color: "#fff" }} />
-          </div>
-          <div style={{ fontSize: 13, color: "#888", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>
-            DOK ДИАЛОГ
-          </div>
-          <h1 style={{
-            fontFamily: "Cormorant, serif", fontSize: 30, fontWeight: 700,
-            color: "#1a1a1a", margin: 0,
-          }}>
-            Личный кабинет
-          </h1>
-          <p style={{ fontSize: 14, color: "#777", marginTop: 8 }}>
-            Профессиональные инструменты специалиста
-          </p>
+      {/* bg grid */}
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)", backgroundSize: "48px 48px", pointerEvents: "none" }} />
+
+      <div style={{ width: "100%", maxWidth: 440, position: "relative" }}>
+
+        {/* Logo */}
+        <div style={{ textAlign: "center", marginBottom: 40 }}>
+          <Link to="/" style={{ textDecoration: "none", display: "inline-flex", justifyContent: "center" }}>
+            <BrandLogo variant="light" size="lg" />
+          </Link>
         </div>
 
-        {/* Карточка входа */}
-        <form onSubmit={handleSubmit} style={{
-          background: "#fff", borderRadius: 20, padding: "36px 32px",
-          boxShadow: "0 4px 32px rgba(0,0,0,0.08)",
+        {/* Card */}
+        <div style={{
+          background: "#fff",
+          borderRadius: 4,
+          overflow: "hidden",
+          boxShadow: "0 32px 64px rgba(0,0,0,0.35)",
         }}>
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ fontSize: 13, fontWeight: 600, color: "#444", display: "block", marginBottom: 8 }}>
-              Логин
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              placeholder="Введите логин"
-              required
-              style={{
-                width: "100%", padding: "12px 14px", borderRadius: 10,
-                border: "1.5px solid #e0e0dc", fontSize: 15, outline: "none",
-                fontFamily: "Montserrat, sans-serif", boxSizing: "border-box",
-                transition: "border-color 0.2s",
-              }}
-              onFocus={e => e.target.style.borderColor = ACCENT}
-              onBlur={e => e.target.style.borderColor = "#e0e0dc"}
-            />
-          </div>
-
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ fontSize: 13, fontWeight: 600, color: "#444", display: "block", marginBottom: 8 }}>
-              Пароль
-            </label>
-            <div style={{ position: "relative" }}>
-              <input
-                type={showPw ? "text" : "password"}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Введите пароль"
-                required
+          {/* Tabs */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: "1px solid #E2E8F0" }}>
+            {(["login", "register"] as const).map(t => (
+              <button key={t} onClick={() => { setTab(t); setError(""); }}
                 style={{
-                  width: "100%", padding: "12px 44px 12px 14px", borderRadius: 10,
-                  border: "1.5px solid #e0e0dc", fontSize: 15, outline: "none",
-                  fontFamily: "Montserrat, sans-serif", boxSizing: "border-box",
-                  transition: "border-color 0.2s",
-                }}
-                onFocus={e => e.target.style.borderColor = ACCENT}
-                onBlur={e => e.target.style.borderColor = "#e0e0dc"}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPw(!showPw)}
-                style={{
-                  position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
-                  background: "none", border: "none", cursor: "pointer", padding: 4, color: "#999",
-                }}
-              >
-                <Icon name={showPw ? "EyeOff" : "Eye"} size={18} />
+                  padding: "18px", border: "none", cursor: "pointer",
+                  fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 500,
+                  letterSpacing: "0.2px",
+                  background: tab === t ? "#fff" : "#F8FAFC",
+                  color: tab === t ? DARK : GRAY,
+                  borderBottom: tab === t ? `2px solid ${TEAL}` : "2px solid transparent",
+                  transition: "all 0.2s",
+                }}>
+                {t === "login" ? "Войти" : "Регистрация"}
               </button>
-            </div>
+            ))}
           </div>
 
-          {error && (
-            <div style={{
-              background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 10,
-              padding: "10px 14px", marginBottom: 20, fontSize: 14, color: "#dc2626",
-              display: "flex", alignItems: "center", gap: 8,
-            }}>
-              <Icon name="AlertCircle" size={16} />
-              {error}
-            </div>
-          )}
+          <div style={{ padding: "36px 32px" }}>
+            {/* Tab: Login */}
+            {tab === "login" && (
+              <form onSubmit={handleLogin}>
+                <div style={{ marginBottom: 4, fontFamily: SERIF, fontSize: 24, fontWeight: 600, color: DARK, marginBottom: 6 }}>
+                  Личный кабинет
+                </div>
+                <p style={{ fontSize: 13, color: GRAY, margin: "0 0 28px", fontWeight: 300 }}>
+                  Введите логин и пароль для входа
+                </p>
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: "100%", padding: "13px", borderRadius: 12, border: "none",
-              background: loading ? "#ccc" : `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})`,
-              color: "#fff", fontSize: 15, fontWeight: 700,
-              fontFamily: "Montserrat, sans-serif", cursor: loading ? "not-allowed" : "pointer",
-              boxShadow: loading ? "none" : `0 6px 20px hsla(185,85%,32%,0.3)`,
-              transition: "all 0.2s",
-            }}
-          >
-            {loading ? "Вход..." : "Войти"}
-          </button>
-        </form>
+                <div style={{ marginBottom: 18 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                    Логин
+                  </label>
+                  <input
+                    type="text" value={username}
+                    onChange={e => setUsername(e.target.value)}
+                    placeholder="Введите логин или email"
+                    required
+                    style={inputStyle(!!focus.username)}
+                    onFocus={() => onFocus("username")}
+                    onBlur={() => onBlur("username")}
+                  />
+                </div>
 
-        <p style={{ textAlign: "center", fontSize: 13, color: "#aaa", marginTop: 24 }}>
-          Доступ предоставляется вручную. По вопросам — свяжитесь с нами.
+                <div style={{ marginBottom: 24 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                    Пароль
+                  </label>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type={showPw ? "text" : "password"} value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="Введите пароль"
+                      required
+                      style={{ ...inputStyle(!!focus.password), paddingRight: 44 }}
+                      onFocus={() => onFocus("password")}
+                      onBlur={() => onBlur("password")}
+                    />
+                    <button type="button" onClick={() => setShowPw(!showPw)}
+                      style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: GRAY, padding: 4 }}>
+                      <Icon name={showPw ? "EyeOff" : "Eye"} size={17} />
+                    </button>
+                  </div>
+                </div>
+
+                {error && <ErrorBox message={error} />}
+
+                <button type="submit" disabled={loading} style={submitStyle(loading)}>
+                  {loading ? "Вхожу..." : "Войти"}
+                </button>
+
+                <p style={{ textAlign: "center", fontSize: 13, color: GRAY, marginTop: 20, fontWeight: 300 }}>
+                  Нет аккаунта?{" "}
+                  <button type="button" onClick={() => { setTab("register"); setError(""); }}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: TEAL, fontSize: 13, fontWeight: 500, padding: 0 }}>
+                    Зарегистрироваться
+                  </button>
+                </p>
+              </form>
+            )}
+
+            {/* Tab: Register */}
+            {tab === "register" && (
+              <form onSubmit={handleRegister}>
+                <div style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 600, color: DARK, marginBottom: 6 }}>
+                  Создать аккаунт
+                </div>
+                <p style={{ fontSize: 13, color: GRAY, margin: "0 0 28px", fontWeight: 300 }}>
+                  Зарегистрируйтесь и получите 100 энергий в подарок
+                </p>
+
+                <div style={{ marginBottom: 18 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                    Ваше имя
+                  </label>
+                  <input
+                    type="text" value={fullName}
+                    onChange={e => setFullName(e.target.value)}
+                    placeholder="Иван Иванов"
+                    required
+                    style={inputStyle(!!focus.fullName)}
+                    onFocus={() => onFocus("fullName")}
+                    onBlur={() => onBlur("fullName")}
+                  />
+                </div>
+
+                <div style={{ marginBottom: 18 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                    Email
+                  </label>
+                  <input
+                    type="email" value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="salon@example.com"
+                    required
+                    style={inputStyle(!!focus.email)}
+                    onFocus={() => onFocus("email")}
+                    onBlur={() => onBlur("email")}
+                  />
+                </div>
+
+                <div style={{ marginBottom: 24 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                    Пароль
+                  </label>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type={showPw ? "text" : "password"} value={regPassword}
+                      onChange={e => setRegPassword(e.target.value)}
+                      placeholder="Минимум 6 символов"
+                      required minLength={6}
+                      style={{ ...inputStyle(!!focus.regPw), paddingRight: 44 }}
+                      onFocus={() => onFocus("regPw")}
+                      onBlur={() => onBlur("regPw")}
+                    />
+                    <button type="button" onClick={() => setShowPw(!showPw)}
+                      style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: GRAY, padding: 4 }}>
+                      <Icon name={showPw ? "EyeOff" : "Eye"} size={17} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Checkbox */}
+                <label style={{ display: "flex", alignItems: "flex-start", gap: 12, cursor: "pointer", marginBottom: 24 }}>
+                  <div
+                    onClick={() => setAgreed(!agreed)}
+                    style={{
+                      width: 18, height: 18, borderRadius: 2, flexShrink: 0, marginTop: 1,
+                      border: `1.5px solid ${agreed ? TEAL : "#CBD5E1"}`,
+                      background: agreed ? TEAL : "#fff",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      transition: "all 0.2s", cursor: "pointer",
+                    }}>
+                    {agreed && <Icon name="Check" size={12} style={{ color: "#fff" }} />}
+                  </div>
+                  <span style={{ fontSize: 13, color: GRAY, lineHeight: 1.6, fontWeight: 300 }}>
+                    Я принимаю{" "}
+                    <Link to="/privacy" target="_blank"
+                      style={{ color: TEAL, textDecoration: "none", fontWeight: 500 }}
+                      onClick={e => e.stopPropagation()}>
+                      политику конфиденциальности
+                    </Link>{" "}
+                    и даю согласие на обработку персональных данных
+                  </span>
+                </label>
+
+                {error && <ErrorBox message={error} />}
+
+                <button type="submit" disabled={loading || !agreed} style={submitStyle(loading || !agreed)}>
+                  {loading ? "Регистрирую..." : "Создать аккаунт"}
+                </button>
+
+                <p style={{ textAlign: "center", fontSize: 13, color: GRAY, marginTop: 20, fontWeight: 300 }}>
+                  Уже есть аккаунт?{" "}
+                  <button type="button" onClick={() => { setTab("login"); setError(""); }}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: TEAL, fontSize: 13, fontWeight: 500, padding: 0 }}>
+                    Войти
+                  </button>
+                </p>
+              </form>
+            )}
+          </div>
+        </div>
+
+        {/* Footer note */}
+        <p style={{ textAlign: "center", fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 24, fontWeight: 300 }}>
+          © 2026 Про Диалог. Платформа роста салона.
         </p>
       </div>
     </div>
   );
+}
+
+function ErrorBox({ message }: { message: string }) {
+  return (
+    <div style={{
+      background: "#FFF1F2", border: "1px solid #FECDD3", borderRadius: 4,
+      padding: "11px 14px", marginBottom: 20, fontSize: 13, color: "#BE123C",
+      display: "flex", alignItems: "center", gap: 8,
+    }}>
+      <Icon name="AlertCircle" size={15} style={{ flexShrink: 0 }} />
+      {message}
+    </div>
+  );
+}
+
+function submitStyle(disabled: boolean): React.CSSProperties {
+  return {
+    width: "100%", padding: "14px", borderRadius: 4, border: "none",
+    background: disabled ? "#E2E8F0" : `linear-gradient(135deg, #2DD4BF, #14B8A6)`,
+    color: disabled ? "#94A3B8" : "#0F172A",
+    fontSize: 14, fontWeight: 600, fontFamily: "Inter, sans-serif",
+    cursor: disabled ? "not-allowed" : "pointer",
+    letterSpacing: "0.3px", transition: "all 0.2s",
+  };
 }

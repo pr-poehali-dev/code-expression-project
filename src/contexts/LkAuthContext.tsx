@@ -26,6 +26,7 @@ interface LkAuthCtx {
   user: LkUser | null;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
+  register: (full_name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -86,13 +87,19 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   };
 
+  const register = async (full_name: string, email: string, password: string) => {
+    const data = await lkApi.register(full_name, email, password);
+    saveSession(data.session_id);
+    setUser(data.user);
+  };
+
   const logout = async () => {
     await lkApi.logout().catch(() => {});
     clearSession();
     setUser(null);
   };
 
-  return <Ctx.Provider value={{ user, loading, login, logout }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, loading, login, register, logout }}>{children}</Ctx.Provider>;
 }
 
 export function useLkAuth() {
