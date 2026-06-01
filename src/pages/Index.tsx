@@ -1,490 +1,204 @@
-import { useEffect, useRef, useState } from "react";
-import { Helmet } from "@/lib/helmet";
-import DokFooter from "@/components/DokFooter";
-import DokNavbar from "@/components/DokNavbar";
+import { Link } from "react-router-dom";
+import BizNavbar from "@/components/BizNavbar";
+import BizFooter from "@/components/BizFooter";
 
-function useInView(threshold = 0.12) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [threshold]);
-  return { ref, visible };
-}
+const TEAL = "#14B8A6";
+const DARK = "#0F172A";
+const GRAY = "#64748B";
 
-function FadeIn({ children, delay = 0, style = {} }: { children: React.ReactNode; delay?: number; style?: React.CSSProperties }) {
-  const { ref, visible } = useInView();
+const RESULTS = [
+  { icon: "📈", title: "Рост клиентов", desc: "Возвращаемость клиентов через правильную коммуникацию и ИИ-скрипты" },
+  { icon: "💰", title: "Рост среднего чека", desc: "Инструменты допродаж и работы с возражениями для администраторов и мастеров" },
+  { icon: "👥", title: "Сильная команда", desc: "Анализ персонала, обучение и контроль эффективности каждого сотрудника" },
+  { icon: "📊", title: "Контроль бизнеса", desc: "Цифровой разбор и аналитика — понимайте, где теряете деньги" },
+];
+
+const TOOLS = [
+  { icon: "🧑‍💼", title: "Анализ персонала", desc: "Узнайте, кто приносит прибыль, а кто создаёт потери.", tag: "Управление" },
+  { icon: "📋", title: "Цифровой бизнес-разбор", desc: "Персональный план роста выручки за 15 минут.", tag: "Аналитика" },
+  { icon: "✍️", title: "Генератор постов", desc: "Пост с текстом и идеей изображения за 2 минуты.", tag: "Маркетинг" },
+  { icon: "💬", title: "Скрипты общения", desc: "Готовые сценарии для сотрудников на любую ситуацию.", tag: "Продажи" },
+  { icon: "🔍", title: "Диагностика клиента", desc: "Для специалистов по телу — опрос и программа работы.", tag: "Специалисты" },
+  { icon: "📣", title: "Ответы на отзывы", desc: "ИИ формирует профессиональные ответы на любой отзыв.", tag: "Репутация" },
+];
+
+const PROBLEMS = [
+  "Салон теряет клиентов, которые не возвращаются",
+  "Сотрудники не умеют продавать и работать с возражениями",
+  "Нет времени на маркетинг — соцсети молчат неделями",
+  "Непонятно, где именно теряются деньги",
+];
+
+export default function Index() {
   return (
-    <div ref={ref} style={{
-      opacity: visible ? 1 : 0,
-      transform: visible ? "translateY(0)" : "translateY(28px)",
-      transition: `opacity 0.75s ease ${delay}ms, transform 0.75s ease ${delay}ms`,
-      ...style,
-    }}>
-      {children}
-    </div>
-  );
-}
+    <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
+      <BizNavbar />
 
-const ACCENT = "hsl(185, 85%, 32%)";
-const ACCENT_DARK = "hsl(185, 85%, 26%)";
-const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.28)";
-const ACCENT_SHADOW_HOVER = "hsla(185, 85%, 32%, 0.42)";
-const SEND_URL = "https://functions.poehali.dev/13844979-19e6-463d-bb8e-fddd2b08479f";
+      {/* ── HERO ── */}
+      <section style={{
+        background: `linear-gradient(135deg, ${DARK} 0%, #1E293B 60%, #0F2D2A 100%)`,
+        minHeight: "100vh", display: "flex", alignItems: "center",
+        paddingTop: 68, position: "relative", overflow: "hidden",
+      }}>
+        <div style={{ position: "absolute", top: "10%", right: "-5%", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(20,184,166,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "-10%", left: "-5%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(20,184,166,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
 
-function Btn({ href, children, primary = true, style = {} }: { href: string; children: React.ReactNode; primary?: boolean; style?: React.CSSProperties }) {
-  const base: React.CSSProperties = primary
-    ? { background: ACCENT, color: "#fff", boxShadow: `0 4px 20px ${ACCENT_SHADOW}` }
-    : { background: "transparent", color: ACCENT, border: `1.5px solid ${ACCENT}` };
-  return (
-    <a href={href} style={{
-      display: "inline-block", padding: "14px 28px", borderRadius: 12,
-      fontSize: 14, fontWeight: 600, letterSpacing: "0.02em", textDecoration: "none",
-      transition: "all 0.25s ease", whiteSpace: "nowrap" as const, ...base, ...style,
-    }}
-      onMouseEnter={e => {
-        const el = e.currentTarget as HTMLAnchorElement;
-        if (primary) { el.style.background = ACCENT_DARK; el.style.boxShadow = `0 8px 32px ${ACCENT_SHADOW_HOVER}`; }
-        else { el.style.background = `hsla(185, 85%, 32%, 0.07)`; }
-        el.style.transform = "translateY(-2px)";
-      }}
-      onMouseLeave={e => {
-        const el = e.currentTarget as HTMLAnchorElement;
-        if (primary) { el.style.background = ACCENT; el.style.boxShadow = `0 4px 20px ${ACCENT_SHADOW}`; }
-        else { el.style.background = "transparent"; }
-        el.style.transform = "translateY(0)";
-      }}
-    >{children}</a>
-  );
-}
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 24px", width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }} className="hero-grid">
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(20,184,166,0.15)", border: "1px solid rgba(20,184,166,0.3)", borderRadius: 100, padding: "6px 16px", marginBottom: 28 }}>
+              <div style={{ width: 7, height: 7, borderRadius: "50%", background: TEAL }} />
+              <span style={{ fontSize: 13, color: TEAL, fontWeight: 600 }}>Платформа роста салона</span>
+            </div>
 
-function ContactForm() {
-  const [name, setName] = useState("");
-  const [contact, setContact] = useState("");
-  const [type, setType] = useState("");
-  const [topic, setTopic] = useState("");
-  const [agreed, setAgreed] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+            <h1 style={{ fontSize: "clamp(36px,5vw,58px)", fontWeight: 900, color: "#fff", lineHeight: 1.1, margin: "0 0 20px", letterSpacing: "-1px" }}>
+              Про Диалог
+            </h1>
+            <p style={{ fontSize: "clamp(18px,2.5vw,22px)", color: "rgba(255,255,255,0.65)", lineHeight: 1.5, margin: "0 0 16px", fontWeight: 400 }}>
+              Цифровой помощник для владельца салона и его команды
+            </p>
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !contact.trim()) return;
-    if (!agreed) { setError("Необходимо дать согласие"); return; }
-    setLoading(true); setError("");
-    try {
-      const res = await fetch(SEND_URL, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, contact, message: `Тип: ${type}\nТема: ${topic}\nКонтакт: ${contact}` }),
-      });
-      if (res.ok) setSent(true);
-      else setError("Не удалось отправить. Попробуйте ещё раз.");
-    } catch { setError("Ошибка сети. Проверьте подключение."); }
-    finally { setLoading(false); }
-  };
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 40 }}>
+              {["ИИ-инструменты", "Аналитика бизнеса", "Рост клиентов", "Обучение персонала", "Управление командой"].map(t => (
+                <span key={t} style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "5px 12px" }}>
+                  ✅ {t}
+                </span>
+              ))}
+            </div>
 
-  if (sent) return (
-    <div style={{ textAlign: "center", padding: "32px 16px" }}>
-      <div style={{ width: 72, height: 72, borderRadius: "50%", background: "hsl(185, 85%, 95%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: ACCENT }}>
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-      </div>
-      <div style={{ fontFamily: "Cormorant, serif", fontSize: 26, fontWeight: 700, color: "#1a1a1a", marginBottom: 10 }}>Заявка принята</div>
-      <p style={{ fontSize: 15, color: "#5a5a5a", lineHeight: 1.7 }}>Мы свяжемся с вами в течение рабочего дня и обсудим подходящий формат.</p>
-    </div>
-  );
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <Link to="/cabinet" style={{
+                padding: "15px 32px", borderRadius: 12, fontSize: 16, fontWeight: 700,
+                background: "linear-gradient(135deg,#14B8A6,#0D9488)", color: "#fff",
+                textDecoration: "none", boxShadow: "0 8px 28px rgba(20,184,166,0.45)",
+              }}>
+                Попробовать бесплатно
+              </Link>
+              <Link to="/vozmozhnosti" style={{
+                padding: "15px 32px", borderRadius: 12, fontSize: 16, fontWeight: 600,
+                border: "1.5px solid rgba(255,255,255,0.25)", color: "#fff",
+                textDecoration: "none",
+              }}>
+                Смотреть возможности →
+              </Link>
+            </div>
+          </div>
 
-  return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {[
-        { label: "Ваше имя", value: name, onChange: setName, placeholder: "Имя" },
-        { label: "Телефон или Telegram", value: contact, onChange: setContact, placeholder: "+7 (___) ___-__-__ или @username" },
-      ].map(f => (
-        <div key={f.label}>
-          <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#3a3a3a", marginBottom: 6 }}>{f.label}</label>
-          <input value={f.value} onChange={e => f.onChange(e.target.value)} placeholder={f.placeholder} required
-            style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 15, outline: "none", boxSizing: "border-box" as const, fontFamily: "Montserrat, sans-serif" }}
-            onFocus={e => (e.currentTarget.style.borderColor = ACCENT)}
-            onBlur={e => (e.currentTarget.style.borderColor = "#e0e0e0")}
-          />
+          <div style={{ display: "flex", justifyContent: "center" }} className="hero-img">
+            <div style={{
+              width: "100%", maxWidth: 480, aspectRatio: "16/10",
+              background: "rgba(255,255,255,0.04)", border: "1.5px dashed rgba(255,255,255,0.15)",
+              borderRadius: 20, display: "flex", flexDirection: "column", alignItems: "center",
+              justifyContent: "center", gap: 8,
+            }}>
+              <div style={{ fontSize: 36 }}>🖥️</div>
+              <div style={{ fontWeight: 600, color: "rgba(255,255,255,0.5)", fontSize: 14 }}>Скриншот кабинета</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>Размер: 960 × 600 px</div>
+            </div>
+          </div>
         </div>
-      ))}
-      <div>
-        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#3a3a3a", marginBottom: 6 }}>Вы</label>
-        <select value={type} onChange={e => setType(e.target.value)}
-          style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 15, outline: "none", background: "#fff", boxSizing: "border-box" as const, fontFamily: "Montserrat, sans-serif", color: type ? "#1a1a1a" : "#999" }}>
-          <option value="">Выберите</option>
-          <option value="Специалист">Специалист</option>
-          <option value="Представитель салона">Представитель салона</option>
-        </select>
-      </div>
-      <div>
-        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#3a3a3a", marginBottom: 6 }}>Что хотите обсудить</label>
-        <textarea value={topic} onChange={e => setTopic(e.target.value)} placeholder="Опишите коротко вашу задачу или вопрос" rows={3}
-          style={{ width: "100%", padding: "12px 16px", borderRadius: 10, border: "1.5px solid #e0e0e0", fontSize: 15, outline: "none", resize: "none" as const, boxSizing: "border-box" as const, fontFamily: "Montserrat, sans-serif" }}
-          onFocus={e => (e.currentTarget.style.borderColor = ACCENT)}
-          onBlur={e => (e.currentTarget.style.borderColor = "#e0e0e0")}
-        />
-      </div>
-      <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
-        <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 2, width: 16, height: 16, accentColor: ACCENT, flexShrink: 0, cursor: "pointer" }} />
-        <span style={{ fontSize: 12, color: "#666", lineHeight: 1.6 }}>
-          Согласен с <a href="/privacy" style={{ color: ACCENT }} target="_blank">политикой конфиденциальности</a> и <a href="/offer" style={{ color: ACCENT }} target="_blank">офертой</a>
-        </span>
-      </label>
-      <button type="submit"
-        style={{ marginTop: 4, background: ACCENT, color: "#fff", padding: "14px 28px", borderRadius: 12, fontSize: 15, fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.25s ease", boxShadow: `0 4px 20px ${ACCENT_SHADOW}`, fontFamily: "Montserrat, sans-serif" }}
-        onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ACCENT_DARK; el.style.boxShadow = `0 8px 32px ${ACCENT_SHADOW_HOVER}`; el.style.transform = "translateY(-2px)"; }}
-        onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ACCENT; el.style.boxShadow = `0 4px 20px ${ACCENT_SHADOW}`; el.style.transform = "translateY(0)"; }}
-      >{loading ? "Отправляем..." : "Обсудить участие"}</button>
-      {error && <p style={{ margin: 0, fontSize: 13, color: "#e53e3e", textAlign: "center" }}>{error}</p>}
-    </form>
-  );
-}
+      </section>
 
-export default function DokDialog() {
-  return (
-    <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
-      <Helmet>
-        <title>Dok Диалог — система премиальной работы с телом, клиентом и практикой специалиста</title>
-        <meta name="description" content="Профессиональная система для специалистов, салонов и wellness-пространств: работа с телом, состоянием клиента, премиальной практикой, коммуникацией, доверием и внедрением восстановительных методик." />
-        <meta name="keywords" content="премиальная практика специалиста, обучение телесных специалистов, восстановительные практики для салонов, система работы с клиентом, работа с телом и состоянием, повышение ценности массажных услуг" />
-        <meta property="og:title" content="Dok Диалог — система премиальной работы с телом, клиентом и практикой специалиста" />
-        <meta property="og:description" content="Профессиональная система для специалистов и салонов, которые хотят работать с телом, клиентом и практикой на более глубоком и премиальном уровне." />
-        <meta property="og:type" content="website" />
-      </Helmet>
+      {/* ── ПРОБЛЕМЫ ── */}
+      <section style={{ background: "#F8FAFC", padding: "80px 24px" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <h2 style={{ fontSize: "clamp(28px,4vw,40px)", fontWeight: 800, color: DARK, margin: "0 0 12px", letterSpacing: "-0.5px" }}>
+              Узнаёте свой салон?
+            </h2>
+            <p style={{ fontSize: 18, color: GRAY, margin: 0 }}>Про Диалог помогает решить эти задачи</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 16 }}>
+            {PROBLEMS.map((p, i) => (
+              <div key={i} style={{ background: "#fff", borderRadius: 16, padding: "24px", border: "1.5px solid #E2E8F0", display: "flex", alignItems: "flex-start", gap: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(20,184,166,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>❗</div>
+                <p style={{ margin: 0, fontSize: 15, color: "#334155", lineHeight: 1.6, fontWeight: 500 }}>{p}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── РЕЗУЛЬТАТЫ ── */}
+      <section style={{ padding: "80px 24px", background: "#fff" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: TEAL, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 12 }}>Результаты</div>
+            <h2 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 800, color: DARK, margin: "0 0 16px", letterSpacing: "-0.5px" }}>
+              Что получает салон с Про Диалог
+            </h2>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 20 }}>
+            {RESULTS.map((r, i) => (
+              <div key={i} style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", borderRadius: 20, padding: "32px 24px", transition: "all 0.25s", cursor: "default" }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = TEAL; el.style.boxShadow = "0 8px 32px rgba(20,184,166,0.12)"; el.style.transform = "translateY(-4px)"; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "#E2E8F0"; el.style.boxShadow = "none"; el.style.transform = "translateY(0)"; }}
+              >
+                <div style={{ fontSize: 40, marginBottom: 16 }}>{r.icon}</div>
+                <h3 style={{ fontSize: 20, fontWeight: 700, color: DARK, margin: "0 0 10px" }}>{r.title}</h3>
+                <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.6 }}>{r.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ИНСТРУМЕНТЫ ── */}
+      <section style={{ background: DARK, padding: "80px 24px" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: TEAL, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 12 }}>Инструменты</div>
+            <h2 style={{ fontSize: "clamp(28px,4vw,42px)", fontWeight: 800, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px" }}>
+              Что внутри платформы
+            </h2>
+            <p style={{ fontSize: 18, color: "rgba(255,255,255,0.5)", margin: 0 }}>20+ ИИ-инструментов для всей команды салона</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
+            {TOOLS.map((t, i) => (
+              <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "24px", transition: "all 0.25s", cursor: "default" }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = "rgba(20,184,166,0.08)"; el.style.borderColor = "rgba(20,184,166,0.25)"; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = "rgba(255,255,255,0.04)"; el.style.borderColor = "rgba(255,255,255,0.08)"; }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+                  <div style={{ fontSize: 32 }}>{t.icon}</div>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: TEAL, background: "rgba(20,184,166,0.15)", borderRadius: 6, padding: "3px 9px", border: "1px solid rgba(20,184,166,0.25)" }}>{t.tag}</span>
+                </div>
+                <h3 style={{ fontSize: 17, fontWeight: 700, color: "#fff", margin: "0 0 8px" }}>{t.title}</h3>
+                <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.6 }}>{t.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ textAlign: "center", marginTop: 40 }}>
+            <Link to="/vozmozhnosti" style={{ display: "inline-block", padding: "14px 32px", borderRadius: 12, border: "1.5px solid rgba(20,184,166,0.4)", color: TEAL, fontSize: 15, fontWeight: 600, textDecoration: "none" }}>
+              Все возможности платформы →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section style={{ background: "linear-gradient(135deg,#0D9488,#14B8A6)", padding: "80px 24px", textAlign: "center" }}>
+        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+          <h2 style={{ fontSize: "clamp(28px,4vw,44px)", fontWeight: 900, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px" }}>
+            Начните бесплатно сегодня
+          </h2>
+          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.85)", margin: "0 0 36px" }}>
+            100 энергий в подарок при создании первого салона. Без карты.
+          </p>
+          <Link to="/cabinet" style={{ display: "inline-block", padding: "16px 40px", borderRadius: 14, background: "#fff", color: "#0D9488", fontSize: 17, fontWeight: 800, textDecoration: "none", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
+            Попробовать бесплатно
+          </Link>
+          <p style={{ marginTop: 20, fontSize: 13, color: "rgba(255,255,255,0.6)" }}>Уже используют более 200 салонов</p>
+        </div>
+      </section>
+
+      <BizFooter />
 
       <style>{`
-        .idx-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
-        .idx-dirs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-        .idx-why { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .idx-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-        .idx-cta { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
-        .idx-thesis { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        @media (max-width: 900px) {
-          .idx-hero { grid-template-columns: 1fr; gap: 40px; }
-          .idx-dirs { grid-template-columns: 1fr; }
-          .idx-why { grid-template-columns: 1fr 1fr; }
-          .idx-split { grid-template-columns: 1fr; }
-          .idx-cta { grid-template-columns: 1fr; gap: 40px; }
-          .idx-thesis { grid-template-columns: 1fr; }
-        }
-        @media (max-width: 600px) {
-          .idx-why { grid-template-columns: 1fr; }
+        @media (max-width: 768px) {
+          .hero-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+          .hero-img { display: none !important; }
         }
       `}</style>
-
-      <DokNavbar />
-
-      {/* ─── HERO ─── */}
-      <section style={{ paddingTop: 130, paddingBottom: 80 }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <div className="idx-hero">
-            <div>
-              <FadeIn delay={0}>
-                <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 22 }}>
-                  Профессиональная система
-                </div>
-              </FadeIn>
-              <FadeIn delay={80}>
-                <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(38px, 5vw, 62px)", fontWeight: 700, lineHeight: 1.1, color: "#1a1a1a", marginBottom: 28, letterSpacing: "-0.5px" }}>
-                  Система премиальной работы<br />с телом, клиентом<br />и{" "}<span style={{ color: ACCENT }}>практикой специалиста</span>
-                </h1>
-              </FadeIn>
-              <FadeIn delay={180}>
-                <p style={{ fontSize: "clamp(15px, 2vw, 17px)", lineHeight: 1.8, color: "#4a4a4a", marginBottom: 16, maxWidth: 520 }}>
-                  Для специалистов, салонов и wellness-пространств, которые хотят перейти от потоковой работы к более глубокому, спокойному и ценному формату взаимодействия с клиентом.
-                </p>
-                <p style={{ fontSize: 14, lineHeight: 1.75, color: "#777", marginBottom: 40, maxWidth: 500 }}>
-                  В основе системы — работа с телом, состоянием человека, доверием, профессиональной позицией специалиста и качеством клиентского опыта.
-                </p>
-              </FadeIn>
-              <FadeIn delay={280}>
-                <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 12 }}>
-                  <Btn href="/dlya-specialistov">Для специалистов</Btn>
-                  <Btn href="/dlya-salonov" primary={false}>Для салонов</Btn>
-                </div>
-              </FadeIn>
-            </div>
-            <FadeIn delay={150}>
-              <div style={{ borderRadius: 24, overflow: "hidden", boxShadow: "0 32px 80px rgba(0,0,0,0.10)", aspectRatio: "4/5" }}>
-                <img
-                  src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/7c4588ea-e426-44ac-9419-d41fc032b1b1.png"
-                  alt="Dok Диалог — профессиональная работа с телом"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                />
-              </div>
-            </FadeIn>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── ФИЛОСОФИЯ ─── */}
-      <section style={{ background: "#fff", padding: "80px 0" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <FadeIn>
-            <div style={{ maxWidth: 720, marginBottom: 56 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 18 }}>Философия системы</div>
-              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(28px, 4vw, 46px)", fontWeight: 700, color: "#1a1a1a", lineHeight: 1.15, marginBottom: 24 }}>
-                Премиальный результат начинается не с техники, а с системы
-              </h2>
-              <p style={{ fontSize: 16, lineHeight: 1.85, color: "#4a4a4a", marginBottom: 16 }}>
-                Восстановительная работа высокого уровня строится не только на наборе приёмов. Клиент чувствует состояние специалиста, качество контакта, уверенность, безопасность, темп, глубину и способность вести процесс.
-              </p>
-              <p style={{ fontSize: 15, lineHeight: 1.85, color: "#666" }}>
-                «Dok Диалог» объединяет телесную практику, мышление специалиста, коммуникацию, диагностику, работу с доверием и профессиональную систему ведения клиента.
-              </p>
-            </div>
-          </FadeIn>
-          <div className="idx-thesis">
-            {[
-              "Тело отражает состояние человека",
-              "Специалист работает не только руками, но и вниманием",
-              "Премиальный клиент выбирает уровень, а не набор техник",
-              "Доверие создаётся до первого визита",
-              "Практика должна быть устойчивой, а не хаотичной",
-              "Глубина работы — это не длина сессии, а качество присутствия",
-            ].map((t, i) => (
-              <FadeIn key={i} delay={i * 60}>
-                <div style={{ padding: "22px 24px", background: "#f8f8f6", borderRadius: 14, borderLeft: `3px solid ${ACCENT}` }}>
-                  <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: "#3a3a3a", fontWeight: 500 }}>{t}</p>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── НАПРАВЛЕНИЯ ─── */}
-      <section style={{ padding: "80px 0" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <FadeIn>
-            <div style={{ textAlign: "center", marginBottom: 52 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 16 }}>Три направления</div>
-              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(28px, 4vw, 46px)", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>
-                Направления системы Dok Диалог
-              </h2>
-            </div>
-          </FadeIn>
-          <div className="idx-dirs">
-            {[
-              {
-                num: "01",
-                title: "Для специалистов",
-                text: "Переход из потоковой практики в зрелую профессиональную систему: мышление, стоимость, границы, клиентский опыт, повторные визиты и глубокая работа с телом.",
-                btn: "Перейти в направление",
-                href: "/dlya-specialistov",
-              },
-              {
-                num: "02",
-                title: "Для салонов",
-                text: "Внедрение премиальных восстановительных практик: обучение команды, повышение ценности услуг, стандарты клиентского опыта и система удержания клиентов.",
-                btn: "Обсудить внедрение",
-                href: "/dlya-salonov",
-              },
-              {
-                num: "03",
-                title: "Профессиональные встречи",
-                text: "Закрытые лекции, разборы и встречи для специалистов и владельцев, которые хотят глубже понимать работу с телом, клиентом и практикой.",
-                btn: "Ближайшие встречи",
-                href: "/professionalnye-vstrechi",
-              },
-            ].map((d, i) => (
-              <FadeIn key={i} delay={i * 100}>
-                <div style={{ background: "#fff", borderRadius: 20, padding: "40px 32px", height: "100%", boxSizing: "border-box" as const, display: "flex", flexDirection: "column" as const, boxShadow: "0 2px 20px rgba(0,0,0,0.06)" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", color: ACCENT, marginBottom: 20 }}>{d.num}</div>
-                  <h3 style={{ fontFamily: "Cormorant, serif", fontSize: 26, fontWeight: 700, color: "#1a1a1a", marginBottom: 16, lineHeight: 1.2 }}>{d.title}</h3>
-                  <p style={{ fontSize: 14, lineHeight: 1.75, color: "#5a5a5a", flex: 1, marginBottom: 28 }}>{d.text}</p>
-                  <Btn href={d.href} style={{ alignSelf: "flex-start", fontSize: 13, padding: "11px 22px" }}>{d.btn}</Btn>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── ПОЧЕМУ ─── */}
-      <section style={{ background: "#fff", padding: "80px 0" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <FadeIn>
-            <div style={{ textAlign: "center", marginBottom: 52 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 16 }}>Основа</div>
-              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>
-                Система, основанная на реальной практике
-              </h2>
-            </div>
-          </FadeIn>
-          <div className="idx-why">
-            {[
-              { n: "17+", label: "лет практики", sub: "Работа с клиентами высокого уровня в частной и профессиональной среде" },
-              { n: "—", label: "Понимание тела", sub: "Телесная реакция, нервная система, состояние — в основе каждой программы" },
-              { n: "—", label: "Система для команд", sub: "Работа как с отдельными специалистами, так и с командами салонов" },
-              { n: "—", label: "Глубина и безопасность", sub: "Акцент на качестве контакта, доверии и клиентском пути" },
-              { n: "—", label: "Премиальный уровень", sub: "Опыт частной практики с клиентами, которые ценят уровень, а не цену" },
-              { n: "—", label: "Профессиональная среда", sub: "Закрытые форматы для зрелых специалистов, которым важна глубина" },
-            ].map((w, i) => (
-              <FadeIn key={i} delay={i * 70}>
-                <div style={{ padding: "28px 24px", borderRadius: 16, border: "1px solid #eee", background: "#fafafa" }}>
-                  {w.n !== "—" && <div style={{ fontFamily: "Cormorant, serif", fontSize: 36, fontWeight: 700, color: ACCENT, marginBottom: 6 }}>{w.n}</div>}
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", marginBottom: 8 }}>{w.label}</div>
-                  <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: "#777" }}>{w.sub}</p>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── ДЛЯ СПЕЦИАЛИСТОВ / ДЛЯ САЛОНОВ ─── */}
-      <div className="idx-split">
-        <FadeIn>
-          <div style={{ padding: "72px 48px", background: "#f0f7f7" }}>
-            <div style={{ maxWidth: 460, margin: "0 auto" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 18 }}>Для специалистов</div>
-              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, color: "#1a1a1a", lineHeight: 1.2, marginBottom: 20 }}>
-                Выход из потоковой практики
-              </h2>
-              <p style={{ fontSize: 14, lineHeight: 1.8, color: "#4a4a4a", marginBottom: 12 }}>
-                Программа помогает перестроить мышление, стоимость, границы и коммуникацию.
-              </p>
-              <ul style={{ paddingLeft: 0, listStyle: "none", margin: "0 0 32px" }}>
-                {["Понимание своей профессиональной ценности", "Повышение стоимости без суеты", "Более глубокая работа с телом", "Клиентский опыт высокого уровня"].map((item, i) => (
-                  <li key={i} style={{ fontSize: 13, color: "#5a5a5a", marginBottom: 8, display: "flex", alignItems: "flex-start", gap: 10 }}>
-                    <span style={{ color: ACCENT, fontWeight: 700, flexShrink: 0 }}>—</span> {item}
-                  </li>
-                ))}
-              </ul>
-              <Btn href="/dlya-specialistov">Подать заявку на участие</Btn>
-            </div>
-          </div>
-        </FadeIn>
-        <FadeIn delay={100}>
-          <div style={{ padding: "72px 48px", background: "#1a2a2a" }}>
-            <div style={{ maxWidth: 460, margin: "0 auto" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 18 }}>Для салонов</div>
-              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, color: "#fff", lineHeight: 1.2, marginBottom: 20 }}>
-                Внедрение премиальных практик
-              </h2>
-              <p style={{ fontSize: 14, lineHeight: 1.8, color: "#a0b8b8", marginBottom: 12 }}>
-                Система помогает усилить команду, повысить ценность услуг и создать клиентский опыт, за который возвращаются.
-              </p>
-              <ul style={{ paddingLeft: 0, listStyle: "none", margin: "0 0 32px" }}>
-                {["Обучение команды мастеров", "Стандарты клиентского пути", "Повышение ценности услуг", "Возвращаемость клиентов"].map((item, i) => (
-                  <li key={i} style={{ fontSize: 13, color: "#8aa8a8", marginBottom: 8, display: "flex", alignItems: "flex-start", gap: 10 }}>
-                    <span style={{ color: ACCENT, fontWeight: 700, flexShrink: 0 }}>—</span> {item}
-                  </li>
-                ))}
-              </ul>
-              <Btn href="/dlya-salonov">Обсудить внедрение</Btn>
-            </div>
-          </div>
-        </FadeIn>
-      </div>
-
-      {/* ─── СЕРГЕЙ ─── */}
-      <section style={{ padding: "80px 0", background: "#fff" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <div className="idx-cta">
-            <FadeIn>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 20 }}>Создатель системы</div>
-                <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 700, color: "#1a1a1a", lineHeight: 1.15, marginBottom: 20 }}>
-                  Сергей Водопьянов
-                </h2>
-                <p style={{ fontSize: 15, lineHeight: 1.85, color: "#4a4a4a", marginBottom: 16 }}>
-                  Практик, который создал «Dok Диалог» как систему глубокой работы с телом и клиентом. В основе — 17+ лет практики, работа с клиентами высокого уровня и понимание, что результат создаётся не только техникой, но и состоянием специалиста.
-                </p>
-                <p style={{ fontSize: 14, lineHeight: 1.75, color: "#666", marginBottom: 32 }}>
-                  Доверие, диагностика, профессиональная система ведения клиента — не как набор инструментов, а как зрелый профессиональный подход.
-                </p>
-                <Btn href="/o-sisteme" primary={false}>О системе подробнее</Btn>
-              </div>
-            </FadeIn>
-            <FadeIn delay={120}>
-              <div style={{ background: "#f8f8f6", borderRadius: 20, padding: "40px 36px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 20 }}>Выберите формат</div>
-                <h3 style={{ fontFamily: "Cormorant, serif", fontSize: 26, fontWeight: 700, color: "#1a1a1a", marginBottom: 24, lineHeight: 1.2 }}>
-                  Выберите формат, который соответствует вашей задаче
-                </h3>
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 12, marginBottom: 20 }}>
-                  {[
-                    { label: "Я специалист", href: "/dlya-specialistov" },
-                    { label: "Я представляю салон", href: "/dlya-salonov" },
-                    { label: "Пройти диагностику формата", href: "/quiz" },
-                  ].map((b, i) => (
-                    <Btn key={i} href={b.href} primary={i === 0} style={{ textAlign: "center", fontSize: 14 }}>{b.label}</Btn>
-                  ))}
-                </div>
-                <p style={{ margin: 0, fontSize: 12, color: "#aaa", textAlign: "center" as const }}>или <a href="/kontakty" style={{ color: ACCENT }}>напишите напрямую</a></p>
-              </div>
-            </FadeIn>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── ОТЗЫВЫ (превью) ─── */}
-      <section style={{ padding: "80px 0", background: "#f8f8f6" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <FadeIn>
-            <div style={{ textAlign: "center", marginBottom: 48 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 16 }}>Истории</div>
-              <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px, 4vw, 42px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 12px" }}>
-                Истории специалистов и команд
-              </h2>
-              <p style={{ fontSize: 15, color: "#666", margin: 0 }}>которые изменили подход к практике</p>
-            </div>
-          </FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20, marginBottom: 40 }}>
-            {[
-              { text: "После программы я наконец-то перестала чувствовать себя виноватой за высокую цену. Это изменение мышления, а не просто техника.", name: "Анастасия К.", role: "Специалист по телесным практикам" },
-              { text: "Внедрили систему в нашем салоне — через два месяца повторные визиты выросли. Клиенты стали говорить о другом уровне ощущений.", name: "Владислав М.", role: "Владелец wellness-центра" },
-              { text: "Я работаю 6 лет, но только сейчас понял, как создаётся доверие до первого визита. Это переворачивает всю логику работы.", name: "Дмитрий Н.", role: "Массажист, частная практика" },
-            ].map((r, i) => (
-              <FadeIn key={i} delay={i * 80}>
-                <div style={{ background: "#fff", borderRadius: 18, padding: "32px 28px", boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}>
-                  <p style={{ fontSize: 14, lineHeight: 1.8, color: "#3a3a3a", marginBottom: 20, fontStyle: "italic" }}>«{r.text}»</p>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>{r.name}</div>
-                  <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>{r.role}</div>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-          <FadeIn>
-            <div style={{ textAlign: "center" }}>
-              <Btn href="/reviews" primary={false}>Все истории</Btn>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* ─── ФИНАЛЬНЫЙ CTA ─── */}
-      <section style={{ padding: "80px 0", background: "#fff" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto", padding: "0 24px", textAlign: "center" as const }}>
-          <FadeIn>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 20 }}>Следующий шаг</div>
-            <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(28px, 4vw, 46px)", fontWeight: 700, color: "#1a1a1a", lineHeight: 1.15, marginBottom: 16 }}>
-              Обсудите участие или внедрение
-            </h2>
-            <p style={{ fontSize: 16, lineHeight: 1.8, color: "#5a5a5a", marginBottom: 48 }}>
-              Оставьте заявку и мы обсудим формат, который соответствует вашей задаче — будь то развитие практики специалиста или внедрение системы в салоне.
-            </p>
-          </FadeIn>
-          <FadeIn delay={100}>
-            <div style={{ background: "#f8f8f6", borderRadius: 24, padding: "48px 40px" }}>
-              <ContactForm />
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      <DokFooter />
     </div>
   );
 }

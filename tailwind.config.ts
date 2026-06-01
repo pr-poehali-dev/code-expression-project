@@ -19,11 +19,22 @@ export default {
 			}
 		},
 		fontFamily: {
-			display: ['Cormorant', 'serif'],
-			body: ['Golos Text', 'sans-serif'],
+			display: ['Inter', 'sans-serif'],
+			body: ['Inter', 'sans-serif'],
+			sans: ['Inter', 'sans-serif'],
 		},
 		extend: {
 			colors: {
+				brand: {
+					dark: '#0F172A',
+					teal: '#14B8A6',
+					'teal-dark': '#0D9488',
+					'teal-light': '#CCFBF1',
+					light: '#F8FAFC',
+					white: '#FFFFFF',
+					gray: '#64748B',
+					'gray-light': '#E2E8F0',
+				},
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
