@@ -7,6 +7,7 @@ import LkReelScript from "./LkReelScript";
 import LkStaffAudit from "./LkStaffAudit";
 import LkReviewReply from "./LkReviewReply";
 import LkClientScripts from "./LkClientScripts";
+import SalonBot from "./SalonBot";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -84,7 +85,7 @@ function ComingSoonCard({ icon, color, bg, title, description }: ComingSoonCardP
   );
 }
 
-type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | "review-reply" | "client-scripts" | null;
+type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | "review-reply" | "client-scripts" | "salon-diag" | null;
 
 export default function LkAiTools() {
   const [activeTool, setActiveTool] = useState<Tool>(null);
@@ -127,6 +128,10 @@ export default function LkAiTools() {
 
   if (activeTool === "client-scripts") {
     return <div><BackButton /><LkClientScripts /></div>;
+  }
+
+  if (activeTool === "salon-diag") {
+    return <SalonBot onBack={() => setActiveTool(null)} />;
   }
 
   return (
@@ -219,6 +224,16 @@ export default function LkAiTools() {
           description="ИИ составит вежливый и профессиональный ответ на любой отзыв — положительный или негативный."
           badge="new"
           onStart={() => setActiveTool("review-reply")}
+        />
+
+        <ToolCard
+          icon="Scissors"
+          color="hsl(335,80%,50%)"
+          bg="hsl(335,80%,97%)"
+          title="Диагностика роста салона PRO"
+          description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока клиентов."
+          badge="new"
+          onStart={() => setActiveTool("salon-diag")}
         />
       </div>
 

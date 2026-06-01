@@ -113,17 +113,7 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
           onStart={onOpenProfile}
         />
 
-        {/* Диагностика роста салона PRO — только для сегмента "салон" */}
-        {showSalon && (
-          <ToolCard
-            icon="Scissors" color="hsl(335,80%,50%)" bg="hsl(335,80%,97%)"
-            title="Диагностика роста салона PRO"
-            description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока"
-            completed={salonHistory.length > 0}
-            completedLabel={salonHistory.length > 0 ? `Пройден · IPS ${salonHistory[0].ips} · потенциал +${formatMoneySalon(salonHistory[0].hidden_money)}` : undefined}
-            onStart={onOpenSalon}
-          />
-        )}
+
 
         {tests.length === 0 && barriersHistory.length === 0 && financeHistory.length === 0 && profileHistory.length === 0 && salonHistory.length === 0 && (
           <div style={{ textAlign: "center", padding: 48, color: "#aaa" }}>
