@@ -2266,6 +2266,8 @@ def handle_review_reply(event: dict) -> dict:
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
+        energy_err = check_and_spend_energy(event, conn, "review_reply")
+        if energy_err: return energy_err
 
         salon = _get_salon_ctx(user, conn, ("name", "target_audience", "tone_of_voice"))
         salon_name     = salon["name"] if salon and salon.get("name") else "наш салон"
