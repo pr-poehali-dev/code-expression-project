@@ -1547,6 +1547,91 @@ def handle_staff_audit_get(event: dict) -> dict:
         conn.close()
 
 
+# ── Скрипты общения с клиентом ───────────────────────────────────────────────
+
+def handle_script_generate(event: dict) -> dict:
+    """Генерирует скрипт диалога с клиентом по роли и описанию ситуации."""
+    body      = json.loads(event.get("body") or "{}")
+    role      = (body.get("role") or "").strip()
+    situation = (body.get("situation") or "").strip()
+
+    if not role:
+        return err("Укажите роль сотрудника")
+    if not situation:
+        return err("Опишите ситуацию")
+    if len(situation) > 1000:
+        return err("Описание слишком длинное (максимум 1000 символов)")
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+
+        salon = _get_salon_ctx(user, conn, ("name", "target_audience", "tone_of_voice"))
+        salon_name     = salon["name"] if salon and salon.get("name") else "салон красоты"
+        salon_audience = salon.get("target_audience", "") if salon else ""
+
+        ROLE_CONTEXT = {
+            "admin":   "Администратор салона. Отвечает на звонки, записывает клиентов, встречает их, работает с возражениями и ценой.",
+            "master":  "Мастер (специалист). Общается с клиентом во время процедуры: консультирует, допродаёт уход, предлагает повторную запись.",
+            "manager": "Управляющий / директор. Решает конфликтные ситуации, работает с VIP-клиентами, разбирает жалобы и претензии.",
+        }
+
+        role_desc = ROLE_CONTEXT.get(role, role)
+
+        prompt = (
+            f"Ты — бизнес-тренер по сервису для салонов красоты.\n"
+            f"Напиши готовый скрипт диалога с клиентом.\n\n"
+            f"Салон: «{salon_name}»\n"
+            + (f"Аудитория клиентов: {salon_audience}\n" if salon_audience else "")
+            + f"Роль сотрудника: {role_desc}\n"
+            f"Ситуация: {situation}\n\n"
+            f"Требования к скрипту:\n"
+            f"- Формат: пошаговый диалог с репликами сотрудника (выдели жирным: **Сотрудник:**)\n"
+            f"- Добавь пометки в скобках: что делать, какую интонацию держать\n"
+            f"- Включи 1–2 варианта ответа на возможные возражения клиента\n"
+            f"- Завершай скрипт конкретным целевым действием (запись, допродажа, благодарность)\n"
+            f"- Живой, человечный язык — никаких канцеляризмов\n"
+            f"- На русском языке\n"
+            f"- Только текст скрипта, без заголовков типа «Скрипт:»"
+        )
+
+        script = _call_ai_text([
+            {"role": "system", "content": "Ты эксперт по клиентскому сервису в бьюти-бизнесе. Пишешь живые, практичные скрипты которые реально работают."},
+            {"role": "user",   "content": prompt}
+        ], max_tokens=800)
+
+        cur = conn.cursor()
+        cur.execute(
+            f"INSERT INTO {tbl('client_scripts')} (user_id, role, situation, script_text) VALUES (%s,%s,%s,%s) RETURNING id",
+            (user["id"], role, situation, script)
+        )
+        row_id = cur.fetchone()[0]
+        conn.commit()
+        return ok({"script": script, "id": row_id})
+    finally:
+        conn.close()
+
+
+def handle_script_history(event: dict) -> dict:
+    """История сгенерированных скриптов."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT id, role, situation, script_text, created_at FROM {tbl('client_scripts')} "
+            f"WHERE user_id=%s ORDER BY created_at DESC LIMIT 20",
+            (user["id"],)
+        )
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
 # ── Ответы на отзывы ─────────────────────────────────────────────────────────
 
 def handle_review_reply(event: dict) -> dict:
@@ -2032,6 +2117,8 @@ ROUTES = {
     ("POST", "staff_delete"): handle_staff_delete,
     ("POST", "review_reply"): handle_review_reply,
     ("GET",  "review_reply_history"): handle_review_reply_history,
+    ("POST", "script_generate"): handle_script_generate,
+    ("GET",  "script_history"): handle_script_history,
 }
 
 

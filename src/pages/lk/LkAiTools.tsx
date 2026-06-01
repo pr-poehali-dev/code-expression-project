@@ -6,6 +6,7 @@ import LkPostGen from "./LkPostGen";
 import LkReelScript from "./LkReelScript";
 import LkStaffAudit from "./LkStaffAudit";
 import LkReviewReply from "./LkReviewReply";
+import LkClientScripts from "./LkClientScripts";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -83,7 +84,7 @@ function ComingSoonCard({ icon, color, bg, title, description }: ComingSoonCardP
   );
 }
 
-type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | "review-reply" | null;
+type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | "review-reply" | "client-scripts" | null;
 
 export default function LkAiTools() {
   const [activeTool, setActiveTool] = useState<Tool>(null);
@@ -122,6 +123,10 @@ export default function LkAiTools() {
 
   if (activeTool === "review-reply") {
     return <div><BackButton /><LkReviewReply /></div>;
+  }
+
+  if (activeTool === "client-scripts") {
+    return <div><BackButton /><LkClientScripts /></div>;
   }
 
   return (
@@ -176,12 +181,14 @@ export default function LkAiTools() {
           onStart={() => setActiveTool("staff-audit")}
         />
 
-        <ComingSoonCard
+        <ToolCard
           icon="MessageSquare"
           color="hsl(145,60%,40%)"
           bg="hsl(145,60%,96%)"
           title="Скрипты общения с клиентом"
-          description="Персональные сценарии диалогов для администраторов и мастеров — под конкретную ситуацию."
+          description="Выбери роль сотрудника, опиши ситуацию — ИИ напишет готовый сценарий диалога с клиентом."
+          badge="new"
+          onStart={() => setActiveTool("client-scripts")}
         />
 
         <ToolCard
