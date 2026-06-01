@@ -145,16 +145,6 @@ export default function Akademiya() {
             Все курсы, программы и мастер-классы на образовательной платформе.
           </p>
           <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", position: "relative" }}>
-            <a href="#" style={{
-              display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 38px", borderRadius: 2,
-              background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, letterSpacing: "0.3px",
-              textDecoration: "none", transition: "all 0.3s",
-            }}
-              onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 16px 40px rgba(45,212,191,0.3)"; }}
-              onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
-            >
-              Открыть магазин обучения <Icon name="ArrowRight" size={16} />
-            </a>
             <Link to="/cabinet" style={{
               display: "inline-flex", alignItems: "center", padding: "16px 38px", borderRadius: 2,
               border: "1px solid rgba(255,255,255,0.22)", color: "#fff", fontSize: 15, fontWeight: 400, letterSpacing: "0.3px",
