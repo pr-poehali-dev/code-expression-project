@@ -14,6 +14,14 @@ export function clearSession() {
 
 export class AuthError extends Error {}
 
+export class EnergyError extends Error {
+  noSalon: boolean;
+  constructor(message: string, noSalon = false) {
+    super(message);
+    this.noSalon = noSalon;
+  }
+}
+
 async function request(method: string, action: string, body?: object, extraParams?: string) {
   const url = `${BASE}?action=${action}${extraParams || ""}`;
   const res = await fetch(url, {
@@ -26,6 +34,14 @@ async function request(method: string, action: string, body?: object, extraParam
   });
   const data = await res.json();
   if (res.status === 401) throw new AuthError(data.error || "Не авторизован");
+  if (res.status === 402) {
+    const msg = data.error || "Недостаточно энергии";
+    const noSalon = msg.includes("профиль салона");
+    const err = new EnergyError(msg, noSalon);
+    // Показываем глобальный модал
+    import("@/components/EnergyGate").then(m => m.showEnergyGate({ message: msg, noSalon }));
+    throw err;
+  }
   if (!res.ok) throw new Error(data.error || "Ошибка сервера");
   return data;
 }

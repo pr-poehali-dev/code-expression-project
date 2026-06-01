@@ -2423,8 +2423,12 @@ def check_and_spend_energy(event: dict, conn, tool_key: str) -> dict | None:
     Возвращает None если всё ок, или err-ответ если недостаточно энергии.
     """
     user = get_session_user(event, conn)
-    if not user or not user.get("salon_id"):
-        return None  # Не привязан к салону — пропускаем (индивидуальный)
+    if not user:
+        return err("Не авторизован", 401)
+
+    # Пользователь без салона не может использовать платные инструменты
+    if not user.get("salon_id"):
+        return err("Сначала создайте профиль салона, чтобы использовать инструменты.", 402)
 
     salon_id = user["salon_id"]
     tool = _get_tool_cost(conn, tool_key)
@@ -2433,6 +2437,11 @@ def check_and_spend_energy(event: dict, conn, tool_key: str) -> dict | None:
 
     cost = tool["energy_cost"]
     balance = _get_salon_energy(conn, salon_id)
+    if balance <= 0:
+        return err(
+            f"Баланс энергий исчерпан. Пополните баланс, чтобы продолжить.",
+            402
+        )
     if balance < cost:
         return err(
             f"Недостаточно энергии. Нужно {cost} ⚡, доступно {balance} ⚡. Пополните баланс.",

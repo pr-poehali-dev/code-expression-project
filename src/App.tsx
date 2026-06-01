@@ -33,6 +33,7 @@ import RepPage from "./pages/rep/RepPage";
 import JobPage from "./pages/job/JobPage";
 import { LkAuthProvider } from "./contexts/LkAuthContext";
 import { EnergyProvider } from "./contexts/EnergyContext";
+import EnergyGate from "./components/EnergyGate";
 import DlyaSpecialistov from "./pages/DlyaSpecialistov";
 import OSisteme from "./pages/OSisteme";
 import ProfessionalnyeVstrechi from "./pages/ProfessionalnyeVstrechi";
@@ -57,6 +58,7 @@ const App = () => (
       <Sonner />
       <CookieBanner />
       <ChatWidget />
+      <EnergyGate />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
