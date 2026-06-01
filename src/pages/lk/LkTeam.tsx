@@ -313,7 +313,7 @@ function InviteForm({ onInvited }: { onInvited: (invite: Invite) => void }) {
 // ── Ожидающее приглашение ─────────────────────────────────────────────────────
 function PendingInvite({ invite }: { invite: Invite }) {
   const [copied, setCopied] = useState(false);
-  const url = `${window.location.origin}/join?token=${invite.token}`;
+  const url = `https://promtdialog.ru/join?token=${invite.token}`;
   const rc = ROLE_COLORS[invite.role_code] || ROLE_COLORS.master;
   const roleLabel = ROLE_OPTIONS.find(r => r.code === invite.role_code)?.label || invite.role_code;
 
