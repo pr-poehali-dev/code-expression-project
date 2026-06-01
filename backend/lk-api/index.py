@@ -502,6 +502,43 @@ def handle_admin_set_password(event: dict) -> dict:
         conn.close()
 
 
+def handle_admin_delete_user(event: dict) -> dict:
+    """Полное удаление пользователя и всех его данных из БД."""
+    body = json.loads(event.get("body") or "{}")
+    user_id = body.get("user_id")
+    if not user_id:
+        return err("Не указан user_id")
+    conn = get_db()
+    try:
+        admin = require_admin(event, conn)
+        if not admin:
+            return err("Нет доступа", 403)
+        # Запрещаем удалять самого себя
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(f"SELECT id FROM {tbl('lk_users')} WHERE id=%s", (user_id,))
+        if not cur.fetchone():
+            return err("Пользователь не найден", 404)
+        if admin["id"] == user_id:
+            return err("Нельзя удалить самого себя")
+        # Удаляем сессии
+        cur.execute(f"DELETE FROM {tbl('lk_sessions')} WHERE user_id=%s", (user_id,))
+        # Удаляем транзакции и данные салона если пользователь — владелец
+        cur.execute(f"SELECT salon_id, role FROM {tbl('lk_users')} WHERE id=%s", (user_id,))
+        u = cur.fetchone()
+        if u and u["salon_id"] and u["role"] == "owner":
+            salon_id = u["salon_id"]
+            cur.execute(f"DELETE FROM {tbl('credit_transactions')} WHERE salon_id=%s", (salon_id,))
+            cur.execute(f"DELETE FROM {tbl('salon_services')} WHERE salon_id=%s", (salon_id,))
+            cur.execute(f"DELETE FROM {tbl('salon_members')} WHERE salon_id=%s", (salon_id,))
+            cur.execute(f"DELETE FROM {tbl('salons')} WHERE id=%s", (salon_id,))
+        # Удаляем самого пользователя
+        cur.execute(f"DELETE FROM {tbl('lk_users')} WHERE id=%s", (user_id,))
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
 def handle_admin_body_zone_save(event: dict) -> dict:
     body = json.loads(event.get("body") or "{}")
     conn = get_db()
@@ -2859,6 +2896,7 @@ ROUTES = {
     ("POST", "admin_update_user"): handle_admin_update_user,
     ("POST", "admin_set_password"): handle_admin_set_password,
     ("POST", "admin_update_rep"): handle_admin_update_rep,
+    ("POST", "admin_delete_user"): handle_admin_delete_user,
     ("POST", "admin_body_zone_save"): handle_admin_body_zone_save,
     ("POST", "admin_technique_save"): handle_admin_technique_save,
     ("GET",  "admin_body_zones"): handle_admin_body_zones,

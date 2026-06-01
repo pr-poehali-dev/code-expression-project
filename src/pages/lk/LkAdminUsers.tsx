@@ -20,6 +20,7 @@ export function UsersSection() {
   const [form, setForm] = useState({ username: "", email: "", password: "", full_name: "", notes: "", is_admin: false, access_type: "12months", segment: "specialist" });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
 
   const load = () => lkApi.adminUsers().then(setUsers).finally(() => setLoading(false));
   useEffect(() => { load(); }, []);
@@ -62,10 +63,44 @@ export function UsersSection() {
     } finally { setSaving(false); }
   };
 
+  const deleteUser = async () => {
+    if (!deleteConfirm) return;
+    setSaving(true);
+    try {
+      await lkApi.adminDeleteUser(deleteConfirm.id);
+      setDeleteConfirm(null);
+      load();
+      setMsg("Пользователь удалён");
+    } finally { setSaving(false); }
+  };
+
   if (loading) return <Spinner />;
 
   return (
     <div>
+      {/* Диалог подтверждения удаления */}
+      {deleteConfirm && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ background: "#fff", borderRadius: 16, padding: "28px 28px 24px", maxWidth: 380, width: "100%", boxShadow: "0 16px 48px rgba(0,0,0,0.2)" }}>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: "hsl(0,75%,97%)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+              <Icon name="Trash2" size={22} style={{ color: "hsl(0,75%,50%)" }} />
+            </div>
+            <h3 style={{ fontSize: 17, fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>Удалить пользователя?</h3>
+            <p style={{ fontSize: 14, color: "#666", margin: "0 0 24px", lineHeight: 1.5 }}>
+              <strong>{deleteConfirm.name}</strong> и все его данные (салон, транзакции, сессии) будут удалены безвозвратно.
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setDeleteConfirm(null)} style={{ flex: 1, padding: "11px", borderRadius: 10, border: "1.5px solid #e8e8e4", background: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                Отмена
+              </button>
+              <button onClick={deleteUser} disabled={saving} style={{ flex: 1, padding: "11px", borderRadius: 10, border: "none", background: "hsl(0,75%,50%)", color: "#fff", fontSize: 14, fontWeight: 600, cursor: saving ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif", opacity: saving ? 0.7 : 1 }}>
+                {saving ? "Удаляю..." : "Удалить"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
         <span style={{ fontSize: 13, color: "#888" }}>{users.length} пользователей</span>
         <button onClick={() => setCreating(!creating)} style={actionBtn(ACCENT)}>
@@ -361,6 +396,13 @@ export function UsersSection() {
                     title="Статус представителя"
                   >
                     <Icon name="Briefcase" size={15} style={{ color: u.is_representative ? "hsl(38,80%,35%)" : "#888" }} />
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirm({ id: u.id, name: u.full_name || u.username })}
+                    style={{ ...iconBtn, borderColor: "hsl(0,75%,88%)", background: "hsl(0,75%,97%)" }}
+                    title="Удалить пользователя"
+                  >
+                    <Icon name="Trash2" size={15} style={{ color: "hsl(0,75%,50%)" }} />
                   </button>
                 </div>
               </div>

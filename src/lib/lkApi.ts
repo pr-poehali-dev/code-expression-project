@@ -79,6 +79,9 @@ export const lkApi = {
   adminUpdateUser: (data: object) =>
     request("POST", "admin_update_user", data),
 
+  adminDeleteUser: (user_id: number) =>
+    request("POST", "admin_delete_user", { user_id }),
+
   adminSetPassword: (user_id: number, password: string) =>
     request("POST", "admin_set_password", { user_id, password }),
 
