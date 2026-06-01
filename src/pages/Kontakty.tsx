@@ -1,120 +1,28 @@
-import { useEffect, useRef, useState } from "react";
-import { Helmet } from "@/lib/helmet";
-import DokFooter from "@/components/DokFooter";
-import DokNavbar from "@/components/DokNavbar";
+import { useState } from "react";
+import BizNavbar from "@/components/BizNavbar";
+import BizFooter from "@/components/BizFooter";
+import Icon from "@/components/ui/icon";
 
-function useInView(threshold = 0.15) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
-      { threshold }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [threshold]);
-  return { ref, visible };
-}
-
-function FadeIn({ children, delay = 0, style = {} }: { children: React.ReactNode; delay?: number; style?: React.CSSProperties }) {
-  const { ref, visible } = useInView();
-  return (
-    <div
-      ref={ref}
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(24px)",
-        transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`,
-        ...style,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-const ACCENT = "hsl(185, 85%, 32%)";
-const ACCENT_DARK = "hsl(185, 85%, 26%)";
-const ACCENT_SHADOW = "hsla(185, 85%, 32%, 0.3)";
-const ACCENT_SHADOW_HOVER = "hsla(185, 85%, 32%, 0.45)";
-
-const ICONS: Record<string, React.ReactNode> = {
-  phone: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 12.07 19.79 19.79 0 0 1 1.49 3.4 2 2 0 0 1 3.47 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.66a16 16 0 0 0 6 6l.56-.56a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.21 16.92z" />
-    </svg>
-  ),
-  email: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="4" width="20" height="16" rx="2" />
-      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-    </svg>
-  ),
-  telegram: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21.198 2.433a2.242 2.242 0 0 0-1.022.215l-16.5 7.5a2.25 2.25 0 0 0 .126 4.073l3.9 1.205 2.306 6.54a.75.75 0 0 0 1.302.21l2.13-2.743 4.14 3.102a2.25 2.25 0 0 0 3.494-1.467l2.25-16.5a2.25 2.25 0 0 0-2.126-2.135z" />
-    </svg>
-  ),
-  web: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-    </svg>
-  ),
-};
-
-function ContactCard({
-  iconKey, title, value, sub, href, delay,
-}: {
-  iconKey: string; title: string; value: string; sub?: string; href?: string; delay?: number;
-}) {
-  return (
-    <FadeIn delay={delay ?? 0}>
-      <a
-        href={href ?? "#"}
-        target={href?.startsWith("http") ? "_blank" : undefined}
-        rel="noopener noreferrer"
-        style={{ textDecoration: "none", display: "block" }}
-      >
-        <div
-          style={{
-            background: "#fff", borderRadius: 20, padding: "28px 24px",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
-            transition: "transform 0.25s ease, box-shadow 0.25s ease",
-            height: "100%", boxSizing: "border-box", cursor: href ? "pointer" : "default",
-          }}
-          onMouseEnter={e => {
-            if (!href) return;
-            const el = e.currentTarget as HTMLDivElement;
-            el.style.transform = "translateY(-4px)";
-            el.style.boxShadow = `0 12px 48px ${ACCENT_SHADOW}`;
-          }}
-          onMouseLeave={e => {
-            const el = e.currentTarget as HTMLDivElement;
-            el.style.transform = "translateY(0)";
-            el.style.boxShadow = "0 4px 24px rgba(0,0,0,0.07)";
-          }}
-        >
-          <div style={{ color: ACCENT, marginBottom: 16, lineHeight: 0 }}>{ICONS[iconKey]}</div>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase" as const, color: "#aaa", marginBottom: 8 }}>
-            {title}
-          </div>
-          <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(18px, 2.5vw, 24px)", fontWeight: 700, color: ACCENT, marginBottom: sub ? 6 : 0, lineHeight: 1.2 }}>
-            {value}
-          </div>
-          {sub && (
-            <div style={{ fontSize: 13, color: "#888", lineHeight: 1.5 }}>{sub}</div>
-          )}
-        </div>
-      </a>
-    </FadeIn>
-  );
-}
-
+const TEAL = "#2DD4BF";
+const DARK = "#0F172A";
+const GRAY = "#64748B";
+const SERIF = "'Cormorant Garamond', serif";
 const SEND_URL = "https://functions.poehali.dev/13844979-19e6-463d-bb8e-fddd2b08479f";
+
+const CONTACTS = [
+  { icon: "Phone", title: "Телефон", value: "+7 (902) 900-74-74", href: "tel:+79029007474" },
+  { icon: "Mail", title: "Email", value: "massopro@mail.ru", href: "mailto:massopro@mail.ru" },
+  { icon: "Send", title: "Telegram", value: "@prodialog", href: "https://t.me/prodialog" },
+  { icon: "Globe", title: "Сайт", value: "promtdialog.ru", href: "https://promtdialog.ru" },
+];
+
+const inputStyle = (focused: boolean): React.CSSProperties => ({
+  width: "100%", padding: "12px 14px", borderRadius: 4,
+  border: `1px solid ${focused ? TEAL : "#E2E8F0"}`,
+  fontSize: 14, outline: "none", fontFamily: "Inter, sans-serif",
+  boxSizing: "border-box", color: DARK, background: "#fff",
+  transition: "border-color 0.2s",
+});
 
 function MessageForm() {
   const [name, setName] = useState("");
@@ -124,13 +32,14 @@ function MessageForm() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [focus, setFocus] = useState<Record<string, boolean>>({});
+  const f = (k: string) => setFocus(p => ({ ...p, [k]: true }));
+  const b = (k: string) => setFocus(p => ({ ...p, [k]: false }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !contact.trim() || !message.trim()) return;
-    if (!agreed) { setError("Необходимо дать согласие"); return; }
-    setLoading(true);
-    setError("");
+    if (!agreed) { setError("Необходимо дать согласие на обработку данных"); return; }
+    setLoading(true); setError("");
     try {
       const res = await fetch(SEND_URL, {
         method: "POST",
@@ -148,207 +57,155 @@ function MessageForm() {
 
   if (sent) {
     return (
-      <div style={{ textAlign: "center", padding: "32px 16px" }}>
-        <div style={{ fontSize: 52, marginBottom: 16 }}>✉️</div>
-        <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px, 5vw, 28px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 12 }}>Сообщение отправлено!</div>
-        <p style={{ fontSize: 15, color: "#5a5a5a", lineHeight: 1.65 }}>Мы ответим вам в течение рабочего дня. Обычно — быстрее.</p>
+      <div style={{ textAlign: "center", padding: "48px 24px" }}>
+        <div style={{ width: 56, height: 56, borderRadius: 14, background: "rgba(45,212,191,0.12)", border: "1px solid rgba(45,212,191,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+          <Icon name="CheckCircle" size={26} style={{ color: TEAL }} />
+        </div>
+        <h3 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 600, color: DARK, margin: "0 0 10px" }}>Сообщение отправлено</h3>
+        <p style={{ fontSize: 15, color: GRAY, margin: 0, lineHeight: 1.6, fontWeight: 300 }}>Ответим в течение рабочего дня. Обычно быстрее.</p>
       </div>
     );
   }
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "12px 16px", borderRadius: 10,
-    border: "1.5px solid #e0e0e0", fontSize: 15, outline: "none",
-    boxSizing: "border-box", fontFamily: "Montserrat, sans-serif",
-  };
-
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
-        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#3a3a3a", marginBottom: 6 }}>Ваше имя</label>
-        <input value={name} onChange={e => setName(e.target.value)} placeholder="Мария Иванова" required
-          style={inputStyle}
-          onFocus={e => (e.currentTarget.style.borderColor = ACCENT)}
-          onBlur={e => (e.currentTarget.style.borderColor = "#e0e0e0")}
-        />
+        <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 7, textTransform: "uppercase", letterSpacing: "0.7px" }}>Ваше имя</label>
+        <input value={name} onChange={e => setName(e.target.value)} placeholder="Иван Иванов" required
+          style={inputStyle(!!focus.name)} onFocus={() => f("name")} onBlur={() => b("name")} />
       </div>
       <div>
-        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#3a3a3a", marginBottom: 6 }}>Телефон или email</label>
+        <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 7, textTransform: "uppercase", letterSpacing: "0.7px" }}>Телефон или email</label>
         <input value={contact} onChange={e => setContact(e.target.value)} placeholder="+7 (___) ___-__-__ или email@mail.ru" required
-          style={inputStyle}
-          onFocus={e => (e.currentTarget.style.borderColor = ACCENT)}
-          onBlur={e => (e.currentTarget.style.borderColor = "#e0e0e0")}
-        />
+          style={inputStyle(!!focus.contact)} onFocus={() => f("contact")} onBlur={() => b("contact")} />
       </div>
       <div>
-        <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#3a3a3a", marginBottom: 6 }}>Сообщение</label>
+        <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 7, textTransform: "uppercase", letterSpacing: "0.7px" }}>Сообщение</label>
         <textarea value={message} onChange={e => setMessage(e.target.value)}
-          placeholder="Расскажите, чем мы можем помочь..."
-          rows={4} required
-          style={{ ...inputStyle, resize: "vertical" as const }}
-          onFocus={e => (e.currentTarget.style.borderColor = ACCENT)}
-          onBlur={e => (e.currentTarget.style.borderColor = "#e0e0e0")}
-        />
+          placeholder="Расскажите, чем мы можем помочь..." rows={4} required
+          style={{ ...inputStyle(!!focus.msg), resize: "vertical" as const }}
+          onFocus={() => f("msg")} onBlur={() => b("msg")} />
       </div>
-      <button type="submit"
-        style={{ marginTop: 4, background: ACCENT, color: "#fff", padding: "15px 28px", borderRadius: 12, fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", transition: "all 0.25s ease", boxShadow: `0 4px 20px ${ACCENT_SHADOW}`, fontFamily: "Montserrat, sans-serif" }}
-        onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ACCENT_DARK; el.style.boxShadow = `0 8px 32px ${ACCENT_SHADOW_HOVER}`; el.style.transform = "translateY(-2px)"; }}
-        onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.background = ACCENT; el.style.boxShadow = `0 4px 20px ${ACCENT_SHADOW}`; el.style.transform = "translateY(0)"; }}
-      >
-        {loading ? "Отправляем..." : "Отправить сообщение"}
-      </button>
-      {error && <p style={{ margin: 0, fontSize: 13, color: "#e53e3e", textAlign: "center" }}>{error}</p>}
-      <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
-        <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 2, width: 16, height: 16, accentColor: ACCENT, flexShrink: 0, cursor: "pointer" }} />
-        <span style={{ fontSize: 12, color: "#666", lineHeight: 1.6 }}>
-          Я согласен с <a href="/privacy" style={{ color: ACCENT }} target="_blank">политикой конфиденциальности</a> и <a href="/offer" style={{ color: ACCENT }} target="_blank">офертой</a>
+
+      <label style={{ display: "flex", alignItems: "flex-start", gap: 12, cursor: "pointer" }}>
+        <div onClick={() => setAgreed(!agreed)} style={{
+          width: 18, height: 18, borderRadius: 2, flexShrink: 0, marginTop: 1,
+          border: `1.5px solid ${agreed ? TEAL : "#CBD5E1"}`,
+          background: agreed ? TEAL : "#fff",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "all 0.2s", cursor: "pointer",
+        }}>
+          {agreed && <Icon name="Check" size={12} style={{ color: "#fff" }} />}
+        </div>
+        <span style={{ fontSize: 13, color: GRAY, lineHeight: 1.6, fontWeight: 300 }}>
+          Я согласен(а) на обработку персональных данных в соответствии с{" "}
+          <a href="/privacy" style={{ color: TEAL, textDecoration: "none", fontWeight: 500 }}>политикой конфиденциальности</a>
         </span>
       </label>
+
+      {error && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFF1F2", border: "1px solid #FECDD3", borderRadius: 4, padding: "10px 14px", fontSize: 13, color: "#BE123C" }}>
+          <Icon name="AlertCircle" size={14} />
+          {error}
+        </div>
+      )}
+
+      <button type="submit" disabled={loading || !agreed} style={{
+        padding: "14px", borderRadius: 4, border: "none",
+        background: loading || !agreed ? "#E2E8F0" : `linear-gradient(135deg, ${TEAL}, #14B8A6)`,
+        color: loading || !agreed ? GRAY : DARK,
+        fontSize: 14, fontWeight: 600, cursor: loading || !agreed ? "not-allowed" : "pointer",
+        fontFamily: "Inter, sans-serif", letterSpacing: "0.3px", transition: "all 0.2s",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+      }}>
+        {loading
+          ? <><Icon name="Loader" size={15} style={{ animation: "spin 1s linear infinite" }} /> Отправляю...</>
+          : <><Icon name="Send" size={15} /> Отправить сообщение</>
+        }
+      </button>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </form>
   );
 }
 
 export default function Kontakty() {
   return (
-    <div style={{ background: "#f8f8f6", color: "#1a1a1a", fontFamily: "Montserrat, sans-serif", minHeight: "100vh" }}>
-      <Helmet>
-        <title>Контакты — Dok Диалог</title>
-        <meta name="description" content="Свяжитесь с Dok Диалог для обсуждения участия в программе, внедрения системы в салоне или формата профессионального сопровождения." />
-        <meta property="og:title" content="Связаться с Dok Диалог" />
-      </Helmet>
-      <style>{`
-        .k-cards-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 20px;
-          align-items: stretch;
-        }
-        .k-cards-grid > * { height: 100%; display: flex; flex-direction: column; }
-        .k-cards-grid > * > a { flex: 1; }
-        @media (max-width: 900px) {
-          .k-cards-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-        .k-form-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        }
-        .k-form-col { padding: 56px 48px; }
-        .k-info-col { padding: 56px 48px; }
-        @media (max-width: 640px) {
-          .k-cards-grid {
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-          }
-          .k-form-grid { grid-template-columns: 1fr; }
-          .k-form-col { padding: 32px 24px; }
-          .k-info-col { padding: 32px 24px; }
-        }
-        @media (max-width: 400px) {
-          .k-cards-grid { grid-template-columns: 1fr; }
-        }
-      `}</style>
-      <DokNavbar />
+    <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
+      <BizNavbar />
 
       {/* Hero */}
-      <section style={{ paddingTop: 144, paddingBottom: 56 }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <FadeIn>
-            <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase" as const, color: ACCENT, marginBottom: 20 }}>
-              Контакты
-            </div>
-          </FadeIn>
-          <FadeIn delay={100}>
-            <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(36px, 5vw, 64px)", fontWeight: 700, lineHeight: 1.1, color: "#1a1a1a", marginBottom: 20, letterSpacing: "-0.5px" }}>
-              Связаться с Dok Диалог
-            </h1>
-          </FadeIn>
-          <FadeIn delay={200}>
-            <p style={{ fontSize: "clamp(15px, 2.5vw, 17px)", lineHeight: 1.75, color: "#5a5a5a", maxWidth: 560, margin: 0 }}>
-              Есть вопрос по платформе, тарифам или партнёрской программе? Выберите удобный способ — ответим быстро.
-            </p>
-          </FadeIn>
+      <section style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #0F2D2A 100%)", padding: "120px 32px 80px" }}>
+        <div style={{ maxWidth: 760, margin: "0 auto" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 16 }}>Контакты</div>
+          <h1 style={{ fontFamily: SERIF, fontSize: "clamp(32px,5vw,52px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+            Связаться с Про Диалог
+          </h1>
+          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", margin: 0, fontWeight: 300, lineHeight: 1.6, maxWidth: 520 }}>
+            Есть вопрос по платформе, тарифам или партнёрству? Выберите удобный способ — ответим быстро.
+          </p>
         </div>
       </section>
 
-      {/* Contact cards */}
-      <section style={{ paddingBottom: 80 }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <div className="k-cards-grid">
-            <ContactCard iconKey="phone" title="Телефон" value="+7 (902) 900-74-74" sub="Пн–Пт, 9:00–18:00" href="tel:+79029007474" delay={0} />
-            <ContactCard iconKey="email" title="Электронная почта" value="docdialog@mail.ru" sub="Ответим в течение 24 часов" href="mailto:docdialog@mail.ru" delay={100} />
-            <ContactCard iconKey="telegram" title="Telegram" value="@SergeuVodopianov" sub="Быстрый ответ" href="https://t.me/SergeuVodopianov" delay={200} />
-          </div>
-        </div>
-      </section>
+      {/* Contacts + Form */}
+      <section style={{ padding: "72px 32px 96px", background: "#F8FAFC" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, alignItems: "start" }} className="contacts-grid">
 
-      {/* Form + Info */}
-      <section style={{ paddingBottom: 100 }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ background: "#fff", borderRadius: 28, overflow: "hidden", boxShadow: "0 8px 48px rgba(0,0,0,0.08)" }} className="k-form-grid">
-
-            {/* Left — form */}
-            <div className="k-form-col">
-              <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px, 3vw, 30px)", fontWeight: 700, color: "#1a1a1a", marginBottom: 8 }}>
-                Напишите нам
-              </div>
-              <p style={{ fontSize: 14, color: "#888", marginBottom: 28, lineHeight: 1.55 }}>
-                Заполните форму, и мы свяжемся с вами в удобное время.
-              </p>
-              <MessageForm />
-            </div>
-
-            {/* Right — info */}
-            <div className="k-info-col" style={{ background: "#1a1a1a", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px, 3vw, 30px)", fontWeight: 700, color: "#fff", marginBottom: 8 }}>
-                  Dok Диалог
-                </div>
-                <p style={{ fontSize: "clamp(14px, 2vw, 15px)", color: "rgba(255,255,255,0.6)", lineHeight: 1.7, marginBottom: 36 }}>
-                  Развитие массажных салонов и мастеров. Онлайн и офлайн обучение, оценка компетенций, стандарты работы.
-                </p>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                  {[
-                    { label: "Телефон", value: "+7 (902) 900-74-74", href: "tel:+79029007474" },
-                    { label: "Email", value: "docdialog@mail.ru", href: "mailto:docdialog@mail.ru" },
-                    { label: "Telegram", value: "@SergeuVodopianov", href: "https://t.me/SergeuVodopianov" },
-                    { label: "Режим работы", value: "Пн–Пт, 9:00–18:00", href: undefined },
-                  ].map((item, i) => (
-                    <div key={i}>
-                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase" as const, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>
-                        {item.label}
-                      </div>
-                      {item.href ? (
-                        <a href={item.href} target={item.href.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer"
-                          style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "#fff", textDecoration: "none", transition: "color 0.2s" }}
-                          onMouseEnter={e => (e.currentTarget.style.color = `hsl(185, 85%, 65%)`)}
-                          onMouseLeave={e => (e.currentTarget.style.color = "#fff")}
-                        >
-                          {item.value}
-                        </a>
-                      ) : (
-                        <div style={{ fontSize: "clamp(14px, 2vw, 16px)", color: "#fff" }}>{item.value}</div>
-                      )}
+          {/* Left: contact cards */}
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: GRAY, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 20 }}>Способы связи</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {CONTACTS.map((c, i) => (
+                <a key={i} href={c.href} target={c.href.startsWith("http") ? "_blank" : undefined}
+                  rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                  <div style={{
+                    background: "#fff", borderRadius: 4, padding: "20px 24px",
+                    border: "1px solid #E2E8F0", display: "flex", alignItems: "center", gap: 16,
+                    transition: "all 0.2s",
+                  }}
+                    onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = TEAL; el.style.transform = "translateX(4px)"; }}
+                    onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "#E2E8F0"; el.style.transform = "translateX(0)"; }}
+                  >
+                    <div style={{ width: 44, height: 44, borderRadius: 4, background: "rgba(45,212,191,0.08)", border: "1px solid rgba(45,212,191,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Icon name={c.icon} size={20} style={{ color: TEAL }} />
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ marginTop: 40, paddingTop: 28, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
-                  ИП Водопьянов С.Г.<br />
-                  ОГРНИП: 321508100047334
-                </div>
-              </div>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: GRAY, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 4 }}>{c.title}</div>
+                      <div style={{ fontSize: 16, fontWeight: 600, color: DARK, fontFamily: SERIF }}>{c.value}</div>
+                    </div>
+                    <Icon name="ArrowRight" size={16} style={{ color: "#CBD5E1", marginLeft: "auto" }} />
+                  </div>
+                </a>
+              ))}
             </div>
 
+            {/* Info block */}
+            <div style={{ marginTop: 24, background: DARK, borderRadius: 4, padding: "24px", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: TEAL, marginBottom: 10 }}>Время ответа</div>
+              <p style={{ margin: "0 0 12px", fontSize: 14, color: "rgba(255,255,255,0.6)", lineHeight: 1.7, fontWeight: 300 }}>
+                По вопросам платформы и тарифов отвечаем в течение рабочего дня, обычно быстрее.
+              </p>
+              <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.35)", fontWeight: 300 }}>
+                Пн–Пт · 9:00–18:00 МСК
+              </p>
+            </div>
+          </div>
+
+          {/* Right: form */}
+          <div style={{ background: "#fff", borderRadius: 4, padding: "32px", border: "1px solid #E2E8F0" }}>
+            <h2 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 600, color: DARK, margin: "0 0 6px" }}>Написать нам</h2>
+            <p style={{ fontSize: 14, color: GRAY, margin: "0 0 28px", fontWeight: 300 }}>Опишите задачу — разберёмся вместе</p>
+            <MessageForm />
           </div>
         </div>
       </section>
 
-      <DokFooter />
+      <BizFooter />
+
+      <style>{`
+        @media (max-width: 768px) {
+          .contacts-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }
