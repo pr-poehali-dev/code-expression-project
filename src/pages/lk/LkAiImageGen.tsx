@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
+import { useEnergy } from "@/contexts/EnergyContext";
 import Icon from "@/components/ui/icon";
 
 const ACCENT = "hsl(185,85%,32%)";
@@ -14,6 +15,7 @@ const ASPECT_OPTIONS = [
 
 export default function LkAiImageGen() {
   const { user } = useLkAuth();
+  const { refresh: refreshBalance } = useEnergy();
   const hasSalon = !!user?.salon_id;
 
   const [prompt, setPrompt]         = useState("");
@@ -49,6 +51,7 @@ export default function LkAiImageGen() {
       if (url) {
         setImageUrl(url);
         setPromptUsed(data.prompt_used || "");
+        refreshBalance();
         // Автоматически скачиваем
         await triggerDownload(url);
       } else {
