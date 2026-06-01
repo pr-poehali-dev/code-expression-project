@@ -7,6 +7,7 @@ function sid() { return localStorage.getItem("lk_session") || ""; }
 
 type Tone = "professional" | "warm" | "brief";
 type Sentiment = "positive" | "negative" | "neutral";
+type Platform = "2gis" | "yandex" | "google" | "avito" | null;
 
 interface HistoryItem {
   id: number;
@@ -22,6 +23,13 @@ const SENTIMENTS: { value: Sentiment; label: string; icon: string; color: string
   { value: "neutral",  label: "Нейтральный",    icon: "Minus",      color: "hsl(40,80%,45%)",  bg: "hsl(40,80%,97%)" },
 ];
 
+const PLATFORMS: { value: Platform; label: string; emoji: string; maxChars: number | null }[] = [
+  { value: "2gis",   label: "2ГИС",    emoji: "🟢", maxChars: 1000 },
+  { value: "yandex", label: "Яндекс",  emoji: "🔴", maxChars: 1000 },
+  { value: "google", label: "Google",  emoji: "🔵", maxChars: 4096 },
+  { value: "avito",  label: "Авито",   emoji: "🟡", maxChars: 2000 },
+];
+
 const TONES: { value: Tone; label: string; desc: string }[] = [
   { value: "professional", label: "Профессиональный", desc: "Чётко и по делу" },
   { value: "warm",         label: "Тёплый",           desc: "С заботой и душой" },
@@ -32,6 +40,7 @@ export default function LkReviewReply() {
   const [reviewText, setReviewText] = useState("");
   const [sentiment, setSentiment]   = useState<Sentiment>("positive");
   const [tone, setTone]             = useState<Tone>("warm");
+  const [platform, setPlatform]     = useState<Platform>(null);
   const [reply, setReply]           = useState("");
   const [loading, setLoading]       = useState(false);
   const [copied, setCopied]         = useState(false);
@@ -50,7 +59,7 @@ export default function LkReviewReply() {
       const r = await fetch(`${LK_URL}?action=review_reply`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
-        body: JSON.stringify({ review_text: reviewText, sentiment, tone }),
+        body: JSON.stringify({ review_text: reviewText, sentiment, tone, platform }),
       });
       const d = await r.json();
       if (!r.ok) { setError(d.error || "Ошибка генерации"); return; }
@@ -151,13 +160,31 @@ export default function LkReviewReply() {
           </div>
 
           {/* Стиль ответа */}
-          <div style={{ marginBottom: 22 }}>
+          <div style={{ marginBottom: 18 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 10 }}>Стиль ответа</div>
             <div style={{ display: "flex", gap: 8 }}>
               {TONES.map(t => (
                 <button key={t.value} onClick={() => setTone(t.value)} style={{ flex: 1, padding: "11px 10px", borderRadius: 11, border: `1.5px solid ${tone === t.value ? ACCENT : "#eee"}`, background: tone === t.value ? `hsla(185,85%,32%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "center" }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: tone === t.value ? ACCENT : "#555" }}>{t.label}</div>
                   <div style={{ fontSize: 10, color: "#aaa", marginTop: 2 }}>{t.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Площадка */}
+          <div style={{ marginBottom: 22 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 10 }}>
+              Площадка
+              <span style={{ fontSize: 11, fontWeight: 400, color: "#bbb", marginLeft: 8 }}>необязательно</span>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {PLATFORMS.map(p => (
+                <button key={String(p.value)} onClick={() => setPlatform(platform === p.value ? null : p.value)}
+                  style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: `1.5px solid ${platform === p.value ? ACCENT : "#eee"}`, background: platform === p.value ? `hsla(185,85%,32%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                  <span style={{ fontSize: 14 }}>{p.emoji}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: platform === p.value ? ACCENT : "#555" }}>{p.label}</span>
+                  {p.maxChars && <span style={{ fontSize: 10, color: "#bbb" }}>до {p.maxChars}</span>}
                 </button>
               ))}
             </div>

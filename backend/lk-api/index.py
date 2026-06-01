@@ -1555,6 +1555,7 @@ def handle_review_reply(event: dict) -> dict:
     review_text = (body.get("review_text") or "").strip()
     sentiment   = body.get("sentiment") or "positive"
     tone        = body.get("tone") or "warm"
+    platform    = body.get("platform") or None
 
     if not review_text:
         return err("Вставьте текст отзыва")
@@ -1568,9 +1569,8 @@ def handle_review_reply(event: dict) -> dict:
             return err("Не авторизован", 401)
 
         salon = _get_salon_ctx(user, conn, ("name", "target_audience", "tone_of_voice"))
-        salon_name = salon["name"] if salon and salon.get("name") else "наш салон"
+        salon_name     = salon["name"] if salon and salon.get("name") else "наш салон"
         salon_audience = salon.get("target_audience", "") if salon else ""
-        salon_tone_hint = salon.get("tone_of_voice", "") if salon else ""
 
         TONE_PROMPTS = {
             "professional": "Пиши официально и профессионально, без лишних эмоций. Чётко и по делу.",
@@ -1582,6 +1582,13 @@ def handle_review_reply(event: dict) -> dict:
             "negative": "Это негативный отзыв. Прими критику с достоинством, извинись, объясни что будет сделано, пригласи вернуться.",
             "neutral":  "Это нейтральный отзыв. Поблагодари за обратную связь, ответь на суть, пригласи снова.",
         }
+        PLATFORM_HINTS = {
+            "2gis":   "Площадка: 2ГИС. Лимит ответа — до 1000 символов. Будь краток.",
+            "yandex": "Площадка: Яндекс Карты. Лимит — до 1000 символов. Официальный, живой тон.",
+            "google": "Площадка: Google Maps. Лимит до 4096 символов, можно чуть подробнее.",
+            "avito":  "Площадка: Авито. Лимит — до 2000 символов. Разговорный, живой стиль.",
+        }
+        platform_hint = PLATFORM_HINTS.get(platform, "") if platform else ""
 
         prompt = (
             f"Ты — менеджер по работе с клиентами салона красоты «{salon_name}».\n"
@@ -1589,8 +1596,9 @@ def handle_review_reply(event: dict) -> dict:
             + f"\nОтзыв клиента:\n«{review_text}»\n\n"
             f"Задача: написать ответ от лица салона.\n\n"
             f"Тип отзыва: {SENTIMENT_HINTS.get(sentiment, '')}\n"
-            f"Стиль: {TONE_PROMPTS.get(tone, '')}\n\n"
-            f"Требования:\n"
+            f"Стиль: {TONE_PROMPTS.get(tone, '')}\n"
+            + (f"{platform_hint}\n" if platform_hint else "")
+            + f"\nТребования:\n"
             f"- Обращайся к клиенту уважительно (не называй по имени если оно не указано)\n"
             f"- Подпись: команда салона «{salon_name}» или просто название\n"
             f"- Без шаблонных фраз вроде «Уважаемый клиент» в начале\n"
@@ -1598,10 +1606,11 @@ def handle_review_reply(event: dict) -> dict:
             f"- Только текст ответа, без заголовков и пояснений"
         )
 
+        max_tok = 200 if tone == "brief" or platform in ("2gis", "yandex") else 500
         reply = _call_ai_text([
             {"role": "system", "content": "Ты эксперт по клиентскому сервису в бьюти-индустрии. Пишешь живые, человечные ответы на отзывы."},
             {"role": "user",   "content": prompt}
-        ], max_tokens=500)
+        ], max_tokens=max_tok)
 
         cur = conn.cursor()
         cur.execute(
