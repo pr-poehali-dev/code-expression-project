@@ -99,6 +99,12 @@ def handle_login(event: dict) -> dict:
             if s:
                 salon = dict(s)
 
+        cur.execute(
+            f"SELECT course_id FROM {tbl('course_access')} WHERE user_id = %s",
+            (user["id"],)
+        )
+        course_ids = [r["course_id"] for r in cur.fetchall()]
+
         return ok({
             "session_id": session_id,
             "user": {
@@ -114,6 +120,7 @@ def handle_login(event: dict) -> dict:
                 "role": user.get("role", "body_specialist"),
                 "salon_id": user.get("salon_id"),
                 "salon": salon,
+                "course_ids": course_ids,
             }
         })
     finally:
@@ -211,13 +218,18 @@ def handle_me(event: dict) -> dict:
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         salon = None
         if user.get("salon_id"):
-            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             cur.execute(f"SELECT id, name, logo_url FROM {tbl('salons')} WHERE id = %s", (user["salon_id"],))
             s = cur.fetchone()
             if s:
                 salon = dict(s)
+        cur.execute(
+            f"SELECT course_id FROM {tbl('course_access')} WHERE user_id = %s",
+            (user["id"],)
+        )
+        course_ids = [r["course_id"] for r in cur.fetchall()]
         return ok({
             "id": user["id"],
             "username": user["username"],
@@ -231,6 +243,7 @@ def handle_me(event: dict) -> dict:
             "role": user.get("role", "body_specialist"),
             "salon_id": user.get("salon_id"),
             "salon": salon,
+            "course_ids": course_ids,
         })
     finally:
         conn.close()

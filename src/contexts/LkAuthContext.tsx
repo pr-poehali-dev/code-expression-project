@@ -20,6 +20,7 @@ export interface LkUser {
   role: "owner" | "admin" | "master" | "body_specialist";
   salon_id: number | null;
   salon: LkSalon | null;
+  course_ids: number[];
 }
 
 interface LkAuthCtx {
