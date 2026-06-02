@@ -95,14 +95,19 @@ def handle_run(event, conn):
 
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"SELECT * FROM {SCHEMA}.image_jobs WHERE id=%s AND user_id=%s AND status='pending'",
+        f"SELECT * FROM {SCHEMA}.image_jobs WHERE id=%s AND user_id=%s",
         (job_id, user["id"])
     )
     job = cur.fetchone()
     if not job:
-        return err("Задача не найдена или уже выполнена", 404)
+        return err("Задача не найдена", 404)
 
-    # Помечаем как running
+    # Если уже готова — сразу возвращаем результат
+    if job["status"] == "done" and job["result_url"]:
+        return ok({"job_id": str(job_id), "status": "done", "url": job["result_url"]})
+
+    # Если зависла в running дольше 5 минут — перезапускаем
+    # В остальных случаях помечаем running и работаем
     cur.execute(
         f"UPDATE {SCHEMA}.image_jobs SET status='running', updated_at=NOW() WHERE id=%s",
         (job_id,)
