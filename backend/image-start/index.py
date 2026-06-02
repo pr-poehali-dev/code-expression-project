@@ -4,6 +4,7 @@
 """
 import json
 import os
+import urllib.request
 import psycopg2
 import psycopg2.extras
 
@@ -115,7 +116,26 @@ def handler(event: dict, context) -> dict:
         )
         job_id = str(cur.fetchone()[0])
         conn.commit()
+        conn.close()
+
+        # Запускаем воркер асинхронно (fire-and-forget, timeout=1)
+        # Воркер продолжит работу даже после того как мы закрыли соединение
+        worker_url = os.environ.get("IMAGE_WORKER_URL", "")
+        if worker_url:
+            try:
+                req = urllib.request.Request(
+                    worker_url,
+                    data=json.dumps({"job_id": job_id}).encode(),
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                urllib.request.urlopen(req, timeout=1)
+            except Exception:
+                pass  # таймаут ожидаем — воркер работает дальше
 
         return ok({"job_id": job_id, "status": "pending"})
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except Exception:
+            pass
