@@ -90,17 +90,20 @@ export default function LkPostGen() {
 
   // Шаг 3: генерируем картинку
   async function handleGenerateImage() {
-    setImgLoading(true); setImageUrl(null);
+    if (imgLoading) return;
+    setImgLoading(true); setImageUrl(null); setError("");
     try {
       const res = await fetch(AI_IMAGE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
-        body: JSON.stringify({ prompt: imagePrompt, aspect_ratio: aspect, max_images: 1 }),
+        body: JSON.stringify({ prompt: imagePrompt, aspect_ratio: aspect, use_salon_context: false }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Ошибка генерации картинки"); return; }
-      setImageUrl(data.images?.[0]?.url || null);
-    } catch { setError("Ошибка генерации картинки."); }
+      const url = data.images?.[0]?.url;
+      if (url) { setImageUrl(url); }
+      else { setError("Сервис не вернул изображение. Попробуйте ещё раз."); }
+    } catch { setError("Долгий ответ сервера. Попробуйте ещё раз."); }
     finally { setImgLoading(false); }
   }
 
@@ -319,10 +322,21 @@ export default function LkPostGen() {
             {/* Кнопка генерации */}
             <button onClick={handleGenerateImage} disabled={imgLoading} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: imgLoading ? "#bbb" : `linear-gradient(135deg,hsl(40,90%,50%),hsl(30,95%,50%))`, color: "#fff", border: "none", borderRadius: 10, padding: "12px 20px", fontSize: 13, fontWeight: 700, cursor: imgLoading ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif" }}>
               {imgLoading
-                ? <><Icon name="Loader" size={15} style={{ animation: "spin 1s linear infinite" }} /> Генерирую... до 3 минут</>
+                ? <><Icon name="Loader" size={15} style={{ animation: "spin 1s linear infinite" }} /> Генерирую... подождите</>
                 : <><Icon name="Image" size={15} /> Сгенерировать картинку</>
               }
             </button>
+
+            {/* Предупреждение во время генерации */}
+            {imgLoading && (
+              <div style={{ background: "hsl(0,90%,97%)", border: "1.5px solid hsl(0,80%,85%)", borderRadius: 10, padding: "12px 14px", marginTop: 10, display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <Icon name="AlertTriangle" size={16} style={{ color: "hsl(0,75%,55%)", flexShrink: 0, marginTop: 1 }} />
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "hsl(0,65%,40%)", marginBottom: 2 }}>Не закрывайте страницу!</div>
+                  <div style={{ fontSize: 12, color: "hsl(0,50%,45%)", lineHeight: 1.5 }}>Картинка генерируется 1–3 минуты. Если закрыть — кредиты спишутся, а изображение не сохранится.</div>
+                </div>
+              </div>
+            )}
 
             {/* Результат картинки */}
             {imageUrl && (
