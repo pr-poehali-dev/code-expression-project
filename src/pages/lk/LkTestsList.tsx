@@ -25,6 +25,7 @@ interface Props {
 }
 
 export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, hasUnlimited = false, showBodyTools = false, onOpenDiag, onOpenMindsetSpec, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenBodyMap, onOpenTest }: Props) {
+  const COURSE_NAME = "«Развитие мышления специалиста по телу»";
   return (
     <div>
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
@@ -34,8 +35,8 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
         Пройди тест — получи персональный разбор и конкретные советы
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
-        {/* Системная диагностика — только для специалиста по телу */}
-        {showBodyTools && (
+        {/* Системная диагностика */}
+        {showBodyTools ? (
           <ToolCard
             icon="Stethoscope" color="hsl(210,85%,45%)" bg="hsl(210,85%,96%)"
             title="Системная диагностика клиента"
@@ -44,10 +45,17 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
             onStart={onOpenDiag}
             startLabel="Начать диагностику"
           />
+        ) : (
+          <CourseLockedToolCard
+            icon="Stethoscope" color="hsl(210,85%,45%)" bg="hsl(210,85%,96%)"
+            title="Системная диагностика клиента"
+            description="Введите жалобу — система покажет причины, компенсации, красные флаги и техники из шпаргалки"
+            courseName={COURSE_NAME}
+          />
         )}
 
-        {/* Шпаргалка по телу — только для специалиста по телу */}
-        {showBodyTools && (
+        {/* Шпаргалка по телу */}
+        {showBodyTools ? (
           <ToolCard
             icon="BookOpen" color="hsl(210,85%,45%)" bg="hsl(210,85%,96%)"
             title="Шпаргалка по телу"
@@ -55,6 +63,13 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
             completed={false}
             onStart={onOpenBodyMap}
             startLabel="Открыть шпаргалку"
+          />
+        ) : (
+          <CourseLockedToolCard
+            icon="BookOpen" color="hsl(210,85%,45%)" bg="hsl(210,85%,96%)"
+            title="Шпаргалка по телу"
+            description="Кликните на зону тела — получите диагностику, возможные причины, красные флаги и техники работы"
+            courseName={COURSE_NAME}
           />
         )}
 
@@ -179,6 +194,52 @@ function ToolCard({ icon, color, bg, title, description, completed, completedLab
       }}>
         {completed ? "Пройти снова" : (startLabel || "Начать")}
       </button>
+    </div>
+  );
+}
+
+function CourseLockedToolCard({ icon, color, bg, title, description, courseName }: {
+  icon: string; color: string; bg: string;
+  title: string; description: string; courseName: string;
+}) {
+  const [showInfo, setShowInfo] = useState(false);
+  return (
+    <div style={{ background: "#fff", borderRadius: 16, padding: "18px 20px", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1.5px solid #f0f0ec", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      <div style={{ position: "absolute", top: 12, right: 14, background: "hsl(210,85%,96%)", color: "hsl(210,85%,40%)", fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, border: "1px solid hsl(210,85%,82%)", display: "flex", alignItems: "center", gap: 4 }}>
+        <Icon name="Lock" size={9} /> Требуется курс
+      </div>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 14, flex: 1 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: bg, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2, opacity: 0.5 }}>
+          <Icon name={icon} size={20} style={{ color }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", marginBottom: 3, lineHeight: 1.3 }}>{title}</div>
+          <div style={{ fontSize: 12, color: "#888", lineHeight: 1.5 }}>{description}</div>
+        </div>
+      </div>
+      {showInfo ? (
+        <div style={{ marginTop: 14, background: "hsl(210,85%,96%)", borderRadius: 12, padding: "14px 16px", border: "1px solid hsl(210,85%,82%)" }}>
+          <div style={{ fontSize: 13, color: "hsl(210,85%,35%)", fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+            <Icon name="GraduationCap" size={14} />
+            Доступно после прохождения курса
+          </div>
+          <div style={{ fontSize: 12, color: "#555", lineHeight: 1.6 }}>
+            Этот инструмент входит в курс {courseName}. Пройдите курс — и инструмент разблокируется автоматически.
+          </div>
+          <button onClick={() => setShowInfo(false)} style={{ marginTop: 10, background: "none", border: "none", color: "#aaa", fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "Montserrat, sans-serif" }}>Скрыть</button>
+        </div>
+      ) : (
+        <button onClick={() => setShowInfo(true)} style={{
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          width: "100%", marginTop: 14, padding: "10px", borderRadius: 10,
+          border: "1.5px solid hsl(210,85%,75%)", background: "hsl(210,85%,96%)",
+          color: "hsl(210,85%,40%)", fontSize: 13, fontWeight: 700, cursor: "pointer",
+          fontFamily: "Montserrat, sans-serif",
+        }}>
+          <Icon name="Lock" size={13} />
+          Как разблокировать?
+        </button>
+      )}
     </div>
   );
 }
