@@ -3,6 +3,7 @@ import { ACCENT, labelStyle, inputStyle, actionBtn, iconBtn } from "./LkAdminSha
 import Icon from "@/components/ui/icon";
 import { apiFetch, Lesson, Module, LFile, Photo } from "./LkAdminCourses.types";
 import MarkdownEditor from "@/components/ui/MarkdownEditor";
+import { LessonView, type LessonFull } from "./LkAcademyCourse";
 
 export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
   lesson: Lesson | null; courseId: number; modules: Module[]; onBack: () => void; onSaved: (l: Lesson) => void;
@@ -17,6 +18,19 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
   const photoRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState(false);
+
+  const toPreviewLesson = (): LessonFull => ({
+    id: form.id || 0,
+    title: form.title || "",
+    content: form.content || "",
+    video_urls: form.video_urls || [],
+    links: form.links || [],
+    ai_context: form.ai_context || "",
+    homework: form.homework || "",
+    photos: photos,
+    files: files,
+  });
 
   const save = async () => {
     if (!form.title?.trim()) { setMsg("Введите заголовок урока"); return; }
@@ -89,11 +103,44 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
     return parts.length === 2 ? { label: parts[0], url: parts[1] } : { label: s, url: s };
   };
 
+  if (preview) {
+    return (
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, padding: "10px 16px", background: "hsl(185,85%,97%)", border: "1.5px solid hsl(185,85%,75%)", borderRadius: 12 }}>
+          <Icon name="Eye" size={16} style={{ color: ACCENT }} />
+          <span style={{ fontSize: 13, color: ACCENT, fontWeight: 600, flex: 1 }}>Режим предпросмотра — так видит урок ученик</span>
+          <button
+            onClick={() => setPreview(false)}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: ACCENT, color: "#fff", border: "none", borderRadius: 8, padding: "6px 14px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}
+          >
+            <Icon name="Pencil" size={13} /> Вернуться к редактору
+          </button>
+        </div>
+        <LessonView
+          lesson={toPreviewLesson()}
+          courseTitle="Предпросмотр"
+          onBack={() => setPreview(false)}
+          onRefreshLesson={() => {}}
+        />
+      </div>
+    );
+  }
+
   return (
     <div>
-      <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: ACCENT, fontWeight: 600, fontSize: 14, marginBottom: 20, padding: 0 }}>
-        <Icon name="ChevronLeft" size={16} /> Назад к курсу
-      </button>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: ACCENT, fontWeight: 600, fontSize: 14, padding: 0 }}>
+          <Icon name="ChevronLeft" size={16} /> Назад к курсу
+        </button>
+        {form.id && (
+          <button
+            onClick={() => setPreview(true)}
+            style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, background: "none", border: `1.5px solid ${ACCENT}`, borderRadius: 8, padding: "5px 14px", cursor: "pointer", color: ACCENT, fontSize: 13, fontWeight: 600 }}
+          >
+            <Icon name="Eye" size={14} /> Предпросмотр
+          </button>
+        )}
+      </div>
 
       <h2 style={{ margin: "0 0 20px", fontSize: 18, fontWeight: 700 }}>
         {form.id ? `Урок: ${form.title}` : "Новый урок"}

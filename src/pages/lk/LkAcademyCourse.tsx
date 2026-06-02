@@ -212,7 +212,8 @@ export default function LkAcademyCourse({ courseId, onBack }: Props) {
 }
 
 // ── Просмотр урока ────────────────────────────────────────────────────────────
-function LessonView({ lesson, courseTitle, onBack, onRefreshLesson }: {
+export { type LessonFull };
+export function LessonView({ lesson, courseTitle, onBack, onRefreshLesson }: {
   lesson: LessonFull; courseTitle: string; onBack: () => void; onRefreshLesson: (l: LessonFull) => void;
 }) {
   const { refresh: refreshEnergy } = useEnergy();
