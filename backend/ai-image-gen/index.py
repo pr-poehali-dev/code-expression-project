@@ -245,22 +245,6 @@ def handler(event: dict, context) -> dict:
                 if ctx_parts:
                     final_prompt = f"{prompt}\n\nКонтекст: {'. '.join(ctx_parts)}"
 
-        # Сохраняем запись ДО вызова polza.ai — чтобы не потерять при обрыве соединения
-        # URL обновим после получения результата
-        pending_image_id = None
-        try:
-            save_image_history(user["id"], "pending", prompt, aspect_gpt15, conn)
-            cur_id = conn.cursor()
-            cur_id.execute(
-                f"SELECT id FROM {SCHEMA}.ai_generated_images WHERE user_id=%s AND url='pending' ORDER BY created_at DESC LIMIT 1",
-                (user["id"],)
-            )
-            row = cur_id.fetchone()
-            if row:
-                pending_image_id = row[0]
-        except Exception as e:
-            print(f"[ai-image-gen] pending save error: {e}")
-
         conn.close()
 
         api_key = os.environ.get("POLZA_AI_API_KEY", "")
@@ -296,11 +280,10 @@ def handler(event: dict, context) -> dict:
             msg = str(e)
             print(f"[polza.ai] err: {msg}")
             if "timed out" in msg.lower() or "timeout" in msg.lower():
-                return err("Сервис сейчас перегружен — попробуйте ещё раз через 1-2 минуты.", 504)
+                return err("Картинка генерируется дольше обычного — проверьте раздел «Мои изображения» через минуту.", 504)
             return err(f"Ошибка соединения: {msg}", 502)
 
         image_url = None
-        raw_url = None
         b64_data = None
 
         for item in (result.get("data") or result.get("images") or []):
@@ -308,7 +291,6 @@ def handler(event: dict, context) -> dict:
                 url = item.get("url", "")
                 b64 = item.get("b64_json") or item.get("base64") or ""
                 if url:
-                    raw_url = url
                     image_url = url
                     break
                 if b64:
@@ -318,29 +300,16 @@ def handler(event: dict, context) -> dict:
         if not image_url and not b64_data:
             return err("Сервис не вернул изображение. Попробуйте ещё раз.", 502)
 
-        # Если пришёл base64 — загружаем в S3
         if b64_data:
             image_url = upload_to_s3(b64_data, "png", user["id"])
 
-        # Обновляем pending-запись реальным URL
+        # Сохраняем в историю
         try:
             conn3 = get_db()
-            cur3 = conn3.cursor()
-            if pending_image_id:
-                cur3.execute(
-                    f"UPDATE {SCHEMA}.ai_generated_images SET url=%s WHERE id=%s",
-                    (image_url, pending_image_id)
-                )
-            else:
-                # fallback — создаём новую запись если pending не сохранился
-                cur3.execute(
-                    f"INSERT INTO {SCHEMA}.ai_generated_images (user_id, url, prompt, aspect_ratio) VALUES (%s,%s,%s,%s)",
-                    (user["id"], image_url, prompt, aspect_gpt15)
-                )
-            conn3.commit()
+            save_image_history(user["id"], image_url, prompt, aspect_gpt15, conn3)
             conn3.close()
         except Exception as e:
-            print(f"[ai-image-gen] url update error: {e}")
+            print(f"[ai-image-gen] history save error: {e}")
 
         return ok({"images": [{"url": image_url}], "prompt_used": final_prompt, "energy_spent": cost})
 
