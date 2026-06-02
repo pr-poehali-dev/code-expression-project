@@ -98,8 +98,6 @@ def handle_run(event, conn):
     job_id = body.get("job_id")
     if not job_id:
         return err("job_id обязателен")
-    print(f"[image-worker] handle_run START job={job_id}")
-
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         f"SELECT * FROM {SCHEMA}.image_jobs WHERE id=%s AND user_id=%s",
@@ -139,13 +137,9 @@ def handle_run(event, conn):
         method="POST",
     )
 
-    print(f"[image-worker] job {job_id}: calling polza.ai...")
     try:
         with urllib.request.urlopen(req, timeout=110) as resp:
-            raw = resp.read().decode("utf-8")
-            print(f"[image-worker] job {job_id}: polza raw = {raw[:400]}")
-            result = json.loads(raw)
-        print(f"[image-worker] job {job_id}: polza.ai responded OK")
+            result = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         error_text = e.read().decode("utf-8", errors="ignore")[:200]
         cur.execute(
@@ -195,7 +189,6 @@ def handle_run(event, conn):
         (user["id"], image_url, job["prompt"], job["aspect_ratio"])
     )
     conn.commit()
-    print(f"[image-worker] job {job_id}: DONE, saved to history")
 
     return ok({"job_id": str(job_id), "status": "done", "url": image_url})
 
