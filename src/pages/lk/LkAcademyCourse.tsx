@@ -4,15 +4,17 @@ import { useEnergy } from "@/contexts/EnergyContext";
 import { ACCENT, SERIF, apiFetch, renderMarkdown, type Course, type LessonMeta, type LessonFull } from "./LkAcademyTypes";
 import LkAcademyLessonAI from "./LkAcademyLessonAI";
 import LkAcademyHomework from "./LkAcademyHomework";
+import LkLessonTools from "./LkLessonTools";
 
 export { type LessonFull };
 
 interface Props {
   courseId: number;
   onBack: () => void;
+  onNavigate?: (tab: string) => void;
 }
 
-export default function LkAcademyCourse({ courseId, onBack }: Props) {
+export default function LkAcademyCourse({ courseId, onBack, onNavigate }: Props) {
   const { refresh: refreshEnergy } = useEnergy();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,6 +68,7 @@ export default function LkAcademyCourse({ courseId, onBack }: Props) {
         courseTitle={course.title}
         onBack={() => setActiveLesson(null)}
         onRefreshLesson={(l) => setActiveLesson(l)}
+        onNavigate={onNavigate}
       />
     );
   }
@@ -161,8 +164,8 @@ export default function LkAcademyCourse({ courseId, onBack }: Props) {
 }
 
 // ── Просмотр урока ────────────────────────────────────────────────────────────
-export function LessonView({ lesson, courseTitle, onBack, onRefreshLesson, isPreview }: {
-  lesson: LessonFull; courseTitle: string; onBack: () => void; onRefreshLesson: (l: LessonFull) => void; isPreview?: boolean;
+export function LessonView({ lesson, courseTitle, onBack, onRefreshLesson, isPreview, onNavigate }: {
+  lesson: LessonFull; courseTitle: string; onBack: () => void; onRefreshLesson: (l: LessonFull) => void; isPreview?: boolean; onNavigate?: (tab: string) => void;
 }) {
   const parseLinkLabel = (s: string) => {
     const parts = s.split("|");
@@ -256,6 +259,10 @@ export function LessonView({ lesson, courseTitle, onBack, onRefreshLesson, isPre
             ))}
           </div>
         </div>
+      )}
+
+      {!isPreview && lesson.tools?.length > 0 && (
+        <LkLessonTools tools={lesson.tools} onNavigate={onNavigate || (() => {})} />
       )}
 
       <LkAcademyLessonAI

@@ -272,11 +272,17 @@ def handle_lesson_open(event, conn):
     )
     photos = [dict(r) for r in cur.fetchall()]
 
+    cur.execute(
+        f"SELECT tool_slug FROM {tbl('lesson_tools')} WHERE lesson_id=%s ORDER BY sort_order, id", (lesson_id,)
+    )
+    tools = [r["tool_slug"] for r in cur.fetchall()]
+
     result = dict(lesson)
     result["files"] = files
     result["photos"] = photos
     result["video_urls"] = lesson["video_urls"] or []
     result["links"] = lesson["links"] or []
+    result["tools"] = tools
     return ok(result)
 
 
@@ -726,6 +732,25 @@ def handle_admin_lesson_file_delete(event, conn):
     return ok({"ok": True})
 
 
+def handle_admin_lesson_tools_save(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    lesson_id = body.get("lesson_id")
+    tools = body.get("tools") or []
+    if not lesson_id:
+        return err("lesson_id обязателен")
+    cur = conn.cursor()
+    cur.execute(f"DELETE FROM {tbl('lesson_tools')} WHERE lesson_id=%s", (lesson_id,))
+    for i, slug in enumerate(tools):
+        cur.execute(
+            f"INSERT INTO {tbl('lesson_tools')} (lesson_id, tool_slug, sort_order) VALUES (%s,%s,%s)",
+            (lesson_id, slug, i)
+        )
+    conn.commit()
+    return ok({"ok": True})
+
+
 def handle_admin_grant_access(event, conn):
     _, e = require_admin(event, conn)
     if e: return e
@@ -797,6 +822,8 @@ def handle_admin_course_detail(event, conn):
             l["photos"] = [dict(r) for r in cur.fetchall()]
             cur.execute(f"SELECT id, name, url FROM {tbl('lesson_files')} WHERE lesson_id=%s ORDER BY id", (l["id"],))
             l["files"] = [dict(r) for r in cur.fetchall()]
+            cur.execute(f"SELECT tool_slug FROM {tbl('lesson_tools')} WHERE lesson_id=%s ORDER BY sort_order, id", (l["id"],))
+            l["tools"] = [r["tool_slug"] for r in cur.fetchall()]
             lessons.append(l)
         m["lessons"] = lessons
 
@@ -825,6 +852,7 @@ ROUTES = {
     "admin_lesson_file_add":     handle_admin_lesson_file_add,
     "admin_lesson_file_delete":  handle_admin_lesson_file_delete,
     "admin_grant_access":        handle_admin_grant_access,
+    "admin_lesson_tools_save":   handle_admin_lesson_tools_save,
     "admin_course_detail":       handle_admin_course_detail,
 }
 

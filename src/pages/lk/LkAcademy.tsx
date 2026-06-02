@@ -43,7 +43,7 @@ const CATEGORIES: Category[] = [
   },
 ];
 
-export default function LkAcademy() {
+export default function LkAcademy({ onNavigate }: { onNavigate?: (tab: string) => void }) {
   const [dbCourses, setDbCourses] = useState<DbCourse[]>([]);
   const [activeCourseId, setActiveCourseId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,6 +60,7 @@ export default function LkAcademy() {
       <LkAcademyCourse
         courseId={activeCourseId}
         onBack={() => setActiveCourseId(null)}
+        onNavigate={onNavigate}
       />
     );
   }

@@ -23,7 +23,7 @@ export interface Lesson {
   id: number; module_id: number; course_id: number; title: string;
   content: string; video_urls: string[]; links: string[];
   ai_context: string; homework: string; sort_order: number;
-  files?: LFile[]; photos?: Photo[];
+  files?: LFile[]; photos?: Photo[]; tools?: string[];
 }
 
 export interface LFile { id: number; name: string; url: string; }

@@ -42,5 +42,6 @@ export interface LessonFull {
   video_urls: string[]; links: string[]; ai_context: string; homework: string;
   files: { id: number; name: string; url: string }[];
   photos: { id: number; url: string }[];
+  tools: string[];
 }
 export interface ChatMessage { role: "user" | "assistant"; content: string; }
