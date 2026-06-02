@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { useEnergy } from "@/contexts/EnergyContext";
 import Icon from "@/components/ui/icon";
@@ -219,6 +219,16 @@ export default function LkDashboard() {
 
   const [tab, setTab] = useState<Tab>(getInitialTab);
   const [moreOpen, setMoreOpen] = useState(false);
+
+  // Фикс для Chrome/Android: браузерная строка занимает место и скрывает bottom nav
+  useEffect(() => {
+    const setVh = () => {
+      document.documentElement.style.setProperty("--vh", `${window.innerHeight * 0.01}px`);
+    };
+    setVh();
+    window.addEventListener("resize", setVh);
+    return () => window.removeEventListener("resize", setVh);
+  }, []);
 
   // Вкладки, требующие наличия салона
   const SALON_REQUIRED: Tab[] = ["tools", "ai", "shop", "employees", "purchases"];
@@ -454,8 +464,9 @@ export default function LkDashboard() {
           .lk-root { flex-direction: column; }
           .lk-sidebar { display: none; }
           .lk-mobile-header { display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; height: 52px; background: #0F172A; border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0 16px; z-index: 100; }
-          .lk-main { margin-left: 0; padding: 66px 16px 80px; }
-          .lk-bottombar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #0F172A; border-top: 1px solid rgba(255,255,255,0.06); z-index: 100; padding-bottom: env(safe-area-inset-bottom, 0); }
+          .lk-main { margin-left: 0; padding: 66px 16px 90px; }
+          .lk-bottombar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: #0F172A; border-top: 1px solid rgba(255,255,255,0.06); z-index: 9999; padding-bottom: max(env(safe-area-inset-bottom, 0px), 4px); min-height: 56px; transform: translate3d(0,0,0); -webkit-transform: translate3d(0,0,0); will-change: transform; }
+          @supports (height: 100dvh) { .lk-root { min-height: 100dvh; } }
         }
       `}</style>
     </div>
