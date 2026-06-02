@@ -200,9 +200,9 @@ export function LessonView({ lesson, courseTitle, onBack, onRefreshLesson }: {
       )}
 
       {lesson.photos.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 20 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
           {lesson.photos.map(p => (
-            <img key={p.id} src={p.url} alt="" style={{ width: 160, height: 120, borderRadius: 10, objectFit: "cover", cursor: "pointer" }}
+            <img key={p.id} src={p.url} alt="" style={{ width: "100%", borderRadius: 16, objectFit: "cover", cursor: "pointer", maxHeight: 420 }}
               onClick={() => window.open(p.url, "_blank")} />
           ))}
         </div>
