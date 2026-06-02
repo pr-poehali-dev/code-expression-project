@@ -2110,6 +2110,7 @@ def handle_invite_accept(event: dict) -> dict:
     username = (body.get("username") or "").strip().lower()
     password = (body.get("password") or "")
     full_name_override = (body.get("full_name") or "").strip()
+    email_input = (body.get("email") or "").strip().lower()
 
     if not token:
         return err("Токен не передан")
@@ -2140,12 +2141,13 @@ def handle_invite_accept(event: dict) -> dict:
         pw_hash   = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
         role_code = invite["role_code"]
         salon_id  = invite["salon_id"]
+        email     = email_input or invite.get("email") or f"{username}@invited.local"
 
         # Создаём пользователя
         cur.execute(
-            f"INSERT INTO {tbl('lk_users')} (username, password_hash, full_name, role, salon_id, is_active, segment) "
-            f"VALUES (%s,%s,%s,%s,%s,TRUE,'salon') RETURNING id",
-            (username, pw_hash, full_name, role_code, salon_id)
+            f"INSERT INTO {tbl('lk_users')} (username, email, password_hash, full_name, role, salon_id, is_active, segment) "
+            f"VALUES (%s,%s,%s,%s,%s,%s,TRUE,'salon') RETURNING id",
+            (username, email, pw_hash, full_name, role_code, salon_id)
         )
         new_user_id = cur.fetchone()["id"]
 
