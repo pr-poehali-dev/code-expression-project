@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { useEnergy } from "@/contexts/EnergyContext";
 import Icon from "@/components/ui/icon";
@@ -13,6 +13,10 @@ const ASPECT_OPTIONS = [
   { value: "1792x1024", label: "Пейзаж",   sub: "3:2 — для баннеров",    icon: "Monitor"   },
 ];
 
+interface HistoryItem {
+  id: number; url: string; prompt: string; aspect_ratio: string; created_at: string;
+}
+
 export default function LkAiImageGen() {
   const { user } = useLkAuth();
   const { refresh: refreshBalance } = useEnergy();
@@ -26,6 +30,22 @@ export default function LkAiImageGen() {
   const [downloading, setDownloading] = useState(false);
   const [error, setError]           = useState("");
   const [promptUsed, setPromptUsed] = useState("");
+
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const loadHistory = () => {
+    setHistoryLoading(true);
+    fetch(AI_IMAGE_URL, {
+      headers: { "X-Session-Id": localStorage.getItem("lk_session") || "" },
+    })
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d)) setHistory(d); })
+      .finally(() => setHistoryLoading(false));
+  };
+
+  useEffect(() => { loadHistory(); }, []);
 
   async function handleGenerate() {
     if (!prompt.trim()) { setError("Введите описание изображения"); return; }
@@ -52,6 +72,7 @@ export default function LkAiImageGen() {
         setImageUrl(url);
         setPromptUsed(data.prompt_used || "");
         refreshBalance();
+        loadHistory();
         // Автоматически скачиваем
         await triggerDownload(url);
       } else {
@@ -216,6 +237,56 @@ export default function LkAiImageGen() {
           )}
         </div>
       )}
+
+      {/* История изображений */}
+      <div style={{ marginTop: 20, background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", overflow: "hidden" }}>
+        <button
+          onClick={() => setHistoryOpen(o => !o)}
+          style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "14px 20px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
+        >
+          <Icon name="Clock" size={16} style={{ color: ACCENT }} />
+          <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "#0F172A" }}>
+            Мои изображения
+          </span>
+          <span style={{ fontSize: 12, color: "#aaa", marginRight: 6 }}>{history.length} шт.</span>
+          <Icon name={historyOpen ? "ChevronUp" : "ChevronDown"} size={16} style={{ color: "#aaa" }} />
+        </button>
+
+        {historyOpen && (
+          <div style={{ borderTop: "1px solid #F1F5F9", padding: "16px 20px" }}>
+            {historyLoading ? (
+              <div style={{ textAlign: "center", padding: "24px 0", color: "#aaa", fontSize: 13 }}>Загрузка...</div>
+            ) : history.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "24px 0", color: "#aaa", fontSize: 13 }}>Изображений пока нет</div>
+            ) : (
+              <>
+                <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12, lineHeight: 1.5 }}>
+                  Все сгенерированные изображения сохраняются здесь. Если что-то пошло не так — найдёте картинку тут и сможете скачать.
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 }}>
+                  {history.map(item => (
+                    <div key={item.id} style={{ borderRadius: 10, overflow: "hidden", border: "1px solid #E8ECF0", position: "relative", cursor: "pointer" }}
+                      onClick={() => triggerDownload(item.url)}
+                      title={item.prompt || "Скачать"}
+                    >
+                      <img src={item.url} alt="" style={{ width: "100%", display: "block", aspectRatio: item.aspect_ratio === "1024x1792" ? "2/3" : item.aspect_ratio === "1792x1024" ? "3/2" : "1/1", objectFit: "cover" }} />
+                      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0)", transition: "background 0.15s", display: "flex", alignItems: "center", justifyContent: "center" }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,0,0,0.35)")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "rgba(0,0,0,0)")}
+                      >
+                        <Icon name="Download" size={20} style={{ color: "#fff" }} />
+                      </div>
+                      <div style={{ padding: "6px 8px", fontSize: 10, color: "#aaa", background: "#fff" }}>
+                        {new Date(item.created_at).toLocaleDateString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>

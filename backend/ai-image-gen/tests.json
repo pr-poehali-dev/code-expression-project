@@ -14,10 +14,10 @@
       "expectedStatus": 401
     },
     {
-      "name": "GET — 405",
+      "name": "GET история без сессии — 401",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 405
+      "expectedStatus": 401
     }
   ]
 }

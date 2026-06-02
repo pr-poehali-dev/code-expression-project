@@ -137,10 +137,31 @@ def upload_to_s3(image_b64: str, ext: str, user_id: int) -> str:
     return cdn_url
 
 
+def handle_history(event, conn):
+    user = get_session_user(event, conn)
+    if not user:
+        return err("Не авторизован", 401)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT id, url, prompt, aspect_ratio, created_at "
+        f"FROM {SCHEMA}.ai_generated_images WHERE user_id=%s ORDER BY created_at DESC LIMIT 50",
+        (user["id"],)
+    )
+    return ok([dict(r) for r in cur.fetchall()])
+
+
 def handler(event: dict, context) -> dict:
     """Генерация изображений для салона через polza.ai / gpt-image-1.5."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
+
+    # История изображений
+    if event.get("httpMethod") == "GET":
+        conn = get_db()
+        try:
+            return handle_history(event, conn)
+        finally:
+            conn.close()
 
     if event.get("httpMethod") != "POST":
         return err("Method not allowed", 405)
