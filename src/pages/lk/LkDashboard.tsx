@@ -12,6 +12,7 @@ import LkTeam from "./LkTeam";
 import LkEnergy from "./LkEnergy";
 import LkProfile from "./LkProfile";
 import LkSupport from "./LkSupport";
+import LkAcademy from "./LkAcademy";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -370,7 +371,7 @@ export default function LkDashboard() {
       <main className="lk-main">
         {tab === "home" && <HomeTab onNav={handleTabChange} role={role} hasSalon={hasSalon} />}
         {tab === "tools" && <LkTests />}
-        {tab === "academy" && <ComingSoonTab title="Академия" description="Курсы и обучение для вашей роли. Раздел находится в разработке." icon="GraduationCap" />}
+        {tab === "academy" && <LkAcademy />}
         {tab === "ai" && <LkAiTools />}
         {tab === "shop" && <LkEnergy />}
         {tab === "employees" && <LkTeam />}
