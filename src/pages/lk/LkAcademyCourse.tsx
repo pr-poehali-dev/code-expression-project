@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { useEnergy } from "@/contexts/EnergyContext";
-import { ACCENT, SERIF, apiFetch, renderMarkdown, type Course, type LessonMeta, type LessonFull } from "./LkAcademyTypes";
+import { ACCENT, SERIF, apiFetch, renderContent, type Course, type LessonMeta, type LessonFull } from "./LkAcademyTypes";
 import LkAcademyLessonAI from "./LkAcademyLessonAI";
 import LkAcademyHomework from "./LkAcademyHomework";
 import LkLessonTools from "./LkLessonTools";
@@ -213,7 +213,7 @@ export function LessonView({ lesson, courseTitle, onBack, onRefreshLesson, isPre
 
       {lesson.content && (
         <div className="lesson-content" style={{ fontSize: 14, color: "#333", lineHeight: 1.85, marginBottom: 24 }}
-          dangerouslySetInnerHTML={{ __html: renderMarkdown(lesson.content) }}
+          dangerouslySetInnerHTML={{ __html: renderContent(lesson.content) }}
         />
       )}
       <style>{`
@@ -226,6 +226,9 @@ export function LessonView({ lesson, courseTitle, onBack, onRefreshLesson, isPre
         .lesson-content s { text-decoration: line-through; }
         .lesson-content blockquote { border-left: 3px solid hsl(185,85%,60%); margin: 12px 0; padding: 4px 14px; color: #555; font-style: italic; }
         .lesson-content hr { border: none; border-top: 1.5px solid #e8e8e4; margin: 20px 0; }
+        .lesson-content iframe { width: 100%; border-radius: 12px; border: none; }
+        .lesson-content img { max-width: 100%; border-radius: 10px; }
+        .lesson-content a { color: hsl(185,85%,32%); }
       `}</style>
 
       {lesson.links.length > 0 && (

@@ -5,6 +5,7 @@ import { apiFetch, Lesson, Module, LFile, Photo } from "./LkAdminCourses.types";
 import MarkdownEditor from "@/components/ui/MarkdownEditor";
 import { LessonView, type LessonFull } from "./LkAcademyCourse";
 import { TOOLS_CATALOG } from "./toolsCatalog";
+import { HTML_MARKER, isHtmlContent, renderContent } from "./LkAcademyTypes";
 
 export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
   lesson: Lesson | null; courseId: number; modules: Module[]; onBack: () => void; onSaved: (l: Lesson) => void;
@@ -186,13 +187,57 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
           </div>
 
           <div>
-            <label style={labelStyle}>ТЕКСТОВАЯ ЧАСТЬ</label>
-            <MarkdownEditor
-              value={form.content || ""}
-              onChange={v => setForm(f => ({ ...f, content: v }))}
-              placeholder="Основной текст урока..."
-              minHeight={220}
-            />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+              <label style={{ ...labelStyle, margin: 0 }}>ТЕКСТОВАЯ ЧАСТЬ</label>
+              <div style={{ display: "flex", gap: 2, background: "#f0f0ec", borderRadius: 8, padding: 3 }}>
+                {[{ id: false, label: "Markdown" }, { id: true, label: "HTML" }].map(m => {
+                  const active = isHtmlContent(form.content || "") === m.id;
+                  return (
+                    <button key={String(m.id)} onClick={() => {
+                      const cur = form.content || "";
+                      if (m.id && !isHtmlContent(cur)) {
+                        setForm(f => ({ ...f, content: HTML_MARKER + "\n" + cur }));
+                      } else if (!m.id && isHtmlContent(cur)) {
+                        setForm(f => ({ ...f, content: cur.trimStart().slice(HTML_MARKER.length).trimStart() }));
+                      }
+                    }} style={{ padding: "4px 10px", borderRadius: 6, border: "none", background: active ? "#fff" : "transparent", color: active ? "#1a1a1a" : "#888", fontSize: 11, fontWeight: active ? 700 : 500, cursor: "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: active ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
+                      {m.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {isHtmlContent(form.content || "") ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <textarea
+                  value={(form.content || "").trimStart().slice(HTML_MARKER.length)}
+                  onChange={e => setForm(f => ({ ...f, content: HTML_MARKER + "\n" + e.target.value }))}
+                  placeholder="Вставьте HTML из другой платформы..."
+                  style={{ ...inputStyle, height: 220, lineHeight: 1.6, fontFamily: "monospace", fontSize: 12, resize: "vertical" }}
+                />
+                <div style={{ background: "#f8f8f6", borderRadius: 10, border: "1.5px solid #e8e8e4", padding: "14px 16px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#aaa", letterSpacing: "0.06em", marginBottom: 8 }}>ПРЕДПРОСМОТР HTML</div>
+                  <div className="lesson-content" style={{ fontSize: 14, color: "#333", lineHeight: 1.85 }}
+                    dangerouslySetInnerHTML={{ __html: renderContent(form.content || "") }}
+                  />
+                </div>
+                <style>{`
+                  .lesson-content iframe { width: 100%; border-radius: 12px; border: none; }
+                  .lesson-content img { max-width: 100%; border-radius: 10px; }
+                  .lesson-content a { color: hsl(185,85%,32%); }
+                  .lesson-content p { margin: 10px 0; }
+                  .lesson-content ul { padding-left: 20px; margin: 8px 0; }
+                  .lesson-content li { margin: 4px 0; }
+                `}</style>
+              </div>
+            ) : (
+              <MarkdownEditor
+                value={form.content || ""}
+                onChange={v => setForm(f => ({ ...f, content: v }))}
+                placeholder="Основной текст урока..."
+                minHeight={220}
+              />
+            )}
           </div>
 
           <div>

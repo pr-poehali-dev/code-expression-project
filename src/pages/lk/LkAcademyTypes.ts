@@ -11,6 +11,19 @@ export function apiFetch(action: string, method = "GET", body?: object) {
   }).then(r => r.json());
 }
 
+export const HTML_MARKER = "<!--html-->";
+
+export function isHtmlContent(text: string): boolean {
+  return text.trimStart().startsWith(HTML_MARKER);
+}
+
+export function renderContent(text: string): string {
+  if (isHtmlContent(text)) {
+    return text.trimStart().slice(HTML_MARKER.length);
+  }
+  return renderMarkdown(text);
+}
+
 export function renderMarkdown(text: string): string {
   return text
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
