@@ -6,8 +6,9 @@ import { BodySection } from "./LkAdminBody";
 import { AISection } from "./LkAdminAI";
 import { CandidatesSection } from "./LkAdminCandidates";
 import { EnergySection } from "./LkAdminEnergy";
+import { CoursesSection } from "./LkAdminCourses";
 
-type Section = "users" | "body" | "ai" | "candidates" | "energy";
+type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses";
 
 export default function LkAdmin() {
   const [section, setSection] = useState<Section>("ai");
@@ -20,11 +21,12 @@ export default function LkAdmin() {
 
       <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
         {[
-          { id: "ai"         as Section, icon: "Bot",       label: "ИИ-ассистент" },
-          { id: "users"      as Section, icon: "Users",     label: "Пользователи" },
-          { id: "candidates" as Section, icon: "UserCheck", label: "Кандидаты"    },
-          { id: "body"       as Section, icon: "User",      label: "Схема тела"   },
-          { id: "energy"     as Section, icon: "Zap",       label: "Энергия"      },
+          { id: "ai"         as Section, icon: "Bot",          label: "ИИ-ассистент" },
+          { id: "courses"    as Section, icon: "GraduationCap", label: "Курсы"    },
+          { id: "users"      as Section, icon: "Users",        label: "Пользователи" },
+          { id: "candidates" as Section, icon: "UserCheck",    label: "Кандидаты"    },
+          { id: "body"       as Section, icon: "User",         label: "Схема тела"   },
+          { id: "energy"     as Section, icon: "Zap",          label: "Энергия"      },
         ].map(s => (
           <button key={s.id} onClick={() => setSection(s.id)} style={{
             display: "flex", alignItems: "center", gap: 8, padding: "9px 18px",
@@ -42,6 +44,7 @@ export default function LkAdmin() {
       </div>
 
       {section === "ai"         && <AISection />}
+      {section === "courses"    && <CoursesSection />}
       {section === "users"      && <UsersSection />}
       {section === "candidates" && <CandidatesSection />}
       {section === "body"       && <BodySection />}

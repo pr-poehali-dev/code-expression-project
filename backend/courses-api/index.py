@@ -1,0 +1,654 @@
+"""
+API для системы курсов Академии.
+Маршруты (?action=...):
+  Витрина (пользователь):
+    courses_list        — список опубликованных курсов
+    course_detail       — курс + модули + уроки (с учётом доступа)
+    course_access       — купить доступ к курсу (списать энергию)
+    lesson_open         — открыть урок (списать энергию)
+    lesson_ask_ai       — задать вопрос ИИ по уроку (2 энергии)
+  Админ:
+    admin_courses_list        — все курсы
+    admin_course_save         — создать/обновить курс
+    admin_module_save         — создать/обновить модуль
+    admin_module_delete       — удалить модуль
+    admin_lesson_save         — создать/обновить урок
+    admin_lesson_delete       — удалить урок
+    admin_lesson_photo_add    — добавить фото к уроку (base64)
+    admin_lesson_photo_delete — удалить фото урока
+    admin_lesson_file_add     — добавить файл к уроку (base64)
+    admin_lesson_file_delete  — удалить файл урока
+    admin_grant_access        — вручную выдать доступ к курсу пользователю
+"""
+import json
+import os
+import base64
+import urllib.request
+import psycopg2
+import psycopg2.extras
+import boto3
+
+SCHEMA = "t_p84565078_code_expression_proj"
+LESSON_AI_COST = 2
+
+CORS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-Session-Id",
+}
+
+
+def tbl(name): return f"{SCHEMA}.{name}"
+def get_db(): return psycopg2.connect(os.environ["DATABASE_URL"])
+def ok(data, status=200): return {"statusCode": status, "headers": CORS, "body": json.dumps(data, ensure_ascii=False, default=str)}
+def err(msg, status=400): return {"statusCode": status, "headers": CORS, "body": json.dumps({"error": msg}, ensure_ascii=False)}
+
+
+def get_session_user(event, conn):
+    sid = (event.get("headers") or {}).get("X-Session-Id", "")
+    if not sid:
+        return None
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT u.* FROM {tbl('lk_sessions')} s JOIN {tbl('lk_users')} u ON u.id=s.user_id "
+        f"WHERE s.id=%s AND s.expires_at>NOW() AND u.is_active=TRUE", (sid,)
+    )
+    return cur.fetchone()
+
+
+def get_salon_balance(salon_id, conn) -> int:
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount ELSE -amount END),0) "
+        f"FROM {tbl('credit_transactions')} WHERE salon_id=%s", (salon_id,)
+    )
+    return int(cur.fetchone()[0])
+
+
+def deduct_energy(salon_id, user_id, cost, action, conn):
+    cur = conn.cursor()
+    cur.execute(
+        f"UPDATE {tbl('salons')} SET credits_balance=credits_balance-%s WHERE id=%s",
+        (cost, salon_id)
+    )
+    cur.execute(
+        f"INSERT INTO {tbl('credit_transactions')} (salon_id, user_id, action, amount, tool_key, type) "
+        f"VALUES (%s,%s,%s,%s,'course','debit')",
+        (salon_id, user_id, action, cost)
+    )
+    conn.commit()
+
+
+def s3_client():
+    return boto3.client(
+        "s3",
+        endpoint_url="https://bucket.poehali.dev",
+        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+    )
+
+
+def cdn_url(key):
+    return f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+
+
+# ── Витрина ──────────────────────────────────────────────────────────────────
+
+def handle_courses_list(event, conn):
+    user = get_session_user(event, conn)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT id,title,description,cover_url,category,access_cost,lesson_cost,sort_order "
+        f"FROM {tbl('courses')} WHERE is_published=TRUE ORDER BY sort_order,id"
+    )
+    courses = [dict(r) for r in cur.fetchall()]
+
+    if user:
+        cur.execute(
+            f"SELECT course_id FROM {tbl('course_access')} WHERE user_id=%s", (user["id"],)
+        )
+        accessible = {r["course_id"] for r in cur.fetchall()}
+        for c in courses:
+            c["has_access"] = c["id"] in accessible
+    else:
+        for c in courses:
+            c["has_access"] = False
+
+    return ok(courses)
+
+
+def handle_course_detail(event, conn):
+    user = get_session_user(event, conn)
+    if not user:
+        return err("Не авторизован", 401)
+
+    qs = event.get("queryStringParameters") or {}
+    course_id = qs.get("course_id")
+    if not course_id:
+        return err("course_id обязателен")
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT * FROM {tbl('courses')} WHERE id=%s AND is_published=TRUE", (course_id,)
+    )
+    course = cur.fetchone()
+    if not course:
+        return err("Курс не найден", 404)
+
+    course = dict(course)
+
+    cur.execute(
+        f"SELECT id FROM {tbl('course_access')} WHERE user_id=%s AND course_id=%s",
+        (user["id"], course_id)
+    )
+    course["has_access"] = cur.fetchone() is not None
+
+    cur.execute(
+        f"SELECT id,title,sort_order FROM {tbl('course_modules')} WHERE course_id=%s ORDER BY sort_order,id",
+        (course_id,)
+    )
+    modules = [dict(r) for r in cur.fetchall()]
+
+    cur.execute(
+        f"SELECT id FROM {tbl('lesson_access')} WHERE user_id=%s", (user["id"],)
+    )
+    opened_lessons = {r["id"] for r in cur.fetchall()}
+
+    for m in modules:
+        cur.execute(
+            f"SELECT id,title,sort_order FROM {tbl('course_lessons')} "
+            f"WHERE module_id=%s ORDER BY sort_order,id", (m["id"],)
+        )
+        lessons = []
+        for row in cur.fetchall():
+            l = dict(row)
+            l["is_opened"] = l["id"] in opened_lessons
+            lessons.append(l)
+        m["lessons"] = lessons
+
+    course["modules"] = modules
+    return ok(course)
+
+
+def handle_course_access(event, conn):
+    user = get_session_user(event, conn)
+    if not user:
+        return err("Не авторизован", 401)
+
+    body = json.loads(event.get("body") or "{}")
+    course_id = body.get("course_id")
+    if not course_id:
+        return err("course_id обязателен")
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT * FROM {tbl('courses')} WHERE id=%s AND is_published=TRUE", (course_id,))
+    course = cur.fetchone()
+    if not course:
+        return err("Курс не найден", 404)
+
+    cur.execute(
+        f"SELECT id FROM {tbl('course_access')} WHERE user_id=%s AND course_id=%s",
+        (user["id"], course_id)
+    )
+    if cur.fetchone():
+        return ok({"ok": True, "already": True})
+
+    cost = course["access_cost"]
+    if cost > 0:
+        salon_id = user.get("salon_id")
+        if not salon_id:
+            return err("Нет привязанного аккаунта")
+        balance = get_salon_balance(salon_id, conn)
+        if balance < cost:
+            return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}", 402)
+        deduct_energy(salon_id, user["id"], cost, f"Доступ к курсу «{course['title']}»", conn)
+
+    cur.execute(
+        f"INSERT INTO {tbl('course_access')} (user_id, course_id) VALUES (%s,%s) ON CONFLICT DO NOTHING",
+        (user["id"], course_id)
+    )
+    conn.commit()
+    return ok({"ok": True})
+
+
+def handle_lesson_open(event, conn):
+    user = get_session_user(event, conn)
+    if not user:
+        return err("Не авторизован", 401)
+
+    body = json.loads(event.get("body") or "{}")
+    lesson_id = body.get("lesson_id")
+    if not lesson_id:
+        return err("lesson_id обязателен")
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT l.*, c.lesson_cost, c.title as course_title, c.id as cid "
+        f"FROM {tbl('course_lessons')} l "
+        f"JOIN {tbl('courses')} c ON c.id=l.course_id "
+        f"WHERE l.id=%s", (lesson_id,)
+    )
+    lesson = cur.fetchone()
+    if not lesson:
+        return err("Урок не найден", 404)
+
+    cur.execute(
+        f"SELECT id FROM {tbl('course_access')} WHERE user_id=%s AND course_id=%s",
+        (user["id"], lesson["cid"])
+    )
+    if not cur.fetchone():
+        return err("Нет доступа к курсу", 403)
+
+    cur.execute(
+        f"SELECT id FROM {tbl('lesson_access')} WHERE user_id=%s AND lesson_id=%s",
+        (user["id"], lesson_id)
+    )
+    if cur.fetchone():
+        pass
+    else:
+        cost = lesson["lesson_cost"]
+        if cost > 0:
+            salon_id = user.get("salon_id")
+            if not salon_id:
+                return err("Нет привязанного аккаунта")
+            balance = get_salon_balance(salon_id, conn)
+            if balance < cost:
+                return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}", 402)
+            deduct_energy(salon_id, user["id"], cost, f"Урок «{lesson['title']}»", conn)
+
+        cur.execute(
+            f"INSERT INTO {tbl('lesson_access')} (user_id, lesson_id) VALUES (%s,%s) ON CONFLICT DO NOTHING",
+            (user["id"], lesson_id)
+        )
+        conn.commit()
+
+    cur.execute(
+        f"SELECT id,name,url FROM {tbl('lesson_files')} WHERE lesson_id=%s ORDER BY id", (lesson_id,)
+    )
+    files = [dict(r) for r in cur.fetchall()]
+
+    cur.execute(
+        f"SELECT id,url,sort_order FROM {tbl('lesson_photos')} WHERE lesson_id=%s ORDER BY sort_order,id", (lesson_id,)
+    )
+    photos = [dict(r) for r in cur.fetchall()]
+
+    result = dict(lesson)
+    result["files"] = files
+    result["photos"] = photos
+    result["video_urls"] = lesson["video_urls"] or []
+    result["links"] = lesson["links"] or []
+    return ok(result)
+
+
+def handle_lesson_ask_ai(event, conn):
+    user = get_session_user(event, conn)
+    if not user:
+        return err("Не авторизован", 401)
+
+    body = json.loads(event.get("body") or "{}")
+    lesson_id = body.get("lesson_id")
+    question = (body.get("question") or "").strip()
+    if not lesson_id or not question:
+        return err("lesson_id и question обязательны")
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT l.*, c.id as cid, c.title as course_title "
+        f"FROM {tbl('course_lessons')} l JOIN {tbl('courses')} c ON c.id=l.course_id "
+        f"WHERE l.id=%s", (lesson_id,)
+    )
+    lesson = cur.fetchone()
+    if not lesson:
+        return err("Урок не найден", 404)
+
+    cur.execute(
+        f"SELECT id FROM {tbl('lesson_access')} WHERE user_id=%s AND lesson_id=%s",
+        (user["id"], lesson_id)
+    )
+    if not cur.fetchone():
+        return err("Урок не открыт", 403)
+
+    salon_id = user.get("salon_id")
+    if not salon_id:
+        return err("Нет привязанного аккаунта")
+    balance = get_salon_balance(salon_id, conn)
+    if balance < LESSON_AI_COST:
+        return err(f"Недостаточно энергии. Нужно {LESSON_AI_COST}, доступно {balance}", 402)
+
+    context_parts = []
+    if lesson.get("title"):
+        context_parts.append(f"Урок: {lesson['title']}")
+    if lesson.get("content"):
+        context_parts.append(f"Содержание урока:\n{lesson['content']}")
+    if lesson.get("ai_context"):
+        context_parts.append(f"Дополнительный контекст:\n{lesson['ai_context']}")
+
+    system_prompt = (
+        "Ты — преподаватель и эксперт курса. Отвечай на вопрос ученика строго на основе материала урока. "
+        "Отвечай ёмко, конкретно, профессионально. Если вопрос выходит за рамки урока — мягко об этом скажи. "
+        "Обращайся на «ты»."
+    )
+    if context_parts:
+        system_prompt += "\n\n" + "\n\n".join(context_parts)
+
+    api_key = os.environ.get("OPENAI_API_KEY", "")
+    payload = json.dumps({
+        "model": "openai/gpt-4o-mini",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": question},
+        ],
+        "max_tokens": 800,
+        "temperature": 0.5,
+    }).encode()
+
+    req = urllib.request.Request(
+        "https://api.polza.ai/v1/chat/completions",
+        data=payload,
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=25) as resp:
+        data = json.loads(resp.read())
+    answer = data["choices"][0]["message"]["content"]
+
+    deduct_energy(salon_id, user["id"], LESSON_AI_COST, f"ИИ-ответ в уроке «{lesson['title']}»", conn)
+    return ok({"answer": answer})
+
+
+# ── Админ ─────────────────────────────────────────────────────────────────────
+
+def require_admin(event, conn):
+    user = get_session_user(event, conn)
+    if not user or not user.get("is_admin"):
+        return None, err("Нет доступа", 403)
+    return user, None
+
+
+def handle_admin_courses_list(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT c.*, "
+        f"(SELECT COUNT(*) FROM {tbl('course_modules')} WHERE course_id=c.id) as modules_count, "
+        f"(SELECT COUNT(*) FROM {tbl('course_lessons')} WHERE course_id=c.id) as lessons_count "
+        f"FROM {tbl('courses')} c ORDER BY c.sort_order, c.id"
+    )
+    return ok([dict(r) for r in cur.fetchall()])
+
+
+def handle_admin_course_save(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    cid = body.get("id")
+    title = (body.get("title") or "").strip()
+    if not title:
+        return err("Название обязательно")
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    fields = {
+        "title": title,
+        "description": body.get("description", ""),
+        "cover_url": body.get("cover_url", ""),
+        "category": body.get("category", "body"),
+        "is_published": bool(body.get("is_published", False)),
+        "sort_order": int(body.get("sort_order", 0)),
+        "access_cost": int(body.get("access_cost", 0)),
+        "lesson_cost": int(body.get("lesson_cost", 1)),
+    }
+    if cid:
+        sets = ", ".join(f"{k}=%s" for k in fields)
+        cur.execute(
+            f"UPDATE {tbl('courses')} SET {sets}, updated_at=NOW() WHERE id=%s RETURNING id",
+            list(fields.values()) + [cid]
+        )
+        row = cur.fetchone()
+        conn.commit()
+        return ok({"id": row["id"], "ok": True})
+    else:
+        cols = ", ".join(fields.keys())
+        placeholders = ", ".join(["%s"] * len(fields))
+        cur.execute(
+            f"INSERT INTO {tbl('courses')} ({cols}) VALUES ({placeholders}) RETURNING id",
+            list(fields.values())
+        )
+        new_id = cur.fetchone()["id"]
+        conn.commit()
+        return ok({"id": new_id, "ok": True})
+
+
+def handle_admin_module_save(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    mid = body.get("id")
+    title = (body.get("title") or "").strip()
+    course_id = body.get("course_id")
+    if not title or not course_id:
+        return err("title и course_id обязательны")
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    if mid:
+        cur.execute(
+            f"UPDATE {tbl('course_modules')} SET title=%s, sort_order=%s WHERE id=%s RETURNING id",
+            (title, int(body.get("sort_order", 0)), mid)
+        )
+    else:
+        cur.execute(
+            f"INSERT INTO {tbl('course_modules')} (course_id,title,sort_order) VALUES (%s,%s,%s) RETURNING id",
+            (course_id, title, int(body.get("sort_order", 0)))
+        )
+    row = cur.fetchone()
+    conn.commit()
+    return ok({"id": row["id"], "ok": True})
+
+
+def handle_admin_module_delete(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    mid = body.get("id")
+    if not mid:
+        return err("id обязателен")
+    cur = conn.cursor()
+    cur.execute(f"UPDATE {tbl('course_lessons')} SET module_id=NULL WHERE module_id=%s", (mid,))
+    cur.execute(f"DELETE FROM {tbl('course_modules')} WHERE id=%s", (mid,))
+    conn.commit()
+    return ok({"ok": True})
+
+
+def handle_admin_lesson_save(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    lid = body.get("id")
+    title = (body.get("title") or "").strip()
+    module_id = body.get("module_id")
+    course_id = body.get("course_id")
+    if not title or not module_id or not course_id:
+        return err("title, module_id, course_id обязательны")
+
+    video_urls = json.dumps(body.get("video_urls") or [])
+    links = json.dumps(body.get("links") or [])
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    if lid:
+        cur.execute(
+            f"UPDATE {tbl('course_lessons')} SET title=%s, content=%s, video_urls=%s, links=%s, "
+            f"ai_context=%s, sort_order=%s, module_id=%s WHERE id=%s RETURNING id",
+            (title, body.get("content", ""), video_urls, links,
+             body.get("ai_context", ""), int(body.get("sort_order", 0)), module_id, lid)
+        )
+    else:
+        cur.execute(
+            f"INSERT INTO {tbl('course_lessons')} (module_id,course_id,title,content,video_urls,links,ai_context,sort_order) "
+            f"VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+            (module_id, course_id, title, body.get("content", ""), video_urls, links,
+             body.get("ai_context", ""), int(body.get("sort_order", 0)))
+        )
+    row = cur.fetchone()
+    conn.commit()
+    return ok({"id": row["id"], "ok": True})
+
+
+def handle_admin_lesson_delete(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    lid = body.get("id")
+    if not lid:
+        return err("id обязателен")
+    cur = conn.cursor()
+    cur.execute(f"DELETE FROM {tbl('lesson_files')} WHERE lesson_id=%s", (lid,))
+    cur.execute(f"DELETE FROM {tbl('lesson_photos')} WHERE lesson_id=%s", (lid,))
+    cur.execute(f"DELETE FROM {tbl('lesson_access')} WHERE lesson_id=%s", (lid,))
+    cur.execute(f"DELETE FROM {tbl('course_lessons')} WHERE id=%s", (lid,))
+    conn.commit()
+    return ok({"ok": True})
+
+
+def handle_admin_lesson_photo_add(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    lesson_id = body.get("lesson_id")
+    data_b64 = body.get("data")
+    filename = body.get("filename", "photo.jpg")
+    if not lesson_id or not data_b64:
+        return err("lesson_id и data обязательны")
+
+    file_bytes = base64.b64decode(data_b64)
+    key = f"courses/lessons/{lesson_id}/photos/{filename}"
+    s3 = s3_client()
+    mime = "image/jpeg"
+    if filename.lower().endswith(".png"):
+        mime = "image/png"
+    elif filename.lower().endswith(".webp"):
+        mime = "image/webp"
+    s3.put_object(Bucket="files", Key=key, Body=file_bytes, ContentType=mime)
+    url = cdn_url(key)
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT COALESCE(MAX(sort_order),0)+1 FROM {tbl('lesson_photos')} WHERE lesson_id=%s", (lesson_id,)
+    )
+    sort_order = cur.fetchone()[0]
+    cur.execute(
+        f"INSERT INTO {tbl('lesson_photos')} (lesson_id,url,sort_order) VALUES (%s,%s,%s) RETURNING id",
+        (lesson_id, url, sort_order)
+    )
+    new_id = cur.fetchone()["id"]
+    conn.commit()
+    return ok({"id": new_id, "url": url, "ok": True})
+
+
+def handle_admin_lesson_photo_delete(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    photo_id = body.get("id")
+    if not photo_id:
+        return err("id обязателен")
+    cur = conn.cursor()
+    cur.execute(f"DELETE FROM {tbl('lesson_photos')} WHERE id=%s", (photo_id,))
+    conn.commit()
+    return ok({"ok": True})
+
+
+def handle_admin_lesson_file_add(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    lesson_id = body.get("lesson_id")
+    data_b64 = body.get("data")
+    filename = body.get("filename", "file")
+    if not lesson_id or not data_b64:
+        return err("lesson_id и data обязательны")
+
+    file_bytes = base64.b64decode(data_b64)
+    key = f"courses/lessons/{lesson_id}/files/{filename}"
+    s3 = s3_client()
+    s3.put_object(Bucket="files", Key=key, Body=file_bytes, ContentType="application/octet-stream")
+    url = cdn_url(key)
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"INSERT INTO {tbl('lesson_files')} (lesson_id,name,url,size_bytes,mime_type) "
+        f"VALUES (%s,%s,%s,%s,%s) RETURNING id",
+        (lesson_id, filename, url, len(file_bytes), "application/octet-stream")
+    )
+    new_id = cur.fetchone()["id"]
+    conn.commit()
+    return ok({"id": new_id, "url": url, "ok": True})
+
+
+def handle_admin_lesson_file_delete(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    file_id = body.get("id")
+    if not file_id:
+        return err("id обязателен")
+    cur = conn.cursor()
+    cur.execute(f"DELETE FROM {tbl('lesson_files')} WHERE id=%s", (file_id,))
+    conn.commit()
+    return ok({"ok": True})
+
+
+def handle_admin_grant_access(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    user_id = body.get("user_id")
+    course_id = body.get("course_id")
+    if not user_id or not course_id:
+        return err("user_id и course_id обязательны")
+    cur = conn.cursor()
+    cur.execute(
+        f"INSERT INTO {tbl('course_access')} (user_id,course_id) VALUES (%s,%s) ON CONFLICT DO NOTHING",
+        (user_id, course_id)
+    )
+    conn.commit()
+    return ok({"ok": True})
+
+
+# ── Роутер ────────────────────────────────────────────────────────────────────
+
+ROUTES = {
+    "courses_list":              handle_courses_list,
+    "course_detail":             handle_course_detail,
+    "course_access":             handle_course_access,
+    "lesson_open":               handle_lesson_open,
+    "lesson_ask_ai":             handle_lesson_ask_ai,
+    "admin_courses_list":        handle_admin_courses_list,
+    "admin_course_save":         handle_admin_course_save,
+    "admin_module_save":         handle_admin_module_save,
+    "admin_module_delete":       handle_admin_module_delete,
+    "admin_lesson_save":         handle_admin_lesson_save,
+    "admin_lesson_delete":       handle_admin_lesson_delete,
+    "admin_lesson_photo_add":    handle_admin_lesson_photo_add,
+    "admin_lesson_photo_delete": handle_admin_lesson_photo_delete,
+    "admin_lesson_file_add":     handle_admin_lesson_file_add,
+    "admin_lesson_file_delete":  handle_admin_lesson_file_delete,
+    "admin_grant_access":        handle_admin_grant_access,
+}
+
+
+def handler(event: dict, context) -> dict:
+    """API для системы курсов Академии: витрина, просмотр, покупка доступа, ИИ-помощник, управление (админ)."""
+    if event.get("httpMethod") == "OPTIONS":
+        return {"statusCode": 200, "headers": CORS, "body": ""}
+
+    qs = event.get("queryStringParameters") or {}
+    action = qs.get("action", "")
+
+    if action not in ROUTES:
+        return err(f"Неизвестный action: {action}", 404)
+
+    conn = get_db()
+    try:
+        return ROUTES[action](event, conn)
+    finally:
+        conn.close()

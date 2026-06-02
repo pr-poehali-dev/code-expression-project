@@ -1,0 +1,34 @@
+{
+  "tests": [
+    {
+      "name": "Unknown action returns 404",
+      "method": "GET",
+      "path": "/?action=unknown",
+      "expectedStatus": 404
+    },
+    {
+      "name": "courses_list returns 200",
+      "method": "GET",
+      "path": "/?action=courses_list",
+      "expectedStatus": 200
+    },
+    {
+      "name": "course_detail without auth returns 401",
+      "method": "GET",
+      "path": "/?action=course_detail&course_id=1",
+      "expectedStatus": 401
+    },
+    {
+      "name": "lesson_ask_ai without auth returns 401",
+      "method": "POST",
+      "path": "/?action=lesson_ask_ai",
+      "expectedStatus": 401
+    },
+    {
+      "name": "admin_courses_list without auth returns 403",
+      "method": "GET",
+      "path": "/?action=admin_courses_list",
+      "expectedStatus": 403
+    }
+  ]
+}
