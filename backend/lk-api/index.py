@@ -2141,7 +2141,7 @@ def handle_invite_accept(event: dict) -> dict:
         pw_hash   = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
         role_code = invite["role_code"]
         salon_id  = invite["salon_id"]
-        email     = email_input or invite.get("email") or f"{username}@invited.local"
+        email     = email_input or invite.get("email") or f"{username}_{invite['id']}@invited.local"
 
         # Создаём пользователя
         cur.execute(
