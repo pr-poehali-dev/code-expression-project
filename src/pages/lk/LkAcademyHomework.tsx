@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import Icon from "@/components/ui/icon";
-import { apiFetch, type ChatMessage } from "./LkAcademyTypes";
+import { apiFetch, renderMarkdown, type ChatMessage } from "./LkAcademyTypes";
 import { useEnergy } from "@/contexts/EnergyContext";
 
 interface Props {
@@ -54,9 +54,9 @@ export default function LkAcademyHomework({ lessonId, homework }: Props) {
 
       {hwOpen && (
         <div style={{ padding: "0 20px 20px" }}>
-          <div style={{ background: "hsl(280,60%,95%)", borderRadius: 10, padding: "14px 16px", marginBottom: 16, fontSize: 14, color: "#333", lineHeight: 1.75, whiteSpace: "pre-wrap" }}>
+          <div style={{ background: "hsl(280,60%,95%)", borderRadius: 10, padding: "14px 16px", marginBottom: 16, fontSize: 14, color: "#333", lineHeight: 1.75 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: "hsl(280,60%,50%)", marginBottom: 6, letterSpacing: "0.05em" }}>ЗАДАНИЕ</div>
-            {homework}
+            <div dangerouslySetInnerHTML={{ __html: renderMarkdown(homework) }} />
           </div>
 
           {hwHistory.length === 0 && (
