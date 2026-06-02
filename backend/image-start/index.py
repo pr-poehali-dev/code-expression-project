@@ -1,10 +1,10 @@
 """
 Быстрый запуск генерации изображения. Возвращает job_id за ~1 секунду.
 Списывает энергию и создаёт задачу. Фронтенд потом опрашивает статус через image-worker.
+Защита от двойного запуска: FOR UPDATE на строку салона + проверка активной задачи.
 """
 import json
 import os
-import urllib.request
 import psycopg2
 import psycopg2.extras
 
@@ -62,28 +62,51 @@ def handler(event: dict, context) -> dict:
             aspect_raw = "1024x1024"
         aspect_gpt15 = ASPECT_MAP[aspect_raw]
 
-        # Проверяем баланс
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # Проверяем: нет ли уже активной задачи у этого пользователя (pending/running)
+        # созданной менее 10 минут назад — защита от двойного запуска
         cur.execute(
+            f"SELECT id, status FROM {SCHEMA}.image_jobs "
+            f"WHERE user_id=%s AND status IN ('pending','running') "
+            f"AND created_at > NOW() - INTERVAL '10 minutes' "
+            f"ORDER BY created_at DESC LIMIT 1",
+            (user["id"],)
+        )
+        active_job = cur.fetchone()
+        if active_job:
+            print(f"[image-start] user {user['id']} already has active job {active_job['id']} ({active_job['status']})")
+            return ok({"job_id": str(active_job["id"]), "status": active_job["status"], "reused": True})
+
+        cur2 = conn.cursor()
+
+        # Атомарное списание с блокировкой строки (FOR UPDATE)
+        # Второй одновременный запрос от того же салона будет ждать
+        cur2.execute(
+            f"SELECT credits_balance FROM {SCHEMA}.salons WHERE id=%s FOR UPDATE",
+            (salon_id,)
+        )
+        salon_row = cur2.fetchone()
+        if not salon_row:
+            return err("Салон не найден", 400)
+
+        cur2.execute(
             f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key='image_gen'"
         )
-        row = cur.fetchone()
-        cost = row[0] if row else 5
+        cost_row = cur2.fetchone()
+        cost = cost_row[0] if cost_row else 5
 
-        cur.execute(
-            f"SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount ELSE -amount END),0) "
-            f"FROM {SCHEMA}.credit_transactions WHERE salon_id=%s", (salon_id,)
-        )
-        balance = int(cur.fetchone()[0])
+        balance = int(salon_row[0])
         if balance < cost:
+            conn.rollback()
             return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
 
         # Списываем энергию
-        cur.execute(
+        cur2.execute(
             f"UPDATE {SCHEMA}.salons SET credits_balance=credits_balance-%s WHERE id=%s",
             (cost, salon_id)
         )
-        cur.execute(
+        cur2.execute(
             f"INSERT INTO {SCHEMA}.credit_transactions (salon_id,user_id,action,amount,tool_key,type) "
             f"VALUES (%s,%s,'Создание изображения',%s,'image_gen','debit')",
             (salon_id, user["id"], cost)
@@ -92,31 +115,37 @@ def handler(event: dict, context) -> dict:
         # Подготавливаем финальный промпт с контекстом салона
         final_prompt = prompt
         use_salon_context = body.get("use_salon_context", False)
+        include_logo_text = body.get("include_logo_text", False)
+        include_salon_name = body.get("include_salon_name", False)
         if use_salon_context:
-            cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-            cur2.execute(
+            cur3 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            cur3.execute(
                 f"SELECT name, description, target_audience, tone_of_voice FROM {SCHEMA}.salons WHERE id=%s",
                 (salon_id,)
             )
-            salon = cur2.fetchone()
+            salon = cur3.fetchone()
             if salon:
                 parts = []
-                if salon.get("name"): parts.append(f"Салон: {salon['name']}")
                 if salon.get("description"): parts.append(f"О салоне: {salon['description']}")
                 if salon.get("target_audience"): parts.append(f"Аудитория: {salon['target_audience']}")
                 if salon.get("tone_of_voice"): parts.append(f"Стиль: {salon['tone_of_voice']}")
+                if include_salon_name and salon.get("name"):
+                    parts.append(f"На изображении художественно изобразить надпись с названием салона: \"{salon['name']}\"")
+                if include_logo_text:
+                    parts.append("Добавить художественный логотип-символ в стиле салона красоты в угол изображения")
                 if parts:
                     final_prompt = f"{prompt}\n\nКонтекст: {'. '.join(parts)}"
 
         # Создаём задачу
-        cur.execute(
+        cur2.execute(
             f"INSERT INTO {SCHEMA}.image_jobs (user_id,salon_id,prompt,aspect_ratio,status,cost) "
             f"VALUES (%s,%s,%s,%s,'pending',%s) RETURNING id",
             (user["id"], salon_id, final_prompt, aspect_gpt15, cost)
         )
-        job_id = str(cur.fetchone()[0])
+        job_id = str(cur2.fetchone()[0])
         conn.commit()
 
+        print(f"[image-start] created job {job_id} for user {user['id']}, cost={cost}")
         return ok({"job_id": job_id, "status": "pending"})
     finally:
         try:

@@ -38,6 +38,26 @@ def get_session_user(event, conn):
     return cur.fetchone()
 
 
+def refund_credits(job, conn):
+    """Возвращает кредиты салону если генерация не удалась."""
+    salon_id = job.get("salon_id")
+    cost = job.get("cost", 0)
+    if not salon_id or not cost:
+        return
+    cur = conn.cursor()
+    cur.execute(
+        f"UPDATE {SCHEMA}.salons SET credits_balance=credits_balance+%s WHERE id=%s",
+        (cost, salon_id)
+    )
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.credit_transactions (salon_id,user_id,action,amount,tool_key,type) "
+        f"VALUES (%s,%s,'Возврат: ошибка генерации изображения',%s,'image_gen','credit')",
+        (salon_id, job["user_id"], cost)
+    )
+    conn.commit()
+    print(f"[image-worker] refunded {cost} credits to salon {salon_id} for failed job {job['id']}")
+
+
 def upload_to_s3(image_b64: str, user_id: int) -> str:
     data = base64.b64decode(image_b64)
     ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -161,6 +181,7 @@ def handle_run(event, conn):
             (last_error[:200], job_id)
         )
         conn.commit()
+        refund_credits(job, conn)
         return err(f"Ошибка генерации: {last_error[:150]}", 502)
 
     # Извлекаем URL или base64
@@ -182,6 +203,7 @@ def handle_run(event, conn):
             (job_id,)
         )
         conn.commit()
+        refund_credits(job, conn)
         return err("Сервис не вернул изображение", 502)
 
     # Сохраняем результат
