@@ -261,23 +261,34 @@ export default function LkAiImageGen() {
             ) : (
               <>
                 <div style={{ fontSize: 12, color: "#aaa", marginBottom: 12, lineHeight: 1.5 }}>
-                  Все сгенерированные изображения сохраняются здесь. Если что-то пошло не так — найдёте картинку тут и сможете скачать.
+                  Хранятся 24 часа. Скачайте нужное — после удалятся автоматически.
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 }}>
                   {history.map(item => (
-                    <div key={item.id} style={{ borderRadius: 10, overflow: "hidden", border: "1px solid #E8ECF0", position: "relative", cursor: "pointer" }}
-                      onClick={() => triggerDownload(item.url)}
-                      title={item.prompt || "Скачать"}
-                    >
-                      <img src={item.url} alt="" style={{ width: "100%", display: "block", aspectRatio: item.aspect_ratio === "1024x1792" ? "2/3" : item.aspect_ratio === "1792x1024" ? "3/2" : "1/1", objectFit: "cover" }} />
-                      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0)", transition: "background 0.15s", display: "flex", alignItems: "center", justifyContent: "center" }}
-                        onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,0,0,0.35)")}
-                        onMouseLeave={e => (e.currentTarget.style.background = "rgba(0,0,0,0)")}
-                      >
-                        <Icon name="Download" size={20} style={{ color: "#fff" }} />
-                      </div>
-                      <div style={{ padding: "6px 8px", fontSize: 10, color: "#aaa", background: "#fff" }}>
-                        {new Date(item.created_at).toLocaleDateString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    <div key={item.id} style={{ borderRadius: 10, overflow: "hidden", border: "1px solid #E8ECF0", position: "relative" }}>
+                      <img
+                        src={item.url} alt=""
+                        style={{ width: "100%", display: "block", aspectRatio: item.aspect_ratio === "1024x1792" ? "2/3" : item.aspect_ratio === "1792x1024" ? "3/2" : "1/1", objectFit: "cover", cursor: "pointer" }}
+                        onClick={() => triggerDownload(item.url)}
+                        title={item.prompt || "Скачать"}
+                      />
+                      <div style={{ padding: "6px 8px", fontSize: 10, color: "#aaa", background: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <span>{new Date(item.created_at).toLocaleDateString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
+                        <button
+                          onClick={() => {
+                            fetch(AI_IMAGE_URL, {
+                              method: "DELETE",
+                              headers: { "Content-Type": "application/json", "X-Session-Id": localStorage.getItem("lk_session") || "" },
+                              body: JSON.stringify({ id: item.id }),
+                            }).then(() => setHistory(h => h.filter(x => x.id !== item.id)));
+                          }}
+                          title="Удалить"
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: "2px 4px", color: "#ccc", lineHeight: 1 }}
+                          onMouseEnter={e => (e.currentTarget.style.color = "#e55")}
+                          onMouseLeave={e => (e.currentTarget.style.color = "#ccc")}
+                        >
+                          <Icon name="Trash2" size={12} />
+                        </button>
                       </div>
                     </div>
                   ))}

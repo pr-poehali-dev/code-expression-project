@@ -19,7 +19,7 @@ import urllib.error
 SCHEMA = "t_p84565078_code_expression_proj"
 CORS = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, X-Session-Id",
 }
 
@@ -142,12 +142,34 @@ def handle_history(event, conn):
     if not user:
         return err("Не авторизован", 401)
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    # Автоудаление записей старше 24 часов
+    cur.execute(
+        f"DELETE FROM {SCHEMA}.ai_generated_images WHERE created_at < NOW() - INTERVAL '24 hours'"
+    )
+    conn.commit()
     cur.execute(
         f"SELECT id, url, prompt, aspect_ratio, created_at "
         f"FROM {SCHEMA}.ai_generated_images WHERE user_id=%s ORDER BY created_at DESC LIMIT 50",
         (user["id"],)
     )
     return ok([dict(r) for r in cur.fetchall()])
+
+
+def handle_delete_image(event, conn):
+    user = get_session_user(event, conn)
+    if not user:
+        return err("Не авторизован", 401)
+    body = json.loads(event.get("body") or "{}")
+    image_id = body.get("id")
+    if not image_id:
+        return err("id обязателен")
+    cur = conn.cursor()
+    cur.execute(
+        f"DELETE FROM {SCHEMA}.ai_generated_images WHERE id=%s AND user_id=%s",
+        (image_id, user["id"])
+    )
+    conn.commit()
+    return ok({"ok": True})
 
 
 def handler(event: dict, context) -> dict:
@@ -160,6 +182,14 @@ def handler(event: dict, context) -> dict:
         conn = get_db()
         try:
             return handle_history(event, conn)
+        finally:
+            conn.close()
+
+    # Удаление изображения
+    if event.get("httpMethod") == "DELETE":
+        conn = get_db()
+        try:
+            return handle_delete_image(event, conn)
         finally:
             conn.close()
 
