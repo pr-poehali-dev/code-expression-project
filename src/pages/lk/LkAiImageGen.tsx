@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { useEnergy } from "@/contexts/EnergyContext";
 import Icon from "@/components/ui/icon";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
-const AI_IMAGE_URL = "https://functions.poehali.dev/4b0ee2e5-a98e-40b8-bb9a-8a11d39d6e5a";
+const AI_IMAGE_URL = "https://functions.poehali.dev/4b0ee2e5-a98e-40b8-bb9a-8a11d39d6e5a"; // история GET/DELETE
+const START_URL    = "https://functions.poehali.dev/c5ff1cc7-1732-48f7-a184-b6aa078d47e2"; // создать задачу
+const WORKER_URL   = "https://functions.poehali.dev/29d21b9b-d07b-4dba-8139-a9f5d903a583"; // генерация + статус
 
 const ASPECT_OPTIONS = [
   { value: "1024x1024", label: "Квадрат",  sub: "1:1 — для постов",      icon: "Square"     },
@@ -46,43 +48,66 @@ export default function LkAiImageGen() {
 
   useEffect(() => { loadHistory(); }, []);
 
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+
+  function finishWithImage(url: string) {
+    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+    setImageUrl(url);
+    setLoading(false);
+    refreshBalance();
+    loadHistory();
+    triggerDownload(url);
+  }
+
   async function handleGenerate() {
     if (!prompt.trim()) { setError("Введите описание изображения"); return; }
     setLoading(true); setError(""); setImageUrl(null);
 
+    // Шаг 1: создаём задачу (быстро, списывает энергию)
+    let jobId: string;
     try {
-      const res = await fetch(AI_IMAGE_URL, {
+      const res = await fetch(START_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
-        body: JSON.stringify({
-          prompt: prompt.trim(),
-          aspect_ratio: aspect,
-          max_images: 1,
-          use_salon_context: useSalonCtx,
-        }),
+        body: JSON.stringify({ prompt: prompt.trim(), aspect_ratio: aspect, use_salon_context: useSalonCtx }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Ошибка генерации");
-        loadHistory();
-        return;
-      }
-      const url = data.images?.[0]?.url;
-      if (url) {
-        setImageUrl(url);
-        refreshBalance();
-        loadHistory();
-        await triggerDownload(url);
-      } else {
-        setError("Сервис не вернул изображение. Проверьте «Мои изображения» ниже.");
-        loadHistory();
-      }
+      if (!res.ok) { setError(data.error || "Ошибка запуска"); setLoading(false); return; }
+      jobId = data.job_id;
+      refreshBalance();
     } catch {
-      setError("Долгий ответ от сервера. Картинка могла сохраниться — проверьте «Мои изображения» ниже.");
-      loadHistory();
-    } finally {
+      setError("Ошибка соединения при запуске. Попробуйте ещё раз.");
       setLoading(false);
+      return;
     }
+
+    // Шаг 2: дёргаем воркер (долгий запрос). Не ждём — он сам сохранит результат.
+    fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
+      body: JSON.stringify({ job_id: jobId }),
+    }).then(async r => {
+      const d = await r.json();
+      if (d.status === "done" && d.url) finishWithImage(d.url);
+    }).catch(() => { /* шлюз мог оборвать — polling подхватит */ });
+
+    // Шаг 3: параллельно опрашиваем статус каждые 4 сек
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = setInterval(async () => {
+      try {
+        const r = await fetch(`${WORKER_URL}?job_id=${jobId}`, { headers: { "X-Session-Id": sid() } });
+        const d = await r.json();
+        if (d.status === "done" && d.url) {
+          finishWithImage(d.url);
+        } else if (d.status === "error") {
+          if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+          setLoading(false);
+          setError(d.error || "Не удалось сгенерировать. Проверьте «Мои изображения».");
+          loadHistory();
+        }
+      } catch { /* продолжаем */ }
+    }, 4000);
   }
 
   async function triggerDownload(url: string) {

@@ -132,9 +132,11 @@ def handle_run(event, conn):
         method="POST",
     )
 
+    print(f"[image-worker] job {job_id}: calling polza.ai...")
     try:
         with urllib.request.urlopen(req, timeout=285) as resp:
             result = json.loads(resp.read().decode("utf-8"))
+        print(f"[image-worker] job {job_id}: polza.ai responded OK")
     except urllib.error.HTTPError as e:
         error_text = e.read().decode("utf-8", errors="ignore")[:200]
         cur.execute(
@@ -184,6 +186,7 @@ def handle_run(event, conn):
         (user["id"], image_url, job["prompt"], job["aspect_ratio"])
     )
     conn.commit()
+    print(f"[image-worker] job {job_id}: DONE, saved to history")
 
     return ok({"job_id": str(job_id), "status": "done", "url": image_url})
 
