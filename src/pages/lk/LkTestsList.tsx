@@ -12,6 +12,7 @@ interface Props {
   salonHistory: SalonHistoryItem[];
   showSalon?: boolean;
   hasUnlimited?: boolean;
+  showBodyTools?: boolean;
   onOpenDiag: () => void;
   onOpenMindsetSpec: () => void;
   onOpenMindset: () => void;
@@ -23,7 +24,7 @@ interface Props {
   onOpenTest: (slug: string) => void;
 }
 
-export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, hasUnlimited = false, onOpenDiag, onOpenMindsetSpec, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenBodyMap, onOpenTest }: Props) {
+export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, hasUnlimited = false, showBodyTools = false, onOpenDiag, onOpenMindsetSpec, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenBodyMap, onOpenTest }: Props) {
   return (
     <div>
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
@@ -33,25 +34,29 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
         Пройди тест — получи персональный разбор и конкретные советы
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
-        {/* Системная диагностика — первой */}
-        <ToolCard
-          icon="Stethoscope" color="hsl(210,85%,45%)" bg="hsl(210,85%,96%)"
-          title="Системная диагностика клиента"
-          description="Введите жалобу — система покажет причины, компенсации, красные флаги и техники из шпаргалки"
-          completed={false}
-          onStart={onOpenDiag}
-          startLabel="Начать диагностику"
-        />
+        {/* Системная диагностика — только для специалиста по телу */}
+        {showBodyTools && (
+          <ToolCard
+            icon="Stethoscope" color="hsl(210,85%,45%)" bg="hsl(210,85%,96%)"
+            title="Системная диагностика клиента"
+            description="Введите жалобу — система покажет причины, компенсации, красные флаги и техники из шпаргалки"
+            completed={false}
+            onStart={onOpenDiag}
+            startLabel="Начать диагностику"
+          />
+        )}
 
-        {/* Шпаргалка по телу */}
-        <ToolCard
-          icon="BookOpen" color="hsl(210,85%,45%)" bg="hsl(210,85%,96%)"
-          title="Шпаргалка по телу"
-          description="Кликните на зону тела — получите диагностику, возможные причины, красные флаги и техники работы"
-          completed={false}
-          onStart={onOpenBodyMap}
-          startLabel="Открыть шпаргалку"
-        />
+        {/* Шпаргалка по телу — только для специалиста по телу */}
+        {showBodyTools && (
+          <ToolCard
+            icon="BookOpen" color="hsl(210,85%,45%)" bg="hsl(210,85%,96%)"
+            title="Шпаргалка по телу"
+            description="Кликните на зону тела — получите диагностику, возможные причины, красные флаги и техники работы"
+            completed={false}
+            onStart={onOpenBodyMap}
+            startLabel="Открыть шпаргалку"
+          />
+        )}
 
         {/* Развитие специалиста — только безлимит или купить за 25 000 ₽ */}
         {hasUnlimited ? (
