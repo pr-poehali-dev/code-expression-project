@@ -140,19 +140,48 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
 
   function f(k: keyof SalonForm, v: string) { setForm(p => ({ ...p, [k]: v })); }
 
-  // Загрузка логотипа
+  // Загрузка логотипа — со сжатием до 512px и качества 0.85
   async function handleLogoUpload(file: File) {
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Файл слишком большой. Максимум 5 МБ.");
+      return;
+    }
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const b64 = (reader.result as string).split(",")[1];
-      try {
-        const res = await lkApi.salonLogoUpload(b64, file.name) as { logo_url: string };
-        setLogoUrl(res.logo_url);
-      } catch { setError("Не удалось загрузить логотип"); }
-      finally { setUploading(false); }
-    };
-    reader.readAsDataURL(file);
+    setError("");
+    try {
+      const b64 = await resizeImage(file, 512, 0.85);
+      const ext = file.name.split(".").pop() || "png";
+      const res = await lkApi.salonLogoUpload(b64, `logo.${ext}`) as { logo_url: string };
+      setLogoUrl(res.logo_url);
+    } catch { setError("Не удалось загрузить логотип. Попробуйте файл меньшего размера."); }
+    finally { setUploading(false); }
+  }
+
+  function resizeImage(file: File, maxSize: number, quality: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const canvas = document.createElement("canvas");
+        let { width, height } = img;
+        if (width > height) {
+          if (width > maxSize) { height = Math.round(height * maxSize / width); width = maxSize; }
+        } else {
+          if (height > maxSize) { width = Math.round(width * maxSize / height); height = maxSize; }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { reject(new Error("canvas error")); return; }
+        ctx.drawImage(img, 0, 0, width, height);
+        const isPng = file.type === "image/png";
+        const dataUrl = canvas.toDataURL(isPng ? "image/png" : "image/jpeg", isPng ? undefined : quality);
+        resolve(dataUrl.split(",")[1]);
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
   }
 
   // Сохранение
@@ -262,7 +291,7 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
             <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 4 }}>
               {logoUrl ? "Логотип загружен" : "Загрузить логотип"}
             </div>
-            <div style={{ fontSize: 12, color: "#aaa", marginBottom: 8 }}>PNG или JPG, до 2 МБ. Лучше всего на белом фоне.</div>
+            <div style={{ fontSize: 12, color: "#aaa", marginBottom: 8 }}>PNG или JPG, до 5 МБ. Квадратный формат, белый или прозрачный фон.</div>
             <button onClick={() => fileRef.current?.click()} style={{ fontSize: 12, fontWeight: 600, color: ACCENT, background: "none", border: `1px solid ${ACCENT}`, borderRadius: 8, padding: "5px 12px", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
               {logoUrl ? "Заменить" : "Выбрать файл"}
             </button>
