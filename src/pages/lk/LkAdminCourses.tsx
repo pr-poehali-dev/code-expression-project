@@ -30,7 +30,7 @@ export function CoursesSection() {
   };
 
   const loadModules = (courseId: number) => {
-    apiFetch(`course_detail&course_id=${courseId}`)
+    apiFetch(`admin_course_detail&course_id=${courseId}`)
       .then(d => {
         if (d.modules) setModules(d.modules);
       });

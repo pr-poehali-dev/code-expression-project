@@ -728,6 +728,38 @@ def handle_admin_course_cover_upload(event, conn):
     return ok({"url": url, "ok": True})
 
 
+def handle_admin_course_detail(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    qs = event.get("queryStringParameters") or {}
+    course_id = qs.get("course_id")
+    if not course_id:
+        return err("course_id обязателен")
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT * FROM {tbl('courses')} WHERE id=%s", (course_id,))
+    course = cur.fetchone()
+    if not course:
+        return err("Курс не найден", 404)
+    course = dict(course)
+
+    cur.execute(
+        f"SELECT id, title, sort_order FROM {tbl('course_modules')} WHERE course_id=%s ORDER BY sort_order, id",
+        (course_id,)
+    )
+    modules = [dict(r) for r in cur.fetchall()]
+
+    for m in modules:
+        cur.execute(
+            f"SELECT id, title, sort_order FROM {tbl('course_lessons')} "
+            f"WHERE module_id=%s ORDER BY sort_order, id", (m["id"],)
+        )
+        m["lessons"] = [dict(r) for r in cur.fetchall()]
+
+    course["modules"] = modules
+    return ok(course)
+
+
 # ── Роутер ────────────────────────────────────────────────────────────────────
 
 ROUTES = {
@@ -749,6 +781,7 @@ ROUTES = {
     "admin_lesson_file_add":     handle_admin_lesson_file_add,
     "admin_lesson_file_delete":  handle_admin_lesson_file_delete,
     "admin_grant_access":        handle_admin_grant_access,
+    "admin_course_detail":       handle_admin_course_detail,
 }
 
 
