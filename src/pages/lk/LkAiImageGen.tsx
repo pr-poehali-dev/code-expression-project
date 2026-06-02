@@ -47,6 +47,16 @@ export default function LkAiImageGen() {
 
   useEffect(() => { loadHistory(); }, []);
 
+  useEffect(() => {
+    if (!loading) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "Идёт генерация изображения. Если закроете страницу — картинка может не сохраниться. Продолжить?";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [loading]);
+
   async function handleGenerate() {
     if (!prompt.trim()) { setError("Введите описание изображения"); return; }
     setLoading(true); setError(""); setImageUrl(null); setPromptUsed("");
@@ -195,6 +205,13 @@ export default function LkAiImageGen() {
             : <><Icon name="Sparkles" size={17} /> Сгенерировать и скачать</>
           }
         </button>
+
+        {loading && (
+          <div style={{ marginTop: 12, display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 14px", background: "hsl(40,90%,97%)", border: "1px solid hsl(40,90%,80%)", borderRadius: 10, fontSize: 12, color: "hsl(40,60%,35%)", lineHeight: 1.6 }}>
+            <Icon name="AlertTriangle" size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+            <span>Не закрывайте и не перезагружайте страницу — картинка генерируется на сервере. Если страница зависнет — подождите, затем найдите готовое изображение в разделе «Мои изображения» ниже.</span>
+          </div>
+        )}
       </div>
 
       {/* Результат */}
