@@ -2946,11 +2946,10 @@ def handle_post_titles(event: dict) -> dict:
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
-        salon = _get_salon_ctx(user, conn, ("name","target_audience","description"))
+        salon = _get_salon_ctx(user, conn, ("target_audience","description"))
         salon_ctx = ""
         if salon:
             parts = [p for p in [
-                f"Салон: {salon['name']}" if salon.get("name") else "",
                 f"Аудитория: {salon['target_audience']}" if salon.get("target_audience") else "",
                 f"О салоне: {salon['description']}" if salon.get("description") else "",
             ] if p]
@@ -2996,11 +2995,10 @@ def handle_post_text(event: dict) -> dict:
             return err("Не авторизован", 401)
         energy_err = check_and_spend_energy(event, conn, "post_gen")
         if energy_err: return energy_err
-        salon = _get_salon_ctx(user, conn, ("name","target_audience","tone_of_voice","main_goal"))
+        salon = _get_salon_ctx(user, conn, ("target_audience","tone_of_voice","main_goal"))
         salon_ctx = ""
         if salon:
             parts = [p for p in [
-                f"Салон: {salon['name']}" if salon.get("name") else "",
                 f"Аудитория: {salon['target_audience']}" if salon.get("target_audience") else "",
                 f"Стиль: {salon['tone_of_voice']}" if salon.get("tone_of_voice") else "",
                 f"Цель бизнеса: {salon['main_goal']}" if salon.get("main_goal") else "",
@@ -3014,14 +3012,14 @@ def handle_post_text(event: dict) -> dict:
             + (f"Тон: {tone}\n" if tone else "")
             + (f"Контекст салона:\n{salon_ctx}\n" if salon_ctx else "")
             + "\nСтруктура: заголовок → 2-3 абзаца → призыв → хэштеги.\n"
-            "Требования: живой язык, без клише, эмодзи умеренно, 150-250 слов, хэштеги отдельной строкой."
+            "Требования: живой язык, без клише, эмодзи умеренно, 150-250 слов, хэштеги отдельной строкой. "
+            "Не упоминай название салона в тексте."
         )
         content = _call_ai_text([
             {"role": "system", "content": "Ты SMM-копирайтер для бьюти-бизнеса. Пишешь живые тексты."},
             {"role": "user", "content": prompt}
         ], max_tokens=800)
-        salon_name = salon["name"] if salon and salon.get("name") else ""
-        image_prompt = f"Красивое фото для поста салона красоты. Тема: {title}.{' Салон: ' + salon_name + '.' if salon_name else ''} Стиль: светлый, эстетичный. Вертикальный формат."
+        image_prompt = f"Красивое фото для поста салона красоты. Тема: {title}. Стиль: светлый, эстетичный. Вертикальный формат."
         return ok({"text": content, "image_prompt": image_prompt})
     finally:
         conn.close()
