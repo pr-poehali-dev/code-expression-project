@@ -141,9 +141,18 @@ export default function LkEnergy() {
                   );
                 })}
               </div>
-              <div style={{ marginTop: 16, background: "hsl(185,85%,96%)", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10 }}>
-                <Icon name="Info" size={15} style={{ color: ACCENT, flexShrink: 0 }} />
-                <div style={{ fontSize: 12, color: "#555" }}>Оплата через ЮKassa подключается. До этого момента энергия начисляется вручную администратором.</div>
+              <div style={{ marginTop: 16, background: "hsl(185,85%,96%)", borderRadius: 12, padding: "14px 16px" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 12 }}>
+                  <Icon name="Info" size={15} style={{ color: ACCENT, flexShrink: 0, marginTop: 1 }} />
+                  <div style={{ fontSize: 12, color: "#555" }}>Оплата через ЮKassa подключается. До этого момента энергия начисляется вручную администратором.</div>
+                </div>
+                <div style={{ borderTop: "1px solid hsl(185,85%,85%)", paddingTop: 12, fontSize: 12, color: "#666", lineHeight: 1.7 }}>
+                  Нажимая «Купить», вы подтверждаете согласие с условиями{" "}
+                  <a href="/offer" target="_blank" rel="noopener noreferrer" style={{ color: ACCENT, fontWeight: 600, textDecoration: "underline" }}>
+                    Публичной оферты
+                  </a>
+                  , в том числе с разделом 7 о внутренней расчётной единице «Энергия»: порядок начисления, расходования, курс к рублю и условия возврата.
+                </div>
               </div>
             </div>
           ) : (
