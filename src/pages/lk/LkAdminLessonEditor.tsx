@@ -330,6 +330,9 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
                           >
                             <Icon name={tool.icon} size={13} />
                             {tool.name}
+                            {tool.audience && (
+                              <span style={{ fontSize: 10, opacity: 0.6, fontWeight: 500 }}>· {tool.audience}</span>
+                            )}
                             {active && <Icon name="Check" size={11} />}
                           </button>
                         );

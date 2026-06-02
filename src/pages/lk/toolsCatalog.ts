@@ -5,6 +5,7 @@ export interface ToolInfo {
   icon: string;
   tab: string;
   category: "tools" | "ai";
+  audience?: string;
 }
 
 export const TOOLS_CATALOG: ToolInfo[] = [
@@ -15,6 +16,7 @@ export const TOOLS_CATALOG: ToolInfo[] = [
     icon: "Stethoscope",
     tab: "tools",
     category: "tools",
+    audience: "Специалист по телу",
   },
   {
     slug: "bodymap",
@@ -23,6 +25,7 @@ export const TOOLS_CATALOG: ToolInfo[] = [
     icon: "BookOpen",
     tab: "tools",
     category: "tools",
+    audience: "Специалист по телу",
   },
   {
     slug: "mindset-spec",
