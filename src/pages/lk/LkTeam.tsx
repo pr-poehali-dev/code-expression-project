@@ -311,11 +311,22 @@ function InviteForm({ onInvited }: { onInvited: (invite: Invite) => void }) {
 }
 
 // ── Ожидающее приглашение ─────────────────────────────────────────────────────
-function PendingInvite({ invite }: { invite: Invite }) {
-  const [copied, setCopied] = useState(false);
+function PendingInvite({ invite, onCancel }: { invite: Invite; onCancel: (id: number) => void }) {
+  const [copied, setCopied]     = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const url = `https://promtdialog.ru/join?token=${invite.token}`;
   const rc = ROLE_COLORS[invite.role_code] || ROLE_COLORS.master;
   const roleLabel = ROLE_OPTIONS.find(r => r.code === invite.role_code)?.label || invite.role_code;
+
+  async function cancel() {
+    setCancelling(true);
+    await fetch(`${LK_URL}?action=invite_cancel`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
+      body: JSON.stringify({ invite_id: invite.id }),
+    });
+    onCancel(invite.id);
+  }
 
   function copy() {
     const tryFallback = () => {
@@ -352,6 +363,9 @@ function PendingInvite({ invite }: { invite: Invite }) {
       <button onClick={copy} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 8, border: "none", background: copied ? "hsl(145,60%,96%)" : "#f5f5f2", color: copied ? "hsl(145,60%,35%)" : "#666", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}>
         <Icon name={copied ? "Check" : "Copy"} size={12} />
         {copied ? "Скопировано" : "Скопировать"}
+      </button>
+      <button onClick={cancel} disabled={cancelling} title="Отозвать приглашение" style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: cancelling ? "#f5f5f2" : "hsl(0,75%,97%)", color: cancelling ? "#ccc" : "hsl(0,70%,55%)", cursor: cancelling ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Icon name={cancelling ? "Loader" : "Trash2"} size={14} style={cancelling ? { animation: "spin 1s linear infinite" } : {}} />
       </button>
     </div>
   );
@@ -394,6 +408,10 @@ export default function LkTeam() {
       body: JSON.stringify({ member_id: id }),
     });
     setMembers(p => p.filter(m => m.id !== id));
+  }
+
+  function handleCancelInvite(id: number) {
+    setInvites(p => p.filter(inv => inv.id !== id));
   }
 
   return (
@@ -464,7 +482,7 @@ export default function LkTeam() {
               <Icon name="MailOpen" size={32} style={{ color: "#ddd", marginBottom: 12 }} />
               <div style={{ fontSize: 14, fontWeight: 600, color: "#aaa" }}>Нет активных приглашений</div>
             </div>
-          ) : invites.map(inv => <PendingInvite key={inv.id} invite={inv} />)}
+          ) : invites.map(inv => <PendingInvite key={inv.id} invite={inv} onCancel={handleCancelInvite} />)}
         </div>
       ) : (
         /* Кредиты */

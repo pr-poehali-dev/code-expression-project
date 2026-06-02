@@ -2066,6 +2066,34 @@ def handle_team_member_remove(event: dict) -> dict:
         conn.close()
 
 
+def handle_invite_cancel(event: dict) -> dict:
+    """Владелец отзывает/удаляет pending-приглашение."""
+    body      = json.loads(event.get("body") or "{}")
+    invite_id = body.get("invite_id")
+    if not invite_id:
+        return err("Не передан invite_id")
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _require_owner(user, conn)
+        if not salon:
+            return err("Нет прав", 403)
+
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE {tbl('salon_invites')} SET status='cancelled' "
+            f"WHERE id=%s AND salon_id=%s AND status='pending'",
+            (invite_id, salon["id"])
+        )
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
 def handle_invite_info(event: dict) -> dict:
     """Публичная: информация по токену приглашения (без авторизации)."""
     qs    = event.get("queryStringParameters") or {}
@@ -3075,6 +3103,7 @@ ROUTES = {
     ("GET",  "team_list"): handle_team_list,
     ("POST", "team_member_update"): handle_team_member_update,
     ("POST", "team_member_remove"): handle_team_member_remove,
+    ("POST", "invite_cancel"): handle_invite_cancel,
     ("GET",  "invite_info"): handle_invite_info,
     ("POST", "invite_accept"): handle_invite_accept,
     ("GET",  "credits_history"): handle_credits_history,
