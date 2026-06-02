@@ -370,7 +370,7 @@ export default function LkDashboard() {
       {/* ── Контент ── */}
       <main className="lk-main">
         {tab === "home" && <HomeTab onNav={handleTabChange} role={role} hasSalon={hasSalon} />}
-        {tab === "tools" && <LkTests />}
+        {tab === "tools" && <LkTests onNavigate={handleTabChange} />}
         {tab === "academy" && <LkAcademy onNavigate={handleTabChange} />}
         {tab === "ai" && <LkAiTools />}
         {tab === "shop" && <LkEnergy />}

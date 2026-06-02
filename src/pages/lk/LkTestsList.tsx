@@ -22,9 +22,10 @@ interface Props {
   onOpenSalon: () => void;
   onOpenBodyMap: () => void;
   onOpenTest: (slug: string) => void;
+  onNavigateToAcademy?: () => void;
 }
 
-export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, hasUnlimited = false, showBodyTools = false, onOpenDiag, onOpenMindsetSpec, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenBodyMap, onOpenTest }: Props) {
+export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, hasUnlimited = false, showBodyTools = false, onOpenDiag, onOpenMindsetSpec, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenBodyMap, onOpenTest, onNavigateToAcademy }: Props) {
   const COURSE_NAME = "«Развитие мышления специалиста по телу»";
   return (
     <div>
@@ -51,6 +52,7 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
             title="Системная диагностика клиента"
             description="Введите жалобу — система покажет причины, компенсации, красные флаги и техники из шпаргалки"
             courseName={COURSE_NAME}
+            onGoToCourse={onNavigateToAcademy}
           />
         )}
 
@@ -70,6 +72,7 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
             title="Шпаргалка по телу"
             description="Кликните на зону тела — получите диагностику, возможные причины, красные флаги и техники работы"
             courseName={COURSE_NAME}
+            onGoToCourse={onNavigateToAcademy}
           />
         )}
 
@@ -198,9 +201,10 @@ function ToolCard({ icon, color, bg, title, description, completed, completedLab
   );
 }
 
-function CourseLockedToolCard({ icon, color, bg, title, description, courseName }: {
+function CourseLockedToolCard({ icon, color, bg, title, description, courseName, onGoToCourse }: {
   icon: string; color: string; bg: string;
   title: string; description: string; courseName: string;
+  onGoToCourse?: () => void;
 }) {
   const [showInfo, setShowInfo] = useState(false);
   return (
@@ -223,10 +227,26 @@ function CourseLockedToolCard({ icon, color, bg, title, description, courseName 
             <Icon name="GraduationCap" size={14} />
             Доступно после прохождения курса
           </div>
-          <div style={{ fontSize: 12, color: "#555", lineHeight: 1.6 }}>
-            Этот инструмент входит в курс {courseName}. Пройдите курс — и инструмент разблокируется автоматически.
+          <div style={{ fontSize: 12, color: "#555", lineHeight: 1.6, marginBottom: 12 }}>
+            Этот инструмент входит в курс {courseName}. Получите доступ к курсу — и инструмент разблокируется автоматически.
           </div>
-          <button onClick={() => setShowInfo(false)} style={{ marginTop: 10, background: "none", border: "none", color: "#aaa", fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "Montserrat, sans-serif" }}>Скрыть</button>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {onGoToCourse && (
+              <button onClick={onGoToCourse} style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "8px 16px", borderRadius: 9, border: "none",
+                background: "hsl(210,85%,45%)", color: "#fff",
+                fontSize: 12, fontWeight: 700, cursor: "pointer",
+                fontFamily: "Montserrat, sans-serif",
+              }}>
+                <Icon name="GraduationCap" size={12} />
+                Перейти к курсу
+              </button>
+            )}
+            <button onClick={() => setShowInfo(false)} style={{ background: "none", border: "none", color: "#aaa", fontSize: 12, cursor: "pointer", padding: "8px 4px", fontFamily: "Montserrat, sans-serif" }}>
+              Скрыть
+            </button>
+          </div>
         </div>
       ) : (
         <button onClick={() => setShowInfo(true)} style={{

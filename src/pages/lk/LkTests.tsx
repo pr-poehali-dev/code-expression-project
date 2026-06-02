@@ -22,7 +22,7 @@ import LkTestsList from "./LkTestsList";
 import LkTestsHistory from "./LkTestsHistory";
 import LkBodyMap from "./LkBodyMap";
 
-export default function LkTests() {
+export default function LkTests({ onNavigate }: { onNavigate?: (tab: string) => void }) {
   const { user } = useLkAuth();
   const isSalon = user?.segment === "salon";
   const BODY_TOOLS_COURSE_ID = 1;
@@ -199,6 +199,7 @@ export default function LkTests() {
         showSalon={isSalon}
         hasUnlimited={hasUnlimited}
         showBodyTools={isBodySpec}
+        onNavigateToAcademy={() => onNavigate?.("academy")}
         onOpenDiag={() => setOpenDiag(true)}
         onOpenMindsetSpec={() => setOpenMindsetSpec(true)}
         onOpenMindset={() => setOpenMindset(true)}
