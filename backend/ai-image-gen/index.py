@@ -268,7 +268,7 @@ def handler(event: dict, context) -> dict:
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=175) as resp:
+            with urllib.request.urlopen(req, timeout=285) as resp:
                 raw = resp.read().decode("utf-8")
                 print(f"[polza.ai] {raw[:300]}")
                 result = json.loads(raw)
