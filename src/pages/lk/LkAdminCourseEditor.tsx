@@ -212,6 +212,16 @@ export function ModuleBlock({ module, onDelete, onEditLesson, courseId, onReload
   const [editTitle, setEditTitle] = useState(false);
   const [title, setTitle] = useState(module.title);
   const [saving, setSaving] = useState(false);
+  const [deletingLesson, setDeletingLesson] = useState<number | null>(null);
+
+  const deleteLesson = async (e: React.MouseEvent, lessonId: number) => {
+    e.stopPropagation();
+    if (!confirm("Удалить урок? Это действие нельзя отменить.")) return;
+    setDeletingLesson(lessonId);
+    await apiFetch("admin_lesson_delete", "POST", { id: lessonId });
+    setDeletingLesson(null);
+    onReload();
+  };
 
   const saveTitle = async () => {
     setSaving(true);
@@ -252,6 +262,16 @@ export function ModuleBlock({ module, onDelete, onEditLesson, courseId, onReload
             onMouseLeave={e => (e.currentTarget.style.background = "")}>
             <Icon name="BookOpen" size={14} style={{ color: "#aaa", flexShrink: 0 }} />
             <span style={{ flex: 1, fontSize: 13, color: "#444" }}>{l.title}</span>
+            <button
+              onClick={(e) => deleteLesson(e, l.id)}
+              disabled={deletingLesson === l.id}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "hsl(0,70%,70%)", padding: "2px 4px", display: "flex", alignItems: "center", flexShrink: 0 }}
+              title="Удалить урок"
+            >
+              {deletingLesson === l.id
+                ? <Icon name="Loader" size={13} style={{ color: "#aaa" }} />
+                : <Icon name="Trash2" size={13} />}
+            </button>
             <Icon name="ChevronRight" size={14} style={{ color: "#ccc" }} />
           </div>
         ))}
