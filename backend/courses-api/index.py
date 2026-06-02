@@ -356,6 +356,98 @@ def handle_lesson_ask_ai(event, conn):
     return ok({"answer": answer})
 
 
+def handle_lesson_homework_ai(event, conn):
+    user = get_session_user(event, conn)
+    if not user:
+        return err("Не авторизован", 401)
+
+    body = json.loads(event.get("body") or "{}")
+    lesson_id = body.get("lesson_id")
+    message = (body.get("message") or "").strip()
+    # История диалога: [{role: "user"|"assistant", content: "..."}]
+    history = body.get("history") or []
+    if not lesson_id or not message:
+        return err("lesson_id и message обязательны")
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT l.*, c.id as cid, c.title as course_title "
+        f"FROM {tbl('course_lessons')} l JOIN {tbl('courses')} c ON c.id=l.course_id "
+        f"WHERE l.id=%s", (lesson_id,)
+    )
+    lesson = cur.fetchone()
+    if not lesson:
+        return err("Урок не найден", 404)
+
+    cur.execute(
+        f"SELECT id FROM {tbl('lesson_access')} WHERE user_id=%s AND lesson_id=%s",
+        (user["id"], lesson_id)
+    )
+    if not cur.fetchone():
+        return err("Урок не открыт", 403)
+
+    salon_id = user.get("salon_id")
+    if not salon_id:
+        return err("Нет привязанного аккаунта")
+    balance = get_salon_balance(salon_id, conn)
+    if balance < LESSON_AI_COST:
+        return err(f"Недостаточно энергии. Нужно {LESSON_AI_COST}, доступно {balance}", 402)
+
+    homework_text = lesson.get("homework") or ""
+    lesson_title = lesson.get("title") or ""
+    lesson_content = lesson.get("content") or ""
+    ai_context = lesson.get("ai_context") or ""
+
+    system_prompt = (
+        "Ты — куратор-наставник онлайн-курса. Твоя задача — помочь ученику выполнить домашнее задание.\n\n"
+        "Правила работы:\n"
+        "- Не давай готовый ответ сразу. Направляй ученика вопросами и подсказками.\n"
+        "- Если ученик написал свой ответ или размышление — оцени его, укажи что хорошо и что можно улучшить.\n"
+        "- Задавай по одному уточняющему вопросу за раз, не перегружай.\n"
+        "- Если ученик явно выполнил задание — подведи итог и похвали.\n"
+        "- Отвечай на языке ученика. Обращайся на «ты».\n"
+        "- Будь тёплым, поддерживающим, профессиональным.\n\n"
+    )
+    if lesson_title:
+        system_prompt += f"Урок: {lesson_title}\n"
+    if lesson_content:
+        system_prompt += f"\nМатериал урока:\n{lesson_content}\n"
+    if ai_context:
+        system_prompt += f"\nДополнительный контекст:\n{ai_context}\n"
+    if homework_text:
+        system_prompt += f"\nДОМАШНЕЕ ЗАДАНИЕ:\n{homework_text}\n"
+    system_prompt += "\nВеди диалог пока ученик не выполнит задание полностью."
+
+    # Ограничиваем историю последними 10 сообщениями чтобы не выйти за лимит токенов
+    trimmed_history = history[-10:] if len(history) > 10 else history
+    messages = [{"role": "system", "content": system_prompt}]
+    for h in trimmed_history:
+        if h.get("role") in ("user", "assistant") and h.get("content"):
+            messages.append({"role": h["role"], "content": h["content"]})
+    messages.append({"role": "user", "content": message})
+
+    api_key = os.environ.get("OPENAI_API_KEY", "")
+    payload = json.dumps({
+        "model": "openai/gpt-4o-mini",
+        "messages": messages,
+        "max_tokens": 700,
+        "temperature": 0.6,
+    }).encode()
+
+    req = urllib.request.Request(
+        "https://api.polza.ai/v1/chat/completions",
+        data=payload,
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=25) as resp:
+        data = json.loads(resp.read())
+    answer = data["choices"][0]["message"]["content"]
+
+    deduct_energy(salon_id, user["id"], LESSON_AI_COST, f"Домашнее задание «{lesson_title}»", conn)
+    return ok({"answer": answer})
+
+
 # ── Админ ─────────────────────────────────────────────────────────────────────
 
 def require_admin(event, conn):
@@ -473,20 +565,22 @@ def handle_admin_lesson_save(event, conn):
     video_urls = json.dumps(body.get("video_urls") or [])
     links = json.dumps(body.get("links") or [])
 
+    homework = body.get("homework", "")
+
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     if lid:
         cur.execute(
             f"UPDATE {tbl('course_lessons')} SET title=%s, content=%s, video_urls=%s, links=%s, "
-            f"ai_context=%s, sort_order=%s, module_id=%s WHERE id=%s RETURNING id",
+            f"ai_context=%s, homework=%s, sort_order=%s, module_id=%s WHERE id=%s RETURNING id",
             (title, body.get("content", ""), video_urls, links,
-             body.get("ai_context", ""), int(body.get("sort_order", 0)), module_id, lid)
+             body.get("ai_context", ""), homework, int(body.get("sort_order", 0)), module_id, lid)
         )
     else:
         cur.execute(
-            f"INSERT INTO {tbl('course_lessons')} (module_id,course_id,title,content,video_urls,links,ai_context,sort_order) "
-            f"VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+            f"INSERT INTO {tbl('course_lessons')} (module_id,course_id,title,content,video_urls,links,ai_context,homework,sort_order) "
+            f"VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
             (module_id, course_id, title, body.get("content", ""), video_urls, links,
-             body.get("ai_context", ""), int(body.get("sort_order", 0)))
+             body.get("ai_context", ""), homework, int(body.get("sort_order", 0)))
         )
     row = cur.fetchone()
     conn.commit()
@@ -622,6 +716,7 @@ ROUTES = {
     "course_access":             handle_course_access,
     "lesson_open":               handle_lesson_open,
     "lesson_ask_ai":             handle_lesson_ask_ai,
+    "lesson_homework_ai":        handle_lesson_homework_ai,
     "admin_courses_list":        handle_admin_courses_list,
     "admin_course_save":         handle_admin_course_save,
     "admin_module_save":         handle_admin_module_save,

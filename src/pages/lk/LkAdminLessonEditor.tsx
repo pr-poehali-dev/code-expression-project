@@ -131,6 +131,22 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
             <textarea style={{ ...inputStyle, height: 100, lineHeight: 1.7 }} value={form.ai_context || ""} onChange={e => setForm(f => ({ ...f, ai_context: e.target.value }))} placeholder="Ключевые тезисы, термины, пояснения для ИИ-помощника..." />
           </div>
 
+          <div style={{ borderTop: "1.5px solid #f0f0ec", paddingTop: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <Icon name="ClipboardList" size={15} style={{ color: "hsl(280,60%,55%)" }} />
+              <label style={{ ...labelStyle, margin: 0, color: "hsl(280,60%,45%)" }}>ДОМАШНЕЕ ЗАДАНИЕ</label>
+            </div>
+            <textarea
+              style={{ ...inputStyle, height: 130, lineHeight: 1.7, borderColor: form.homework?.trim() ? "hsl(280,60%,75%)" : "#e8e8e4" }}
+              value={form.homework || ""}
+              onChange={e => setForm(f => ({ ...f, homework: e.target.value }))}
+              placeholder="Опишите задание для самостоятельной работы. ИИ-куратор будет вести ученика по этому заданию в диалоге..."
+            />
+            <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>
+              ИИ получит текст урока + этот текст и будет вести ученика через диалог до выполнения задания
+            </div>
+          </div>
+
           {msg && <div style={{ fontSize: 13, color: msg.includes("✓") ? "hsl(130,60%,35%)" : "hsl(0,70%,55%)", fontWeight: 600 }}>{msg}</div>}
           <button style={actionBtn(ACCENT)} onClick={save} disabled={saving}>
             {saving ? "Сохраняем..." : form.id ? "Сохранить урок" : "Создать урок"}

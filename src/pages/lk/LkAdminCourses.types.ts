@@ -22,7 +22,7 @@ export interface Module { id: number; course_id: number; title: string; sort_ord
 export interface Lesson {
   id: number; module_id: number; course_id: number; title: string;
   content: string; video_urls: string[]; links: string[];
-  ai_context: string; sort_order: number;
+  ai_context: string; homework: string; sort_order: number;
   files?: LFile[]; photos?: Photo[];
 }
 
