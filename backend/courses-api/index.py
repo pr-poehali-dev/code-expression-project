@@ -23,6 +23,8 @@ API для системы курсов Академии.
 import json
 import os
 import base64
+import hashlib
+import re
 import urllib.request
 import psycopg2
 import psycopg2.extras
@@ -831,6 +833,55 @@ def handle_admin_course_detail(event, conn):
     return ok(course)
 
 
+def handle_admin_rehost_images(event, conn):
+    """Скачивает внешние картинки из HTML, загружает в S3 и возвращает HTML с заменёнными URL."""
+    _, e = require_admin(event, conn)
+    if e: return e
+
+    body = json.loads(event.get("body") or "{}")
+    html = body.get("html") or ""
+    lesson_id = body.get("lesson_id") or "tmp"
+
+    if not html:
+        return err("html обязателен")
+
+    s3 = s3_client()
+    access_key = os.environ["AWS_ACCESS_KEY_ID"]
+
+    img_urls = re.findall(r'<img[^>]+src=["\']([^"\']+)["\']', html, re.IGNORECASE)
+    replaced = 0
+    errors = []
+
+    for src in img_urls:
+        if not src.startswith("http"):
+            continue
+        if "cdn.poehali.dev" in src:
+            continue
+        try:
+            req = urllib.request.Request(src, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = resp.read()
+                content_type = resp.headers.get("Content-Type", "image/jpeg").split(";")[0].strip()
+
+            ext_map = {
+                "image/jpeg": "jpg", "image/jpg": "jpg",
+                "image/png": "png", "image/webp": "webp",
+                "image/gif": "gif", "image/svg+xml": "svg",
+            }
+            ext = ext_map.get(content_type, "jpg")
+            filename = hashlib.md5(src.encode()).hexdigest()[:12] + "." + ext
+            key = f"courses/lessons/{lesson_id}/images/{filename}"
+
+            s3.put_object(Bucket="files", Key=key, Body=data, ContentType=content_type)
+            new_url = f"https://cdn.poehali.dev/projects/{access_key}/bucket/{key}"
+            html = html.replace(src, new_url)
+            replaced += 1
+        except Exception as ex:
+            errors.append(str(ex)[:80])
+
+    return ok({"html": html, "replaced": replaced, "errors": errors})
+
+
 # ── Роутер ────────────────────────────────────────────────────────────────────
 
 ROUTES = {
@@ -854,6 +905,7 @@ ROUTES = {
     "admin_grant_access":        handle_admin_grant_access,
     "admin_lesson_tools_save":   handle_admin_lesson_tools_save,
     "admin_course_detail":       handle_admin_course_detail,
+    "admin_rehost_images":       handle_admin_rehost_images,
 }
 
 

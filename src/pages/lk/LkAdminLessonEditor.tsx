@@ -23,6 +23,23 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
   const [preview, setPreview] = useState(false);
   const [tools, setTools] = useState<string[]>(lesson?.tools || []);
   const [savingTools, setSavingTools] = useState(false);
+  const [rehosting, setRehosting] = useState(false);
+  const [rehostMsg, setRehostMsg] = useState("");
+
+  const rehostImages = async (html: string) => {
+    if (!/src=["'][^"']*https?:\/\/(?!cdn\.poehali\.dev)[^"']+["']/i.test(html)) return;
+    setRehosting(true); setRehostMsg("");
+    const res = await apiFetch("admin_rehost_images", "POST", { html, lesson_id: form.id || "tmp" });
+    setRehosting(false);
+    if (res.error) { setRehostMsg("Ошибка: " + res.error); return; }
+    if (res.replaced > 0) {
+      setForm(f => ({ ...f, content: HTML_MARKER + "\n" + res.html }));
+      setRehostMsg(`Загружено картинок: ${res.replaced}`);
+    } else {
+      setRehostMsg("Внешних картинок не найдено");
+    }
+    setTimeout(() => setRehostMsg(""), 4000);
+  };
 
   const toPreviewLesson = (): LessonFull => ({
     id: form.id || 0,
@@ -212,9 +229,21 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
                 <textarea
                   value={(form.content || "").trimStart().slice(HTML_MARKER.length)}
                   onChange={e => setForm(f => ({ ...f, content: HTML_MARKER + "\n" + e.target.value }))}
+                  onPaste={e => {
+                    const pasted = e.clipboardData.getData("text");
+                    if (pasted && /<img/i.test(pasted)) {
+                      setTimeout(() => rehostImages(pasted), 50);
+                    }
+                  }}
                   placeholder="Вставьте HTML из другой платформы..."
                   style={{ ...inputStyle, height: 220, lineHeight: 1.6, fontFamily: "monospace", fontSize: 12, resize: "vertical" }}
                 />
+                {(rehosting || rehostMsg) && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: rehosting ? ACCENT : rehostMsg.startsWith("Ошибка") ? "hsl(0,70%,50%)" : "hsl(130,60%,35%)", fontWeight: 600 }}>
+                    {rehosting && <div style={{ width: 12, height: 12, border: "2px solid currentColor", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />}
+                    {rehosting ? "Загружаю картинки в CDN..." : rehostMsg}
+                  </div>
+                )}
                 <div style={{ background: "#f8f8f6", borderRadius: 10, border: "1.5px solid #e8e8e4", padding: "14px 16px" }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: "#aaa", letterSpacing: "0.06em", marginBottom: 8 }}>ПРЕДПРОСМОТР HTML</div>
                   <div className="lesson-content" style={{ fontSize: 14, color: "#333", lineHeight: 1.85 }}
