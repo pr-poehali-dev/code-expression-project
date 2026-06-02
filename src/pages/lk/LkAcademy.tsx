@@ -7,7 +7,9 @@ interface Course {
   title: string;
   description: string;
   price?: string;
-  slug: string;
+  priceOld?: string;
+  badge?: string;
+  href: string;
 }
 
 interface Category {
@@ -50,7 +52,34 @@ const CATEGORIES: Category[] = [
     icon: "Heart",
     color: "hsl(340,75%,50%)",
     bg: "hsl(340,75%,97%)",
-    courses: [],
+    courses: [
+      {
+        title: "Старт",
+        description: "Бесплатный вводный блок: 5 видео-модулей, разборы практики и демонстрация ИИ-инструментов. Мгновенный доступ без карты.",
+        price: "Бесплатно",
+        badge: "Бесплатно",
+        href: "/free",
+      },
+      {
+        title: "Практика",
+        description: "Система для специалистов по телу и состояниям, которые хотят выйти из хаоса, повысить стоимость услуг и привлекать платёжеспособных клиентов. 9 модулей, доступ 12 месяцев.",
+        price: "90 900 ₽",
+        href: "/praktika",
+      },
+      {
+        title: "Премиальная практика",
+        description: "Программа для выхода на высокий чек и платёжеспособную аудиторию. 9 модулей, 5 личных встреч, ИИ-инструменты. Обучение 24 месяца.",
+        price: "290 000 ₽",
+        href: "/premium",
+      },
+      {
+        title: "Про Диалог — Эксперт",
+        description: "VIP-система для выхода на высокий уровень практики. Пожизненный доступ, все обновления, ИИ-инструменты без ограничений, 10 персональных встреч.",
+        price: "500 000 ₽",
+        badge: "VIP",
+        href: "/ekspert",
+      },
+    ],
   },
 ];
 
@@ -91,7 +120,7 @@ export default function LkAcademy() {
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 1, background: "#f5f5f2" }}>
                 {cat.courses.map(course => (
-                  <CourseCard key={course.slug} course={course} color={cat.color} bg={cat.bg} />
+                  <CourseCard key={course.href} course={course} color={cat.color} bg={cat.bg} />
                 ))}
               </div>
             )}
@@ -103,7 +132,7 @@ export default function LkAcademy() {
       <div style={{ marginTop: 24, padding: "14px 18px", background: `hsla(185,85%,32%,0.05)`, borderRadius: 12, border: `1px solid hsla(185,85%,32%,0.12)`, display: "flex", gap: 12, alignItems: "flex-start" }}>
         <Icon name="Info" size={15} style={{ color: ACCENT, marginTop: 1, flexShrink: 0 }} />
         <div style={{ fontSize: 12, color: "#666", lineHeight: 1.7 }}>
-          Курсы размещены на внешней платформе. После выбора курса вы перейдёте на его страницу с описанием и возможностью покупки.
+          Нажмите «Подробнее» на любом курсе — вы перейдёте на его страницу с описанием и возможностью записи или покупки.
         </div>
       </div>
     </div>
@@ -113,12 +142,17 @@ export default function LkAcademy() {
 function CourseCard({ course, color, bg }: { course: Course; color: string; bg: string }) {
   return (
     <a
-      href={`/courses/${course.slug}`}
-      style={{ display: "flex", flexDirection: "column", gap: 10, padding: "20px 22px", background: "#fff", textDecoration: "none", transition: "background 0.15s" }}
+      href={course.href}
+      style={{ display: "flex", flexDirection: "column", gap: 10, padding: "20px 22px", background: "#fff", textDecoration: "none", transition: "background 0.15s", position: "relative" }}
       onMouseEnter={e => (e.currentTarget.style.background = bg)}
       onMouseLeave={e => (e.currentTarget.style.background = "#fff")}
     >
-      <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4 }}>{course.title}</div>
+      {course.badge && (
+        <div style={{ position: "absolute", top: 14, right: 16, fontSize: 10, fontWeight: 700, color, background: bg, borderRadius: 6, padding: "2px 8px", border: `1px solid ${color}`, letterSpacing: "0.05em" }}>
+          {course.badge}
+        </div>
+      )}
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4, paddingRight: course.badge ? 70 : 0 }}>{course.title}</div>
       <div style={{ fontSize: 12, color: "#888", lineHeight: 1.6, flex: 1 }}>{course.description}</div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
         {course.price && <div style={{ fontSize: 13, fontWeight: 800, color }}>{course.price}</div>}
