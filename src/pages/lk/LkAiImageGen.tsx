@@ -92,7 +92,8 @@ export default function LkAiImageGen() {
       if (d.status === "done" && d.url) finishWithImage(d.url);
     }).catch(() => { /* шлюз мог оборвать — polling подхватит */ });
 
-    // Шаг 3: параллельно опрашиваем статус каждые 4 сек
+    // Шаг 3: параллельно опрашиваем статус каждые 5 сек
+    let retried = false;
     if (pollRef.current) clearInterval(pollRef.current);
     pollRef.current = setInterval(async () => {
       try {
@@ -100,14 +101,25 @@ export default function LkAiImageGen() {
         const d = await r.json();
         if (d.status === "done" && d.url) {
           finishWithImage(d.url);
-        } else if (d.status === "error") {
+        } else if (d.status === "error" && !retried) {
+          // Одна повторная попытка — перезапускаем воркер
+          retried = true;
+          fetch(WORKER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
+            body: JSON.stringify({ job_id: jobId }),
+          }).then(async r2 => {
+            const d2 = await r2.json();
+            if (d2.status === "done" && d2.url) finishWithImage(d2.url);
+          }).catch(() => {});
+        } else if (d.status === "error" && retried) {
           if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
           setLoading(false);
-          setError(d.error || "Не удалось сгенерировать. Проверьте «Мои изображения».");
+          setError("Не удалось сгенерировать. Попробуйте ещё раз или проверьте «Мои изображения».");
           loadHistory();
         }
       } catch { /* продолжаем */ }
-    }, 4000);
+    }, 5000);
   }
 
   async function triggerDownload(url: string) {

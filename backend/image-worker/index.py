@@ -65,12 +65,6 @@ def handle_status(event, conn):
         return err("job_id обязателен")
 
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    # Задачи зависшие в running дольше 3 минут — помечаем ошибкой
-    cur.execute(
-        f"UPDATE {SCHEMA}.image_jobs SET status='error', error_msg='Превышено время ожидания' "
-        f"WHERE status IN ('pending','running') AND created_at < NOW() - INTERVAL '3 minutes'"
-    )
-    conn.commit()
     cur.execute(
         f"SELECT id,status,result_url,error_msg,prompt FROM {SCHEMA}.image_jobs "
         f"WHERE id=%s AND user_id=%s", (job_id, user["id"])
@@ -111,6 +105,14 @@ def handle_run(event, conn):
     if job["status"] == "done" and job["result_url"]:
         return ok({"job_id": str(job_id), "status": "done", "url": job["result_url"]})
 
+    # Если ошибка — сбрасываем для повторной попытки
+    if job["status"] == "error":
+        cur.execute(
+            f"UPDATE {SCHEMA}.image_jobs SET status='pending', error_msg=NULL, updated_at=NOW() WHERE id=%s",
+            (job_id,)
+        )
+        conn.commit()
+
     # Если зависла в running дольше 5 минут — перезапускаем
     # В остальных случаях помечаем running и работаем
     cur.execute(
@@ -137,25 +139,29 @@ def handle_run(event, conn):
         method="POST",
     )
 
-    try:
-        with urllib.request.urlopen(req, timeout=110) as resp:
-            result = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        error_text = e.read().decode("utf-8", errors="ignore")[:200]
+    result = None
+    last_error = ""
+    for attempt in range(2):  # 2 попытки по 115с = до 230с суммарно
+        try:
+            with urllib.request.urlopen(req, timeout=115) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as e:
+            last_error = e.read().decode("utf-8", errors="ignore")[:200]
+            break  # HTTP ошибка — не повторяем
+        except Exception as e:
+            last_error = str(e)
+            if attempt == 1:
+                break
+            # При таймауте — пробуем ещё раз
+
+    if result is None:
         cur.execute(
             f"UPDATE {SCHEMA}.image_jobs SET status='error', error_msg=%s, updated_at=NOW() WHERE id=%s",
-            (f"Ошибка API: {error_text}", job_id)
+            (last_error[:200], job_id)
         )
         conn.commit()
-        return err(f"Ошибка сервиса генерации: {error_text}", 502)
-    except Exception as e:
-        msg = str(e)
-        cur.execute(
-            f"UPDATE {SCHEMA}.image_jobs SET status='error', error_msg=%s, updated_at=NOW() WHERE id=%s",
-            (msg[:200], job_id)
-        )
-        conn.commit()
-        return err(f"Ошибка соединения: {msg}", 502)
+        return err(f"Ошибка генерации: {last_error[:150]}", 502)
 
     # Извлекаем URL или base64
     image_url = None
