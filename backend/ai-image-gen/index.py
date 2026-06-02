@@ -149,7 +149,7 @@ def handle_history(event, conn):
     conn.commit()
     cur.execute(
         f"SELECT id, url, prompt, aspect_ratio, created_at "
-        f"FROM {SCHEMA}.ai_generated_images WHERE user_id=%s ORDER BY created_at DESC LIMIT 50",
+        f"FROM {SCHEMA}.ai_generated_images WHERE user_id=%s AND url != 'pending' ORDER BY created_at DESC LIMIT 50",
         (user["id"],)
     )
     return ok([dict(r) for r in cur.fetchall()])
@@ -284,27 +284,48 @@ def handler(event: dict, context) -> dict:
             return err(f"Ошибка соединения: {msg}", 502)
 
         image_url = None
+        raw_url = None
+        b64_data = None
+
         for item in (result.get("data") or result.get("images") or []):
             if isinstance(item, dict):
                 url = item.get("url", "")
                 b64 = item.get("b64_json") or item.get("base64") or ""
                 if url:
+                    raw_url = url
                     image_url = url
                     break
                 if b64:
-                    image_url = upload_to_s3(b64, "png", user["id"])
+                    b64_data = b64
                     break
 
-        if not image_url:
+        if not image_url and not b64_data:
             return err("Сервис не вернул изображение. Попробуйте ещё раз.", 502)
 
-        # Сохраняем в историю
+        # Сохраняем в историю СРАЗУ — до загрузки в S3, чтобы не потерять при таймауте
         try:
             conn3 = get_db()
-            save_image_history(user["id"], image_url, prompt, aspect_gpt15, conn3)
+            save_url = raw_url or "pending"
+            save_image_history(user["id"], save_url, prompt, aspect_gpt15, conn3)
             conn3.close()
         except Exception as e:
             print(f"[ai-image-gen] history save error: {e}")
+
+        # Если пришёл base64 — загружаем в S3 и обновляем запись
+        if b64_data:
+            image_url = upload_to_s3(b64_data, "png", user["id"])
+            try:
+                conn4 = get_db()
+                cur4 = conn4.cursor()
+                cur4.execute(
+                    f"UPDATE {SCHEMA}.ai_generated_images SET url=%s "
+                    f"WHERE user_id=%s AND url='pending' ORDER BY created_at DESC LIMIT 1",
+                    (image_url, user["id"])
+                )
+                conn4.commit()
+                conn4.close()
+            except Exception as e:
+                print(f"[ai-image-gen] url update error: {e}")
 
         return ok({"images": [{"url": image_url}], "prompt_used": final_prompt, "energy_spent": cost})
 
