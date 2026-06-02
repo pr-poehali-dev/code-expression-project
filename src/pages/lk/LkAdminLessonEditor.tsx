@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { ACCENT, labelStyle, inputStyle, actionBtn, iconBtn } from "./LkAdminShared";
 import Icon from "@/components/ui/icon";
 import { apiFetch, Lesson, Module, LFile, Photo } from "./LkAdminCourses.types";
+import MarkdownEditor from "@/components/ui/MarkdownEditor";
 
 export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
   lesson: Lesson | null; courseId: number; modules: Module[]; onBack: () => void; onSaved: (l: Lesson) => void;
@@ -123,12 +124,17 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
 
           <div>
             <label style={labelStyle}>ТЕКСТОВАЯ ЧАСТЬ</label>
-            <textarea style={{ ...inputStyle, height: 180, lineHeight: 1.7 }} value={form.content || ""} onChange={e => setForm(f => ({ ...f, content: e.target.value }))} placeholder="Основной текст урока..." />
+            <MarkdownEditor
+              value={form.content || ""}
+              onChange={v => setForm(f => ({ ...f, content: v }))}
+              placeholder="Основной текст урока..."
+              minHeight={220}
+            />
           </div>
 
           <div>
             <label style={labelStyle}>КОНТЕКСТ ДЛЯ ИИ (дополнительные тезисы, которые ИИ использует при ответах)</label>
-            <textarea style={{ ...inputStyle, height: 100, lineHeight: 1.7 }} value={form.ai_context || ""} onChange={e => setForm(f => ({ ...f, ai_context: e.target.value }))} placeholder="Ключевые тезисы, термины, пояснения для ИИ-помощника..." />
+            <textarea style={{ ...inputStyle, height: 90, lineHeight: 1.7 }} value={form.ai_context || ""} onChange={e => setForm(f => ({ ...f, ai_context: e.target.value }))} placeholder="Ключевые тезисы, термины, пояснения для ИИ-помощника..." />
           </div>
 
           <div style={{ borderTop: "1.5px solid #f0f0ec", paddingTop: 14 }}>
@@ -136,11 +142,11 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
               <Icon name="ClipboardList" size={15} style={{ color: "hsl(280,60%,55%)" }} />
               <label style={{ ...labelStyle, margin: 0, color: "hsl(280,60%,45%)" }}>ДОМАШНЕЕ ЗАДАНИЕ</label>
             </div>
-            <textarea
-              style={{ ...inputStyle, height: 130, lineHeight: 1.7, borderColor: form.homework?.trim() ? "hsl(280,60%,75%)" : "#e8e8e4" }}
+            <MarkdownEditor
               value={form.homework || ""}
-              onChange={e => setForm(f => ({ ...f, homework: e.target.value }))}
+              onChange={v => setForm(f => ({ ...f, homework: v }))}
               placeholder="Опишите задание для самостоятельной работы. ИИ-куратор будет вести ученика по этому заданию в диалоге..."
+              minHeight={130}
             />
             <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>
               ИИ получит текст урока + этот текст и будет вести ученика через диалог до выполнения задания

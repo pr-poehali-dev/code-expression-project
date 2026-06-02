@@ -751,10 +751,19 @@ def handle_admin_course_detail(event, conn):
 
     for m in modules:
         cur.execute(
-            f"SELECT id, title, sort_order FROM {tbl('course_lessons')} "
-            f"WHERE module_id=%s ORDER BY sort_order, id", (m["id"],)
+            f"SELECT id, module_id, course_id, title, content, video_urls, links, ai_context, homework, sort_order "
+            f"FROM {tbl('course_lessons')} WHERE module_id=%s ORDER BY sort_order, id", (m["id"],)
         )
-        m["lessons"] = [dict(r) for r in cur.fetchall()]
+        lessons = []
+        for row in cur.fetchall():
+            l = dict(row)
+            # Подгружаем фото и файлы
+            cur.execute(f"SELECT id, url, sort_order FROM {tbl('lesson_photos')} WHERE lesson_id=%s ORDER BY sort_order, id", (l["id"],))
+            l["photos"] = [dict(r) for r in cur.fetchall()]
+            cur.execute(f"SELECT id, name, url FROM {tbl('lesson_files')} WHERE lesson_id=%s ORDER BY id", (l["id"],))
+            l["files"] = [dict(r) for r in cur.fetchall()]
+            lessons.append(l)
+        m["lessons"] = lessons
 
     course["modules"] = modules
     return ok(course)

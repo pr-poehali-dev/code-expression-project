@@ -3,6 +3,33 @@ import Icon from "@/components/ui/icon";
 import { useEnergy } from "@/contexts/EnergyContext";
 
 const API = "https://functions.poehali.dev/3e9572e2-e118-4584-91dd-809cac9fc3ea";
+
+function renderMarkdown(text: string): string {
+  return text
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    // Заголовки
+    .replace(/^### (.+)$/gm, '<h3 style="font-size:16px;font-weight:700;margin:16px 0 6px;color:#1a1a1a">$1</h3>')
+    .replace(/^## (.+)$/gm,  '<h2 style="font-size:18px;font-weight:700;margin:20px 0 8px;color:#1a1a1a">$1</h2>')
+    .replace(/^# (.+)$/gm,   '<h1 style="font-size:22px;font-weight:700;margin:24px 0 10px;color:#1a1a1a">$1</h1>')
+    // Горизонтальная линия
+    .replace(/^---$/gm, '<hr style="border:none;border-top:1.5px solid #e8e8e4;margin:20px 0">')
+    // Жирный и курсив
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,     '<em>$1</em>')
+    .replace(/~~(.+?)~~/g,     '<s>$1</s>')
+    // Цитата
+    .replace(/^&gt; (.+)$/gm, '<blockquote style="border-left:3px solid hsl(185,85%,60%);margin:10px 0;padding:4px 14px;color:#555;font-style:italic">$1</blockquote>')
+    // Списки нумерованные
+    .replace(/^\d+\. (.+)$/gm, '<li style="margin:3px 0">$1</li>')
+    // Списки маркированные
+    .replace(/^[-*] (.+)$/gm, '<li style="margin:3px 0">$1</li>')
+    // Оборачиваем подряд идущие li
+    .replace(/(<li[^>]*>.*<\/li>\n?)+/g, m => `<ul style="margin:8px 0;padding-left:20px">${m}</ul>`)
+    // Переносы строк
+    .replace(/\n\n/g, '</p><p style="margin:10px 0">')
+    .replace(/\n/g, '<br>')
+    .replace(/^(.+)$/, '<p style="margin:0">$1</p>');
+}
 const ACCENT = "hsl(185,85%,32%)";
 const SERIF = "Cormorant, serif";
 
@@ -281,10 +308,21 @@ function LessonView({ lesson, courseTitle, onBack, onRefreshLesson }: {
       )}
 
       {lesson.content && (
-        <div style={{ fontSize: 14, color: "#333", lineHeight: 1.85, marginBottom: 24, whiteSpace: "pre-wrap" }}>
-          {lesson.content}
-        </div>
+        <div className="lesson-content" style={{ fontSize: 14, color: "#333", lineHeight: 1.85, marginBottom: 24 }}
+          dangerouslySetInnerHTML={{ __html: renderMarkdown(lesson.content) }}
+        />
       )}
+      <style>{`
+        .lesson-content ul { padding-left: 20px; margin: 8px 0; }
+        .lesson-content li { margin: 4px 0; }
+        .lesson-content p { margin: 10px 0; }
+        .lesson-content h1,.lesson-content h2,.lesson-content h3 { line-height: 1.3; }
+        .lesson-content strong { font-weight: 700; }
+        .lesson-content em { font-style: italic; }
+        .lesson-content s { text-decoration: line-through; }
+        .lesson-content blockquote { border-left: 3px solid hsl(185,85%,60%); margin: 12px 0; padding: 4px 14px; color: #555; font-style: italic; }
+        .lesson-content hr { border: none; border-top: 1.5px solid #e8e8e4; margin: 20px 0; }
+      `}</style>
 
       {lesson.links.length > 0 && (
         <div style={{ marginBottom: 24 }}>
