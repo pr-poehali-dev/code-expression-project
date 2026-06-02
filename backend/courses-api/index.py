@@ -708,6 +708,26 @@ def handle_admin_grant_access(event, conn):
     return ok({"ok": True})
 
 
+def handle_admin_course_cover_upload(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    course_id = body.get("course_id")
+    data_b64 = body.get("data")
+    filename = body.get("filename", "cover.jpg")
+    if not data_b64:
+        return err("data обязателен")
+
+    file_bytes = base64.b64decode(data_b64)
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    mime = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp"}.get(ext, "image/jpeg")
+    key = f"courses/covers/{course_id or 'new'}/{filename}"
+    s3 = s3_client()
+    s3.put_object(Bucket="files", Key=key, Body=file_bytes, ContentType=mime)
+    url = cdn_url(key)
+    return ok({"url": url, "ok": True})
+
+
 # ── Роутер ────────────────────────────────────────────────────────────────────
 
 ROUTES = {
@@ -722,6 +742,7 @@ ROUTES = {
     "admin_module_save":         handle_admin_module_save,
     "admin_module_delete":       handle_admin_module_delete,
     "admin_lesson_save":         handle_admin_lesson_save,
+    "admin_course_cover_upload": handle_admin_course_cover_upload,
     "admin_lesson_delete":       handle_admin_lesson_delete,
     "admin_lesson_photo_add":    handle_admin_lesson_photo_add,
     "admin_lesson_photo_delete": handle_admin_lesson_photo_delete,

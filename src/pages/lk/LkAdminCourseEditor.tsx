@@ -36,9 +36,8 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
     const reader = new FileReader();
     reader.onload = async (ev) => {
       const b64 = (ev.target?.result as string).split(",")[1];
-      const lessonId = form.id || 0;
-      const res = await apiFetch("admin_lesson_photo_add", "POST", {
-        lesson_id: lessonId || 1,
+      const res = await apiFetch("admin_course_cover_upload", "POST", {
+        course_id: form.id || null,
         data: b64,
         filename: file.name,
       });
@@ -162,9 +161,15 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
           ) : (
             <div
               onClick={() => coverRef.current?.click()}
-              style={{ border: "2px dashed #e0e0dc", borderRadius: 10, padding: "32px 20px", textAlign: "center", cursor: "pointer", color: "#aaa", fontSize: 13 }}
+              style={{ border: "2px dashed #e0e0dc", borderRadius: 10, padding: "28px 20px", textAlign: "center", cursor: "pointer", color: "#aaa", fontSize: 13 }}
             >
-              {coverUploading ? "Загружается..." : <><Icon name="ImagePlus" size={24} /><br />Загрузить обложку</>}
+              {coverUploading ? "Загружается..." : (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                  <Icon name="ImagePlus" size={24} />
+                  <span>Загрузить обложку</span>
+                  <span style={{ fontSize: 11, color: "#ccc" }}>Рекомендуется 1280×720 px (16:9), JPG или PNG</span>
+                </div>
+              )}
             </div>
           )}
           <input ref={coverRef} type="file" accept="image/*" style={{ display: "none" }} onChange={uploadCover} />
