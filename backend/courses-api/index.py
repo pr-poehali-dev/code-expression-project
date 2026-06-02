@@ -288,32 +288,49 @@ def handle_lesson_ask_ai(event, conn):
     body = json.loads(event.get("body") or "{}")
     lesson_id = body.get("lesson_id")
     question = (body.get("question") or "").strip()
-    if not lesson_id or not question:
-        return err("lesson_id и question обязательны")
+    is_preview = body.get("preview") is True
+    if not question:
+        return err("question обязателен")
 
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute(
-        f"SELECT l.*, c.id as cid, c.title as course_title "
-        f"FROM {tbl('course_lessons')} l JOIN {tbl('courses')} c ON c.id=l.course_id "
-        f"WHERE l.id=%s", (lesson_id,)
-    )
-    lesson = cur.fetchone()
-    if not lesson:
-        return err("Урок не найден", 404)
 
-    cur.execute(
-        f"SELECT id FROM {tbl('lesson_access')} WHERE user_id=%s AND lesson_id=%s",
-        (user["id"], lesson_id)
-    )
-    if not cur.fetchone():
-        return err("Урок не открыт", 403)
+    if is_preview:
+        # Режим предпросмотра для администратора — проверяем что админ, данные берём из тела запроса
+        admin, e = require_admin(event, conn)
+        if e: return e
+        lesson = {
+            "title": body.get("title") or "",
+            "content": body.get("content") or "",
+            "ai_context": body.get("ai_context") or "",
+        }
+    else:
+        if not lesson_id:
+            return err("lesson_id обязателен")
+        cur.execute(
+            f"SELECT l.*, c.id as cid, c.title as course_title "
+            f"FROM {tbl('course_lessons')} l JOIN {tbl('courses')} c ON c.id=l.course_id "
+            f"WHERE l.id=%s", (lesson_id,)
+        )
+        lesson = cur.fetchone()
+        if not lesson:
+            return err("Урок не найден", 404)
 
-    salon_id = user.get("salon_id")
-    if not salon_id:
-        return err("Нет привязанного аккаунта")
-    balance = get_salon_balance(salon_id, conn)
-    if balance < LESSON_AI_COST:
-        return err(f"Недостаточно энергии. Нужно {LESSON_AI_COST}, доступно {balance}", 402)
+        cur.execute(
+            f"SELECT id FROM {tbl('lesson_access')} WHERE user_id=%s AND lesson_id=%s",
+            (user["id"], lesson_id)
+        )
+        if not cur.fetchone():
+            return err("Урок не открыт", 403)
+
+    if not is_preview:
+        salon_id = user.get("salon_id")
+        if not salon_id:
+            return err("Нет привязанного аккаунта")
+        balance = get_salon_balance(salon_id, conn)
+        if balance < LESSON_AI_COST:
+            return err(f"Недостаточно энергии. Нужно {LESSON_AI_COST}, доступно {balance}", 402)
+    else:
+        salon_id = None
 
     context_parts = []
     if lesson.get("title"):
@@ -352,7 +369,8 @@ def handle_lesson_ask_ai(event, conn):
         data = json.loads(resp.read())
     answer = data["choices"][0]["message"]["content"]
 
-    deduct_energy(salon_id, user["id"], LESSON_AI_COST, f"ИИ-ответ в уроке «{lesson['title']}»", conn)
+    if salon_id:
+        deduct_energy(salon_id, user["id"], LESSON_AI_COST, f"ИИ-ответ в уроке «{lesson['title']}»", conn)
     return ok({"answer": answer})
 
 
@@ -364,34 +382,49 @@ def handle_lesson_homework_ai(event, conn):
     body = json.loads(event.get("body") or "{}")
     lesson_id = body.get("lesson_id")
     message = (body.get("message") or "").strip()
+    is_preview = body.get("preview") is True
     # История диалога: [{role: "user"|"assistant", content: "..."}]
     history = body.get("history") or []
-    if not lesson_id or not message:
-        return err("lesson_id и message обязательны")
+    if not message:
+        return err("message обязателен")
 
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute(
-        f"SELECT l.*, c.id as cid, c.title as course_title "
-        f"FROM {tbl('course_lessons')} l JOIN {tbl('courses')} c ON c.id=l.course_id "
-        f"WHERE l.id=%s", (lesson_id,)
-    )
-    lesson = cur.fetchone()
-    if not lesson:
-        return err("Урок не найден", 404)
 
-    cur.execute(
-        f"SELECT id FROM {tbl('lesson_access')} WHERE user_id=%s AND lesson_id=%s",
-        (user["id"], lesson_id)
-    )
-    if not cur.fetchone():
-        return err("Урок не открыт", 403)
+    if is_preview:
+        admin, e = require_admin(event, conn)
+        if e: return e
+        lesson = {
+            "title": body.get("title") or "",
+            "content": body.get("content") or "",
+            "ai_context": body.get("ai_context") or "",
+            "homework": body.get("homework") or "",
+        }
+        salon_id = None
+    else:
+        if not lesson_id:
+            return err("lesson_id обязателен")
+        cur.execute(
+            f"SELECT l.*, c.id as cid, c.title as course_title "
+            f"FROM {tbl('course_lessons')} l JOIN {tbl('courses')} c ON c.id=l.course_id "
+            f"WHERE l.id=%s", (lesson_id,)
+        )
+        lesson = cur.fetchone()
+        if not lesson:
+            return err("Урок не найден", 404)
 
-    salon_id = user.get("salon_id")
-    if not salon_id:
-        return err("Нет привязанного аккаунта")
-    balance = get_salon_balance(salon_id, conn)
-    if balance < LESSON_AI_COST:
-        return err(f"Недостаточно энергии. Нужно {LESSON_AI_COST}, доступно {balance}", 402)
+        cur.execute(
+            f"SELECT id FROM {tbl('lesson_access')} WHERE user_id=%s AND lesson_id=%s",
+            (user["id"], lesson_id)
+        )
+        if not cur.fetchone():
+            return err("Урок не открыт", 403)
+
+        salon_id = user.get("salon_id")
+        if not salon_id:
+            return err("Нет привязанного аккаунта")
+        balance = get_salon_balance(salon_id, conn)
+        if balance < LESSON_AI_COST:
+            return err(f"Недостаточно энергии. Нужно {LESSON_AI_COST}, доступно {balance}", 402)
 
     homework_text = lesson.get("homework") or ""
     lesson_title = lesson.get("title") or ""
@@ -444,7 +477,8 @@ def handle_lesson_homework_ai(event, conn):
         data = json.loads(resp.read())
     answer = data["choices"][0]["message"]["content"]
 
-    deduct_energy(salon_id, user["id"], LESSON_AI_COST, f"Домашнее задание «{lesson_title}»", conn)
+    if salon_id:
+        deduct_energy(salon_id, user["id"], LESSON_AI_COST, f"Домашнее задание «{lesson_title}»", conn)
     return ok({"answer": answer})
 
 

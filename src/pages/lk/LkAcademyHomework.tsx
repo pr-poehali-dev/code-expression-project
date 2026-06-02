@@ -6,9 +6,10 @@ import { useEnergy } from "@/contexts/EnergyContext";
 interface Props {
   lessonId: number;
   homework: string;
+  preview?: { title: string; content: string; ai_context: string; homework: string };
 }
 
-export default function LkAcademyHomework({ lessonId, homework }: Props) {
+export default function LkAcademyHomework({ lessonId, homework, preview }: Props) {
   const { refresh: refreshEnergy } = useEnergy();
   const [hwOpen, setHwOpen] = useState(false);
   const [hwHistory, setHwHistory] = useState<ChatMessage[]>([]);
@@ -24,15 +25,14 @@ export default function LkAcademyHomework({ lessonId, homework }: Props) {
     setHwHistory(newHistory);
     setHwInput("");
     setHwLoading(true); setHwErr("");
-    const res = await apiFetch("lesson_homework_ai", "POST", {
-      lesson_id: lessonId,
-      message: userMsg.content,
-      history: hwHistory,
-    });
+    const body = preview
+      ? { preview: true, message: userMsg.content, history: hwHistory, ...preview }
+      : { lesson_id: lessonId, message: userMsg.content, history: hwHistory };
+    const res = await apiFetch("lesson_homework_ai", "POST", body);
     setHwLoading(false);
     if (res.error) { setHwErr(res.error); return; }
     setHwHistory([...newHistory, { role: "assistant", content: res.answer }]);
-    refreshEnergy();
+    if (!preview) refreshEnergy();
     setTimeout(() => hwBottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
   };
 

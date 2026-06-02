@@ -161,8 +161,8 @@ export default function LkAcademyCourse({ courseId, onBack }: Props) {
 }
 
 // ── Просмотр урока ────────────────────────────────────────────────────────────
-export function LessonView({ lesson, courseTitle, onBack, onRefreshLesson }: {
-  lesson: LessonFull; courseTitle: string; onBack: () => void; onRefreshLesson: (l: LessonFull) => void;
+export function LessonView({ lesson, courseTitle, onBack, onRefreshLesson, isPreview }: {
+  lesson: LessonFull; courseTitle: string; onBack: () => void; onRefreshLesson: (l: LessonFull) => void; isPreview?: boolean;
 }) {
   const parseLinkLabel = (s: string) => {
     const parts = s.split("|");
@@ -258,10 +258,17 @@ export function LessonView({ lesson, courseTitle, onBack, onRefreshLesson }: {
         </div>
       )}
 
-      <LkAcademyLessonAI lessonId={lesson.id} />
+      <LkAcademyLessonAI
+        lessonId={lesson.id}
+        preview={isPreview ? { title: lesson.title, content: lesson.content, ai_context: lesson.ai_context } : undefined}
+      />
 
       {lesson.homework && (
-        <LkAcademyHomework lessonId={lesson.id} homework={lesson.homework} />
+        <LkAcademyHomework
+          lessonId={lesson.id}
+          homework={lesson.homework}
+          preview={isPreview ? { title: lesson.title, content: lesson.content, ai_context: lesson.ai_context, homework: lesson.homework } : undefined}
+        />
       )}
     </div>
   );

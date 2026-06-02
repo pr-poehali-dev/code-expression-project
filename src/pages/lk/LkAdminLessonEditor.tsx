@@ -121,6 +121,7 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
           courseTitle="Предпросмотр"
           onBack={() => setPreview(false)}
           onRefreshLesson={() => {}}
+          isPreview
         />
       </div>
     );

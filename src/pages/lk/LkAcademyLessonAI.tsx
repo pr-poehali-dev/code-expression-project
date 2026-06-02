@@ -5,9 +5,10 @@ import { useEnergy } from "@/contexts/EnergyContext";
 
 interface Props {
   lessonId: number;
+  preview?: { title: string; content: string; ai_context: string };
 }
 
-export default function LkAcademyLessonAI({ lessonId }: Props) {
+export default function LkAcademyLessonAI({ lessonId, preview }: Props) {
   const { refresh: refreshEnergy } = useEnergy();
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
@@ -18,11 +19,14 @@ export default function LkAcademyLessonAI({ lessonId }: Props) {
   const askAI = async () => {
     if (!question.trim()) return;
     setAsk(true); setAskErr(""); setAnswer("");
-    const res = await apiFetch("lesson_ask_ai", "POST", { lesson_id: lessonId, question: question.trim() });
+    const body = preview
+      ? { preview: true, question: question.trim(), ...preview }
+      : { lesson_id: lessonId, question: question.trim() };
+    const res = await apiFetch("lesson_ask_ai", "POST", body);
     setAsk(false);
     if (res.error) { setAskErr(res.error); return; }
     setAnswer(res.answer);
-    refreshEnergy();
+    if (!preview) refreshEnergy();
     setQuestion("");
     setTimeout(() => chatRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
   };
@@ -32,7 +36,6 @@ export default function LkAcademyLessonAI({ lessonId }: Props) {
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
         <Icon name="Bot" size={18} style={{ color: ACCENT }} />
         <span style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a" }}>Задать вопрос по уроку</span>
-
       </div>
 
       {answer && (
