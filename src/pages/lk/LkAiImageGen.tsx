@@ -50,6 +50,7 @@ export default function LkAiImageGen() {
 
   async function handleGenerate() {
     if (!prompt.trim()) { setError("Введите описание изображения"); return; }
+    if (loading) return; // защита от двойного нажатия
     setLoading(true); setError(""); setImageUrl(null);
 
     try {

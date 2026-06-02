@@ -74,18 +74,24 @@ def get_tool_cost(conn) -> int:
     return row[0] if row else 5
 
 
-def get_salon_balance(salon_id, conn) -> int:
+def check_and_deduct_energy(salon_id, user_id, amount, conn) -> tuple[bool, int]:
+    """
+    Атомарная проверка баланса и списание с блокировкой строки (FOR UPDATE).
+    Защищает от двойного списания при параллельных запросах.
+    Возвращает (success, balance_before).
+    """
     cur = conn.cursor()
+    # Блокируем строку салона — второй одновременный запрос будет ждать
     cur.execute(
-        f"SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount ELSE -amount END), 0) "
-        f"FROM {SCHEMA}.credit_transactions WHERE salon_id = %s",
+        f"SELECT credits_balance FROM {SCHEMA}.salons WHERE id = %s FOR UPDATE",
         (salon_id,)
     )
-    return cur.fetchone()[0]
-
-
-def deduct_energy(salon_id, user_id, amount, conn):
-    cur = conn.cursor()
+    row = cur.fetchone()
+    if not row:
+        return False, 0
+    balance = int(row[0])
+    if balance < amount:
+        return False, balance
     cur.execute(
         f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s",
         (amount, salon_id)
@@ -96,6 +102,7 @@ def deduct_energy(salon_id, user_id, amount, conn):
         (salon_id, user_id, "Создание изображения", amount, TOOL_KEY)
     )
     conn.commit()
+    return True, balance
 
 
 def save_image_history(user_id, url, prompt, aspect_ratio, conn):
@@ -219,14 +226,12 @@ def handler(event: dict, context) -> dict:
         aspect_dalle = ASPECT_MAP_DALLE[aspect_raw]
         aspect_gpt15 = ASPECT_MAP_GPT15[aspect_raw]
 
-        # Проверяем баланс и сразу списываем ДО вызова ИИ
-        # (генерация занимает 2+ минуты, после таймаута функции DB-запросы не выполняются)
+        # Атомарное списание с блокировкой строки (FOR UPDATE).
+        # Защита от двойного списания при двух одновременных запросах от одного салона.
         cost = get_tool_cost(conn)
-        balance = get_salon_balance(salon_id, conn)
-        if balance < cost:
+        ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, conn)
+        if not ok_deduct:
             return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
-
-        deduct_energy(salon_id, user["id"], cost, conn)
 
         use_salon_context = body.get("use_salon_context", False)
         include_logo_text = body.get("include_logo_text", False)
