@@ -65,6 +65,12 @@ def handle_status(event, conn):
         return err("job_id обязателен")
 
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    # Задачи зависшие в running дольше 3 минут — помечаем ошибкой
+    cur.execute(
+        f"UPDATE {SCHEMA}.image_jobs SET status='error', error_msg='Превышено время ожидания' "
+        f"WHERE status IN ('pending','running') AND created_at < NOW() - INTERVAL '3 minutes'"
+    )
+    conn.commit()
     cur.execute(
         f"SELECT id,status,result_url,error_msg,prompt FROM {SCHEMA}.image_jobs "
         f"WHERE id=%s AND user_id=%s", (job_id, user["id"])
@@ -92,6 +98,7 @@ def handle_run(event, conn):
     job_id = body.get("job_id")
     if not job_id:
         return err("job_id обязателен")
+    print(f"[image-worker] handle_run START job={job_id}")
 
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
@@ -134,8 +141,10 @@ def handle_run(event, conn):
 
     print(f"[image-worker] job {job_id}: calling polza.ai...")
     try:
-        with urllib.request.urlopen(req, timeout=285) as resp:
-            result = json.loads(resp.read().decode("utf-8"))
+        with urllib.request.urlopen(req, timeout=110) as resp:
+            raw = resp.read().decode("utf-8")
+            print(f"[image-worker] job {job_id}: polza raw = {raw[:400]}")
+            result = json.loads(raw)
         print(f"[image-worker] job {job_id}: polza.ai responded OK")
     except urllib.error.HTTPError as e:
         error_text = e.read().decode("utf-8", errors="ignore")[:200]
