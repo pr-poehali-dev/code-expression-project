@@ -261,8 +261,8 @@ export function LessonView({ lesson, courseTitle, onBack, onRefreshLesson, isPre
         </div>
       )}
 
-      {!isPreview && lesson.tools?.length > 0 && (
-        <LkLessonTools tools={lesson.tools} onNavigate={onNavigate || (() => {})} />
+      {lesson.tools?.length > 0 && (
+        <LkLessonTools tools={lesson.tools} onNavigate={onNavigate || (() => {})} previewMode={isPreview} />
       )}
 
       <LkAcademyLessonAI

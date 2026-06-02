@@ -33,7 +33,7 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
     homework: form.homework || "",
     photos: photos,
     files: files,
-    tools: [],
+    tools: tools,
   });
 
   const toggleTool = (slug: string) => {

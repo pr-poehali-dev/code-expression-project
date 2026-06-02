@@ -5,6 +5,7 @@ import { getToolBySlug } from "./toolsCatalog";
 interface Props {
   tools: string[];
   onNavigate: (tab: string) => void;
+  previewMode?: boolean;
 }
 
 const CAT_COLORS = {
@@ -12,7 +13,7 @@ const CAT_COLORS = {
   ai:    { bg: "hsl(280,60%,97%)", border: "hsl(280,60%,80%)", badge: "hsl(280,60%,48%)", badgeBg: "hsl(280,60%,93%)" },
 };
 
-export default function LkLessonTools({ tools, onNavigate }: Props) {
+export default function LkLessonTools({ tools, onNavigate, previewMode }: Props) {
   if (!tools || tools.length === 0) return null;
 
   const resolved = tools.map(s => getToolBySlug(s)).filter(Boolean) as ReturnType<typeof getToolBySlug>[];
@@ -25,7 +26,9 @@ export default function LkLessonTools({ tools, onNavigate }: Props) {
         <span style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           Инструменты к уроку
         </span>
-        <span style={{ fontSize: 11, color: "#aaa", fontWeight: 500 }}>— попробуй прямо сейчас</span>
+        <span style={{ fontSize: 11, color: "#aaa", fontWeight: 500 }}>
+          {previewMode ? "— предпросмотр" : "— попробуй прямо сейчас"}
+        </span>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
@@ -68,17 +71,20 @@ export default function LkLessonTools({ tools, onNavigate }: Props) {
                 </div>
               </div>
               <button
-                onClick={() => onNavigate(tool!.tab)}
+                onClick={() => !previewMode && onNavigate(tool!.tab)}
+                disabled={previewMode}
                 style={{
                   width: "100%", padding: "9px 14px", borderRadius: 9, border: "none",
-                  background: c.badge, color: "#fff",
-                  fontSize: 12, fontWeight: 700, cursor: "pointer",
+                  background: previewMode ? "#e8e8e4" : c.badge,
+                  color: previewMode ? "#aaa" : "#fff",
+                  fontSize: 12, fontWeight: 700,
+                  cursor: previewMode ? "default" : "pointer",
                   fontFamily: "Montserrat, sans-serif",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                 }}
               >
-                <Icon name="ExternalLink" size={12} />
-                Открыть инструмент
+                <Icon name={previewMode ? "Eye" : "ExternalLink"} size={12} />
+                {previewMode ? "Недоступно в предпросмотре" : "Открыть инструмент"}
               </button>
             </div>
           );
