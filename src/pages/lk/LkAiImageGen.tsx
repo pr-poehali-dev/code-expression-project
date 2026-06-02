@@ -35,8 +35,7 @@ export default function LkAiImageGen() {
   const [prompt, setPrompt]                     = useState("");
   const [aspect, setAspect]                     = useState("1024x1024");
   const [useSalonCtx, setUseSalonCtx]           = useState(hasSalon);
-  const [includeLogoText, setIncludeLogoText]   = useState(false);
-  const [includeSalonName, setIncludeSalonName] = useState(false);
+
 
   const [status, setStatus]       = useState<GenStatus>("idle");
   const [statusText, setStatusText] = useState("");
@@ -151,8 +150,8 @@ export default function LkAiImageGen() {
           prompt: prompt.trim(),
           aspect_ratio: aspect,
           use_salon_context: useSalonCtx,
-          include_logo_text: includeLogoText,
-          include_salon_name: includeSalonName,
+          include_logo_text: false,
+          include_salon_name: false,
         }),
       });
       const data = await res.json();
@@ -231,25 +230,6 @@ export default function LkAiImageGen() {
           </div>
         )}
 
-        {hasSalon && useSalonCtx && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18, padding: "12px 14px", borderRadius: 10, background: "#fffbf0", border: "1.5px solid #fde68a" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", marginBottom: 2 }}>Художественная интерпретация — на усмотрение ИИ</div>
-            {([
-              { state: includeSalonName, set: setIncludeSalonName, label: "Добавить название салона на изображение" },
-              { state: includeLogoText,  set: setIncludeLogoText,  label: "Добавить художественный логотип-символ" },
-            ] as { state: boolean; set: (v: (p: boolean) => boolean) => void; label: string }[]).map(({ state, set, label }) => (
-              <div key={label} onClick={() => !loading && set(p => !p)} style={{ display: "flex", alignItems: "center", gap: 10, cursor: loading ? "default" : "pointer", userSelect: "none" }}>
-                <div style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${state ? "#d97706" : "#ccc"}`, background: state ? "#d97706" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  {state && <Icon name="Check" size={9} style={{ color: "#fff" }} />}
-                </div>
-                <span style={{ fontSize: 12, color: "#78350f" }}>{label}</span>
-              </div>
-            ))}
-            <div style={{ fontSize: 10, color: "#b45309", lineHeight: 1.5, marginTop: 2 }}>
-              ⚠️ ИИ рисует название и логотип по своему усмотрению — результат не будет совпадать с вашим фирменным стилем
-            </div>
-          </div>
-        )}
 
         <div style={{ marginBottom: 18 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
