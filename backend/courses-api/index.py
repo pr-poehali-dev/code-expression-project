@@ -624,11 +624,12 @@ def handle_admin_lesson_photo_add(event, conn):
     s3.put_object(Bucket="files", Key=key, Body=file_bytes, ContentType=mime)
     url = cdn_url(key)
 
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur = conn.cursor()
     cur.execute(
         f"SELECT COALESCE(MAX(sort_order),0)+1 FROM {tbl('lesson_photos')} WHERE lesson_id=%s", (lesson_id,)
     )
     sort_order = cur.fetchone()[0]
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         f"INSERT INTO {tbl('lesson_photos')} (lesson_id,url,sort_order) VALUES (%s,%s,%s) RETURNING id",
         (lesson_id, url, sort_order)
