@@ -47,7 +47,7 @@ export default function LkAcademyHomework({ lessonId, homework }: Props) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a" }}>Домашнее задание</div>
-          <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>Выполни с ИИ-куратором · 2 ⚡ за сообщение</div>
+          <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>Выполни с ИИ-куратором</div>
         </div>
         <Icon name={hwOpen ? "ChevronUp" : "ChevronDown"} size={18} style={{ color: "#aaa" }} />
       </button>
@@ -118,7 +118,7 @@ export default function LkAcademyHomework({ lessonId, homework }: Props) {
             >
               {hwLoading
                 ? <div style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                : <><Icon name="Send" size={14} /> Отправить · 2 ⚡</>
+                : <><Icon name="Send" size={14} /> Отправить</>
               }
             </button>
           </div>

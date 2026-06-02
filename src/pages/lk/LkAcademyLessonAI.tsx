@@ -32,7 +32,7 @@ export default function LkAcademyLessonAI({ lessonId }: Props) {
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
         <Icon name="Bot" size={18} style={{ color: ACCENT }} />
         <span style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a" }}>Задать вопрос по уроку</span>
-        <span style={{ fontSize: 11, color: "#aaa", marginLeft: 4 }}>2 ⚡ за вопрос</span>
+
       </div>
 
       {answer && (
@@ -63,7 +63,7 @@ export default function LkAcademyLessonAI({ lessonId }: Props) {
         >
           {asking
             ? <><div style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> Думаю...</>
-            : <><Icon name="Send" size={14} /> Спросить · 2 ⚡</>
+            : <><Icon name="Send" size={14} /> Спросить</>
           }
         </button>
       </div>
