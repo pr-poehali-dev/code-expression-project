@@ -26,7 +26,9 @@ export default function LkAiImageGen() {
 
   const [prompt, setPrompt]           = useState("");
   const [aspect, setAspect]           = useState("1024x1024");
-  const [useSalonCtx, setUseSalonCtx] = useState(hasSalon);
+  const [useSalonCtx, setUseSalonCtx]       = useState(hasSalon);
+  const [includeLogoText, setIncludeLogoText] = useState(false);
+  const [includeSalonName, setIncludeSalonName] = useState(false);
   const [loading, setLoading]         = useState(false);
   const [imageUrl, setImageUrl]       = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -59,6 +61,8 @@ export default function LkAiImageGen() {
           aspect_ratio: aspect,
           max_images: 1,
           use_salon_context: useSalonCtx,
+          include_logo_text: includeLogoText,
+          include_salon_name: includeSalonName,
         }),
       });
       const data = await res.json();
@@ -121,7 +125,7 @@ export default function LkAiImageGen() {
         {hasSalon && (
           <div
             onClick={() => !loading && setUseSalonCtx(p => !p)}
-            style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 10, background: useSalonCtx ? `hsla(185,85%,32%,0.06)` : "#fff", border: `1.5px solid ${useSalonCtx ? ACCENT : "#E2E8F0"}`, marginBottom: 18, cursor: loading ? "default" : "pointer", userSelect: "none" }}
+            style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 10, background: useSalonCtx ? `hsla(185,85%,32%,0.06)` : "#fff", border: `1.5px solid ${useSalonCtx ? ACCENT : "#E2E8F0"}`, marginBottom: useSalonCtx ? 10 : 18, cursor: loading ? "default" : "pointer", userSelect: "none" }}
           >
             <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${useSalonCtx ? ACCENT : "#ccc"}`, background: useSalonCtx ? ACCENT : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               {useSalonCtx && <Icon name="Check" size={11} style={{ color: "#fff" }} />}
@@ -129,6 +133,26 @@ export default function LkAiImageGen() {
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A" }}>Учитывать контекст салона</div>
               <div style={{ fontSize: 11, color: "#aaa" }}>ИИ добавит данные вашего салона к промпту</div>
+            </div>
+          </div>
+        )}
+
+        {hasSalon && useSalonCtx && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18, padding: "12px 14px", borderRadius: 10, background: "#fffbf0", border: "1.5px solid #fde68a" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", marginBottom: 2 }}>Художественная интерпретация — на усмотрение ИИ</div>
+            {([
+              { state: includeSalonName, set: setIncludeSalonName, label: "Добавить название салона на изображение" },
+              { state: includeLogoText,  set: setIncludeLogoText,  label: "Добавить художественный логотип-символ" },
+            ] as { state: boolean; set: (v: (p: boolean) => boolean) => void; label: string }[]).map(({ state, set, label }) => (
+              <div key={label} onClick={() => !loading && set(p => !p)} style={{ display: "flex", alignItems: "center", gap: 10, cursor: loading ? "default" : "pointer", userSelect: "none" }}>
+                <div style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${state ? "#d97706" : "#ccc"}`, background: state ? "#d97706" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {state && <Icon name="Check" size={9} style={{ color: "#fff" }} />}
+                </div>
+                <span style={{ fontSize: 12, color: "#78350f" }}>{label}</span>
+              </div>
+            ))}
+            <div style={{ fontSize: 10, color: "#b45309", lineHeight: 1.5, marginTop: 2 }}>
+              ⚠️ ИИ рисует название и логотип по своему усмотрению — результат не будет совпадать с вашим фирменным стилем
             </div>
           </div>
         )}

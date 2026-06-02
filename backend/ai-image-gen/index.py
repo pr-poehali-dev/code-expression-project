@@ -229,19 +229,23 @@ def handler(event: dict, context) -> dict:
         deduct_energy(salon_id, user["id"], cost, conn)
 
         use_salon_context = body.get("use_salon_context", False)
+        include_logo_text = body.get("include_logo_text", False)
+        include_salon_name = body.get("include_salon_name", False)
         final_prompt = prompt
         if use_salon_context:
             salon = get_salon_context(user, conn)
             if salon:
                 ctx_parts = []
-                if salon.get("name"):
-                    ctx_parts.append(f"Салон: {salon['name']}")
                 if salon.get("description"):
                     ctx_parts.append(f"О салоне: {salon['description']}")
                 if salon.get("target_audience"):
                     ctx_parts.append(f"Аудитория: {salon['target_audience']}")
                 if salon.get("tone_of_voice"):
                     ctx_parts.append(f"Стиль: {salon['tone_of_voice']}")
+                if include_salon_name and salon.get("name"):
+                    ctx_parts.append(f"На изображении художественно изобразить надпись с названием салона: \"{salon['name']}\" — это интерпретация ИИ, не точное воспроизведение")
+                if include_logo_text:
+                    ctx_parts.append("Добавить художественный логотип-символ в стиле салона красоты в угол изображения — это интерпретация ИИ, не фирменный знак")
                 if ctx_parts:
                     final_prompt = f"{prompt}\n\nКонтекст: {'. '.join(ctx_parts)}"
 
