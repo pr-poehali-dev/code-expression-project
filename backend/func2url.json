@@ -1,4 +1,6 @@
 {
+  "image-start": "https://functions.poehali.dev/c5ff1cc7-1732-48f7-a184-b6aa078d47e2",
+  "image-worker": "https://functions.poehali.dev/29d21b9b-d07b-4dba-8139-a9f5d903a583",
   "courses-api": "https://functions.poehali.dev/3e9572e2-e118-4584-91dd-809cac9fc3ea",
   "ai-salon-audit": "https://functions.poehali.dev/6847fc61-df71-410b-af64-e213c52e7316",
   "ai-image-gen": "https://functions.poehali.dev/4b0ee2e5-a98e-40b8-bb9a-8a11d39d6e5a",

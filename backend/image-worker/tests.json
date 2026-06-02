@@ -1,0 +1,7 @@
+{
+  "tests": [
+    {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+    {"name": "GET без сессии — 401", "method": "GET", "path": "/?job_id=test", "expectedStatus": 401},
+    {"name": "POST без сессии — 401", "method": "POST", "path": "/", "body": {"job_id": "test"}, "expectedStatus": 401}
+  ]
+}
