@@ -158,12 +158,24 @@ def build_image_prompt(salon, group_name: str, keywords: list, has_license: bool
                 "Lifestyle photography, no text."
             )
 
+    people_note = (
+        "People must have Slavic appearance — light to medium skin tone, natural European features. "
+        "If two or more people are present, they must look clearly different from each other: "
+        "vary age, hair color, face shape, style — no identical or similar-looking people. "
+    )
+
+    realism_note = (
+        "Ultra-realistic, shot on Sony A7 III or Canon R5 camera, 85mm lens, shallow depth of field. "
+        "Natural skin texture, authentic emotions, no AI-generated plastic look. "
+        "Magazine-quality commercial photography, cinematic color grading. "
+    )
+
     prompt = (
         f"{scene} "
-        f"Target audience: {target}. "
-        f"Style: {tone}, premium quality, photorealistic. "
-        f"NO text, NO logos, NO watermarks, NO signs. "
-        f"Square format 1:1. High resolution commercial photography."
+        f"{people_note}"
+        f"{realism_note}"
+        f"NO text, NO logos, NO watermarks, NO signs, NO overlays. "
+        f"Square format 1:1."
     )
     return prompt
 
