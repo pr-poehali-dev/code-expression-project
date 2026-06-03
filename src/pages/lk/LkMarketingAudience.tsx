@@ -131,7 +131,8 @@ interface Props {
 }
 
 export default function LkMarketingAudience({ onBack }: Props) {
-  const { session } = useLkAuth();
+  useLkAuth();
+  const sessionId = localStorage.getItem("lk_session") || "";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [portraits, setPortraits] = useState<Portrait[] | null>(null);
@@ -143,7 +144,7 @@ export default function LkMarketingAudience({ onBack }: Props) {
     try {
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Session-Id": session || "" },
+        headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
         body: JSON.stringify({}),
       });
       const data = await res.json();
