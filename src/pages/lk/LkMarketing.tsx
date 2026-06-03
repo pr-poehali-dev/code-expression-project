@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import LkMarketingAudience from "./LkMarketingAudience";
 import LkMarketingOffers from "./LkMarketingOffers";
 import LkMarketingSemantics from "./LkMarketingSemantics";
+import LkMarketingDirect from "./LkMarketingDirect";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -60,9 +61,9 @@ const TOOLS: Tool[] = [
     iconColor: "hsl(25,90%,50%)",
     iconBg: "hsl(25,90%,94%)",
     title: "Объявления для Яндекс.Директ",
-    description: "Готовые тексты объявлений (заголовок 56 символов + текст 81) с прогнозом бюджета через Директ API.",
-    badge: "soon",
-    ready: false,
+    description: "Готовые тексты по требованиям Яндекса: заголовок 1 (≤35), заголовок 2 (≤30), текст (≤81 симв.).",
+    badge: "free",
+    ready: true,
   },
   {
     id: "budget",
@@ -156,9 +157,14 @@ interface AudienceData {
   salonName: string;
 }
 
+interface SemanticGroups {
+  groups: { group: string; service_tag: string; keywords: { query: string; frequency: string; frequency_label: string; intent: string }[] }[];
+}
+
 export default function LkMarketing() {
   const [active, setActive] = useState<string | null>(null);
   const [audienceData, setAudienceData] = useState<AudienceData | null>(null);
+  const [semanticData, setSemanticData] = useState<SemanticGroups | null>(null);
   const activeTool = TOOLS.find(t => t.id === active);
 
   if (active === "audience") {
@@ -185,7 +191,24 @@ export default function LkMarketing() {
   }
 
   if (active === "semantics") {
-    return <LkMarketingSemantics onBack={() => setActive(null)} />;
+    return (
+      <LkMarketingSemantics
+        onBack={() => setActive(null)}
+        onGoToDirect={(groups) => {
+          setSemanticData({ groups });
+          setActive("direct");
+        }}
+      />
+    );
+  }
+
+  if (active === "direct") {
+    return (
+      <LkMarketingDirect
+        onBack={() => setActive(null)}
+        initialGroups={semanticData?.groups}
+      />
+    );
   }
 
   if (activeTool) {

@@ -155,13 +155,16 @@ function KeywordGroupCard({ group, index }: { group: KeywordGroup; index: number
 
 // ── Главный компонент ─────────────────────────────────────────────────────────
 
+interface KeywordGroup { group: string; service_tag: string; keywords: { query: string; frequency: string; frequency_label: string; intent: string }[] }
+
 interface Props {
   onBack: () => void;
+  onGoToDirect?: (groups: KeywordGroup[]) => void;
 }
 
 const CACHE_VERSION = "v2"; // bump при изменении промта
 
-export default function LkMarketingSemantics({ onBack }: Props) {
+export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
   const { user } = useLkAuth();
   const sessionId = localStorage.getItem("lk_session") || "";
   const cacheKey = `mkt_semantics_${CACHE_VERSION}_${user?.salon_id ?? ""}`;
@@ -351,12 +354,22 @@ export default function LkMarketingSemantics({ onBack }: Props) {
           </div>
 
           {/* Следующий шаг */}
-          <div style={{ marginTop: 20, background: "linear-gradient(135deg,hsl(25,90%,50%),hsl(25,90%,38%))", borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14 }}>
-            <Icon name="MousePointerClick" size={22} style={{ color: "#fff", flexShrink: 0 }} />
-            <div>
+          <div
+            onClick={() => onGoToDirect && groups && onGoToDirect(groups)}
+            style={{ marginTop: 20, background: "linear-gradient(135deg,hsl(25,90%,50%),hsl(25,90%,38%))", borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, cursor: onGoToDirect ? "pointer" : "default", transition: "opacity 0.15s" }}
+            onMouseEnter={e => { if (onGoToDirect) e.currentTarget.style.opacity = "0.88"; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
+          >
+            <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 2 }}>Следующий шаг</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Скопируйте запросы и загрузите их в Яндекс.Директ. Инструмент создания объявлений появится в следующем обновлении.</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Создайте готовые объявления для Яндекс.Директ на основе этих запросов.</div>
             </div>
+            {onGoToDirect && (
+              <div style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(255,255,255,0.2)", borderRadius: 9, padding: "8px 14px", flexShrink: 0 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", whiteSpace: "nowrap" }}>Создать объявления</span>
+                <Icon name="ArrowRight" size={14} style={{ color: "#fff" }} />
+              </div>
+            )}
           </div>
         </div>
       )}
