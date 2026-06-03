@@ -13,6 +13,7 @@ import LkEnergy from "./LkEnergy";
 import LkProfile from "./LkProfile";
 import LkSupport from "./LkSupport";
 import LkAcademy from "./LkAcademy";
+import LkClientMsg from "./LkClientMsg";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -20,12 +21,12 @@ const TEAL_BRIGHT = "#2DD4BF";
 const BG = "#F4F6F8";
 
 // ── Типы ──────────────────────────────────────────────────────────────────────
-type Tab = "home" | "tools" | "academy" | "ai" | "shop" | "employees" | "purchases" | "profile" | "salon" | "admin" | "support" | "more";
+type Tab = "home" | "tools" | "academy" | "ai" | "shop" | "employees" | "purchases" | "profile" | "salon" | "admin" | "support" | "more" | "clientmsg";
 
 // ── Доступ по ролям ───────────────────────────────────────────────────────────
 const ROLE_TABS: Record<string, Tab[]> = {
-  owner:          ["home", "tools", "academy", "ai", "shop", "employees", "purchases", "salon", "profile", "support"],
-  admin:          ["home", "tools", "academy", "ai", "profile", "support"],
+  owner:          ["home", "tools", "academy", "ai", "clientmsg", "shop", "employees", "purchases", "salon", "profile", "support"],
+  admin:          ["home", "tools", "academy", "ai", "clientmsg", "profile", "support"],
   master:         ["home", "tools", "academy", "ai", "profile", "support"],
   body_specialist:["home", "tools", "academy", "ai", "profile", "support"],
 };
@@ -47,17 +48,18 @@ const MOBILE_PRIMARY: Record<string, Tab[]> = {
 
 // ── Навигационные пункты ─────────────────────────────────────────────────────
 const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string }[] = [
-  { id: "home",      icon: "Home",          label: "Главная"         },
-  { id: "tools",     icon: "Wrench",        label: "Инструменты"     },
-  { id: "academy",   icon: "GraduationCap", label: "Академия"        },
-  { id: "ai",        icon: "Sparkles",      label: "ИИ-инструменты", badge: "new" },
-  { id: "shop",      icon: "Zap",           label: "Энергия"         },
-  { id: "employees", icon: "Users",         label: "Сотрудники"      },
-  { id: "purchases", icon: "Receipt",       label: "Покупки"         },
-  { id: "salon",     icon: "Building2",     label: "Мой салон"       },
-  { id: "profile",   icon: "UserCircle",    label: "Профиль"         },
-  { id: "support",   icon: "Headphones",    label: "Тех. поддержка" },
-  { id: "admin",     icon: "Settings",      label: "Админка"         },
+  { id: "home",      icon: "Home",           label: "Главная"             },
+  { id: "tools",     icon: "Wrench",         label: "Инструменты"         },
+  { id: "academy",   icon: "GraduationCap",  label: "Академия"            },
+  { id: "ai",        icon: "Sparkles",       label: "ИИ-инструменты",     badge: "new" },
+  { id: "clientmsg", icon: "MessageSquare",  label: "Сообщения клиентам", badge: "new" },
+  { id: "shop",      icon: "Zap",            label: "Энергия"             },
+  { id: "employees", icon: "Users",          label: "Сотрудники"          },
+  { id: "purchases", icon: "Receipt",        label: "Покупки"             },
+  { id: "salon",     icon: "Building2",      label: "Мой салон"           },
+  { id: "profile",   icon: "UserCircle",     label: "Профиль"             },
+  { id: "support",   icon: "Headphones",     label: "Тех. поддержка"      },
+  { id: "admin",     icon: "Settings",       label: "Админка"             },
 ];
 
 // ── Виджет баланса энергии ────────────────────────────────────────────────────
@@ -383,6 +385,7 @@ export default function LkDashboard() {
         {tab === "tools" && <LkTests onNavigate={handleTabChange} />}
         {tab === "academy" && <LkAcademy onNavigate={handleTabChange} />}
         {tab === "ai" && <LkAiTools />}
+        {tab === "clientmsg" && <LkClientMsg />}
         {tab === "shop" && <LkEnergy />}
         {tab === "employees" && <LkTeam />}
         {tab === "purchases" && <LkEnergy />}
