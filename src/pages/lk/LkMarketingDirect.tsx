@@ -148,14 +148,13 @@ function ImageGenButton({ groupName, keywords }: { groupName: string; keywords: 
       if (!prepRes.ok) throw new Error(prepData.error || "Ошибка подготовки");
 
       const prompt = prepData.prompt;
-      const internalToken = prepData.internal_token || "";
       setState("generating");
 
-      // Шаг 2: генерируем картинку через ai-image-gen (до 300с, без доп. списания)
+      // Шаг 2: генерируем картинку через ai-image-gen (до 300с), списывает 5 ⚡
       const genRes = await fetch(IMAGE_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
-        body: JSON.stringify({ prompt, aspect_ratio: "1024x1024", use_salon_context: false, internal_token: internalToken }),
+        body: JSON.stringify({ prompt, aspect_ratio: "1024x1024", use_salon_context: false }),
       });
       const genData = await genRes.json();
       if (!genRes.ok) throw new Error(genData.error || "Ошибка генерации");
@@ -183,7 +182,7 @@ function ImageGenButton({ groupName, keywords }: { groupName: string; keywords: 
           <button onClick={generate}
             style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1px solid #E8ECF0", borderRadius: 7, padding: "6px 10px", fontSize: 11, fontWeight: 600, color: "#64748B", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
             <Icon name="RefreshCw" size={11} />
-            Ещё вариант (−10 ⚡)
+            Ещё вариант (−5 ⚡)
           </button>
         </div>
       </div>
@@ -196,14 +195,14 @@ function ImageGenButton({ groupName, keywords }: { groupName: string; keywords: 
         <div style={{ display: "flex", alignItems: "center", gap: 10, background: "hsl(280,60%,97%)", borderRadius: 10, padding: "12px 16px", border: "1px solid hsl(280,60%,88%)" }}>
           <Icon name="Loader2" size={16} style={{ color: "hsl(280,60%,52%)", animation: "spin 1s linear infinite" }} />
           <span style={{ fontSize: 13, color: "hsl(280,60%,40%)", fontWeight: 600 }}>
-            {state === "preparing" ? "Подготовка… списываю 10 ⚡" : "Генерирую изображение… ~30–60 сек"}
+            {state === "preparing" ? "Подготовка…" : "Генерирую изображение… ~30–60 сек"}
           </span>
         </div>
       ) : (
         <button onClick={generate}
           style={{ display: "flex", alignItems: "center", gap: 8, background: "hsl(280,60%,97%)", border: "1.5px dashed hsl(280,60%,75%)", borderRadius: 10, padding: "11px 18px", fontSize: 13, fontWeight: 700, color: "hsl(280,60%,45%)", cursor: "pointer", fontFamily: "Montserrat,sans-serif", width: "100%" }}>
           <Icon name="ImagePlus" size={16} />
-          Сгенерировать рекламное изображение 1024×1024 — 10 ⚡
+          Сгенерировать рекламное изображение 1024×1024 — 5 ⚡
         </button>
       )}
       {state === "error" && (

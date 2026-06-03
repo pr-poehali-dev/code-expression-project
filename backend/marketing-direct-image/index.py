@@ -241,14 +241,9 @@ def handler(event: dict, context) -> dict:
             return err("Салон не найден", 404)
 
         has_license = bool(salon.get("has_medical_license"))
-        cost = get_tool_cost(conn)
-        ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, conn)
-        if not ok_deduct:
-            return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
-
         prompt = build_image_prompt(salon, group_name, keywords, has_license)
     finally:
         conn.close()
 
-    # Возвращаем промт + внутренний токен, чтобы ai-image-gen не списал энергию повторно
-    return ok({"prompt": prompt, "energy_spent": cost, "internal_token": os.environ.get("ADMIN_TOKEN", "")})
+    # Возвращаем только промт — энергию (5 ⚡) спишет ai-image-gen
+    return ok({"prompt": prompt})
