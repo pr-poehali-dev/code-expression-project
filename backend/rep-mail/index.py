@@ -91,7 +91,7 @@ def build_html_email(to_name: str, subject: str, body_html: str, sender_name: st
         <!-- Кнопка CTA -->
         <tr>
           <td style="background:#ffffff;padding:0 40px 40px;text-align:center;">
-            <a href="{SITE_URL}/dlya-salonov"
+            <a href="{SITE_URL}"
                style="display:inline-block;background:#1a7a74;color:#ffffff;text-decoration:none;
                       padding:14px 36px;border-radius:10px;font-size:15px;font-weight:600;
                       letter-spacing:0.3px;">
