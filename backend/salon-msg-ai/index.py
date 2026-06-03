@@ -63,8 +63,7 @@ def get_tool_cost(conn) -> int:
 def get_salon_balance(salon_id, conn) -> int:
     cur = conn.cursor()
     cur.execute(
-        f"SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount ELSE -amount END), 0) "
-        f"FROM {SCHEMA}.credit_transactions WHERE salon_id = %s", (salon_id,)
+        f"SELECT COALESCE(credits_balance, 0) FROM {SCHEMA}.salons WHERE id = %s", (salon_id,)
     )
     return cur.fetchone()[0]
 
