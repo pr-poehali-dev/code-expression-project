@@ -180,6 +180,53 @@ function HomeTab({ onNav, role, hasSalon }: { onNav: (t: Tab) => void; role: str
         ))}
       </div>
 
+      {/* Плашка — Сообщения клиентам */}
+      {hasSalon && (role === "owner" || role === "admin") && (
+        <div style={{ marginTop: 20, background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", overflow: "hidden", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
+          <div style={{ padding: "16px 20px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "hsl(185,85%,95%)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name="MessageSquare" size={18} style={{ color: ACCENT }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", lineHeight: 1.3 }}>Сообщения клиентам</div>
+                <div style={{ fontSize: 11, color: "#94A3B8" }}>Выберите тип — ИИ напишет текст за секунды · 1 ⚡</div>
+              </div>
+            </div>
+            <button onClick={() => onNav("clientmsg")} style={{ fontSize: 12, fontWeight: 600, color: ACCENT, background: "hsl(185,85%,95%)", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}>
+              Все типы →
+            </button>
+          </div>
+          <div style={{ display: "flex", gap: 0, borderTop: "1px solid #F1F5F9", overflowX: "auto" }}>
+            {[
+              { id: "appointment_reminder", icon: "CalendarCheck", label: "Запись",       color: "hsl(185,85%,32%)" },
+              { id: "win_back",             icon: "UserCheck",     label: "Вернуть",       color: "hsl(280,60%,55%)" },
+              { id: "new_service",          icon: "Sparkles",      label: "Акция",         color: "hsl(40,90%,50%)"  },
+              { id: "birthday",             icon: "Gift",          label: "День рождения", color: "hsl(340,80%,55%)" },
+              { id: "review_request",       icon: "Star",          label: "Отзыв",         color: "hsl(45,95%,45%)"  },
+              { id: "seasonal",             icon: "Sun",           label: "Сезон",         color: "hsl(145,60%,40%)" },
+            ].map((t, i, arr) => (
+              <button
+                key={t.id}
+                onClick={() => onNav("clientmsg")}
+                style={{
+                  flex: "1 0 auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+                  padding: "12px 8px", border: "none",
+                  borderRight: i < arr.length - 1 ? "1px solid #F1F5F9" : "none",
+                  background: "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif",
+                  transition: "background 0.15s",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = "#F8FAFC")}
+                onMouseLeave={e => (e.currentTarget.style.background = "#fff")}
+              >
+                <Icon name={t.icon} size={18} style={{ color: t.color }} />
+                <span style={{ fontSize: 10, fontWeight: 600, color: "#64748B", whiteSpace: "nowrap" }}>{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Новости платформы */}
       <div style={{ marginTop: 32, background: "#fff", borderRadius: 16, padding: "22px 24px", border: "1px solid #E8ECF0", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>Новости платформы</div>
