@@ -128,7 +128,7 @@ function AdPreview({ ad, idx, salonName }: { ad: Ad; idx: number; salonName: str
 const PREPARE_API_URL = "https://functions.poehali.dev/7ada2f96-7236-4d93-8146-fdc7b9ed7dca";
 
 // ── Кнопка генерации картинки ─────────────────────────────────────────────────
-function ImageGenButton({ groupName, keywords }: { groupName: string; keywords: string[] }) {
+function ImageGenButton({ groupName, keywords, ads }: { groupName: string; keywords: string[]; ads: Ad[] }) {
   const [state, setState] = useState<"idle" | "preparing" | "generating" | "done" | "error">("idle");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [errMsg, setErrMsg] = useState("");
@@ -142,7 +142,11 @@ function ImageGenButton({ groupName, keywords }: { groupName: string; keywords: 
       const prepRes = await fetch(PREPARE_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
-        body: JSON.stringify({ group_name: groupName, keywords }),
+        body: JSON.stringify({
+          group_name: groupName,
+          keywords,
+          ads: ads.map(a => ({ title1: a.title1, title2: a.title2, text: a.text })),
+        }),
       });
       const prepData = await prepRes.json();
       if (!prepRes.ok) throw new Error(prepData.error || "Ошибка подготовки");
@@ -242,7 +246,7 @@ function AdGroupCard({ group, index, salonName, sourceKeywords }: { group: AdGro
               <AdPreview key={i} ad={ad} idx={i} salonName={salonName} />
             ))}
           </div>
-          <ImageGenButton groupName={group.group} keywords={sourceKeywords} />
+          <ImageGenButton groupName={group.group} keywords={sourceKeywords} ads={group.ads} />
         </div>
       )}
     </div>

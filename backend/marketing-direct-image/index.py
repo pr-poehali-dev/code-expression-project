@@ -114,61 +114,66 @@ def is_medical_group(group_name: str, keywords: list) -> bool:
     return any(kw in text for kw in MEDICAL_KEYWORDS)
 
 
-def build_image_prompt(salon, group_name: str, keywords: list, has_license: bool) -> str:
+def build_scene_via_ai(salon_name: str, group_name: str, keywords: list, ads: list, has_license: bool, city: str) -> str:
+    """Вызывает ИИ для анализа контента и генерации описания сцены."""
+    keywords_text = ", ".join(keywords[:8]) if keywords else "нет"
+    ads_text = ""
+    for i, ad in enumerate(ads[:2], 1):
+        ads_text += f"  Объявление {i}: «{ad.get('title1', '')} | {ad.get('title2', '')}» — {ad.get('text', '')}\n"
+
+    med_rule = ""
+    if not has_license:
+        med_rule = (
+            "ВАЖНО: нет медицинской лицензии. "
+            "Запрещено изображать медицинское оборудование, процедуры, клинические условия. "
+            "Только wellness/lifestyle: расслабление, уют, красота, здоровый образ жизни."
+        )
+
+    system_prompt = (
+        "Ты — профессиональный арт-директор рекламной фотографии. "
+        "Анализируешь рекламные объявления и ключевые запросы, и описываешь идеальную фотосцену "
+        "для рекламного баннера. Отвечаешь только кратким описанием сцены на английском языке, "
+        "без лишних слов, 2-4 предложения."
+    )
+
+    user_prompt = f"""Салон: «{salon_name}» ({city or 'Россия'})
+Группа объявлений: {group_name}
+Ключевые запросы: {keywords_text}
+Объявления:
+{ads_text}
+{med_rule}
+
+Опиши конкретную фотосцену для рекламного баннера, которая точно соответствует теме этих объявлений и запросов.
+Сцена должна быть конкретной (не абстрактной), lifestyle-формата, без текста и логотипов."""
+
+    api_key = os.environ.get("POLZA_AI_API_KEY", "")
+    payload = json.dumps({
+        "model": "openai/gpt-4.1-mini",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        "temperature": 0.7,
+        "max_tokens": 300,
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        "https://polza.ai/api/v1/chat/completions",
+        data=payload,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+    return data["choices"][0]["message"]["content"].strip()
+
+
+def build_image_prompt(salon, group_name: str, keywords: list, ads: list, has_license: bool) -> str:
     city = salon.get("city") or ""
-    tone = salon.get("tone_of_voice") or "элегантный"
     target = salon.get("target_audience") or "женщины 25-45 лет"
+    salon_name = salon.get("name") or "салон"
 
-    medical = is_medical_group(group_name, keywords)
-
-    if medical and not has_license:
-        # Wellness без медицинского контекста
-        scene = (
-            "A happy, radiant woman relaxing in a cozy, elegant wellness space. "
-            "She looks serene and refreshed, wearing comfortable clothes. "
-            "Soft natural lighting, warm tones, modern interior. "
-            "No medical equipment, no clinical setting. Lifestyle photo."
-        )
-    elif medical and has_license:
-        # Профессиональная медицинская обстановка допустима
-        scene = (
-            "A professional wellness specialist working in a clean, modern treatment room. "
-            "Client looks relaxed and comfortable. Soft professional lighting. "
-            "Clean, premium medical-spa aesthetic."
-        )
-    else:
-        # Beauty/salon сцена по теме группы
-        group_lower = group_name.lower()
-        if any(w in group_lower for w in ["маникюр", "ногт", "nail"]):
-            scene = "Close-up of beautiful well-manicured hands with elegant nail design. Soft pastel background, natural light."
-        elif any(w in group_lower for w in ["стрижк", "волос", "hair", "укладк"]):
-            scene = "A woman with beautiful, flowing healthy hair in a stylish salon. Warm lighting, modern interior, lifestyle photo."
-        elif any(w in group_lower for w in ["брови", "ресниц", "lash", "brow"]):
-            scene = "Close-up of a woman's face with perfect brows and lashes. Clean, minimal aesthetic, soft lighting."
-        elif any(w in group_lower for w in ["косметолог", "уход", "лиц", "face"]):
-            scene = "A woman with glowing, healthy skin enjoying a facial care routine. Elegant spa atmosphere, soft candlelight."
-        elif any(w in group_lower for w in ["массаж", "relax", "spa", "спа"]):
-            scene = "A woman looking deeply relaxed during a spa treatment. Serene atmosphere, natural elements, warm ambient lighting."
-        elif any(w in group_lower for w in ["обертыван", "body", "тело"]):
-            scene = "Wellness body care concept — elegant spa products, towels, flowers arranged beautifully. Lifestyle flat lay."
-        else:
-            scene = (
-                f"An elegant beauty salon interior in {city or 'a modern city'}. "
-                "Happy female client being pampered. Warm, welcoming atmosphere, upscale design. "
-                "Lifestyle photography, no text."
-            )
-
-    people_note = (
-        "People must have Slavic appearance — light to medium skin tone, natural European features. "
-        "If two or more people are present, they must look clearly different from each other: "
-        "vary age, hair color, face shape, style — no identical or similar-looking people. "
-    )
-
-    realism_note = (
-        "Ultra-realistic, shot on Sony A7 III or Canon R5 camera, 85mm lens, shallow depth of field. "
-        "Natural skin texture, authentic emotions, no AI-generated plastic look. "
-        "Magazine-quality commercial photography, cinematic color grading. "
-    )
+    # ИИ анализирует ключевые слова + объявления и описывает точную сцену
+    scene = build_scene_via_ai(salon_name, group_name, keywords, ads, has_license, city)
 
     prompt = (
         f"{scene} "
@@ -233,6 +238,7 @@ def handler(event: dict, context) -> dict:
         body = json.loads(event.get("body") or "{}")
         group_name = (body.get("group_name") or "").strip()
         keywords = body.get("keywords") or []
+        ads = body.get("ads") or []  # тексты объявлений для точного анализа
         if not group_name:
             return err("Укажите название группы (group_name)")
 
@@ -241,9 +247,11 @@ def handler(event: dict, context) -> dict:
             return err("Салон не найден", 404)
 
         has_license = bool(salon.get("has_medical_license"))
-        prompt = build_image_prompt(salon, group_name, keywords, has_license)
     finally:
         conn.close()
+
+    # Строим промт через ИИ (анализ ключей + объявлений) — вне блока with conn
+    prompt = build_image_prompt(salon, group_name, keywords, ads, has_license)
 
     # Возвращаем только промт — энергию (5 ⚡) спишет ai-image-gen
     return ok({"prompt": prompt})
