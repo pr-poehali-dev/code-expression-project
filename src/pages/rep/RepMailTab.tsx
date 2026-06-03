@@ -118,7 +118,35 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
 
       {/* ── База салонов ── */}
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e8e4", padding: "16px 18px" }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: "#888", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.5px" }}>База салонов (CSV)</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>База салонов</div>
+          <button
+            onClick={() => {
+              const csv = "Название салона;Email\nСалон Ромашка;romashka@mail.ru\nСтудия Style;style@gmail.com\n";
+              const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a"); a.href = url; a.download = "шаблон_салоны.csv"; a.click();
+              URL.revokeObjectURL(url);
+            }}
+            style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: ACCENT, background: ACCENT_LIGHT, border: "none", borderRadius: 6, padding: "5px 10px", cursor: "pointer", fontFamily: "Montserrat, sans-serif" }}
+          >
+            <Icon name="Download" size={12} />
+            Скачать шаблон
+          </button>
+        </div>
+
+        {/* Пример формата */}
+        <div style={{ background: "#f8f8f6", borderRadius: 8, padding: "10px 14px", marginBottom: 12, fontSize: 12 }}>
+          <div style={{ fontWeight: 600, color: "#555", marginBottom: 6 }}>Как подготовить файл:</div>
+          <div style={{ color: "#777", lineHeight: 1.7 }}>
+            Создайте таблицу Excel или Google Таблицы с двумя колонками: <strong>первая — название салона</strong>, <strong>вторая — email</strong>. Сохраните как CSV (Файл → Сохранить как → CSV). Разделитель — запятая или точка с запятой, оба варианта работают.
+          </div>
+          <div style={{ marginTop: 8, fontFamily: "monospace", fontSize: 11, color: "#aaa", background: "#fff", borderRadius: 6, padding: "6px 10px", border: "1px solid #eee" }}>
+            Название салона;Email<br />
+            Салон Ромашка;romashka@mail.ru<br />
+            Студия Style;style@gmail.com
+          </div>
+        </div>
 
         {contacts.length === 0 ? (
           <div
@@ -131,8 +159,8 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
             }}
           >
             <Icon name="Upload" size={22} style={{ color: ACCENT, marginBottom: 8 }} />
-            <div style={{ fontSize: 13, color: "#666", marginBottom: 4 }}>Перетащите CSV-файл или нажмите для выбора</div>
-            <div style={{ fontSize: 11, color: "#aaa" }}>Формат: Название салона, Email (через запятую или точку с запятой)</div>
+            <div style={{ fontSize: 13, color: "#666", marginBottom: 4 }}>Перетащите файл сюда или нажмите для выбора</div>
+            <div style={{ fontSize: 11, color: "#aaa" }}>Поддерживаются файлы .csv и .txt</div>
             {fileError && <div style={{ marginTop: 10, fontSize: 12, color: "#c00" }}>{fileError}</div>}
           </div>
         ) : (
