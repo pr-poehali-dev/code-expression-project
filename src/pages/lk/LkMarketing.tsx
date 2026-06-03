@@ -2,6 +2,7 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import LkMarketingAudience from "./LkMarketingAudience";
 import LkMarketingOffers from "./LkMarketingOffers";
+import LkMarketingSemantics from "./LkMarketingSemantics";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -51,7 +52,7 @@ const TOOLS: Tool[] = [
     title: "Семантическое ядро",
     description: "Список поисковых запросов для Яндекс.Директ под ваши услуги — высокочастотные, средние, низкочастотные.",
     badge: "free",
-    ready: false,
+    ready: true,
   },
   {
     id: "direct",
@@ -180,6 +181,10 @@ export default function LkMarketing() {
         initialSalonName={audienceData?.salonName}
       />
     );
+  }
+
+  if (active === "semantics") {
+    return <LkMarketingSemantics onBack={() => setActive(null)} />;
   }
 
   if (activeTool) {
