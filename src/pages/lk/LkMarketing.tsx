@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
+import LkMarketingAudience from "./LkMarketingAudience";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -29,7 +30,7 @@ const TOOLS: Tool[] = [
     title: "Портрет целевой аудитории",
     description: "ИИ анализирует ваши услуги и создаёт детальные портреты ЦА с болями, мотивацией и каналами охвата.",
     badge: "free",
-    ready: false,
+    ready: true,
   },
   {
     id: "offers",
@@ -151,6 +152,10 @@ function ComingSoonPlaceholder({ tool, onBack }: { tool: Tool; onBack: () => voi
 export default function LkMarketing() {
   const [active, setActive] = useState<string | null>(null);
   const activeTool = TOOLS.find(t => t.id === active);
+
+  if (active === "audience") {
+    return <LkMarketingAudience onBack={() => setActive(null)} />;
+  }
 
   if (activeTool) {
     return <ComingSoonPlaceholder tool={activeTool} onBack={() => setActive(null)} />;
