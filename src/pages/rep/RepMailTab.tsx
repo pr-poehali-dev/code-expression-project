@@ -137,14 +137,21 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
 
         {/* Пример формата */}
         <div style={{ background: "#f8f8f6", borderRadius: 8, padding: "10px 14px", marginBottom: 12, fontSize: 12 }}>
-          <div style={{ fontWeight: 600, color: "#555", marginBottom: 6 }}>Как подготовить файл:</div>
-          <div style={{ color: "#777", lineHeight: 1.7 }}>
-            Создайте таблицу Excel или Google Таблицы с двумя колонками: <strong>первая — название салона</strong>, <strong>вторая — email</strong>. Сохраните как CSV (Файл → Сохранить как → CSV). Разделитель — запятая или точка с запятой, оба варианта работают.
+          <div style={{ fontWeight: 600, color: "#555", marginBottom: 8 }}>Как подготовить файл:</div>
+          <div style={{ color: "#777", lineHeight: 1.7, marginBottom: 10 }}>
+            Откройте Excel или Google Таблицы. В колонке A — название салона, в колонке B — email. Никаких разделителей не нужно — просто две колонки. Затем сохраните как CSV (Файл → Скачать → CSV).
           </div>
-          <div style={{ marginTop: 8, fontFamily: "monospace", fontSize: 11, color: "#aaa", background: "#fff", borderRadius: 6, padding: "6px 10px", border: "1px solid #eee" }}>
-            Название салона;Email<br />
-            Салон Ромашка;romashka@mail.ru<br />
-            Студия Style;style@gmail.com
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "#e8e8e4", borderRadius: 6, overflow: "hidden", border: "1px solid #e8e8e4" }}>
+            {[
+              { a: "A", b: "B", header: true },
+              { a: "Салон Ромашка", b: "romashka@mail.ru", header: false },
+              { a: "Студия Style", b: "style@gmail.com", header: false },
+            ].map((row, i) => (
+              <>
+                <div key={`a${i}`} style={{ background: row.header ? "#eee" : "#fff", padding: "5px 10px", fontSize: 11, fontWeight: row.header ? 700 : 400, color: row.header ? "#888" : "#333", fontFamily: "monospace" }}>{row.a}</div>
+                <div key={`b${i}`} style={{ background: row.header ? "#eee" : "#fff", padding: "5px 10px", fontSize: 11, fontWeight: row.header ? 700 : 400, color: row.header ? "#888" : "#555", fontFamily: "monospace" }}>{row.b}</div>
+              </>
+            ))}
           </div>
         </div>
 
