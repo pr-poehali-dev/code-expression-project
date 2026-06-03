@@ -179,6 +179,7 @@ export default function LkMarketing() {
         onBack={() => setActive(null)}
         initialPortraits={audienceData?.portraits}
         initialSalonName={audienceData?.salonName}
+        onGoToSemantics={() => setActive("semantics")}
       />
     );
   }

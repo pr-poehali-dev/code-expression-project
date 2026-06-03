@@ -168,9 +168,10 @@ interface Props {
   onBack: () => void;
   initialPortraits?: Portrait[];
   initialSalonName?: string;
+  onGoToSemantics?: () => void;
 }
 
-export default function LkMarketingOffers({ onBack, initialPortraits, initialSalonName }: Props) {
+export default function LkMarketingOffers({ onBack, initialPortraits, initialSalonName, onGoToSemantics }: Props) {
   const { user } = useLkAuth();
   const sessionId = localStorage.getItem("lk_session") || "";
   const cacheKey = `mkt_offers_${user?.salon_id ?? ""}`;
@@ -352,12 +353,22 @@ export default function LkMarketingOffers({ onBack, initialPortraits, initialSal
           </div>
 
           {/* Следующий шаг */}
-          <div style={{ marginTop: 24, background: "linear-gradient(135deg,hsl(145,60%,38%),hsl(145,60%,28%))", borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14 }}>
-            <Icon name="ArrowRight" size={20} style={{ color: "#fff", flexShrink: 0 }} />
-            <div>
+          <div
+            onClick={() => onGoToSemantics && onGoToSemantics()}
+            style={{ marginTop: 24, background: "linear-gradient(135deg,hsl(145,60%,38%),hsl(145,60%,28%))", borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, cursor: onGoToSemantics ? "pointer" : "default", transition: "opacity 0.15s" }}
+            onMouseEnter={e => { if (onGoToSemantics) e.currentTarget.style.opacity = "0.88"; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
+          >
+            <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 2 }}>Следующий шаг</div>
               <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)" }}>Перейдите в «Семантическое ядро» — ИИ подберёт поисковые запросы для продвижения этих офферов в Яндекс.Директ.</div>
             </div>
+            {onGoToSemantics && (
+              <div style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(255,255,255,0.2)", borderRadius: 9, padding: "8px 14px", flexShrink: 0 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", whiteSpace: "nowrap" }}>Открыть семантику</span>
+                <Icon name="ArrowRight" size={14} style={{ color: "#fff" }} />
+              </div>
+            )}
           </div>
         </div>
       )}
