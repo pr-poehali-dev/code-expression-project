@@ -4,6 +4,27 @@ import Icon from "@/components/ui/icon";
 const ACCENT = "hsl(185,85%,32%)";
 const API_URL = "https://functions.poehali.dev/00357dca-9825-4cc7-9c1c-eb32b635afc4";
 
+function copyToClipboard(text: string): boolean {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
+    const el = document.createElement("textarea");
+    el.value = text;
+    el.style.position = "fixed";
+    el.style.left = "-9999px";
+    el.style.top = "-9999px";
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 interface Keyword {
   query: string;
   frequency: "high" | "medium" | "low";
@@ -66,14 +87,14 @@ function KeywordGroupCard({ group, index }: { group: KeywordGroup; index: number
   const [allCopied, setAllCopied] = useState(false);
 
   const handleCopy = (idx: number, text: string) => {
-    navigator.clipboard.writeText(text).catch(() => {});
+    copyToClipboard(text);
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 1800);
   };
 
   const handleCopyAll = () => {
     const text = group.keywords.map(k => k.query).join("\n");
-    navigator.clipboard.writeText(text).catch(() => {});
+    copyToClipboard(text);
     setAllCopied(true);
     setTimeout(() => setAllCopied(false), 2000);
   };
@@ -176,7 +197,7 @@ export default function LkMarketingSemantics({ onBack }: Props) {
 
   const handleCopyAll = () => {
     const text = (groups ?? []).flatMap(g => g.keywords.map(k => k.query)).join("\n");
-    navigator.clipboard.writeText(text).catch(() => {});
+    copyToClipboard(text);
     setCopiedAll(true);
     setTimeout(() => setCopiedAll(false), 2000);
   };

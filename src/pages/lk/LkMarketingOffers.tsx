@@ -5,6 +5,24 @@ import LkMarketingAudience from "./LkMarketingAudience";
 const ACCENT = "hsl(185,85%,32%)";
 const API_URL = "https://functions.poehali.dev/62a82e41-522d-46c2-902b-4caeb0e47880";
 
+function copyToClipboard(text: string) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).catch(() => {});
+    }
+    const el = document.createElement("textarea");
+    el.value = text;
+    el.style.position = "fixed";
+    el.style.left = "-9999px";
+    el.style.top = "-9999px";
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
+  } catch { /* ignore */ }
+}
+
 // ── Типы ─────────────────────────────────────────────────────────────────────
 
 interface Portrait {
@@ -99,7 +117,7 @@ function SegmentOffersCard({ segment, index }: { segment: SegmentOffers; index: 
   const col = SEGMENT_COLORS[index % SEGMENT_COLORS.length];
 
   const handleCopy = (key: string, text: string) => {
-    navigator.clipboard.writeText(text).catch(() => {});
+    copyToClipboard(text);
     setCopiedKey(key);
     setTimeout(() => setCopiedKey(null), 2000);
   };
