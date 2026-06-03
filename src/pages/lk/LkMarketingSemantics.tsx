@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+import { useLkAuth } from "@/contexts/LkAuthContext";
 
 const ACCENT = "hsl(185,85%,32%)";
 const API_URL = "https://functions.poehali.dev/00357dca-9825-4cc7-9c1c-eb32b635afc4";
@@ -159,13 +160,35 @@ interface Props {
 }
 
 export default function LkMarketingSemantics({ onBack }: Props) {
+  const { user } = useLkAuth();
   const sessionId = localStorage.getItem("lk_session") || "";
+  const cacheKey = `mkt_semantics_${user?.salon_id ?? ""}`;
+
+  const loadCache = () => {
+    try {
+      const raw = localStorage.getItem(cacheKey);
+      if (raw) return JSON.parse(raw) as { groups: KeywordGroup[]; salonName: string };
+    } catch { /* ignore */ }
+    return null;
+  };
+
+  const cached = loadCache();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [groups, setGroups] = useState<KeywordGroup[] | null>(null);
-  const [salonName, setSalonName] = useState("");
+  const [groups, setGroups] = useState<KeywordGroup[] | null>(cached?.groups ?? null);
+  const [salonName, setSalonName] = useState(cached?.salonName ?? "");
   const [filter, setFilter] = useState<string>("all");
   const [copiedAll, setCopiedAll] = useState(false);
+
+  const saveCache = (g: KeywordGroup[], name: string) => {
+    try { localStorage.setItem(cacheKey, JSON.stringify({ groups: g, salonName: name })); } catch { /* ignore */ }
+  };
+
+  const resetCache = () => {
+    localStorage.removeItem(cacheKey);
+    setGroups(null);
+    setSalonName("");
+  };
 
   const generate = async () => {
     setLoading(true);
@@ -180,6 +203,7 @@ export default function LkMarketingSemantics({ onBack }: Props) {
       if (!res.ok) throw new Error(data.error || "Ошибка генерации");
       setGroups(data.groups);
       setSalonName(data.salon_name || "");
+      saveCache(data.groups, data.salon_name || "");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка");
     } finally {
@@ -187,8 +211,8 @@ export default function LkMarketingSemantics({ onBack }: Props) {
     }
   };
 
-  // Автозапуск при открытии
-  useEffect(() => { generate(); }, []);
+  // Автозапуск только если нет кэша
+  useEffect(() => { if (!cached) generate(); }, []);
 
   const allKeywords = groups?.flatMap(g => g.keywords) ?? [];
   const filteredGroups = filter === "all"
@@ -270,6 +294,13 @@ export default function LkMarketingSemantics({ onBack }: Props) {
               >
                 <Icon name="RefreshCw" size={13} />
                 Обновить
+              </button>
+              <button
+                onClick={resetCache}
+                style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1.5px solid #E8ECF0", borderRadius: 8, padding: "7px 12px", fontSize: 12, fontWeight: 600, color: "#94A3B8", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+              >
+                <Icon name="Trash2" size={13} />
+                Сбросить
               </button>
             </div>
           </div>

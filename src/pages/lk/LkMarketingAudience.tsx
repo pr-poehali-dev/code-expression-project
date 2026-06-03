@@ -133,12 +133,33 @@ interface Props {
 }
 
 export default function LkMarketingAudience({ onBack, onPortraitsReady, onGoToOffers }: Props) {
-  useLkAuth();
+  const { user } = useLkAuth();
   const sessionId = localStorage.getItem("lk_session") || "";
+  const cacheKey = `mkt_audience_${user?.salon_id ?? ""}`;
+
+  const loadCache = () => {
+    try {
+      const raw = localStorage.getItem(cacheKey);
+      if (raw) return JSON.parse(raw) as { portraits: Portrait[]; salonName: string };
+    } catch { /* ignore */ }
+    return null;
+  };
+
+  const cached = loadCache();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [portraits, setPortraits] = useState<Portrait[] | null>(null);
-  const [salonName, setSalonName] = useState("");
+  const [portraits, setPortraits] = useState<Portrait[] | null>(cached?.portraits ?? null);
+  const [salonName, setSalonName] = useState(cached?.salonName ?? "");
+
+  const saveCache = (p: Portrait[], name: string) => {
+    try { localStorage.setItem(cacheKey, JSON.stringify({ portraits: p, salonName: name })); } catch { /* ignore */ }
+  };
+
+  const resetCache = () => {
+    localStorage.removeItem(cacheKey);
+    setPortraits(null);
+    setSalonName("");
+  };
 
   const generate = async () => {
     setLoading(true);
@@ -153,6 +174,7 @@ export default function LkMarketingAudience({ onBack, onPortraitsReady, onGoToOf
       if (!res.ok) throw new Error(data.error || "Ошибка генерации");
       setPortraits(data.portraits);
       setSalonName(data.salon_name || "");
+      saveCache(data.portraits, data.salon_name || "");
       if (onPortraitsReady) onPortraitsReady(data.portraits, data.salon_name || "");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка");
@@ -219,16 +241,26 @@ export default function LkMarketingAudience({ onBack, onPortraitsReady, onGoToOf
             <div style={{ fontSize: 13, color: "#64748B" }}>
               <span style={{ fontWeight: 700, color: "#0F172A" }}>3 портрета ЦА</span> для «{salonName}»
             </div>
-            <button
-              onClick={generate}
-              disabled={loading}
-              style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: `1.5px solid ${ACCENT}`, borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 700, color: ACCENT, cursor: loading ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif" }}
-            >
-              {loading
-                ? <><Icon name="Loader2" size={13} style={{ animation: "spin 1s linear infinite" }} />Обновляю...</>
-                : <><Icon name="RefreshCw" size={13} />Сгенерировать заново</>
-              }
-            </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={generate}
+                disabled={loading}
+                style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: `1.5px solid ${ACCENT}`, borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 700, color: ACCENT, cursor: loading ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif" }}
+              >
+                {loading
+                  ? <><Icon name="Loader2" size={13} style={{ animation: "spin 1s linear infinite" }} />Обновляю...</>
+                  : <><Icon name="RefreshCw" size={13} />Сгенерировать заново</>
+                }
+              </button>
+              <button
+                onClick={resetCache}
+                title="Сбросить сохранённый результат"
+                style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1.5px solid #E8ECF0", borderRadius: 8, padding: "7px 12px", fontSize: 12, fontWeight: 600, color: "#94A3B8", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+              >
+                <Icon name="Trash2" size={13} />
+                Сбросить
+              </button>
+            </div>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

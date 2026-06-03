@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import LkMarketingAudience from "./LkMarketingAudience";
+import { useLkAuth } from "@/contexts/LkAuthContext";
 
 const ACCENT = "hsl(185,85%,32%)";
 const API_URL = "https://functions.poehali.dev/62a82e41-522d-46c2-902b-4caeb0e47880";
@@ -170,15 +171,36 @@ interface Props {
 }
 
 export default function LkMarketingOffers({ onBack, initialPortraits, initialSalonName }: Props) {
-  const [step, setStep] = useState<"choose" | "loading" | "result">("choose");
+  const { user } = useLkAuth();
+  const sessionId = localStorage.getItem("lk_session") || "";
+  const cacheKey = `mkt_offers_${user?.salon_id ?? ""}`;
+
+  const loadCache = () => {
+    try {
+      const raw = localStorage.getItem(cacheKey);
+      if (raw) return JSON.parse(raw) as { offers: SegmentOffers[]; salonName: string };
+    } catch { /* ignore */ }
+    return null;
+  };
+
+  const cached = loadCache();
+  const [step, setStep] = useState<"choose" | "loading" | "result">(cached ? "result" : "choose");
   const [portraits, setPortraits] = useState<Portrait[] | null>(initialPortraits || null);
-  const [offers, setOffers] = useState<SegmentOffers[] | null>(null);
-  const [salonName, setSalonName] = useState(initialSalonName || "");
+  const [offers, setOffers] = useState<SegmentOffers[] | null>(cached?.offers ?? null);
+  const [salonName, setSalonName] = useState(cached?.salonName || initialSalonName || "");
   const [error, setError] = useState<string | null>(null);
   const [showAudience, setShowAudience] = useState(false);
   const [autoStarted, setAutoStarted] = useState(false);
 
-  const sessionId = localStorage.getItem("lk_session") || "";
+  const saveCache = (o: SegmentOffers[], name: string) => {
+    try { localStorage.setItem(cacheKey, JSON.stringify({ offers: o, salonName: name })); } catch { /* ignore */ }
+  };
+
+  const resetCache = () => {
+    localStorage.removeItem(cacheKey);
+    setOffers(null);
+    setStep("choose");
+  };
 
   async function generateOffers(portraitsList: Portrait[]) {
     setStep("loading");
@@ -193,6 +215,7 @@ export default function LkMarketingOffers({ onBack, initialPortraits, initialSal
       if (!res.ok) throw new Error(data.error || "Ошибка генерации");
       setOffers(data.offers);
       setSalonName(prev => data.salon_name || prev);
+      saveCache(data.offers, data.salon_name || salonName);
       setStep("result");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка");
@@ -200,9 +223,9 @@ export default function LkMarketingOffers({ onBack, initialPortraits, initialSal
     }
   }
 
-  // Автозапуск если портреты переданы снаружи
+  // Автозапуск если портреты переданы снаружи и нет кэша
   useEffect(() => {
-    if (initialPortraits && !autoStarted) {
+    if (initialPortraits && !autoStarted && !cached) {
       setAutoStarted(true);
       generateOffers(initialPortraits);
     }
@@ -304,13 +327,22 @@ export default function LkMarketingOffers({ onBack, initialPortraits, initialSal
             <div style={{ fontSize: 13, color: "#64748B" }}>
               <span style={{ fontWeight: 700, color: "#0F172A" }}>{offers.length * 3} оффера</span> для «{salonName}»
             </div>
+            <div style={{ display: "flex", gap: 8 }}>
             <button
-              onClick={() => { setStep("choose"); setOffers(null); }}
-              style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "1.5px solid #E8ECF0", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 700, color: "#64748B", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+              onClick={() => portraits ? generateOffers(portraits) : setStep("choose")}
+              style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: `1.5px solid ${ACCENT}`, borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 700, color: ACCENT, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
             >
               <Icon name="RefreshCw" size={13} />
               Создать заново
             </button>
+            <button
+              onClick={resetCache}
+              style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1.5px solid #E8ECF0", borderRadius: 8, padding: "7px 12px", fontSize: 12, fontWeight: 600, color: "#94A3B8", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+            >
+              <Icon name="Trash2" size={13} />
+              Сбросить
+            </button>
+            </div>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
