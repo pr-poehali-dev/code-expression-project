@@ -9,7 +9,7 @@ export default function RepPage() {
   const { user, loading } = useLkAuth();
 
   useEffect(() => {
-    document.title = "Кабинет представителя — Dok Диалог";
+    document.title = "Кабинет представителя — Про Диалог";
   }, []);
 
   if (loading) {
@@ -29,7 +29,7 @@ export default function RepPage() {
         <div style={{ textAlign: "center", maxWidth: 360 }}>
           <div style={{ fontSize: 40, marginBottom: 16 }}>🔒</div>
           <div style={{ fontSize: 18, fontWeight: 700, color: "#1a1a1a", marginBottom: 8 }}>Доступ закрыт</div>
-          <div style={{ fontSize: 14, color: "#888" }}>Этот раздел доступен только представителям Dok Диалог. Обратитесь к администратору.</div>
+          <div style={{ fontSize: 14, color: "#888" }}>Этот раздел доступен только представителям Про Диалог. Обратитесь к администратору.</div>
         </div>
       </div>
     );

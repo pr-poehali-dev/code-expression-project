@@ -20,7 +20,7 @@ CORS = {
     "Access-Control-Allow-Headers": "Content-Type, X-Session-Id",
 }
 FROM_EMAIL = "massopro@mail.ru"
-SITE_URL = "https://docdialog.ru"
+SITE_URL = "https://promtdialog.ru"
 
 
 def ok(data: dict) -> dict:
@@ -49,7 +49,7 @@ def get_session_user(event: dict):
 
 
 def build_html_email(to_name: str, subject: str, body_html: str, sender_name: str) -> str:
-    """Формирует красивое брендовое HTML-письмо Dok Диалог."""
+    """Формирует красивое брендовое HTML-письмо Про Диалог."""
     return f"""<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -67,10 +67,10 @@ def build_html_email(to_name: str, subject: str, body_html: str, sender_name: st
         <tr>
           <td style="background:#1a2e2a;border-radius:16px 16px 0 0;padding:28px 40px;text-align:center;">
             <div style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:#ffffff;letter-spacing:1px;">
-              Dok <span style="color:#4ecdc4;">Диалог</span>
+              Про <span style="color:#4ecdc4;">Диалог</span>
             </div>
             <div style="font-size:12px;color:#8ab8b4;margin-top:4px;letter-spacing:2px;text-transform:uppercase;">
-              Профессиональная платформа для салонов красоты
+              ИИ-инструменты для салонов красоты
             </div>
           </td>
         </tr>
@@ -113,7 +113,7 @@ def build_html_email(to_name: str, subject: str, body_html: str, sender_name: st
             <p style="margin:0;font-size:14px;color:#555;">
               С уважением,<br>
               <strong style="color:#1a1a1a;">{sender_name}</strong><br>
-              <span style="color:#888;">Представитель Dok Диалог</span>
+              <span style="color:#888;">Представитель Про Диалог</span>
             </p>
           </td>
         </tr>
@@ -125,7 +125,7 @@ def build_html_email(to_name: str, subject: str, body_html: str, sender_name: st
               <a href="{SITE_URL}" style="color:#1a7a74;text-decoration:none;">{SITE_URL}</a>
             </p>
             <p style="margin:0;font-size:11px;color:#bbb;">
-              Это письмо отправлено представителем платформы Dok Диалог.
+              Это письмо отправлено представителем платформы Про Диалог.
             </p>
           </td>
         </tr>
@@ -164,7 +164,7 @@ def handler(event: dict, context) -> dict:
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = Header(subject, "utf-8")
-    msg["From"] = formataddr((str(Header("Dok Диалог", "utf-8")), FROM_EMAIL))
+    msg["From"] = formataddr((str(Header("Про Диалог", "utf-8")), FROM_EMAIL))
     msg["To"] = to_email
     msg["Reply-To"] = FROM_EMAIL
 
