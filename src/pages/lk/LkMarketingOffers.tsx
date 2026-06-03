@@ -171,10 +171,12 @@ interface Props {
   onGoToSemantics?: () => void;
 }
 
+const CACHE_VERSION = "v2"; // bump при изменении промта
+
 export default function LkMarketingOffers({ onBack, initialPortraits, initialSalonName, onGoToSemantics }: Props) {
   const { user } = useLkAuth();
   const sessionId = localStorage.getItem("lk_session") || "";
-  const cacheKey = `mkt_offers_${user?.salon_id ?? ""}`;
+  const cacheKey = `mkt_offers_${CACHE_VERSION}_${user?.salon_id ?? ""}`;
 
   const loadCache = () => {
     try {

@@ -132,10 +132,12 @@ interface Props {
   onGoToOffers?: (portraits: Portrait[], salonName: string) => void;
 }
 
+const CACHE_VERSION = "v2";
+
 export default function LkMarketingAudience({ onBack, onPortraitsReady, onGoToOffers }: Props) {
   const { user } = useLkAuth();
   const sessionId = localStorage.getItem("lk_session") || "";
-  const cacheKey = `mkt_audience_${user?.salon_id ?? ""}`;
+  const cacheKey = `mkt_audience_${CACHE_VERSION}_${user?.salon_id ?? ""}`;
 
   const loadCache = () => {
     try {

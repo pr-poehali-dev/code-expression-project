@@ -159,10 +159,12 @@ interface Props {
   onBack: () => void;
 }
 
+const CACHE_VERSION = "v2"; // bump при изменении промта
+
 export default function LkMarketingSemantics({ onBack }: Props) {
   const { user } = useLkAuth();
   const sessionId = localStorage.getItem("lk_session") || "";
-  const cacheKey = `mkt_semantics_${user?.salon_id ?? ""}`;
+  const cacheKey = `mkt_semantics_${CACHE_VERSION}_${user?.salon_id ?? ""}`;
 
   const loadCache = () => {
     try {
