@@ -150,16 +150,36 @@ function ComingSoonPlaceholder({ tool, onBack }: { tool: Tool; onBack: () => voi
   );
 }
 
+interface AudienceData {
+  portraits: { archetype: string; age_range: string; occupation: string; income: string; pains: string[]; motivations: string[]; services_interest: string[]; channels: string[]; hook: string }[];
+  salonName: string;
+}
+
 export default function LkMarketing() {
   const [active, setActive] = useState<string | null>(null);
+  const [audienceData, setAudienceData] = useState<AudienceData | null>(null);
   const activeTool = TOOLS.find(t => t.id === active);
 
   if (active === "audience") {
-    return <LkMarketingAudience onBack={() => setActive(null)} />;
+    return (
+      <LkMarketingAudience
+        onBack={() => setActive(null)}
+        onGoToOffers={(portraits, salonName) => {
+          setAudienceData({ portraits, salonName });
+          setActive("offers");
+        }}
+      />
+    );
   }
 
   if (active === "offers") {
-    return <LkMarketingOffers onBack={() => setActive(null)} />;
+    return (
+      <LkMarketingOffers
+        onBack={() => setActive(null)}
+        initialPortraits={audienceData?.portraits}
+        initialSalonName={audienceData?.salonName}
+      />
+    );
   }
 
   if (activeTool) {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import LkMarketingAudience from "./LkMarketingAudience";
 
@@ -147,30 +147,18 @@ function SegmentOffersCard({ segment, index }: { segment: SegmentOffers; index: 
 
 interface Props {
   onBack: () => void;
+  initialPortraits?: Portrait[];
+  initialSalonName?: string;
 }
 
-export default function LkMarketingOffers({ onBack }: Props) {
+export default function LkMarketingOffers({ onBack, initialPortraits, initialSalonName }: Props) {
   const [step, setStep] = useState<"choose" | "loading" | "result">("choose");
-  const [portraits, setPortraits] = useState<Portrait[] | null>(null);
+  const [portraits, setPortraits] = useState<Portrait[] | null>(initialPortraits || null);
   const [offers, setOffers] = useState<SegmentOffers[] | null>(null);
-  const [salonName, setSalonName] = useState("");
+  const [salonName, setSalonName] = useState(initialSalonName || "");
   const [error, setError] = useState<string | null>(null);
   const [showAudience, setShowAudience] = useState(false);
-
-  // Шаг 1 — получаем портреты из компонента ЦА (или уже есть)
-  if (showAudience) {
-    return (
-      <LkMarketingAudience
-        onBack={() => setShowAudience(false)}
-        onPortraitsReady={(p, name) => {
-          setPortraits(p);
-          setSalonName(name);
-          setShowAudience(false);
-          generateOffers(p);
-        }}
-      />
-    );
-  }
+  const [autoStarted, setAutoStarted] = useState(false);
 
   const sessionId = localStorage.getItem("lk_session") || "";
 
@@ -193,6 +181,14 @@ export default function LkMarketingOffers({ onBack }: Props) {
       setStep("choose");
     }
   }
+
+  // Автозапуск если портреты переданы снаружи
+  useEffect(() => {
+    if (initialPortraits && !autoStarted) {
+      setAutoStarted(true);
+      generateOffers(initialPortraits);
+    }
+  }, []);
 
   return (
     <div>

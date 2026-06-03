@@ -129,9 +129,10 @@ function PortraitCard({ portrait, index }: { portrait: Portrait; index: number }
 interface Props {
   onBack: () => void;
   onPortraitsReady?: (portraits: Portrait[], salonName: string) => void;
+  onGoToOffers?: (portraits: Portrait[], salonName: string) => void;
 }
 
-export default function LkMarketingAudience({ onBack, onPortraitsReady }: Props) {
+export default function LkMarketingAudience({ onBack, onPortraitsReady, onGoToOffers }: Props) {
   useLkAuth();
   const sessionId = localStorage.getItem("lk_session") || "";
   const [loading, setLoading] = useState(false);
@@ -236,13 +237,23 @@ export default function LkMarketingAudience({ onBack, onPortraitsReady }: Props)
             ))}
           </div>
 
-          {/* Подсказка — следующий шаг */}
-          <div style={{ marginTop: 24, background: "linear-gradient(135deg,hsl(220,80%,50%),hsl(220,80%,38%))", borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14 }}>
-            <Icon name="ArrowRight" size={20} style={{ color: "#fff", flexShrink: 0 }} />
-            <div>
+          {/* Следующий шаг */}
+          <div
+            onClick={() => onGoToOffers && portraits && onGoToOffers(portraits, salonName)}
+            style={{ marginTop: 24, background: "linear-gradient(135deg,hsl(220,80%,50%),hsl(220,80%,38%))", borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, cursor: onGoToOffers ? "pointer" : "default", transition: "opacity 0.15s" }}
+            onMouseEnter={e => { if (onGoToOffers) e.currentTarget.style.opacity = "0.88"; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
+          >
+            <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 2 }}>Следующий шаг</div>
               <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)" }}>Перейдите в «Офферы под ЦА» — ИИ составит предложения для каждого из этих сегментов.</div>
             </div>
+            {onGoToOffers && (
+              <div style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(255,255,255,0.2)", borderRadius: 9, padding: "8px 14px", flexShrink: 0 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", whiteSpace: "nowrap" }}>Создать офферы</span>
+                <Icon name="ArrowRight" size={14} style={{ color: "#fff" }} />
+              </div>
+            )}
           </div>
         </div>
       )}
