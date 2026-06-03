@@ -200,7 +200,11 @@ def generate_image(prompt: str) -> str:
 
 
 def handler(event: dict, context) -> dict:
-    """Генерирует рекламное изображение 1024x1024 для объявления Яндекс.Директ. Стоимость: 10 энергий."""
+    """
+    Подготавливает промт и списывает 10 энергий для генерации рекламного изображения.
+    action=prepare — возвращает готовый промт, списывает энергию (быстро, <1с).
+    Фронт затем передаёт промт в ai-image-gen для генерации.
+    """
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -234,13 +238,5 @@ def handler(event: dict, context) -> dict:
     finally:
         conn.close()
 
-    raw = generate_image(prompt)
-
-    # Если вернулся base64 — заливаем в S3
-    if raw.startswith("__b64__"):
-        b64_data = raw[7:]
-        image_url = upload_to_s3(b64_data, user["id"])
-    else:
-        image_url = raw
-
-    return ok({"url": image_url, "prompt_used": prompt, "energy_spent": cost})
+    # Возвращаем только промт — генерацию делает фронт через ai-image-gen
+    return ok({"prompt": prompt, "energy_spent": cost})
