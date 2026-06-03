@@ -45,7 +45,7 @@ def get_session_user(event, conn):
 def get_salon_data(salon_id, conn):
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"SELECT name, city, description, avg_check, target_audience, tone_of_voice, main_goal "
+        f"SELECT name, city, description, avg_check, target_audience, tone_of_voice, main_goal, has_medical_license "
         f"FROM {SCHEMA}.salons WHERE id = %s", (salon_id,)
     )
     salon = cur.fetchone()
@@ -78,6 +78,22 @@ def call_ai(messages, max_tokens=1800) -> str:
     return data["choices"][0]["message"]["content"].strip()
 
 
+MEDICAL_SERVICES = [
+    "остеопатия", "массаж", "лечебный массаж", "мануальная терапия",
+    "физиотерапия", "рефлексотерапия", "иглоукалывание",
+]
+
+BANNED_SOCIAL = ["instagram", "инстаграм", "facebook", "фейсбук", "meta", "мета"]
+
+
+def has_medical_services(services) -> bool:
+    for s in services:
+        name_lower = s["name"].lower()
+        if any(med in name_lower for med in MEDICAL_SERVICES):
+            return True
+    return False
+
+
 def build_prompt(salon, services):
     salon_name = salon["name"]
     city = salon["city"] or "не указан"
@@ -85,6 +101,8 @@ def build_prompt(salon, services):
     avg_check = f"{int(salon['avg_check'])} руб." if salon["avg_check"] else "не указан"
     target_audience_hint = salon["target_audience"] or ""
     main_goal = salon["main_goal"] or ""
+    has_license = bool(salon.get("has_medical_license"))
+    med_services_present = has_medical_services(services)
 
     services_text = ""
     if services:
@@ -100,6 +118,34 @@ def build_prompt(salon, services):
     else:
         services_text = "услуги не указаны"
 
+    # Блок про медицинские услуги
+    if med_services_present and has_license:
+        med_note = (
+            "ВАЖНО: Среди услуг есть медицинские (массаж, остеопатия и подобные). "
+            "У салона есть медицинская лицензия, поэтому в каналах охвата можно указывать "
+            "медицинские агрегаторы (ПроДокторов, НаПоправку, Zoon), Яндекс.Директ с медицинской тематикой, "
+            "SEO по медицинским запросам. Для аудитории указывай, что её привлекает именно медицинский подход."
+        )
+    elif med_services_present and not has_license:
+        med_note = (
+            "ВАЖНО: Среди услуг есть медицинские (массаж, остеопатия и подобные), "
+            "но у салона НЕТ медицинской лицензии. "
+            "Поэтому: НЕ предлагай медицинские агрегаторы и медицинскую рекламу. "
+            "В каналах охвата предлагай только wellness/beauty-форматы: ВКонтакте, Telegram, "
+            "Яндекс.Директ по wellness-запросам (без слова «лечение»), локальные каталоги салонов. "
+            "В hook и мотивациях используй формулировки «расслабление», «восстановление», «уход за телом» — "
+            "без медицинских терминов."
+        )
+    else:
+        med_note = ""
+
+    russia_note = (
+        "ОБЯЗАТЕЛЬНО: Аудитория из России. "
+        "В каналах охвата НИКОГДА не упоминай Instagram, Facebook, Meta и другие заблокированные в России соцсети. "
+        "Используй только: ВКонтакте, Telegram, Одноклассники, Яндекс.Директ, 2ГИС, Авито, "
+        "локальные каталоги, сарафанное радио, мессенджеры."
+    )
+
     return f"""Ты — эксперт по маркетингу салонов красоты.
 
 Данные салона:
@@ -111,6 +157,10 @@ def build_prompt(salon, services):
 - Подсказка по аудитории от владельца: {target_audience_hint or 'нет'}
 - Услуги:
 {services_text}
+
+{russia_note}
+
+{med_note}
 
 Составь ровно 3 детальных портрета целевой аудитории этого салона.
 Каждый портрет — отдельный сегмент клиентов, которые реально придут именно в этот салон.

@@ -13,6 +13,7 @@ interface SalonForm {
   avg_check: string; monthly_revenue: string; clients_count: string; masters_count: string;
   target_audience: string; tone_of_voice: string;
   social_instagram: string; social_vk: string; social_telegram: string; main_goal: string;
+  has_medical_license: boolean;
 }
 
 const EMPTY_FORM: SalonForm = {
@@ -20,6 +21,7 @@ const EMPTY_FORM: SalonForm = {
   avg_check: "", monthly_revenue: "", clients_count: "", masters_count: "",
   target_audience: "", tone_of_voice: "",
   social_instagram: "", social_vk: "", social_telegram: "", main_goal: "",
+  has_medical_license: false,
 };
 
 function draftKey(userId: number) { return `lk_salon_draft_${userId}`; }
@@ -118,6 +120,7 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
           social_vk:       String(s.social_vk || ""),
           social_telegram: String(s.social_telegram || ""),
           main_goal:       String(s.main_goal || ""),
+          has_medical_license: Boolean(s.has_medical_license),
         });
         setLogoUrl(s.logo_url ? String(s.logo_url) : null);
       }
@@ -390,6 +393,22 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
         </Field>
         <Field label="Главная задача сейчас" hint="Что сейчас важнее всего? Это будет учитываться в рекомендациях.">
           <textarea style={{ ...inputStyle, resize: "vertical", minHeight: 64 }} value={form.main_goal} onChange={e => f("main_goal", e.target.value)} placeholder="Увеличить повторные визиты, поднять средний чек, привлечь новых клиентов из Instagram..." />
+        </Field>
+        <Field label="Медицинская лицензия" hint="Актуально для массажа, остеопатии и других медицинских услуг. Влияет на доступные каналы рекламы.">
+          <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", userSelect: "none" }}>
+            <input
+              type="checkbox"
+              checked={form.has_medical_license}
+              onChange={e => setForm(p => ({ ...p, has_medical_license: e.target.checked }))}
+              style={{ width: 18, height: 18, accentColor: ACCENT, cursor: "pointer" }}
+            />
+            <span style={{ fontSize: 13, color: "#334155", lineHeight: 1.4 }}>
+              Есть медицинская лицензия
+              <span style={{ display: "block", fontSize: 11, color: "#94A3B8", marginTop: 1 }}>
+                Открывает дополнительные каналы рекламы: медагрегаторы, Яндекс по медзапросам
+              </span>
+            </span>
+          </label>
         </Field>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 12px" }}>
           <Field label="Instagram">
