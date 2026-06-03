@@ -37,6 +37,11 @@ export default function LkClientMsg() {
   const hasSalon = !!user?.salon_id;
 
   const [tab, setTab] = useState<"generate" | "services">("generate");
+  const getInitialMsgType = () => {
+    const saved = sessionStorage.getItem("clientmsg_type");
+    if (saved) { sessionStorage.removeItem("clientmsg_type"); return saved; }
+    return MSG_TYPES[0].id;
+  };
 
   // Услуги
   const [services, setServices] = useState<Service[]>([]);
@@ -45,7 +50,7 @@ export default function LkClientMsg() {
   const [svcSaving, setSvcSaving] = useState(false);
 
   // Генератор
-  const [msgType, setMsgType] = useState(MSG_TYPES[0].id);
+  const [msgType, setMsgType] = useState(getInitialMsgType);
   const [clientName, setClientName] = useState("");
   const [dateTime, setDateTime] = useState("");
   const [service, setService] = useState("");

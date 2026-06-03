@@ -208,7 +208,7 @@ function HomeTab({ onNav, role, hasSalon }: { onNav: (t: Tab) => void; role: str
             ].map((t, i, arr) => (
               <button
                 key={t.id}
-                onClick={() => onNav("clientmsg")}
+                onClick={() => { sessionStorage.setItem("clientmsg_type", t.id); onNav("clientmsg"); }}
                 style={{
                   flex: "1 0 auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
                   padding: "12px 8px", border: "none",
