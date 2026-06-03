@@ -128,9 +128,10 @@ function PortraitCard({ portrait, index }: { portrait: Portrait; index: number }
 
 interface Props {
   onBack: () => void;
+  onPortraitsReady?: (portraits: Portrait[], salonName: string) => void;
 }
 
-export default function LkMarketingAudience({ onBack }: Props) {
+export default function LkMarketingAudience({ onBack, onPortraitsReady }: Props) {
   useLkAuth();
   const sessionId = localStorage.getItem("lk_session") || "";
   const [loading, setLoading] = useState(false);
@@ -151,6 +152,7 @@ export default function LkMarketingAudience({ onBack }: Props) {
       if (!res.ok) throw new Error(data.error || "Ошибка генерации");
       setPortraits(data.portraits);
       setSalonName(data.salon_name || "");
+      if (onPortraitsReady) onPortraitsReady(data.portraits, data.salon_name || "");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка");
     } finally {

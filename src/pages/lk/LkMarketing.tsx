@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import LkMarketingAudience from "./LkMarketingAudience";
+import LkMarketingOffers from "./LkMarketingOffers";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -40,7 +41,7 @@ const TOOLS: Tool[] = [
     title: "Офферы под ЦА",
     description: "Генерирует убедительные предложения и акции под каждый сегмент вашей аудитории.",
     badge: "free",
-    ready: false,
+    ready: true,
   },
   {
     id: "semantics",
@@ -155,6 +156,10 @@ export default function LkMarketing() {
 
   if (active === "audience") {
     return <LkMarketingAudience onBack={() => setActive(null)} />;
+  }
+
+  if (active === "offers") {
+    return <LkMarketingOffers onBack={() => setActive(null)} />;
   }
 
   if (activeTool) {
