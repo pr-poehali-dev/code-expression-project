@@ -226,12 +226,15 @@ def handler(event: dict, context) -> dict:
         aspect_dalle = ASPECT_MAP_DALLE[aspect_raw]
         aspect_gpt15 = ASPECT_MAP_GPT15[aspect_raw]
 
-        # Атомарное списание с блокировкой строки (FOR UPDATE).
-        # Защита от двойного списания при двух одновременных запросах от одного салона.
-        cost = get_tool_cost(conn)
-        ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, conn)
-        if not ok_deduct:
-            return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
+        # Если передан внутренний токен — энергия уже списана вызывающим сервисом
+        internal_token = body.get("internal_token", "")
+        skip_deduct = internal_token and internal_token == os.environ.get("ADMIN_TOKEN", "")
+
+        if not skip_deduct:
+            cost = get_tool_cost(conn)
+            ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, conn)
+            if not ok_deduct:
+                return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
 
         use_salon_context = body.get("use_salon_context", False)
         include_logo_text = body.get("include_logo_text", False)

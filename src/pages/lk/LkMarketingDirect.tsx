@@ -148,13 +148,14 @@ function ImageGenButton({ groupName, keywords }: { groupName: string; keywords: 
       if (!prepRes.ok) throw new Error(prepData.error || "Ошибка подготовки");
 
       const prompt = prepData.prompt;
+      const internalToken = prepData.internal_token || "";
       setState("generating");
 
       // Шаг 2: генерируем картинку через ai-image-gen (до 300с, без доп. списания)
       const genRes = await fetch(IMAGE_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
-        body: JSON.stringify({ prompt, aspect_ratio: "1024x1024", use_salon_context: false }),
+        body: JSON.stringify({ prompt, aspect_ratio: "1024x1024", use_salon_context: false, internal_token: internalToken }),
       });
       const genData = await genRes.json();
       if (!genRes.ok) throw new Error(genData.error || "Ошибка генерации");

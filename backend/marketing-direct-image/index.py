@@ -250,5 +250,5 @@ def handler(event: dict, context) -> dict:
     finally:
         conn.close()
 
-    # Возвращаем только промт — генерацию делает фронт через ai-image-gen
-    return ok({"prompt": prompt, "energy_spent": cost})
+    # Возвращаем промт + внутренний токен, чтобы ai-image-gen не списал энергию повторно
+    return ok({"prompt": prompt, "energy_spent": cost, "internal_token": os.environ.get("ADMIN_TOKEN", "")})
