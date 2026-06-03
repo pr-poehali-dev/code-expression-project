@@ -6,11 +6,11 @@ export const BG = "#F4F6F8";
 export type Tab =
   | "home" | "tools" | "academy" | "ai" | "shop"
   | "employees" | "purchases" | "profile" | "salon"
-  | "admin" | "support" | "more" | "clientmsg";
+  | "admin" | "support" | "more" | "clientmsg" | "marketing";
 
 export const ROLE_TABS: Record<string, Tab[]> = {
-  owner:          ["home", "tools", "academy", "ai", "clientmsg", "shop", "employees", "purchases", "salon", "profile", "support"],
-  admin:          ["home", "tools", "academy", "ai", "clientmsg", "profile", "support"],
+  owner:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "shop", "employees", "purchases", "salon", "profile", "support"],
+  admin:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "profile", "support"],
   master:         ["home", "tools", "academy", "ai", "profile", "support"],
   body_specialist:["home", "tools", "academy", "ai", "profile", "support"],
 };
@@ -35,6 +35,7 @@ export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string }
   { id: "academy",   icon: "GraduationCap",  label: "Академия"            },
   { id: "ai",        icon: "Sparkles",       label: "ИИ-инструменты",     badge: "new" },
   { id: "clientmsg", icon: "MessageSquare",  label: "Сообщения клиентам", badge: "new" },
+  { id: "marketing", icon: "BarChart3",      label: "Маркетинг",          badge: "new" },
   { id: "shop",      icon: "Zap",            label: "Энергия"             },
   { id: "employees", icon: "Users",          label: "Сотрудники"          },
   { id: "purchases", icon: "Receipt",        label: "Покупки"             },
@@ -44,7 +45,7 @@ export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string }
   { id: "admin",     icon: "Settings",       label: "Админка"             },
 ];
 
-export const SALON_REQUIRED: Tab[] = ["tools", "ai", "shop", "employees", "purchases"];
+export const SALON_REQUIRED: Tab[] = ["tools", "ai", "shop", "employees", "purchases", "marketing"];
 
 export const ROLE_LABELS: Record<string, string> = {
   owner: "Владелец",

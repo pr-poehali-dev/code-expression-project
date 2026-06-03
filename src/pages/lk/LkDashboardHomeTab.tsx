@@ -35,6 +35,9 @@ export function HomeTab({ onNav, role, hasSalon }: HomeTabProps) {
     { tab: "tools" as Tab,  icon: "Wrench",        color: "hsl(210,85%,45%)", bg: "hsl(210,85%,96%)", title: "Инструменты",    desc: "Диагностики, тесты, шпаргалка" },
     { tab: "academy" as Tab,icon: "GraduationCap", color: "hsl(280,60%,55%)", bg: "hsl(280,60%,96%)", title: "Академия",        desc: "Курсы и обучение" },
     { tab: "ai" as Tab,     icon: "Sparkles",      color: "hsl(40,90%,50%)",  bg: "hsl(40,90%,96%)",  title: "ИИ-инструменты", desc: "Генерация контента — скоро" },
+    ...((role === "owner" || role === "admin") && hasSalon ? [
+      { tab: "marketing" as Tab, icon: "BarChart3",  color: "hsl(220,80%,50%)", bg: "hsl(220,80%,95%)", title: "Маркетинг",  desc: "ЦА, офферы, реклама в Яндекс.Директ" },
+    ] : []),
     ...(role === "owner" ? [
       { tab: "salon" as Tab,     icon: "Building2", color: "hsl(145,60%,40%)", bg: "hsl(145,60%,95%)", title: "Мой салон", desc: hasSalon ? "Профиль заполнен" : "Заполните профиль салона" },
       { tab: "employees" as Tab, icon: "Users",     color: "hsl(185,85%,32%)", bg: "hsl(185,85%,95%)", title: "Команда",   desc: "Пригласить и управлять сотрудниками" },

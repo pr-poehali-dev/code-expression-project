@@ -11,6 +11,7 @@ import LkProfile from "./LkProfile";
 import LkSupport from "./LkSupport";
 import LkAcademy from "./LkAcademy";
 import LkClientMsg from "./LkClientMsg";
+import LkMarketing from "./LkMarketing";
 import { HomeTab } from "./LkDashboardHomeTab";
 import { LkSidebar, LkMobileHeader, LkBottomBar } from "./LkDashboardSidebar";
 import {
@@ -89,8 +90,9 @@ export default function LkDashboard() {
         {tab === "tools"     && <LkTests onNavigate={handleTabChange} />}
         {tab === "academy"   && <LkAcademy onNavigate={handleTabChange} />}
         {tab === "ai"        && <LkAiTools />}
-        {tab === "clientmsg" && <LkClientMsg />}
-        {tab === "shop"      && <LkEnergy />}
+        {tab === "clientmsg"  && <LkClientMsg />}
+        {tab === "marketing"  && <LkMarketing />}
+        {tab === "shop"       && <LkEnergy />}
         {tab === "employees" && <LkTeam />}
         {tab === "purchases" && <LkEnergy />}
         {tab === "salon"     && <LkSalonProfile onSaved={() => handleTabChange("home")} />}
