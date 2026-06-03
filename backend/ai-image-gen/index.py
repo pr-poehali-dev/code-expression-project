@@ -229,6 +229,7 @@ def handler(event: dict, context) -> dict:
         # Если передан внутренний токен — энергия уже списана вызывающим сервисом
         internal_token = body.get("internal_token", "")
         skip_deduct = internal_token and internal_token == os.environ.get("ADMIN_TOKEN", "")
+        cost = 0
 
         if not skip_deduct:
             cost = get_tool_cost(conn)
