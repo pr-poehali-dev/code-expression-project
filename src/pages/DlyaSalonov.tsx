@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
@@ -61,10 +62,39 @@ const TARIFFS = [
 ];
 
 const EXTRA = [
-  { icon: "Search", name: "Аудит салона", price: "от 50 000 ₽", desc: "Анализ текущего состояния: команда, сервис, коммуникация, удержание клиентов. Отчёт с приоритетами роста." },
   { icon: "GraduationCap", name: "Обучение администраторов", price: "от 90 000 ₽", desc: "Отдельный курс для администраторов: запись, скрипты, работа с возражениями, повторные визиты." },
   { icon: "Target", name: "Настройка позиционирования", price: "от 150 000 ₽", desc: "Помогаем сформулировать УТП, выстроить коммуникацию и выйти в нужный ценовой сегмент." },
   { icon: "Building2", name: "Корпоративный доступ", price: "от 39 000 ₽ / мес", desc: "Гибкий доступ к платформе для сетей и управляющих компаний с несколькими салонами." },
+];
+
+const AUDIT_INCLUDES = [
+  "Анализ текущих бизнес-процессов и клиентского пути",
+  "Оценка сервиса и стандартов обслуживания под требования премиум-сегмента",
+  "Диагностика сильных и слабых сторон команды — мастеров и администраторов",
+  "Выявление зон потерь дохода и возможностей увеличения среднего чека",
+  "Советы по внедрению единой системы работы и стандартизации качества",
+  "Рекомендации по управлению командой и удержанию клиентов премиум-класса",
+];
+
+const AUDIT_BENEFITS = [
+  { icon: "TrendingUp", text: "Конкретный план действий для роста дохода салона" },
+  { icon: "Star", text: "Улучшение имиджа и репутации в премиум-сегменте" },
+  { icon: "Users", text: "Повышение квалификации команды и снижение текучести" },
+  { icon: "Wallet", text: "Увеличение среднего чека без роста рекламного бюджета" },
+  { icon: "Bot", text: "Интеграция ИИ-инструментов «Про Диалог» в работу салона" },
+];
+
+const AUDIT_STEPS = [
+  { n: "01", text: "Вы оставляете заявку — эксперт связывается для уточнения целей" },
+  { n: "02", text: "Проводим комплексный анализ салона и собираем данные" },
+  { n: "03", text: "Презентуем подробный отчёт с рекомендациями и приоритетами" },
+  { n: "04", text: "Помогаем внедрить изменения с поддержкой платформы «Про Диалог»" },
+];
+
+const AUDIT_FOR = [
+  "Владельцы и управляющие салонов красоты и wellness с командой от 3 сотрудников",
+  "Те, кто хочет выйти в премиум-сегмент и построить стабильный доход",
+  "Те, кто устал от текучести и хочет сделать сервис на уровне лучших брендов",
 ];
 
 const ROLES = [
@@ -75,6 +105,12 @@ const ROLES = [
 ];
 
 export default function DlyaSalonov() {
+  useEffect(() => {
+    document.title = "Аудит салона красоты под премиум-клиентов — Про Диалог";
+    const desc = document.querySelector("meta[name='description']");
+    if (desc) desc.setAttribute("content", "Аудит салона красоты для привлечения премиальных клиентов. Анализ бизнес-процессов, увеличение среднего чека, оптимизация работы команды. Платформа «Про Диалог».");
+  }, []);
+
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <BizNavbar />
@@ -215,6 +251,114 @@ export default function DlyaSalonov() {
         </div>
       </section>
 
+      {/* ── АУДИТ САЛОНА ── */}
+      <section id="audit" style={{ padding: "96px 32px", background: "#F8FAFC" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+
+          {/* Заголовок */}
+          <div style={{ maxWidth: 760, marginBottom: 64 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "6px 16px", marginBottom: 24 }}>
+              <Icon name="Search" size={13} style={{ color: TEAL }} />
+              <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Услуга · от 50 000 ₽</span>
+            </div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 20px", lineHeight: 1.08, letterSpacing: "-0.3px" }}>
+              Аудит салона для привлечения<br />премиальных клиентов
+            </h2>
+            <p style={{ fontSize: 17, color: GRAY, lineHeight: 1.75, margin: 0 }}>
+              Сегодняшний премиальный клиент — это человек с высокими запросами к качеству, атмосфере и сервису. «Про Диалог» проводит глубокий аудит вашего салона с акцентом на привлечение и удержание этой аудитории. Обнаружим скрытые точки роста и покажем, как увеличить доход без дополнительной рекламы.
+            </p>
+          </div>
+
+          {/* Включает + Шаги */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, marginBottom: 56 }} className="audit-grid">
+
+            {/* Что входит */}
+            <div style={{ background: "#fff", borderRadius: 6, border: "1px solid #E2E8F0", padding: "36px 36px" }}>
+              <div style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20 }}>Что входит в аудит</div>
+              <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 14 }}>
+                {AUDIT_INCLUDES.map(item => (
+                  <li key={item} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                    <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                      <Icon name="Check" size={11} style={{ color: TEAL }} />
+                    </div>
+                    <span style={{ fontSize: 14, color: "#334155", lineHeight: 1.6 }}>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Как работает */}
+            <div style={{ background: "#fff", borderRadius: 6, border: "1px solid #E2E8F0", padding: "36px 36px" }}>
+              <div style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20 }}>Как работает услуга</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                {AUDIT_STEPS.map(step => (
+                  <div key={step.n} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+                    <div style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 600, color: TEAL, lineHeight: 1, flexShrink: 0, minWidth: 36 }}>{step.n}</div>
+                    <div style={{ fontSize: 14, color: "#334155", lineHeight: 1.65, paddingTop: 4 }}>{step.text}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Преимущества */}
+          <div style={{ marginBottom: 56 }}>
+            <div style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 24 }}>Что вы получите</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+              {AUDIT_BENEFITS.map(b => (
+                <div key={b.text} style={{ background: "#fff", borderRadius: 4, border: "1px solid #E2E8F0", padding: "20px 20px", display: "flex", gap: 14, alignItems: "flex-start" }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 4, background: "rgba(45,212,191,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Icon name={b.icon} size={17} style={{ color: TEAL }} />
+                  </div>
+                  <span style={{ fontSize: 13, color: "#334155", lineHeight: 1.6, paddingTop: 2 }}>{b.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Для кого + CTA */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }} className="audit-cta-grid">
+            <div style={{ background: "#fff", borderRadius: 6, border: "1px solid #E2E8F0", padding: "32px" }}>
+              <div style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20 }}>Для кого подходит</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {AUDIT_FOR.map(f => (
+                  <div key={f} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                    <Icon name="ChevronRight" size={15} style={{ color: TEAL, flexShrink: 0, marginTop: 2 }} />
+                    <span style={{ fontSize: 14, color: "#334155", lineHeight: 1.6 }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ background: DARK, borderRadius: 6, padding: "36px 32px", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "-40%", right: "-20%", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.1) 0%, transparent 65%)", pointerEvents: "none" }} />
+              <div style={{ position: "relative" }}>
+                <div style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 500, color: "#fff", marginBottom: 12, lineHeight: 1.2 }}>
+                  Готовы повысить статус<br />вашего салона?
+                </div>
+                <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.7, margin: "0 0 28px" }}>
+                  Оставьте заявку — эксперт свяжется с вами, уточнит задачи и расскажет, как проходит аудит.
+                </p>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>
+                  Стоимость: <span style={{ color: TEAL, fontWeight: 600 }}>от 50 000 ₽</span>
+                </div>
+                <Link to="/kontakty" style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  background: `linear-gradient(135deg, ${TEAL}, #14B8A6)`,
+                  color: "#fff", padding: "14px 32px", borderRadius: 2,
+                  fontSize: 15, fontWeight: 600, textDecoration: "none",
+                  boxShadow: "0 8px 24px rgba(45,212,191,0.2)",
+                }}>
+                  Заказать аудит
+                  <Icon name="ArrowRight" size={15} />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
       {/* ── ДОПОЛНИТЕЛЬНЫЕ УСЛУГИ ── */}
       <section style={{ padding: "80px 32px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
@@ -276,6 +420,10 @@ export default function DlyaSalonov() {
           #tariffs > div > div:last-child {
             grid-template-columns: 1fr !important;
           }
+        }
+        @media (max-width: 768px) {
+          .audit-grid { grid-template-columns: 1fr !important; }
+          .audit-cta-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>
