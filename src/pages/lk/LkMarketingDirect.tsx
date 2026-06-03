@@ -5,6 +5,7 @@ import { useLkAuth } from "@/contexts/LkAuthContext";
 const ACCENT = "hsl(185,85%,32%)";
 const DIRECT_COLOR = "hsl(25,90%,50%)";
 const API_URL = "https://functions.poehali.dev/f6671108-c48e-4e2b-a3d4-ab0c53503f83";
+const IMAGE_API_URL = "https://functions.poehali.dev/7ada2f96-7236-4d93-8146-fdc7b9ed7dca";
 const CACHE_VERSION = "v2";
 
 interface Ad {
@@ -124,8 +125,79 @@ function AdPreview({ ad, idx, salonName }: { ad: Ad; idx: number; salonName: str
   );
 }
 
+// ── Кнопка генерации картинки ─────────────────────────────────────────────────
+function ImageGenButton({ groupName, keywords }: { groupName: string; keywords: string[] }) {
+  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [errMsg, setErrMsg] = useState("");
+  const sessionId = localStorage.getItem("lk_session") || "";
+
+  const generate = async () => {
+    setState("loading");
+    setErrMsg("");
+    try {
+      const res = await fetch(IMAGE_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
+        body: JSON.stringify({ group_name: groupName, keywords }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Ошибка генерации");
+      setImageUrl(data.url);
+      setState("done");
+    } catch (e) {
+      setErrMsg(e instanceof Error ? e.message : "Ошибка");
+      setState("error");
+    }
+  };
+
+  if (state === "done" && imageUrl) return (
+    <div style={{ marginTop: 14, borderRadius: 12, overflow: "hidden", border: "1.5px solid #E8ECF0" }}>
+      <img src={imageUrl} alt="Рекламное изображение" style={{ width: "100%", display: "block", maxHeight: 320, objectFit: "cover" }} />
+      <div style={{ padding: "10px 14px", background: "#F8FAFC", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+        <span style={{ fontSize: 11, color: "#64748B" }}>1024×1024 · Яндекс.Директ</span>
+        <div style={{ display: "flex", gap: 8 }}>
+          <a href={imageUrl} download="ad-image.png" target="_blank" rel="noreferrer"
+            style={{ display: "flex", alignItems: "center", gap: 5, background: ACCENT, color: "#fff", borderRadius: 7, padding: "6px 12px", fontSize: 11, fontWeight: 700, textDecoration: "none", fontFamily: "Montserrat,sans-serif" }}>
+            <Icon name="Download" size={12} />
+            Скачать
+          </a>
+          <button onClick={generate}
+            style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1px solid #E8ECF0", borderRadius: 7, padding: "6px 10px", fontSize: 11, fontWeight: 600, color: "#64748B", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+            <Icon name="RefreshCw" size={11} />
+            Ещё вариант (−10 ⚡)
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ marginTop: 14 }}>
+      {state === "loading" ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, background: "hsl(280,60%,97%)", borderRadius: 10, padding: "12px 16px", border: "1px solid hsl(280,60%,88%)" }}>
+          <Icon name="Loader2" size={16} style={{ color: "hsl(280,60%,52%)", animation: "spin 1s linear infinite" }} />
+          <span style={{ fontSize: 13, color: "hsl(280,60%,40%)", fontWeight: 600 }}>Генерирую изображение… ~30–60 сек</span>
+        </div>
+      ) : (
+        <button onClick={generate}
+          style={{ display: "flex", alignItems: "center", gap: 8, background: "hsl(280,60%,97%)", border: "1.5px dashed hsl(280,60%,75%)", borderRadius: 10, padding: "11px 18px", fontSize: 13, fontWeight: 700, color: "hsl(280,60%,45%)", cursor: "pointer", fontFamily: "Montserrat,sans-serif", width: "100%" }}>
+          <Icon name="ImagePlus" size={16} />
+          Сгенерировать рекламное изображение 1024×1024 — 10 ⚡
+        </button>
+      )}
+      {state === "error" && (
+        <div style={{ marginTop: 8, fontSize: 12, color: "#DC2626", display: "flex", alignItems: "center", gap: 6 }}>
+          <Icon name="AlertCircle" size={13} />
+          {errMsg}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Группа объявлений ─────────────────────────────────────────────────────────
-function AdGroupCard({ group, index, salonName }: { group: AdGroup; index: number; salonName: string }) {
+function AdGroupCard({ group, index, salonName, sourceKeywords }: { group: AdGroup; index: number; salonName: string; sourceKeywords: string[] }) {
   const [open, setOpen] = useState(index < 2);
 
   return (
@@ -145,10 +217,13 @@ function AdGroupCard({ group, index, salonName }: { group: AdGroup; index: numbe
       </div>
 
       {open && (
-        <div style={{ padding: "14px 16px", display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))", gap: 12 }}>
-          {group.ads.map((ad, i) => (
-            <AdPreview key={i} ad={ad} idx={i} salonName={salonName} />
-          ))}
+        <div style={{ padding: "14px 16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))", gap: 12 }}>
+            {group.ads.map((ad, i) => (
+              <AdPreview key={i} ad={ad} idx={i} salonName={salonName} />
+            ))}
+          </div>
+          <ImageGenButton groupName={group.group} keywords={sourceKeywords} />
         </div>
       )}
     </div>
@@ -310,9 +385,11 @@ export default function LkMarketingDirect({ onBack, initialGroups }: Props) {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {ads.map((group, i) => (
-              <AdGroupCard key={i} group={group} index={i} salonName={salonName} />
-            ))}
+            {ads.map((group, i) => {
+              const srcGroup = initialGroups?.find(g => g.group === group.group || g.service_tag === group.service_tag);
+              const srcKeywords = srcGroup?.keywords.map(k => k.query) ?? [];
+              return <AdGroupCard key={i} group={group} index={i} salonName={salonName} sourceKeywords={srcKeywords} />;
+            })}
           </div>
 
           {/* Итоговая плашка */}
