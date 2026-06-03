@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Index from "./pages/Index";
 import Vozmozhnosti from "./pages/Vozmozhnosti";
 import DlyaKogo from "./pages/DlyaKogo";
@@ -36,6 +36,12 @@ import DlyaSalonov from "./pages/DlyaSalonov";
 
 const queryClient = new QueryClient();
 
+function ChatWidgetConditional() {
+  const { pathname } = useLocation();
+  if (pathname.startsWith("/cabinet") || pathname.startsWith("/rep")) return null;
+  return <ChatWidget />;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LkAuthProvider>
@@ -44,9 +50,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <CookieBanner />
-      <ChatWidget />
       <EnergyGate />
       <BrowserRouter>
+        <ChatWidgetConditional />
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<Index />} />
