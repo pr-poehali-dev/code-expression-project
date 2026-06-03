@@ -322,7 +322,7 @@ export default function LkMarketingDirect({ onBack, initialGroups }: Props) {
 
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-          Маркетинг · Директ · Бесплатно
+          Маркетинг · Директ · 1 ⚡
         </div>
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
           Объявления для Яндекс.Директ

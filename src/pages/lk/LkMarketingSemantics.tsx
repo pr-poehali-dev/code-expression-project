@@ -241,7 +241,7 @@ export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
       {/* Заголовок */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-          Маркетинг · Семантика · Бесплатно
+          Маркетинг · Семантика · 1 ⚡
         </div>
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
           Семантическое ядро

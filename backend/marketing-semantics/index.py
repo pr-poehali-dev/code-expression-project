@@ -64,6 +64,24 @@ def get_salon_data(salon_id, conn):
     return salon, services
 
 
+TOOL_KEY_MKT = "mkt_semantics"
+
+
+def deduct_energy(salon_id, user_id, conn) -> tuple[bool, int]:
+    cur = conn.cursor()
+    cur.execute(f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key=%s", (TOOL_KEY_MKT,))
+    row = cur.fetchone()
+    cost = row[0] if row else 1
+    cur.execute(f"SELECT credits_balance FROM {SCHEMA}.salons WHERE id=%s FOR UPDATE", (salon_id,))
+    bal = cur.fetchone()
+    if not bal or int(bal[0]) < cost:
+        return False, int(bal[0]) if bal else 0
+    cur.execute(f"UPDATE {SCHEMA}.salons SET credits_balance=credits_balance-%s WHERE id=%s", (cost, salon_id))
+    cur.execute(f"INSERT INTO {SCHEMA}.credit_transactions (salon_id,user_id,action,amount,tool_key,type) VALUES (%s,%s,%s,%s,%s,'debit')", (salon_id, user_id, "Семантическое ядро", cost, TOOL_KEY_MKT))
+    conn.commit()
+    return True, cost
+
+
 def call_ai(messages, max_tokens=3000) -> str:
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     payload = json.dumps({
@@ -170,7 +188,7 @@ frequency может быть: "high", "medium", "low"
 
 
 def handler(event: dict, context) -> dict:
-    """Генерирует семантическое ядро для Яндекс.Директ на основе профиля салона. Бесплатно."""
+    """Генерирует семантическое ядро для Яндекс.Директ на основе профиля салона. Стоимость: 1 энергия."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -187,6 +205,10 @@ def handler(event: dict, context) -> dict:
         salon, services = get_salon_data(salon_id, conn)
         if not salon:
             return err("Салон не найден", 404)
+
+        ok_deduct, val = deduct_energy(salon_id, user["id"], conn)
+        if not ok_deduct:
+            return err(f"Недостаточно энергии. Нужно 1, доступно {val}.", 402)
     finally:
         conn.close()
 

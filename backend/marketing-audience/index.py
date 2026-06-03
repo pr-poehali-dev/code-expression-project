@@ -86,6 +86,24 @@ MEDICAL_SERVICES = [
 BANNED_SOCIAL = ["instagram", "инстаграм", "facebook", "фейсбук", "meta", "мета"]
 
 
+TOOL_KEY = "mkt_audience"
+
+
+def deduct_energy(salon_id, user_id, conn) -> tuple[bool, int]:
+    cur = conn.cursor()
+    cur.execute(f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key=%s", (TOOL_KEY,))
+    row = cur.fetchone()
+    cost = row[0] if row else 1
+    cur.execute(f"SELECT credits_balance FROM {SCHEMA}.salons WHERE id=%s FOR UPDATE", (salon_id,))
+    bal = cur.fetchone()
+    if not bal or int(bal[0]) < cost:
+        return False, int(bal[0]) if bal else 0
+    cur.execute(f"UPDATE {SCHEMA}.salons SET credits_balance=credits_balance-%s WHERE id=%s", (cost, salon_id))
+    cur.execute(f"INSERT INTO {SCHEMA}.credit_transactions (salon_id,user_id,action,amount,tool_key,type) VALUES (%s,%s,%s,%s,%s,'debit')", (salon_id, user_id, "Портрет ЦА", cost, TOOL_KEY))
+    conn.commit()
+    return True, cost
+
+
 def has_medical_services(services) -> bool:
     for s in services:
         name_lower = s["name"].lower()
@@ -183,7 +201,7 @@ def build_prompt(salon, services):
 
 
 def handler(event: dict, context) -> dict:
-    """Генерирует 3 портрета целевой аудитории на основе профиля салона. Бесплатно."""
+    """Генерирует 3 портрета целевой аудитории на основе профиля салона. Стоимость: 1 энергия."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -200,6 +218,10 @@ def handler(event: dict, context) -> dict:
         salon, services = get_salon_data(salon_id, conn)
         if not salon:
             return err("Салон не найден", 404)
+
+        ok_deduct, val = deduct_energy(salon_id, user["id"], conn)
+        if not ok_deduct:
+            return err(f"Недостаточно энергии. Нужно 1, доступно {val}.", 402)
     finally:
         conn.close()
 

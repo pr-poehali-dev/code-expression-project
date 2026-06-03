@@ -14,14 +14,14 @@ interface Tool {
   iconBg: string;
   title: string;
   description: string;
-  badge: "new" | "soon" | "free";
+  badge: "new" | "soon" | "cost";
   ready: boolean;
 }
 
 const BADGE_STYLES: Record<string, { bg: string; color: string; label: string }> = {
   new:  { bg: "hsl(145,60%,92%)", color: "hsl(145,60%,30%)", label: "Новое" },
   soon: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "Скоро" },
-  free: { bg: "hsl(185,85%,92%)", color: ACCENT,              label: "Бесплатно" },
+  cost: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "1 ⚡" },
 };
 
 const TOOLS: Tool[] = [
@@ -32,7 +32,7 @@ const TOOLS: Tool[] = [
     iconBg: "hsl(220,80%,95%)",
     title: "Портрет целевой аудитории",
     description: "ИИ анализирует ваши услуги и создаёт детальные портреты ЦА с болями, мотивацией и каналами охвата.",
-    badge: "free",
+    badge: "cost",
     ready: true,
   },
   {
@@ -42,7 +42,7 @@ const TOOLS: Tool[] = [
     iconBg: "hsl(280,60%,95%)",
     title: "Офферы под ЦА",
     description: "Генерирует убедительные предложения и акции под каждый сегмент вашей аудитории.",
-    badge: "free",
+    badge: "cost",
     ready: true,
   },
   {
@@ -52,7 +52,7 @@ const TOOLS: Tool[] = [
     iconBg: "hsl(145,60%,93%)",
     title: "Семантическое ядро",
     description: "Список поисковых запросов для Яндекс.Директ под ваши услуги — высокочастотные, средние, низкочастотные.",
-    badge: "free",
+    badge: "cost",
     ready: true,
   },
   {
@@ -62,7 +62,7 @@ const TOOLS: Tool[] = [
     iconBg: "hsl(25,90%,94%)",
     title: "Объявления для Яндекс.Директ",
     description: "Готовые тексты по требованиям Яндекса: заголовок 1 (≤35), заголовок 2 (≤30), текст (≤81 симв.).",
-    badge: "free",
+    badge: "cost",
     ready: true,
   },
   {
