@@ -149,7 +149,7 @@ export default function LkClientMsg() {
     <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
       {/* Заголовок */}
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>ИИ-инструмент · 1 энергия</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>ИИ-инструмент · бесплатно</div>
         <h2 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 700, color: "#0F172A" }}>Сообщения клиентам</h2>
         <p style={{ margin: 0, fontSize: 13, color: "#64748B", lineHeight: 1.6 }}>
           Персональные тексты для WhatsApp и Telegram — каждый раз уникальные, живые, без шаблонных фраз.
