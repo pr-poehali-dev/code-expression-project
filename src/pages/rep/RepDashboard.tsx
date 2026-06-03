@@ -5,20 +5,23 @@ import { ACCENT } from "./rep.constants";
 import RepTariffsTab from "./RepTariffsTab";
 import RepMailTab from "./RepMailTab";
 import RepAITab from "./RepAITab";
+import RepLogTab from "./RepLogTab";
 
-type Tab = "ai" | "tariffs" | "mail";
-
-const TABS = [
-  { id: "tariffs" as Tab, icon: "LayoutGrid", label: "Тарифы" },
-  { id: "mail" as Tab, icon: "Mail", label: "Отправить письмо" },
-  { id: "ai" as Tab, icon: "Bot", label: "ИИ-ассистент" },
-];
+type Tab = "ai" | "tariffs" | "mail" | "log";
 
 export default function RepDashboard() {
   const { user, logout } = useLkAuth();
   const [tab, setTab] = useState<Tab>("tariffs");
 
   const senderName = user?.full_name || user?.username || "Представитель";
+  const isAdmin = !!user?.is_admin;
+
+  const TABS = [
+    { id: "tariffs" as Tab, icon: "LayoutGrid", label: "Тарифы" },
+    { id: "mail" as Tab, icon: "Mail", label: "Отправить письмо" },
+    { id: "log" as Tab, icon: "ClipboardList", label: isAdmin ? "История (все)" : "История" },
+    { id: "ai" as Tab, icon: "Bot", label: "ИИ-ассистент" },
+  ];
 
   return (
     <div style={{ minHeight: "100vh", background: "#f8f8f6", fontFamily: "Montserrat, sans-serif" }}>
@@ -41,10 +44,10 @@ export default function RepDashboard() {
       </div>
 
       {/* Табы */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #e8e8e4", padding: "0 24px", display: "flex", gap: 4 }}>
+      <div style={{ background: "#fff", borderBottom: "1px solid #e8e8e4", padding: "0 24px", display: "flex", gap: 4, overflowX: "auto" }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
-            display: "flex", alignItems: "center", gap: 7,
+            display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap",
             padding: "13px 18px", border: "none", background: "transparent",
             borderBottom: tab === t.id ? `2px solid ${ACCENT}` : "2px solid transparent",
             color: tab === t.id ? ACCENT : "#888",
@@ -59,9 +62,10 @@ export default function RepDashboard() {
       </div>
 
       {/* Контент */}
-      <div style={{ maxWidth: 820, margin: "0 auto", padding: "24px 16px" }}>
+      <div style={{ maxWidth: tab === "log" ? 1100 : 820, margin: "0 auto", padding: "24px 16px" }}>
         {tab === "tariffs" && <RepTariffsTab />}
         {tab === "mail" && <RepMailTab senderName={senderName} />}
+        {tab === "log" && <RepLogTab isAdmin={isAdmin} />}
         {tab === "ai" && <RepAITab />}
       </div>
 

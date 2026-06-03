@@ -2,6 +2,7 @@ export const ACCENT = "hsl(185,85%,32%)";
 export const ACCENT_LIGHT = "hsl(185,85%,95%)";
 export const REP_AI_URL = "https://functions.poehali.dev/5659445e-489a-411e-9e90-4bb21904624d";
 export const REP_MAIL_URL = "https://functions.poehali.dev/df48bb51-d4fb-4584-b725-423c7c731624";
+export const REP_MAIL_LOG_URL = "https://functions.poehali.dev/cdcaf8a7-9722-468f-8220-288a1f3998a0";
 export const SITE = "https://promtdialog.ru";
 
 export interface Message { role: "user" | "assistant"; content: string; }

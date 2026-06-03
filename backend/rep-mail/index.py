@@ -154,6 +154,7 @@ def handler(event: dict, context) -> dict:
     to_name = (body.get("to_name") or "").strip()
     subject = (body.get("subject") or "").strip()
     body_html = (body.get("body_html") or "").strip()
+    template_label = (body.get("template_label") or "").strip()
 
     if not to_email or not subject or not body_html:
         return err("Укажите email получателя, тему и текст письма")
@@ -174,5 +175,17 @@ def handler(event: dict, context) -> dict:
     with smtplib.SMTP_SSL("smtp.mail.ru", 465) as server:
         server.login(FROM_EMAIL, smtp_password)
         server.sendmail(FROM_EMAIL, to_email, msg.as_string())
+
+    log_conn = psycopg2.connect(os.environ["DATABASE_URL"])
+    try:
+        log_cur = log_conn.cursor()
+        log_cur.execute(
+            f"INSERT INTO {SCHEMA}.rep_mail_log (sender_id, to_email, to_name, subject, template_label) "
+            f"VALUES (%s, %s, %s, %s, %s)",
+            (user["id"], to_email, to_name, subject, template_label)
+        )
+        log_conn.commit()
+    finally:
+        log_conn.close()
 
     return ok({"ok": True, "sent_to": to_email})

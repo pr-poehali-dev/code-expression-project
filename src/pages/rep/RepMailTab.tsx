@@ -1,17 +1,67 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { ACCENT, ACCENT_LIGHT, REP_MAIL_URL, EMAIL_TEMPLATES } from "./rep.constants";
 
+interface SalonContact { name: string; email: string; }
+
+function parseCsv(text: string): SalonContact[] {
+  const lines = text.trim().split(/\r?\n/);
+  const results: SalonContact[] = [];
+  for (const line of lines) {
+    const sep = line.includes(";") ? ";" : ",";
+    const cols = line.split(sep).map(c => c.trim().replace(/^["']|["']$/g, ""));
+    if (cols.length < 2) continue;
+    const [a, b] = cols;
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailRe.test(b)) results.push({ name: a, email: b });
+    else if (emailRe.test(a)) results.push({ name: b, email: a });
+  }
+  return results;
+}
+
 export default function RepMailTab({ senderName }: { senderName: string }) {
+  const [contacts, setContacts] = useState<SalonContact[]>([]);
+  const [search, setSearch] = useState("");
+  const [fileError, setFileError] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
   const [toEmail, setToEmail] = useState("");
   const [toName, setToName] = useState("");
   const [subject, setSubject] = useState("");
   const [bodyText, setBodyText] = useState("");
+  const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [sentTo, setSentTo] = useState("");
   const [error, setError] = useState("");
-  const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
+
+  function handleFile(file: File) {
+    setFileError("");
+    const reader = new FileReader();
+    reader.onload = e => {
+      const text = e.target?.result as string;
+      const parsed = parseCsv(text);
+      if (parsed.length === 0) {
+        setFileError("Не удалось найти данные. Убедитесь, что файл CSV с колонками: Название салона, Email");
+        return;
+      }
+      setContacts(parsed);
+      setSearch("");
+    };
+    reader.readAsText(file, "utf-8");
+  }
+
+  function onFileDrop(e: React.DragEvent) {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  }
+
+  function selectSalon(c: SalonContact) {
+    setToName(c.name);
+    setToEmail(c.email);
+    setSearch("");
+  }
 
   function applyTemplate(tpl: typeof EMAIL_TEMPLATES[0]) {
     setSubject(tpl.subject);
@@ -29,10 +79,15 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
     setSending(true); setError(""); setSent(false);
     try {
       const session = localStorage.getItem("lk_session") || "";
+      const tplLabel = EMAIL_TEMPLATES.find(t => t.id === activeTemplate)?.label || "";
       const res = await fetch(REP_MAIL_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": session },
-        body: JSON.stringify({ to_email: toEmail, to_name: toName, subject, body_html: textToHtml(bodyText) }),
+        body: JSON.stringify({
+          to_email: toEmail, to_name: toName,
+          subject, body_html: textToHtml(bodyText),
+          template_label: tplLabel,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Ошибка отправки");
@@ -52,11 +107,85 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
     background: "#fff", color: "#1a1a1a",
   };
 
+  const filtered = contacts.filter(c =>
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.email.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#1a1a1a" }}>Отправить письмо</h2>
 
-      {/* Шаблоны */}
+      {/* ── База салонов ── */}
+      <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e8e4", padding: "16px 18px" }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: "#888", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.5px" }}>База салонов (CSV)</div>
+
+        {contacts.length === 0 ? (
+          <div
+            onDragOver={e => e.preventDefault()}
+            onDrop={onFileDrop}
+            onClick={() => fileRef.current?.click()}
+            style={{
+              border: `2px dashed ${ACCENT}40`, borderRadius: 10, padding: "24px 16px",
+              textAlign: "center", cursor: "pointer", background: "#fafaf8",
+            }}
+          >
+            <Icon name="Upload" size={22} style={{ color: ACCENT, marginBottom: 8 }} />
+            <div style={{ fontSize: 13, color: "#666", marginBottom: 4 }}>Перетащите CSV-файл или нажмите для выбора</div>
+            <div style={{ fontSize: 11, color: "#aaa" }}>Формат: Название салона, Email (через запятую или точку с запятой)</div>
+            {fileError && <div style={{ marginTop: 10, fontSize: 12, color: "#c00" }}>{fileError}</div>}
+          </div>
+        ) : (
+          <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, gap: 10, flexWrap: "wrap" }}>
+              <div style={{ fontSize: 13, color: ACCENT, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                <Icon name="CheckCircle" size={14} />
+                Загружено {contacts.length} контактов
+              </div>
+              <button onClick={() => { setContacts([]); setSearch(""); }} style={{ fontSize: 12, color: "#999", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat, sans-serif" }}>
+                Заменить файл
+              </button>
+            </div>
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Поиск по названию или email..."
+              style={{ ...inp, marginBottom: search ? 8 : 0 }}
+            />
+            {search && (
+              <div style={{ maxHeight: 200, overflowY: "auto", border: "1px solid #e8e8e4", borderRadius: 8, background: "#fff" }}>
+                {filtered.length === 0 ? (
+                  <div style={{ padding: "12px 14px", fontSize: 13, color: "#aaa" }}>Ничего не найдено</div>
+                ) : filtered.slice(0, 30).map((c, i) => (
+                  <div
+                    key={i}
+                    onClick={() => selectSalon(c)}
+                    style={{
+                      padding: "10px 14px", cursor: "pointer",
+                      borderBottom: i < filtered.length - 1 ? "1px solid #f0f0ec" : "none",
+                      display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8,
+                      transition: "background 0.1s",
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = ACCENT_LIGHT)}
+                    onMouseLeave={e => (e.currentTarget.style.background = "#fff")}
+                  >
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>{c.name}</div>
+                      <div style={{ fontSize: 12, color: "#888" }}>{c.email}</div>
+                    </div>
+                    <Icon name="ArrowRight" size={13} style={{ color: ACCENT, flexShrink: 0 }} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        <input ref={fileRef} type="file" accept=".csv,.txt" style={{ display: "none" }}
+          onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
+      </div>
+
+      {/* ── Шаблоны ── */}
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e8e4", padding: "16px 18px" }}>
         <div style={{ fontSize: 12, fontWeight: 600, color: "#888", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.5px" }}>Готовые шаблоны</div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -75,9 +204,9 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
         </div>
       </div>
 
-      {/* Форма */}
+      {/* ── Форма ── */}
       <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #e8e8e4", padding: "20px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }} className="rep-mail-grid">
           <div>
             <label style={{ fontSize: 12, fontWeight: 600, color: "#666", display: "block", marginBottom: 5 }}>Email получателя *</label>
             <input value={toEmail} onChange={e => setToEmail(e.target.value)} placeholder="salon@email.ru" type="email" style={inp} />
@@ -89,11 +218,11 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
         </div>
         <div style={{ marginBottom: 12 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: "#666", display: "block", marginBottom: 5 }}>Тема письма *</label>
-          <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Dok Диалог — платформа для вашего салона" style={inp} />
+          <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Про Диалог — платформа для вашего салона" style={inp} />
         </div>
         <div style={{ marginBottom: 16 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: "#666", display: "block", marginBottom: 5 }}>
-            Текст письма * <span style={{ fontWeight: 400, color: "#aaa" }}>(поддерживает HTML: &lt;p&gt;, &lt;ul&gt;, &lt;strong&gt;, &lt;a href=&quot;...&quot;&gt;)</span>
+            Текст письма * <span style={{ fontWeight: 400, color: "#aaa" }}>(поддерживает HTML)</span>
           </label>
           <textarea
             value={bodyText}
