@@ -105,7 +105,7 @@ export function HomeTab({ onNav, role, hasSalon }: HomeTabProps) {
               </div>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", lineHeight: 1.3 }}>Сообщения клиентам</div>
-                <div style={{ fontSize: 11, color: "#94A3B8" }}>Выберите тип — ИИ напишет текст за секунды · 1 ⚡</div>
+                <div style={{ fontSize: 11, color: "#94A3B8" }}>Выберите тип — ИИ напишет текст за секунды · бесплатно</div>
               </div>
             </div>
             <button onClick={() => onNav("clientmsg")} style={{ fontSize: 12, fontWeight: 600, color: ACCENT, background: "hsl(185,85%,95%)", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}>

@@ -279,7 +279,7 @@ export default function LkClientMsg() {
           }}>
             {generating
               ? <><Icon name="Loader2" size={16} style={{ animation: "spin 1s linear infinite" }} />Генерирую...</>
-              : <><Icon name="Wand2" size={16} />Сгенерировать сообщение — 1 ⚡</>
+              : <><Icon name="Wand2" size={16} />Сгенерировать сообщение</>
             }
           </button>
 

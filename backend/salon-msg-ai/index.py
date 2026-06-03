@@ -108,11 +108,20 @@ def build_prompt(msg_type: str, body: dict, salon_name: str) -> str:
     extra = body.get("extra", "").strip()
     tone = body.get("tone", "тёплый и дружелюбный").strip()
 
+    is_celebration = msg_type in ("birthday", "seasonal")
+    emoji_rule = (
+        "Используй смайлики умеренно и по смыслу — 3–5 штук по тексту, не подряд."
+        if is_celebration else
+        "Используй 1–2 смайлика по смыслу, уместно и ненавязчиво."
+    )
+
     base = (
         f"Ты — администратор салона красоты «{salon_name}». "
         f"Напиши короткое персональное сообщение клиенту в мессенджер (WhatsApp/Telegram). "
         f"Тон: {tone}. Без лишних слов, без восклицательных знаков через строчку. "
         f"Не используй шаблонные фразы вроде «Уважаемый клиент». Сообщение должно звучать живо и по-человечески. "
+        f"{emoji_rule} "
+        f"В конце каждого сообщения добавь тёплое пожелание хорошего дня или вечера — коротко, 1 предложение. "
         f"Длина: 3-5 предложений. Не добавляй подпись и название салона в конце — они уже есть в мессенджере.\n\n"
     )
 
@@ -161,7 +170,7 @@ def build_prompt(msg_type: str, body: dict, salon_name: str) -> str:
 
 
 def handler(event: dict, context) -> dict:
-    """Генерирует персональное сообщение клиенту салона красоты через ИИ. Стоимость: 1 энергия."""
+    """Генерирует персональное сообщение клиенту салона красоты через ИИ. Бесплатно."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -180,17 +189,10 @@ def handler(event: dict, context) -> dict:
         if msg_type not in MSG_TYPES:
             return err(f"Неизвестный тип сообщения. Допустимые: {', '.join(MSG_TYPES.keys())}")
 
-        cost = get_tool_cost(conn)
-        balance = get_salon_balance(salon_id, conn)
-        if balance < cost:
-            return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
-
         cur = conn.cursor()
         cur.execute(f"SELECT name FROM {SCHEMA}.salons WHERE id = %s", (salon_id,))
         salon_row = cur.fetchone()
         salon_name = salon_row[0] if salon_row else "салон"
-
-        deduct_energy(salon_id, user["id"], cost, f"Генерация сообщения: {MSG_TYPES[msg_type]}", conn)
     finally:
         conn.close()
 
@@ -200,10 +202,4 @@ def handler(event: dict, context) -> dict:
         {"role": "user", "content": prompt},
     ])
 
-    conn2 = get_db()
-    try:
-        new_balance = get_salon_balance(salon_id, conn2)
-    finally:
-        conn2.close()
-
-    return ok({"text": text, "balance": new_balance, "cost": cost})
+    return ok({"text": text, "balance": None, "cost": 0})
