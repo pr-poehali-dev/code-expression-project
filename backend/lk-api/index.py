@@ -2867,6 +2867,49 @@ def handle_payment_create(event: dict) -> dict:
         conn.close()
 
 
+def handle_admin_payments(event: dict) -> dict:
+    """Список всех платежей для админа с информацией о пользователе и салоне."""
+    user = require_admin(event)
+    if "statusCode" in user:
+        return user
+
+    conn = get_db()
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(f"""
+            SELECT
+                p.id, p.amount_rub, p.energy_amount, p.package_code,
+                p.status, p.yookassa_id, p.created_at, p.updated_at,
+                u.full_name AS user_name, u.email AS user_email,
+                s.name AS salon_name
+            FROM {tbl('payments')} p
+            LEFT JOIN {tbl('lk_users')} u ON u.id = p.user_id
+            LEFT JOIN {tbl('salons')} s ON s.id = p.salon_id
+            ORDER BY p.created_at DESC
+            LIMIT 500
+        """)
+        rows = cur.fetchall()
+        payments = []
+        for r in rows:
+            payments.append({
+                "id": r["id"],
+                "amount_rub": r["amount_rub"],
+                "energy_amount": r["energy_amount"],
+                "package_code": r["package_code"],
+                "status": r["status"],
+                "yookassa_id": r["yookassa_id"],
+                "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+                "user_name": r["user_name"] or "—",
+                "user_email": r["user_email"] or "—",
+                "salon_name": r["salon_name"] or "—",
+            })
+        total_rub = sum(p["amount_rub"] for p in payments if p["status"] == "succeeded")
+        total_energy = sum(p["energy_amount"] for p in payments if p["status"] == "succeeded")
+        return ok({"payments": payments, "total_rub": total_rub, "total_energy": total_energy})
+    finally:
+        conn.close()
+
+
 def handle_payment_webhook(event: dict) -> dict:
     """Вебхук от ЮКассы — зачисляем энергию при успешной оплате."""
     body = json.loads(event.get("body") or "{}")
@@ -3339,6 +3382,7 @@ ROUTES = {
     # Платежи ЮКасса
     ("POST", "payment_create"): handle_payment_create,
     ("POST", "payment_webhook"): handle_payment_webhook,
+    ("GET",  "admin_payments"): handle_admin_payments,
     # Команда / приглашения
     ("POST", "team_invite"): handle_team_invite,
     ("GET",  "team_list"): handle_team_list,

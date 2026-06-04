@@ -7,8 +7,9 @@ import { AISection } from "./LkAdminAI";
 import { CandidatesSection } from "./LkAdminCandidates";
 import { EnergySection } from "./LkAdminEnergy";
 import { CoursesSection } from "./LkAdminCourses";
+import { PaymentsSection } from "./LkAdminPayments";
 
-type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses";
+type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments";
 
 export default function LkAdmin() {
   const [section, setSection] = useState<Section>("ai");
@@ -27,6 +28,7 @@ export default function LkAdmin() {
           { id: "candidates" as Section, icon: "UserCheck",    label: "Кандидаты"    },
           { id: "body"       as Section, icon: "User",         label: "Схема тела"   },
           { id: "energy"     as Section, icon: "Zap",          label: "Энергия"      },
+          { id: "payments"   as Section, icon: "CreditCard",   label: "Платежи"      },
         ].map(s => (
           <button key={s.id} onClick={() => setSection(s.id)} style={{
             display: "flex", alignItems: "center", gap: 8, padding: "9px 18px",
@@ -49,6 +51,7 @@ export default function LkAdmin() {
       {section === "candidates" && <CandidatesSection />}
       {section === "body"       && <BodySection />}
       {section === "energy"     && <EnergySection />}
+      {section === "payments"   && <PaymentsSection />}
 
       <style>{`
         .admin-grid-2 {
