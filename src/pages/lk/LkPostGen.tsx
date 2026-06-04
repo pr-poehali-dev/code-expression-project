@@ -162,9 +162,16 @@ export default function LkPostGen() {
           </div>
           <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>Генератор постов</h2>
         </div>
-        <p style={{ fontSize: 13, color: "#777", margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 13, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6 }}>
           Введите тему — ИИ предложит заголовки, напишет текст и создаст картинку для поста.
         </p>
+        <div style={{ padding: "12px 16px", background: "hsl(210,80%,97%)", borderRadius: 12, border: "1px solid hsl(210,80%,88%)", marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>Как пользоваться и почему это выгодно</div>
+          <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>
+            <b>3 шага:</b> укажите тему или услугу → выберите лучший заголовок из предложенных → получите готовый пост с картинкой.<br />
+            Больше не нужно тратить час на придумывание текста и поиск картинки. ИИ учитывает специфику вашего салона, пишет в выбранном тоне и под конкретную цель — будь то привлечение новых клиентов или анонс акции. Готовый пост можно сразу скопировать и опубликовать.
+          </div>
+        </div>
       </div>
 
       {/* Прогресс-шаги */}
