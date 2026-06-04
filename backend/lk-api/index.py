@@ -2813,8 +2813,19 @@ def handle_payment_create(event: dict) -> dict:
             },
             method="POST"
         )
-        with urlreq.urlopen(req, timeout=15) as resp:
-            payment = json.loads(resp.read().decode("utf-8"))
+        import urllib.error as urlerr
+        try:
+            with urlreq.urlopen(req, timeout=15) as resp:
+                payment = json.loads(resp.read().decode("utf-8"))
+        except urlerr.HTTPError as e:
+            error_body = e.read().decode("utf-8")
+            print(f"[YooKassa Error] status={e.code} body={error_body}")
+            try:
+                yk_err = json.loads(error_body)
+                msg = yk_err.get("description") or yk_err.get("message") or error_body
+            except Exception:
+                msg = error_body
+            return err(f"Ошибка ЮКассы: {msg}")
 
         cur.execute(
             f"INSERT INTO {tbl('payments')} (salon_id, user_id, package_code, amount_rub, energy_amount, yookassa_id, status) "
