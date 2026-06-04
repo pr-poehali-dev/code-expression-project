@@ -51,7 +51,7 @@ export default function MastersAuth({ mode }: Props) {
     if (!regTerms) return setError("Примите условия договора-оферты");
     setLoading(true); setError(null);
     try {
-      const res = await fetch(`${API}/register`, {
+      const res = await fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "register", full_name: regName, email: regEmail, phone: regPhone, password: regPass, terms_agreed: true }),
@@ -68,7 +68,7 @@ export default function MastersAuth({ mode }: Props) {
     if (!loginEmail || !loginPass) return setError("Введите email и пароль");
     setLoading(true); setError(null);
     try {
-      const res = await fetch(`${API}/login`, {
+      const res = await fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "login", email: loginEmail, password: loginPass }),
