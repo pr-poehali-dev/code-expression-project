@@ -71,7 +71,10 @@ def handle_login(event: dict) -> dict:
     conn = get_db()
     try:
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        cur.execute(f"SELECT * FROM {tbl('lk_users')} WHERE username = %s AND is_active = TRUE", (username,))
+        cur.execute(
+            f"SELECT * FROM {tbl('lk_users')} WHERE (username = %s OR email = %s) AND is_active = TRUE",
+            (username, username)
+        )
         user = cur.fetchone()
         if not user:
             return err("Неверный логин или пароль", 401)

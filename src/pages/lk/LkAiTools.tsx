@@ -211,6 +211,7 @@ export default function LkAiTools() {
       )}
       {!energyLoading && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14, alignItems: "stretch" }}>
 
+
         {hasPaid ? (
           <ToolCard
             icon="Users"
