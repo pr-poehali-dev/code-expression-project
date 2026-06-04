@@ -211,7 +211,7 @@ export default function Masters() {
           <div className="m-hero-content">
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, border: `1px solid rgba(201,169,110,0.4)`, borderRadius: 100, padding: "6px 14px", marginBottom: 28 }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: GOLD, flexShrink: 0 }} />
-              <span style={{ fontSize: 11, color: GOLD, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" }}>Партнёрская программа для мастеров</span>
+              <span style={{ fontSize: 11, color: GOLD, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" }}>Партнёрская программа для мастеров салона</span>
             </div>
 
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(38px,6vw,68px)", fontWeight: 500, color: "#fff", lineHeight: 1.06, margin: "0 0 20px", letterSpacing: "-0.5px" }}>
@@ -410,7 +410,7 @@ export default function Masters() {
             <a href="mailto:info@promtdialog.ru" style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>info@promtdialog.ru</a>
           </div>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.2)" }}>
-            © 2026 Про Диалог · Партнёрская программа для мастеров
+            © 2026 Про Диалог · Партнёрская программа для мастеров салона
           </div>
         </div>
       </footer>
