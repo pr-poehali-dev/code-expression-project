@@ -22,6 +22,8 @@ interface AdGroup {
   group: string;
   service_tag: string;
   ads: Ad[];
+  keywords?: string[];
+  minus_words?: string[];
 }
 
 interface KeywordGroup {
@@ -223,6 +225,83 @@ function ImageGenButton({ groupName, keywords, ads }: { groupName: string; keywo
   );
 }
 
+// ── Блок запросов и минус-слов ────────────────────────────────────────────────
+function KeywordsBlock({ keywords, minusWords }: { keywords: string[]; minusWords: string[] }) {
+  const [kwCopied, setKwCopied] = useState(false);
+  const [minusCopied, setMinusCopied] = useState(false);
+
+  const copyKw = () => {
+    copyToClipboard(keywords.join("\n"));
+    setKwCopied(true);
+    setTimeout(() => setKwCopied(false), 2000);
+  };
+
+  const copyMinus = () => {
+    copyToClipboard(minusWords.join(", "));
+    setMinusCopied(true);
+    setTimeout(() => setMinusCopied(false), 2000);
+  };
+
+  if (!keywords?.length && !minusWords?.length) return null;
+
+  return (
+    <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 10 }}>
+      {keywords?.length > 0 && (
+        <div style={{ background: "hsl(185,85%,97%)", border: "1px solid hsl(185,85%,82%)", borderRadius: 12, padding: "14px 16px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Icon name="Search" size={13} style={{ color: ACCENT }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT }}>Ключевые запросы</span>
+            </div>
+            <button
+              onClick={copyKw}
+              style={{ display: "flex", alignItems: "center", gap: 4, background: kwCopied ? ACCENT : "transparent", color: kwCopied ? "#fff" : ACCENT, border: `1px solid ${ACCENT}`, borderRadius: 6, padding: "3px 9px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+            >
+              <Icon name={kwCopied ? "Check" : "Copy"} size={11} />
+              {kwCopied ? "Скопировано" : "Скопировать"}
+            </button>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {keywords.map((kw, i) => (
+              <div key={i} style={{ fontSize: 12, color: "#334155", background: "#fff", borderRadius: 6, padding: "5px 10px", border: "1px solid hsl(185,85%,88%)" }}>
+                {kw}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {minusWords?.length > 0 && (
+        <div style={{ background: "hsl(0,75%,97%)", border: "1px solid hsl(0,75%,85%)", borderRadius: 12, padding: "14px 16px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Icon name="MinusCircle" size={13} style={{ color: "hsl(0,70%,50%)" }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: "hsl(0,70%,45%)" }}>Минус-слова</span>
+            </div>
+            <button
+              onClick={copyMinus}
+              style={{ display: "flex", alignItems: "center", gap: 4, background: minusCopied ? "hsl(0,70%,50%)" : "transparent", color: minusCopied ? "#fff" : "hsl(0,70%,45%)", border: "1px solid hsl(0,70%,75%)", borderRadius: 6, padding: "3px 9px", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+            >
+              <Icon name={minusCopied ? "Check" : "Copy"} size={11} />
+              {minusCopied ? "Скопировано" : "Скопировать"}
+            </button>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+            {minusWords.map((w, i) => (
+              <span key={i} style={{ fontSize: 11, color: "hsl(0,60%,40%)", background: "#fff", borderRadius: 5, padding: "3px 8px", border: "1px solid hsl(0,70%,88%)" }}>
+                −{w}
+              </span>
+            ))}
+          </div>
+          <div style={{ marginTop: 8, fontSize: 11, color: "#94A3B8" }}>
+            Формат для Директа: через запятую
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Группа объявлений ─────────────────────────────────────────────────────────
 function AdGroupCard({ group, index, salonName, sourceKeywords }: { group: AdGroup; index: number; salonName: string; sourceKeywords: string[] }) {
   const [open, setOpen] = useState(index < 2);
@@ -250,6 +329,10 @@ function AdGroupCard({ group, index, salonName, sourceKeywords }: { group: AdGro
               <AdPreview key={i} ad={ad} idx={i} salonName={salonName} />
             ))}
           </div>
+          <KeywordsBlock
+            keywords={group.keywords ?? []}
+            minusWords={group.minus_words ?? []}
+          />
           <ImageGenButton groupName={group.group} keywords={sourceKeywords} ads={group.ads} />
         </div>
       )}
