@@ -48,6 +48,27 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
           </div>
         ))}
       </div>
+      {/* Инфо-плашки по инструментам */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+        {showBodyTools && (
+          <InfoBanner color="hsl(210,85%,97%)" border="hsl(210,85%,85%)"
+            title="Системная диагностика и Шпаргалка по телу"
+            text="Введите симптом клиента — система мгновенно покажет возможные причины, красные флаги и техники работы. Помогает специалисту быстро ориентироваться в сложных случаях и выглядеть профессионально в глазах клиента." />
+        )}
+        <InfoBanner color="hsl(260,70%,97%)" border="hsl(260,70%,85%)"
+          title="Развитие специалиста"
+          text="Выберите цель — ИИ составит персональный план: как привлечь больше клиентов, выстроить позиционирование и выйти на новый доход. Работает как личный ментор, только без почасовой оплаты." />
+        <InfoBanner color="hsl(185,85%,97%)" border="hsl(185,85%,85%)"
+          title="Мышление с премиум-клиентами"
+          text="Тест оценивает уверенность и навыки общения с клиентами высокого сегмента. По итогам — конкретные точки роста, которые помогают специалисту уверенно работать с дорогим сегментом и удерживать его." />
+        <InfoBanner color="hsl(20,85%,97%)" border="hsl(20,85%,85%)"
+          title="Внутренние барьеры специалиста"
+          text="Психологические блоки — главная причина, почему специалисты застревают на одном уровне дохода годами. Тест выявляет конкретные барьеры и даёт инструменты для их устранения." />
+        <InfoBanner color="hsl(145,60%,97%)" border="hsl(145,60%,83%)"
+          title="Финансовая грамотность PRO и Финансовый профиль PRO"
+          text="Два теста, которые помогают специалисту честно ответить: сколько хочу зарабатывать, почему не зарабатываю и что мешает. Результат — чёткий план с цифрами и пониманием своего финансового мышления." />
+      </div>
+
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
         {/* Системная диагностика */}
         {showBodyTools ? (
@@ -168,6 +189,15 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function InfoBanner({ color, border, title, text }: { color: string; border: string; title: string; text: string }) {
+  return (
+    <div style={{ padding: "12px 16px", background: color, borderRadius: 12, border: `1px solid ${border}` }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 4 }}>{title}</div>
+      <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.65 }}>{text}</div>
     </div>
   );
 }
