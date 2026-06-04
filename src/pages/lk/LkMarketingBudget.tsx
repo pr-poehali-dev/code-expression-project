@@ -261,7 +261,7 @@ export default function LkMarketingBudget({ onBack }: Props) {
       {/* Заголовок */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-          Маркетинг · Медиаплан · 1 ⚡
+          Маркетинг · Медиаплан · 3 ⚡
         </div>
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
           Медиаплан для Яндекс.Директ
@@ -333,7 +333,7 @@ export default function LkMarketingBudget({ onBack }: Props) {
         >
           {loading
             ? <><Icon name="Loader2" size={16} style={{ animation: "spin 1s linear infinite" }} /> Считаю медиаплан...</>
-            : <><Icon name="Calculator" size={16} /> Рассчитать медиаплан — 1 ⚡</>
+            : <><Icon name="Calculator" size={16} /> Рассчитать медиаплан — 3 ⚡</>
           }
         </button>
       </div>

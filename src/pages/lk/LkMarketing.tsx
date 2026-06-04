@@ -20,14 +20,15 @@ interface Tool {
   iconBg: string;
   title: string;
   description: string;
-  badge: "new" | "soon" | "cost";
+  badge: "new" | "soon" | "cost" | "cost3";
   ready: boolean;
 }
 
 const BADGE_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-  new:  { bg: "hsl(145,60%,92%)", color: "hsl(145,60%,30%)", label: "Новое" },
-  soon: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "Скоро" },
-  cost: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "1 ⚡" },
+  new:   { bg: "hsl(145,60%,92%)", color: "hsl(145,60%,30%)", label: "Новое" },
+  soon:  { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "Скоро" },
+  cost:  { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "1 ⚡" },
+  cost3: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "3 ⚡" },
 };
 
 const TOOLS_DIRECT: Tool[] = [
@@ -78,7 +79,7 @@ const TOOLS_DIRECT: Tool[] = [
     iconBg: "hsl(185,85%,93%)",
     title: "Медиаплан для Директа",
     description: "ДРР, сравнение стратегий CPC/CPA/ДРР, прогноз клиентов и распределение бюджета — на основе данных вашего салона.",
-    badge: "cost",
+    badge: "cost3",
     ready: true,
   },
 ];
