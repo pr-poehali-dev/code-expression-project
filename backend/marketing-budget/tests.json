@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "No session — 401",
+      "method": "POST",
+      "path": "/",
+      "body": {"avg_check": 3000, "target_clients": 10, "budget": 30000},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Missing fields — 400",
+      "method": "POST",
+      "path": "/",
+      "body": {},
+      "expectedStatus": 401
+    }
+  ]
+}

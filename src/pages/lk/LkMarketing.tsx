@@ -9,6 +9,7 @@ import LkAiImageGen from "./LkAiImageGen";
 import LkReelScript from "./LkReelScript";
 import { useEnergy } from "@/contexts/EnergyContext";
 import { showEnergyGate } from "@/components/EnergyGate";
+import LkMarketingBudget from "./LkMarketingBudget";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -75,10 +76,10 @@ const TOOLS_DIRECT: Tool[] = [
     icon: "Calculator",
     iconColor: "hsl(185,85%,32%)",
     iconBg: "hsl(185,85%,93%)",
-    title: "Прогноз бюджета рекламы",
-    description: "Интеграция с Яндекс.Директ API — цена клика, прогноз показов и рекомендуемый бюджет по ключевым словам.",
-    badge: "soon",
-    ready: false,
+    title: "Медиаплан для Директа",
+    description: "ДРР, сравнение стратегий CPC/CPA/ДРР, прогноз клиентов и распределение бюджета — на основе данных вашего салона.",
+    badge: "cost",
+    ready: true,
   },
 ];
 
@@ -290,6 +291,10 @@ export default function LkMarketing() {
         <LkReelScript />
       </div>
     );
+  }
+
+  if (hasPaid && active === "budget") {
+    return <LkMarketingBudget onBack={() => setActive(null)} />;
   }
 
   if (hasPaid && activeTool) {
