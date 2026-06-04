@@ -31,6 +31,7 @@ interface Keyword {
   frequency: "high" | "medium" | "low";
   frequency_label: string;
   intent: string;
+  shows?: number;
 }
 
 interface KeywordGroup {
@@ -62,6 +63,14 @@ function KeywordRow({ kw, copied, onCopy }: { kw: Keyword; copied: boolean; onCo
         <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", lineHeight: 1.3 }}>{kw.query}</div>
         <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>{kw.intent}</div>
       </div>
+
+      {/* Показы из Вордстата */}
+      {kw.shows !== undefined && kw.shows > 0 && (
+        <div title="Показов в месяц (Вордстат)" style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 10, fontWeight: 700, color: "hsl(185,85%,32%)", background: "hsl(185,85%,95%)", borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap", flexShrink: 0 }}>
+          <Icon name="TrendingUp" size={10} />
+          {kw.shows >= 1000 ? `${(kw.shows / 1000).toFixed(kw.shows >= 10000 ? 0 : 1)}К` : kw.shows}
+        </div>
+      )}
 
       {/* Тег частотности */}
       <div style={{ fontSize: 10, fontWeight: 700, background: fs.bg, color: fs.color, borderRadius: 5, padding: "2px 7px", whiteSpace: "nowrap", flexShrink: 0 }}>
@@ -184,6 +193,8 @@ export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
   const [salonName, setSalonName] = useState(cached?.salonName ?? "");
   const [filter, setFilter] = useState<string>("all");
   const [copiedAll, setCopiedAll] = useState(false);
+  const [wordstatUsed, setWordstatUsed] = useState(false);
+  const [wordstatCount, setWordstatCount] = useState(0);
 
   const saveCache = (g: KeywordGroup[], name: string) => {
     try { localStorage.setItem(cacheKey, JSON.stringify({ groups: g, salonName: name })); } catch { /* ignore */ }
@@ -208,6 +219,8 @@ export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
       if (!res.ok) throw new Error(data.error || "Ошибка генерации");
       setGroups(data.groups);
       setSalonName(data.salon_name || "");
+      setWordstatUsed(!!data.wordstat_used);
+      setWordstatCount(data.total_queries_from_wordstat || 0);
       saveCache(data.groups, data.salon_name || "");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка");
@@ -266,7 +279,7 @@ export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
           </div>
           <div>
             <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>Собираю семантическое ядро...</div>
-            <div style={{ fontSize: 13, color: "#64748B" }}>ИИ подбирает поисковые запросы под ваши услуги</div>
+            <div style={{ fontSize: 13, color: "#64748B" }}>Запрашиваю статистику из Яндекс.Вордстат, затем ИИ группирует запросы</div>
           </div>
         </div>
       )}
@@ -287,10 +300,16 @@ export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
         <div>
           {/* Панель управления */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <div style={{ fontSize: 13, color: "#64748B" }}>
                 <span style={{ fontWeight: 700, color: "#0F172A" }}>{allKeywords.length} запросов</span> · {groups.length} групп · «{salonName}»
               </div>
+              {wordstatUsed && (
+                <div title={`${wordstatCount} запросов получено из Вордстата`} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, color: "hsl(185,85%,32%)", background: "hsl(185,85%,94%)", border: "1px solid hsl(185,85%,80%)", borderRadius: 20, padding: "3px 9px" }}>
+                  <Icon name="TrendingUp" size={10} />
+                  Вордстат · {wordstatCount} фраз
+                </div>
+              )}
             </div>
             <div style={{ display: "flex", gap: 6 }}>
               <button
