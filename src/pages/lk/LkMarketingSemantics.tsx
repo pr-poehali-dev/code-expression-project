@@ -246,9 +246,16 @@ export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
           Семантическое ядро
         </h2>
-        <p style={{ fontSize: 14, color: "#64748B", margin: 0, lineHeight: 1.6, maxWidth: 520 }}>
+        <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6, maxWidth: 520 }}>
           Поисковые запросы для Яндекс.Директ, сгруппированные по услугам и частотности. Готовы для загрузки в кампанию.
         </p>
+        <div style={{ padding: "12px 16px", background: "hsl(145,55%,97%)", borderRadius: 12, border: "1px solid hsl(145,55%,85%)", marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>Как пользоваться и почему это выгодно</div>
+          <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>
+            Нажмите «Собрать семантику» — ИИ подберёт поисковые запросы по всем вашим услугам и разобьёт их по группам и частотности.<br />
+            Подбор ключевых слов вручную занимает часы и требует опыта. Готовое семантическое ядро можно сразу загрузить в Яндекс.Директ — реклама начнёт показываться именно тем, кто ищет ваши услуги.
+          </div>
+        </div>
       </div>
 
       {/* Загрузка */}

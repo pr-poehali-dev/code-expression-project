@@ -327,9 +327,16 @@ export default function LkMarketingDirect({ onBack, initialGroups }: Props) {
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
           Объявления для Яндекс.Директ
         </h2>
-        <p style={{ fontSize: 14, color: "#64748B", margin: 0, lineHeight: 1.6, maxWidth: 520 }}>
+        <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6, maxWidth: 520 }}>
           Готовые объявления по требованиям Яндекса: заголовок 1 (≤35 симв.), заголовок 2 (≤30 симв.), текст (≤81 симв.).
         </p>
+        <div style={{ padding: "12px 16px", background: "hsl(25,90%,97%)", borderRadius: 12, border: "1px solid hsl(25,90%,87%)", marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>Как пользоваться и почему это выгодно</div>
+          <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>
+            Выберите услугу, укажите аудиторию — ИИ сразу напишет несколько вариантов объявлений, соответствующих техническим требованиям Яндекса.<br />
+            Копирайтер или агентство берут за это деньги и время. Здесь вы получаете профессиональные тексты объявлений за минуту и можете сразу загружать их в рекламный кабинет.
+          </div>
+        </div>
       </div>
 
       {/* Загрузка */}

@@ -249,9 +249,16 @@ export default function LkMarketingOffers({ onBack, initialPortraits, initialSal
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
           Офферы под целевую аудиторию
         </h2>
-        <p style={{ fontSize: 14, color: "#64748B", margin: 0, lineHeight: 1.6, maxWidth: 520 }}>
+        <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6, maxWidth: 520 }}>
           ИИ создаст по 3 оффера для каждого сегмента ЦА — на первый визит, акцию и пакет услуг. Готово для использования в рекламе.
         </p>
+        <div style={{ padding: "12px 16px", background: "hsl(145,60%,97%)", borderRadius: 12, border: "1px solid hsl(145,60%,85%)", marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>Как пользоваться и почему это выгодно</div>
+          <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>
+            Выберите сегмент аудитории — ИИ сгенерирует убедительные предложения под каждую группу клиентов.<br />
+            Слабый оффер — главная причина, почему реклама не конвертирует. Готовые офферы под каждый сегмент ЦА сразу повышают отклик на рекламу и увеличивают запись на услуги.
+          </div>
+        </div>
       </div>
 
       {/* Шаг выбора ЦА */}

@@ -125,9 +125,16 @@ export default function LkReelScript() {
           </div>
           <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>Сценарий для рилса</h2>
         </div>
-        <p style={{ fontSize: 13, color: "#777", margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 13, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6 }}>
           Выберите идею — ИИ напишет покадровый сценарий и обложку для вашего рилса.
         </p>
+        <div style={{ padding: "12px 16px", background: "hsl(335,70%,97%)", borderRadius: 12, border: "1px solid hsl(335,70%,88%)", marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>Как пользоваться и почему это выгодно</div>
+          <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>
+            <b>3 шага:</b> укажите тему → выберите идею из предложенных → получите готовый сценарий по кадрам.<br />
+            Рилсы — один из главных источников новых клиентов из соцсетей. Но придумать интересную идею и расписать её покадрово — долго и сложно. ИИ делает это за минуты: вы просто снимаете по готовой инструкции.
+          </div>
+        </div>
       </div>
 
       {/* Прогресс */}

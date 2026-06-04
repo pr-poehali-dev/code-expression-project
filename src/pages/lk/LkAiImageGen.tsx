@@ -110,9 +110,16 @@ export default function LkAiImageGen() {
           </div>
           <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>Генерация изображений</h2>
         </div>
-        <p style={{ fontSize: 13, color: "#777", margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 13, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6 }}>
           Создавайте визуалы для постов, сторис и баннеров. Изображение скачается автоматически.
         </p>
+        <div style={{ padding: "12px 16px", background: "hsl(40,90%,97%)", borderRadius: 12, border: "1px solid hsl(40,90%,85%)", marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>Как пользоваться и почему это выгодно</div>
+          <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>
+            Опишите нужное изображение — ИИ сгенерирует уникальный визуал за секунды.<br />
+            Дизайнер или фотосессия стоят дорого и требуют времени. Здесь вы получаете профессиональные картинки для постов, сторис и рекламных баннеров прямо сейчас — без навыков дизайна и лишних затрат.
+          </div>
+        </div>
       </div>
 
       {/* Форма */}

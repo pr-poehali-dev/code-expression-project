@@ -200,9 +200,16 @@ export default function LkMarketingAudience({ onBack, onPortraitsReady, onGoToOf
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
           Портрет целевой аудитории
         </h2>
-        <p style={{ fontSize: 14, color: "#64748B", margin: 0, lineHeight: 1.6, maxWidth: 520 }}>
+        <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6, maxWidth: 520 }}>
           ИИ проанализирует профиль и услуги вашего салона и создаст 3 детальных портрета клиентов с болями, мотивацией и каналами охвата.
         </p>
+        <div style={{ padding: "12px 16px", background: "hsl(220,80%,97%)", borderRadius: 12, border: "1px solid hsl(220,80%,87%)", marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>Как пользоваться и почему это выгодно</div>
+          <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>
+            Нажмите «Создать портреты» — ИИ автоматически изучит ваш салон и сформирует детальные описания ваших клиентских сегментов.<br />
+            Без понимания аудитории реклама тратится вхолостую. Готовые портреты ЦА используются во всех остальных инструментах — для офферов, объявлений, контента — и помогают попадать точно в цель.
+          </div>
+        </div>
       </div>
 
       {/* Кнопка генерации */}
