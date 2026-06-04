@@ -5,6 +5,8 @@ import LkMarketingOffers from "./LkMarketingOffers";
 import LkMarketingSemantics from "./LkMarketingSemantics";
 import LkMarketingDirect from "./LkMarketingDirect";
 import LkPostGen from "./LkPostGen";
+import LkAiImageGen from "./LkAiImageGen";
+import LkReelScript from "./LkReelScript";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -25,7 +27,7 @@ const BADGE_STYLES: Record<string, { bg: string; color: string; label: string }>
   cost: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "1 ⚡" },
 };
 
-const TOOLS: Tool[] = [
+const TOOLS_DIRECT: Tool[] = [
   {
     id: "audience",
     icon: "Users",
@@ -67,6 +69,19 @@ const TOOLS: Tool[] = [
     ready: true,
   },
   {
+    id: "budget",
+    icon: "Calculator",
+    iconColor: "hsl(185,85%,32%)",
+    iconBg: "hsl(185,85%,93%)",
+    title: "Прогноз бюджета рекламы",
+    description: "Интеграция с Яндекс.Директ API — цена клика, прогноз показов и рекомендуемый бюджет по ключевым словам.",
+    badge: "soon",
+    ready: false,
+  },
+];
+
+const TOOLS_CONTENT: Tool[] = [
+  {
     id: "post-gen",
     icon: "FileText",
     iconColor: "hsl(210,80%,50%)",
@@ -77,14 +92,24 @@ const TOOLS: Tool[] = [
     ready: true,
   },
   {
-    id: "budget",
-    icon: "Calculator",
-    iconColor: "hsl(185,85%,32%)",
-    iconBg: "hsl(185,85%,93%)",
-    title: "Прогноз бюджета рекламы",
-    description: "Интеграция с Яндекс.Директ API — цена клика, прогноз показов и рекомендуемый бюджет по ключевым словам.",
-    badge: "soon",
-    ready: false,
+    id: "image-gen",
+    icon: "Image",
+    iconColor: "hsl(40,90%,45%)",
+    iconBg: "hsl(40,90%,96%)",
+    title: "Генерация изображений",
+    description: "Создавайте визуалы для постов, сторис и баннеров. ИИ учитывает стиль и аудиторию вашего салона.",
+    badge: "new",
+    ready: true,
+  },
+  {
+    id: "reel-script",
+    icon: "Video",
+    iconColor: "hsl(335,80%,50%)",
+    iconBg: "hsl(335,80%,97%)",
+    title: "Сценарий для рилса",
+    description: "Идея → покадровый сценарий + обложка. Снимаете сами по готовой инструкции.",
+    badge: "new",
+    ready: true,
   },
 ];
 
@@ -176,7 +201,8 @@ export default function LkMarketing() {
   const [active, setActive] = useState<string | null>(null);
   const [audienceData, setAudienceData] = useState<AudienceData | null>(null);
   const [semanticData, setSemanticData] = useState<SemanticGroups | null>(null);
-  const activeTool = TOOLS.find(t => t.id === active);
+  const ALL_TOOLS = [...TOOLS_DIRECT, ...TOOLS_CONTENT];
+  const activeTool = ALL_TOOLS.find(t => t.id === active);
 
   if (active === "audience") {
     return (
@@ -233,6 +259,28 @@ export default function LkMarketing() {
     );
   }
 
+  if (active === "image-gen") {
+    return (
+      <div>
+        <button onClick={() => setActive(null)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>
+          <Icon name="ArrowLeft" size={15} /> Назад к маркетингу
+        </button>
+        <LkAiImageGen />
+      </div>
+    );
+  }
+
+  if (active === "reel-script") {
+    return (
+      <div>
+        <button onClick={() => setActive(null)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>
+          <Icon name="ArrowLeft" size={15} /> Назад к маркетингу
+        </button>
+        <LkReelScript />
+      </div>
+    );
+  }
+
   if (activeTool) {
     return <ComingSoonPlaceholder tool={activeTool} onBack={() => setActive(null)} />;
   }
@@ -251,8 +299,24 @@ export default function LkMarketing() {
         </p>
       </div>
 
+      {/* Контент и SMM */}
+      <div style={{ marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
+        <Icon name="Sparkles" size={15} style={{ color: ACCENT }} />
+        <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>Контент и SMM</span>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 16, marginBottom: 32 }}>
+        {TOOLS_CONTENT.map(tool => (
+          <ToolCard key={tool.id} tool={tool} onOpen={setActive} />
+        ))}
+      </div>
+
+      {/* Яндекс.Директ */}
+      <div style={{ marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
+        <Icon name="Target" size={15} style={{ color: ACCENT }} />
+        <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>Яндекс.Директ</span>
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 16 }}>
-        {TOOLS.map(tool => (
+        {TOOLS_DIRECT.map(tool => (
           <ToolCard key={tool.id} tool={tool} onOpen={setActive} />
         ))}
       </div>

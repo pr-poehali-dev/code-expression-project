@@ -1,8 +1,6 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
-import LkAiImageGen from "./LkAiImageGen";
 import LkSalonAudit from "./LkSalonAudit";
-import LkReelScript from "./LkReelScript";
 import LkStaffAudit from "./LkStaffAudit";
 import LkReviewReply from "./LkReviewReply";
 import LkClientScripts from "./LkClientScripts";
@@ -102,16 +100,8 @@ export default function LkAiTools() {
     );
   }
 
-  if (activeTool === "image-gen") {
-    return <div><BackButton /><LkAiImageGen /></div>;
-  }
-
   if (activeTool === "salon-audit") {
     return <div><BackButton /><LkSalonAudit /></div>;
-  }
-
-  if (activeTool === "reel-script") {
-    return <div><BackButton /><LkReelScript /></div>;
   }
 
   if (activeTool === "staff-audit") {
@@ -150,17 +140,6 @@ export default function LkAiTools() {
       {/* Сетка инструментов */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14, alignItems: "stretch" }}>
 
-        {/* Генерация изображений — готово */}
-        <ToolCard
-          icon="Image"
-          color="hsl(40,90%,45%)"
-          bg="hsl(40,90%,96%)"
-          title="Генерация изображений"
-          description="Создавайте визуалы для постов, сторис и баннеров. ИИ учитывает стиль и аудиторию вашего салона."
-          badge="new"
-          onStart={() => setActiveTool("image-gen")}
-        />
-
         <ToolCard
           icon="Users"
           color="hsl(0,75%,50%)"
@@ -189,16 +168,6 @@ export default function LkAiTools() {
           description="Заполните анкету — ИИ проанализирует салон и выдаст персональный план роста выручки."
           badge="new"
           onStart={() => setActiveTool("salon-audit")}
-        />
-
-        <ToolCard
-          icon="Video"
-          color="hsl(335,80%,50%)"
-          bg="hsl(335,80%,97%)"
-          title="Сценарий для рилса"
-          description="Идея → покадровый сценарий + обложка. Снимаете сами по готовой инструкции."
-          badge="new"
-          onStart={() => setActiveTool("reel-script")}
         />
 
         <ToolCard
