@@ -71,19 +71,25 @@ function RefCard({ master }: { master: Master }) {
       </div>
       {copiedLink && <div style={{ fontSize: 11, color: TEAL, marginBottom: 8, paddingLeft: 4 }}>Ссылка скопирована!</div>}
 
-      {/* Код + шеринг */}
-      <div style={{ display: "flex", gap: 8 }}>
+      {/* Код */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: 1, textTransform: "uppercase", flexShrink: 0 }}>Код:</div>
         <button onClick={() => copyText(master.ref_code, setCopiedCode)}
-          style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: copiedCode ? "rgba(45,212,191,0.12)" : "rgba(255,255,255,0.05)", color: copiedCode ? TEAL : "#fff", cursor: "pointer", fontFamily: "monospace", fontSize: 15, fontWeight: 700, letterSpacing: 2, transition: "all 0.15s", flexShrink: 0 }}>
+          style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 14px", borderRadius: 9, border: "1px solid rgba(255,255,255,0.12)", background: copiedCode ? "rgba(45,212,191,0.12)" : "rgba(255,255,255,0.05)", color: copiedCode ? TEAL : "#fff", cursor: "pointer", fontFamily: "monospace", fontSize: 14, fontWeight: 700, letterSpacing: 2, transition: "all 0.15s" }}>
           {master.ref_code}
-          <Icon name={copiedCode ? "Check" : "Copy"} size={12} style={{ opacity: 0.6 }} />
+          <Icon name={copiedCode ? "Check" : "Copy"} size={11} style={{ opacity: 0.6 }} />
         </button>
+        {copiedCode && <span style={{ fontSize: 11, color: TEAL }}>Скопировано!</span>}
+      </div>
+
+      {/* Шеринг */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         <a href={`https://max.ru/share?url=${encodeURIComponent(master.ref_url)}&text=${encodeURIComponent(`Нашла полезный инструмент для салона — попробуй бесплатно`)}`} target="_blank" rel="noopener noreferrer"
-          style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(45,212,191,0.25)", background: "rgba(45,212,191,0.08)", color: TEAL, textDecoration: "none", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          style={{ padding: "11px", borderRadius: 10, border: "1px solid rgba(45,212,191,0.25)", background: "rgba(45,212,191,0.08)", color: TEAL, textDecoration: "none", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
           <Icon name="MessageCircle" size={14} /> Max
         </a>
         <a href={`https://t.me/share/url?url=${encodeURIComponent(master.ref_url)}&text=${encodeURIComponent(`Нашла полезный инструмент для салона — попробуй бесплатно`)}`} target="_blank" rel="noopener noreferrer"
-          style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(45,212,191,0.25)", background: "rgba(45,212,191,0.08)", color: TEAL, textDecoration: "none", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          style={{ padding: "11px", borderRadius: 10, border: "1px solid rgba(45,212,191,0.25)", background: "rgba(45,212,191,0.08)", color: TEAL, textDecoration: "none", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
           <Icon name="Send" size={14} /> Telegram
         </a>
       </div>
