@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import lkApi from "@/lib/lkApi";
+import { lkApi } from "@/lib/lkApi";
 import { ACCENT, Spinner } from "./LkAdminShared";
 
 interface Payment {
