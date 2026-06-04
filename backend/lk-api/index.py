@@ -8,7 +8,15 @@ import json
 import os
 import secrets
 import hashlib
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
+from email.utils import formataddr
 from datetime import datetime, timezone
+
+FROM_EMAIL = "massopro@mail.ru"
+SITE_URL = "https://promtdialog.ru"
 
 import bcrypt
 import psycopg2
@@ -2901,9 +2909,62 @@ def handle_payment_webhook(event: dict) -> dict:
             (int(salon_id), int(user_id), int(energy_amount))
         )
         conn.commit()
+
+        # Отправляем письмо пользователю
+        cur.execute(f"SELECT email, full_name FROM {tbl('lk_users')} WHERE id=%s", (int(user_id),))
+        user_row = cur.fetchone()
+        if user_row and user_row.get("email"):
+            amount_rub = payment_obj.get("amount", {}).get("value", "—")
+            _send_payment_success_email(user_row["email"], user_row.get("full_name") or "", amount_rub, int(energy_amount))
+
         return ok({"ok": True})
     finally:
         conn.close()
+
+
+def _send_payment_success_email(to_email: str, full_name: str, amount_rub: str, energy: int):
+    """Письмо пользователю об успешном пополнении энергии."""
+    smtp_password = os.environ.get("SMTP_PASSWORD", "")
+    if not smtp_password:
+        return
+    name = full_name or "Уважаемый пользователь"
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = Header("Баланс энергии пополнен", "utf-8")
+    msg["From"] = formataddr((str(Header("ПромтДиалог", "utf-8")), FROM_EMAIL))
+    msg["To"] = to_email
+
+    html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1a1a1a;">
+      <h2 style="color:#0ea5a0;margin-bottom:8px;">⚡ Баланс пополнен!</h2>
+      <p>Здравствуйте, {name}!</p>
+      <p>Ваш платёж успешно обработан, и энергия зачислена на баланс.</p>
+      <table cellpadding="10" style="background:#f8fafc;border-radius:10px;width:100%;margin:20px 0;">
+        <tr>
+          <td style="font-size:14px;color:#64748b;">Сумма платежа</td>
+          <td style="font-size:16px;font-weight:700;">{amount_rub} ₽</td>
+        </tr>
+        <tr>
+          <td style="font-size:14px;color:#64748b;">Начислено энергии</td>
+          <td style="font-size:16px;font-weight:700;color:#0ea5a0;">+{energy} ⚡</td>
+        </tr>
+      </table>
+      <p>Теперь вы можете использовать ИИ-инструменты платформы.</p>
+      <a href="{SITE_URL}/cabinet" style="display:inline-block;background:#0ea5a0;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:8px;">
+        Перейти в кабинет
+      </a>
+      <p style="margin-top:28px;font-size:12px;color:#aaa;">
+        Если у вас возникли вопросы — напишите нам на {FROM_EMAIL}
+      </p>
+    </div>
+    """
+    msg.attach(MIMEText(html, "html", "utf-8"))
+    try:
+        with smtplib.SMTP_SSL("smtp.mail.ru", 465) as server:
+            server.login(FROM_EMAIL, smtp_password)
+            server.sendmail(FROM_EMAIL, to_email, msg.as_string())
+        print(f"[Email] Sent payment success to {to_email}")
+    except Exception as e:
+        print(f"[Email Error] {e}")
 
 
 def handle_tool_costs_list(event: dict) -> dict:
