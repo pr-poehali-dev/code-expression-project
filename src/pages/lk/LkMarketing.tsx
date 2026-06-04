@@ -367,15 +367,7 @@ export default function LkMarketing() {
         ))}
       </div>
 
-      <div style={{ marginTop: 32, background: "linear-gradient(135deg,hsl(185,85%,32%),hsl(185,85%,22%))", borderRadius: 16, padding: "20px 24px", display: "flex", alignItems: "center", gap: 16 }}>
-        <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <Icon name="Rocket" size={22} style={{ color: "#fff" }} />
-        </div>
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 4 }}>Раздел активно разрабатывается</div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.5 }}>Инструменты подключаются поочерёдно. Первыми появятся бесплатные ИИ-инструменты на базе профиля вашего салона.</div>
-        </div>
-      </div>
+
     </div>
   );
 }
