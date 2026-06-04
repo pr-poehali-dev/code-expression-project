@@ -129,12 +129,25 @@ export default function LkAiTools() {
             <Icon name="Sparkles" size={18} style={{ color: "#fff" }} />
           </div>
           <h1 style={{ fontSize: "clamp(20px,2.5vw,28px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>
-            ИИ-инструменты
+            Развитие салона
           </h1>
         </div>
-        <p style={{ fontSize: 14, color: "#888", margin: 0, lineHeight: 1.6 }}>
-          Инструменты на основе искусственного интеллекта — работают с учётом профиля вашего салона
+        <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 14px", lineHeight: 1.6, maxWidth: 580 }}>
+          Инструменты, которые помогают расти без найма дополнительного персонала. Проведите аудит бизнеса, выявите точки потерь, выстройте работу команды и выйдите на стабильный рост выручки — с опорой на данные, а не на интуицию.
         </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {[
+            { icon: "TrendingUp", text: "Рост выручки" },
+            { icon: "Users", text: "Управление командой" },
+            { icon: "ShieldCheck", text: "Контроль качества" },
+            { icon: "Lightbulb", text: "Готовые решения" },
+          ].map(tag => (
+            <div key={tag.text} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#475569", background: "#F1F5F9", borderRadius: 20, padding: "5px 12px" }}>
+              <Icon name={tag.icon} size={12} style={{ color: ACCENT }} />
+              {tag.text}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Сетка инструментов */}
