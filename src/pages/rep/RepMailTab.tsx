@@ -116,7 +116,17 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
       if (!res.ok) throw new Error(data.error || "Ошибка отправки");
       setSentTo(toEmail);
       setSent(true);
+      const sentEmail = toEmail;
       setToEmail(""); setToName(""); setSubject(""); setBodyText(""); setActiveTemplate(null);
+      setContacts(prev => {
+        const updated = prev.filter(c => c.email !== sentEmail);
+        localStorage.setItem(LS_KEY, JSON.stringify(updated));
+        return updated;
+      });
+      setPage(p => {
+        const newTotal = Math.ceil((contacts.length - 1) / PAGE_SIZE);
+        return Math.min(p, Math.max(0, newTotal - 1));
+      });
       setTimeout(() => setSent(false), 6000);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Ошибка отправки");
