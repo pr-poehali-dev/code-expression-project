@@ -225,6 +225,65 @@ function ImageGenButton({ groupName, keywords, ads }: { groupName: string; keywo
   );
 }
 
+// ── Общие минус-слова кампании ────────────────────────────────────────────────
+function CampaignMinusBlock({ minusWords }: { minusWords: string[] }) {
+  const [copied, setCopied] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  const copy = () => {
+    copyToClipboard(minusWords.join(", "));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const preview = minusWords.slice(0, 12);
+  const rest = minusWords.slice(12);
+
+  return (
+    <div style={{ marginTop: 24, background: "hsl(0,70%,97%)", border: "1.5px solid hsl(0,70%,85%)", borderRadius: 14, padding: "18px 20px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 9, background: "hsl(0,70%,92%)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="MinusCircle" size={16} style={{ color: "hsl(0,70%,45%)" }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>Минус-слова кампании</div>
+            <div style={{ fontSize: 11, color: "#94A3B8" }}>Объединены из всех групп · {minusWords.length} слов</div>
+          </div>
+        </div>
+        <button
+          onClick={copy}
+          style={{ display: "flex", alignItems: "center", gap: 6, background: copied ? "hsl(0,70%,45%)" : "#fff", color: copied ? "#fff" : "hsl(0,70%,45%)", border: "1.5px solid hsl(0,70%,75%)", borderRadius: 8, padding: "7px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+        >
+          <Icon name={copied ? "Check" : "Copy"} size={13} />
+          {copied ? "Скопировано!" : "Скопировать все"}
+        </button>
+      </div>
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+        {(expanded ? minusWords : preview).map((w, i) => (
+          <span key={i} style={{ fontSize: 11, color: "hsl(0,60%,38%)", background: "#fff", borderRadius: 5, padding: "3px 9px", border: "1px solid hsl(0,70%,88%)", fontWeight: 500 }}>
+            −{w}
+          </span>
+        ))}
+        {!expanded && rest.length > 0 && (
+          <button
+            onClick={() => setExpanded(true)}
+            style={{ fontSize: 11, color: "#94A3B8", background: "#fff", border: "1px solid #E8ECF0", borderRadius: 5, padding: "3px 9px", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+          >
+            +{rest.length} ещё
+          </button>
+        )}
+      </div>
+
+      <div style={{ marginTop: 10, fontSize: 11, color: "#94A3B8", display: "flex", alignItems: "center", gap: 5 }}>
+        <Icon name="Info" size={11} />
+        Вставьте в настройки кампании в Директе → «Минус-слова» — через запятую
+      </div>
+    </div>
+  );
+}
+
 // ── Блок запросов и минус-слов ────────────────────────────────────────────────
 function KeywordsBlock({ keywords, minusWords }: { keywords: string[]; minusWords: string[] }) {
   const [kwCopied, setKwCopied] = useState(false);
@@ -509,8 +568,15 @@ export default function LkMarketingDirect({ onBack, initialGroups }: Props) {
             })}
           </div>
 
+          {/* Общие минус-слова кампании */}
+          {(() => {
+            const allMinus = Array.from(new Set(ads.flatMap(g => g.minus_words ?? [])));
+            if (!allMinus.length) return null;
+            return <CampaignMinusBlock minusWords={allMinus} />;
+          })()}
+
           {/* Итоговая плашка */}
-          <div style={{ marginTop: 24, background: "#F8FAFC", borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, border: "1px solid #E8ECF0" }}>
+          <div style={{ marginTop: 16, background: "#F8FAFC", borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, border: "1px solid #E8ECF0" }}>
             <Icon name="CheckCircle" size={20} style={{ color: "hsl(145,60%,38%)", flexShrink: 0 }} />
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 2 }}>Готово к загрузке в Яндекс.Директ</div>
