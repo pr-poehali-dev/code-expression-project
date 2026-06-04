@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET without session — 401",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST bonus action — skipped",
+      "method": "POST",
+      "path": "/",
+      "body": {"salon_id": 1, "amount": 100, "action": "Приветственный подарок 🎁"},
+      "expectedStatus": 200,
+      "expectedBody": {"skipped": true},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

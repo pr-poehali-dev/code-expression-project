@@ -17,10 +17,23 @@ from datetime import datetime, timezone
 
 FROM_EMAIL = "massopro@mail.ru"
 SITE_URL = "https://promtdialog.ru"
+MASTERS_ACCRUAL_URL = "https://functions.poehali.dev/2907ddb5-140b-429e-a5b0-30b5bd898074"
 
 import bcrypt
 import psycopg2
 import psycopg2.extras
+import urllib.request
+
+
+def _notify_master_accrual(salon_id: int, amount: float, action: str):
+    """Асинхронно уведомляет сервис начислений о реальной оплате салона."""
+    try:
+        payload = json.dumps({"salon_id": salon_id, "amount": amount, "action": action}).encode()
+        req = urllib.request.Request(MASTERS_ACCRUAL_URL, data=payload,
+                                     headers={"Content-Type": "application/json"}, method="POST")
+        urllib.request.urlopen(req, timeout=5)
+    except Exception:
+        pass
 
 SCHEMA = "t_p84565078_code_expression_proj"
 CORS = {
@@ -2769,6 +2782,10 @@ def handle_energy_topup(event: dict) -> dict:
             (salon_id, user["id"], amount)
         )
         conn.commit()
+
+        # Начисляем партнёрское вознаграждение мастеру (если есть реферер)
+        _notify_master_accrual(int(salon_id), amount, "Пополнение баланса")
+
         cur.execute(f"SELECT credits_balance FROM {tbl('salons')} WHERE id=%s", (salon_id,))
         new_balance = cur.fetchone()[0]
         return ok({"ok": True, "new_balance": new_balance})
@@ -2963,6 +2980,9 @@ def handle_payment_webhook(event: dict) -> dict:
             (int(salon_id), int(user_id), int(energy_amount))
         )
         conn.commit()
+
+        # Начисляем партнёрское вознаграждение мастеру (если есть реферер)
+        _notify_master_accrual(int(salon_id), int(energy_amount), "Покупка пакета энергии")
 
         # Отправляем письмо пользователю
         cur.execute(f"SELECT email, full_name FROM {tbl('lk_users')} WHERE id=%s", (int(user_id),))
