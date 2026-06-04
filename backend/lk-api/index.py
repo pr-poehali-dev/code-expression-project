@@ -2789,18 +2789,37 @@ def handle_payment_create(event: dict) -> dict:
             return err("Платёжная система не настроена")
 
         idempotency_key = str(uuid_mod.uuid4())
-        payload = json.dumps({
+        user_email = user.get("email") or ""
+        receipt = None
+        if user_email:
+            receipt = {
+                "customer": {"email": user_email},
+                "items": [{
+                    "description": f"Пакет энергии «{pkg['name']}» ({pkg['energy_amount']} единиц)",
+                    "quantity": "1.00",
+                    "amount": {"value": f"{pkg['price_rub']}.00", "currency": "RUB"},
+                    "vat_code": 1,
+                    "payment_mode": "full_payment",
+                    "payment_subject": "service",
+                }]
+            }
+
+        payment_body = {
             "amount": {"value": f"{pkg['price_rub']}.00", "currency": "RUB"},
             "confirmation": {"type": "redirect", "return_url": return_url},
             "capture": True,
-            "description": f"Пакет энергии «{pkg['name']}» — {pkg['energy_amount']} ⚡",
+            "description": f"Пакет энергии «{pkg['name']}» — {pkg['energy_amount']} единиц",
             "metadata": {
                 "salon_id": user["salon_id"],
                 "user_id": user["id"],
                 "package_code": package_code,
                 "energy_amount": pkg["energy_amount"],
             }
-        }).encode("utf-8")
+        }
+        if receipt:
+            payment_body["receipt"] = receipt
+
+        payload = json.dumps(payment_body).encode("utf-8")
 
         credentials = base64.b64encode(f"{shop_id}:{secret_key}".encode()).decode()
         req = urlreq.Request(
