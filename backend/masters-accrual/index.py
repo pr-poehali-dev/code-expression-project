@@ -150,13 +150,57 @@ def handler(event: dict, context) -> dict:
                 "withdrawals": [dict(w) for w in withdrawals],
             })
 
-        # ── POST — внутреннее начисление при пополнении баланса салона ───────
+        # ── POST ─────────────────────────────────────────────────────────────
         if method == "POST":
             body = json.loads(event.get("body") or "{}")
+            action = body.get("action") or ""
 
+            # ── Запрос на вывод ───────────────────────────────────────────────
+            if action == "withdraw":
+                if not session_id:
+                    return err("Не авторизован", 401)
+                master = get_master_by_session(session_id, conn)
+                if not master:
+                    return err("Сессия истекла", 401)
+
+                inn = (body.get("inn") or "").strip()
+                bank_details = (body.get("bank_details") or "").strip()
+                if not inn or len(inn) < 10:
+                    return err("Введите корректный ИНН")
+                if not bank_details:
+                    return err("Укажите реквизиты для перевода")
+
+                cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+                cur.execute(
+                    f"SELECT available_amount FROM {SCHEMA}.master_balance WHERE master_id = %s",
+                    (master["id"],)
+                )
+                bal = cur.fetchone()
+                available = float(bal["available_amount"]) if bal else 0
+                if available < 5000:
+                    return err(f"Недостаточно средств. Доступно: {available} ₽, минимум 5 000 ₽")
+
+                cur2 = conn.cursor()
+                cur2.execute(
+                    f"""INSERT INTO {SCHEMA}.master_withdrawals
+                        (master_id, amount, inn, bank_details, status)
+                        VALUES (%s, %s, %s, %s, 'pending')""",
+                    (master["id"], available, inn, bank_details)
+                )
+                cur2.execute(
+                    f"""UPDATE {SCHEMA}.master_balance
+                        SET available_amount = 0,
+                            total_withdrawn = total_withdrawn + %s,
+                            updated_at = NOW()
+                        WHERE master_id = %s""",
+                    (available, master["id"])
+                )
+                conn.commit()
+                return ok({"ok": True, "amount": available})
+
+            # ── Внутреннее начисление при покупке энергии ────────────────────
             salon_id = body.get("salon_id")
             amount = float(body.get("amount") or 0)
-            action = body.get("action") or ""
             source_type = body.get("source_type") or action
 
             if not salon_id or not amount:
