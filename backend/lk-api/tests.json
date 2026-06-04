@@ -135,6 +135,20 @@
       "path": "/?action=salon_logo_upload",
       "body": {},
       "expectedStatus": 401
+    },
+    {
+      "name": "payment_create без сессии — 401",
+      "method": "POST",
+      "path": "/?action=payment_create",
+      "body": {"package_code": "start"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "payment_webhook без данных — ok",
+      "method": "POST",
+      "path": "/?action=payment_webhook",
+      "body": {"event": "payment.canceled"},
+      "expectedStatus": 200
     }
   ]
 }

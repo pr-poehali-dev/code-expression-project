@@ -2757,6 +2757,125 @@ def handle_energy_topup(event: dict) -> dict:
         conn.close()
 
 
+def handle_payment_create(event: dict) -> dict:
+    """Создать платёж в ЮКассе для покупки пакета энергии."""
+    import urllib.request as urlreq
+    import base64
+    import uuid as uuid_mod
+    body = json.loads(event.get("body") or "{}")
+    package_code = (body.get("package_code") or "").strip()
+    return_url = (body.get("return_url") or "https://promtdialog.ru/cabinet").strip()
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        if not user.get("salon_id"):
+            return err("Сначала создайте профиль салона", 402)
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT * FROM {tbl('energy_packages')} WHERE code=%s AND is_active=TRUE",
+            (package_code,)
+        )
+        pkg = cur.fetchone()
+        if not pkg:
+            return err("Пакет не найден")
+
+        shop_id = os.environ.get("YOOKASSA_SHOP_ID", "")
+        secret_key = os.environ.get("YOOKASSA_SECRET_KEY", "")
+        if not shop_id or not secret_key:
+            return err("Платёжная система не настроена")
+
+        idempotency_key = str(uuid_mod.uuid4())
+        payload = json.dumps({
+            "amount": {"value": f"{pkg['price_rub']}.00", "currency": "RUB"},
+            "confirmation": {"type": "redirect", "return_url": return_url},
+            "capture": True,
+            "description": f"Пакет энергии «{pkg['name']}» — {pkg['energy_amount']} ⚡",
+            "metadata": {
+                "salon_id": user["salon_id"],
+                "user_id": user["id"],
+                "package_code": package_code,
+                "energy_amount": pkg["energy_amount"],
+            }
+        }).encode("utf-8")
+
+        credentials = base64.b64encode(f"{shop_id}:{secret_key}".encode()).decode()
+        req = urlreq.Request(
+            "https://api.yookassa.ru/v3/payments",
+            data=payload,
+            headers={
+                "Authorization": f"Basic {credentials}",
+                "Content-Type": "application/json",
+                "Idempotence-Key": idempotency_key,
+            },
+            method="POST"
+        )
+        with urlreq.urlopen(req, timeout=15) as resp:
+            payment = json.loads(resp.read().decode("utf-8"))
+
+        cur.execute(
+            f"INSERT INTO {tbl('payments')} (salon_id, user_id, package_code, amount_rub, energy_amount, yookassa_id, status) "
+            f"VALUES (%s,%s,%s,%s,%s,%s,'pending')",
+            (user["salon_id"], user["id"], package_code, pkg["price_rub"], pkg["energy_amount"], payment["id"])
+        )
+        conn.commit()
+
+        confirmation_url = payment.get("confirmation", {}).get("confirmation_url", "")
+        return ok({"confirmation_url": confirmation_url, "payment_id": payment["id"]})
+    finally:
+        conn.close()
+
+
+def handle_payment_webhook(event: dict) -> dict:
+    """Вебхук от ЮКассы — зачисляем энергию при успешной оплате."""
+    body = json.loads(event.get("body") or "{}")
+    event_type = body.get("event", "")
+    payment_obj = body.get("object", {})
+
+    if event_type != "payment.succeeded":
+        return ok({"ok": True})
+
+    yookassa_id = payment_obj.get("id")
+    meta = payment_obj.get("metadata", {})
+    salon_id = meta.get("salon_id")
+    user_id = meta.get("user_id")
+    energy_amount = meta.get("energy_amount")
+
+    if not yookassa_id or not salon_id or not energy_amount:
+        return ok({"ok": True})
+
+    conn = get_db()
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(f"SELECT * FROM {tbl('payments')} WHERE yookassa_id=%s", (yookassa_id,))
+        payment = cur.fetchone()
+        if not payment:
+            return ok({"ok": True})
+        if payment["status"] == "succeeded":
+            return ok({"ok": True})
+
+        cur.execute(
+            f"UPDATE {tbl('payments')} SET status='succeeded', updated_at=NOW() WHERE yookassa_id=%s",
+            (yookassa_id,)
+        )
+        cur.execute(
+            f"UPDATE {tbl('salons')} SET credits_balance = credits_balance + %s WHERE id=%s",
+            (int(energy_amount), int(salon_id))
+        )
+        cur.execute(
+            f"INSERT INTO {tbl('credit_transactions')} (salon_id, user_id, action, amount, tool_key, type) "
+            f"VALUES (%s,%s,'Покупка пакета энергии',%s,NULL,'credit')",
+            (int(salon_id), int(user_id), int(energy_amount))
+        )
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
 def handle_tool_costs_list(event: dict) -> dict:
     """Список стоимостей всех инструментов."""
     conn = get_db()
@@ -3126,6 +3245,9 @@ ROUTES = {
     ("POST", "energy_topup"): handle_energy_topup,
     ("GET",  "tool_costs"): handle_tool_costs_list,
     ("POST", "tool_costs_update"): handle_tool_costs_update,
+    # Платежи ЮКасса
+    ("POST", "payment_create"): handle_payment_create,
+    ("POST", "payment_webhook"): handle_payment_webhook,
     # Команда / приглашения
     ("POST", "team_invite"): handle_team_invite,
     ("GET",  "team_list"): handle_team_list,

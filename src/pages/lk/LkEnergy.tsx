@@ -28,7 +28,29 @@ export default function LkEnergy() {
   const [tab, setTab]                 = useState<"buy" | "history">("buy");
   const [loading, setLoading]         = useState(true);
   const [historyPage, setHistoryPage] = useState(1);
+  const [paying, setPaying]           = useState<string | null>(null);
   const PAGE_SIZE = 20;
+
+  const handleBuy = async (code: string) => {
+    setPaying(code);
+    try {
+      const res = await fetch(`${LK_URL}?action=payment_create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
+        body: JSON.stringify({ package_code: code, return_url: window.location.href }),
+      });
+      const data = await res.json();
+      if (data.confirmation_url) {
+        window.location.href = data.confirmation_url;
+      } else {
+        alert(data.error || "Ошибка создания платежа");
+      }
+    } catch {
+      alert("Не удалось подключиться к платёжной системе");
+    } finally {
+      setPaying(null);
+    }
+  };
 
   useEffect(() => {
     fetch(`${LK_URL}?action=energy_balance`, { headers: { "X-Session-Id": sid() } })
@@ -104,7 +126,7 @@ export default function LkEnergy() {
             /* Пакеты */
             <div>
               <div style={{ fontSize: 13, color: "#777", marginBottom: 16, lineHeight: 1.6 }}>
-                Выберите пакет энергии. Оплата через ЮKassa — будет доступна в ближайшее время.
+                Выберите пакет энергии. Оплата через ЮКассу — безопасно, зачисление сразу после оплаты.
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 12 }}>
                 {packages.map((pkg, idx) => {
@@ -133,9 +155,10 @@ export default function LkEnergy() {
                         {Math.round(pkg.price_rub / pkg.energy_amount * 10) / 10} ₽ за энергию
                       </div>
                       <button
-                        disabled
-                        style={{ width: "100%", padding: "12px", borderRadius: 11, border: "none", background: `linear-gradient(135deg,${c.color},${c.color}cc)`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "not-allowed", fontFamily: "Montserrat,sans-serif", opacity: 0.6 }}>
-                        Купить · Скоро
+                        onClick={() => handleBuy(pkg.code)}
+                        disabled={paying !== null}
+                        style={{ width: "100%", padding: "12px", borderRadius: 11, border: "none", background: paying === pkg.code ? "#E2E8F0" : `linear-gradient(135deg,${c.color},${c.color}cc)`, color: paying === pkg.code ? "#64748B" : "#fff", fontSize: 14, fontWeight: 700, cursor: paying !== null ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.2s" }}>
+                        {paying === pkg.code ? "Переход к оплате…" : "Купить"}
                       </button>
                     </div>
                   );
@@ -143,8 +166,8 @@ export default function LkEnergy() {
               </div>
               <div style={{ marginTop: 16, background: "hsl(185,85%,96%)", borderRadius: 12, padding: "14px 16px" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 12 }}>
-                  <Icon name="Info" size={15} style={{ color: ACCENT, flexShrink: 0, marginTop: 1 }} />
-                  <div style={{ fontSize: 12, color: "#555" }}>Оплата через ЮKassa подключается. До этого момента энергия начисляется вручную администратором.</div>
+                  <Icon name="ShieldCheck" size={15} style={{ color: ACCENT, flexShrink: 0, marginTop: 1 }} />
+                  <div style={{ fontSize: 12, color: "#555" }}>Безопасная оплата через ЮКассу. Энергия зачисляется на баланс салона сразу после подтверждения платежа.</div>
                 </div>
                 <div style={{ borderTop: "1px solid hsl(185,85%,85%)", paddingTop: 12, fontSize: 12, color: "#666", lineHeight: 1.7 }}>
                   Нажимая «Купить», вы подтверждаете согласие с условиями{" "}

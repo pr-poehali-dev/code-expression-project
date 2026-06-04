@@ -6,12 +6,14 @@ const TEAL = "#2DD4BF";
 const DARK = "#0F172A";
 const GRAY = "#64748B";
 const SERIF = "'Cormorant Garamond', serif";
+const LK_URL = "https://functions.poehali.dev/1c0ad024-179b-4644-9621-377174bbeba3";
+function sid() { return localStorage.getItem("lk_session") || ""; }
 
 const PACKAGES = [
-  { name: "Старт", price: 990, energy: 150, popular: false },
-  { name: "Бизнес", price: 2990, energy: 550, popular: true },
-  { name: "Рост", price: 4990, energy: 1200, popular: false },
-  { name: "Премиум", price: 9990, energy: 3000, popular: false },
+  { name: "Старт",   code: "start",    price: 990,  energy: 150,  popular: false },
+  { name: "Бизнес",  code: "business", price: 2990, energy: 550,  popular: true  },
+  { name: "Рост",    code: "growth",   price: 4990, energy: 1200, popular: false },
+  { name: "Премиум", code: "premium",  price: 9990, energy: 3000, popular: false },
 ];
 
 interface EnergyGateEvent {
@@ -29,6 +31,7 @@ export function showEnergyGate(e: EnergyGateEvent) {
 export default function EnergyGate() {
   const [open, setOpen] = useState(false);
   const [event, setEvent] = useState<EnergyGateEvent | null>(null);
+  const [paying, setPaying] = useState<string | null>(null);
 
   useEffect(() => {
     _show = (e) => { setEvent(e); setOpen(true); };
@@ -39,6 +42,27 @@ export default function EnergyGate() {
 
   const close = () => setOpen(false);
   const noSalon = event.noSalon;
+
+  const handleBuy = async (code: string) => {
+    setPaying(code);
+    try {
+      const res = await fetch(`${LK_URL}?action=payment_create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
+        body: JSON.stringify({ package_code: code, return_url: window.location.href }),
+      });
+      const data = await res.json();
+      if (data.confirmation_url) {
+        window.location.href = data.confirmation_url;
+      } else {
+        alert(data.error || "Ошибка создания платежа");
+      }
+    } catch {
+      alert("Не удалось подключиться к платёжной системе");
+    } finally {
+      setPaying(null);
+    }
+  };
 
   return (
     <div style={{
@@ -129,17 +153,26 @@ export default function EnergyGate() {
                       <span style={{ fontSize: 12, color: GRAY }}>энергий</span>
                     </div>
                     <div style={{ fontSize: 20, fontWeight: 800, color: DARK, fontFamily: SERIF }}>{pkg.price.toLocaleString()} ₽</div>
-                    <button disabled style={{ marginTop: 12, width: "100%", padding: "9px", borderRadius: 4, border: "none", background: "#F1F5F9", color: GRAY, fontSize: 12, fontWeight: 600, cursor: "not-allowed", fontFamily: "Inter, sans-serif" }}>
-                      Скоро
+                    <button
+                      onClick={() => handleBuy(pkg.code)}
+                      disabled={paying !== null}
+                      style={{
+                        marginTop: 12, width: "100%", padding: "9px", borderRadius: 4, border: "none",
+                        background: paying === pkg.code ? "#E2E8F0" : `linear-gradient(135deg, ${TEAL}, #14B8A6)`,
+                        color: paying === pkg.code ? GRAY : DARK,
+                        fontSize: 12, fontWeight: 700, cursor: paying !== null ? "not-allowed" : "pointer",
+                        fontFamily: "Inter, sans-serif", transition: "all 0.2s",
+                      }}>
+                      {paying === pkg.code ? "Переход к оплате…" : "Купить"}
                     </button>
                   </div>
                 ))}
               </div>
 
               <div style={{ background: "#F8FAFC", borderRadius: 6, padding: "14px 16px", display: "flex", alignItems: "center", gap: 10 }}>
-                <Icon name="Info" size={16} style={{ color: GRAY, flexShrink: 0 }} />
+                <Icon name="ShieldCheck" size={16} style={{ color: TEAL, flexShrink: 0 }} />
                 <p style={{ margin: 0, fontSize: 13, color: GRAY, lineHeight: 1.5, fontWeight: 300 }}>
-                  Оплата через ЮKassa появится в ближайшее время. Следите за обновлениями в кабинете.
+                  Безопасная оплата через ЮКассу. Энергия зачисляется сразу после подтверждения платежа.
                 </p>
               </div>
             </>
