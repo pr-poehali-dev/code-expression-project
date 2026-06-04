@@ -19,8 +19,12 @@ function parseCsv(text: string): SalonContact[] {
   return results;
 }
 
+const LS_KEY = "rep_mail_contacts";
+
 export default function RepMailTab({ senderName }: { senderName: string }) {
-  const [contacts, setContacts] = useState<SalonContact[]>([]);
+  const [contacts, setContacts] = useState<SalonContact[]>(() => {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; }
+  });
   const [search, setSearch] = useState("");
   const [fileError, setFileError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -46,6 +50,7 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
         return;
       }
       setContacts(parsed);
+      localStorage.setItem(LS_KEY, JSON.stringify(parsed));
       setSearch("");
     };
     reader.readAsText(file, "utf-8");
@@ -177,7 +182,7 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
                 <Icon name="CheckCircle" size={14} />
                 Загружено {contacts.length} контактов
               </div>
-              <button onClick={() => { setContacts([]); setSearch(""); }} style={{ fontSize: 12, color: "#999", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat, sans-serif" }}>
+              <button onClick={() => { setContacts([]); localStorage.removeItem(LS_KEY); setSearch(""); }} style={{ fontSize: 12, color: "#999", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat, sans-serif" }}>
                 Заменить файл
               </button>
             </div>
@@ -185,13 +190,12 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Поиск по названию или email..."
-              style={{ ...inp, marginBottom: search ? 8 : 0 }}
+              style={{ ...inp, marginBottom: 8 }}
             />
-            {search && (
-              <div style={{ maxHeight: 200, overflowY: "auto", border: "1px solid #e8e8e4", borderRadius: 8, background: "#fff" }}>
-                {filtered.length === 0 ? (
-                  <div style={{ padding: "12px 14px", fontSize: 13, color: "#aaa" }}>Ничего не найдено</div>
-                ) : filtered.slice(0, 30).map((c, i) => (
+            <div style={{ maxHeight: 200, overflowY: "auto", border: "1px solid #e8e8e4", borderRadius: 8, background: "#fff" }}>
+              {filtered.length === 0 ? (
+                <div style={{ padding: "12px 14px", fontSize: 13, color: "#aaa" }}>Ничего не найдено</div>
+              ) : filtered.slice(0, 30).map((c, i) => (
                   <div
                     key={i}
                     onClick={() => selectSalon(c)}
@@ -212,7 +216,6 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
                   </div>
                 ))}
               </div>
-            )}
           </div>
         )}
 
