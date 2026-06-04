@@ -151,9 +151,15 @@ export default function LkClientMsg() {
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>ИИ-инструмент · бесплатно</div>
         <h2 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 700, color: "#0F172A" }}>Сообщения клиентам</h2>
-        <p style={{ margin: 0, fontSize: 13, color: "#64748B", lineHeight: 1.6 }}>
+        <p style={{ margin: "0 0 12px", fontSize: 13, color: "#64748B", lineHeight: 1.6 }}>
           Персональные тексты для WhatsApp и Telegram — каждый раз уникальные, живые, без шаблонных фраз.
         </p>
+        <div style={{ padding: "12px 16px", background: "hsl(145,60%,96%)", borderRadius: 12, border: "1px solid hsl(145,60%,85%)" }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 4 }}>Почему это работает лучше, чем писать самому</div>
+          <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.65 }}>
+            Клиенты чувствуют, когда сообщение написано наспех или скопировано из шаблона — и просто не отвечают. ИИ каждый раз составляет живой, персональный текст под конкретную ситуацию: запись, напоминание, возврат ушедшего клиента. Это повышает открываемость и отклик без затрат времени мастера. Инструмент полностью бесплатный — пользуйтесь без ограничений.
+          </div>
+        </div>
       </div>
 
       {/* Переключатель вкладок */}
