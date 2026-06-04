@@ -141,9 +141,16 @@ export default function LkStaffAudit() {
           </div>
           <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>Анализ персонала</h2>
         </div>
-        <p style={{ fontSize: 13, color: "#777", margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 13, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6 }}>
           Данные сотрудников загружены из раздела «Сотрудники». Проверьте и запустите анализ.
         </p>
+        <div style={{ padding: "12px 16px", background: "hsl(0,75%,97%)", borderRadius: 12, border: "1px solid hsl(0,75%,88%)", marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>Как пользоваться и почему это выгодно</div>
+          <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>
+            Нажмите «Запустить анализ» — ИИ оценит каждого сотрудника по ключевым показателям и выдаст конкретные рекомендации.<br />
+            Многие владельцы не знают, кто из команды реально тянет бизнес, а кто тормозит. Анализ помогает увидеть это объективно — и принять верные управленческие решения без конфликтов.
+          </div>
+        </div>
       </div>
 
       {/* Баннер восстановленного черновика */}

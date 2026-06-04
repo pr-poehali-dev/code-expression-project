@@ -107,9 +107,16 @@ export default function LkReviewReply() {
           </div>
           <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>Ответы на отзывы</h2>
         </div>
-        <p style={{ fontSize: 13, color: "#777", margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 13, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6 }}>
           Вставьте отзыв — ИИ напишет профессиональный ответ с учётом стиля и специфики вашего салона.
         </p>
+        <div style={{ padding: "12px 16px", background: "hsl(185,85%,97%)", borderRadius: 12, border: "1px solid hsl(185,85%,85%)", marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>Как пользоваться и почему это выгодно</div>
+          <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>
+            Вставьте текст отзыва — ИИ напишет вежливый и профессиональный ответ, который подходит именно вашему салону.<br />
+            Правильный ответ на негативный отзыв удерживает клиентов и формирует доверие у новых. Игнорировать или отвечать наспех — дорогая ошибка. Этот инструмент сэкономит время и защитит репутацию.
+          </div>
+        </div>
       </div>
 
       {reply ? (

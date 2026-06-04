@@ -76,9 +76,16 @@ export default function LkClientScripts() {
           </div>
           <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>Скрипты общения с клиентом</h2>
         </div>
-        <p style={{ fontSize: 13, color: "#777", margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 13, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6 }}>
           Выберите роль сотрудника, опишите ситуацию — ИИ напишет готовый сценарий диалога.
         </p>
+        <div style={{ padding: "12px 16px", background: "hsl(145,60%,97%)", borderRadius: 12, border: "1px solid hsl(145,60%,85%)", marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>Как пользоваться и почему это выгодно</div>
+          <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>
+            Выберите роль (администратор, мастер) и опишите ситуацию — ИИ выдаст пошаговый сценарий разговора с клиентом.<br />
+            Неловкие диалоги и неумение отработать возражения — причина потери клиентов. Готовые скрипты помогают команде говорить уверенно и профессионально в любой ситуации: запись, отказ, жалоба, допродажа.
+          </div>
+        </div>
       </div>
 
       {script ? (

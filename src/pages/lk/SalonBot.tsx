@@ -235,9 +235,16 @@ export default function SalonBot({ onBack, previousResult }: Props) {
           <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px,4vw,32px)", fontWeight: 700, margin: "0 0 12px", lineHeight: 1.2 }}>
             Диагностика роста салона PRO
           </h1>
-          <p style={{ fontSize: 14, opacity: 0.85, lineHeight: 1.8, margin: 0 }}>
+          <p style={{ fontSize: 14, opacity: 0.85, lineHeight: 1.8, margin: "0 0 16px" }}>
             Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока
           </p>
+          <div style={{ padding: "12px 16px", background: "rgba(255,255,255,0.12)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.2)" }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 6 }}>Как пользоваться и почему это выгодно</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.7 }}>
+              Ответьте на вопросы диагностики — ИИ проанализирует ситуацию и покажет конкретные зоны потерь.<br />
+              Большинство владельцев работают «в операционке» и не видят, где реально утекают деньги. PRO-диагностика даёт взгляд со стороны и готовый список приоритетов — что исправить в первую очередь, чтобы вырасти в выручке.
+            </div>
+          </div>
         </div>
 
         <div style={{ background: "#fff", borderRadius: 20, padding: "24px", marginBottom: 16, boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
