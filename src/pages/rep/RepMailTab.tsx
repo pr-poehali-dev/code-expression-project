@@ -41,19 +41,35 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
 
   function handleFile(file: File) {
     setFileError("");
-    const reader = new FileReader();
-    reader.onload = e => {
-      const text = e.target?.result as string;
-      const parsed = parseCsv(text);
-      if (parsed.length === 0) {
-        setFileError("Не удалось найти данные. Убедитесь, что файл CSV с колонками: Название салона, Email");
-        return;
-      }
-      setContacts(parsed);
-      localStorage.setItem(LS_KEY, JSON.stringify(parsed));
-      setSearch("");
+
+    const tryParse = (text: string) => {
+      // Проверяем на кракозябры: если много символов за пределами ASCII нет, но есть явный мусор
+      const hasGarbled = /[�\uFFFD]/.test(text) || /[\x80-\x9F]/.test(text);
+      return hasGarbled ? null : parseCsv(text);
     };
-    reader.readAsText(file, "utf-8");
+
+    const readWith = (encoding: string, fallback?: string) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const text = e.target?.result as string;
+        const parsed = tryParse(text);
+        if (!parsed && fallback) {
+          readWith(fallback);
+          return;
+        }
+        const final = parsed ?? parseCsv(text);
+        if (final.length === 0) {
+          setFileError("Не удалось найти данные. Убедитесь, что файл CSV с колонками: Название салона, Email");
+          return;
+        }
+        setContacts(final);
+        localStorage.setItem(LS_KEY, JSON.stringify(final));
+        setSearch("");
+      };
+      reader.readAsText(file, encoding);
+    };
+
+    readWith("utf-8", "windows-1251");
   }
 
   function onFileDrop(e: React.DragEvent) {
@@ -127,7 +143,7 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
           <div style={{ fontSize: 12, fontWeight: 600, color: "#888", textTransform: "uppercase", letterSpacing: "0.5px" }}>База салонов</div>
           <button
             onClick={() => {
-              const csv = "Название салона;Email\nСалон Ромашка;romashka@mail.ru\nСтудия Style;style@gmail.com\n";
+              const csv = "\uFEFFНазвание салона;Email\nСалон Ромашка;romashka@mail.ru\nСтудия Style;style@gmail.com\nBeauty Studio;beauty@mail.ru\n";
               const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
               const url = URL.createObjectURL(blob);
               const a = document.createElement("a"); a.href = url; a.download = "шаблон_салоны.csv"; a.click();
