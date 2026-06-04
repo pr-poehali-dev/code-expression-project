@@ -215,6 +215,10 @@ function ImageGenButton({ groupName, keywords, ads }: { groupName: string; keywo
           {errMsg}
         </div>
       )}
+      <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "#94A3B8" }}>
+        <Icon name="Info" size={11} />
+        Сгенерированные изображения сохраняются в истории инструмента <b style={{ color: "#64748B" }}>«Генерация изображений»</b>
+      </div>
     </div>
   );
 }
