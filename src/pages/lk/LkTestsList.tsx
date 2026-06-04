@@ -32,9 +32,28 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
         Развитие персонала
       </h1>
-      <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 14px", lineHeight: 1.6, maxWidth: 560 }}>
-        Сильная команда — главный актив салона. Здесь собраны инструменты, которые помогают специалистам расти профессионально, избавляться от ограничивающих убеждений и выходить на новый уровень дохода. Пройди тест — получи персональный разбор и конкретные шаги для развития.
+      <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 16px", lineHeight: 1.6, maxWidth: 560 }}>
+        Сильная команда — главный актив салона. Здесь собраны инструменты, которые помогают специалистам расти профессионально, избавляться от ограничивающих убеждений и выходить на новый уровень дохода.
       </p>
+      <div style={{
+        display: "flex", alignItems: "flex-start", gap: 16,
+        background: "linear-gradient(135deg, hsl(260,60%,97%) 0%, hsl(185,85%,97%) 100%)",
+        border: "1px solid hsl(260,60%,88%)",
+        borderRadius: 16, padding: "16px 20px", marginBottom: 24,
+      }}>
+        <div style={{ fontSize: 28, lineHeight: 1, flexShrink: 0, marginTop: 2 }}>💎</div>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>
+            Коучинговые и тренерские инструменты
+          </div>
+          <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>
+            Каждый инструмент — это методология, которую коучи и бизнес-тренеры применяют на личных сессиях
+            стоимостью <span style={{ fontWeight: 700, color: "#0F172A" }}>от 25 000 ₽</span>.
+            Здесь вы получаете тот же результат: персональный разбор, работу с ограничениями и
+            конкретный план — для внутренней устойчивости и профессионального роста каждого специалиста команды.
+          </div>
+        </div>
+      </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 28 }}>
         {[
           { icon: "Brain", text: "Рост мышления" },
