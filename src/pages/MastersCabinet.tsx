@@ -82,6 +82,10 @@ function RefCard({ master }: { master: Master }) {
           style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(45,212,191,0.25)", background: "rgba(45,212,191,0.08)", color: TEAL, textDecoration: "none", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
           <Icon name="MessageCircle" size={14} /> Max
         </a>
+        <a href={`https://t.me/share/url?url=${encodeURIComponent(master.ref_url)}&text=${encodeURIComponent(`Нашла полезный инструмент для салона — попробуй бесплатно`)}`} target="_blank" rel="noopener noreferrer"
+          style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(45,212,191,0.25)", background: "rgba(45,212,191,0.08)", color: TEAL, textDecoration: "none", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <Icon name="Send" size={14} /> Telegram
+        </a>
       </div>
     </div>
   );
