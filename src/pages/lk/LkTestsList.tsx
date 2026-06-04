@@ -30,11 +30,24 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
   return (
     <div>
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
-        Инструменты роста
+        Развитие персонала
       </h1>
-      <p style={{ fontSize: 14, color: "#888", margin: "0 0 28px" }}>
-        Пройди тест — получи персональный разбор и конкретные советы
+      <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 14px", lineHeight: 1.6, maxWidth: 560 }}>
+        Сильная команда — главный актив салона. Здесь собраны инструменты, которые помогают специалистам расти профессионально, избавляться от ограничивающих убеждений и выходить на новый уровень дохода. Пройди тест — получи персональный разбор и конкретные шаги для развития.
       </p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 28 }}>
+        {[
+          { icon: "Brain", text: "Рост мышления" },
+          { icon: "Star", text: "Профессионализм" },
+          { icon: "TrendingUp", text: "Доход специалиста" },
+          { icon: "CheckCircle", text: "Персональный разбор" },
+        ].map(tag => (
+          <div key={tag.text} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#475569", background: "#F1F5F9", borderRadius: 20, padding: "5px 12px" }}>
+            <span style={{ fontSize: 11 }}>✦</span>
+            {tag.text}
+          </div>
+        ))}
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
         {/* Системная диагностика */}
         {showBodyTools ? (
