@@ -294,9 +294,22 @@ export default function LkMarketing() {
         <h2 style={{ fontSize: "clamp(20px,2.5vw,28px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px", letterSpacing: "-0.3px" }}>
           Маркетинг салона
         </h2>
-        <p style={{ fontSize: 14, color: "#64748B", margin: 0, lineHeight: 1.6, maxWidth: 560 }}>
-          Создавайте контент, который приводит клиентов: посты, визуалы и рилсы для соцсетей — и готовые рекламные кампании в Яндекс.Директ от портрета аудитории до объявлений.
+        <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 14px", lineHeight: 1.6, maxWidth: 600 }}>
+          Полный цикл маркетинга салона в одном месте: от создания контента для соцсетей до настройки рекламы в Яндекс.Директ. ИИ знает ваш салон, вашу аудиторию и помогает привлекать новых клиентов — без агентств, без лишних затрат и без маркетолога в штате.
         </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {[
+            { icon: "Instagram", text: "Контент для соцсетей" },
+            { icon: "Target", text: "Реклама в Директ" },
+            { icon: "Users", text: "Портрет аудитории" },
+            { icon: "TrendingUp", text: "Рост клиентской базы" },
+          ].map(tag => (
+            <div key={tag.text} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#475569", background: "#F1F5F9", borderRadius: 20, padding: "5px 12px" }}>
+              <Icon name={tag.icon} size={12} style={{ color: ACCENT }} />
+              {tag.text}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Контент и SMM */}
