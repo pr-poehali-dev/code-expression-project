@@ -155,9 +155,8 @@ export default function LkEnergy() {
                         {Math.round(pkg.price_rub / pkg.energy_amount * 10) / 10} ₽ за энергию
                       </div>
                       <button
-                        onClick={() => handleBuy(pkg.code)}
-                        disabled={paying !== null}
-                        style={{ width: "100%", padding: "12px", borderRadius: 11, border: "none", background: paying === pkg.code ? "#E2E8F0" : `linear-gradient(135deg,${c.color},${c.color}cc)`, color: paying === pkg.code ? "#64748B" : "#fff", fontSize: 14, fontWeight: 700, cursor: paying !== null ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.2s" }}>
+                        onClick={() => { if (!paying) handleBuy(pkg.code); }}
+                        style={{ width: "100%", padding: "12px", borderRadius: 11, border: "none", background: `linear-gradient(135deg,${c.color},${c.color}cc)`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: paying ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.2s", opacity: paying && paying !== pkg.code ? 0.6 : 1 }}>
                         {paying === pkg.code ? "Переход к оплате…" : "Купить"}
                       </button>
                     </div>
