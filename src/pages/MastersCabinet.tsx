@@ -78,9 +78,9 @@ function RefCard({ master }: { master: Master }) {
           {master.ref_code}
           <Icon name={copiedCode ? "Check" : "Copy"} size={12} style={{ opacity: 0.6 }} />
         </button>
-        <a href={`https://wa.me/?text=${encodeURIComponent(`Нашла полезный инструмент для салона — попробуй бесплатно: ${master.ref_url}`)}`} target="_blank" rel="noopener noreferrer"
+        <a href={`https://max.ru/share?url=${encodeURIComponent(master.ref_url)}&text=${encodeURIComponent(`Нашла полезный инструмент для салона — попробуй бесплатно`)}`} target="_blank" rel="noopener noreferrer"
           style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(45,212,191,0.25)", background: "rgba(45,212,191,0.08)", color: TEAL, textDecoration: "none", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-          <Icon name="MessageCircle" size={14} /> Поделиться
+          <Icon name="MessageCircle" size={14} /> Max
         </a>
       </div>
     </div>
