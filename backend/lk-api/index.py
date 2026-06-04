@@ -2783,9 +2783,6 @@ def handle_energy_topup(event: dict) -> dict:
         )
         conn.commit()
 
-        # Начисляем партнёрское вознаграждение мастеру (если есть реферер)
-        _notify_master_accrual(int(salon_id), amount, "Пополнение баланса")
-
         cur.execute(f"SELECT credits_balance FROM {tbl('salons')} WHERE id=%s", (salon_id,))
         new_balance = cur.fetchone()[0]
         return ok({"ok": True, "new_balance": new_balance})
@@ -2981,7 +2978,8 @@ def handle_payment_webhook(event: dict) -> dict:
         )
         conn.commit()
 
-        # Начисляем партнёрское вознаграждение мастеру (если есть реферер)
+        # Начисляем партнёрское вознаграждение: 10% от кол-ва энергий в рублях
+        # (100 энергий → 10 ₽). Только реальная оплата, без бонусов и ручного пополнения.
         _notify_master_accrual(int(salon_id), int(energy_amount), "Покупка пакета энергии")
 
         # Отправляем письмо пользователю
