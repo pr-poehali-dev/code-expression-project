@@ -301,7 +301,7 @@ export default function LkClientMsg() {
                 </div>
                 <button onClick={() => generate()} style={{ fontSize: 11, fontWeight: 600, color: ACCENT, background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat,sans-serif", display: "flex", alignItems: "center", gap: 4 }}>
                   <Icon name="RefreshCw" size={12} />
-                  Ещё вариант — 1 ⚡
+                  Ещё вариант — бесплатно
                 </button>
               </div>
               <div style={{ padding: "16px 18px" }}>
