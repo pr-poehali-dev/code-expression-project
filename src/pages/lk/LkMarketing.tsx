@@ -7,6 +7,8 @@ import LkMarketingDirect from "./LkMarketingDirect";
 import LkPostGen from "./LkPostGen";
 import LkAiImageGen from "./LkAiImageGen";
 import LkReelScript from "./LkReelScript";
+import { useEnergy } from "@/contexts/EnergyContext";
+import { showEnergyGate } from "@/components/EnergyGate";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -201,10 +203,19 @@ export default function LkMarketing() {
   const [active, setActive] = useState<string | null>(null);
   const [audienceData, setAudienceData] = useState<AudienceData | null>(null);
   const [semanticData, setSemanticData] = useState<SemanticGroups | null>(null);
+  const { hasPaid, loading: energyLoading } = useEnergy();
   const ALL_TOOLS = [...TOOLS_DIRECT, ...TOOLS_CONTENT];
   const activeTool = ALL_TOOLS.find(t => t.id === active);
 
-  if (active === "audience") {
+  const openTool = (id: string) => {
+    if (!hasPaid) {
+      showEnergyGate({ message: "Пополните баланс, чтобы открыть инструменты маркетинга" });
+      return;
+    }
+    setActive(id);
+  };
+
+  if (hasPaid && active === "audience") {
     return (
       <LkMarketingAudience
         onBack={() => setActive(null)}
@@ -216,7 +227,7 @@ export default function LkMarketing() {
     );
   }
 
-  if (active === "offers") {
+  if (hasPaid && active === "offers") {
     return (
       <LkMarketingOffers
         onBack={() => setActive(null)}
@@ -227,7 +238,7 @@ export default function LkMarketing() {
     );
   }
 
-  if (active === "semantics") {
+  if (hasPaid && active === "semantics") {
     return (
       <LkMarketingSemantics
         onBack={() => setActive(null)}
@@ -239,7 +250,7 @@ export default function LkMarketing() {
     );
   }
 
-  if (active === "direct") {
+  if (hasPaid && active === "direct") {
     return (
       <LkMarketingDirect
         onBack={() => setActive(null)}
@@ -248,7 +259,7 @@ export default function LkMarketing() {
     );
   }
 
-  if (active === "post-gen") {
+  if (hasPaid && active === "post-gen") {
     return (
       <div>
         <button onClick={() => setActive(null)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>
@@ -259,7 +270,7 @@ export default function LkMarketing() {
     );
   }
 
-  if (active === "image-gen") {
+  if (hasPaid && active === "image-gen") {
     return (
       <div>
         <button onClick={() => setActive(null)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>
@@ -270,7 +281,7 @@ export default function LkMarketing() {
     );
   }
 
-  if (active === "reel-script") {
+  if (hasPaid && active === "reel-script") {
     return (
       <div>
         <button onClick={() => setActive(null)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>
@@ -281,7 +292,7 @@ export default function LkMarketing() {
     );
   }
 
-  if (activeTool) {
+  if (hasPaid && activeTool) {
     return <ComingSoonPlaceholder tool={activeTool} onBack={() => setActive(null)} />;
   }
 
@@ -312,6 +323,16 @@ export default function LkMarketing() {
         </div>
       </div>
 
+      {/* Баннер для незаплативших */}
+      {!energyLoading && !hasPaid && (
+        <div style={{ marginBottom: 20, padding: "12px 16px", background: "hsl(40,90%,96%)", border: "1px solid hsl(40,90%,80%)", borderRadius: 12, display: "flex", alignItems: "center", gap: 10 }}>
+          <Icon name="Info" size={15} style={{ color: "hsl(30,95%,45%)", flexShrink: 0 }} />
+          <div style={{ fontSize: 13, color: "hsl(30,70%,35%)", lineHeight: 1.5 }}>
+            Инструменты маркетинга доступны после первого пополнения баланса. Бонусные 100 энергий можно использовать в разделе <strong>«Развитие персонала»</strong>.
+          </div>
+        </div>
+      )}
+
       {/* Контент и SMM */}
       <div style={{ marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
         <Icon name="Sparkles" size={15} style={{ color: ACCENT }} />
@@ -325,7 +346,7 @@ export default function LkMarketing() {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 16, marginBottom: 32 }}>
         {TOOLS_CONTENT.map(tool => (
-          <ToolCard key={tool.id} tool={tool} onOpen={setActive} />
+          <ToolCard key={tool.id} tool={tool} onOpen={openTool} />
         ))}
       </div>
 
@@ -342,7 +363,7 @@ export default function LkMarketing() {
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 16 }}>
         {TOOLS_DIRECT.map(tool => (
-          <ToolCard key={tool.id} tool={tool} onOpen={setActive} />
+          <ToolCard key={tool.id} tool={tool} onOpen={openTool} />
         ))}
       </div>
 
