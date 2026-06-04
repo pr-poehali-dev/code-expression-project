@@ -239,6 +239,10 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
           Эта информация используется ИИ-инструментами для создания персонализированного контента под ваш салон.{" "}
           <span style={{ color: "#0F172A", fontWeight: 600 }}>Чем подробнее заполнен профиль — услуги, специалисты, цены, целевая аудитория — тем точнее анализ и бизнес-решения.</span>
         </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 8 }}>
+          <Icon name="ShieldCheck" size={13} style={{ color: "#22c55e", flexShrink: 0 }} />
+          <span style={{ fontSize: 11, color: "#aaa" }}>Данные профиля используются только внутри вашего кабинета и не передаются третьим лицам.</span>
+        </div>
       </div>
 
       {/* Баннер подарка для нового пользователя */}
