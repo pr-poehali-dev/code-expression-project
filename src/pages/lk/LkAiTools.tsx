@@ -125,7 +125,7 @@ type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-au
 
 export default function LkAiTools() {
   const [activeTool, setActiveTool] = useState<Tool>(null);
-  const { hasPaid } = useEnergy();
+  const { hasPaid, loading: energyLoading } = useEnergy();
 
   function BackButton() {
     return (
@@ -139,23 +139,27 @@ export default function LkAiTools() {
     );
   }
 
-  if (activeTool === "salon-audit") {
+  if (!hasPaid && activeTool) {
+    setActiveTool(null);
+  }
+
+  if (hasPaid && activeTool === "salon-audit") {
     return <div><BackButton /><LkSalonAudit /></div>;
   }
 
-  if (activeTool === "staff-audit") {
+  if (hasPaid && activeTool === "staff-audit") {
     return <div><BackButton /><LkStaffAudit /></div>;
   }
 
-  if (activeTool === "review-reply") {
+  if (hasPaid && activeTool === "review-reply") {
     return <div><BackButton /><LkReviewReply /></div>;
   }
 
-  if (activeTool === "client-scripts") {
+  if (hasPaid && activeTool === "client-scripts") {
     return <div><BackButton /><LkClientScripts /></div>;
   }
 
-  if (activeTool === "salon-diag") {
+  if (hasPaid && activeTool === "salon-diag") {
     return <SalonBot onBack={() => setActiveTool(null)} />;
   }
 
@@ -190,7 +194,14 @@ export default function LkAiTools() {
       </div>
 
       {/* Сетка инструментов */}
-      {!hasPaid && (
+      {energyLoading && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
+          {[1,2,3,4,5].map(i => (
+            <div key={i} className="animate-pulse" style={{ background: "#f0f0f0", borderRadius: 16, height: 160 }} />
+          ))}
+        </div>
+      )}
+      {!energyLoading && !hasPaid && (
         <div style={{ marginBottom: 16, padding: "12px 16px", background: "hsl(40,90%,96%)", border: "1px solid hsl(40,90%,80%)", borderRadius: 12, display: "flex", alignItems: "center", gap: 10 }}>
           <Icon name="Info" size={15} style={{ color: "hsl(30,95%,45%)", flexShrink: 0 }} />
           <div style={{ fontSize: 13, color: "hsl(30,70%,35%)", lineHeight: 1.5 }}>
@@ -198,7 +209,7 @@ export default function LkAiTools() {
           </div>
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14, alignItems: "stretch" }}>
+      {!energyLoading && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14, alignItems: "stretch" }}>
 
         {hasPaid ? (
           <ToolCard
@@ -269,7 +280,7 @@ export default function LkAiTools() {
         ) : (
           <PaywallToolCard icon="Scissors" color="hsl(335,80%,50%)" bg="hsl(335,80%,97%)" title="Диагностика роста салона PRO" description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока клиентов." badge="new" />
         )}
-      </div>
+      </div>}
 
       {/* Подсказка про контекст салона */}
       <div style={{ marginTop: 24, padding: "14px 18px", background: `hsla(185,85%,32%,0.05)`, borderRadius: 12, border: `1px solid hsla(185,85%,32%,0.12)`, display: "flex", gap: 12, alignItems: "flex-start" }}>

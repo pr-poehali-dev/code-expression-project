@@ -11,13 +11,13 @@ interface EnergyCtx {
   refresh: () => void;
 }
 
-const Ctx = createContext<EnergyCtx>({ balance: 0, hasPaid: false, loading: false, refresh: () => {} });
+const Ctx = createContext<EnergyCtx>({ balance: 0, hasPaid: false, loading: true, refresh: () => {} });
 
 export function EnergyProvider({ children }: { children: ReactNode }) {
   const { user } = useLkAuth();
   const [balance, setBalance] = useState(0);
   const [hasPaid, setHasPaid] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(() => {
     if (!user?.salon_id) return;
