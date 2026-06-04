@@ -51,9 +51,9 @@ function RefCard({ master }: { master: Master }) {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   return (
-    <div style={{ background: "linear-gradient(135deg,rgba(45,212,191,0.08),rgba(20,184,166,0.04))", border: "1px solid rgba(45,212,191,0.2)", borderRadius: 20, padding: "24px", marginBottom: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-        <div style={{ width: 38, height: 38, borderRadius: 11, background: "rgba(45,212,191,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ background: "linear-gradient(135deg,rgba(45,212,191,0.08),rgba(20,184,166,0.04))", border: "1px solid rgba(45,212,191,0.2)", borderRadius: 20, padding: "20px", marginBottom: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+        <div style={{ width: 38, height: 38, borderRadius: 11, background: "rgba(45,212,191,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <Icon name="Link" size={17} style={{ color: TEAL }} />
         </div>
         <div>
@@ -61,23 +61,26 @@ function RefCard({ master }: { master: Master }) {
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Поделитесь с владельцем салона</div>
         </div>
       </div>
-      <div style={{ marginBottom: 10 }}>
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 5, textTransform: "uppercase", letterSpacing: 1, fontWeight: 600 }}>Ссылка</div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <div style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "rgba(255,255,255,0.8)", wordBreak: "break-all", lineHeight: 1.4 }}>{master.ref_url}</div>
-          <button onClick={() => copyText(master.ref_url, setCopiedLink)} style={{ flexShrink: 0, padding: "10px 14px", borderRadius: 10, border: "none", background: copiedLink ? "rgba(45,212,191,0.2)" : "rgba(255,255,255,0.07)", color: copiedLink ? TEAL : "rgba(255,255,255,0.6)", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "Inter,sans-serif", display: "flex", alignItems: "center", gap: 5, transition: "all 0.15s" }}>
-            <Icon name={copiedLink ? "Check" : "Copy"} size={13} /> {copiedLink ? "Скопировано" : "Копировать"}
-          </button>
-        </div>
+
+      {/* Ссылка + кнопка копировать */}
+      <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "12px 14px", marginBottom: 10, display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ flex: 1, fontSize: 13, color: "rgba(255,255,255,0.8)", wordBreak: "break-all", lineHeight: 1.4 }}>{master.ref_url}</div>
+        <button onClick={() => copyText(master.ref_url, setCopiedLink)} style={{ flexShrink: 0, width: 36, height: 36, borderRadius: 9, border: "none", background: copiedLink ? "rgba(45,212,191,0.2)" : "rgba(255,255,255,0.08)", color: copiedLink ? TEAL : "rgba(255,255,255,0.6)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s" }}>
+          <Icon name={copiedLink ? "Check" : "Copy"} size={15} />
+        </button>
       </div>
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 18px", fontSize: 17, fontWeight: 700, color: "#fff", letterSpacing: 2, fontFamily: "monospace" }}>{master.ref_code}</div>
-        <button onClick={() => copyText(master.ref_code, setCopiedCode)} style={{ padding: "10px 14px", borderRadius: 10, border: "none", background: copiedCode ? "rgba(45,212,191,0.2)" : "rgba(255,255,255,0.07)", color: copiedCode ? TEAL : "rgba(255,255,255,0.6)", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "Inter,sans-serif", display: "flex", alignItems: "center", gap: 5, transition: "all 0.15s" }}>
-          <Icon name={copiedCode ? "Check" : "Copy"} size={13} /> {copiedCode ? "Скопировано" : "Код"}
+      {copiedLink && <div style={{ fontSize: 11, color: TEAL, marginBottom: 8, paddingLeft: 4 }}>Ссылка скопирована!</div>}
+
+      {/* Код + шеринг */}
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={() => copyText(master.ref_code, setCopiedCode)}
+          style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: copiedCode ? "rgba(45,212,191,0.12)" : "rgba(255,255,255,0.05)", color: copiedCode ? TEAL : "#fff", cursor: "pointer", fontFamily: "monospace", fontSize: 15, fontWeight: 700, letterSpacing: 2, transition: "all 0.15s", flexShrink: 0 }}>
+          {master.ref_code}
+          <Icon name={copiedCode ? "Check" : "Copy"} size={12} style={{ opacity: 0.6 }} />
         </button>
         <a href={`https://wa.me/?text=${encodeURIComponent(`Нашла полезный инструмент для салона — попробуй бесплатно: ${master.ref_url}`)}`} target="_blank" rel="noopener noreferrer"
-          style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(45,212,191,0.2)", background: "rgba(45,212,191,0.08)", color: TEAL, textDecoration: "none", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 5 }}>
-          <Icon name="MessageCircle" size={13} /> WhatsApp
+          style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(45,212,191,0.25)", background: "rgba(45,212,191,0.08)", color: TEAL, textDecoration: "none", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <Icon name="MessageCircle" size={14} /> Поделиться
         </a>
       </div>
     </div>
