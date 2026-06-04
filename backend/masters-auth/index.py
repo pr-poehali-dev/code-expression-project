@@ -47,7 +47,8 @@ def gen_ref_code() -> str:
 
 
 def gen_session() -> str:
-    return secrets.token_hex(32)
+    import uuid
+    return str(uuid.uuid4())
 
 
 def get_master_by_session(session_id: str, conn):
