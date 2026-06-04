@@ -4,6 +4,7 @@ import LkMarketingAudience from "./LkMarketingAudience";
 import LkMarketingOffers from "./LkMarketingOffers";
 import LkMarketingSemantics from "./LkMarketingSemantics";
 import LkMarketingDirect from "./LkMarketingDirect";
+import LkPostGen from "./LkPostGen";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -63,6 +64,16 @@ const TOOLS: Tool[] = [
     title: "Объявления для Яндекс.Директ",
     description: "Готовые тексты по требованиям Яндекса: заголовок 1 (≤35), заголовок 2 (≤30), текст (≤81 симв.).",
     badge: "cost",
+    ready: true,
+  },
+  {
+    id: "post-gen",
+    icon: "FileText",
+    iconColor: "hsl(210,80%,50%)",
+    iconBg: "hsl(210,80%,96%)",
+    title: "Генератор постов",
+    description: "Тема → 5 заголовков на выбор → готовый текст + картинка. Пост за 2 минуты.",
+    badge: "new",
     ready: true,
   },
   {
@@ -208,6 +219,17 @@ export default function LkMarketing() {
         onBack={() => setActive(null)}
         initialGroups={semanticData?.groups}
       />
+    );
+  }
+
+  if (active === "post-gen") {
+    return (
+      <div>
+        <button onClick={() => setActive(null)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>
+          <Icon name="ArrowLeft" size={15} /> Назад к маркетингу
+        </button>
+        <LkPostGen />
+      </div>
     );
   }
 

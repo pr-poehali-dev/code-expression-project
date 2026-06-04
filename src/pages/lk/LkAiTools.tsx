@@ -2,7 +2,6 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import LkAiImageGen from "./LkAiImageGen";
 import LkSalonAudit from "./LkSalonAudit";
-import LkPostGen from "./LkPostGen";
 import LkReelScript from "./LkReelScript";
 import LkStaffAudit from "./LkStaffAudit";
 import LkReviewReply from "./LkReviewReply";
@@ -111,10 +110,6 @@ export default function LkAiTools() {
     return <div><BackButton /><LkSalonAudit /></div>;
   }
 
-  if (activeTool === "post-gen") {
-    return <div><BackButton /><LkPostGen /></div>;
-  }
-
   if (activeTool === "reel-script") {
     return <div><BackButton /><LkReelScript /></div>;
   }
@@ -164,17 +159,6 @@ export default function LkAiTools() {
           description="Создавайте визуалы для постов, сторис и баннеров. ИИ учитывает стиль и аудиторию вашего салона."
           badge="new"
           onStart={() => setActiveTool("image-gen")}
-        />
-
-        {/* Скоро */}
-        <ToolCard
-          icon="FileText"
-          color="hsl(210,80%,50%)"
-          bg="hsl(210,80%,96%)"
-          title="Генератор постов"
-          description="Тема → 5 заголовков на выбор → готовый текст + картинка. Пост за 2 минуты."
-          badge="new"
-          onStart={() => setActiveTool("post-gen")}
         />
 
         <ToolCard
