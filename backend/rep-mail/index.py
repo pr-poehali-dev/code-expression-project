@@ -113,7 +113,7 @@ def build_html_email(to_name: str, subject: str, body_html: str, sender_name: st
             <p style="margin:0;font-size:14px;color:#555;">
               С уважением,<br>
               <strong style="color:#1a1a1a;">{sender_name}</strong><br>
-              <span style="color:#888;">Представитель Про Диалог</span>
+              <span style="color:#888;">Администратор Про Диалог</span>
             </p>
           </td>
         </tr>
@@ -125,7 +125,7 @@ def build_html_email(to_name: str, subject: str, body_html: str, sender_name: st
               <a href="{SITE_URL}" style="color:#1a7a74;text-decoration:none;">{SITE_URL}</a>
             </p>
             <p style="margin:0;font-size:11px;color:#bbb;">
-              Это письмо отправлено представителем платформы Про Диалог.
+              Это письмо отправлено администратором платформы Про Диалог.
             </p>
           </td>
         </tr>
@@ -159,7 +159,7 @@ def handler(event: dict, context) -> dict:
     if not to_email or not subject or not body_html:
         return err("Укажите email получателя, тему и текст письма")
 
-    sender_name = user.get("full_name") or user.get("username") or "Представитель"
+    sender_name = user.get("full_name") or user.get("username") or "Администратор"
 
     html_content = build_html_email(to_name, subject, body_html, sender_name)
 

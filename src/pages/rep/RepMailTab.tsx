@@ -323,7 +323,7 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
         </div>
 
         <div style={{ background: "#f8f8f6", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#888" }}>
-          <strong>От кого:</strong> Про Диалог &lt;massopro@mail.ru&gt; · Подпись: <strong>{senderName}</strong>, Представитель Про Диалог
+          <strong>От кого:</strong> Про Диалог &lt;massopro@mail.ru&gt; · Подпись: <strong>{senderName}</strong>, Администратор Про Диалог
         </div>
 
         {error && (
