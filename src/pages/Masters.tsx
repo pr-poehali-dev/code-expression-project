@@ -79,6 +79,91 @@ function FaqItem({ q, a }: { q: string; a: string }) {
   );
 }
 
+const NAV_LINKS = [
+  { label: "Возможности платформы", href: "/vozmozhnosti" },
+  { label: "Для кого", href: "/dlya-kogo" },
+  { label: "Тарифы", href: "/tseny" },
+  { label: "О проекте", href: "/o-proekte" },
+  { label: "Контакты", href: "/kontakty" },
+];
+
+function MastersNavbar() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(8,14,28,0.96)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+      {/* Основная строка */}
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Link to="/" style={{ textDecoration: "none" }}>
+          <BrandLogo variant="light" size="md" />
+        </Link>
+
+        {/* Десктоп-кнопки */}
+        <div className="m-nav-desktop" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {NAV_LINKS.map(l => (
+            <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", textDecoration: "none", padding: "6px 10px", transition: "color 0.15s" }}
+              onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.color = "#fff"}
+              onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.55)"}
+            >{l.label}</a>
+          ))}
+          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.1)", margin: "0 4px" }} />
+          <Link to="/masters/login" style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", textDecoration: "none", padding: "8px 12px" }}>Войти</Link>
+          <Link to="/masters/register" style={{ fontSize: 13, fontWeight: 600, color: DARK, background: `linear-gradient(135deg,${TEAL},${TEAL2})`, textDecoration: "none", padding: "9px 18px", borderRadius: 8 }}>
+            Регистрация партнёра
+          </Link>
+        </div>
+
+        {/* Мобильный бургер */}
+        <button className="m-nav-burger" onClick={() => setOpen(!open)}
+          style={{ display: "none", background: "none", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "7px 10px", cursor: "pointer", flexDirection: "column", gap: 4, alignItems: "center", justifyContent: "center" }}>
+          <span style={{ display: "block", width: 20, height: 1.5, background: open ? "rgba(255,255,255,0.4)" : "#fff", transition: "all 0.2s", transform: open ? "rotate(45deg) translate(4px,4px)" : "none" }} />
+          <span style={{ display: "block", width: 20, height: 1.5, background: "#fff", opacity: open ? 0 : 1, transition: "opacity 0.2s" }} />
+          <span style={{ display: "block", width: 20, height: 1.5, background: open ? "rgba(255,255,255,0.4)" : "#fff", transition: "all 0.2s", transform: open ? "rotate(-45deg) translate(4px,-4px)" : "none" }} />
+        </button>
+      </div>
+
+      {/* Мобильное меню */}
+      {open && (
+        <div className="m-nav-menu" style={{ background: "rgba(8,14,28,0.98)", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "16px 20px 24px" }}>
+          {/* Ссылки платформы */}
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12, fontWeight: 600 }}>О платформе</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 20 }}>
+            {NAV_LINKS.map(l => (
+              <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer"
+                onClick={() => setOpen(false)}
+                style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 16px", borderRadius: 10, background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: 15, fontWeight: 400 }}>
+                {l.label}
+                <Icon name="ExternalLink" size={13} style={{ color: "rgba(255,255,255,0.25)" }} />
+              </a>
+            ))}
+          </div>
+
+          {/* Разделитель */}
+          <div style={{ height: 1, background: "rgba(255,255,255,0.06)", marginBottom: 20 }} />
+
+          {/* Кнопки */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <Link to="/masters/login" onClick={() => setOpen(false)}
+              style={{ display: "block", textAlign: "center", padding: "13px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.7)", textDecoration: "none", fontSize: 15, fontWeight: 500 }}>
+              Войти в кабинет
+            </Link>
+            <Link to="/masters/register" onClick={() => setOpen(false)}
+              style={{ display: "block", textAlign: "center", padding: "14px", borderRadius: 10, background: `linear-gradient(135deg,${TEAL},${TEAL2})`, color: DARK, textDecoration: "none", fontSize: 15, fontWeight: 700, letterSpacing: "0.2px" }}>
+              Регистрация партнёра
+            </Link>
+          </div>
+
+          {/* Подпись */}
+          <div style={{ marginTop: 20, textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.2)" }}>
+            Партнёрская программа «Про Диалог»
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
+
 export default function Masters() {
   const steps = [
     { num: "01", icon: "UserPlus", title: "Зарегистрируйтесь", desc: "Создайте аккаунт за 2 минуты. Прочитайте договор-оферту и примите условия участия." },
@@ -108,22 +193,7 @@ export default function Masters() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: DARK2, minHeight: "100vh", color: "#fff" }}>
 
-      {/* ── Навбар ── */}
-      <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(8,14,28,0.92)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Link to="/" style={{ textDecoration: "none" }}>
-            <BrandLogo variant="light" size="md" />
-          </Link>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Link to="/masters/login" style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", textDecoration: "none", padding: "8px 12px", whiteSpace: "nowrap" }}>
-              Войти
-            </Link>
-            <Link to="/masters/register" style={{ fontSize: 13, fontWeight: 600, color: DARK, background: `linear-gradient(135deg,${TEAL},${TEAL2})`, textDecoration: "none", padding: "9px 16px", borderRadius: 8, whiteSpace: "nowrap" }}>
-              Стать партнёром
-            </Link>
-          </div>
-        </div>
-      </header>
+      <MastersNavbar />
 
       {/* ── HERO ── */}
       <section style={{
@@ -346,9 +416,12 @@ export default function Masters() {
       </footer>
 
       <style>{`
+        /* Navbar */
+        .m-nav-desktop { display: flex; }
+        .m-nav-burger  { display: none !important; }
+
         /* Hero */
         .m-hero-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
-        .m-hero-content {}
         .m-hero-photo { position: relative; }
 
         /* Steps */
@@ -360,18 +433,20 @@ export default function Masters() {
         /* Benefits */
         .m-benefits-grid { grid-template-columns: repeat(3, 1fr); }
 
-        /* Tablet */
+        /* Tablet ≤ 900px */
         @media (max-width: 900px) {
-          .m-hero-inner { grid-template-columns: 1fr !important; gap: 40px !important; }
-          .m-hero-photo { display: none; }
-          .m-steps-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .m-calc-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .m-nav-desktop { display: none !important; }
+          .m-nav-burger  { display: flex !important; }
+          .m-hero-inner  { grid-template-columns: 1fr !important; gap: 40px !important; }
+          .m-hero-photo  { display: none; }
+          .m-steps-grid  { grid-template-columns: repeat(2, 1fr) !important; }
+          .m-calc-grid   { grid-template-columns: 1fr !important; gap: 32px !important; }
           .m-benefits-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
 
-        /* Mobile */
+        /* Mobile ≤ 560px */
         @media (max-width: 560px) {
-          .m-steps-grid { grid-template-columns: 1fr !important; }
+          .m-steps-grid    { grid-template-columns: 1fr !important; }
           .m-benefits-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
