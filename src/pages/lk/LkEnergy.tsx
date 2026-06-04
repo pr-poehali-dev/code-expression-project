@@ -72,13 +72,15 @@ export default function LkEnergy() {
       <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}`}</style>
 
       {/* Заголовок */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg,hsl(40,90%,50%),hsl(30,95%,50%))`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ fontSize: 20 }}>⚡</span>
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: ACCENT, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 6 }}>
+          Личный кабинет
         </div>
-        <div>
-          <h2 style={{ fontSize: "clamp(18px,2.5vw,22px)", fontWeight: 700, color: "#1a1a1a", margin: 0 }}>Энергия</h2>
-          <div style={{ fontSize: 12, color: "#aaa" }}>Внутренняя валюта платформы</div>
+        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(26px,3vw,34px)", fontWeight: 700, color: "#0F172A", margin: "0 0 4px", lineHeight: 1.1 }}>
+          Энергия
+        </h2>
+        <div style={{ fontSize: 13, color: "#94A3B8", fontWeight: 400 }}>
+          Внутренняя валюта платформы — расходуется при использовании ИИ-инструментов
         </div>
       </div>
 
