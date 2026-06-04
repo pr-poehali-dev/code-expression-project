@@ -685,6 +685,9 @@ def handle_mindset_save(event: dict) -> dict:
     body = json.loads(event.get("body") or "{}")
     conn = get_db()
     try:
+        energy_err = check_and_spend_energy(event, conn, "mindset_analysis")
+        if energy_err:
+            return energy_err
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
@@ -738,6 +741,9 @@ def handle_barriers_save(event: dict) -> dict:
     body = json.loads(event.get("body") or "{}")
     conn = get_db()
     try:
+        energy_err = check_and_spend_energy(event, conn, "barriers_analysis")
+        if energy_err:
+            return energy_err
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
@@ -791,6 +797,9 @@ def handle_finance_save(event: dict) -> dict:
     body = json.loads(event.get("body") or "{}")
     conn = get_db()
     try:
+        energy_err = check_and_spend_energy(event, conn, "finance_analysis")
+        if energy_err:
+            return energy_err
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
@@ -846,6 +855,9 @@ def handle_profile_save(event: dict) -> dict:
     body = json.loads(event.get("body") or "{}")
     conn = get_db()
     try:
+        energy_err = check_and_spend_energy(event, conn, "profile_analysis")
+        if energy_err:
+            return energy_err
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
@@ -1068,6 +1080,9 @@ def handle_ms_analyze(event: dict) -> dict:
 
     conn = get_db()
     try:
+        energy_err = check_and_spend_energy(event, conn, "ms_analyze")
+        if energy_err:
+            return energy_err
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
@@ -1136,6 +1151,9 @@ def handle_diag_search(event: dict) -> dict:
 
     conn = get_db()
     try:
+        energy_err = check_and_spend_energy(event, conn, "diagnostic")
+        if energy_err:
+            return energy_err
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
