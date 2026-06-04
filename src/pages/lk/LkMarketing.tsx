@@ -315,6 +315,12 @@ export default function LkMarketing() {
         <Icon name="Target" size={15} style={{ color: ACCENT }} />
         <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>Яндекс.Директ</span>
       </div>
+      <div style={{ marginBottom: 16, padding: "14px 18px", background: "hsl(185,85%,97%)", borderRadius: 12, border: "1px solid hsl(185,85%,88%)" }}>
+        <div style={{ fontSize: 13, color: "#0F172A", fontWeight: 600, marginBottom: 4 }}>Экономьте на рекламе без потери результата</div>
+        <div style={{ fontSize: 13, color: "#64748B", lineHeight: 1.6 }}>
+          Раньше за это платили агентству: портрет аудитории, подбор ключей, написание объявлений. Теперь ИИ делает всё это за минуты — на основе реальных данных вашего салона. Объявления точно попадают в свою аудиторию, бюджет не расходуется впустую.
+        </div>
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 16 }}>
         {TOOLS_DIRECT.map(tool => (
           <ToolCard key={tool.id} tool={tool} onOpen={setActive} />
