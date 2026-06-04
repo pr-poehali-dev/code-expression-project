@@ -151,14 +151,18 @@ export default function Tseny() {
                     ))}
                   </div>
 
-                  <button disabled style={{
-                    width: "100%", padding: "14px", borderRadius: 2, border: pkg.popular ? "none" : "1px solid #E2E8F0",
+                  <a href="/cabinet" style={{
+                    display: "block", width: "100%", padding: "14px", borderRadius: 2, border: pkg.popular ? "none" : "1px solid #E2E8F0",
                     background: pkg.popular ? "linear-gradient(135deg,#2DD4BF,#14B8A6)" : "#F8FAFC",
                     color: pkg.popular ? DARK : GRAY, fontSize: 14, fontWeight: 500, letterSpacing: "0.3px",
-                    cursor: "not-allowed", fontFamily: "Inter, sans-serif", opacity: 0.85,
-                  }}>
-                    Скоро
-                  </button>
+                    cursor: "pointer", fontFamily: "Inter, sans-serif", textDecoration: "none",
+                    textAlign: "center", boxSizing: "border-box",
+                  }}
+                    onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.opacity = "0.85"; }}
+                    onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.opacity = "1"; }}
+                  >
+                    Получить энергию в подарок
+                  </a>
                 </div>
               </div>
             ))}
