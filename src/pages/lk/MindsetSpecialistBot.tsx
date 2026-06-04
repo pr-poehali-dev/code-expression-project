@@ -447,9 +447,16 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
         <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px,3vw,32px)", fontWeight: 700, color: "#0F172A", margin: "0 0 6px" }}>
           Развитие специалиста
         </h1>
-        <p style={{ fontSize: 14, color: "#888", margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6 }}>
           Выберите цель — ответьте на несколько вопросов и получите персональный план
         </p>
+        <div style={{ padding: "12px 16px", background: "hsl(260,70%,97%)", borderRadius: 12, border: "1px solid hsl(260,70%,85%)" }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 4 }}>Как пользоваться и почему это выгодно</div>
+          <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.65 }}>
+            Выберите цель развития, ответьте на несколько вопросов — ИИ составит персональный план: как привлечь клиентов, выстроить позиционирование, прокачать навыки и выйти на новый доход.<br />
+            Работает как личный ментор, только без ценника в десятки тысяч рублей за сессию.
+          </div>
+        </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>

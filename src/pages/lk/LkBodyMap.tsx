@@ -210,9 +210,16 @@ export default function LkBodyMap({ onBack }: { onBack?: () => void } = {}) {
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
         Шпаргалка по телу
       </h1>
-      <p style={{ fontSize: 14, color: "#888", margin: "0 0 20px" }}>
+      <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 12px" }}>
         Кликни на зону тела — получи диагностику и техники
       </p>
+      <div style={{ padding: "12px 16px", background: "hsl(210,85%,97%)", borderRadius: 12, border: "1px solid hsl(210,85%,85%)", marginBottom: 20 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 4 }}>Как пользоваться и почему это выгодно</div>
+        <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.65 }}>
+          Кликните на любую зону тела — сразу получите диагностику, возможные причины, красные флаги и конкретные техники работы.<br />
+          Шпаргалка позволяет специалисту не держать всё в голове и моментально находить нужную информацию прямо на сеансе — это экономит время и повышает доверие клиента.
+        </div>
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: 24, alignItems: "start" }} className="body-grid">
 

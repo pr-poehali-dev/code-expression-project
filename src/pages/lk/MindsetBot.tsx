@@ -79,10 +79,17 @@ export default function MindsetBot({ onBack }: Props) {
           <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 12px" }}>
             Мышление с премиум-клиентами
           </h1>
-          <p style={{ fontSize: 15, color: "#666", lineHeight: 1.75, marginBottom: 32 }}>
+          <p style={{ fontSize: 15, color: "#666", lineHeight: 1.75, marginBottom: 16 }}>
             12 вопросов · 7 блоков · ~5 минут<br />
             Вы получите индексы, тип мышления и конкретные рекомендации
           </p>
+          <div style={{ padding: "12px 16px", background: "hsl(185,85%,97%)", borderRadius: 12, border: "1px solid hsl(185,85%,85%)", marginBottom: 32 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 4 }}>Как пользоваться и почему это выгодно</div>
+            <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.65 }}>
+              Пройдите тест из 12 вопросов — ИИ определит ваш тип мышления и выдаст конкретные точки роста в работе с клиентами высокого сегмента.<br />
+              Большинство специалистов теряют премиум-клиентов не из-за недостатка навыков, а из-за внутренней неуверенности. Тест помогает увидеть это и начать работу над собой.
+            </div>
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 36 }}>
             {[
               { icon: "TrendingUp", label: "7 индексов" },

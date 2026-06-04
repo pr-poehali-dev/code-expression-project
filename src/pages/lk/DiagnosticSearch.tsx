@@ -32,9 +32,16 @@ export default function DiagnosticSearch({
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(22px,3vw,32px)", fontWeight: 700, color: "#0F172A", margin: "0 0 6px" }}>
         Системная диагностика
       </h1>
-      <p style={{ fontSize: 14, color: "#888", margin: "0 0 28px", lineHeight: 1.6 }}>
+      <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6 }}>
         Введите жалобу клиента или выберите из списка — система покажет возможные причины, компенсаторные зоны и техники из шпаргалки
       </p>
+      <div style={{ padding: "12px 16px", background: "hsl(210,85%,97%)", borderRadius: 12, border: "1px solid hsl(210,85%,85%)", marginBottom: 24 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 4 }}>Как пользоваться и почему это выгодно</div>
+        <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.65 }}>
+          Введите симптом или жалобу клиента — система мгновенно покажет возможные причины, компенсаторные зоны, красные флаги и техники работы.<br />
+          Это помогает специалисту уверенно ориентироваться в сложных случаях, экономить время на поиске информации и выглядеть профессионально в глазах клиента.
+        </div>
+      </div>
 
       {/* Поле ввода */}
       <div style={{ position: "relative", marginBottom: 12 }}>
