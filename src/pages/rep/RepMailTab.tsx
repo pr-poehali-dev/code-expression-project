@@ -26,7 +26,9 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
     try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; }
   });
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
   const [fileError, setFileError] = useState("");
+  const PAGE_SIZE = 30;
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [toEmail, setToEmail] = useState("");
@@ -132,6 +134,8 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.email.toLowerCase().includes(search.toLowerCase())
   );
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -204,34 +208,55 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
             </div>
             <input
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => { setSearch(e.target.value); setPage(0); }}
               placeholder="Поиск по названию или email..."
               style={{ ...inp, marginBottom: 8 }}
             />
-            <div style={{ maxHeight: 200, overflowY: "auto", border: "1px solid #e8e8e4", borderRadius: 8, background: "#fff" }}>
+            <div style={{ border: "1px solid #e8e8e4", borderRadius: 8, background: "#fff", overflow: "hidden" }}>
               {filtered.length === 0 ? (
                 <div style={{ padding: "12px 14px", fontSize: 13, color: "#aaa" }}>Ничего не найдено</div>
-              ) : filtered.slice(0, 30).map((c, i) => (
-                  <div
-                    key={i}
-                    onClick={() => selectSalon(c)}
-                    style={{
-                      padding: "10px 14px", cursor: "pointer",
-                      borderBottom: i < filtered.length - 1 ? "1px solid #f0f0ec" : "none",
-                      display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8,
-                      transition: "background 0.1s",
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = ACCENT_LIGHT)}
-                    onMouseLeave={e => (e.currentTarget.style.background = "#fff")}
-                  >
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>{c.name}</div>
-                      <div style={{ fontSize: 12, color: "#888" }}>{c.email}</div>
-                    </div>
-                    <Icon name="ArrowRight" size={13} style={{ color: ACCENT, flexShrink: 0 }} />
+              ) : paginated.map((c, i) => (
+                <div
+                  key={i}
+                  onClick={() => selectSalon(c)}
+                  style={{
+                    padding: "10px 14px", cursor: "pointer",
+                    borderBottom: i < paginated.length - 1 ? "1px solid #f0f0ec" : "none",
+                    display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8,
+                    transition: "background 0.1s",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = ACCENT_LIGHT)}
+                  onMouseLeave={e => (e.currentTarget.style.background = "#fff")}
+                >
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>{c.name}</div>
+                    <div style={{ fontSize: 12, color: "#888" }}>{c.email}</div>
                   </div>
-                ))}
+                  <Icon name="ArrowRight" size={13} style={{ color: ACCENT, flexShrink: 0 }} />
+                </div>
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8, gap: 8 }}>
+                <button
+                  onClick={() => setPage(p => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: page === 0 ? "#ccc" : ACCENT, background: "none", border: "none", cursor: page === 0 ? "default" : "pointer", fontFamily: "Montserrat, sans-serif", padding: "4px 0" }}
+                >
+                  <Icon name="ChevronLeft" size={14} /> Назад
+                </button>
+                <div style={{ fontSize: 12, color: "#888" }}>
+                  {page + 1} / {totalPages} · {filtered.length} контактов
+                </div>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                  disabled={page === totalPages - 1}
+                  style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 600, color: page === totalPages - 1 ? "#ccc" : ACCENT, background: "none", border: "none", cursor: page === totalPages - 1 ? "default" : "pointer", fontFamily: "Montserrat, sans-serif", padding: "4px 0" }}
+                >
+                  Вперёд <Icon name="ChevronRight" size={14} />
+                </button>
               </div>
+            )}
           </div>
         )}
 
