@@ -2702,7 +2702,15 @@ def handle_energy_balance(event: dict) -> dict:
             f"WHERE is_active=TRUE ORDER BY sort_order"
         )
         packages = [dict(r) for r in cur.fetchall()]
-        return ok({"balance": balance, "monthly_spent": monthly_spent, "packages": packages})
+
+        cur.execute(
+            f"SELECT COUNT(*) AS cnt FROM {tbl('payments')} "
+            f"WHERE salon_id=%s AND status='succeeded'",
+            (user["salon_id"],)
+        )
+        has_paid = (cur.fetchone()["cnt"] or 0) > 0
+
+        return ok({"balance": balance, "monthly_spent": monthly_spent, "packages": packages, "has_paid": has_paid})
     finally:
         conn.close()
 

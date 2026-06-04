@@ -6,15 +6,17 @@ function sid() { return localStorage.getItem("lk_session") || ""; }
 
 interface EnergyCtx {
   balance: number;
+  hasPaid: boolean;
   loading: boolean;
   refresh: () => void;
 }
 
-const Ctx = createContext<EnergyCtx>({ balance: 0, loading: false, refresh: () => {} });
+const Ctx = createContext<EnergyCtx>({ balance: 0, hasPaid: false, loading: false, refresh: () => {} });
 
 export function EnergyProvider({ children }: { children: ReactNode }) {
   const { user } = useLkAuth();
   const [balance, setBalance] = useState(0);
+  const [hasPaid, setHasPaid] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(() => {
@@ -22,14 +24,17 @@ export function EnergyProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     fetch(`${LK_URL}?action=energy_balance`, { headers: { "X-Session-Id": sid() } })
       .then(r => r.json())
-      .then(d => { if (typeof d.balance === "number") setBalance(d.balance); })
+      .then(d => {
+        if (typeof d.balance === "number") setBalance(d.balance);
+        if (typeof d.has_paid === "boolean") setHasPaid(d.has_paid);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [user?.salon_id]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  return <Ctx.Provider value={{ balance, loading, refresh }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ balance, hasPaid, loading, refresh }}>{children}</Ctx.Provider>;
 }
 
 export function useEnergy() { return useContext(Ctx); }

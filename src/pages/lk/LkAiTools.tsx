@@ -5,6 +5,8 @@ import LkStaffAudit from "./LkStaffAudit";
 import LkReviewReply from "./LkReviewReply";
 import LkClientScripts from "./LkClientScripts";
 import SalonBot from "./SalonBot";
+import { useEnergy } from "@/contexts/EnergyContext";
+import { showEnergyGate } from "@/components/EnergyGate";
 
 
 const ACCENT = "hsl(185,85%,32%)";
@@ -83,10 +85,47 @@ function ComingSoonCard({ icon, color, bg, title, description }: ComingSoonCardP
   );
 }
 
+function PaywallToolCard({ icon, color, bg, title, description, badge }: {
+  icon: string; color: string; bg: string;
+  title: string; description: string; badge?: string;
+}) {
+  return (
+    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 20px 18px", display: "flex", flexDirection: "column", boxShadow: "0 1px 3px rgba(15,23,42,0.05)", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: 12, right: 14, background: "hsl(40,90%,96%)", color: "hsl(30,95%,40%)", fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, border: "1px solid hsl(40,90%,80%)", display: "flex", alignItems: "center", gap: 4 }}>
+        <Icon name="Lock" size={9} /> Пополни баланс
+      </div>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 14, flex: 1, marginBottom: 16 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: 0.45 }}>
+          <Icon name={icon} size={22} style={{ color }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>{title}</div>
+            {badge && (
+              <span style={{ fontSize: 9, fontWeight: 700, background: "hsl(40,90%,50%)", color: "#fff", borderRadius: 4, padding: "2px 6px", letterSpacing: 0.5, textTransform: "uppercase" as const, flexShrink: 0 }}>
+                {badge}
+              </span>
+            )}
+          </div>
+          <div style={{ fontSize: 12, color: "#888", lineHeight: 1.6 }}>{description}</div>
+        </div>
+      </div>
+      <button
+        onClick={() => showEnergyGate({ message: "Пополните баланс, чтобы открыть инструменты «Развитие салона»" })}
+        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: "hsl(40,90%,96%)", color: "hsl(30,95%,40%)", border: "1.5px solid hsl(40,90%,80%)", borderRadius: 10, padding: "11px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", width: "100%", marginTop: "auto" }}
+      >
+        <Icon name="Zap" size={14} />
+        Пополнить баланс
+      </button>
+    </div>
+  );
+}
+
 type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | "review-reply" | "client-scripts" | "salon-diag" | null;
 
 export default function LkAiTools() {
   const [activeTool, setActiveTool] = useState<Tool>(null);
+  const { hasPaid } = useEnergy();
 
   function BackButton() {
     return (
@@ -151,57 +190,85 @@ export default function LkAiTools() {
       </div>
 
       {/* Сетка инструментов */}
+      {!hasPaid && (
+        <div style={{ marginBottom: 16, padding: "12px 16px", background: "hsl(40,90%,96%)", border: "1px solid hsl(40,90%,80%)", borderRadius: 12, display: "flex", alignItems: "center", gap: 10 }}>
+          <Icon name="Info" size={15} style={{ color: "hsl(30,95%,45%)", flexShrink: 0 }} />
+          <div style={{ fontSize: 13, color: "hsl(30,70%,35%)", lineHeight: 1.5 }}>
+            Инструменты «Развитие салона» доступны после первого пополнения баланса. Бонусные 100 энергий можно использовать в разделе <strong>«Развитие персонала»</strong>.
+          </div>
+        </div>
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14, alignItems: "stretch" }}>
 
-        <ToolCard
-          icon="Users"
-          color="hsl(0,75%,50%)"
-          bg="hsl(0,75%,97%)"
-          title="Анализ персонала"
-          description="Финансовый рентген команды: кто приносит деньги, кто теряет и сколько это стоит в рублях."
-          badge="new"
-          onStart={() => setActiveTool("staff-audit")}
-        />
+        {hasPaid ? (
+          <ToolCard
+            icon="Users"
+            color="hsl(0,75%,50%)"
+            bg="hsl(0,75%,97%)"
+            title="Анализ персонала"
+            description="Финансовый рентген команды: кто приносит деньги, кто теряет и сколько это стоит в рублях."
+            badge="new"
+            onStart={() => setActiveTool("staff-audit")}
+          />
+        ) : (
+          <PaywallToolCard icon="Users" color="hsl(0,75%,50%)" bg="hsl(0,75%,97%)" title="Анализ персонала" description="Финансовый рентген команды: кто приносит деньги, кто теряет и сколько это стоит в рублях." badge="new" />
+        )}
 
-        <ToolCard
-          icon="MessageSquare"
-          color="hsl(145,60%,40%)"
-          bg="hsl(145,60%,96%)"
-          title="Скрипты общения с клиентом"
-          description="Выбери роль сотрудника, опиши ситуацию — ИИ напишет готовый сценарий диалога с клиентом."
-          badge="new"
-          onStart={() => setActiveTool("client-scripts")}
-        />
+        {hasPaid ? (
+          <ToolCard
+            icon="MessageSquare"
+            color="hsl(145,60%,40%)"
+            bg="hsl(145,60%,96%)"
+            title="Скрипты общения с клиентом"
+            description="Выбери роль сотрудника, опиши ситуацию — ИИ напишет готовый сценарий диалога с клиентом."
+            badge="new"
+            onStart={() => setActiveTool("client-scripts")}
+          />
+        ) : (
+          <PaywallToolCard icon="MessageSquare" color="hsl(145,60%,40%)" bg="hsl(145,60%,96%)" title="Скрипты общения с клиентом" description="Выбери роль сотрудника, опиши ситуацию — ИИ напишет готовый сценарий диалога с клиентом." badge="new" />
+        )}
 
-        <ToolCard
-          icon="BarChart2"
-          color="hsl(185,85%,32%)"
-          bg="hsl(185,85%,95%)"
-          title="Цифровой бизнес-разбор"
-          description="Заполните анкету — ИИ проанализирует салон и выдаст персональный план роста выручки."
-          badge="new"
-          onStart={() => setActiveTool("salon-audit")}
-        />
+        {hasPaid ? (
+          <ToolCard
+            icon="BarChart2"
+            color="hsl(185,85%,32%)"
+            bg="hsl(185,85%,95%)"
+            title="Цифровой бизнес-разбор"
+            description="Заполните анкету — ИИ проанализирует салон и выдаст персональный план роста выручки."
+            badge="new"
+            onStart={() => setActiveTool("salon-audit")}
+          />
+        ) : (
+          <PaywallToolCard icon="BarChart2" color="hsl(185,85%,32%)" bg="hsl(185,85%,95%)" title="Цифровой бизнес-разбор" description="Заполните анкету — ИИ проанализирует салон и выдаст персональный план роста выручки." badge="new" />
+        )}
 
-        <ToolCard
-          icon="Star"
-          color="hsl(185,85%,32%)"
-          bg="hsl(185,85%,95%)"
-          title="Ответы на отзывы"
-          description="ИИ составит вежливый и профессиональный ответ на любой отзыв — положительный или негативный."
-          badge="new"
-          onStart={() => setActiveTool("review-reply")}
-        />
+        {hasPaid ? (
+          <ToolCard
+            icon="Star"
+            color="hsl(185,85%,32%)"
+            bg="hsl(185,85%,95%)"
+            title="Ответы на отзывы"
+            description="ИИ составит вежливый и профессиональный ответ на любой отзыв — положительный или негативный."
+            badge="new"
+            onStart={() => setActiveTool("review-reply")}
+          />
+        ) : (
+          <PaywallToolCard icon="Star" color="hsl(185,85%,32%)" bg="hsl(185,85%,95%)" title="Ответы на отзывы" description="ИИ составит вежливый и профессиональный ответ на любой отзыв — положительный или негативный." badge="new" />
+        )}
 
-        <ToolCard
-          icon="Scissors"
-          color="hsl(335,80%,50%)"
-          bg="hsl(335,80%,97%)"
-          title="Диагностика роста салона PRO"
-          description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока клиентов."
-          badge="new"
-          onStart={() => setActiveTool("salon-diag")}
-        />
+        {hasPaid ? (
+          <ToolCard
+            icon="Scissors"
+            color="hsl(335,80%,50%)"
+            bg="hsl(335,80%,97%)"
+            title="Диагностика роста салона PRO"
+            description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока клиентов."
+            badge="new"
+            onStart={() => setActiveTool("salon-diag")}
+          />
+        ) : (
+          <PaywallToolCard icon="Scissors" color="hsl(335,80%,50%)" bg="hsl(335,80%,97%)" title="Диагностика роста салона PRO" description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока клиентов." badge="new" />
+        )}
       </div>
 
       {/* Подсказка про контекст салона */}
