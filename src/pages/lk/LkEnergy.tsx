@@ -128,36 +128,63 @@ export default function LkEnergy() {
               <div style={{ fontSize: 13, color: "#777", marginBottom: 16, lineHeight: 1.6 }}>
                 Выберите пакет энергии. Оплата через ЮКассу — безопасно, зачисление сразу после оплаты.
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 12 }}>
                 {packages.map((pkg, idx) => {
                   const c = PKG_COLORS[pkg.code] || PKG_COLORS.start;
                   const baseRate = packages[0] ? packages[0].energy_amount / packages[0].price_rub : 1;
                   const thisRate = pkg.energy_amount / pkg.price_rub;
                   const savePct  = idx > 0 ? Math.round((thisRate / baseRate - 1) * 100) : 0;
+                  const isPopular = pkg.code === "business";
                   return (
-                    <div key={pkg.code} style={{ background: "#fff", borderRadius: 16, border: `1.5px solid ${c.border}`, padding: "20px 22px" }}>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a" }}>{pkg.name}</div>
-                        {savePct > 0 && (
-                          <div style={{ background: c.bg, color: c.color, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "3px 8px" }}>
-                            Выгоднее на {savePct}%
-                          </div>
-                        )}
+                    <div key={pkg.code} style={{
+                      background: isPopular ? `linear-gradient(160deg, ${c.bg}, #fff)` : "#fff",
+                      borderRadius: 16,
+                      border: `1.5px solid ${isPopular ? c.border : "#E8ECF0"}`,
+                      padding: "22px 20px",
+                      display: "flex", flexDirection: "column",
+                      position: "relative",
+                      boxShadow: isPopular ? `0 4px 20px ${c.color}22` : "0 1px 4px rgba(0,0,0,0.04)",
+                    }}>
+                      {isPopular && (
+                        <div style={{ position: "absolute", top: -1, left: 20, background: c.color, color: "#fff", fontSize: 9, fontWeight: 700, padding: "3px 10px", borderRadius: "0 0 8px 8px", letterSpacing: "1.5px", textTransform: "uppercase" }}>
+                          Популярный
+                        </div>
+                      )}
+                      {savePct > 0 && (
+                        <div style={{ position: "absolute", top: 16, right: 16, background: c.bg, color: c.color, fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "3px 8px" }}>
+                          +{savePct}% выгоды
+                        </div>
+                      )}
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 10, marginTop: isPopular ? 10 : 0 }}>
+                        {pkg.name}
                       </div>
-                      <div style={{ fontSize: "clamp(28px,5vw,36px)", fontWeight: 800, color: c.color, lineHeight: 1, marginBottom: 4 }}>
-                        ⚡ {pkg.energy_amount.toLocaleString()}
+                      <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(32px,5vw,42px)", fontWeight: 700, color: "#0F172A", lineHeight: 1, marginBottom: 2 }}>
+                        {pkg.price_rub.toLocaleString()} <span style={{ fontSize: "0.5em", fontWeight: 400, color: "#64748B" }}>₽</span>
                       </div>
-                      <div style={{ fontSize: 12, color: "#aaa", marginBottom: 14 }}>энергий</div>
-                      <div style={{ fontSize: 22, fontWeight: 800, color: "#1a1a1a", marginBottom: 4 }}>
-                        {pkg.price_rub.toLocaleString()} ₽
+                      <div style={{ fontSize: 12, color: "#94A3B8", marginBottom: 16 }}>
+                        {Math.round(pkg.price_rub / pkg.energy_amount * 10) / 10} ₽ за единицу
                       </div>
-                      <div style={{ fontSize: 11, color: "#bbb", marginBottom: 14 }}>
-                        {Math.round(pkg.price_rub / pkg.energy_amount * 10) / 10} ₽ за энергию
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid #F1F5F9" }}>
+                        <div style={{ width: 28, height: 28, borderRadius: 8, background: c.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Icon name="Zap" size={14} style={{ color: c.color }} />
+                        </div>
+                        <div>
+                          <span style={{ fontSize: 16, fontWeight: 700, color: "#0F172A" }}>{pkg.energy_amount.toLocaleString()}</span>
+                          <span style={{ fontSize: 12, color: "#94A3B8", marginLeft: 4 }}>единиц энергии</span>
+                        </div>
                       </div>
                       <button
                         onClick={() => { if (!paying) handleBuy(pkg.code); }}
-                        style={{ width: "100%", padding: "12px", borderRadius: 11, border: "none", background: `linear-gradient(135deg,${c.color},${c.color}cc)`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: paying ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.2s", opacity: paying && paying !== pkg.code ? 0.6 : 1 }}>
-                        {paying === pkg.code ? "Переход к оплате…" : "Купить"}
+                        style={{
+                          width: "100%", padding: "12px", borderRadius: 10, border: "none",
+                          background: isPopular ? c.color : "#0F172A",
+                          color: "#fff",
+                          fontSize: 13, fontWeight: 700, cursor: paying ? "wait" : "pointer",
+                          fontFamily: "Montserrat, sans-serif", letterSpacing: "0.5px",
+                          opacity: paying && paying !== pkg.code ? 0.5 : 1,
+                          transition: "all 0.2s", marginTop: "auto",
+                        }}>
+                        {paying === pkg.code ? "Переход к оплате…" : "Пополнить баланс"}
                       </button>
                     </div>
                   );
