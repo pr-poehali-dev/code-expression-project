@@ -83,22 +83,38 @@ export default function LkEnergy() {
       </div>
 
       {/* Баннер баланса */}
-      <div style={{ background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, borderRadius: 20, padding: "24px 28px", marginBottom: 16, color: "#fff", animation: "fadeIn 0.4s ease" }}>
-        <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.7, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>Баланс салона</div>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ fontSize: "clamp(40px,7vw,60px)", fontWeight: 800, lineHeight: 1 }}>⚡ {balance.toLocaleString()}</div>
-            <div style={{ fontSize: 13, opacity: 0.75, marginTop: 4 }}>энергий доступно команде</div>
+      <div style={{
+        background: "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)",
+        borderRadius: 20, padding: "28px 32px", marginBottom: 20,
+        color: "#fff", animation: "fadeIn 0.4s ease", position: "relative", overflow: "hidden",
+      }}>
+        {/* Декоративный круг */}
+        <div style={{ position: "absolute", top: -40, right: -40, width: 180, height: 180, borderRadius: "50%", background: `${ACCENT}18`, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: -20, right: 60, width: 100, height: 100, borderRadius: "50%", background: `${ACCENT}10`, pointerEvents: "none" }} />
+
+        <div style={{ fontSize: 10, fontWeight: 700, color: `${ACCENT}`, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 12 }}>
+          Баланс салона
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 16, marginBottom: 4 }}>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(48px,8vw,72px)", fontWeight: 700, lineHeight: 1, color: "#fff" }}>
+            {balance.toLocaleString()}
+          </div>
+          <div style={{ paddingBottom: 10, fontSize: 14, color: "rgba(255,255,255,0.45)", fontWeight: 400 }}>
+            единиц
           </div>
         </div>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", letterSpacing: "0.5px" }}>
+          доступно для использования командой
+        </div>
+
         {lowBalance && (
-          <div style={{ marginTop: 14, background: "rgba(255,200,0,0.2)", border: "1px solid rgba(255,200,0,0.4)", borderRadius: 10, padding: "9px 14px", fontSize: 13, fontWeight: 600 }}>
-            ⚠️ Баланс заканчивается. Рекомендуем пополнить счёт.
+          <div style={{ marginTop: 18, background: "rgba(234,179,8,0.12)", border: "1px solid rgba(234,179,8,0.3)", borderRadius: 10, padding: "10px 16px", fontSize: 13, color: "hsl(40,90%,70%)", fontWeight: 500 }}>
+            Баланс заканчивается — рекомендуем пополнить счёт
           </div>
         )}
         {noBalance && (
-          <div style={{ marginTop: 14, background: "rgba(255,80,80,0.2)", border: "1px solid rgba(255,80,80,0.4)", borderRadius: 10, padding: "9px 14px", fontSize: 13, fontWeight: 600 }}>
-            🚫 Энергия закончилась. Пополните баланс для использования ИИ-инструментов.
+          <div style={{ marginTop: 18, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "10px 16px", fontSize: 13, color: "hsl(0,85%,70%)", fontWeight: 500 }}>
+            Баланс исчерпан — пополните счёт для продолжения работы
           </div>
         )}
       </div>
