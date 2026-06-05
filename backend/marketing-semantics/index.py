@@ -347,7 +347,10 @@ def handler(event: dict, context) -> dict:
         seed_phrases = build_seed_phrases(salon, services)
         geo_ids = get_geo_id(salon.get("city") or "")
         shows_map = fetch_wordstat(seed_phrases, geo_ids)
-    except Exception:
+        print(f"[Wordstat] seed_phrases={seed_phrases}")
+        print(f"[Wordstat] shows_map keys={list(shows_map.keys())[:20]}")
+    except Exception as e:
+        print(f"[Wordstat] ERROR: {e}")
         pass  # fallback — ИИ сгенерирует без реальных данных
 
     # Шаг 2: ИИ группирует
@@ -380,6 +383,8 @@ def handler(event: dict, context) -> dict:
                             break
                 if real_shows is not None:
                     kw["shows"] = real_shows
+                else:
+                    print(f"[Wordstat] NO MATCH for query='{query}'")
                 shows = kw.get("shows") or 0
                 if shows > 1000:
                     kw["frequency"] = "high"
