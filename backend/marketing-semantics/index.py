@@ -21,7 +21,7 @@ CORS = {
 }
 
 DIRECT_API = "https://api.direct.yandex.ru/live/v4/json/"
-WORDSTAT_API = "https://api.wordstat.yandex.net/v1/data/by-phrase"
+WORDSTAT_API = "https://api.wordstat.yandex.net/v1/topRequests"
 
 MEDICAL_KEYWORDS = [
     "остеопатия", "массаж", "лечебный массаж", "мануальная терапия",
