@@ -372,6 +372,12 @@ def handler(event: dict, context) -> dict:
             for kw in group.get("keywords", []):
                 query = kw.get("query", "").lower().strip()
                 real_shows = shows_map.get(query)
+                # fallback: ищем ключ в shows_map который содержит query или наоборот
+                if real_shows is None:
+                    for map_key, map_val in shows_map.items():
+                        if query in map_key or map_key in query:
+                            real_shows = map_val
+                            break
                 if real_shows is not None:
                     kw["shows"] = real_shows
                 shows = kw.get("shows") or 0
