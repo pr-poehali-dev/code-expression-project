@@ -9,6 +9,7 @@ import os
 import time
 import urllib.request
 import urllib.error
+import urllib.parse
 import psycopg2
 import psycopg2.extras
 
@@ -20,6 +21,7 @@ CORS = {
 }
 
 DIRECT_API = "https://api.direct.yandex.ru/live/v4/json/"
+WORDSTAT_API = "https://api.wordstat.yandex.net/v1/data/by-phrase"
 
 MEDICAL_KEYWORDS = [
     "остеопатия", "массаж", "лечебный массаж", "мануальная терапия",
@@ -164,63 +166,30 @@ def build_seed_phrases(salon, services):
 
 def fetch_wordstat(phrases: list[str], geo_ids: list[int]) -> dict[str, int]:
     """
-    Создаём отчёт Вордстата, ждём готовности (polling), получаем показы.
+    Получаем статистику показов через новый REST API Яндекс.Вордстат.
     Возвращает словарь {фраза: shows_per_month}.
     """
-    params = {"Phrases": phrases}
-    if geo_ids and geo_ids[0] != 0:
-        params["GeoID"] = geo_ids
-
-    # 1. Создаём отчёт
-    resp = direct_request("CreateNewWordstatReport", params)
-    print(f"[Wordstat] CreateNewWordstatReport resp={resp}")
-    report_id = resp.get("data")
-    if not report_id:
-        print(f"[Wordstat] No report_id, full resp={resp}")
-        return {}
-
-    # 2. Ждём готовности (polling, до 30 сек)
-    result_data = None
-    for _ in range(10):
-        time.sleep(3)
-        list_resp = direct_request("GetWordstatReportList", {})
-        reports = list_resp.get("data") or []
-        for r in reports:
-            if r.get("ReportID") == report_id and r.get("StatusReport") == "Done":
-                # 3. Забираем отчёт
-                get_resp = direct_request("GetWordstatReport", {"ReportID": report_id})
-                result_data = get_resp.get("data") or []
-                print(f"[Wordstat] report done, result_data len={len(result_data)}, sample={result_data[:2]}")
-                break
-            else:
-                print(f"[Wordstat] poll: reports={[(rr.get('ReportID'), rr.get('StatusReport')) for rr in reports]}")
-        if result_data is not None:
-            break
-    print(f"[Wordstat] result_data final={result_data}")
-
-    # 4. Чистим отчёт
-    if result_data:
-        try:
-            direct_request("DeleteWordstatReport", {"ReportID": report_id})
-        except Exception:
-            pass
-
-    # 5. Парсим — берём SearchedWith (показы с доп. словами) и Searched (точный)
+    token = os.environ.get("YANDEX_DIRECT_TOKEN", "")
     shows_map: dict[str, int] = {}
-    for item in (result_data or []):
-        phrase = (item.get("Phrase") or "").lower().strip()
-        # SearchedWith — список похожих запросов с показами
-        for sw in item.get("SearchedWith", []):
-            kw = (sw.get("Phrase") or "").lower().strip()
-            shows = int(sw.get("Shows") or 0)
-            if kw and shows > 0:
-                if kw not in shows_map or shows_map[kw] < shows:
-                    shows_map[kw] = shows
-        # Сама фраза
-        shows = int(item.get("Shows") or 0)
-        if phrase and shows > 0:
-            if phrase not in shows_map or shows_map[phrase] < shows:
-                shows_map[phrase] = shows
+
+    region_ids = [str(g) for g in geo_ids if g != 0] or []
+
+    for phrase in phrases[:20]:
+        try:
+            if region_ids:
+                url = WORDSTAT_API + "?phrase=" + urllib.parse.quote(phrase) + "&" + "&".join(f"regionIds={r}" for r in region_ids)
+            else:
+                url = WORDSTAT_API + "?phrase=" + urllib.parse.quote(phrase)
+            req = urllib.request.Request(url, headers={"Authorization": f"OAuth {token}"}, method="GET")
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                shows = int((data.get("data") or [{}])[0].get("shows", 0) if isinstance(data.get("data"), list) else data.get("shows", 0))
+                key = phrase.lower().strip()
+                if shows > 0:
+                    shows_map[key] = shows
+                print(f"[Wordstat2] phrase='{phrase}' shows={shows}")
+        except Exception as e:
+            print(f"[Wordstat2] phrase='{phrase}' error={e}")
 
     return shows_map
 
