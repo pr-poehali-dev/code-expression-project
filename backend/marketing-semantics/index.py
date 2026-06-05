@@ -173,8 +173,10 @@ def fetch_wordstat(phrases: list[str], geo_ids: list[int]) -> dict[str, int]:
 
     # 1. Создаём отчёт
     resp = direct_request("CreateNewWordstatReport", params)
+    print(f"[Wordstat] CreateNewWordstatReport resp={resp}")
     report_id = resp.get("data")
     if not report_id:
+        print(f"[Wordstat] No report_id, full resp={resp}")
         return {}
 
     # 2. Ждём готовности (polling, до 30 сек)
