@@ -2861,11 +2861,11 @@ def handle_payment_create(event: dict) -> dict:
                 }]
             }
 
+        recurring_enabled = os.environ.get("YOOKASSA_RECURRING_ENABLED", "").lower() == "true"
         payment_body = {
             "amount": {"value": f"{pkg['price_rub']}.00", "currency": "RUB"},
             "confirmation": {"type": "redirect", "return_url": return_url},
             "capture": True,
-            "save_payment_method": enable_autopay,
             "description": f"Пакет энергии «{pkg['name']}» — {pkg['energy_amount']} единиц",
             "metadata": {
                 "salon_id": user["salon_id"],
@@ -2876,6 +2876,8 @@ def handle_payment_create(event: dict) -> dict:
                 "threshold": str(threshold),
             }
         }
+        if enable_autopay and recurring_enabled:
+            payment_body["save_payment_method"] = True
         if receipt:
             payment_body["receipt"] = receipt
 

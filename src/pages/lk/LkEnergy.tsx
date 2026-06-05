@@ -255,39 +255,7 @@ export default function LkEnergy() {
                         </div>
                       </div>
 
-                      {/* Переключатель автоплатежа */}
-                      {!(autopay?.is_enabled && autopay.has_payment_method) && (
-                        <button
-                          onClick={() => setAutopaySelected(isAutopayThis ? null : pkg.code)}
-                          style={{
-                            display: "flex", alignItems: "center", gap: 8,
-                            marginBottom: 10, padding: "8px 12px", borderRadius: 9,
-                            border: `1.5px solid ${isAutopayThis ? c.color : "#E8ECF0"}`,
-                            background: isAutopayThis ? c.bg : "#FAFAFA",
-                            cursor: "pointer", width: "100%", textAlign: "left",
-                          }}
-                        >
-                          <div style={{
-                            width: 32, height: 18, borderRadius: 9,
-                            background: isAutopayThis ? c.color : "#CBD5E1",
-                            position: "relative", flexShrink: 0, transition: "background 0.2s",
-                          }}>
-                            <div style={{
-                              position: "absolute", top: 2,
-                              left: isAutopayThis ? 16 : 2,
-                              width: 14, height: 14, borderRadius: "50%",
-                              background: "#fff", transition: "left 0.2s",
-                              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                            }} />
-                          </div>
-                          <div>
-                            <div style={{ fontSize: 11, fontWeight: 700, color: isAutopayThis ? c.color : "#64748B" }}>
-                              Автопополнение
-                            </div>
-                            <div style={{ fontSize: 10, color: "#94A3B8" }}>при балансе ниже 50 единиц</div>
-                          </div>
-                        </button>
-                      )}
+
 
                       <button
                         onClick={() => { if (!paying) handleBuy(pkg.code, isAutopayThis); }}
