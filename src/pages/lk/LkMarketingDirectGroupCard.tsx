@@ -23,7 +23,7 @@ export function KeywordsBlock({ keywords, minusWords }: { keywords: string[]; mi
   if (!keywords?.length && !minusWords?.length) return null;
 
   return (
-    <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 10 }}>
+    <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 10 }}>
       {keywords?.length > 0 && (
         <div style={{ background: "hsl(185,85%,97%)", border: "1px solid hsl(185,85%,82%)", borderRadius: 12, padding: "14px 16px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
