@@ -202,10 +202,10 @@ def fetch_wordstat(phrases: list[str], geo_ids: list[int]) -> dict[str, int]:
     # 5. Парсим — берём SearchedWith (показы с доп. словами) и Searched (точный)
     shows_map: dict[str, int] = {}
     for item in (result_data or []):
-        phrase = (item.get("Phrase") or "").lower()
+        phrase = (item.get("Phrase") or "").lower().strip()
         # SearchedWith — список похожих запросов с показами
         for sw in item.get("SearchedWith", []):
-            kw = (sw.get("Phrase") or "").lower()
+            kw = (sw.get("Phrase") or "").lower().strip()
             shows = int(sw.get("Shows") or 0)
             if kw and shows > 0:
                 if kw not in shows_map or shows_map[kw] < shows:
@@ -288,14 +288,11 @@ def build_ai_prompt(salon, services, shows_map: dict[str, int]):
 Задача: сгруппируй эти запросы в семантическое ядро для Яндекс.Директ.
 
 Правила:
-- Используй ТОЛЬКО запросы из списка выше (не придумывай новые)
+- Используй ТОЛЬКО запросы из списка выше, копируй их ДОСЛОВНО без изменений
 - Группируй по услугам / тематике
 - Добавь группу «Брендовые / Геолокационные» и «Конкурентные намерения» если есть подходящие запросы
-- Для каждого запроса определи частотность по показам:
-  * high (Высокочастотный): > 1000 показов/мес
-  * medium (Среднечастотный): 100–1000 показов/мес  
-  * low (Низкочастотный): < 100 показов/мес
-- Если данных о показах нет — определи частотность самостоятельно по длине и специфичности запроса
+- Для каждого запроса напиши короткое намерение пользователя (2-4 слова)
+- frequency, frequency_label и shows — ставь любые заглушки, они будут заменены системой
 
 Верни ТОЛЬКО валидный JSON без markdown-обёртки:
 [
@@ -304,17 +301,16 @@ def build_ai_prompt(salon, services, shows_map: dict[str, int]):
     "service_tag": "короткий тег",
     "keywords": [
       {{
-        "query": "текст запроса",
-        "frequency": "high",
-        "frequency_label": "Высокочастотный",
+        "query": "текст запроса ТОЧНО как в списке",
+        "frequency": "medium",
+        "frequency_label": "Среднечастотный",
         "intent": "намерение пользователя (2-4 слова)",
-        "shows": 1234
+        "shows": 0
       }}
     ]
   }}
 ]
 
-shows — число показов из Вордстата (0 если нет данных).
 Генерируй 5-8 групп, 4-7 запросов в каждой."""
 
 
