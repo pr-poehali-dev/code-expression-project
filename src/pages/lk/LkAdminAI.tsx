@@ -12,7 +12,7 @@ interface Message {
   roleId?: string;
 }
 
-type RoleId = "marketer" | "blogger" | "financier" | "philosopher" | "programmer" | "businessman";
+type RoleId = "marketer" | "blogger" | "financier" | "philosopher" | "programmer" | "businessman" | "psychologist" | "screenwriter" | "politician" | "lawyer";
 
 interface Role {
   id: RoleId;
@@ -24,12 +24,16 @@ interface Role {
 }
 
 const ROLES: Role[] = [
-  { id: "marketer",    label: "Маркетолог",   icon: "Target",       color: "hsl(220,80%,50%)", bg: "hsl(220,80%,95%)", hint: "Стратегии, воронки, реклама, УТП" },
-  { id: "blogger",     label: "Блогер",        icon: "Sparkles",     color: "hsl(335,80%,50%)", bg: "hsl(335,80%,96%)", hint: "Контент, посты, сценарии, охваты" },
-  { id: "financier",   label: "Финансист",     icon: "TrendingUp",   color: "hsl(145,60%,38%)", bg: "hsl(145,60%,94%)", hint: "P&L, инвестиции, юнит-экономика" },
-  { id: "philosopher", label: "Философ",       icon: "Brain",        color: "hsl(270,60%,52%)", bg: "hsl(270,60%,95%)", hint: "Смыслы, этика, стратегическое мышление" },
-  { id: "programmer",  label: "Программист",   icon: "Code2",        color: "hsl(185,85%,32%)", bg: "hsl(185,85%,93%)", hint: "Код, архитектура, алгоритмы, AI" },
-  { id: "businessman", label: "Бизнесмен",     icon: "Briefcase",    color: "hsl(25,90%,45%)",  bg: "hsl(25,90%,94%)",  hint: "Рост, переговоры, команда, стратегия" },
+  { id: "marketer",      label: "Маркетолог",   icon: "Target",       color: "hsl(220,80%,50%)", bg: "hsl(220,80%,95%)", hint: "Стратегии, воронки, реклама, УТП" },
+  { id: "blogger",       label: "Блогер",        icon: "Sparkles",     color: "hsl(335,80%,50%)", bg: "hsl(335,80%,96%)", hint: "Контент, посты, сценарии, охваты" },
+  { id: "financier",     label: "Финансист",     icon: "TrendingUp",   color: "hsl(145,60%,38%)", bg: "hsl(145,60%,94%)", hint: "P&L, инвестиции, юнит-экономика" },
+  { id: "philosopher",   label: "Философ",       icon: "Brain",        color: "hsl(270,60%,52%)", bg: "hsl(270,60%,95%)", hint: "Смыслы, этика, стратегическое мышление" },
+  { id: "programmer",    label: "Программист",   icon: "Code2",        color: "hsl(185,85%,32%)", bg: "hsl(185,85%,93%)", hint: "Код, архитектура, алгоритмы, AI" },
+  { id: "businessman",   label: "Бизнесмен",     icon: "Briefcase",    color: "hsl(25,90%,45%)",  bg: "hsl(25,90%,94%)",  hint: "Рост, переговоры, команда, стратегия" },
+  { id: "psychologist",  label: "Психолог",      icon: "HeartHandshake", color: "hsl(350,65%,48%)", bg: "hsl(350,65%,95%)", hint: "Поведение, мотивация, эмоции, отношения" },
+  { id: "screenwriter",  label: "Сценарист",     icon: "Film",         color: "hsl(45,90%,40%)",  bg: "hsl(45,90%,94%)",  hint: "Сценарии, истории, драматургия, видео" },
+  { id: "politician",    label: "Политик",       icon: "Landmark",     color: "hsl(200,70%,38%)", bg: "hsl(200,70%,94%)", hint: "Стратегия, влияние, переговоры, риторика" },
+  { id: "lawyer",        label: "Юрист",         icon: "Scale",        color: "hsl(240,50%,45%)", bg: "hsl(240,50%,95%)", hint: "Право, договоры, риски, защита интересов" },
 ];
 
 function copyToClipboard(text: string, setCopied: (v: boolean) => void) {
