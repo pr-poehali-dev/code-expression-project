@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
+import { useLkAuth } from "@/contexts/LkAuthContext";
 import LkMarketingAudience from "./LkMarketingAudience";
 import LkMarketingOffers from "./LkMarketingOffers";
 import LkMarketingSemantics from "./LkMarketingSemantics";
@@ -201,11 +202,50 @@ interface SemanticGroups {
   groups: { group: string; service_tag: string; keywords: { query: string; frequency: string; frequency_label: string; intent: string }[] }[];
 }
 
+function hasCachedResult(key: string): boolean {
+  try { return !!localStorage.getItem(key); } catch { return false; }
+}
+
+const CHAIN_PREREQ: Record<string, { key: string; toolId: string; toolTitle: string }> = {
+  offers:    { key: "mkt_audience_v2_",  toolId: "audience",  toolTitle: "Портрет целевой аудитории" },
+  semantics: { key: "mkt_offers_v2_",   toolId: "offers",    toolTitle: "Офферы под ЦА" },
+  direct:    { key: "mkt_semantics_v2_", toolId: "semantics", toolTitle: "Семантическое ядро" },
+};
+
+function StepBlocker({ missing, onGoTo, onBack }: { missing: { toolId: string; toolTitle: string }; onGoTo: () => void; onBack: () => void }) {
+  return (
+    <div>
+      <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 28, fontFamily: "Montserrat,sans-serif" }}>
+        <Icon name="ArrowLeft" size={15} /> Назад к маркетингу
+      </button>
+      <div style={{ background: "#fff", borderRadius: 20, border: "1.5px solid hsl(40,90%,80%)", padding: "36px 32px", maxWidth: 500, display: "flex", flexDirection: "column", alignItems: "center", gap: 20, textAlign: "center" }}>
+        <div style={{ width: 64, height: 64, borderRadius: 18, background: "hsl(40,90%,94%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Icon name="AlertCircle" size={28} style={{ color: "hsl(40,80%,45%)" }} />
+        </div>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A", marginBottom: 10 }}>Сначала выполните предыдущий шаг</div>
+          <div style={{ fontSize: 14, color: "#64748B", lineHeight: 1.7 }}>
+            Этот инструмент использует результаты из <strong>«{missing.toolTitle}»</strong>. Сначала запустите его — это займёт меньше минуты.
+          </div>
+        </div>
+        <button
+          onClick={onGoTo}
+          style={{ padding: "12px 28px", borderRadius: 12, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+        >
+          Перейти к «{missing.toolTitle}»
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function LkMarketing() {
   const [active, setActive] = useState<string | null>(null);
   const [audienceData, setAudienceData] = useState<AudienceData | null>(null);
   const [semanticData, setSemanticData] = useState<SemanticGroups | null>(null);
   const { hasPaid, loading: energyLoading } = useEnergy();
+  const { user } = useLkAuth();
+  const salonId = user?.salon_id ?? "";
   const ALL_TOOLS = [...TOOLS_DIRECT, ...TOOLS_CONTENT];
   const activeTool = ALL_TOOLS.find(t => t.id === active);
 
@@ -216,6 +256,20 @@ export default function LkMarketing() {
     }
     setActive(id);
   };
+
+  // Проверка цепочки — показываем заглушку если предыдущий шаг не выполнен
+  if (hasPaid && active && CHAIN_PREREQ[active]) {
+    const prereq = CHAIN_PREREQ[active];
+    if (!hasCachedResult(prereq.key + salonId)) {
+      return (
+        <StepBlocker
+          missing={prereq}
+          onGoTo={() => setActive(prereq.toolId)}
+          onBack={() => setActive(null)}
+        />
+      );
+    }
+  }
 
   if (hasPaid && active === "audience") {
     return (
@@ -368,9 +422,24 @@ export default function LkMarketing() {
         </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 16 }}>
-        {TOOLS_DIRECT.map(tool => (
-          <ToolCard key={tool.id} tool={tool} onOpen={openTool} />
-        ))}
+        {TOOLS_DIRECT.map((tool, idx) => {
+          const prereq = CHAIN_PREREQ[tool.id];
+          const isDone = hasCachedResult(`mkt_${tool.id}_v2_${salonId}`);
+          const isLocked = prereq && !hasCachedResult(prereq.key + salonId);
+          const stepNum = idx + 1;
+          return (
+            <div key={tool.id} style={{ position: "relative" }}>
+              {stepNum <= 4 && (
+                <div style={{ position: "absolute", top: -8, left: 16, zIndex: 2, display: "flex", alignItems: "center", gap: 5, background: isDone ? "hsl(145,60%,38%)" : isLocked ? "#94A3B8" : ACCENT, color: "#fff", fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "2px 10px", letterSpacing: 0.5 }}>
+                  {isDone ? <Icon name="Check" size={9} /> : <span>Шаг {stepNum}</span>}
+                  {isDone && "Выполнено"}
+                  {isLocked && !isDone && `Шаг ${stepNum} · нужен шаг ${stepNum - 1}`}
+                </div>
+              )}
+              <ToolCard tool={tool} onOpen={openTool} />
+            </div>
+          );
+        })}
       </div>
 
 
