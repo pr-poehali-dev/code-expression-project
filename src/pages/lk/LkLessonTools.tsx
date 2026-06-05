@@ -8,10 +8,12 @@ interface Props {
   previewMode?: boolean;
 }
 
-const CAT_COLORS = {
-  tools: { bg: "hsl(185,85%,96%)", border: "hsl(185,85%,78%)", badge: "hsl(185,85%,32%)", badgeBg: "hsl(185,85%,92%)" },
-  ai:    { bg: "hsl(280,60%,97%)", border: "hsl(280,60%,80%)", badge: "hsl(280,60%,48%)", badgeBg: "hsl(280,60%,93%)" },
+const CAT_COLORS: Record<string, { bg: string; border: string; badge: string; badgeBg: string }> = {
+  tools:     { bg: "hsl(185,85%,96%)", border: "hsl(185,85%,78%)", badge: "hsl(185,85%,32%)", badgeBg: "hsl(185,85%,92%)" },
+  ai:        { bg: "hsl(280,60%,97%)", border: "hsl(280,60%,80%)", badge: "hsl(280,60%,48%)", badgeBg: "hsl(280,60%,93%)" },
+  marketing: { bg: "hsl(25,90%,97%)",  border: "hsl(25,90%,78%)",  badge: "hsl(25,90%,45%)",  badgeBg: "hsl(25,90%,92%)"  },
 };
+const CAT_LABEL: Record<string, string> = { tools: "Инструмент", ai: "ИИ", marketing: "Маркетинг" };
 
 export default function LkLessonTools({ tools, onNavigate, previewMode }: Props) {
   if (!tools || tools.length === 0) return null;
@@ -64,7 +66,7 @@ export default function LkLessonTools({ tools, onNavigate, previewMode }: Props)
                       fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 5,
                       background: c.badgeBg, color: c.badge, whiteSpace: "nowrap",
                     }}>
-                      {tool!.category === "ai" ? "ИИ" : "Инструмент"}
+                      {CAT_LABEL[tool!.category] ?? "Инструмент"}
                     </span>
                   </div>
                   <p style={{ margin: 0, fontSize: 12, color: "#666", lineHeight: 1.5 }}>{tool!.description}</p>
