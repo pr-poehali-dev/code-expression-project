@@ -369,6 +369,26 @@ def handler(event: dict, context) -> dict:
         clean = clean.strip()
 
     groups = json.loads(clean)
+
+    # Принудительно подставляем реальные shows из Вордстата и пересчитываем frequency
+    if shows_map:
+        for group in groups:
+            for kw in group.get("keywords", []):
+                query = kw.get("query", "").lower().strip()
+                real_shows = shows_map.get(query)
+                if real_shows is not None:
+                    kw["shows"] = real_shows
+                shows = kw.get("shows") or 0
+                if shows > 1000:
+                    kw["frequency"] = "high"
+                    kw["frequency_label"] = "Высокочастотный"
+                elif shows >= 100:
+                    kw["frequency"] = "medium"
+                    kw["frequency_label"] = "Среднечастотный"
+                else:
+                    kw["frequency"] = "low"
+                    kw["frequency_label"] = "Низкочастотный"
+
     has_wordstat = bool(shows_map)
     return ok({
         "groups": groups,
