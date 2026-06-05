@@ -222,11 +222,10 @@ def has_medical(services):
     return False
 
 
-def build_ai_prompt(salon, services, shows_map: dict[str, int]):
+def build_ai_prompt(salon, services):
     salon_name = salon["name"]
     city = salon["city"] or "не указан"
     has_license = bool(salon.get("has_medical_license"))
-    is_medical = has_medical(services)
 
     BANNED_WITHOUT_LICENSE = [
         "остеопатия", "остеопат", "мануальная терапия", "мануальный терапевт",
@@ -243,31 +242,28 @@ def build_ai_prompt(salon, services, shows_map: dict[str, int]):
     else:
         med_note = "У салона есть медицинская лицензия — можно включать медицинские запросы."
 
-    # Топ-80 запросов из Вордстата по показам
-    top_queries = sorted(shows_map.items(), key=lambda x: x[1], reverse=True)[:80]
-    if top_queries:
-        wordstat_block = "Реальные запросы из Яндекс.Вордстат (фраза → показов/мес):\n" + "\n".join(
-            f"- {phrase}: {shows}" for phrase, shows in top_queries
-        )
-    else:
-        services_list = [s["name"] for s in services] if services else []
-        wordstat_block = "Вордстат недоступен. Услуги салона:\n" + "\n".join(f"- {s}" for s in services_list)
+    services_list = [s["name"] for s in services] if services else []
+    services_block = "\n".join(f"- {s}" for s in services_list)
 
     return f"""Ты — эксперт по контекстной рекламе в Яндекс.Директ для салонов красоты и велнес.
 
 Салон: {salon_name}, город: {city}
 {med_note}
 
-{wordstat_block}
+Услуги салона:
+{services_block}
 
-Задача: сгруппируй эти запросы в семантическое ядро для Яндекс.Директ.
+Задача: составь семантическое ядро для Яндекс.Директ — поисковые запросы, которые вводят потенциальные клиенты.
 
 Правила:
-- Используй ТОЛЬКО запросы из списка выше, копируй их ДОСЛОВНО без изменений
+- Придумай реалистичные поисковые запросы под каждую услугу (как человек ищет в Яндексе)
+- Добавь геозапросы с городом «{city}» где уместно
 - Группируй по услугам / тематике
-- Добавь группу «Брендовые / Геолокационные» и «Конкурентные намерения» если есть подходящие запросы
-- Для каждого запроса напиши короткое намерение пользователя (2-4 слова)
-- frequency, frequency_label и shows — ставь любые заглушки, они будут заменены системой
+- Добавь группы «Брендовые / Геолокационные» и «Конкурентные намерения»
+- Для каждого запроса определи частотность по логике:
+  * high (Высокочастотный): короткий общий запрос 1-2 слова, ищут миллионы («массаж», «психолог»)
+  * medium (Среднечастотный): запрос с уточнением 2-3 слова («массаж спины москва»)
+  * low (Низкочастотный): длинный узкий запрос 4+ слов («детский лечебный массаж в центре москвы»)
 
 Верни ТОЛЬКО валидный JSON без markdown-обёртки:
 [
@@ -276,11 +272,10 @@ def build_ai_prompt(salon, services, shows_map: dict[str, int]):
     "service_tag": "короткий тег",
     "keywords": [
       {{
-        "query": "текст запроса ТОЧНО как в списке",
-        "frequency": "medium",
-        "frequency_label": "Среднечастотный",
-        "intent": "намерение пользователя (2-4 слова)",
-        "shows": 0
+        "query": "поисковый запрос как в Яндексе",
+        "frequency": "high",
+        "frequency_label": "Высокочастотный",
+        "intent": "намерение пользователя (2-4 слова)"
       }}
     ]
   }}
@@ -316,20 +311,8 @@ def handler(event: dict, context) -> dict:
     finally:
         conn.close()
 
-    # Шаг 1: Вордстат
-    shows_map: dict[str, int] = {}
-    try:
-        seed_phrases = build_seed_phrases(salon, services)
-        geo_ids = get_geo_id(salon.get("city") or "")
-        shows_map = fetch_wordstat(seed_phrases, geo_ids)
-        print(f"[Wordstat] seed_phrases={seed_phrases}")
-        print(f"[Wordstat] shows_map keys={list(shows_map.keys())[:20]}")
-    except Exception as e:
-        print(f"[Wordstat] ERROR: {e}")
-        pass  # fallback — ИИ сгенерирует без реальных данных
-
-    # Шаг 2: ИИ группирует
-    prompt = build_ai_prompt(salon, services, shows_map)
+    # ИИ генерирует запросы и определяет частотность самостоятельно
+    prompt = build_ai_prompt(salon, services)
     raw = call_ai([
         {"role": "system", "content": "Ты эксперт по SEO и контекстной рекламе. Отвечаешь строго валидным JSON без лишнего текста."},
         {"role": "user", "content": prompt},
@@ -344,38 +327,10 @@ def handler(event: dict, context) -> dict:
 
     groups = json.loads(clean)
 
-    # Принудительно подставляем реальные shows из Вордстата и пересчитываем frequency
-    if shows_map:
-        for group in groups:
-            for kw in group.get("keywords", []):
-                query = kw.get("query", "").lower().strip()
-                real_shows = shows_map.get(query)
-                # fallback: ищем ключ в shows_map который содержит query или наоборот
-                if real_shows is None:
-                    for map_key, map_val in shows_map.items():
-                        if query in map_key or map_key in query:
-                            real_shows = map_val
-                            break
-                if real_shows is not None:
-                    kw["shows"] = real_shows
-                else:
-                    print(f"[Wordstat] NO MATCH for query='{query}'")
-                shows = kw.get("shows") or 0
-                if shows > 1000:
-                    kw["frequency"] = "high"
-                    kw["frequency_label"] = "Высокочастотный"
-                elif shows >= 100:
-                    kw["frequency"] = "medium"
-                    kw["frequency_label"] = "Среднечастотный"
-                else:
-                    kw["frequency"] = "low"
-                    kw["frequency_label"] = "Низкочастотный"
-
-    has_wordstat = bool(shows_map)
     return ok({
         "groups": groups,
         "salon_name": salon["name"],
         "city": salon["city"] or "",
-        "wordstat_used": has_wordstat,
-        "total_queries_from_wordstat": len(shows_map),
+        "wordstat_used": False,
+        "total_queries_from_wordstat": 0,
     })
