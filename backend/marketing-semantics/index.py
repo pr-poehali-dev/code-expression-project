@@ -188,9 +188,13 @@ def fetch_wordstat(phrases: list[str], geo_ids: list[int]) -> dict[str, int]:
                 # 3. Забираем отчёт
                 get_resp = direct_request("GetWordstatReport", {"ReportID": report_id})
                 result_data = get_resp.get("data") or []
+                print(f"[Wordstat] report done, result_data len={len(result_data)}, sample={result_data[:2]}")
                 break
+            else:
+                print(f"[Wordstat] poll: reports={[(rr.get('ReportID'), rr.get('StatusReport')) for rr in reports]}")
         if result_data is not None:
             break
+    print(f"[Wordstat] result_data final={result_data}")
 
     # 4. Чистим отчёт
     if result_data:
