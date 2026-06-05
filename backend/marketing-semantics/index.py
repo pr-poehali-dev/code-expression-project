@@ -101,7 +101,7 @@ def direct_request(method, params):
         "param": params,
         "locale": "ru",
         "token": token,
-    }).encode("utf-8")
+    }, ensure_ascii=False).encode("utf-8")
     req = urllib.request.Request(
         DIRECT_API,
         data=payload,
