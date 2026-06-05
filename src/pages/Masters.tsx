@@ -337,12 +337,7 @@ export default function Masters() {
       <section style={{ padding: "0 20px 80px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", borderRadius: 24, overflow: "hidden" }}>
           {/* МЕСТО ДЛЯ ФОТО: 1200×360px — команда салона красоты, рабочая атмосфера, широкоформатное */}
-          <div style={{ width: "100%", height: "clamp(200px,40vw,360px)", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
-            <Icon name="Image" size={32} style={{ color: "rgba(255,255,255,0.12)" }} />
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.18)", textAlign: "center", lineHeight: 1.6 }}>
-              МЕСТО ДЛЯ ФОТО · 1200 × 360 px<br />Команда салона · Широкоформатное
-            </div>
-          </div>
+          <img src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/4d315d34-fb1f-4f26-a798-cb887b5d07f9.png" alt="Команда" style={{ width: "100%", height: "clamp(200px,40vw,360px)", objectFit: "cover", objectPosition: "center 30%", display: "block" }} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg,rgba(8,14,28,0.85) 0%,rgba(8,14,28,0.3) 60%,transparent 100%)", display: "flex", alignItems: "center", padding: "0 clamp(24px,5vw,64px)" }}>
             <div style={{ maxWidth: 420 }}>
               <div style={{ fontFamily: SERIF, fontSize: "clamp(22px,3vw,40px)", fontWeight: 500, color: "#fff", lineHeight: 1.2, marginBottom: 12 }}>
