@@ -257,6 +257,24 @@ export default function LkEnergy() {
 
 
 
+                      <label
+                        onClick={e => { e.preventDefault(); setAutopaySelected(isAutopayThis ? null : pkg.code); }}
+                        style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, cursor: "pointer", userSelect: "none" }}
+                      >
+                        <div style={{
+                          width: 18, height: 18, borderRadius: 5, flexShrink: 0,
+                          border: `2px solid ${isAutopayThis ? c.color : "#CBD5E1"}`,
+                          background: isAutopayThis ? c.color : "#fff",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          transition: "all 0.15s",
+                        }}>
+                          {isAutopayThis && <Icon name="Check" size={11} style={{ color: "#fff" }} />}
+                        </div>
+                        <span style={{ fontSize: 12, color: isAutopayThis ? c.color : "#64748B", fontWeight: isAutopayThis ? 600 : 400, lineHeight: 1.4 }}>
+                          Включить автопополнение при балансе &lt; 50
+                        </span>
+                      </label>
+
                       <button
                         onClick={() => { if (!paying) handleBuy(pkg.code, isAutopayThis); }}
                         style={{
@@ -271,7 +289,7 @@ export default function LkEnergy() {
                         {paying === pkg.code
                           ? "Переход к оплате…"
                           : isAutopayThis
-                          ? "Подключить автоплатёж"
+                          ? "Оплатить и подключить автоплатёж"
                           : "Пополнить баланс"}
                       </button>
                     </div>
