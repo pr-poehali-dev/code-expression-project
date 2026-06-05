@@ -48,7 +48,7 @@ const FREQ_STYLE: Record<string, { bg: string; color: string; dot: string }> = {
 
 // ── Строка запроса ────────────────────────────────────────────────────────────
 
-function KeywordRow({ kw, copied, onCopy }: { kw: Keyword; copied: boolean; onCopy: () => void }) {
+function KeywordRow({ kw, copied, onCopy, onDelete }: { kw: Keyword; copied: boolean; onCopy: () => void; onDelete: () => void }) {
   const fs = FREQ_STYLE[kw.frequency] || FREQ_STYLE.medium;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 9, background: "#FAFAFA", border: "1px solid #F1F5F9", transition: "background 0.12s" }}
@@ -85,13 +85,24 @@ function KeywordRow({ kw, copied, onCopy }: { kw: Keyword; copied: boolean; onCo
       >
         <Icon name={copied ? "Check" : "Copy"} size={14} />
       </button>
+
+      {/* Удалить */}
+      <button
+        onClick={onDelete}
+        title="Удалить запрос"
+        style={{ background: "none", border: "none", cursor: "pointer", color: "#E2E8F0", padding: 0, display: "flex", flexShrink: 0, transition: "color 0.15s" }}
+        onMouseEnter={e => (e.currentTarget.style.color = "hsl(0,70%,55%)")}
+        onMouseLeave={e => (e.currentTarget.style.color = "#E2E8F0")}
+      >
+        <Icon name="X" size={14} />
+      </button>
     </div>
   );
 }
 
 // ── Группа запросов ───────────────────────────────────────────────────────────
 
-function KeywordGroupCard({ group, index }: { group: KeywordGroup; index: number }) {
+function KeywordGroupCard({ group, index, onDeleteKeyword }: { group: KeywordGroup; index: number; onDeleteKeyword: (kwIndex: number) => void }) {
   const [open, setOpen] = useState(index < 2);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [allCopied, setAllCopied] = useState(false);
@@ -154,6 +165,7 @@ function KeywordGroupCard({ group, index }: { group: KeywordGroup; index: number
               kw={kw}
               copied={copiedIdx === i}
               onCopy={() => handleCopy(i, kw.query)}
+              onDelete={() => onDeleteKeyword(i)}
             />
           ))}
         </div>
@@ -242,6 +254,16 @@ export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
     copyToClipboard(text);
     setCopiedAll(true);
     setTimeout(() => setCopiedAll(false), 2000);
+  };
+
+  const handleDeleteKeyword = (groupIndex: number, kwIndex: number) => {
+    if (!groups) return;
+    const newGroups = groups.map((g, gi) => {
+      if (gi !== groupIndex) return g;
+      return { ...g, keywords: g.keywords.filter((_, ki) => ki !== kwIndex) };
+    }).filter(g => g.keywords.length > 0);
+    setGroups(newGroups);
+    saveCache(newGroups, salonName);
   };
 
   return (
@@ -359,9 +381,17 @@ export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
 
           {/* Список групп */}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {filteredGroups.map((group, i) => (
-              <KeywordGroupCard key={i} group={group} index={i} />
-            ))}
+            {filteredGroups.map((group, i) => {
+              const realGroupIndex = (groups ?? []).findIndex(g => g.group === group.group);
+              return (
+                <KeywordGroupCard
+                  key={i}
+                  group={group}
+                  index={i}
+                  onDeleteKeyword={(kwIndex) => handleDeleteKeyword(realGroupIndex, kwIndex)}
+                />
+              );
+            })}
           </div>
 
           {/* Легенда */}
