@@ -2790,14 +2790,39 @@ def handle_energy_topup(event: dict) -> dict:
         conn.close()
 
 
-def handle_payment_create(event: dict) -> dict:
-    """Создать платёж в ЮКассе для покупки пакета энергии."""
+def _yookassa_request(method: str, path: str, body: dict = None) -> dict:
+    """Выполнить запрос к API ЮКассы."""
     import urllib.request as urlreq
+    import urllib.error as urlerr
     import base64
+    import uuid as uuid_mod
+    shop_id = os.environ.get("YOOKASSA_SHOP_ID", "")
+    secret_key = os.environ.get("YOOKASSA_SECRET_KEY", "")
+    credentials = base64.b64encode(f"{shop_id}:{secret_key}".encode()).decode()
+    url = f"https://api.yookassa.ru/v3{path}"
+    payload = json.dumps(body).encode("utf-8") if body else None
+    req = urlreq.Request(url, data=payload, headers={
+        "Authorization": f"Basic {credentials}",
+        "Content-Type": "application/json",
+        "Idempotence-Key": str(uuid_mod.uuid4()),
+    }, method=method)
+    try:
+        with urlreq.urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urlerr.HTTPError as e:
+        error_body = e.read().decode("utf-8")
+        print(f"[YooKassa Error] {method} {path} status={e.code} body={error_body}")
+        raise
+
+
+def handle_payment_create(event: dict) -> dict:
+    """Создать платёж в ЮКассе для покупки пакета энергии. Поддерживает save_payment_method для автоплатежа."""
     import uuid as uuid_mod
     body = json.loads(event.get("body") or "{}")
     package_code = (body.get("package_code") or "").strip()
     return_url = (body.get("return_url") or "https://promtdialog.ru/cabinet").strip()
+    enable_autopay = bool(body.get("enable_autopay", False))
+    threshold = int(body.get("threshold") or 50)
 
     conn = get_db()
     try:
@@ -2821,7 +2846,6 @@ def handle_payment_create(event: dict) -> dict:
         if not shop_id or not secret_key:
             return err("Платёжная система не настроена")
 
-        idempotency_key = str(uuid_mod.uuid4())
         user_email = user.get("email") or ""
         receipt = None
         if user_email:
@@ -2841,43 +2865,24 @@ def handle_payment_create(event: dict) -> dict:
             "amount": {"value": f"{pkg['price_rub']}.00", "currency": "RUB"},
             "confirmation": {"type": "redirect", "return_url": return_url},
             "capture": True,
+            "save_payment_method": enable_autopay,
             "description": f"Пакет энергии «{pkg['name']}» — {pkg['energy_amount']} единиц",
             "metadata": {
                 "salon_id": user["salon_id"],
                 "user_id": user["id"],
                 "package_code": package_code,
                 "energy_amount": pkg["energy_amount"],
+                "enable_autopay": "1" if enable_autopay else "0",
+                "threshold": str(threshold),
             }
         }
         if receipt:
             payment_body["receipt"] = receipt
 
-        payload = json.dumps(payment_body).encode("utf-8")
-
-        credentials = base64.b64encode(f"{shop_id}:{secret_key}".encode()).decode()
-        req = urlreq.Request(
-            "https://api.yookassa.ru/v3/payments",
-            data=payload,
-            headers={
-                "Authorization": f"Basic {credentials}",
-                "Content-Type": "application/json",
-                "Idempotence-Key": idempotency_key,
-            },
-            method="POST"
-        )
-        import urllib.error as urlerr
         try:
-            with urlreq.urlopen(req, timeout=15) as resp:
-                payment = json.loads(resp.read().decode("utf-8"))
-        except urlerr.HTTPError as e:
-            error_body = e.read().decode("utf-8")
-            print(f"[YooKassa Error] status={e.code} body={error_body}")
-            try:
-                yk_err = json.loads(error_body)
-                msg = yk_err.get("description") or yk_err.get("message") or error_body
-            except Exception:
-                msg = error_body
-            return err(f"Ошибка ЮКассы: {msg}")
+            payment = _yookassa_request("POST", "/payments", payment_body)
+        except Exception as e:
+            return err(f"Ошибка ЮКассы: {e}")
 
         cur.execute(
             f"INSERT INTO {tbl('payments')} (salon_id, user_id, package_code, amount_rub, energy_amount, yookassa_id, status) "
@@ -2935,8 +2940,60 @@ def handle_admin_payments(event: dict) -> dict:
         conn.close()
 
 
+def _do_autopay(conn, cur, salon_id: int, user_id: int, package_code: str, payment_method_id: str, pkg: dict):
+    """Выполнить автосписание через сохранённый метод оплаты ЮКассы."""
+    user_email = ""
+    cur.execute(f"SELECT email FROM {tbl('lk_users')} WHERE id=%s", (user_id,))
+    u = cur.fetchone()
+    if u:
+        user_email = u.get("email") or ""
+
+    receipt = None
+    if user_email:
+        receipt = {
+            "customer": {"email": user_email},
+            "items": [{
+                "description": f"Автопополнение: пакет энергии «{pkg['name']}» ({pkg['energy_amount']} единиц)",
+                "quantity": "1.00",
+                "amount": {"value": f"{pkg['price_rub']}.00", "currency": "RUB"},
+                "vat_code": 1,
+                "payment_mode": "full_payment",
+                "payment_subject": "service",
+            }]
+        }
+
+    payment_body = {
+        "amount": {"value": f"{pkg['price_rub']}.00", "currency": "RUB"},
+        "capture": True,
+        "payment_method_id": payment_method_id,
+        "description": f"Автопополнение: пакет энергии «{pkg['name']}» — {pkg['energy_amount']} единиц",
+        "metadata": {
+            "salon_id": salon_id,
+            "user_id": user_id,
+            "package_code": package_code,
+            "energy_amount": pkg["energy_amount"],
+            "is_autopay": "1",
+        }
+    }
+    if receipt:
+        payment_body["receipt"] = receipt
+
+    payment = _yookassa_request("POST", "/payments", payment_body)
+    cur.execute(
+        f"INSERT INTO {tbl('payments')} (salon_id, user_id, package_code, amount_rub, energy_amount, yookassa_id, status, is_autopay) "
+        f"VALUES (%s,%s,%s,%s,%s,%s,'pending',TRUE)",
+        (salon_id, user_id, package_code, pkg["price_rub"], pkg["energy_amount"], payment["id"])
+    )
+    cur.execute(
+        f"UPDATE {tbl('autopay_settings')} SET last_triggered_at=NOW(), updated_at=NOW() WHERE salon_id=%s",
+        (salon_id,)
+    )
+    conn.commit()
+    print(f"[Autopay] Triggered for salon_id={salon_id}, payment_id={payment['id']}")
+
+
 def handle_payment_webhook(event: dict) -> dict:
-    """Вебхук от ЮКассы — зачисляем энергию при успешной оплате."""
+    """Вебхук от ЮКассы — зачисляем энергию при успешной оплате, сохраняем метод для автоплатежа."""
     body = json.loads(event.get("body") or "{}")
     event_type = body.get("event", "")
     payment_obj = body.get("object", {})
@@ -2949,6 +3006,9 @@ def handle_payment_webhook(event: dict) -> dict:
     salon_id = meta.get("salon_id")
     user_id = meta.get("user_id")
     energy_amount = meta.get("energy_amount")
+    enable_autopay = meta.get("enable_autopay") == "1"
+    threshold = int(meta.get("threshold") or 50)
+    package_code = meta.get("package_code") or ""
 
     if not yookassa_id or not salon_id or not energy_amount:
         return ok({"ok": True})
@@ -2963,9 +3023,12 @@ def handle_payment_webhook(event: dict) -> dict:
         if payment["status"] == "succeeded":
             return ok({"ok": True})
 
+        payment_method_id = (payment_obj.get("payment_method") or {}).get("id")
+        payment_method_saved = (payment_obj.get("payment_method") or {}).get("saved", False)
+
         cur.execute(
-            f"UPDATE {tbl('payments')} SET status='succeeded', updated_at=NOW() WHERE yookassa_id=%s",
-            (yookassa_id,)
+            f"UPDATE {tbl('payments')} SET status='succeeded', updated_at=NOW(), payment_method_id=%s WHERE yookassa_id=%s",
+            (payment_method_id, yookassa_id)
         )
         cur.execute(
             f"UPDATE {tbl('salons')} SET credits_balance = credits_balance + %s WHERE id=%s",
@@ -2978,11 +3041,18 @@ def handle_payment_webhook(event: dict) -> dict:
         )
         conn.commit()
 
-        # Начисляем партнёрское вознаграждение: 10% от кол-ва энергий в рублях
-        # (100 энергий → 10 ₽). Только реальная оплата, без бонусов и ручного пополнения.
+        if enable_autopay and payment_method_saved and payment_method_id and package_code:
+            cur.execute(
+                f"INSERT INTO {tbl('autopay_settings')} (salon_id, is_enabled, package_code, threshold, payment_method_id) "
+                f"VALUES (%s, TRUE, %s, %s, %s) "
+                f"ON CONFLICT (salon_id) DO UPDATE SET is_enabled=TRUE, package_code=%s, threshold=%s, payment_method_id=%s, updated_at=NOW()",
+                (int(salon_id), package_code, threshold, payment_method_id, package_code, threshold, payment_method_id)
+            )
+            conn.commit()
+            print(f"[Autopay] Settings saved for salon_id={salon_id}, method={payment_method_id}")
+
         _notify_master_accrual(int(salon_id), int(energy_amount), "Покупка пакета энергии")
 
-        # Отправляем письмо пользователю
         cur.execute(f"SELECT email, full_name FROM {tbl('lk_users')} WHERE id=%s", (int(user_id),))
         user_row = cur.fetchone()
         if user_row and user_row.get("email"):
@@ -2990,6 +3060,92 @@ def handle_payment_webhook(event: dict) -> dict:
             _send_payment_success_email(user_row["email"], user_row.get("full_name") or "", amount_rub, int(energy_amount))
 
         return ok({"ok": True})
+    finally:
+        conn.close()
+
+
+def handle_autopay_get(event: dict) -> dict:
+    """Получить настройки автоплатежа для салона."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        if not user.get("salon_id"):
+            return ok({"autopay": None})
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT is_enabled, package_code, threshold, payment_method_id, last_triggered_at "
+            f"FROM {tbl('autopay_settings')} WHERE salon_id=%s",
+            (user["salon_id"],)
+        )
+        row = cur.fetchone()
+        if not row:
+            return ok({"autopay": None})
+        return ok({"autopay": {
+            "is_enabled": row["is_enabled"],
+            "package_code": row["package_code"],
+            "threshold": row["threshold"],
+            "has_payment_method": bool(row["payment_method_id"]),
+            "last_triggered_at": row["last_triggered_at"].isoformat() if row["last_triggered_at"] else None,
+        }})
+    finally:
+        conn.close()
+
+
+def handle_autopay_disable(event: dict) -> dict:
+    """Отключить автоплатёж для салона."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        if not user.get("salon_id"):
+            return err("Салон не найден")
+        cur = conn.cursor()
+        cur.execute(
+            f"UPDATE {tbl('autopay_settings')} SET is_enabled=FALSE, payment_method_id=NULL, updated_at=NOW() WHERE salon_id=%s",
+            (user["salon_id"],)
+        )
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
+def handle_autopay_check(event: dict) -> dict:
+    """Проверить баланс салона и запустить автоплатёж если баланс ниже порога."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        if not user.get("salon_id"):
+            return ok({"triggered": False})
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT * FROM {tbl('autopay_settings')} WHERE salon_id=%s AND is_enabled=TRUE",
+            (user["salon_id"],)
+        )
+        settings = cur.fetchone()
+        if not settings or not settings.get("payment_method_id"):
+            return ok({"triggered": False})
+
+        balance = _get_salon_energy(conn, user["salon_id"])
+        if balance > settings["threshold"]:
+            return ok({"triggered": False, "balance": balance, "threshold": settings["threshold"]})
+
+        cur.execute(
+            f"SELECT * FROM {tbl('energy_packages')} WHERE code=%s AND is_active=TRUE",
+            (settings["package_code"],)
+        )
+        pkg = cur.fetchone()
+        if not pkg:
+            return ok({"triggered": False, "error": "Пакет не найден"})
+
+        _do_autopay(conn, cur, user["salon_id"], user["id"], settings["package_code"], settings["payment_method_id"], pkg)
+        return ok({"triggered": True, "balance": balance, "threshold": settings["threshold"]})
     finally:
         conn.close()
 
@@ -3412,6 +3568,10 @@ ROUTES = {
     ("POST", "payment_create"): handle_payment_create,
     ("POST", "payment_webhook"): handle_payment_webhook,
     ("GET",  "admin_payments"): handle_admin_payments,
+    # Автоплатёж
+    ("GET",  "autopay_get"): handle_autopay_get,
+    ("POST", "autopay_disable"): handle_autopay_disable,
+    ("POST", "autopay_check"): handle_autopay_check,
     # Команда / приглашения
     ("POST", "team_invite"): handle_team_invite,
     ("GET",  "team_list"): handle_team_list,

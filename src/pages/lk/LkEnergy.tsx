@@ -4,12 +4,12 @@ import { useLkAuth } from "@/contexts/LkAuthContext";
 import { useEnergy } from "@/contexts/EnergyContext";
 
 const ACCENT = "hsl(185,85%,32%)";
-const ACCENT_DARK = "hsl(185,85%,24%)";
 const LK_URL = "https://functions.poehali.dev/1c0ad024-179b-4644-9621-377174bbeba3";
 function sid() { return localStorage.getItem("lk_session") || ""; }
 
 interface Package { code: string; name: string; price_rub: number; energy_amount: number; }
 interface Transaction { id: number; type: string; action: string; amount: number; tool_key: string | null; created_at: string; full_name: string | null; }
+interface AutopaySettings { is_enabled: boolean; package_code: string; threshold: number; has_payment_method: boolean; last_triggered_at: string | null; }
 
 const PKG_COLORS: Record<string, { color: string; bg: string; border: string }> = {
   start:   { color: "hsl(185,85%,32%)", bg: "hsl(185,85%,96%)", border: "hsl(185,85%,80%)" },
@@ -29,15 +29,23 @@ export default function LkEnergy() {
   const [loading, setLoading]         = useState(true);
   const [historyPage, setHistoryPage] = useState(1);
   const [paying, setPaying]           = useState<string | null>(null);
+  const [autopay, setAutopay]         = useState<AutopaySettings | null>(null);
+  const [autopaySelected, setAutopaySelected] = useState<string | null>(null);
+  const [disabling, setDisabling]     = useState(false);
   const PAGE_SIZE = 20;
 
-  const handleBuy = async (code: string) => {
+  const handleBuy = async (code: string, withAutopay = false) => {
     setPaying(code);
     try {
       const res = await fetch(`${LK_URL}?action=payment_create`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
-        body: JSON.stringify({ package_code: code, return_url: window.location.href }),
+        body: JSON.stringify({
+          package_code: code,
+          return_url: window.location.href,
+          enable_autopay: withAutopay,
+          threshold: 50,
+        }),
       });
       const data = await res.json();
       if (data.confirmation_url) {
@@ -52,6 +60,23 @@ export default function LkEnergy() {
     }
   };
 
+  const handleDisableAutopay = async () => {
+    setDisabling(true);
+    try {
+      await fetch(`${LK_URL}?action=autopay_disable`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
+        body: JSON.stringify({}),
+      });
+      setAutopay(null);
+      setAutopaySelected(null);
+    } catch {
+      alert("Не удалось отключить автоплатёж");
+    } finally {
+      setDisabling(false);
+    }
+  };
+
   useEffect(() => {
     fetch(`${LK_URL}?action=energy_balance`, { headers: { "X-Session-Id": sid() } })
       .then(r => r.json()).then(d => { if (d.packages) setPackages(d.packages); })
@@ -60,6 +85,14 @@ export default function LkEnergy() {
     if (isOwner) {
       fetch(`${LK_URL}?action=energy_history`, { headers: { "X-Session-Id": sid() } })
         .then(r => r.json()).then(d => { if (d.transactions) setTx(d.transactions); })
+        .catch(() => {});
+      fetch(`${LK_URL}?action=autopay_get`, { headers: { "X-Session-Id": sid() } })
+        .then(r => r.json()).then(d => {
+          if (d.autopay) {
+            setAutopay(d.autopay);
+            if (d.autopay.is_enabled) setAutopaySelected(d.autopay.package_code);
+          }
+        })
         .catch(() => {});
     }
   }, [isOwner]);
@@ -90,11 +123,10 @@ export default function LkEnergy() {
         borderRadius: 20, padding: "28px 32px", marginBottom: 20,
         color: "#fff", animation: "fadeIn 0.4s ease", position: "relative", overflow: "hidden",
       }}>
-        {/* Декоративный круг */}
         <div style={{ position: "absolute", top: -40, right: -40, width: 180, height: 180, borderRadius: "50%", background: `${ACCENT}18`, pointerEvents: "none" }} />
         <div style={{ position: "absolute", bottom: -20, right: 60, width: 100, height: 100, borderRadius: "50%", background: `${ACCENT}10`, pointerEvents: "none" }} />
 
-        <div style={{ fontSize: 10, fontWeight: 700, color: `${ACCENT}`, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 12 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: ACCENT, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 12 }}>
           Баланс салона
         </div>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 16, marginBottom: 4 }}>
@@ -109,7 +141,13 @@ export default function LkEnergy() {
           доступно для использования командой
         </div>
 
-        {lowBalance && (
+        {autopay?.is_enabled && autopay.has_payment_method && (
+          <div style={{ marginTop: 18, background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 10, padding: "10px 16px", fontSize: 13, color: "hsl(185,85%,70%)", fontWeight: 500, display: "flex", alignItems: "center", gap: 8 }}>
+            <Icon name="RefreshCw" size={14} />
+            Автопополнение активно — сработает при балансе ниже {autopay.threshold} единиц
+          </div>
+        )}
+        {lowBalance && !(autopay?.is_enabled) && (
           <div style={{ marginTop: 18, background: "rgba(234,179,8,0.12)", border: "1px solid rgba(234,179,8,0.3)", borderRadius: 10, padding: "10px 16px", fontSize: 13, color: "hsl(40,90%,70%)", fontWeight: 500 }}>
             Баланс заканчивается — рекомендуем пополнить счёт
           </div>
@@ -122,7 +160,6 @@ export default function LkEnergy() {
       </div>
 
       {!isOwner ? (
-        /* Не владелец — просто показываем баланс */
         <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #eee", padding: "20px 22px", display: "flex", alignItems: "center", gap: 14 }}>
           <Icon name="Info" size={20} style={{ color: ACCENT, flexShrink: 0 }} />
           <div style={{ fontSize: 14, color: "#555", lineHeight: 1.6 }}>
@@ -141,11 +178,35 @@ export default function LkEnergy() {
           </div>
 
           {tab === "buy" ? (
-            /* Пакеты */
             <div>
-              <div style={{ fontSize: 13, color: "#777", marginBottom: 16, lineHeight: 1.6 }}>
-                Выберите пакет энергии. Оплата через ЮКассу — безопасно, зачисление сразу после оплаты.
-              </div>
+              {/* Статус автоплатежа */}
+              {autopay?.is_enabled && autopay.has_payment_method ? (
+                <div style={{ background: "hsl(185,85%,96%)", border: "1.5px solid hsl(185,85%,80%)", borderRadius: 14, padding: "16px 20px", marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 11, background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Icon name="RefreshCw" size={18} style={{ color: "#fff" }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 2 }}>
+                      Автопополнение включено · {packages.find(p => p.code === autopay.package_code)?.name || autopay.package_code}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#64748B" }}>
+                      Пополняется автоматически когда баланс падает ниже {autopay.threshold} единиц
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleDisableAutopay}
+                    disabled={disabling}
+                    style={{ flexShrink: 0, padding: "8px 14px", borderRadius: 9, border: "1.5px solid #E2E8F0", background: "#fff", fontSize: 12, fontWeight: 600, color: "#64748B", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+                  >
+                    {disabling ? "…" : "Отключить"}
+                  </button>
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: "#777", marginBottom: 16, lineHeight: 1.6 }}>
+                  Выберите пакет энергии. Оплата через ЮКассу — безопасно, зачисление сразу после оплаты.
+                </div>
+              )}
+
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 12 }}>
                 {packages.map((pkg, idx) => {
                   const c = PKG_COLORS[pkg.code] || PKG_COLORS.start;
@@ -153,15 +214,17 @@ export default function LkEnergy() {
                   const thisRate = pkg.energy_amount / pkg.price_rub;
                   const savePct  = idx > 0 ? Math.round((thisRate / baseRate - 1) * 100) : 0;
                   const isPopular = pkg.code === "business";
+                  const isAutopayThis = autopaySelected === pkg.code;
                   return (
                     <div key={pkg.code} style={{
                       background: isPopular ? `linear-gradient(160deg, ${c.bg}, #fff)` : "#fff",
                       borderRadius: 16,
-                      border: `1.5px solid ${isPopular ? c.border : "#E8ECF0"}`,
+                      border: `1.5px solid ${isAutopayThis ? c.color : isPopular ? c.border : "#E8ECF0"}`,
                       padding: "22px 20px",
                       display: "flex", flexDirection: "column",
                       position: "relative",
-                      boxShadow: isPopular ? `0 4px 20px ${c.color}22` : "0 1px 4px rgba(0,0,0,0.04)",
+                      boxShadow: isAutopayThis ? `0 4px 24px ${c.color}30` : isPopular ? `0 4px 20px ${c.color}22` : "0 1px 4px rgba(0,0,0,0.04)",
+                      transition: "all 0.2s",
                     }}>
                       {isPopular && (
                         <div style={{ position: "absolute", top: -1, left: 20, background: c.color, color: "#fff", fontSize: 9, fontWeight: 700, padding: "3px 10px", borderRadius: "0 0 8px 8px", letterSpacing: "1.5px", textTransform: "uppercase" }}>
@@ -182,7 +245,7 @@ export default function LkEnergy() {
                       <div style={{ fontSize: 12, color: "#94A3B8", marginBottom: 16 }}>
                         {Math.round(pkg.price_rub / pkg.energy_amount * 10) / 10} ₽ за единицу
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid #F1F5F9" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #F1F5F9" }}>
                         <div style={{ width: 28, height: 28, borderRadius: 8, background: c.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
                           <Icon name="Zap" size={14} style={{ color: c.color }} />
                         </div>
@@ -191,23 +254,70 @@ export default function LkEnergy() {
                           <span style={{ fontSize: 12, color: "#94A3B8", marginLeft: 4 }}>единиц энергии</span>
                         </div>
                       </div>
+
+                      {/* Переключатель автоплатежа */}
+                      {!(autopay?.is_enabled && autopay.has_payment_method) && (
+                        <button
+                          onClick={() => setAutopaySelected(isAutopayThis ? null : pkg.code)}
+                          style={{
+                            display: "flex", alignItems: "center", gap: 8,
+                            marginBottom: 10, padding: "8px 12px", borderRadius: 9,
+                            border: `1.5px solid ${isAutopayThis ? c.color : "#E8ECF0"}`,
+                            background: isAutopayThis ? c.bg : "#FAFAFA",
+                            cursor: "pointer", width: "100%", textAlign: "left",
+                          }}
+                        >
+                          <div style={{
+                            width: 32, height: 18, borderRadius: 9,
+                            background: isAutopayThis ? c.color : "#CBD5E1",
+                            position: "relative", flexShrink: 0, transition: "background 0.2s",
+                          }}>
+                            <div style={{
+                              position: "absolute", top: 2,
+                              left: isAutopayThis ? 16 : 2,
+                              width: 14, height: 14, borderRadius: "50%",
+                              background: "#fff", transition: "left 0.2s",
+                              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                            }} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: isAutopayThis ? c.color : "#64748B" }}>
+                              Автопополнение
+                            </div>
+                            <div style={{ fontSize: 10, color: "#94A3B8" }}>при балансе ниже 50 единиц</div>
+                          </div>
+                        </button>
+                      )}
+
                       <button
-                        onClick={() => { if (!paying) handleBuy(pkg.code); }}
+                        onClick={() => { if (!paying) handleBuy(pkg.code, isAutopayThis); }}
                         style={{
                           width: "100%", padding: "12px", borderRadius: 10, border: "none",
-                          background: isPopular ? c.color : "#0F172A",
+                          background: isAutopayThis ? c.color : isPopular ? c.color : "#0F172A",
                           color: "#fff",
                           fontSize: 13, fontWeight: 700, cursor: paying ? "wait" : "pointer",
                           fontFamily: "Montserrat, sans-serif", letterSpacing: "0.5px",
                           opacity: paying && paying !== pkg.code ? 0.5 : 1,
                           transition: "all 0.2s", marginTop: "auto",
                         }}>
-                        {paying === pkg.code ? "Переход к оплате…" : "Пополнить баланс"}
+                        {paying === pkg.code
+                          ? "Переход к оплате…"
+                          : isAutopayThis
+                          ? "Подключить автоплатёж"
+                          : "Пополнить баланс"}
                       </button>
                     </div>
                   );
                 })}
               </div>
+
+              {autopaySelected && !(autopay?.is_enabled && autopay.has_payment_method) && (
+                <div style={{ marginTop: 12, background: "hsl(185,85%,96%)", border: "1.5px solid hsl(185,85%,80%)", borderRadius: 12, padding: "12px 16px", fontSize: 12, color: "#475569", lineHeight: 1.7 }}>
+                  <Icon name="Info" size={13} style={{ color: ACCENT, verticalAlign: "middle", marginRight: 6 }} />
+                  При первой оплате карта сохраняется. Далее автоматически списывается выбранный тариф когда баланс падает ниже 50 единиц.
+                </div>
+              )}
+
               <div style={{ marginTop: 16, background: "hsl(185,85%,96%)", borderRadius: 12, padding: "14px 16px" }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 12 }}>
                   <Icon name="ShieldCheck" size={15} style={{ color: ACCENT, flexShrink: 0, marginTop: 1 }} />
@@ -223,7 +333,6 @@ export default function LkEnergy() {
               </div>
             </div>
           ) : (
-            /* История */
             (() => {
               const visible = transactions.slice(0, historyPage * PAGE_SIZE);
               const hasMore = transactions.length > visible.length;

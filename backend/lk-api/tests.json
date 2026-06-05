@@ -149,6 +149,26 @@
       "path": "/?action=payment_webhook",
       "body": {"event": "payment.canceled"},
       "expectedStatus": 200
+    },
+    {
+      "name": "autopay_get без сессии — 401",
+      "method": "GET",
+      "path": "/?action=autopay_get",
+      "expectedStatus": 401
+    },
+    {
+      "name": "autopay_disable без сессии — 401",
+      "method": "POST",
+      "path": "/?action=autopay_disable",
+      "body": {},
+      "expectedStatus": 401
+    },
+    {
+      "name": "autopay_check без сессии — 401",
+      "method": "POST",
+      "path": "/?action=autopay_check",
+      "body": {},
+      "expectedStatus": 401
     }
   ]
 }
