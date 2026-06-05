@@ -375,11 +375,11 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
                 <div style={{ fontSize: 11, color: "#aaa", marginLeft: 2 }}>Отображаются в конце урока — ученик сразу может попробовать</div>
               </div>
 
-              {["tools", "ai"].map(cat => {
+              {["tools", "ai", "marketing"].map(cat => {
                 const catTools = TOOLS_CATALOG.filter(t => t.category === cat);
-                const catLabel = cat === "ai" ? "ИИ-инструменты" : "Инструменты роста";
-                const catColor = cat === "ai" ? "hsl(280,60%,50%)" : ACCENT;
-                const catBg    = cat === "ai" ? "hsl(280,60%,97%)" : "hsl(185,85%,96%)";
+                const catLabel = cat === "ai" ? "ИИ-инструменты" : cat === "marketing" ? "Маркетинг" : "Инструменты роста";
+                const catColor = cat === "ai" ? "hsl(280,60%,50%)" : cat === "marketing" ? "hsl(25,90%,45%)" : ACCENT;
+                const catBg    = cat === "ai" ? "hsl(280,60%,97%)" : cat === "marketing" ? "hsl(25,90%,97%)" : "hsl(185,85%,96%)";
                 return (
                   <div key={cat}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: catColor, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>{catLabel}</div>

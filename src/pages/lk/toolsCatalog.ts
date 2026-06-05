@@ -4,7 +4,7 @@ export interface ToolInfo {
   description: string;
   icon: string;
   tab: string;
-  category: "tools" | "ai";
+  category: "tools" | "ai" | "marketing";
   audience?: string;
 }
 
@@ -114,6 +114,46 @@ export const TOOLS_CATALOG: ToolInfo[] = [
     icon: "Users",
     tab: "ai",
     category: "ai",
+  },
+  {
+    slug: "audience",
+    name: "Портрет целевой аудитории",
+    description: "ИИ строит детальный портрет ЦА на основе профиля салона.",
+    icon: "Target",
+    tab: "marketing",
+    category: "marketing",
+  },
+  {
+    slug: "offers",
+    name: "Офферы под ЦА",
+    description: "Генерация продающих офферов под каждый сегмент аудитории.",
+    icon: "Megaphone",
+    tab: "marketing",
+    category: "marketing",
+  },
+  {
+    slug: "semantics",
+    name: "Семантическое ядро",
+    description: "Подбор ключевых слов для Яндекс.Директ на основе услуг салона.",
+    icon: "Search",
+    tab: "marketing",
+    category: "marketing",
+  },
+  {
+    slug: "direct",
+    name: "Объявления для Яндекс.Директ",
+    description: "Готовые объявления по ключевым словам и офферам.",
+    icon: "MousePointer",
+    tab: "marketing",
+    category: "marketing",
+  },
+  {
+    slug: "budget",
+    name: "Медиаплан для Директа",
+    description: "Расчёт бюджета и прогноз результатов рекламной кампании.",
+    icon: "PieChart",
+    tab: "marketing",
+    category: "marketing",
   },
 ];
 
