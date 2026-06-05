@@ -75,7 +75,7 @@ def deduct_energy(salon_id, user_id, conn) -> tuple[bool, int]:
     return True, cost
 
 
-def call_ai(messages, max_tokens=3000) -> str:
+def call_ai(messages, max_tokens=1800) -> str:
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     payload = json.dumps({
         "model": "openai/gpt-4.1-mini",
@@ -109,9 +109,9 @@ def build_prompt(salon, groups, has_license):
         med_rule = "Можно использовать медицинские термины — есть лицензия."
 
     groups_text = ""
-    for g in groups:
+    for g in groups[:5]:
         kws = [k["query"] for k in g.get("keywords", [])]
-        groups_text += f"\nГруппа: {g['group']}\nКлючевые запросы: {', '.join(kws[:8])}\n"
+        groups_text += f"\nГруппа: {g['group']}\nКлючевые запросы: {', '.join(kws[:5])}\n"
 
     return f"""Ты — специалист по контекстной рекламе Яндекс.Директ.
 
@@ -124,9 +124,8 @@ def build_prompt(salon, groups, has_license):
 {groups_text}
 
 ЗАДАЧА: Для каждой группы создай:
-1. 2 варианта объявления
-2. Список ключевых запросов для этой группы объявлений (5-10 фраз)
-3. Список минус-слов для этой группы (10-15 слов/фраз, которые отсекают нецелевой трафик)
+1. 1 вариант объявления
+2. Список минус-слов (5-8 слов, которые отсекают нецелевой трафик)
 
 ЖЁСТКИЕ ТРЕБОВАНИЯ к символам (считай точно!):
 - title1: не более 35 символов (основной заголовок)
@@ -151,30 +150,16 @@ def build_prompt(salon, groups, has_license):
   {{
     "group": "название группы",
     "service_tag": "тег из семантики",
-    "keywords": ["запрос 1", "запрос 2", "запрос 3"],
-    "minus_words": ["бесплатно", "видео", "обучение", "своими руками"],
+    "minus_words": ["бесплатно", "видео", "обучение"],
     "ads": [
       {{
         "title1": "до 35 симв",
-        "title1_len": 25,
         "title2": "до 30 симв",
-        "title2_len": 18,
         "text": "до 81 символа текст объявления",
-        "text_len": 55,
-        "url_path": "kratkiy-slug-dlya-url"
-      }},
-      {{
-        "title1": "...",
-        "title1_len": 0,
-        "title2": "...",
-        "title2_len": 0,
-        "text": "...",
-        "text_len": 0,
-        "url_path": "..."
+        "url_path": "kratkiy-slug"
       }}
     ]
-  }},
-  ...
+  }}
 ]"""
 
 
