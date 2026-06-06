@@ -91,7 +91,7 @@ export default function LkDashboard() {
         {tab === "tools"     && <LkTests onNavigate={handleTabChange} />}
         {tab === "academy"   && <LkAcademy onNavigate={handleTabChange} />}
         {tab === "ai"        && <LkAiTools />}
-        {tab === "agent"      && <SalonAIAgent />}
+        {tab === "agent"      && <SalonAIAgent onNavigateShop={() => handleTabChange("shop")} />}
         {tab === "clientmsg"  && <LkClientMsg />}
         {tab === "marketing"  && <LkMarketing />}
         {tab === "shop"       && <LkEnergy />}
