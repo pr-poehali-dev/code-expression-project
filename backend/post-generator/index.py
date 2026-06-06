@@ -76,7 +76,7 @@ def get_salon_context(user, conn):
         return None
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"SELECT name, description, target_audience, tone_of_voice, main_goal FROM {SCHEMA}.salons WHERE id=%s",
+        f"SELECT name, description, target_audience, tone_of_voice, main_goal, website_url FROM {SCHEMA}.salons WHERE id=%s",
         (user["salon_id"],)
     )
     return cur.fetchone()
@@ -124,6 +124,7 @@ def handle_titles(event, user, conn):
         if salon.get("name"):            parts.append(f"Салон: {salon['name']}")
         if salon.get("target_audience"): parts.append(f"Аудитория: {salon['target_audience']}")
         if salon.get("description"):     parts.append(f"О салоне: {salon['description']}")
+        if salon.get("website_url"):     parts.append(f"Сайт: {salon['website_url']}")
         if parts:
             salon_ctx = "\n".join(parts)
 
@@ -200,6 +201,7 @@ def handle_text(event, user, conn):
         if salon.get("target_audience"): parts.append(f"Аудитория: {salon['target_audience']}")
         if salon.get("tone_of_voice"):   parts.append(f"Стиль общения: {salon['tone_of_voice']}")
         if salon.get("main_goal"):       parts.append(f"Главная задача: {salon['main_goal']}")
+        if salon.get("website_url"):     parts.append(f"Сайт: {salon['website_url']}")
         if parts:
             salon_ctx = "\n".join(parts)
 

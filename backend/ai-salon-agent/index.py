@@ -46,7 +46,7 @@ def get_salon_context(conn, salon_id: int) -> str:
     cur.execute(
         f"SELECT name, city, address, description, avg_check, monthly_revenue, "
         f"clients_count, masters_count, target_audience, tone_of_voice, "
-        f"social_instagram, social_vk, social_telegram, main_goal, has_medical_license "
+        f"social_instagram, social_vk, social_telegram, main_goal, has_medical_license, website_url "
         f"FROM {tbl('salons')} WHERE id = %s",
         (salon_id,)
     )
@@ -78,6 +78,7 @@ def get_salon_context(conn, salon_id: int) -> str:
     if salon["target_audience"]: lines.append(f"Целевая аудитория: {salon['target_audience']}")
     if salon["tone_of_voice"]:   lines.append(f"Тон коммуникации: {salon['tone_of_voice']}")
     if salon["main_goal"]:       lines.append(f"Главная цель: {salon['main_goal']}")
+    if salon["website_url"]:     lines.append(f"Сайт салона: {salon['website_url']}")
     if salon["has_medical_license"] is not None:
         lines.append(f"Медицинская лицензия: {'да' if salon['has_medical_license'] else 'нет'}")
 

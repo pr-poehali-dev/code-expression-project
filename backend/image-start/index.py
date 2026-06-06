@@ -120,7 +120,7 @@ def handler(event: dict, context) -> dict:
         if use_salon_context:
             cur3 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             cur3.execute(
-                f"SELECT name, description, target_audience, tone_of_voice FROM {SCHEMA}.salons WHERE id=%s",
+                f"SELECT name, description, target_audience, tone_of_voice, website_url FROM {SCHEMA}.salons WHERE id=%s",
                 (salon_id,)
             )
             salon = cur3.fetchone()
@@ -129,6 +129,7 @@ def handler(event: dict, context) -> dict:
                 if salon.get("description"): parts.append(f"О салоне: {salon['description']}")
                 if salon.get("target_audience"): parts.append(f"Аудитория: {salon['target_audience']}")
                 if salon.get("tone_of_voice"): parts.append(f"Стиль: {salon['tone_of_voice']}")
+                if salon.get("website_url"):  parts.append(f"Сайт: {salon['website_url']}")
                 if include_salon_name and salon.get("name"):
                     parts.append(f"На изображении художественно изобразить надпись с названием салона: \"{salon['name']}\"")
                 if include_logo_text:
