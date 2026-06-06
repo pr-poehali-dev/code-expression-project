@@ -24,22 +24,28 @@ function detectPlatform(): "ios" | "yandex" | "android-chrome" | "desktop-chrome
 // ── PWA install hook ───────────────────────────────────────────────────────────
 function usePWAInstall() {
   const [prompt, setPrompt] = useState<Event | null>(null);
-  const [installed, setInstalled] = useState(false);
+  const [installed, setInstalled] = useState(
+    () => isStandalone() || localStorage.getItem("pwa_installed") === "1"
+  );
 
   useEffect(() => {
-    if (isStandalone()) { setInstalled(true); return; }
+    if (installed) return;
     const handler = (e: Event) => { e.preventDefault(); setPrompt(e); };
+    const onInstalled = () => { localStorage.setItem("pwa_installed", "1"); setInstalled(true); };
     window.addEventListener("beforeinstallprompt", handler);
-    window.addEventListener("appinstalled", () => setInstalled(true));
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, [installed]);
 
   const install = async () => {
     if (!prompt) return;
     const p = prompt as Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> };
     p.prompt();
     const { outcome } = await p.userChoice;
-    if (outcome === "accepted") setInstalled(true);
+    if (outcome === "accepted") { localStorage.setItem("pwa_installed", "1"); setInstalled(true); }
     setPrompt(null);
   };
 
