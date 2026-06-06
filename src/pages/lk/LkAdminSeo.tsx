@@ -359,8 +359,10 @@ export function SeoSection() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
-  const [history, setHistory] = useState<{ url: string; score: number; grade: string; ts: number }[]>(() => {
-    try { return JSON.parse(localStorage.getItem("admin_seo_history") || "[]"); } catch { return []; }
+
+  interface HistoryItem { url: string; score: number; grade: string; ts: number; result: AnalysisResult; }
+  const [history, setHistory] = useState<HistoryItem[]>(() => {
+    try { return JSON.parse(localStorage.getItem("admin_seo_history_v2") || "[]"); } catch { return []; }
   });
 
   async function runAnalysis() {
@@ -375,10 +377,14 @@ export function SeoSection() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Ошибка анализа");
-      setResult(data as AnalysisResult);
-      const newHistory = [{ url: data.url, score: data.score, grade: data.grade, ts: Date.now() }, ...history.filter(h => h.url !== data.url)].slice(0, 10);
+      const analysisResult = data as AnalysisResult;
+      setResult(analysisResult);
+      const newHistory: HistoryItem[] = [
+        { url: data.url, score: data.score, grade: data.grade, ts: Date.now(), result: analysisResult },
+        ...history.filter(h => h.url !== data.url),
+      ].slice(0, 10);
       setHistory(newHistory);
-      try { localStorage.setItem("admin_seo_history", JSON.stringify(newHistory)); } catch { /* ignore */ }
+      try { localStorage.setItem("admin_seo_history_v2", JSON.stringify(newHistory)); } catch { /* ignore */ }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Ошибка");
     } finally { setLoading(false); }
@@ -464,15 +470,15 @@ export function SeoSection() {
             {history.map((item, i) => {
               const scoreColor = item.score >= 70 ? "#16a34a" : item.score >= 50 ? "#d97706" : "#dc2626";
               return (
-                <div key={i} onClick={() => setUrl(item.url)}
-                  style={{ background: "#fff", borderRadius: 12, border: "1.5px solid #E8ECF0", display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", cursor: "pointer", transition: "all 0.15s", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}
+                <div key={i}
+                  style={{ background: "#fff", borderRadius: 12, border: "1.5px solid #E8ECF0", display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", transition: "all 0.15s", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}
                   onMouseEnter={e => { e.currentTarget.style.borderColor = "#bae6fd"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.06)"; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = "#E8ECF0"; e.currentTarget.style.boxShadow = "0 1px 3px rgba(15,23,42,0.04)"; }}
                 >
                   <div style={{ width: 34, height: 34, borderRadius: 9, background: "#f0f9ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <Icon name="Globe" size={15} style={{ color: ACCENT }} />
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ flex: 1, minWidth: 0, cursor: "pointer" }} onClick={() => setResult(item.result)}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.url}</div>
                     <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>{new Date(item.ts).toLocaleString("ru", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</div>
                   </div>
@@ -480,10 +486,20 @@ export function SeoSection() {
                     {item.score}<span style={{ fontSize: 9, fontWeight: 400, color: "#94A3B8" }}>/100</span>
                   </div>
                   <div style={{ fontSize: 14, fontWeight: 900, color: scoreColor, minWidth: 22, textAlign: "center" }}>{item.grade}</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 9px", background: "#F1F5F9", borderRadius: 7, flexShrink: 0 }}>
+                  <button
+                    onClick={() => setResult(item.result)}
+                    style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 9px", background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: 7, cursor: "pointer", flexShrink: 0, fontFamily: "Montserrat,sans-serif" }}
+                  >
+                    <Icon name="Eye" size={11} style={{ color: ACCENT }} />
+                    <span style={{ fontSize: 11, fontWeight: 600, color: ACCENT }}>Открыть</span>
+                  </button>
+                  <button
+                    onClick={() => { setUrl(item.url); }}
+                    style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 9px", background: "#F1F5F9", border: "none", borderRadius: 7, cursor: "pointer", flexShrink: 0, fontFamily: "Montserrat,sans-serif" }}
+                  >
                     <Icon name="RefreshCw" size={10} style={{ color: "#64748B" }} />
                     <span style={{ fontSize: 11, fontWeight: 600, color: "#64748B" }}>Повторить</span>
-                  </div>
+                  </button>
                 </div>
               );
             })}
