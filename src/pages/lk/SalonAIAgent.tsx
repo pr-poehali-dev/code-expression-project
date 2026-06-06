@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
+import { renderMarkdown } from "@/utils/markdown";
 
 const AGENT_URL = "https://functions.poehali.dev/40feaf4c-2193-430d-98ae-16712a91feb4";
 const LK_URL = "https://functions.poehali.dev/1c0ad024-179b-4644-9621-377174bbeba3";
@@ -49,8 +50,10 @@ function MessageBubble({ msg, agent }: { msg: Message; agent: AgentConfig }) {
         <Icon name={isUser ? "User" : agent.icon} size={15} style={{ color: isUser ? "#fff" : agent.color }} />
       </div>
       <div style={{ maxWidth: "80%", minWidth: 0 }}>
-        <div style={{ background: isUser ? "#0F172A" : "#fff", color: isUser ? "#fff" : "#0F172A", borderRadius: isUser ? "16px 4px 16px 16px" : "4px 16px 16px 16px", padding: "12px 16px", fontSize: 14, lineHeight: 1.75, whiteSpace: "pre-wrap", wordBreak: "break-word", border: isUser ? "none" : "1px solid #E8ECF0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-          {msg.content}
+        <div style={{ background: isUser ? "#0F172A" : "#fff", color: isUser ? "#fff" : "#0F172A", borderRadius: isUser ? "16px 4px 16px 16px" : "4px 16px 16px 16px", padding: "12px 16px", fontSize: 14, lineHeight: 1.75, wordBreak: "break-word", border: isUser ? "none" : "1px solid #E8ECF0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
+          dangerouslySetInnerHTML={isUser ? undefined : { __html: renderMarkdown(msg.content) }}
+        >
+          {isUser ? msg.content : undefined}
         </div>
         {!isUser && (
           <button onClick={() => copyToClipboard(msg.content, setCopied)} style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, padding: "4px 10px", background: copied ? `${agent.color}15` : "transparent", border: `1px solid ${copied ? agent.color : "#e0e0da"}`, borderRadius: 7, cursor: "pointer", fontSize: 12, fontWeight: 600, color: copied ? agent.color : "#999", fontFamily: "Montserrat, sans-serif", transition: "all 0.2s" }}>

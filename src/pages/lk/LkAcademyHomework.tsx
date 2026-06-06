@@ -76,12 +76,14 @@ export default function LkAcademyHomework({ lessonId, homework, preview }: Props
                   color: msg.role === "user" ? "#fff" : "#333",
                   fontSize: 13, lineHeight: 1.7,
                   border: msg.role === "assistant" ? "1.5px solid hsl(280,60%,88%)" : "none",
-                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
                 }}>
                   {msg.role === "assistant" && (
                     <div style={{ fontSize: 10, fontWeight: 700, color: "hsl(280,60%,50%)", marginBottom: 4, letterSpacing: "0.05em" }}>КУРАТОР</div>
                   )}
-                  {msg.content}
+                  {msg.role === "assistant"
+                    ? <div dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />
+                    : msg.content}
                 </div>
               </div>
             ))}

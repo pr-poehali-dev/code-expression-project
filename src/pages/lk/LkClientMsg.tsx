@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { useEnergy } from "@/contexts/EnergyContext";
 import Icon from "@/components/ui/icon";
+import { renderMarkdown } from "@/utils/markdown";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -311,7 +312,7 @@ export default function LkClientMsg() {
                 </button>
               </div>
               <div style={{ padding: "16px 18px" }}>
-                <div style={{ fontSize: 14, color: "#1E293B", lineHeight: 1.75, whiteSpace: "pre-wrap", marginBottom: 14 }}>{result}</div>
+                <div style={{ fontSize: 14, color: "#1E293B", lineHeight: 1.75, wordBreak: "break-word", marginBottom: 14 }} dangerouslySetInnerHTML={{ __html: renderMarkdown(result) }} />
                 <button onClick={copy} style={{
                   display: "inline-flex", alignItems: "center", gap: 7,
                   padding: "9px 20px", borderRadius: 9, border: "none",

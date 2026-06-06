@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
+import { renderMarkdown } from "@/utils/markdown";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -338,14 +339,16 @@ export default function ChatWidget() {
                       borderRadius: msg.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
                       background: msg.role === "user" ? `linear-gradient(135deg, ${ACCENT}, ${ACCENT_DARK})` : "#f4f4f0",
                       color: msg.role === "user" ? "#fff" : "#1a1a1a",
-                      fontSize: 13, lineHeight: 1.65,
-                    }}>
-                      {msg.content.split("\n").map((line, j, arr) => (
+                      fontSize: 13, lineHeight: 1.65, wordBreak: "break-word",
+                    }}
+                      dangerouslySetInnerHTML={msg.role === "assistant" ? { __html: renderMarkdown(msg.content) } : undefined}
+                    >
+                      {msg.role === "user" ? msg.content.split("\n").map((line, j, arr) => (
                         <span key={j}>
-                          {renderWithLinks(line, msg.role === "user")}
+                          {renderWithLinks(line, true)}
                           {j < arr.length - 1 && <br />}
                         </span>
-                      ))}
+                      )) : undefined}
                     </div>
                   </div>
                 ))}

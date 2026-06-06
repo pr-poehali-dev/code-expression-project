@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { ACCENT, apiFetch } from "./LkAcademyTypes";
+import { renderMarkdown } from "@/utils/markdown";
 import { useEnergy } from "@/contexts/EnergyContext";
 
 interface Props {
@@ -39,9 +40,9 @@ export default function LkAcademyLessonAI({ lessonId, preview }: Props) {
       </div>
 
       {answer && (
-        <div ref={chatRef} style={{ background: "hsl(185,85%,97%)", border: "1.5px solid hsl(185,85%,80%)", borderRadius: 12, padding: "16px 18px", marginBottom: 16, fontSize: 14, color: "#333", lineHeight: 1.75, whiteSpace: "pre-wrap" }}>
+        <div ref={chatRef} style={{ background: "hsl(185,85%,97%)", border: "1.5px solid hsl(185,85%,80%)", borderRadius: 12, padding: "16px 18px", marginBottom: 16, fontSize: 14, color: "#333", lineHeight: 1.75, wordBreak: "break-word" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, marginBottom: 8, letterSpacing: "0.05em" }}>ОТВЕТ ИИ</div>
-          {answer}
+          <div dangerouslySetInnerHTML={{ __html: renderMarkdown(answer) }} />
         </div>
       )}
 
