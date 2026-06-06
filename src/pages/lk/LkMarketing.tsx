@@ -11,6 +11,7 @@ import LkReelScript from "./LkReelScript";
 import { useEnergy } from "@/contexts/EnergyContext";
 import { showEnergyGate } from "@/components/EnergyGate";
 import LkMarketingBudget from "./LkMarketingBudget";
+import LkMarketingSeo from "./LkMarketingSeo";
 
 const ACCENT = "hsl(185,85%,32%)";
 
@@ -86,6 +87,16 @@ const TOOLS_DIRECT: Tool[] = [
 ];
 
 const TOOLS_CONTENT: Tool[] = [
+  {
+    id: "seo",
+    icon: "Search",
+    iconColor: "hsl(199,89%,40%)",
+    iconBg: "hsl(199,89%,95%)",
+    title: "SEO-оптимизатор",
+    description: "Анализирует сайт салона: мета-теги, заголовки, текст, структуру. Выдаёт конкретные правки с готовыми вариантами.",
+    badge: "new",
+    ready: true,
+  },
   {
     id: "post-gen",
     icon: "FileText",
@@ -239,13 +250,14 @@ function StepBlocker({ missing, onGoTo, onBack }: { missing: { toolId: string; t
   );
 }
 
-export default function LkMarketing() {
-  const [active, setActive] = useState<string | null>(null);
+export default function LkMarketing({ initialTool }: { initialTool?: string } = {}) {
+  const [active, setActive] = useState<string | null>(initialTool || null);
   const [audienceData, setAudienceData] = useState<AudienceData | null>(null);
   const [semanticData, setSemanticData] = useState<SemanticGroups | null>(null);
   const { hasPaid, loading: energyLoading } = useEnergy();
   const { user } = useLkAuth();
   const salonId = user?.salon_id ?? "";
+  const websiteUrl = (user as unknown as Record<string, unknown>)?.website_url as string | undefined;
   const ALL_TOOLS = [...TOOLS_DIRECT, ...TOOLS_CONTENT];
   const activeTool = ALL_TOOLS.find(t => t.id === active);
 
@@ -350,6 +362,10 @@ export default function LkMarketing() {
 
   if (hasPaid && active === "budget") {
     return <LkMarketingBudget onBack={() => setActive(null)} />;
+  }
+
+  if (hasPaid && active === "seo") {
+    return <LkMarketingSeo onBack={() => setActive(null)} initialUrl={websiteUrl} />;
   }
 
   if (hasPaid && activeTool) {

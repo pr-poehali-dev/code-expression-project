@@ -1491,7 +1491,7 @@ def handle_salon_profile_save(event: dict) -> dict:
                     avg_check=%s, monthly_revenue=%s, clients_count=%s, masters_count=%s,
                     target_audience=%s, tone_of_voice=%s,
                     social_instagram=%s, social_vk=%s, social_telegram=%s, main_goal=%s,
-                    has_medical_license=%s,
+                    has_medical_license=%s, website_url=%s,
                     updated_at=NOW()
                 WHERE id=%s""",
                 (
@@ -1503,6 +1503,7 @@ def handle_salon_profile_save(event: dict) -> dict:
                     body.get("social_instagram"), body.get("social_vk"), body.get("social_telegram"),
                     body.get("main_goal"),
                     bool(body.get("has_medical_license", False)),
+                    body.get("website_url") or None,
                     salon_id,
                 )
             )
@@ -1513,8 +1514,8 @@ def handle_salon_profile_save(event: dict) -> dict:
                      avg_check, monthly_revenue, clients_count, masters_count,
                      target_audience, tone_of_voice,
                      social_instagram, social_vk, social_telegram, main_goal,
-                     has_medical_license)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+                     has_medical_license, website_url)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
                 (
                     user["id"], name,
                     body.get("city"), body.get("address"), body.get("description"),
@@ -1524,6 +1525,7 @@ def handle_salon_profile_save(event: dict) -> dict:
                     body.get("social_instagram"), body.get("social_vk"), body.get("social_telegram"),
                     body.get("main_goal"),
                     bool(body.get("has_medical_license", False)),
+                    body.get("website_url") or None,
                 )
             )
             salon_id = cur.fetchone()["id"]

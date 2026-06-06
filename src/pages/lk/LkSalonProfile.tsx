@@ -3,6 +3,8 @@ import { lkApi } from "@/lib/lkApi";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
 
+const SEO_ANALYZER_URL = "https://functions.poehali.dev/3603658f-6f23-4de6-b671-73bb1832b4e0";
+
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
 
@@ -14,6 +16,7 @@ interface SalonForm {
   target_audience: string; tone_of_voice: string;
   social_instagram: string; social_vk: string; social_telegram: string; main_goal: string;
   has_medical_license: boolean;
+  website_url: string;
 }
 
 const EMPTY_FORM: SalonForm = {
@@ -22,6 +25,7 @@ const EMPTY_FORM: SalonForm = {
   target_audience: "", tone_of_voice: "",
   social_instagram: "", social_vk: "", social_telegram: "", main_goal: "",
   has_medical_license: false,
+  website_url: "",
 };
 
 function draftKey(userId: number) { return `lk_salon_draft_${userId}`; }
@@ -81,7 +85,7 @@ const inputStyle: React.CSSProperties = {
   background: "#fff", boxSizing: "border-box", color: "#0F172A",
 };
 
-export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
+export default function LkSalonProfile({ onSaved, onGoToSeo }: { onSaved?: () => void; onGoToSeo?: () => void }) {
   const { user } = useLkAuth();
   const uid = user?.id ?? 0;
   const draft = loadDraft(uid);
@@ -97,6 +101,8 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const isNew = !user?.salon_id;
+  const [seoStatus, setSeoStatus] = useState<"idle"|"loading"|"found"|"not_found">("idle");
+  const [seoScore, setSeoScore] = useState<number|null>(null);
 
   // Загружаем профиль (сервер имеет приоритет над черновиком)
   useEffect(() => {
@@ -121,6 +127,7 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
           social_telegram: String(s.social_telegram || ""),
           main_goal:       String(s.main_goal || ""),
           has_medical_license: Boolean(s.has_medical_license),
+          website_url:     String(s.website_url || ""),
         });
         setLogoUrl(s.logo_url ? String(s.logo_url) : null);
       }
@@ -187,6 +194,29 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
     });
   }
 
+  // Фоновый SEO-анализ при добавлении сайта
+  async function runBackgroundSeoAnalysis(url: string) {
+    if (!url || !user?.salon_id) return;
+    setSeoStatus("loading");
+    const sessionId = localStorage.getItem("lk_session") || "";
+    try {
+      const res = await fetch(SEO_ANALYZER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
+        body: JSON.stringify({ url, is_main_page: true, is_background: true }),
+      });
+      const data = await res.json();
+      if (res.ok && data.score != null) {
+        setSeoStatus("found");
+        setSeoScore(data.score);
+      } else {
+        setSeoStatus("not_found");
+      }
+    } catch {
+      setSeoStatus("not_found");
+    }
+  }
+
   // Сохранение
   async function handleSave() {
     if (!form.name.trim()) { setError("Укажите название салона"); return; }
@@ -198,6 +228,7 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
         monthly_revenue: form.monthly_revenue ? Number(form.monthly_revenue) : null,
         clients_count:   form.clients_count ? Number(form.clients_count) : null,
         masters_count:   form.masters_count ? Number(form.masters_count) : null,
+        website_url:     form.website_url || null,
         services: services.filter(s => s.name.trim()).map(s => ({
           id:           s.id,
           name:         s.name.trim(),
@@ -211,6 +242,10 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
       if (result?.welcome_bonus) setWelcomeBonus(true);
       setTimeout(() => setSaved(false), 3000);
       if (onSaved) setTimeout(onSaved, 800);
+      // Если указан сайт — запускаем фоновый анализ
+      if (form.website_url && seoStatus === "idle") {
+        runBackgroundSeoAnalysis(form.website_url);
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Ошибка сохранения");
     } finally { setSaving(false); }
@@ -415,6 +450,50 @@ export default function LkSalonProfile({ onSaved }: { onSaved?: () => void }) {
             </span>
           </label>
         </Field>
+        <Field label="Сайт салона" hint="Ссылка используется для SEO-анализа в разделе Маркетинг">
+          <div style={{ position: "relative" }}>
+            <input
+              style={{ ...inputStyle, paddingRight: 36 }}
+              value={form.website_url}
+              onChange={e => f("website_url", e.target.value)}
+              placeholder="https://mysalon.ru"
+            />
+            {form.website_url && (
+              <Icon name="Globe" size={14} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: ACCENT, pointerEvents: "none" }} />
+            )}
+          </div>
+        </Field>
+
+        {/* SEO-уведомление после фонового анализа */}
+        {seoStatus === "loading" && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10, marginBottom: 14 }}>
+            <Icon name="Loader2" size={14} style={{ color: "#1e40af", animation: "spin 1s linear infinite", flexShrink: 0 }} />
+            <span style={{ fontSize: 12, color: "#1e40af", fontWeight: 600 }}>Анализируем ваш сайт...</span>
+          </div>
+        )}
+        {seoStatus === "found" && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: 12, marginBottom: 14 }}>
+            <Icon name="CheckCircle2" size={18} style={{ color: "#16a34a", flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#15803d" }}>Мы проанализировали ваш сайт!</div>
+              <div style={{ fontSize: 12, color: "#166534", marginTop: 2 }}>
+                SEO-оценка: <strong>{seoScore}/100</strong>. Есть что улучшить — воспользуйтесь инструментом SEO-оптимизатора в разделе Маркетинг.
+              </div>
+            </div>
+            {onGoToSeo && (
+              <button onClick={onGoToSeo} style={{ padding: "7px 14px", borderRadius: 9, border: "none", background: "#16a34a", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}>
+                Открыть SEO
+              </button>
+            )}
+          </div>
+        )}
+        {seoStatus === "not_found" && form.website_url && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#fafafa", border: "1px solid #E2E8F0", borderRadius: 10, marginBottom: 14 }}>
+            <Icon name="Globe" size={14} style={{ color: "#94A3B8", flexShrink: 0 }} />
+            <span style={{ fontSize: 12, color: "#64748B" }}>Ссылка на сайт сохранена. Запустить анализ можно в разделе <strong>Маркетинг → SEO-оптимизатор</strong>.</span>
+          </div>
+        )}
+
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 12px" }}>
           <Field label="Instagram">
             <input style={inputStyle} value={form.social_instagram} onChange={e => f("social_instagram", e.target.value)} placeholder="@mysalon" />
