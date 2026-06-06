@@ -6,7 +6,6 @@ import urllib.parse
 import html
 import psycopg2
 import psycopg2.extras
-from openai import OpenAI
 
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "t_p84565078_code_expression_proj")
 ENERGY_MAIN = 50
@@ -135,10 +134,29 @@ def parse_html(body: str, url: str) -> dict:
         "canonical": canonical,
     }
 
-def analyze_with_ai(page_data: dict, salon_context: str, lang: str = "ru") -> dict:
-    """GPT-4o mini анализирует страницу и выдаёт развёрнутый отчёт."""
-    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+def call_ai(messages: list, max_tokens: int = 2500) -> str:
+    """Вызов ИИ через polza.ai (работает из любого региона)."""
+    api_key = os.environ.get("POLZA_AI_API_KEY", "")
+    if not api_key:
+        raise ValueError("POLZA_AI_API_KEY не задан")
+    payload = json.dumps({
+        "model": "openai/gpt-4o-mini",
+        "messages": messages,
+        "temperature": 0.3,
+        "max_tokens": max_tokens,
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        "https://polza.ai/api/v1/chat/completions",
+        data=payload,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+    return data["choices"][0]["message"]["content"].strip()
 
+def analyze_with_ai(page_data: dict, salon_context: str, lang: str = "ru") -> dict:
+    """GPT-4o mini через polza.ai анализирует страницу и выдаёт развёрнутый отчёт."""
     headings_str = ""
     for level, texts in page_data.get("headings", {}).items():
         headings_str += f"{level.upper()}: {' | '.join(texts[:5])}\n"
@@ -195,24 +213,17 @@ URL: {page_data['url']}
     "h1_suggestion": "<готовый вариант H1>"
   }},
   "content_analysis": {{
-    "cta_present": true/false,
+    "cta_present": true,
     "cta_recommendation": "<рекомендация по призыву к действию>",
-    "services_mentioned": true/false,
+    "services_mentioned": true,
     "services_recommendation": "<что добавить про услуги>",
-    "local_seo": true/false,
+    "local_seo": true,
     "local_seo_recommendation": "<рекомендация по локальному SEO>"
   }},
   "quick_wins": ["<быстрое улучшение 1>", "<быстрое улучшение 2>", "<быстрое улучшение 3>"]
 }}"""
 
-    resp = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
-        max_tokens=2500,
-        temperature=0.3,
-    )
-    raw = resp.choices[0].message.content.strip()
-    # Убираем markdown если есть
+    raw = call_ai([{"role": "system", "content": system}, {"role": "user", "content": prompt}])
     raw = re.sub(r"^```json\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw)
     return json.loads(raw)
