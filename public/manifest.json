@@ -11,27 +11,27 @@
   "scope": "/",
   "icons": [
     {
-      "src": "/icon-192.svg",
+      "src": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/pwa-icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.svg",
+      "src": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/pwa-icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-192.svg",
+      "src": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/pwa-icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-512.svg",
+      "src": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/pwa-icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
@@ -41,7 +41,7 @@
       "short_name": "Агент",
       "description": "Открыть ИИ-агента салона",
       "url": "/cabinet",
-      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+      "icons": [{ "src": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/pwa-icons/icon-192.png", "sizes": "192x192" }]
     }
   ],
   "categories": ["business", "productivity"],
