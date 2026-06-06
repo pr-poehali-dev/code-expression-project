@@ -1,9 +1,68 @@
+import { useState, useEffect } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { useEnergy } from "@/contexts/EnergyContext";
 import Icon from "@/components/ui/icon";
 import {
   Tab, NAV_ITEMS, ROLE_TABS, SALON_REQUIRED, ROLE_LABELS, TEAL_BRIGHT, ACCENT,
 } from "./LkDashboardTypes";
+
+// ── PWA install hook ───────────────────────────────────────────────────────────
+function usePWAInstall() {
+  const [prompt, setPrompt] = useState<Event | null>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      setIsInstalled(true);
+      return;
+    }
+    const handler = (e: Event) => { e.preventDefault(); setPrompt(e); };
+    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", () => setIsInstalled(true));
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const install = async () => {
+    if (!prompt) return;
+    const p = prompt as Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> };
+    p.prompt();
+    const { outcome } = await p.userChoice;
+    if (outcome === "accepted") setIsInstalled(true);
+    setPrompt(null);
+  };
+
+  return { canInstall: !!prompt && !isInstalled, isInstalled, install };
+}
+
+// ── Кнопка установки (десктоп — в сайдбар) ────────────────────────────────────
+function InstallButtonSidebar() {
+  const { canInstall, install } = usePWAInstall();
+  if (!canInstall) return null;
+  return (
+    <button onClick={install} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(45,212,191,0.3)", background: "rgba(45,212,191,0.08)", cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "background 0.2s" }}
+      onMouseEnter={e => (e.currentTarget.style.background = "rgba(45,212,191,0.15)")}
+      onMouseLeave={e => (e.currentTarget.style.background = "rgba(45,212,191,0.08)")}
+    >
+      <Icon name="MonitorDown" size={16} style={{ color: TEAL_BRIGHT, flexShrink: 0 }} />
+      <div style={{ flex: 1, textAlign: "left" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: TEAL_BRIGHT }}>Установить приложение</div>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Открывать без браузера</div>
+      </div>
+    </button>
+  );
+}
+
+// ── Кнопка установки (мобайл — компактная) ────────────────────────────────────
+function InstallButtonMobile() {
+  const { canInstall, install } = usePWAInstall();
+  if (!canInstall) return null;
+  return (
+    <button onClick={install} style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 8, border: "1.5px solid rgba(45,212,191,0.35)", background: "rgba(45,212,191,0.1)", cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}>
+      <Icon name="Download" size={13} style={{ color: TEAL_BRIGHT }} />
+      <span style={{ fontSize: 12, fontWeight: 700, color: TEAL_BRIGHT }}>Установить</span>
+    </button>
+  );
+}
 
 // ── Виджет баланса энергии ─────────────────────────────────────────────────────
 export function EnergyBadge({ onNav, sidebar }: { onNav: (t: Tab) => void; sidebar?: boolean }) {
@@ -118,12 +177,11 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
         })}
       </nav>
 
-      {/* Баланс энергии */}
-      {user?.salon_id && (
-        <div style={{ padding: "0 12px 10px" }}>
-          <EnergyBadge onNav={onNav} sidebar />
-        </div>
-      )}
+      {/* Баланс энергии + кнопка установки */}
+      <div style={{ padding: "0 12px 10px", display: "flex", flexDirection: "column", gap: 8 }}>
+        {user?.salon_id && <EnergyBadge onNav={onNav} sidebar />}
+        <InstallButtonSidebar />
+      </div>
 
       {/* Пользователь */}
       <div style={{ padding: "14px 24px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
@@ -166,6 +224,7 @@ export function LkMobileHeader({ hasSalonId, onNav, onLogout }: MobileHeaderProp
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {hasSalonId && <EnergyBadge onNav={onNav} />}
+        <InstallButtonMobile />
         <button onClick={onLogout} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1.5px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "rgba(255,255,255,0.6)", fontSize: 12, cursor: "pointer", padding: "5px 10px", fontFamily: "Montserrat, sans-serif" }}>
           <Icon name="LogOut" size={12} />
           Выйти
