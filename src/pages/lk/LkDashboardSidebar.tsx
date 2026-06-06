@@ -90,8 +90,35 @@ const INSTALL_INSTRUCTIONS: Record<string, { subtitle: string; steps: string[] }
 function InstallHowToModal({ platform, onClose }: { platform: string; onClose: () => void }) {
   const info = INSTALL_INSTRUCTIONS[platform] || INSTALL_INSTRUCTIONS["other"];
 
+  // Стрелка указывает туда, где находится меню браузера
+  const arrowPos = platform === "yandex"
+    ? { bottom: 90, right: 16, rotate: "150deg", label: "нажмите здесь" }   // нижняя панель Яндекса
+    : platform === "ios"
+    ? { bottom: 24, left: "50%", rotate: "180deg", label: "нажмите здесь" } // Safari — снизу по центру
+    : { top: 56, right: 16, rotate: "30deg", label: "нажмите здесь" };       // Chrome — правый верх
+
+  const isBottom = "bottom" in arrowPos && !("top" in arrowPos);
+
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 2000, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 2000, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
+
+      {/* Стрелка-указатель */}
+      <div style={{
+        position: "fixed",
+        ...(arrowPos.top !== undefined ? { top: arrowPos.top } : {}),
+        ...(arrowPos.bottom !== undefined ? { bottom: arrowPos.bottom } : {}),
+        ...(arrowPos.right !== undefined ? { right: arrowPos.right } : {}),
+        ...("left" in arrowPos ? { left: arrowPos.left, transform: "translateX(-50%)" } : {}),
+        display: "flex", flexDirection: isBottom ? "column-reverse" : "column",
+        alignItems: "center", gap: 6, zIndex: 2010, pointerEvents: "none",
+        animation: "arrow-bounce 1s ease-in-out infinite",
+      }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: "rgba(45,212,191,0.9)", padding: "4px 12px", borderRadius: 20, whiteSpace: "nowrap", letterSpacing: 0.3 }}>
+          {arrowPos.label}
+        </div>
+        <div style={{ transform: `rotate(${arrowPos.rotate})`, fontSize: 28, lineHeight: 1 }}>⬆</div>
+      </div>
+
       <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: "24px 24px calc(24px + env(safe-area-inset-bottom,0px))", width: "100%", maxWidth: 480, boxShadow: "0 -8px 40px rgba(0,0,0,0.2)" }}>
         <div style={{ width: 40, height: 4, borderRadius: 2, background: "#e0e0e0", margin: "0 auto 20px" }} />
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
@@ -119,6 +146,7 @@ function InstallHowToModal({ platform, onClose }: { platform: string; onClose: (
           Понятно
         </button>
       </div>
+      <style>{`@keyframes arrow-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }`}</style>
     </div>
   );
 }
