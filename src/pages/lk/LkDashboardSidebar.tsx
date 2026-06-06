@@ -72,7 +72,7 @@ const INSTALL_INSTRUCTIONS: Record<string, { subtitle: string; steps: string[] }
   "android-chrome": {
     subtitle: "Google Chrome на Android",
     steps: [
-      'Нажмите три точки (⋮) вверху справа — они видны прямо сейчас за этой шторкой',
+      'Нажмите три точки (⋮)',
       'Выберите «Добавить на главный экран» или «Установить приложение»',
       'Нажмите «Добавить» — иконка появится на рабочем столе',
     ],
