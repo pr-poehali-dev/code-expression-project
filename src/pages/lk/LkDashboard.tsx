@@ -29,11 +29,13 @@ export default function LkDashboard() {
   const getInitialTab = (): Tab => {
     if (role === "owner" && !hasSalon) return "salon";
     const saved = sessionStorage.getItem("lk_tab") as Tab | null;
-    const needsSalon: Tab[] = ["ai", "shop", "employees"];
+    const needsSalon: Tab[] = ["ai", "shop", "employees", "agent"];
     if (saved && allowedTabs.includes(saved)) {
       if (needsSalon.includes(saved) && !hasSalon) return "salon";
       return saved;
     }
+    // Для владельца и администратора открываем ИИ-Агента первым
+    if ((role === "owner" || role === "admin") && hasSalon) return "agent";
     return "home";
   };
 
