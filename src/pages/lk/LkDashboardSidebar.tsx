@@ -12,11 +12,12 @@ function isStandalone() {
     || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 }
 
-function detectPlatform(): "ios" | "android-chrome" | "desktop-chrome" | "other" {
+function detectPlatform(): "ios" | "yandex" | "android-chrome" | "desktop-chrome" | "other" {
   const ua = navigator.userAgent;
   if (/iPhone|iPad|iPod/i.test(ua)) return "ios";
-  if (/Android/i.test(ua) && /Chrome\/(?!.*YaBrowser|.*OPR|.*Edg)/i.test(ua)) return "android-chrome";
-  if (!/Mobi/i.test(ua) && /Chrome\/(?!.*YaBrowser|.*OPR|.*Edg)/i.test(ua)) return "desktop-chrome";
+  if (/YaBrowser/i.test(ua)) return "yandex";
+  if (/Android/i.test(ua) && /Chrome\//i.test(ua)) return "android-chrome";
+  if (!/Mobi/i.test(ua) && /Chrome\//i.test(ua)) return "desktop-chrome";
   return "other";
 }
 
@@ -51,19 +52,43 @@ function usePWAInstall() {
 }
 
 // ── Модалка с инструкцией ──────────────────────────────────────────────────────
+const INSTALL_INSTRUCTIONS: Record<string, { subtitle: string; steps: string[] }> = {
+  ios: {
+    subtitle: "Safari на iPhone / iPad",
+    steps: [
+      'Нажмите кнопку «Поделиться» внизу браузера Safari — значок квадрата со стрелкой вверх',
+      'Прокрутите список и выберите «На экран «Домой»»',
+      'Нажмите «Добавить» — иконка появится на главном экране',
+    ],
+  },
+  yandex: {
+    subtitle: "Яндекс Браузер",
+    steps: [
+      'Нажмите на три точки (⋮) или значок «Ещё» в нижней панели браузера',
+      'Выберите «Добавить на главный экран»',
+      'Нажмите «Добавить» — иконка «Про Диалог» появится на рабочем столе',
+    ],
+  },
+  "android-chrome": {
+    subtitle: "Google Chrome на Android",
+    steps: [
+      'Нажмите три точки (⋮) в правом верхнем углу браузера',
+      'Выберите «Добавить на главный экран» или «Установить приложение»',
+      'Нажмите «Добавить» — иконка появится на рабочем столе',
+    ],
+  },
+  other: {
+    subtitle: "Мобильный браузер",
+    steps: [
+      'Откройте меню браузера (три точки или значок настроек)',
+      'Найдите пункт «Добавить на главный экран» или «Установить»',
+      'Подтвердите — иконка «Про Диалог» появится на рабочем столе',
+    ],
+  },
+};
+
 function InstallHowToModal({ platform, onClose }: { platform: string; onClose: () => void }) {
-  const isIos = platform === "ios";
-  const steps = isIos
-    ? [
-        { icon: "Share2",       text: 'Нажмите кнопку «Поделиться» в браузере Safari (квадрат со стрелкой вверх)' },
-        { icon: "Scroll",       text: 'Прокрутите список вниз и выберите «На экран «Домой»»' },
-        { icon: "CheckCircle2", text: 'Нажмите «Добавить» — иконка появится на главном экране' },
-      ]
-    : [
-        { icon: "Chrome",       text: 'Откройте этот сайт в браузере Chrome (скачайте, если нет)' },
-        { icon: "MoreVertical", text: 'Нажмите три точки (⋮) в правом верхнем углу' },
-        { icon: "MonitorDown",  text: 'Выберите «Установить приложение» или «Добавить на главный экран»' },
-      ];
+  const info = INSTALL_INSTRUCTIONS[platform] || INSTALL_INSTRUCTIONS["other"];
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 2000, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
@@ -75,29 +100,22 @@ function InstallHowToModal({ platform, onClose }: { platform: string; onClose: (
           </div>
           <div>
             <div style={{ fontSize: 17, fontWeight: 800, color: "#0F172A" }}>Установить приложение</div>
-            <div style={{ fontSize: 12, color: "#94A3B8" }}>{isIos ? "Safari на iPhone / iPad" : "Android — браузер Chrome"}</div>
+            <div style={{ fontSize: 12, color: "#94A3B8" }}>{info.subtitle}</div>
           </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 24 }}>
-          {steps.map((s, i) => (
+          {info.steps.map((text, i) => (
             <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
               <div style={{ width: 34, height: 34, borderRadius: 10, background: "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <span style={{ fontSize: 13, fontWeight: 800, color: "#2DD4BF" }}>{i + 1}</span>
               </div>
-              <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.5, paddingTop: 7 }}>{s.text}</div>
+              <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.5, paddingTop: 7 }}>{text}</div>
             </div>
           ))}
         </div>
 
-        {!isIos && (
-          <a href="https://play.google.com/store/apps/details?id=com.android.chrome" target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 0", borderRadius: 14, background: "#0F172A", color: "#fff", fontSize: 14, fontWeight: 700, textDecoration: "none", marginBottom: 10, fontFamily: "Montserrat,sans-serif" }}>
-            <Icon name="Download" size={16} />
-            Скачать Chrome
-          </a>
-        )}
-
-        <button onClick={onClose} style={{ width: "100%", padding: "12px 0", borderRadius: 14, border: "1.5px solid #E2E8F0", background: "#fff", fontSize: 14, fontWeight: 600, color: "#64748B", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+        <button onClick={onClose} style={{ width: "100%", padding: "13px 0", borderRadius: 14, border: "none", background: "#0F172A", fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
           Понятно
         </button>
       </div>
