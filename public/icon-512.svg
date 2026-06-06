@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2DD4BF"/>
+      <stop offset="1" stop-color="#0D9488"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2DD4BF" stop-opacity="0.15"/>
+      <stop offset="1" stop-color="#0D9488" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+  <!-- Фон с закруглёнными углами -->
+  <rect width="512" height="512" rx="112" fill="#0F172A"/>
+  <!-- Декоративное кольцо -->
+  <circle cx="256" cy="256" r="192" stroke="url(#g1)" stroke-width="6" fill="url(#g2)" stroke-opacity="0.6"/>
+  <!-- Буква П -->
+  <text x="256" y="348" font-family="Georgia, 'Times New Roman', serif" font-size="240" font-weight="600" fill="url(#g1)" text-anchor="middle">П</text>
+</svg>

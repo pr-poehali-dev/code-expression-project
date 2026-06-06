@@ -6,6 +6,6 @@
     </linearGradient>
   </defs>
   <rect width="48" height="48" rx="11" fill="#0F172A"/>
-  <circle cx="24" cy="24" r="18" stroke="url(#g)" stroke-width="1.5" fill="none"/>
+  <circle cx="24" cy="24" r="18" stroke="url(#g)" stroke-width="1.5" fill="none" stroke-opacity="0.6"/>
   <text x="24" y="33" font-family="Georgia, serif" font-size="24" font-weight="600" fill="url(#g)" text-anchor="middle">П</text>
 </svg>
