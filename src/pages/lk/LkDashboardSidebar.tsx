@@ -30,6 +30,13 @@ function usePWAInstall() {
 
   useEffect(() => {
     if (installed) return;
+    // Chrome поддерживает getInstalledRelatedApps — проверяем реальную установку
+    const nav = navigator as Navigator & { getInstalledRelatedApps?: () => Promise<unknown[]> };
+    if (nav.getInstalledRelatedApps) {
+      nav.getInstalledRelatedApps().then(apps => {
+        if (apps.length > 0) { localStorage.setItem("pwa_installed", "1"); setInstalled(true); }
+      });
+    }
     const handler = (e: Event) => { e.preventDefault(); setPrompt(e); };
     const onInstalled = () => { localStorage.setItem("pwa_installed", "1"); setInstalled(true); };
     window.addEventListener("beforeinstallprompt", handler);
