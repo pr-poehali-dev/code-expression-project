@@ -6,19 +6,30 @@ import {
   Tab, NAV_ITEMS, ROLE_TABS, SALON_REQUIRED, ROLE_LABELS, TEAL_BRIGHT, ACCENT,
 } from "./LkDashboardTypes";
 
+// ── PWA helpers ───────────────────────────────────────────────────────────────
+function isStandalone() {
+  return window.matchMedia("(display-mode: standalone)").matches
+    || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+}
+
+function detectPlatform(): "ios" | "android-chrome" | "desktop-chrome" | "other" {
+  const ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/i.test(ua)) return "ios";
+  if (/Android/i.test(ua) && /Chrome\/(?!.*YaBrowser|.*OPR|.*Edg)/i.test(ua)) return "android-chrome";
+  if (!/Mobi/i.test(ua) && /Chrome\/(?!.*YaBrowser|.*OPR|.*Edg)/i.test(ua)) return "desktop-chrome";
+  return "other";
+}
+
 // ── PWA install hook ───────────────────────────────────────────────────────────
 function usePWAInstall() {
   const [prompt, setPrompt] = useState<Event | null>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [installed, setInstalled] = useState(false);
 
   useEffect(() => {
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setIsInstalled(true);
-      return;
-    }
+    if (isStandalone()) { setInstalled(true); return; }
     const handler = (e: Event) => { e.preventDefault(); setPrompt(e); };
     window.addEventListener("beforeinstallprompt", handler);
-    window.addEventListener("appinstalled", () => setIsInstalled(true));
+    window.addEventListener("appinstalled", () => setInstalled(true));
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
@@ -27,17 +38,77 @@ function usePWAInstall() {
     const p = prompt as Event & { prompt: () => void; userChoice: Promise<{ outcome: string }> };
     p.prompt();
     const { outcome } = await p.userChoice;
-    if (outcome === "accepted") setIsInstalled(true);
+    if (outcome === "accepted") setInstalled(true);
     setPrompt(null);
   };
 
-  return { canInstall: !!prompt && !isInstalled, isInstalled, install };
+  const platform = detectPlatform();
+  const canNativeInstall = !!prompt && !installed;
+  // Показываем инструкцию для iOS и для браузеров без beforeinstallprompt (Яндекс, Firefox и тд)
+  const canManualInstall = !installed && !canNativeInstall && platform !== "desktop-chrome";
+
+  return { canNativeInstall, canManualInstall, platform, install };
 }
 
-// ── Кнопка установки (десктоп — в сайдбар) ────────────────────────────────────
+// ── Модалка с инструкцией ──────────────────────────────────────────────────────
+function InstallHowToModal({ platform, onClose }: { platform: string; onClose: () => void }) {
+  const isIos = platform === "ios";
+  const steps = isIos
+    ? [
+        { icon: "Share2",       text: 'Нажмите кнопку «Поделиться» в браузере Safari (квадрат со стрелкой вверх)' },
+        { icon: "Scroll",       text: 'Прокрутите список вниз и выберите «На экран «Домой»»' },
+        { icon: "CheckCircle2", text: 'Нажмите «Добавить» — иконка появится на главном экране' },
+      ]
+    : [
+        { icon: "Chrome",       text: 'Откройте этот сайт в браузере Chrome (скачайте, если нет)' },
+        { icon: "MoreVertical", text: 'Нажмите три точки (⋮) в правом верхнем углу' },
+        { icon: "MonitorDown",  text: 'Выберите «Установить приложение» или «Добавить на главный экран»' },
+      ];
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 2000, display: "flex", alignItems: "flex-end", justifyContent: "center" }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: "24px 24px calc(24px + env(safe-area-inset-bottom,0px))", width: "100%", maxWidth: 480, boxShadow: "0 -8px 40px rgba(0,0,0,0.2)" }}>
+        <div style={{ width: 40, height: 4, borderRadius: 2, background: "#e0e0e0", margin: "0 auto 20px" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="Smartphone" size={22} style={{ color: "#0F172A" }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "#0F172A" }}>Установить приложение</div>
+            <div style={{ fontSize: 12, color: "#94A3B8" }}>{isIos ? "Safari на iPhone / iPad" : "Android — браузер Chrome"}</div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 24 }}>
+          {steps.map((s, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 800, color: "#2DD4BF" }}>{i + 1}</span>
+              </div>
+              <div style={{ fontSize: 14, color: "#374151", lineHeight: 1.5, paddingTop: 7 }}>{s.text}</div>
+            </div>
+          ))}
+        </div>
+
+        {!isIos && (
+          <a href="https://play.google.com/store/apps/details?id=com.android.chrome" target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 0", borderRadius: 14, background: "#0F172A", color: "#fff", fontSize: 14, fontWeight: 700, textDecoration: "none", marginBottom: 10, fontFamily: "Montserrat,sans-serif" }}>
+            <Icon name="Download" size={16} />
+            Скачать Chrome
+          </a>
+        )}
+
+        <button onClick={onClose} style={{ width: "100%", padding: "12px 0", borderRadius: 14, border: "1.5px solid #E2E8F0", background: "#fff", fontSize: 14, fontWeight: 600, color: "#64748B", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+          Понятно
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Кнопка установки (сайдбар десктоп) ───────────────────────────────────────
 function InstallButtonSidebar() {
-  const { canInstall, install } = usePWAInstall();
-  if (!canInstall) return null;
+  const { canNativeInstall, install } = usePWAInstall();
+  if (!canNativeInstall) return null;
   return (
     <button onClick={install} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: "1px solid rgba(45,212,191,0.3)", background: "rgba(45,212,191,0.08)", cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "background 0.2s" }}
       onMouseEnter={e => (e.currentTarget.style.background = "rgba(45,212,191,0.15)")}
@@ -52,15 +123,24 @@ function InstallButtonSidebar() {
   );
 }
 
-// ── Кнопка установки (мобайл — компактная) ────────────────────────────────────
+// ── Кнопка установки (мобайл — компактная) ───────────────────────────────────
 function InstallButtonMobile() {
-  const { canInstall, install } = usePWAInstall();
-  if (!canInstall) return null;
+  const { canNativeInstall, canManualInstall, platform, install } = usePWAInstall();
+  const [showModal, setShowModal] = useState(false);
+
+  if (!canNativeInstall && !canManualInstall) return null;
+
   return (
-    <button onClick={install} style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 8, border: "1.5px solid rgba(45,212,191,0.35)", background: "rgba(45,212,191,0.1)", cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}>
-      <Icon name="Download" size={13} style={{ color: TEAL_BRIGHT }} />
-      <span style={{ fontSize: 12, fontWeight: 700, color: TEAL_BRIGHT }}>Установить</span>
-    </button>
+    <>
+      <button
+        onClick={canNativeInstall ? install : () => setShowModal(true)}
+        style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 8, border: "1.5px solid rgba(45,212,191,0.35)", background: "rgba(45,212,191,0.1)", cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}
+      >
+        <Icon name="Download" size={13} style={{ color: TEAL_BRIGHT }} />
+        <span style={{ fontSize: 12, fontWeight: 700, color: TEAL_BRIGHT }}>Установить</span>
+      </button>
+      {showModal && <InstallHowToModal platform={platform} onClose={() => setShowModal(false)} />}
+    </>
   );
 }
 
