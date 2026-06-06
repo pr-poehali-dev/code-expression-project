@@ -6,11 +6,11 @@ export const BG = "#F4F6F8";
 export type Tab =
   | "home" | "tools" | "academy" | "ai" | "shop"
   | "employees" | "purchases" | "profile" | "salon"
-  | "admin" | "support" | "more" | "clientmsg" | "marketing";
+  | "admin" | "support" | "more" | "clientmsg" | "marketing" | "agent";
 
 export const ROLE_TABS: Record<string, Tab[]> = {
-  owner:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "shop", "employees", "purchases", "salon", "profile", "support"],
-  admin:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "profile", "support"],
+  owner:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "agent", "shop", "employees", "purchases", "salon", "profile", "support"],
+  admin:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "agent", "profile", "support"],
   master:         ["home", "tools", "academy", "ai", "profile", "support"],
   body_specialist:["home", "tools", "academy", "ai", "profile", "support"],
 };
@@ -23,14 +23,15 @@ export function getAllowedTabs(role: string, isAdmin: boolean): Tab[] {
 }
 
 export const MOBILE_PRIMARY: Record<string, Tab[]> = {
-  owner:          ["home", "ai", "employees", "salon"],
-  admin:          ["home", "tools", "ai", "profile"],
+  owner:          ["home", "agent", "ai", "employees"],
+  admin:          ["home", "agent", "ai", "profile"],
   master:         ["home", "tools", "ai", "profile"],
   body_specialist:["home", "tools", "ai", "profile"],
 };
 
 export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string }[] = [
   { id: "home",      icon: "Home",           label: "Главная"             },
+  { id: "agent",     icon: "BotMessageSquare", label: "ИИ-Агент",         badge: "new" },
   { id: "marketing", icon: "BarChart3",      label: "Маркетинг",          badge: "new" },
   { id: "ai",        icon: "Sparkles",       label: "Развитие салона",    badge: "new" },
   { id: "clientmsg", icon: "MessageSquare",  label: "Сообщения клиентам", badge: "new" },
@@ -45,7 +46,7 @@ export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string }
   { id: "admin",     icon: "Settings",       label: "Админка"             },
 ];
 
-export const SALON_REQUIRED: Tab[] = ["tools", "ai", "shop", "employees", "purchases", "marketing"];
+export const SALON_REQUIRED: Tab[] = ["tools", "ai", "shop", "employees", "purchases", "marketing", "agent"];
 
 export const ROLE_LABELS: Record<string, string> = {
   owner: "Владелец",

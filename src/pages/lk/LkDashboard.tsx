@@ -12,6 +12,7 @@ import LkSupport from "./LkSupport";
 import LkAcademy from "./LkAcademy";
 import LkClientMsg from "./LkClientMsg";
 import LkMarketing from "./LkMarketing";
+import SalonAIAgent from "./SalonAIAgent";
 import { HomeTab } from "./LkDashboardHomeTab";
 import { LkSidebar, LkMobileHeader, LkBottomBar } from "./LkDashboardSidebar";
 import {
@@ -90,6 +91,7 @@ export default function LkDashboard() {
         {tab === "tools"     && <LkTests onNavigate={handleTabChange} />}
         {tab === "academy"   && <LkAcademy onNavigate={handleTabChange} />}
         {tab === "ai"        && <LkAiTools />}
+        {tab === "agent"      && <SalonAIAgent />}
         {tab === "clientmsg"  && <LkClientMsg />}
         {tab === "marketing"  && <LkMarketing />}
         {tab === "shop"       && <LkEnergy />}

@@ -1,0 +1,10 @@
+{
+  "tests": [
+    {
+      "name": "No session returns 401",
+      "method": "GET",
+      "path": "/?agent_role=business",
+      "expectedStatus": 401
+    }
+  ]
+}
