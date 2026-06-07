@@ -195,7 +195,8 @@ def deep_analyze(page_data: dict) -> dict:
     schema_str = ", ".join(page_data.get("schema_types", [])) or "не найдено"
 
     system = """Ты — эксперт-сеошник с 10+ лет опыта. Анализируешь любые сайты — не только салоны.
-Давай максимально конкретные, технически грамотные рекомендации с примерами готовых текстов.
+ВАЖНО: в каждом поле suggestion/example/fix пиши ПОЛНЫЙ готовый код или текст, который можно скопировать и вставить без доработки.
+Для мета-тегов — полный HTML-тег. Для h1 — полный тег с текстом. Для canonical — полный тег. Никаких шаблонных заглушек вроде "[название]" или "[текст]" — только конкретный финальный вариант на основе анализа сайта.
 Отвечай ТОЛЬКО валидным JSON без markdown-блоков и лишних символов."""
 
     prompt = f"""Выполни глубокий SEO-аудит страницы.
@@ -242,17 +243,17 @@ Charset: {'✓' if page_data['has_charset'] else '❌ отсутствует'}
   "grade": "<A|B|C|D|F>",
   "summary": "<3-4 предложения общего вывода с главными проблемами и потенциалом>",
   "critical": [
-    {{"issue": "<критическая проблема>", "impact": "<влияние на SEO>", "fix": "<конкретное решение>", "example": "<готовый пример текста или кода>"}}
+    {{"issue": "<критическая проблема>", "impact": "<влияние на SEO>", "fix": "<конкретное решение>", "example": "<ПОЛНЫЙ готовый HTML-тег или текст для вставки — конкретный, без заглушек>"}}
   ],
   "improvements": [
-    {{"area": "<область>", "current": "<что сейчас>", "better": "<как должно быть>", "example": "<готовый пример>", "priority": "high|medium|low"}}
+    {{"area": "<область>", "current": "<что сейчас есть>", "better": "<как должно быть>", "example": "<ПОЛНЫЙ готовый HTML-тег или конкретный текст для вставки без доработки>", "priority": "high|medium|low"}}
   ],
   "meta_audit": {{
-    "title": {{"status": "good|warn|bad", "issue": "<проблема>", "suggestion": "<готовый вариант title>"}},
-    "description": {{"status": "good|warn|bad", "issue": "<проблема>", "suggestion": "<готовый вариант description>"}},
-    "h1": {{"status": "good|warn|bad", "issue": "<проблема>", "suggestion": "<готовый вариант H1>"}},
-    "canonical": {{"status": "good|warn|bad", "issue": "<проблема или ок>"}},
-    "og": {{"status": "good|warn|bad", "issue": "<проблема или ок>"}}
+    "title": {{"status": "good|warn|bad", "issue": "<проблема>", "suggestion": "<ПОЛНЫЙ HTML-тег, например: <title>Про Диалог — Платформа роста салонов красоты</title>. Конкретный текст, никаких заглушек.>"}},
+    "description": {{"status": "good|warn|bad", "issue": "<проблема>", "suggestion": "<ПОЛНЫЙ HTML-тег, например: <meta name='description' content='...'> — конкретный текст 120-160 симв., подобранный по контенту страницы>"}},
+    "h1": {{"status": "good|warn|bad", "issue": "<проблема>", "suggestion": "<ПОЛНЫЙ тег h1, например: <h1>Про Диалог — Платформа роста салона</h1> — конкретный текст>"}},
+    "canonical": {{"status": "good|warn|bad", "issue": "<проблема или ок>", "suggestion": "<ПОЛНЫЙ HTML-тег canonical если отсутствует, например: <link rel='canonical' href='https://example.com/'>"}},
+    "og": {{"status": "good|warn|bad", "issue": "<проблема или ок>", "suggestion": "<ПОЛНЫЕ HTML-теги OG которых не хватает, каждый с реальными значениями>"}}
   }},
   "content_audit": {{
     "word_count_status": "good|warn|bad",
