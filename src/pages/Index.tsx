@@ -57,7 +57,7 @@ export default function Index() {
             </div>
 
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
-              Бизнес начинается<br />с диалога
+              Про Диалог — Платформа роста салона
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 40px", fontWeight: 300, maxWidth: 520 }}>
 Платформа помогает салонам красоты расти через сильную команду, качественный сервис и эффективную коммуникацию с клиентами. В одном месте вы получаете обучение сотрудников, бизнес-аналитику и ИИ-инструменты для маркетинга, продаж и управления салоном.
