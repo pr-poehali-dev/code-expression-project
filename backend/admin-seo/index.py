@@ -49,8 +49,8 @@ def parse_html(body: str, url: str) -> dict:
 
     def get_all_meta(name, body):
         patterns = [
-            rf'<meta[^>]+name=["\'{name}["\'][^>]+content=["\'](.*?)["\']',
-            rf'<meta[^>]+content=["\'](.*?)["\'][^>]+name=["\'{name}["\']',
+            rf'<meta[^>]+name=["\']' + re.escape(name) + r'["\'][^>]+content=["\'](.*?)["\']',
+            rf'<meta[^>]+content=["\'](.*?)["\'][^>]+name=["\']' + re.escape(name) + r'["\']',
         ]
         for p in patterns:
             m = re.search(p, body, re.IGNORECASE)
