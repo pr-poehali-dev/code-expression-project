@@ -12,23 +12,22 @@ export interface SeoReport {
   critical: { issue: string; recommendation: string; example: string }[];
   improvements: { area: string; current: string; better: string; example: string }[];
   meta: {
-    title_status: "good" | "warn" | "bad";
-    title_issue: string;
-    title_suggestion: string;
-    description_status: "good" | "warn" | "bad";
-    description_issue: string;
-    description_suggestion: string;
-    h1_status: "good" | "warn" | "bad";
-    h1_issue: string;
-    h1_suggestion: string;
+    title_status: "good" | "warn" | "bad"; title_issue: string; title_suggestion: string;
+    description_status: "good" | "warn" | "bad"; description_issue: string; description_suggestion: string;
+    h1_status: "good" | "warn" | "bad"; h1_issue: string; h1_suggestion: string;
+    canonical_status?: "good" | "warn" | "bad"; canonical_issue?: string; canonical_suggestion?: string;
+    og_status?: "good" | "warn" | "bad"; og_issue?: string; og_suggestion?: string;
+    twitter_status?: "good" | "warn" | "bad"; twitter_issue?: string; twitter_suggestion?: string;
+    schema_status?: "good" | "warn" | "bad"; schema_issue?: string; schema_jsonld?: string;
   };
   content_analysis: {
-    cta_present: boolean;
-    cta_recommendation: string;
-    services_mentioned: boolean;
-    services_recommendation: string;
-    local_seo: boolean;
-    local_seo_recommendation: string;
+    word_count_status?: string; word_count_comment?: string;
+    cta_present: boolean; cta_recommendation: string;
+    services_mentioned: boolean; services_recommendation: string;
+    local_seo: boolean; local_seo_recommendation: string;
+  };
+  keyword_suggestions?: {
+    primary: string[]; secondary: string[]; long_tail: string[]; comment: string;
   };
   quick_wins: string[];
 }
@@ -37,15 +36,20 @@ export interface AnalysisResult {
   analysis_id: number;
   url: string;
   page_data: {
-    title: string;
-    description: string;
-    keywords: string;
+    title: string; title_len: number;
+    description: string; desc_len: number;
+    keywords: string; robots_meta: string;
+    og_title: string; og_description: string; og_image: string; og_type: string; og_url: string;
+    twitter_card: string; twitter_title: string;
     headings: Record<string, string[]>;
-    internal_links: number;
-    external_links: number;
-    images_count: number;
-    images_no_alt: number;
+    schema_types: string[]; schema_raw: string;
     canonical: string;
+    internal_links: number; external_links: number; nofollow_links: number;
+    images_count: number; images_no_alt: number; images_lazy: number;
+    word_count: number;
+    has_viewport: boolean; has_favicon: boolean;
+    http_status?: number; load_time_ms?: number; page_size_kb?: number;
+    robots_exists?: boolean; sitemap_url?: string;
   };
   report: SeoReport;
   score: number;

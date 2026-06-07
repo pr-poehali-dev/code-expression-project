@@ -51,42 +51,119 @@ def deduct(conn, salon_id, user_id, amount, action):
     )
 
 def fetch_page(url: str) -> dict:
-    """Загружает HTML страницы и извлекает SEO-данные."""
+    """Загружает HTML страницы, замеряет скорость и извлекает SEO-данные."""
+    import time
     if not url.startswith("http"):
         url = "https://" + url
     req = urllib.request.Request(url, headers={
-        "User-Agent": "Mozilla/5.0 (compatible; ProDialogSEOBot/1.0)",
-        "Accept": "text/html,application/xhtml+xml",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
+        "Accept-Encoding": "identity",
     })
+    t0 = time.time()
     response = urllib.request.urlopen(req, timeout=15)
     raw = response.read()
-    # Определяем кодировку
+    load_time_ms = int((time.time() - t0) * 1000)
+    page_size_kb = round(len(raw) / 1024, 1)
+    http_status = response.status
     content_type = response.headers.get("Content-Type", "")
     charset = "utf-8"
     if "charset=" in content_type:
-        charset = content_type.split("charset=")[-1].strip()
+        charset = content_type.split("charset=")[-1].strip().split(";")[0].strip()
     try:
         body = raw.decode(charset, errors="replace")
     except Exception:
         body = raw.decode("utf-8", errors="replace")
-    return parse_html(body, url)
+
+    # Проверяем robots.txt и sitemap
+    parsed = urllib.parse.urlparse(url)
+    base = f"{parsed.scheme}://{parsed.netloc}"
+    robots_exists = False
+    sitemap_url = ""
+    try:
+        rb = urllib.request.urlopen(
+            urllib.request.Request(f"{base}/robots.txt", headers={"User-Agent": "Mozilla/5.0"}), timeout=5
+        )
+        rb_text = rb.read().decode("utf-8", errors="replace")
+        robots_exists = True
+        m = re.search(r"Sitemap:\s*(\S+)", rb_text, re.IGNORECASE)
+        if m:
+            sitemap_url = m.group(1).strip()
+    except Exception:
+        pass
+    if not sitemap_url:
+        for sm in [f"{base}/sitemap.xml", f"{base}/sitemap_index.xml"]:
+            try:
+                sr = urllib.request.urlopen(
+                    urllib.request.Request(sm, headers={"User-Agent": "Mozilla/5.0"}), timeout=4
+                )
+                if sr.status == 200:
+                    sitemap_url = sm
+                    break
+            except Exception:
+                pass
+
+    page_data = parse_html(body, url)
+    page_data.update({
+        "http_status": http_status,
+        "load_time_ms": load_time_ms,
+        "page_size_kb": page_size_kb,
+        "robots_exists": robots_exists,
+        "sitemap_url": sitemap_url,
+    })
+    return page_data
 
 def parse_html(body: str, url: str) -> dict:
     """Извлекает SEO-метаданные и текст из HTML."""
+    def get_meta(name, body):
+        for p in [
+            rf'<meta[^>]+name=["\']' + re.escape(name) + r'["\'][^>]+content=["\'](.*?)["\']',
+            rf'<meta[^>]+content=["\'](.*?)["\'][^>]+name=["\']' + re.escape(name) + r'["\']',
+        ]:
+            m = re.search(p, body, re.IGNORECASE)
+            if m: return html.unescape(m.group(1).strip())
+        return ""
+
+    def get_og(prop, body):
+        for p in [
+            rf'<meta[^>]+property=["\']og:{re.escape(prop)}["\'][^>]+content=["\'](.*?)["\']',
+            rf'<meta[^>]+content=["\'](.*?)["\'][^>]+property=["\']og:{re.escape(prop)}["\']',
+        ]:
+            m = re.search(p, body, re.IGNORECASE)
+            if m: return html.unescape(m.group(1).strip())
+        return ""
+
+    def get_twitter(prop, body):
+        for p in [
+            rf'<meta[^>]+name=["\']twitter:{re.escape(prop)}["\'][^>]+content=["\'](.*?)["\']',
+            rf'<meta[^>]+content=["\'](.*?)["\'][^>]+name=["\']twitter:{re.escape(prop)}["\']',
+            rf'<meta[^>]+property=["\']twitter:{re.escape(prop)}["\'][^>]+content=["\'](.*?)["\']',
+        ]:
+            m = re.search(p, body, re.IGNORECASE)
+            if m: return html.unescape(m.group(1).strip())
+        return ""
+
     def get_tag(pattern, text):
         m = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
         return html.unescape(m.group(1).strip()) if m else ""
 
     title = get_tag(r"<title[^>]*>(.*?)</title>", body)
-    description = get_tag(r'<meta[^>]+name=["\']description["\'][^>]+content=["\'](.*?)["\']', body)
-    if not description:
-        description = get_tag(r'<meta[^>]+content=["\'](.*?)["\'][^>]+name=["\']description["\']', body)
-    keywords = get_tag(r'<meta[^>]+name=["\']keywords["\'][^>]+content=["\'](.*?)["\']', body)
-    if not keywords:
-        keywords = get_tag(r'<meta[^>]+content=["\'](.*?)["\'][^>]+name=["\']keywords["\']', body)
-    og_title = get_tag(r'<meta[^>]+property=["\']og:title["\'][^>]+content=["\'](.*?)["\']', body)
-    og_description = get_tag(r'<meta[^>]+property=["\']og:description["\'][^>]+content=["\'](.*?)["\']', body)
+    description = get_meta("description", body)
+    keywords = get_meta("keywords", body)
+    robots_meta = get_meta("robots", body)
+    og_title = get_og("title", body)
+    og_description = get_og("description", body)
+    og_image = get_og("image", body)
+    og_type = get_og("type", body)
+    og_url = get_og("url", body)
+    twitter_card = get_twitter("card", body)
+    twitter_title = get_twitter("title", body)
+
+    # Canonical
+    canonical = get_tag(r'<link[^>]+rel=["\']canonical["\'][^>]+href=["\'](.*?)["\']', body)
+    if not canonical:
+        canonical = get_tag(r'<link[^>]+href=["\'](.*?)["\'][^>]+rel=["\']canonical["\']', body)
 
     # Заголовки
     headings = {}
@@ -97,41 +174,81 @@ def parse_html(body: str, url: str) -> dict:
         if clean:
             headings[f"h{level}"] = clean
 
-    # Извлекаем основной текст (убираем скрипты, стили, теги)
+    # Schema.org
+    schema_blocks = re.findall(r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', body, re.IGNORECASE | re.DOTALL)
+    schema_types = []
+    schema_raw = ""
+    for blk in schema_blocks:
+        try:
+            obj = json.loads(blk.strip())
+            t = obj.get("@type") if isinstance(obj, dict) else None
+            if t: schema_types.append(t if isinstance(t, str) else str(t))
+            if not schema_raw: schema_raw = json.dumps(obj, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+
+    # Текст (без скриптов/стилей)
     text = re.sub(r"<script[^>]*>.*?</script>", " ", body, flags=re.DOTALL | re.IGNORECASE)
     text = re.sub(r"<style[^>]*>.*?</style>", " ", text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<nav[^>]*>.*?</nav>", " ", text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<footer[^>]*>.*?</footer>", " ", text, flags=re.DOTALL | re.IGNORECASE)
     text = re.sub(r"<[^>]+>", " ", text)
     text = html.unescape(text)
     text = re.sub(r"\s+", " ", text).strip()
-    text = text[:5000]  # Ограничиваем для GPT
+    word_count = len(text.split())
+    text = text[:3000]
 
-    # Ссылки (количество внутренних/внешних)
+    # Ссылки (с учётом rel=nofollow)
     domain = urllib.parse.urlparse(url).netloc
-    all_links = re.findall(r'href=["\']([^"\']+)["\']', body, re.IGNORECASE)
-    internal = [l for l in all_links if domain in l or l.startswith("/")]
-    external = [l for l in all_links if l.startswith("http") and domain not in l]
+    all_links_raw = re.findall(r'<a([^>]*)>', body, re.IGNORECASE)
+    internal, external, nofollow_count = [], [], 0
+    for attrs in all_links_raw:
+        href_m = re.search(r'href=["\']([^"\']+)["\']', attrs, re.IGNORECASE)
+        if not href_m: continue
+        href = href_m.group(1)
+        if "nofollow" in attrs.lower(): nofollow_count += 1
+        if domain in href or (href.startswith("/") and not href.startswith("//")):
+            internal.append(href)
+        elif href.startswith("http") and domain not in href:
+            external.append(href)
 
-    # Изображения без alt
-    images = re.findall(r"<img[^>]*>", body, re.IGNORECASE)
-    images_no_alt = [img for img in images if "alt=" not in img.lower() or 'alt=""' in img.lower() or "alt=''" in img.lower()]
+    # Изображения
+    images = re.findall(r"<img([^>]*)>", body, re.IGNORECASE)
+    images_no_alt = [img for img in images if "alt=" not in img.lower() or re.search(r'alt=["\'\s]*["\']', img)]
+    images_lazy = [img for img in images if "loading" in img.lower()]
 
-    # Canonical
-    canonical = get_tag(r'<link[^>]+rel=["\']canonical["\'][^>]+href=["\'](.*?)["\']', body)
+    has_viewport = bool(re.search(r'<meta[^>]+name=["\']viewport["\']', body, re.IGNORECASE))
+    has_favicon = bool(re.search(r'<link[^>]+rel=["\'][^"\']*icon[^"\']*["\']', body, re.IGNORECASE))
 
     return {
         "url": url,
         "title": title,
+        "title_len": len(title),
         "description": description,
+        "desc_len": len(description),
         "keywords": keywords,
+        "robots_meta": robots_meta,
         "og_title": og_title,
         "og_description": og_description,
+        "og_image": og_image,
+        "og_type": og_type,
+        "og_url": og_url,
+        "twitter_card": twitter_card,
+        "twitter_title": twitter_title,
+        "canonical": canonical,
         "headings": headings,
+        "schema_types": schema_types,
+        "schema_raw": schema_raw,
         "text_preview": text,
+        "word_count": word_count,
         "internal_links": len(internal),
         "external_links": len(external),
+        "nofollow_links": nofollow_count,
         "images_count": len(images),
         "images_no_alt": len(images_no_alt),
-        "canonical": canonical,
+        "images_lazy": len(images_lazy),
+        "has_viewport": has_viewport,
+        "has_favicon": has_favicon,
     }
 
 def call_ai(messages: list, max_tokens: int = 2500) -> str:
@@ -160,71 +277,59 @@ def analyze_with_ai(page_data: dict, salon_context: str, lang: str = "ru") -> di
     headings_str = ""
     for level, texts in page_data.get("headings", {}).items():
         headings_str += f"{level.upper()}: {' | '.join(texts[:5])}\n"
+    schema_str = ", ".join(page_data.get("schema_types", [])) or "не найдено"
+    domain = urllib.parse.urlparse(page_data["url"]).netloc
 
     system = f"""Ты — опытный SEO-специалист и маркетолог для салонов красоты.
-Анализируй страницу сайта салона и давай конкретные, применимые рекомендации.
-Язык ответа: {'русский' if lang == 'ru' else 'английский'}.
+КРИТИЧЕСКИ ВАЖНО: в каждом поле suggestion/example пиши ПОЛНЫЙ готовый HTML-тег или код для вставки без доработки.
+Никаких заглушек "[название]" — только конкретные варианты на основе контента страницы.
 Отвечай строго в JSON-формате без markdown-блоков.
 
 {salon_context}"""
 
-    prompt = f"""Проанализируй SEO и контент страницы сайта салона.
+    prompt = f"""Проанализируй SEO страницы сайта салона.
 
 URL: {page_data['url']}
+МЕТА: Title={page_data['title']!r}({page_data['title_len']}с) | Desc={page_data['description']!r}({page_data['desc_len']}с) | Keywords={page_data['keywords']!r} | Robots={page_data['robots_meta']!r}
+Canonical={page_data['canonical']!r} | OG Image={'есть' if page_data['og_image'] else 'НЕТ'} | OG URL={page_data['og_url']!r}
+Twitter: card={page_data['twitter_card']!r} | Schema.org: {schema_str}
+ЗАГОЛОВКИ: {headings_str.strip() or 'нет'}
+ТЕХНИКА: viewport={'✓' if page_data['has_viewport'] else '✗'} | favicon={'✓' if page_data['has_favicon'] else '✗'} | img={page_data['images_count']}(без alt:{page_data['images_no_alt']}) | links={page_data['internal_links']}int/{page_data['external_links']}ext(nofollow:{page_data['nofollow_links']})
+КОНТЕНТ: {page_data['word_count']} слов | {page_data['text_preview']}
 
-МЕТА-ДАННЫЕ:
-- Title: {page_data['title'] or '❌ Отсутствует'}
-- Description: {page_data['description'] or '❌ Отсутствует'}
-- Keywords: {page_data['keywords'] or '❌ Отсутствует'}
-- OG Title: {page_data['og_title'] or '❌ Отсутствует'}
-- OG Description: {page_data['og_description'] or '❌ Отсутствует'}
-- Canonical: {page_data['canonical'] or '❌ Отсутствует'}
-
-СТРУКТУРА ЗАГОЛОВКОВ:
-{headings_str or '❌ Заголовки не найдены'}
-
-ССЫЛКИ И ИЗОБРАЖЕНИЯ:
-- Внутренние ссылки: {page_data['internal_links']}
-- Внешние ссылки: {page_data['external_links']}
-- Изображений: {page_data['images_count']} (без alt: {page_data['images_no_alt']})
-
-ТЕКСТ СТРАНИЦЫ (первые 5000 символов):
-{page_data['text_preview']}
-
-Верни JSON следующей структуры:
+Верни JSON:
 {{
-  "score": <число от 0 до 100 — общая SEO-оценка>,
-  "summary": "<2-3 предложения общего вывода>",
-  "critical": [
-    {{"issue": "<проблема>", "recommendation": "<что сделать конкретно>", "example": "<пример готового текста или решения>"}}
-  ],
-  "improvements": [
-    {{"area": "<область>", "current": "<что сейчас>", "better": "<как улучшить>", "example": "<готовый пример>"}}
-  ],
+  "score": <0-100>,
+  "summary": "<2-3 предложения>",
+  "critical": [{{"issue":"","recommendation":"","example":"<полный HTML-тег>"}}],
+  "improvements": [{{"area":"","current":"","better":"","example":"<полный HTML-тег или текст>"}}],
   "meta": {{
-    "title_status": "good|warn|bad",
-    "title_issue": "<что не так>",
-    "title_suggestion": "<готовый вариант title>",
-    "description_status": "good|warn|bad",
-    "description_issue": "<что не так>",
-    "description_suggestion": "<готовый вариант description>",
-    "h1_status": "good|warn|bad",
-    "h1_issue": "<что не так>",
-    "h1_suggestion": "<готовый вариант H1>"
+    "title_status":"good|warn|bad","title_issue":"","title_suggestion":"<title>конкретный текст</title>",
+    "description_status":"good|warn|bad","description_issue":"","description_suggestion":"<meta name='description' content='конкретный текст 120-160 симв.'>",
+    "h1_status":"good|warn|bad","h1_issue":"","h1_suggestion":"<h1>конкретный текст</h1>",
+    "canonical_status":"good|warn|bad","canonical_issue":"","canonical_suggestion":"<link rel='canonical' href='https://{domain}/'>",
+    "og_status":"good|warn|bad","og_issue":"","og_suggestion":"<полные OG-теги с реальными значениями>",
+    "twitter_status":"good|warn|bad","twitter_issue":"","twitter_suggestion":"<meta name='twitter:card' content='summary_large_image'>",
+    "schema_status":"good|warn|bad","schema_issue":"","schema_jsonld":"<script type='application/ld+json'>{{полный JSON-LD для этого салона}}</script>"
   }},
   "content_analysis": {{
-    "cta_present": true,
-    "cta_recommendation": "<рекомендация по призыву к действию>",
-    "services_mentioned": true,
-    "services_recommendation": "<что добавить про услуги>",
-    "local_seo": true,
-    "local_seo_recommendation": "<рекомендация по локальному SEO>"
+    "word_count_status":"good|warn|bad","word_count_comment":"",
+    "cta_present":true,"cta_recommendation":"",
+    "services_mentioned":true,"services_recommendation":"",
+    "local_seo":true,"local_seo_recommendation":""
   }},
-  "quick_wins": ["<быстрое улучшение 1>", "<быстрое улучшение 2>", "<быстрое улучшение 3>"]
+  "keyword_suggestions": {{
+    "primary":["<запрос 1>","<2>","<3>"],
+    "secondary":["<LSI 1>","<2>","<3>","<4>","<5>"],
+    "long_tail":["<длинный хвост 1>","<2>","<3>"],
+    "comment":"<советы по внедрению>"
+  }},
+  "quick_wins":["<1>","<2>","<3>","<4>","<5>"]
 }}"""
 
     raw = call_ai([{"role": "system", "content": system}, {"role": "user", "content": prompt}])
     raw = re.sub(r"^```json\s*", "", raw)
+    raw = re.sub(r"^```\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw)
     return json.loads(raw)
 
