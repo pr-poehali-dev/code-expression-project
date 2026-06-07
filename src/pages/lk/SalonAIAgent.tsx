@@ -239,7 +239,7 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
   const agent = AGENTS.find(a => a.id === activeAgent)!;
 
   async function handleFileAttach(file: File) {
-    const MAX_CHARS = 80_000;
+    const MAX_CHARS = 18_000; // ~4500 токенов — безопасный лимит для GPT-4o за 25 сек
     const isExcel = /\.(xlsx|xls|ods)$/i.test(file.name) || file.type.includes("spreadsheet") || file.type.includes("excel");
     const isText = ["text/", "application/json", "application/xml", "application/csv"].some(t => file.type.startsWith(t)) || /\.(txt|csv|json|xml|md|log)$/i.test(file.name);
 
@@ -251,13 +251,17 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
         const csv = XLSX.utils.sheet_to_csv(wb.Sheets[sheetName]);
         if (csv.trim()) parts.push(`[Лист: ${sheetName}]\n${csv}`);
       }
-      const text = parts.join("\n\n").slice(0, MAX_CHARS);
+      const full = parts.join("\n\n");
+      const truncated = full.length > MAX_CHARS;
+      const text = full.slice(0, MAX_CHARS) + (truncated ? `\n\n[...файл обрезан до ${MAX_CHARS} символов — первые строки данных]` : "");
       setAttachedFile({ name: file.name, text });
     } else if (isText) {
-      const text = await file.text();
-      setAttachedFile({ name: file.name, text: text.slice(0, MAX_CHARS) });
+      const full = await file.text();
+      const truncated = full.length > MAX_CHARS;
+      const text = full.slice(0, MAX_CHARS) + (truncated ? `\n\n[...файл обрезан до ${MAX_CHARS} символов]` : "");
+      setAttachedFile({ name: file.name, text });
     } else {
-      setAttachedFile({ name: file.name, text: `[Файл: ${file.name} — формат не поддерживается для автоматической обработки. Поддерживаются: xlsx, csv, txt, json]` });
+      setAttachedFile({ name: file.name, text: `[Файл: ${file.name} — формат не поддерживается. Поддерживаются: xlsx, csv, txt, json]` });
     }
   }
 
