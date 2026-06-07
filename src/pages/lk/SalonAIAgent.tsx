@@ -37,7 +37,7 @@ const PACKAGES = [
 ];
 
 interface Message { role: "user" | "assistant"; content: string; }
-interface AttachedFile { name: string; text: string; }
+interface AttachedFile { name: string; text: string; batches?: string[]; totalRows?: number; batchSize?: number; }
 
 function copyToClipboard(text: string, setCopied: (v: boolean) => void) {
   navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
@@ -239,9 +239,13 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
   const agent = AGENTS.find(a => a.id === activeAgent)!;
 
   async function handleFileAttach(file: File) {
-    const MAX_CHARS = 18_000; // ~4500 токенов — безопасный лимит для GPT-4o за 25 сек
+    const BATCH_ROWS = 300;      // строк в одном пакете для ИИ
+    const MAX_CHARS = 80_000;    // лимит символов на пакет
     const isExcel = /\.(xlsx|xls|ods)$/i.test(file.name) || file.type.includes("spreadsheet") || file.type.includes("excel");
     const isText = ["text/", "application/json", "application/xml", "application/csv"].some(t => file.type.startsWith(t)) || /\.(txt|csv|json|xml|md|log)$/i.test(file.name);
+
+    let fullText = "";
+    let totalRows = 0;
 
     if (isExcel) {
       const buf = await file.arrayBuffer();
@@ -251,18 +255,41 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
         const csv = XLSX.utils.sheet_to_csv(wb.Sheets[sheetName]);
         if (csv.trim()) parts.push(`[Лист: ${sheetName}]\n${csv}`);
       }
-      const full = parts.join("\n\n");
-      const truncated = full.length > MAX_CHARS;
-      const text = full.slice(0, MAX_CHARS) + (truncated ? `\n\n[...файл обрезан до ${MAX_CHARS} символов — первые строки данных]` : "");
-      setAttachedFile({ name: file.name, text });
+      fullText = parts.join("\n\n");
     } else if (isText) {
-      const full = await file.text();
-      const truncated = full.length > MAX_CHARS;
-      const text = full.slice(0, MAX_CHARS) + (truncated ? `\n\n[...файл обрезан до ${MAX_CHARS} символов]` : "");
-      setAttachedFile({ name: file.name, text });
+      fullText = await file.text();
     } else {
       setAttachedFile({ name: file.name, text: `[Файл: ${file.name} — формат не поддерживается. Поддерживаются: xlsx, csv, txt, json]` });
+      return;
     }
+
+    // Считаем строки
+    const allLines = fullText.split("\n");
+    totalRows = allLines.filter(l => l.trim()).length;
+
+    // Если файл помещается в один пакет — отправляем целиком
+    if (fullText.length <= MAX_CHARS) {
+      setAttachedFile({ name: file.name, text: fullText });
+      return;
+    }
+
+    // Большой файл — помечаем для пакетной обработки
+    // Разбиваем на пакеты по BATCH_ROWS строк
+    const header = allLines[0] || ""; // первая строка = заголовок
+    const dataLines = allLines.slice(1).filter(l => l.trim());
+    const batches: string[] = [];
+    for (let i = 0; i < dataLines.length; i += BATCH_ROWS) {
+      const chunk = dataLines.slice(i, i + BATCH_ROWS);
+      batches.push([header, ...chunk].join("\n"));
+    }
+
+    setAttachedFile({
+      name: file.name,
+      text: fullText.slice(0, MAX_CHARS),
+      batches,
+      totalRows,
+      batchSize: BATCH_ROWS,
+    });
   }
 
   const loadHistory = useCallback(async (role: AgentRole) => {
@@ -283,14 +310,84 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
   useEffect(() => { loadHistory(activeAgent); }, [activeAgent, loadHistory]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
+
+  async function sendOneBatch(message: string): Promise<{ reply: string; free_used?: number; energy_balance?: number; error?: string; ok: boolean }> {
+    const res = await fetch(AGENT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
+      body: JSON.stringify({ agent_role: activeAgent, message }),
+    });
+    const data = await res.json();
+    return { ...data, ok: res.ok };
+  }
+
   async function send() {
     const text = input.trim();
     if ((!text && !attachedFile) || loading) return;
-    const content = attachedFile
-      ? `ДАННЫЕ ИЗ ФАЙЛА «${attachedFile.name}»:\n\n${attachedFile.text}\n\n---\nЗАДАЧА ПОЛЬЗОВАТЕЛЯ: ${text || "Проанализируй данные и выдай готовый результат."}\n\nВАЖНО: Выполни задачу немедленно на основе реальных данных выше. Не объясняй как это сделать — сделай сам и покажи готовый результат (таблицу, расчёт, текст, выводы). Пользователь должен получить готовый ответ, который можно скачать.`
+
+    const file = attachedFile;
+    const userTask = text || "Выполни задачу на основе данных из файла и покажи готовый результат.";
+
+    // Пакетная обработка большого файла
+    if (file?.batches && file.batches.length > 1) {
+      const displayContent = `📎 ${file.name} (${file.totalRows} строк)\n\n${userTask}`;
+      setMessages(prev => [...prev, { role: "user", content: displayContent }]);
+      setInput("");
+      setAttachedFile(null);
+      setLoading(true);
+      setError("");
+      setBatchProgress({ current: 0, total: file.batches.length });
+
+      const allResults: string[] = [];
+      try {
+        for (let i = 0; i < file.batches.length; i++) {
+          setBatchProgress({ current: i + 1, total: file.batches.length });
+          const isFirst = i === 0;
+          const isLast = i === file.batches.length - 1;
+          const batchMsg = `ДАННЫЕ ИЗ ФАЙЛА «${file.name}» — ПАКЕТ ${i + 1} из ${file.batches.length} (строки ${i * (file.batchSize ?? 300) + 1}–${Math.min((i + 1) * (file.batchSize ?? 300), file.totalRows ?? 0)} из ${file.totalRows}):\n\n${file.batches[i]}\n\n---\nЗАДАЧА: ${userTask}\n\n${isFirst ? "Это первый пакет данных." : ""} ${isLast ? "Это последний пакет — выдай итоговый объединённый результат по всем данным." : "Обработай этот пакет и жди следующего."}`;
+          const result = await sendOneBatch(batchMsg);
+          if (result.error === "no_energy") {
+            setMessages(prev => prev.slice(0, -1));
+            setInput(userTask);
+            setFreeUsed(result.free_used ?? freeUsed);
+            setEnergyBalance(result.energy_balance ?? energyBalance);
+            setShowPaywall(true);
+            return;
+          }
+          if (!result.ok) throw new Error(result.error || "Ошибка сервера");
+          if (result.free_used != null) setFreeUsed(result.free_used);
+          if (result.energy_balance != null) setEnergyBalance(result.energy_balance);
+          allResults.push(result.reply);
+          // Показываем промежуточные результаты
+          if (!isLast) {
+            setMessages(prev => [...prev.filter(m => m.role !== "assistant" || !m.content.startsWith("⏳")),
+              { role: "assistant", content: `⏳ Обработано пакетов: ${i + 1} из ${file.batches.length}...\n\n${result.reply}` }]);
+          }
+        }
+        // Итоговый результат
+        const finalReply = file.batches.length === 1
+          ? allResults[0]
+          : allResults[allResults.length - 1];
+        setMessages(prev => [...prev.filter(m => !(m.role === "assistant" && m.content.startsWith("⏳"))),
+          { role: "assistant", content: finalReply }]);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Не удалось получить ответ");
+        setMessages(prev => prev.slice(0, -1));
+        setInput(userTask);
+      } finally {
+        setLoading(false);
+        setBatchProgress(null);
+      }
+      return;
+    }
+
+    // Обычная отправка (маленький файл или текст)
+    const content = file
+      ? `ДАННЫЕ ИЗ ФАЙЛА «${file.name}»:\n\n${file.text}\n\n---\nЗАДАЧА ПОЛЬЗОВАТЕЛЯ: ${userTask}\n\nВАЖНО: Выполни задачу немедленно на основе реальных данных выше. Не объясняй как это сделать — сделай сам и покажи готовый результат (таблицу, расчёт, текст, выводы). Пользователь должен получить готовый ответ, который можно скачать.`
       : text;
-    const displayContent = attachedFile
-      ? `📎 ${attachedFile.name}${text ? `\n\n${text}` : ""}`.trim()
+    const displayContent = file
+      ? `📎 ${file.name}${text ? `\n\n${text}` : ""}`.trim()
       : text;
     setMessages(prev => [...prev, { role: "user", content: displayContent }]);
     setInput("");
@@ -298,24 +395,19 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(AGENT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
-        body: JSON.stringify({ agent_role: activeAgent, message: content }),
-      });
-      const data = await res.json();
-      if (data.error === "no_energy") {
+      const result = await sendOneBatch(content);
+      if (result.error === "no_energy") {
         setMessages(prev => prev.slice(0, -1));
         setInput(content);
-        setFreeUsed(data.free_used ?? freeUsed);
-        setEnergyBalance(data.energy_balance ?? energyBalance);
+        setFreeUsed(result.free_used ?? freeUsed);
+        setEnergyBalance(result.energy_balance ?? energyBalance);
         setShowPaywall(true);
         return;
       }
-      if (!res.ok) throw new Error(data.error || "Ошибка сервера");
-      setMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
-      setFreeUsed(data.free_used ?? freeUsed);
-      setEnergyBalance(data.energy_balance ?? energyBalance);
+      if (!result.ok) throw new Error(result.error || "Ошибка сервера");
+      setMessages(prev => [...prev, { role: "assistant", content: result.reply }]);
+      setFreeUsed(result.free_used ?? freeUsed);
+      setEnergyBalance(result.energy_balance ?? energyBalance);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Не удалось получить ответ");
       setMessages(prev => prev.slice(0, -1));
@@ -431,8 +523,24 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
               <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: agent.bg, border: `1.5px solid ${agent.borderColor}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Icon name={agent.icon} size={15} style={{ color: agent.color }} />
               </div>
-              <div style={{ background: "#fff", border: "1px solid #E8ECF0", borderRadius: "4px 16px 16px 16px", padding: "14px 18px", display: "flex", gap: 5, alignItems: "center" }}>
-                {[0, 1, 2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: agent.color, opacity: 0.5, animation: `dot-pulse 1.2s ${i * 0.2}s ease-in-out infinite` }} />)}
+              <div style={{ background: "#fff", border: "1px solid #E8ECF0", borderRadius: "4px 16px 16px 16px", padding: "14px 18px" }}>
+                {batchProgress ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: 220 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A" }}>
+                      Обработка файла: пакет {batchProgress.current} из {batchProgress.total}
+                    </div>
+                    <div style={{ height: 6, background: "#F1F5F9", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${Math.round((batchProgress.current / batchProgress.total) * 100)}%`, background: agent.color, borderRadius: 3, transition: "width 0.4s ease" }} />
+                    </div>
+                    <div style={{ fontSize: 11, color: "#94A3B8" }}>
+                      {Math.round((batchProgress.current / batchProgress.total) * 100)}% завершено
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+                    {[0, 1, 2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: agent.color, opacity: 0.5, animation: `dot-pulse 1.2s ${i * 0.2}s ease-in-out infinite` }} />)}
+                  </div>
+                )}
               </div>
             </div>
           )}
