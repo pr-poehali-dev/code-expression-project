@@ -42,9 +42,20 @@ function copyToClipboard(text: string, setCopied: (v: boolean) => void) {
   navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
 }
 
+function downloadText(content: string, agentLabel: string) {
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${agentLabel}_${new Date().toLocaleDateString("ru").replace(/\./g, "-")}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function MessageBubble({ msg, agent }: { msg: Message; agent: AgentConfig }) {
   const [copied, setCopied] = useState(false);
   const isUser = msg.role === "user";
+  const isLong = msg.content.length > 300;
   return (
     <div style={{ display: "flex", flexDirection: isUser ? "row-reverse" : "row", gap: 10, alignItems: "flex-start" }}>
       <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: isUser ? "#0F172A" : agent.bg, border: `1.5px solid ${isUser ? "transparent" : agent.borderColor}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -57,10 +68,21 @@ function MessageBubble({ msg, agent }: { msg: Message; agent: AgentConfig }) {
           {isUser ? msg.content : undefined}
         </div>
         {!isUser && (
-          <button onClick={() => copyToClipboard(msg.content, setCopied)} style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 6, padding: "4px 10px", background: copied ? `${agent.color}15` : "transparent", border: `1px solid ${copied ? agent.color : "#e0e0da"}`, borderRadius: 7, cursor: "pointer", fontSize: 12, fontWeight: 600, color: copied ? agent.color : "#999", fontFamily: "Montserrat, sans-serif", transition: "all 0.2s" }}>
-            <Icon name={copied ? "Check" : "Copy"} size={12} />
-            {copied ? "Скопировано!" : "Скопировать"}
-          </button>
+          <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+            <button onClick={() => copyToClipboard(msg.content, setCopied)} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", background: copied ? `${agent.color}15` : "transparent", border: `1px solid ${copied ? agent.color : "#e0e0da"}`, borderRadius: 7, cursor: "pointer", fontSize: 12, fontWeight: 600, color: copied ? agent.color : "#999", fontFamily: "Montserrat, sans-serif", transition: "all 0.2s" }}>
+              <Icon name={copied ? "Check" : "Copy"} size={12} />
+              {copied ? "Скопировано!" : "Скопировать"}
+            </button>
+            {isLong && (
+              <button onClick={() => downloadText(msg.content, agent.label)} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", background: "transparent", border: "1px solid #e0e0da", borderRadius: 7, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#999", fontFamily: "Montserrat, sans-serif", transition: "all 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = agent.color; e.currentTarget.style.color = agent.color; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "#e0e0da"; e.currentTarget.style.color = "#999"; }}
+              >
+                <Icon name="Download" size={12} />
+                Скачать .txt
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
