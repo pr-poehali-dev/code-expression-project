@@ -42,20 +42,54 @@ function copyToClipboard(text: string, setCopied: (v: boolean) => void) {
   navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
 }
 
-function downloadText(content: string, agentLabel: string) {
-  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${agentLabel}_${new Date().toLocaleDateString("ru").replace(/\./g, "-")}.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
+const TABLE_KEYWORDS = /таблиц|эксель|excel|xlsx|xls|csv|spreadsheet|строк|столбц|считай|посчит|расчёт|расчет|финанс|выруч|приход|расход|бюджет|зарплат|смен|график|расписани/i;
+
+function detectFormat(prevUserText: string): "csv" | "txt" {
+  return TABLE_KEYWORDS.test(prevUserText) ? "csv" : "txt";
 }
 
-function MessageBubble({ msg, agent }: { msg: Message; agent: AgentConfig }) {
+function downloadFile(content: string, agentLabel: string, format: "csv" | "txt") {
+  const date = new Date().toLocaleDateString("ru").replace(/\./g, "-");
+  if (format === "csv") {
+    // Пытаемся найти таблицы в markdown (строки с |) и конвертируем в CSV
+    const lines = content.split("\n");
+    const csvLines: string[] = [];
+    for (const line of lines) {
+      if (line.includes("|")) {
+        const cells = line.split("|").map(c => c.trim()).filter((c, i, arr) => i > 0 && i < arr.length - 1);
+        if (cells.length > 1 && !cells.every(c => /^[-:]+$/.test(c))) {
+          csvLines.push(cells.map(c => `"${c.replace(/"/g, '""')}"`).join(";"));
+        }
+      }
+    }
+    const csvContent = csvLines.length > 0 ? csvLines.join("\n") : content;
+    // BOM для корректного открытия в Excel
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${agentLabel}_${date}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } else {
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${agentLabel}_${date}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+}
+
+function MessageBubble({ msg, agent, prevUserMsg }: { msg: Message; agent: AgentConfig; prevUserMsg?: string }) {
   const [copied, setCopied] = useState(false);
   const isUser = msg.role === "user";
   const isLong = msg.content.length > 300;
+  const fmt = detectFormat(prevUserMsg || "");
+  const hasTable = msg.content.includes("|");
+  const showDownload = isLong || hasTable;
+
   return (
     <div style={{ display: "flex", flexDirection: isUser ? "row-reverse" : "row", gap: 10, alignItems: "flex-start" }}>
       <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: isUser ? "#0F172A" : agent.bg, border: `1.5px solid ${isUser ? "transparent" : agent.borderColor}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -73,13 +107,15 @@ function MessageBubble({ msg, agent }: { msg: Message; agent: AgentConfig }) {
               <Icon name={copied ? "Check" : "Copy"} size={12} />
               {copied ? "Скопировано!" : "Скопировать"}
             </button>
-            {isLong && (
-              <button onClick={() => downloadText(msg.content, agent.label)} style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", background: "transparent", border: "1px solid #e0e0da", borderRadius: 7, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#999", fontFamily: "Montserrat, sans-serif", transition: "all 0.2s" }}
+            {showDownload && (
+              <button
+                onClick={() => downloadFile(msg.content, agent.label, fmt)}
+                style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", background: "transparent", border: "1px solid #e0e0da", borderRadius: 7, cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#999", fontFamily: "Montserrat, sans-serif", transition: "all 0.2s" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = agent.color; e.currentTarget.style.color = agent.color; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "#e0e0da"; e.currentTarget.style.color = "#999"; }}
               >
                 <Icon name="Download" size={12} />
-                Скачать .txt
+                Скачать .{fmt}
               </button>
             )}
           </div>
@@ -368,7 +404,12 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
             </div>
           )}
 
-          {!historyLoading && messages.map((msg, i) => <MessageBubble key={i} msg={msg} agent={agent} />)}
+          {!historyLoading && messages.map((msg, i) => {
+            const prevUser = msg.role === "assistant"
+              ? messages.slice(0, i).filter(m => m.role === "user").at(-1)?.content
+              : undefined;
+            return <MessageBubble key={i} msg={msg} agent={agent} prevUserMsg={prevUser} />;
+          })}
 
           {loading && (
             <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
