@@ -113,7 +113,7 @@ def parse_html(body: str, url: str) -> dict:
     text = html.unescape(text)
     text = re.sub(r"\s+", " ", text).strip()
     word_count = len(text.split())
-    text_preview = text[:6000]
+    text_preview = text[:2000]
 
     # Ссылки
     domain = urllib.parse.urlparse(url).netloc
@@ -164,7 +164,7 @@ def parse_html(body: str, url: str) -> dict:
     }
 
 
-def call_ai(messages: list, max_tokens: int = 4000) -> str:
+def call_ai(messages: list, max_tokens: int = 2500) -> str:
     """Вызов GPT-4o через polza.ai."""
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
