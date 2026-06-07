@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { ACCENT } from "./LkAdminShared";
-import { ADMIN_SEO_URL, ADMIN_TOKEN, AnalysisResult, HistoryItem } from "./SeoTypes";
+import { ADMIN_SEO_URL, ADMIN_TOKEN, AnalysisResult, HistoryItem } from "./SeoAdminTypes";
 import { ReportView } from "./SeoReportTabs";
 import { SeoHistory } from "./SeoHistory";
 

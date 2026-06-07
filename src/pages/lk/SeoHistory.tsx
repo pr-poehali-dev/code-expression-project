@@ -1,6 +1,6 @@
 import Icon from "@/components/ui/icon";
 import { ACCENT } from "./LkAdminShared";
-import { HistoryItem, AnalysisResult } from "./SeoTypes";
+import { HistoryItem, AnalysisResult } from "./SeoAdminTypes";
 
 interface SeoHistoryProps {
   history: HistoryItem[];

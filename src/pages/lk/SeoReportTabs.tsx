@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { ACCENT } from "./LkAdminShared";
-import { AnalysisResult, StatusChip, SuggestionBox, ScoreRing, Card, CardHeader } from "./SeoTypes";
+import { AnalysisResult, StatusChip, SuggestionBox, ScoreRing, Card, CardHeader } from "./SeoAdminTypes";
 
 type Tab = "overview" | "meta" | "content" | "tech" | "data";
 
