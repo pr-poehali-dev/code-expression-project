@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import * as XLSX from "xlsx";
 import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { renderMarkdown } from "@/utils/markdown";
@@ -238,15 +239,25 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
   const agent = AGENTS.find(a => a.id === activeAgent)!;
 
   async function handleFileAttach(file: File) {
-    const MAX = 200 * 1024; // 200 KB текстового содержимого
-    const textTypes = ["text/", "application/json", "application/xml", "application/csv", "text/csv"];
-    const isText = textTypes.some(t => file.type.startsWith(t)) || /\.(txt|csv|json|xml|md|log)$/i.test(file.name);
-    if (isText) {
+    const MAX_CHARS = 80_000;
+    const isExcel = /\.(xlsx|xls|ods)$/i.test(file.name) || file.type.includes("spreadsheet") || file.type.includes("excel");
+    const isText = ["text/", "application/json", "application/xml", "application/csv"].some(t => file.type.startsWith(t)) || /\.(txt|csv|json|xml|md|log)$/i.test(file.name);
+
+    if (isExcel) {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      const parts: string[] = [];
+      for (const sheetName of wb.SheetNames) {
+        const csv = XLSX.utils.sheet_to_csv(wb.Sheets[sheetName]);
+        if (csv.trim()) parts.push(`[Лист: ${sheetName}]\n${csv}`);
+      }
+      const text = parts.join("\n\n").slice(0, MAX_CHARS);
+      setAttachedFile({ name: file.name, text });
+    } else if (isText) {
       const text = await file.text();
-      setAttachedFile({ name: file.name, text: text.slice(0, MAX) });
+      setAttachedFile({ name: file.name, text: text.slice(0, MAX_CHARS) });
     } else {
-      // Для не-текстовых — описываем имя и размер, просим пользователя скопировать данные
-      setAttachedFile({ name: file.name, text: `[Файл: ${file.name}, размер: ${(file.size / 1024).toFixed(0)} КБ]\nФайл прикреплён. Опиши задачу — что нужно сделать с этим файлом?` });
+      setAttachedFile({ name: file.name, text: `[Файл: ${file.name} — формат не поддерживается для автоматической обработки. Поддерживаются: xlsx, csv, txt, json]` });
     }
   }
 
@@ -272,10 +283,10 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
     const text = input.trim();
     if ((!text && !attachedFile) || loading) return;
     const content = attachedFile
-      ? `${attachedFile.text}\n\n${text}`.trim()
+      ? `ДАННЫЕ ИЗ ФАЙЛА «${attachedFile.name}»:\n\n${attachedFile.text}\n\n---\nЗАДАЧА ПОЛЬЗОВАТЕЛЯ: ${text || "Проанализируй данные и выдай готовый результат."}\n\nВАЖНО: Выполни задачу немедленно на основе реальных данных выше. Не объясняй как это сделать — сделай сам и покажи готовый результат (таблицу, расчёт, текст, выводы). Пользователь должен получить готовый ответ, который можно скачать.`
       : text;
     const displayContent = attachedFile
-      ? `📎 ${attachedFile.name}\n\n${text}`.trim()
+      ? `📎 ${attachedFile.name}${text ? `\n\n${text}` : ""}`.trim()
       : text;
     setMessages(prev => [...prev, { role: "user", content: displayContent }]);
     setInput("");
