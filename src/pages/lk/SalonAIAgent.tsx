@@ -372,7 +372,7 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
       </div>
 
       {/* Чат */}
-      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 480px)", minHeight: 340, background: "#fff", borderRadius: 18, border: `1.5px solid ${agent.borderColor}`, boxShadow: `0 4px 24px ${agent.color}12`, overflow: "hidden" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 320px)", minHeight: 500, background: "#fff", borderRadius: 18, border: `1.5px solid ${agent.borderColor}`, boxShadow: `0 4px 24px ${agent.color}12`, overflow: "hidden" }}>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", background: agent.bg, borderBottom: `1px solid ${agent.borderColor}` }}>
           <div style={{ width: 36, height: 36, borderRadius: 10, background: `${agent.color}18`, display: "flex", alignItems: "center", justifyContent: "center" }}>
