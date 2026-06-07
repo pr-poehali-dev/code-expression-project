@@ -460,12 +460,18 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {/* Превью прикреплённого файла */}
               {attachedFile && (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 12px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10 }}>
-                  <Icon name="FileText" size={14} style={{ color: "#1e40af", flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "#1e40af", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{attachedFile.name}</span>
-                  <button onClick={() => setAttachedFile(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#93c5fd", padding: 2, display: "flex" }}>
-                    <Icon name="X" size={13} />
-                  </button>
+                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 12px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10 }}>
+                    <Icon name="FileText" size={14} style={{ color: "#1e40af", flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#1e40af", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{attachedFile.name}</span>
+                    <button onClick={() => setAttachedFile(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#93c5fd", padding: 2, display: "flex" }}>
+                      <Icon name="X" size={13} />
+                    </button>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 6, padding: "6px 10px", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8 }}>
+                    <Icon name="Info" size={12} style={{ color: "#d97706", flexShrink: 0, marginTop: 1 }} />
+                    <span style={{ fontSize: 11, color: "#92400e", lineHeight: 1.5 }}>Если файл большой — разбейте его на части по <b>~1000 строк</b> и отправляйте по очереди. Иначе ИИ может не успеть обработать всё за один раз.</span>
+                  </div>
                 </div>
               )}
               <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
