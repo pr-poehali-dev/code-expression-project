@@ -10,13 +10,22 @@ export interface Report {
   summary: string;
   critical: { issue: string; impact: string; fix: string; example: string }[];
   improvements: { area: string; current: string; better: string; example: string; priority: string }[];
-  meta_audit: { title: MetaField; description: MetaField; h1: MetaField; canonical: MetaField; og: MetaField };
+  meta_audit: { title: MetaField; description: MetaField; h1: MetaField; canonical: MetaField; og: MetaField; twitter?: MetaField; keywords?: MetaField; robots?: MetaField };
   content_audit: { word_count_status: string; word_count_comment: string; readability: string; keywords_density: string; cta_present: boolean; cta_comment: string; uniqueness_risk: string };
-  technical_audit: { mobile: { status: string; comment: string }; schema: { status: string; comment: string; recommended: string }; images: { status: string; comment: string }; links: { status: string; comment: string } };
+  technical_audit: { mobile: { status: string; comment: string }; schema: { status: string; comment: string; recommended: string; schema_jsonld?: string }; images: { status: string; comment: string }; links: { status: string; comment: string } };
+  keyword_suggestions?: { primary: string[]; secondary: string[]; long_tail: string[]; comment: string };
   quick_wins: string[];
   growth_opportunities: string[];
 }
-export interface PageData { title: string; title_len: number; description: string; desc_len: number; canonical: string; og_title: string; og_image: string; headings: Record<string, string[]>; word_count: number; internal_links: number; external_links: number; images_count: number; images_no_alt: number; schema_types: string[]; has_viewport: boolean; }
+export interface PageData {
+  title: string; title_len: number; description: string; desc_len: number; keywords: string; robots: string;
+  canonical: string; og_title: string; og_description: string; og_image: string; og_type: string; og_url: string;
+  twitter_card: string; twitter_title: string; twitter_description: string;
+  headings: Record<string, string[]>; word_count: number; internal_links: number; external_links: number;
+  images_count: number; images_no_alt: number; images_lazy: number; schema_types: string[]; schema_raw: string;
+  has_viewport: boolean; has_charset: boolean;
+  http_status?: number; load_time_ms?: number; page_size_kb?: number; robots_exists?: boolean; sitemap_url?: string;
+}
 export interface AnalysisResult { url: string; page_data: PageData; report: Report; score: number; grade: string; }
 export interface HistoryItem { url: string; score: number; grade: string; ts: number; result: AnalysisResult; }
 

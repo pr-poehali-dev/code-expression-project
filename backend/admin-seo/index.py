@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import time
 import urllib.request
 import urllib.parse
 import html
@@ -19,7 +20,7 @@ def err(msg, code=400): return {"statusCode": code, "headers": CORS, "body": jso
 
 
 def fetch_page(url: str) -> dict:
-    """Загружает HTML и извлекает все SEO-данные для глубокого анализа."""
+    """Загружает HTML, замеряет время, размер, статус и извлекает все SEO-данные."""
     if not url.startswith("http"):
         url = "https://" + url
     req = urllib.request.Request(url, headers={
@@ -29,8 +30,13 @@ def fetch_page(url: str) -> dict:
         "Accept-Encoding": "identity",
         "Cache-Control": "no-cache",
     })
+    t0 = time.time()
     response = urllib.request.urlopen(req, timeout=20)
     raw = response.read()
+    load_time_ms = int((time.time() - t0) * 1000)
+    http_status = response.status
+    page_size_kb = round(len(raw) / 1024, 1)
+
     content_type = response.headers.get("Content-Type", "")
     charset = "utf-8"
     if "charset=" in content_type:
@@ -39,7 +45,41 @@ def fetch_page(url: str) -> dict:
         body = raw.decode(charset, errors="replace")
     except Exception:
         body = raw.decode("utf-8", errors="replace")
-    return parse_html(body, url)
+
+    # Проверяем robots.txt и sitemap
+    parsed = urllib.parse.urlparse(url)
+    base = f"{parsed.scheme}://{parsed.netloc}"
+    robots_exists = False
+    sitemap_url = ""
+    try:
+        rb = urllib.request.urlopen(urllib.request.Request(f"{base}/robots.txt", headers={"User-Agent": "Mozilla/5.0"}), timeout=5)
+        rb_text = rb.read().decode("utf-8", errors="replace")
+        robots_exists = True
+        m = re.search(r"Sitemap:\s*(\S+)", rb_text, re.IGNORECASE)
+        if m:
+            sitemap_url = m.group(1).strip()
+    except Exception:
+        pass
+
+    if not sitemap_url:
+        for sm in [f"{base}/sitemap.xml", f"{base}/sitemap_index.xml"]:
+            try:
+                sr = urllib.request.urlopen(urllib.request.Request(sm, headers={"User-Agent": "Mozilla/5.0"}), timeout=5)
+                if sr.status == 200:
+                    sitemap_url = sm
+                    break
+            except Exception:
+                pass
+
+    page_data = parse_html(body, url)
+    page_data.update({
+        "http_status": http_status,
+        "load_time_ms": load_time_ms,
+        "page_size_kb": page_size_kb,
+        "robots_exists": robots_exists,
+        "sitemap_url": sitemap_url,
+    })
+    return page_data
 
 
 def parse_html(body: str, url: str) -> dict:
@@ -64,6 +104,18 @@ def parse_html(body: str, url: str) -> dict:
             m = re.search(rf'<meta[^>]+content=["\'](.*?)["\'][^>]+property=["\']og:{prop}["\']', body, re.IGNORECASE)
         return html.unescape(m.group(1).strip()) if m else ""
 
+    def get_twitter(prop, body):
+        patterns = [
+            rf'<meta[^>]+name=["\']twitter:{re.escape(prop)}["\'][^>]+content=["\'](.*?)["\']',
+            rf'<meta[^>]+content=["\'](.*?)["\'][^>]+name=["\']twitter:{re.escape(prop)}["\']',
+            rf'<meta[^>]+property=["\']twitter:{re.escape(prop)}["\'][^>]+content=["\'](.*?)["\']',
+        ]
+        for p in patterns:
+            m = re.search(p, body, re.IGNORECASE)
+            if m:
+                return html.unescape(m.group(1).strip())
+        return ""
+
     title = get_tag(r"<title[^>]*>(.*?)</title>", body)
     description = get_all_meta("description", body)
     keywords = get_all_meta("keywords", body)
@@ -72,16 +124,18 @@ def parse_html(body: str, url: str) -> dict:
     og_description = get_og("description", body)
     og_image = get_og("image", body)
     og_type = get_og("type", body)
+    og_url = get_og("url", body)
 
-    # Twitter cards
-    twitter_title = get_all_meta("twitter:title", body)
-    twitter_description = get_all_meta("twitter:description", body)
+    twitter_card = get_twitter("card", body)
+    twitter_title = get_twitter("title", body)
+    twitter_description = get_twitter("description", body)
 
-    # Canonical + alternate
     canonical = get_tag(r'<link[^>]+rel=["\']canonical["\'][^>]+href=["\'](.*?)["\']', body)
+    if not canonical:
+        canonical = get_tag(r'<link[^>]+href=["\'](.*?)["\'][^>]+rel=["\']canonical["\']', body)
     hreflang_links = re.findall(r'<link[^>]+hreflang=["\']([^"\']+)["\']', body, re.IGNORECASE)
 
-    # Заголовки
+    # Заголовки — все без ограничения
     headings = {}
     for level in range(1, 7):
         found = re.findall(rf"<h{level}[^>]*>(.*?)</h{level}>", body, re.IGNORECASE | re.DOTALL)
@@ -90,15 +144,18 @@ def parse_html(body: str, url: str) -> dict:
         if clean:
             headings[f"h{level}"] = clean
 
-    # Структурированные данные (schema.org)
+    # Schema.org — типы и сырой JSON первого блока
     schema_blocks = re.findall(r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>', body, re.IGNORECASE | re.DOTALL)
     schema_types = []
+    schema_raw = ""
     for blk in schema_blocks:
         try:
             obj = json.loads(blk.strip())
             t = obj.get("@type") if isinstance(obj, dict) else None
             if t:
                 schema_types.append(t if isinstance(t, str) else str(t))
+            if not schema_raw:
+                schema_raw = json.dumps(obj, ensure_ascii=False, indent=2)
         except Exception:
             pass
 
@@ -126,11 +183,8 @@ def parse_html(body: str, url: str) -> dict:
     images_no_alt = [img for img in images if "alt=" not in img.lower() or re.search(r'alt=["\'\s]*["\']', img)]
     images_with_lazy = [img for img in images if "loading" in img.lower()]
 
-    # Viewport, charset, mobile
     has_viewport = bool(re.search(r'<meta[^>]+name=["\']viewport["\']', body, re.IGNORECASE))
     has_charset = bool(re.search(r'<meta[^>]+charset', body, re.IGNORECASE))
-
-    # Подсчёт слов в title и description
     title_len = len(title)
     desc_len = len(description)
 
@@ -146,12 +200,15 @@ def parse_html(body: str, url: str) -> dict:
         "og_description": og_description,
         "og_image": og_image,
         "og_type": og_type,
+        "og_url": og_url,
+        "twitter_card": twitter_card,
         "twitter_title": twitter_title,
         "twitter_description": twitter_description,
         "canonical": canonical,
         "hreflang": hreflang_links,
         "headings": headings,
         "schema_types": schema_types,
+        "schema_raw": schema_raw,
         "text_preview": text_preview,
         "word_count": word_count,
         "internal_links": len(internal_links),
@@ -181,7 +238,7 @@ def call_ai(messages: list, max_tokens: int = 2500) -> str:
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=90) as resp:
+    with urllib.request.urlopen(req, timeout=25) as resp:
         data = json.loads(resp.read().decode("utf-8"))
     return data["choices"][0]["message"]["content"].strip()
 
@@ -190,92 +247,72 @@ def deep_analyze(page_data: dict) -> dict:
     """GPT-4o делает глубокий SEO-анализ без контекста салона."""
     headings_str = ""
     for level, texts in page_data.get("headings", {}).items():
-        headings_str += f"{level.upper()}: {' | '.join(texts[:8])}\n"
+        headings_str += f"{level.upper()}: {' | '.join(texts[:5])}\n"
 
     schema_str = ", ".join(page_data.get("schema_types", [])) or "не найдено"
+    domain = urllib.parse.urlparse(page_data["url"]).netloc
 
-    system = """Ты — эксперт-сеошник с 10+ лет опыта. Анализируешь любые сайты — не только салоны.
-ВАЖНО: в каждом поле suggestion/example/fix пиши ПОЛНЫЙ готовый код или текст, который можно скопировать и вставить без доработки.
-Для мета-тегов — полный HTML-тег. Для h1 — полный тег с текстом. Для canonical — полный тег. Никаких шаблонных заглушек вроде "[название]" или "[текст]" — только конкретный финальный вариант на основе анализа сайта.
-Отвечай ТОЛЬКО валидным JSON без markdown-блоков и лишних символов."""
+    system = """Ты — эксперт-сеошник с 10+ лет опыта. Анализируешь любые сайты.
+КРИТИЧЕСКИ ВАЖНО: в каждом поле suggestion/example/fix пиши ПОЛНЫЙ готовый код/текст для вставки без доработки.
+Для мета-тегов — полный HTML-тег с реальным текстом. Для h1 — полный тег. Для schema — полный JSON-LD блок.
+Никаких заглушек "[название]" — только конкретные финальные варианты на основе контента сайта.
+Отвечай ТОЛЬКО валидным JSON без markdown-блоков."""
 
-    prompt = f"""Выполни глубокий SEO-аудит страницы.
+    prompt = f"""SEO-аудит страницы {page_data['url']}
 
-URL: {page_data['url']}
+МЕТА: Title={page_data['title']!r}({page_data['title_len']}с) | Desc={page_data['description']!r}({page_data['desc_len']}с) | Keywords={page_data['keywords']!r} | Robots={page_data['robots']!r} | Canonical={page_data['canonical']!r}
+OG: title={page_data['og_title']!r} | desc={page_data['og_description']!r} | image={'есть' if page_data['og_image'] else 'НЕТ'} | type={page_data['og_type']!r} | url={page_data['og_url']!r}
+Twitter: card={page_data['twitter_card']!r} | title={page_data['twitter_title']!r}
+СТРУКТУРА: {headings_str.strip() or 'заголовков нет'}
+Schema.org: {schema_str} | Hreflang: {', '.join(page_data.get('hreflang', [])) or 'нет'}
+ТЕХНИКА: viewport={'✓' if page_data['has_viewport'] else '✗'} | charset={'✓' if page_data['has_charset'] else '✗'} | links={page_data['internal_links']}int/{page_data['external_links']}ext | img={page_data['images_count']}(без alt:{page_data['images_no_alt']})
+КОНТЕНТ: {page_data['word_count']} слов | {page_data['text_preview']}
 
-═══ МЕТА-ДАННЫЕ ═══
-Title: {page_data['title'] or '❌ отсутствует'} ({page_data['title_len']} симв.)
-Description: {page_data['description'] or '❌ отсутствует'} ({page_data['desc_len']} симв.)
-Keywords: {page_data['keywords'] or 'отсутствует'}
-Robots: {page_data['robots'] or 'не задан (ок)'}
-Canonical: {page_data['canonical'] or '❌ отсутствует'}
-
-═══ OPEN GRAPH ═══
-OG Title: {page_data['og_title'] or '❌ отсутствует'}
-OG Description: {page_data['og_description'] or '❌ отсутствует'}
-OG Image: {'✓ есть' if page_data['og_image'] else '❌ отсутствует'}
-OG Type: {page_data['og_type'] or 'не задан'}
-Twitter Title: {page_data['twitter_title'] or 'отсутствует'}
-
-═══ СТРУКТУРА ═══
-Заголовки:
-{headings_str or '❌ заголовков не найдено'}
-
-Schema.org разметка: {schema_str}
-Hreflang: {', '.join(page_data.get('hreflang', [])) or 'нет'}
-
-═══ ТЕХНИЧЕСКИЕ ПАРАМЕТРЫ ═══
-Viewport (mobile-friendly): {'✓' if page_data['has_viewport'] else '❌ отсутствует'}
-Charset: {'✓' if page_data['has_charset'] else '❌ отсутствует'}
-Внутренних ссылок: {page_data['internal_links']}
-Внешних ссылок: {page_data['external_links']}
-Изображений: {page_data['images_count']} (без alt: {page_data['images_no_alt']}, с lazy-load: {page_data['images_lazy']})
-
-═══ КОНТЕНТ ═══
-Слов на странице: {page_data['word_count']}
-Текст (первые 6000 симв.):
-{page_data['text_preview']}
-
-═══ ФОРМАТ ОТВЕТА ═══
-Верни JSON строго такой структуры:
+Верни JSON:
 {{
   "score": <0-100>,
   "grade": "<A|B|C|D|F>",
-  "summary": "<3-4 предложения общего вывода с главными проблемами и потенциалом>",
-  "critical": [
-    {{"issue": "<критическая проблема>", "impact": "<влияние на SEO>", "fix": "<конкретное решение>", "example": "<ПОЛНЫЙ готовый HTML-тег или текст для вставки — конкретный, без заглушек>"}}
-  ],
-  "improvements": [
-    {{"area": "<область>", "current": "<что сейчас есть>", "better": "<как должно быть>", "example": "<ПОЛНЫЙ готовый HTML-тег или конкретный текст для вставки без доработки>", "priority": "high|medium|low"}}
-  ],
+  "summary": "<3-4 предложения>",
+  "critical": [{{"issue":"","impact":"","fix":"","example":"<полный HTML-тег или код>"}}],
+  "improvements": [{{"area":"","current":"","better":"","example":"<полный HTML-тег или текст>","priority":"high|medium|low"}}],
   "meta_audit": {{
-    "title": {{"status": "good|warn|bad", "issue": "<проблема>", "suggestion": "<ПОЛНЫЙ HTML-тег, например: <title>Про Диалог — Платформа роста салонов красоты</title>. Конкретный текст, никаких заглушек.>"}},
-    "description": {{"status": "good|warn|bad", "issue": "<проблема>", "suggestion": "<ПОЛНЫЙ HTML-тег, например: <meta name='description' content='...'> — конкретный текст 120-160 симв., подобранный по контенту страницы>"}},
-    "h1": {{"status": "good|warn|bad", "issue": "<проблема>", "suggestion": "<ПОЛНЫЙ тег h1, например: <h1>Про Диалог — Платформа роста салона</h1> — конкретный текст>"}},
-    "canonical": {{"status": "good|warn|bad", "issue": "<проблема или ок>", "suggestion": "<ПОЛНЫЙ HTML-тег canonical если отсутствует, например: <link rel='canonical' href='https://example.com/'>"}},
-    "og": {{"status": "good|warn|bad", "issue": "<проблема или ок>", "suggestion": "<ПОЛНЫЕ HTML-теги OG которых не хватает, каждый с реальными значениями>"}}
+    "title": {{"status":"good|warn|bad","issue":"","suggestion":"<title>...</title>"}},
+    "description": {{"status":"good|warn|bad","issue":"","suggestion":"<meta name='description' content='конкретный текст 120-160 симв.'>"}},
+    "h1": {{"status":"good|warn|bad","issue":"","suggestion":"<h1>конкретный текст</h1>"}},
+    "canonical": {{"status":"good|warn|bad","issue":"","suggestion":"<link rel='canonical' href='https://{domain}/'>"}},
+    "og": {{"status":"good|warn|bad","issue":"","suggestion":"<полные OG-теги которых не хватает>"}},
+    "twitter": {{"status":"good|warn|bad","issue":"","suggestion":"<meta name='twitter:card' content='summary_large_image'> и др."}},
+    "keywords": {{"status":"good|warn|bad","issue":"","suggestion":"<meta name='keywords' content='конкретные ключевые слова через запятую'>"}},
+    "robots": {{"status":"good|warn|bad","issue":"","suggestion":"<meta name='robots' content='index, follow'>"}}
   }},
   "content_audit": {{
-    "word_count_status": "good|warn|bad",
-    "word_count_comment": "<оценка объёма контента>",
-    "readability": "<оценка читаемости и структуры>",
-    "keywords_density": "<оценка плотности ключевых слов>",
-    "cta_present": true,
-    "cta_comment": "<оценка призывов к действию>",
-    "uniqueness_risk": "<риски дублирования или тонкого контента>"
+    "word_count_status":"good|warn|bad",
+    "word_count_comment":"",
+    "readability":"",
+    "keywords_density":"",
+    "cta_present":true,
+    "cta_comment":"",
+    "uniqueness_risk":""
   }},
   "technical_audit": {{
-    "mobile": {{"status": "good|warn|bad", "comment": "<оценка мобильной версии>"}},
-    "schema": {{"status": "good|warn|bad", "comment": "<оценка структурированных данных>", "recommended": "<какие типы schema.org добавить>"}},
-    "images": {{"status": "good|warn|bad", "comment": "<оценка изображений>"}},
-    "links": {{"status": "good|warn|bad", "comment": "<оценка ссылочной структуры>"}}
+    "mobile":{{"status":"good|warn|bad","comment":""}},
+    "schema":{{"status":"good|warn|bad","comment":"","recommended":"","schema_jsonld":"<полный script type=application/ld+json блок для этого сайта>"}},
+    "images":{{"status":"good|warn|bad","comment":""}},
+    "links":{{"status":"good|warn|bad","comment":""}}
   }},
-  "quick_wins": ["<быстрое улучшение 1 — можно сделать без разработчика>", "<2>", "<3>", "<4>", "<5>"],
-  "growth_opportunities": ["<долгосрочная возможность роста 1>", "<2>", "<3>"]
+  "keyword_suggestions": {{
+    "primary": ["<главный ключевой запрос>","<2>","<3>"],
+    "secondary": ["<LSI-запрос 1>","<2>","<3>","<4>","<5>"],
+    "long_tail": ["<длинный хвост 1>","<2>","<3>"],
+    "comment": "<советы по внедрению ключей в контент>"
+  }},
+  "quick_wins": ["<1>","<2>","<3>","<4>","<5>"],
+  "growth_opportunities": ["<1>","<2>","<3>"]
 }}"""
 
     raw = call_ai([{"role": "system", "content": system}, {"role": "user", "content": prompt}])
     raw = re.sub(r"^```json\s*", "", raw)
+    raw = re.sub(r"^```\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw)
     return json.loads(raw)
 
@@ -298,13 +335,11 @@ def handler(event: dict, context) -> dict:
     if not url.startswith("http"):
         url = "https://" + url
 
-    # Парсим страницу
     try:
         page_data = fetch_page(url)
     except Exception as e:
         return err(f"Не удалось загрузить страницу: {str(e)}", 422)
 
-    # Глубокий анализ через GPT-4o
     try:
         report = deep_analyze(page_data)
     except Exception as e:
