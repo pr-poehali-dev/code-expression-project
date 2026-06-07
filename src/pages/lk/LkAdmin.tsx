@@ -8,7 +8,7 @@ import { CandidatesSection } from "./LkAdminCandidates";
 import { EnergySection } from "./LkAdminEnergy";
 import { CoursesSection } from "./LkAdminCourses";
 import { PaymentsSection } from "./LkAdminPayments";
-import { SeoSection } from "./LkAdminSeo";
+import LkMarketingSeo from "./LkMarketingSeo";
 
 type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments" | "seo";
 
@@ -53,7 +53,7 @@ export default function LkAdmin() {
       {section === "candidates" && <CandidatesSection />}
       {section === "body"       && <BodySection />}
       {section === "energy"     && <EnergySection />}
-      {section === "seo"        && <SeoSection />}
+      {section === "seo"        && <LkMarketingSeo onBack={() => setSection("ai")} />}
       {section === "payments"   && <PaymentsSection />}
 
       <style>{`
