@@ -164,18 +164,18 @@ export default function Akademiya() {
                 onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.04)"}
                 onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "#fff"}
               >
-                <div style={{ padding: "40px 32px 28px", borderBottom: "1px solid #EAEEF3" }}>
-                  <div style={{ width: 52, height: 52, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+                <div style={{ padding: "40px 32px 28px", borderBottom: "1px solid #EAEEF3", minHeight: 220, display: "flex", flexDirection: "column" }}>
+                  <div style={{ width: 52, height: 52, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, flexShrink: 0 }}>
                     <Icon name={t.icon} size={24} style={{ color: TEAL }} />
                   </div>
                   <h3 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 600, color: DARK, margin: "0 0 10px" }}>{t.role}</h3>
-                  <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.6, fontWeight: 300 }}>{t.desc}</p>
+                  <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.6, fontWeight: 300, flex: 1 }}>{t.desc}</p>
                 </div>
-                <div style={{ padding: "28px 32px", flex: 1, display: "flex", flexDirection: "column" }}>
+                <div style={{ padding: "28px 32px 40px", flex: 1, display: "flex", flexDirection: "column" }}>
                   <div style={{ fontSize: 11, fontWeight: 600, color: GRAY, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 18 }}>Основные темы</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                     {t.topics.map((topic, ti) => (
-                      <div key={ti} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                      <div key={ti} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                         <div style={{ width: 4, height: 4, borderRadius: "50%", background: TEAL, flexShrink: 0, marginTop: 8 }} />
                         <span style={{ fontSize: 14, color: "#334155", lineHeight: 1.5, fontWeight: 300 }}>{topic}</span>
                       </div>
