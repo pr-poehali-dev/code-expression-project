@@ -171,26 +171,27 @@ export default function Vozmozhnosti() {
       </section>
 
       {/* ── СХЕМА-ВОРОНКА ── */}
-      <section style={{ background: `radial-gradient(120% 100% at 80% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`, padding: "64px 32px" }}>
+      <section style={{ background: `radial-gradient(120% 100% at 80% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`, padding: "48px 24px" }}>
         <div style={{ maxWidth: 860, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 0 }}>
+          <div className="flow-steps" style={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "nowrap", gap: 0 }}>
             {FLOW_STEPS.map((step, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center" }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                   <div style={{
-                    width: 60, height: 60, borderRadius: 2,
+                    width: 56, height: 56, borderRadius: 2,
                     background: "rgba(45,212,191,0.08)",
                     border: "1px solid rgba(45,212,191,0.22)",
                     display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
                   }}>
-                    <Icon name={step.icon} size={22} style={{ color: TEAL }} />
+                    <Icon name={step.icon} size={20} style={{ color: TEAL }} />
                   </div>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.55)", textAlign: "center", maxWidth: 90, lineHeight: 1.4, letterSpacing: "0.3px" }}>{step.label}</div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.55)", textAlign: "center", maxWidth: 80, lineHeight: 1.4, letterSpacing: "0.3px" }}>{step.label}</div>
                 </div>
                 {i < FLOW_STEPS.length - 1 && (
-                  <div style={{ display: "flex", alignItems: "center", padding: "0 10px", marginBottom: 28 }}>
-                    <div style={{ width: 20, height: 1, background: "rgba(45,212,191,0.25)" }} />
-                    <Icon name="ChevronRight" size={14} style={{ color: "rgba(45,212,191,0.4)", marginLeft: -5 }} />
+                  <div className="flow-arrow" style={{ display: "flex", alignItems: "center", padding: "0 8px", marginBottom: 26 }}>
+                    <div style={{ width: 16, height: 1, background: "rgba(45,212,191,0.25)" }} />
+                    <Icon name="ChevronRight" size={13} style={{ color: "rgba(45,212,191,0.4)", marginLeft: -4 }} />
                   </div>
                 )}
               </div>
@@ -283,6 +284,11 @@ export default function Vozmozhnosti() {
         @media (max-width: 640px) {
           .how-grid { grid-template-columns: 1fr !important; }
           .how-grid > div { border-right: none !important; border-bottom: 1px solid #E2E8F0; }
+          .flow-steps { flex-wrap: wrap !important; gap: 16px !important; justify-content: center !important; }
+          .flow-arrow { display: none !important; }
+        }
+        @media (max-width: 480px) {
+          .flow-steps > div { width: calc(33% - 12px); }
         }
       `}</style>
     </div>
