@@ -164,7 +164,7 @@ export default function Akademiya() {
                 onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.04)"}
                 onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "#fff"}
               >
-                <div style={{ padding: "40px 32px 28px", borderBottom: "1px solid #EAEEF3" }}>
+                <div style={{ padding: "40px 32px 28px", borderBottom: "1px solid #EAEEF3", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
                   <div style={{ width: 52, height: 52, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
                     <Icon name={t.icon} size={24} style={{ color: TEAL }} />
                   </div>
