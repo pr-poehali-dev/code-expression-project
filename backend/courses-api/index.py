@@ -816,41 +816,21 @@ def handle_admin_course_detail(event, conn):
         course["modules"] = []
         return ok(course)
 
-    # Загружаем все уроки курса одним запросом
+    # Загружаем уроки без тяжёлых полей (content/ai_context/homework грузятся при открытии урока)
     cur.execute(
-        f"SELECT id, module_id, course_id, title, content, video_urls, links, ai_context, homework, sort_order "
+        f"SELECT id, module_id, course_id, title, video_urls, links, sort_order "
         f"FROM {tbl('course_lessons')} WHERE course_id=%s ORDER BY sort_order, id",
         (course_id,)
     )
     all_lessons = [dict(r) for r in cur.fetchall()]
     lesson_ids = [l["id"] for l in all_lessons]
 
-    # Batch-загрузка фото, файлов и инструментов
-    photos_by_lesson = {}
-    files_by_lesson = {}
-    tools_by_lesson = {}
-
-    if lesson_ids:
-        ids_sql = ",".join(str(i) for i in lesson_ids)
-
-        cur.execute(f"SELECT id, lesson_id, url, sort_order FROM {tbl('lesson_photos')} WHERE lesson_id IN ({ids_sql}) ORDER BY sort_order, id")
-        for r in cur.fetchall():
-            photos_by_lesson.setdefault(r["lesson_id"], []).append({"id": r["id"], "url": r["url"], "sort_order": r["sort_order"]})
-
-        cur.execute(f"SELECT id, lesson_id, name, url FROM {tbl('lesson_files')} WHERE lesson_id IN ({ids_sql}) ORDER BY id")
-        for r in cur.fetchall():
-            files_by_lesson.setdefault(r["lesson_id"], []).append({"id": r["id"], "name": r["name"], "url": r["url"]})
-
-        cur.execute(f"SELECT lesson_id, tool_slug FROM {tbl('lesson_tools')} WHERE lesson_id IN ({ids_sql}) ORDER BY sort_order, id")
-        for r in cur.fetchall():
-            tools_by_lesson.setdefault(r["lesson_id"], []).append(r["tool_slug"])
-
     # Собираем уроки по модулям
     lessons_by_module = {}
     for l in all_lessons:
-        l["photos"] = photos_by_lesson.get(l["id"], [])
-        l["files"] = files_by_lesson.get(l["id"], [])
-        l["tools"] = tools_by_lesson.get(l["id"], [])
+        l["photos"] = []
+        l["files"] = []
+        l["tools"] = []
         lessons_by_module.setdefault(l["module_id"], []).append(l)
 
     for m in modules:
@@ -858,6 +838,36 @@ def handle_admin_course_detail(event, conn):
 
     course["modules"] = modules
     return ok(course)
+
+
+def handle_admin_lesson_detail(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    qs = event.get("queryStringParameters") or {}
+    lesson_id = qs.get("lesson_id")
+    if not lesson_id:
+        return err("lesson_id обязателен")
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT id, module_id, course_id, title, content, video_urls, links, ai_context, homework, sort_order "
+        f"FROM {tbl('course_lessons')} WHERE id=%s", (lesson_id,)
+    )
+    row = cur.fetchone()
+    if not row:
+        return err("Урок не найден", 404)
+    lesson = dict(row)
+
+    cur.execute(f"SELECT id, url, sort_order FROM {tbl('lesson_photos')} WHERE lesson_id=%s ORDER BY sort_order, id", (lesson_id,))
+    lesson["photos"] = [dict(r) for r in cur.fetchall()]
+
+    cur.execute(f"SELECT id, name, url FROM {tbl('lesson_files')} WHERE lesson_id=%s ORDER BY id", (lesson_id,))
+    lesson["files"] = [dict(r) for r in cur.fetchall()]
+
+    cur.execute(f"SELECT tool_slug FROM {tbl('lesson_tools')} WHERE lesson_id=%s ORDER BY sort_order, id", (lesson_id,))
+    lesson["tools"] = [r["tool_slug"] for r in cur.fetchall()]
+
+    return ok(lesson)
 
 
 def handle_admin_rehost_images(event, conn):
@@ -932,6 +942,7 @@ ROUTES = {
     "admin_grant_access":        handle_admin_grant_access,
     "admin_lesson_tools_save":   handle_admin_lesson_tools_save,
     "admin_course_detail":       handle_admin_course_detail,
+    "admin_lesson_detail":       handle_admin_lesson_detail,
     "admin_rehost_images":       handle_admin_rehost_images,
 }
 

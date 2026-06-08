@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ACCENT, labelStyle, inputStyle, actionBtn, iconBtn } from "./LkAdminShared";
 import Icon from "@/components/ui/icon";
 import { apiFetch, Lesson, Module, LFile, Photo } from "./LkAdminCourses.types";
@@ -11,6 +11,7 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
   lesson: Lesson | null; courseId: number; modules: Module[]; onBack: () => void; onSaved: (l: Lesson) => void;
 }) {
   const [form, setForm] = useState<Partial<Lesson>>(lesson || { module_id: modules[0]?.id, course_id: courseId, video_urls: [], links: [], sort_order: 0 });
+  const [loading, setLoading] = useState(!!lesson?.id);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const [newVideo, setNewVideo] = useState("");
@@ -25,6 +26,21 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
   const [savingTools, setSavingTools] = useState(false);
   const [rehosting, setRehosting] = useState(false);
   const [rehostMsg, setRehostMsg] = useState("");
+
+  useEffect(() => {
+    if (!lesson?.id) return;
+    setLoading(true);
+    apiFetch(`admin_lesson_detail&lesson_id=${lesson.id}`)
+      .then(d => {
+        if (d.id) {
+          setForm(d);
+          setPhotos(d.photos || []);
+          setFiles(d.files || []);
+          setTools(d.tools || []);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [lesson?.id]);
 
   const rehostImages = async (html: string) => {
     if (!/src=["'][^"']*https?:\/\/(?!cdn\.poehali\.dev)[^"']+["']/i.test(html)) return;
@@ -135,6 +151,15 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
     const parts = s.split("|");
     return parts.length === 2 ? { label: parts[0], url: parts[1] } : { label: s, url: s };
   };
+
+  if (loading) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "60px 0", gap: 12, color: "#888", fontSize: 14 }}>
+        <Icon name="Loader" size={18} style={{ color: ACCENT }} />
+        Загружаем урок...
+      </div>
+    );
+  }
 
   if (preview) {
     return (
