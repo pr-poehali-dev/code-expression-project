@@ -810,24 +810,51 @@ def handle_admin_course_detail(event, conn):
         (course_id,)
     )
     modules = [dict(r) for r in cur.fetchall()]
+    module_ids = [m["id"] for m in modules]
+
+    if not module_ids:
+        course["modules"] = []
+        return ok(course)
+
+    # Загружаем все уроки курса одним запросом
+    cur.execute(
+        f"SELECT id, module_id, course_id, title, content, video_urls, links, ai_context, homework, sort_order "
+        f"FROM {tbl('course_lessons')} WHERE course_id=%s ORDER BY sort_order, id",
+        (course_id,)
+    )
+    all_lessons = [dict(r) for r in cur.fetchall()]
+    lesson_ids = [l["id"] for l in all_lessons]
+
+    # Batch-загрузка фото, файлов и инструментов
+    photos_by_lesson = {}
+    files_by_lesson = {}
+    tools_by_lesson = {}
+
+    if lesson_ids:
+        ids_sql = ",".join(str(i) for i in lesson_ids)
+
+        cur.execute(f"SELECT id, lesson_id, url, sort_order FROM {tbl('lesson_photos')} WHERE lesson_id IN ({ids_sql}) ORDER BY sort_order, id")
+        for r in cur.fetchall():
+            photos_by_lesson.setdefault(r["lesson_id"], []).append({"id": r["id"], "url": r["url"], "sort_order": r["sort_order"]})
+
+        cur.execute(f"SELECT id, lesson_id, name, url FROM {tbl('lesson_files')} WHERE lesson_id IN ({ids_sql}) ORDER BY id")
+        for r in cur.fetchall():
+            files_by_lesson.setdefault(r["lesson_id"], []).append({"id": r["id"], "name": r["name"], "url": r["url"]})
+
+        cur.execute(f"SELECT lesson_id, tool_slug FROM {tbl('lesson_tools')} WHERE lesson_id IN ({ids_sql}) ORDER BY sort_order, id")
+        for r in cur.fetchall():
+            tools_by_lesson.setdefault(r["lesson_id"], []).append(r["tool_slug"])
+
+    # Собираем уроки по модулям
+    lessons_by_module = {}
+    for l in all_lessons:
+        l["photos"] = photos_by_lesson.get(l["id"], [])
+        l["files"] = files_by_lesson.get(l["id"], [])
+        l["tools"] = tools_by_lesson.get(l["id"], [])
+        lessons_by_module.setdefault(l["module_id"], []).append(l)
 
     for m in modules:
-        cur.execute(
-            f"SELECT id, module_id, course_id, title, content, video_urls, links, ai_context, homework, sort_order "
-            f"FROM {tbl('course_lessons')} WHERE module_id=%s ORDER BY sort_order, id", (m["id"],)
-        )
-        lessons = []
-        for row in cur.fetchall():
-            l = dict(row)
-            # Подгружаем фото и файлы
-            cur.execute(f"SELECT id, url, sort_order FROM {tbl('lesson_photos')} WHERE lesson_id=%s ORDER BY sort_order, id", (l["id"],))
-            l["photos"] = [dict(r) for r in cur.fetchall()]
-            cur.execute(f"SELECT id, name, url FROM {tbl('lesson_files')} WHERE lesson_id=%s ORDER BY id", (l["id"],))
-            l["files"] = [dict(r) for r in cur.fetchall()]
-            cur.execute(f"SELECT tool_slug FROM {tbl('lesson_tools')} WHERE lesson_id=%s ORDER BY sort_order, id", (l["id"],))
-            l["tools"] = [r["tool_slug"] for r in cur.fetchall()]
-            lessons.append(l)
-        m["lessons"] = lessons
+        m["lessons"] = lessons_by_module.get(m["id"], [])
 
     course["modules"] = modules
     return ok(course)
