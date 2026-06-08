@@ -101,7 +101,7 @@ export default function Index() {
           </div>
 
           <div style={{ display: "flex", justifyContent: "center" }} className="hero-img">
-            <div style={{ position: "relative", width: "100%", maxWidth: 460 }}>
+            <div style={{ position: "relative", width: "100%", maxWidth: 580 }}>
               <div style={{
                 position: "absolute", inset: -1, borderRadius: 6,
                 background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))",
@@ -111,7 +111,8 @@ export default function Index() {
                 src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/17441cfe-b66d-4a86-ad10-5a1fca3bfed4.png"
                 alt="Платформа Про Диалог — инструменты для роста салона"
                 style={{
-                  width: "100%", aspectRatio: "3/4", objectFit: "cover",
+                  width: "100%", aspectRatio: "9/16", objectFit: "cover",
+                  objectPosition: "center top",
                   borderRadius: 4, display: "block",
                   boxShadow: "0 32px 80px rgba(0,0,0,0.5)",
                   position: "relative", zIndex: 1,
