@@ -176,7 +176,7 @@ function InstallButtonMobile() {
 }
 
 // ── Виджет баланса энергии ─────────────────────────────────────────────────────
-export function EnergyBadge({ onNav, sidebar }: { onNav: (t: Tab) => void; sidebar?: boolean }) {
+export function EnergyBadge({ onNav, sidebar }: { onNav: (t: string) => void; sidebar?: boolean }) {
   const { balance } = useEnergy();
   const low   = balance < 50;
   const empty = balance === 0;
@@ -206,7 +206,7 @@ interface SidebarProps {
   tab: Tab;
   hasSalon: boolean;
   role: string;
-  onNav: (t: Tab) => void;
+  onNav: (t: string) => void;
   onLogout: () => void;
 }
 
@@ -320,7 +320,7 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
 // ── Мобильный хедер ────────────────────────────────────────────────────────────
 interface MobileHeaderProps {
   hasSalonId: boolean;
-  onNav: (t: Tab) => void;
+  onNav: (t: string) => void;
   onLogout: () => void;
 }
 
@@ -353,7 +353,7 @@ interface BottomBarProps {
   moreItems: typeof NAV_ITEMS;
   moreOpen: boolean;
   setMoreOpen: (v: boolean | ((p: boolean) => boolean)) => void;
-  onNav: (t: Tab) => void;
+  onNav: (t: string) => void;
 }
 
 export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, setMoreOpen, onNav }: BottomBarProps) {

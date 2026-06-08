@@ -23,7 +23,7 @@ export function ComingSoonTab({ title, description, icon }: { title: string; des
 
 // ── Домашняя вкладка ──────────────────────────────────────────────────────────
 interface HomeTabProps {
-  onNav: (t: Tab) => void;
+  onNav: (t: string) => void;
   role: string;
   hasSalon: boolean;
 }

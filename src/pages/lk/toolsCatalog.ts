@@ -155,6 +155,14 @@ export const TOOLS_CATALOG: ToolInfo[] = [
     tab: "marketing",
     category: "marketing",
   },
+  {
+    slug: "seo",
+    name: "SEO-оптимизатор",
+    description: "Анализ сайта салона: мета-теги, заголовки, структура. Конкретные правки с готовыми вариантами.",
+    icon: "Globe",
+    tab: "marketing:seo",
+    category: "marketing",
+  },
 ];
 
 export function getToolBySlug(slug: string): ToolInfo | undefined {

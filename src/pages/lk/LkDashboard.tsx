@@ -41,6 +41,7 @@ export default function LkDashboard() {
 
   const [tab, setTab]           = useState<Tab>(getInitialTab);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [marketingTool, setMarketingTool] = useState<string | undefined>(undefined);
 
   // Фикс для Chrome/Android: браузерная строка занимает место и скрывает bottom nav
   useEffect(() => {
@@ -52,17 +53,21 @@ export default function LkDashboard() {
     return () => window.removeEventListener("resize", setVh);
   }, []);
 
-  const handleTabChange = useCallback((t: Tab) => {
-    if (!allowedTabs.includes(t)) return;
-    if (!hasSalon && SALON_REQUIRED.includes(t)) {
+  const handleTabChange = useCallback((t: string) => {
+    // Поддержка составных команд вида "marketing:seo"
+    const [base, tool] = t.split(":") as [Tab, string?];
+    if (!allowedTabs.includes(base)) return;
+    if (!hasSalon && SALON_REQUIRED.includes(base)) {
       setMoreOpen(false);
       sessionStorage.setItem("lk_tab", "salon");
       setTab("salon");
       return;
     }
+    if (tool) setMarketingTool(tool);
+    else setMarketingTool(undefined);
     setMoreOpen(false);
-    sessionStorage.setItem("lk_tab", t);
-    setTab(t);
+    sessionStorage.setItem("lk_tab", base);
+    setTab(base);
   }, [allowedTabs, hasSalon]);
 
   const visibleNav    = NAV_ITEMS.filter(n => allowedTabs.includes(n.id));
@@ -95,7 +100,7 @@ export default function LkDashboard() {
         {tab === "ai"        && <LkAiTools />}
         {tab === "agent"      && <SalonAIAgent onNavigateShop={() => handleTabChange("shop")} />}
         {tab === "clientmsg"  && <LkClientMsg />}
-        {tab === "marketing"  && <LkMarketing />}
+        {tab === "marketing"  && <LkMarketing initialTool={marketingTool} />}
         {tab === "shop"       && <LkEnergy />}
         {tab === "employees" && <LkTeam />}
         {tab === "purchases" && <LkEnergy />}
