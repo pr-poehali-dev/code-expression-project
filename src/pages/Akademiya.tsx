@@ -158,20 +158,20 @@ export default function Akademiya() {
             <p style={{ fontSize: 17, color: GRAY, margin: 0, fontWeight: 300, lineHeight: 1.6 }}>Каждая траектория адаптирована под конкретную роль в команде салона</p>
           </div>
 
-          <div className="cat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
+          <div className="cat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
             {TRAJECTORIES.map((t, i) => (
-              <div key={i} style={{ background: "#fff", display: "flex", flexDirection: "column", transition: "all 0.3s", cursor: "default" }}
+              <div key={i} style={{ background: "#fff", display: "grid", gridTemplateRows: "auto 1fr", transition: "background 0.3s", cursor: "default" }}
                 onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.04)"}
                 onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "#fff"}
               >
-                <div style={{ padding: "40px 32px 28px", borderBottom: "1px solid #EAEEF3", height: 260, display: "flex", flexDirection: "column" }}>
-                  <div style={{ width: 52, height: 52, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, flexShrink: 0 }}>
+                <div style={{ padding: "40px 32px 28px", borderBottom: "1px solid #EAEEF3" }}>
+                  <div style={{ width: 52, height: 52, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
                     <Icon name={t.icon} size={24} style={{ color: TEAL }} />
                   </div>
                   <h3 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 600, color: DARK, margin: "0 0 10px" }}>{t.role}</h3>
                   <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.6, fontWeight: 300 }}>{t.desc}</p>
                 </div>
-                <div style={{ padding: "28px 32px 40px", flex: 1, display: "flex", flexDirection: "column" }}>
+                <div style={{ padding: "28px 32px 40px", display: "flex", flexDirection: "column" }}>
                   <div style={{ fontSize: 11, fontWeight: 600, color: GRAY, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 18 }}>Основные темы</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                     {t.topics.map((topic, ti) => (
@@ -229,7 +229,11 @@ export default function Akademiya() {
       <BizFooter />
 
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
+          .cat-grid { grid-template-columns: repeat(2,1fr) !important; }
+        }
+        @media (max-width: 640px) {
+          .cat-grid { grid-template-columns: 1fr !important; }
           .inside-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
           .akad-img-text { left: 20px !important; right: 20px !important; max-width: none !important; }
         }
