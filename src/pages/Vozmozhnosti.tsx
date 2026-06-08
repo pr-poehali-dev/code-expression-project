@@ -13,47 +13,83 @@ const SECTIONS = [
     tag: "Маркетинг",
     icon: "Megaphone",
     title: "Маркетинг",
-    desc: "Контент, который привлекает клиентов — без копирайтера и дизайнера.",
+    desc: "Контент и продвижение без лишних затрат времени.",
+    subdesc: "Инструменты помогают регулярно публиковать качественный контент и поддерживать активность салона в социальных сетях.",
     tools: [
-      { icon: "PenLine", name: "Генератор постов", desc: "Готовый текст для социальных сетей с уместными хэштегами за пару минут." },
-      { icon: "Video", name: "Идеи для Reels", desc: "Сценарий короткого видео под интересы вашей целевой аудитории." },
-      { icon: "Image", name: "Концепции изображений", desc: "Генерация изображений под ваш салон красоты." },
-      { icon: "Calculator", name: "Расчёт рекламного бюджета", desc: "ДРР, прогноз по стратегиям Яндекс.Директ и оптимальное распределение бюджета под цели салона." },
+      { icon: "PenLine",    name: "Генератор постов",          desc: "Создает готовые публикации для социальных сетей с учётом тематики вашего салона." },
+      { icon: "Video",      name: "Сценарии для Reels",         desc: "Помогают быстро подготовить короткие видео для привлечения новых клиентов." },
+      { icon: "Image",      name: "Генерация изображений",      desc: "Создаёт уникальные визуалы для постов, баннеров и рекламных материалов." },
+      { icon: "Star",       name: "Ответы на отзывы",           desc: "Формирует корректные и профессиональные ответы на положительные и негативные отзывы клиентов." },
+      { icon: "Calculator", name: "Расчёт рекламного бюджета",  desc: "Помогает оценить эффективность вложений и распределить бюджет между рекламными каналами." },
     ],
   },
   {
     tag: "Управление",
     icon: "BarChart3",
     title: "Управление",
-    desc: "Аналитика и решения, которые помогают видеть бизнес целиком.",
+    desc: "Аналитика, которая показывает, где находится точка роста бизнеса.",
+    subdesc: "Инструменты помогают владельцу видеть картину целиком и принимать решения на основе данных.",
     tools: [
-      { icon: "UserSearch", name: "Анализ персонала", desc: "Объективная картина по каждому сотруднику: кто приносит прибыль." },
-      { icon: "ClipboardList", name: "Цифровой бизнес-разбор", desc: "Персональный план роста выручки на основе данных вашего салона." },
-      { icon: "Stethoscope", name: "Диагностика салона", desc: "Полный аудит маркетинга, сервиса, финансов и команды." },
+      { icon: "UserSearch",    name: "Анализ персонала",          desc: "Показывает вклад каждого сотрудника в прибыль салона и помогает находить скрытые потери." },
+      { icon: "ClipboardList", name: "Цифровой бизнес-разбор",    desc: "Комплексный анализ текущего состояния салона с персональными рекомендациями." },
+      { icon: "Stethoscope",   name: "Диагностика роста салона",  desc: "Помогает оценить маркетинг, сервис, продажи и работу команды." },
     ],
   },
   {
     tag: "Продажи",
     icon: "MessagesSquare",
-    title: "Продажи",
-    desc: "Готовые инструменты для роста среднего чека и возвращаемости.",
+    title: "Продажи и сервис",
+    desc: "Правильная коммуникация превращает первого клиента в постоянного.",
+    subdesc: "",
     tools: [
-      { icon: "MessagesSquare", name: "Скрипты общения", desc: "Сценарии для администраторов на любую ситуацию: запись, допродажа, конфликт." },
-      { icon: "ShieldCheck", name: "Работа с возражениями", desc: "Выверенные ответы на «дорого», «подумаю» и «не сейчас»." },
-      { icon: "RotateCcw", name: "Повторная запись", desc: "Алгоритм возврата клиента через несколько недель после визита." },
+      { icon: "MessagesSquare", name: "Скрипты общения",       desc: "Готовые сценарии для записи, консультации, продажи и решения сложных ситуаций." },
+      { icon: "ShieldCheck",    name: "Работа с возражениями", desc: "Практические модели ответов на типовые сомнения клиентов." },
+      { icon: "RotateCcw",      name: "Повторная запись",       desc: "Инструменты для увеличения возврата клиентов и загрузки расписания." },
     ],
   },
   {
     tag: "Специалисты",
-    icon: "Stethoscope",
-    title: "Специалисты",
-    desc: "Инструменты, которые повышают качество работы и доверие клиентов.",
+    icon: "Heart",
+    title: "Развитие специалистов",
+    desc: "Инструменты, которые помогают работать увереннее и создавать долгосрочное доверие.",
+    subdesc: "",
     tools: [
-      { icon: "ScanLine", name: "Диагностика клиента", desc: "Структурированный опрос и анализ для специалистов по телу." },
-      { icon: "FileText", name: "Шпаргалки мастера", desc: "Краткие памятки по техникам, противопоказаниям и продуктам." },
-      { icon: "HeartPulse", name: "Программы восстановления", desc: "Индивидуальный план работы с клиентом на полный курс." },
+      { icon: "ScanLine",       name: "Системная диагностика клиента",    desc: "Структурированный анализ состояния клиента для специалистов по телу." },
+      { icon: "BookOpen",       name: "Профессиональные шпаргалки",       desc: "Быстрый доступ к техникам, противопоказаниям и рабочим рекомендациям." },
+      { icon: "HeartPulse",     name: "Программы восстановления",         desc: "Помогают формировать индивидуальные планы сопровождения клиента." },
+      { icon: "ClipboardCheck", name: "Тесты и диагностики развития",     desc: "Оценка навыков общения, финансового мышления и профессионального роста сотрудников." },
     ],
   },
+  {
+    tag: "Академия",
+    icon: "GraduationCap",
+    title: "Развитие команды",
+    desc: "Тренинги для сотрудников внутри одной экосистемы.",
+    subdesc: "Владелец может назначать доступы к обучению администраторам, мастерам и специалистам, отслеживая развитие всей команды.",
+    tools: [],
+  },
+];
+
+const WHY_ITEMS = [
+  "Практический опыт и реальные бизнес-модели.",
+  "Проверенные алгоритмы анализа.",
+  "Искусственный интеллект для персональных рекомендаций.",
+  "Развитие сотрудников в одном кабинете.",
+  "Инструменты, которые помогают салону расти каждый день.",
+];
+
+const FLOW_STEPS = [
+  { icon: "Database",   label: "Данные салона",       color: "#0284c7", bg: "#f0f9ff", border: "#bae6fd" },
+  { icon: "Calculator", label: "Алгоритмы",            color: "#7c3aed", bg: "#faf5ff", border: "#e9d5ff" },
+  { icon: "Cpu",        label: "ИИ",                   color: "#059669", bg: "#f0fdf4", border: "#bbf7d0" },
+  { icon: "Lightbulb",  label: "Конкретные действия",  color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
+  { icon: "TrendingUp", label: "Рост прибыли",          color: "#dc2626", bg: "#fef2f2", border: "#fca5a5" },
+];
+
+const HOW_STEPS = [
+  { num: "1", title: "Анализ данных",              desc: "Алгоритмы обрабатывают показатели салона, сотрудников или задачи пользователя." },
+  { num: "2", title: "Интеллектуальная обработка", desc: "ИИ анализирует взаимосвязи и формирует персональные выводы." },
+  { num: "3", title: "Готовое решение",             desc: "Вы получаете конкретные рекомендации, сценарии или готовый контент для работы." },
 ];
 
 export default function Vozmozhnosti() {
@@ -78,8 +114,14 @@ export default function Vozmozhnosti() {
           <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
             Возможности платформы
           </h1>
-          <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 auto 40px", fontWeight: 300, maxWidth: 640 }}>
-            Всё необходимое для роста салона в едином кабинете — маркетинг, управление, продажи и развитие команды. Спокойные, выверенные инструменты для ежедневной работы.
+          <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 auto 16px", fontWeight: 300, maxWidth: 680 }}>
+            Всё, что помогает салону расти — в одном кабинете.
+          </p>
+          <p style={{ fontSize: "clamp(14px,1.4vw,16px)", color: "rgba(255,255,255,0.45)", lineHeight: 1.8, margin: "0 auto 16px", fontWeight: 300, maxWidth: 660 }}>
+            Про Диалог объединяет аналитику, маркетинг, обучение сотрудников и искусственный интеллект в единую систему управления салоном. Каждый инструмент работает по гибридному принципу: сначала анализ данных и проверенные алгоритмы, затем — персональные рекомендации ИИ для вашей ситуации.
+          </p>
+          <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: TEAL, lineHeight: 1.6, margin: "0 auto 40px", fontWeight: 500, letterSpacing: "0.5px" }}>
+            Маркетинг · Управление · Продажи · Развитие команды
           </p>
 
           <Link to="/cabinet" style={{
@@ -95,48 +137,131 @@ export default function Vozmozhnosti() {
         </div>
       </section>
 
+      {/* ── СХЕМА-ВОРОНКА ── */}
+      <section style={{ background: DARK, padding: "72px 32px" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 0 }}>
+            {FLOW_STEPS.map((step, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 56, height: 56, borderRadius: 14, background: step.bg, border: `2px solid ${step.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Icon name={step.icon} size={22} style={{ color: step.color }} />
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.75)", textAlign: "center", maxWidth: 90, lineHeight: 1.4 }}>{step.label}</div>
+                </div>
+                {i < FLOW_STEPS.length - 1 && (
+                  <div style={{ display: "flex", alignItems: "center", padding: "0 8px", marginBottom: 28 }}>
+                    <div style={{ width: 24, height: 2, background: "rgba(45,212,191,0.3)" }} />
+                    <Icon name="ChevronRight" size={16} style={{ color: "rgba(45,212,191,0.5)", marginLeft: -6 }} />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── КАК РАБОТАЮТ ИНСТРУМЕНТЫ ── */}
+      <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Принцип работы</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 12px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+              Как работают инструменты
+            </h2>
+            <p style={{ fontSize: 18, color: GRAY, fontWeight: 400, margin: "0 auto", maxWidth: 520 }}>
+              Не просто ИИ. Система принятия решений.
+            </p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 0, marginTop: 60, border: "1px solid #E2E8F0" }} className="how-grid">
+            {HOW_STEPS.map((step, i) => (
+              <div key={i} style={{ background: "#fff", padding: "44px 36px", borderRight: i < HOW_STEPS.length - 1 ? "1px solid #E2E8F0" : "none", position: "relative" }}>
+                {i < HOW_STEPS.length - 1 && (
+                  <div style={{ position: "absolute", top: "50%", right: -14, transform: "translateY(-50%)", width: 28, height: 28, borderRadius: "50%", background: "#F8FAFC", border: "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>
+                    <Icon name="ArrowRight" size={13} style={{ color: TEAL }} />
+                  </div>
+                )}
+                <div style={{ fontFamily: SERIF, fontSize: 52, fontWeight: 600, color: "rgba(45,212,191,0.18)", lineHeight: 1, marginBottom: 20 }}>{step.num}</div>
+                <h3 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: DARK, margin: "0 0 12px" }}>{step.title}</h3>
+                <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── РАЗДЕЛЫ ── */}
       {SECTIONS.map((s, si) => (
         <section key={si} style={{ padding: "120px 32px", background: si % 2 === 0 ? "#fff" : "#F8FAFC" }}>
           <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 24, marginBottom: 64, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 24, marginBottom: s.tools.length > 0 ? 64 : 0, flexWrap: "wrap" }}>
               <div style={{ width: 56, height: 56, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <Icon name={s.icon} size={26} style={{ color: TEAL }} />
               </div>
-              <div style={{ maxWidth: 640 }}>
+              <div style={{ maxWidth: 680 }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 14 }}>{s.tag}</div>
                 <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,48px)", fontWeight: 500, color: DARK, margin: "0 0 12px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>{s.title}</h2>
-                <p style={{ fontSize: 18, color: GRAY, margin: 0, fontWeight: 300, lineHeight: 1.6 }}>{s.desc}</p>
+                <p style={{ fontSize: 18, color: GRAY, margin: "0 0 10px", fontWeight: 300, lineHeight: 1.6 }}>{s.desc}</p>
+                {s.subdesc && <p style={{ fontSize: 15, color: GRAY, margin: 0, fontWeight: 300, lineHeight: 1.7 }}>{s.subdesc}</p>}
               </div>
             </div>
 
-            <div className="tools-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
-              {s.tools.map((t, ti) => (
-                <div key={ti} style={{ background: si % 2 === 0 ? "#fff" : "#F8FAFC", padding: "40px 32px", transition: "all 0.3s", cursor: "default" }}
-                  onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.05)"}
-                  onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = si % 2 === 0 ? "#fff" : "#F8FAFC"; }}
-                >
-                  <div style={{ width: 48, height: 48, borderRadius: 2, border: "1px solid #EAEEF3", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
-                    <Icon name={t.icon} size={22} style={{ color: TEAL }} />
+            {s.tools.length > 0 && (
+              <div className="tools-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
+                {s.tools.map((t, ti) => (
+                  <div key={ti} style={{ background: si % 2 === 0 ? "#fff" : "#F8FAFC", padding: "40px 32px", transition: "all 0.3s", cursor: "default" }}
+                    onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.05)"}
+                    onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = si % 2 === 0 ? "#fff" : "#F8FAFC"; }}
+                  >
+                    <div style={{ width: 48, height: 48, borderRadius: 2, border: "1px solid #EAEEF3", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+                      <Icon name={t.icon} size={22} style={{ color: TEAL }} />
+                    </div>
+                    <h3 style={{ fontFamily: SERIF, fontSize: 23, fontWeight: 600, color: DARK, margin: "0 0 10px" }}>{t.name}</h3>
+                    <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{t.desc}</p>
                   </div>
-                  <h3 style={{ fontFamily: SERIF, fontSize: 23, fontWeight: 600, color: DARK, margin: "0 0 10px" }}>{t.name}</h3>
-                  <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{t.desc}</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       ))}
+
+      {/* ── ПОЧЕМУ ПРО ДИАЛОГ ── */}
+      <section style={{ background: DARK, padding: "120px 32px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", bottom: "-10%", left: "50%", transform: "translateX(-50%)", width: 800, height: 500, background: "radial-gradient(circle, rgba(45,212,191,0.06) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative" }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Преимущества</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: "#fff", margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+              Почему Про Диалог
+            </h2>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>
+            {WHY_ITEMS.map((item, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "20px 24px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(45,212,191,0.15)", borderRadius: 4 }}>
+                <div style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(45,212,191,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                  <Icon name="Check" size={12} style={{ color: TEAL }} />
+                </div>
+                <span style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.6, fontWeight: 300 }}>{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ── CTA ── */}
       <section style={{ background: "#fff", padding: "120px 32px" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "center", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
-          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
             Готовы начать?
           </h2>
-          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 40px", fontWeight: 300, position: "relative" }}>
-            Создайте профиль салона и получите доступ ко всем инструментам платформы. Без карты и обязательств.
+          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 10px", fontWeight: 300, position: "relative" }}>
+            Создайте профиль салона и получите доступ к инструментам платформы.
+          </p>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", margin: "0 0 40px", fontWeight: 300, position: "relative" }}>
+            Без привязки карты и долгосрочных обязательств.
           </p>
           <Link to="/cabinet" style={{ display: "inline-block", padding: "16px 44px", borderRadius: 2, background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, textDecoration: "none", letterSpacing: "0.3px", position: "relative" }}>
             Попробовать бесплатно
@@ -147,8 +272,9 @@ export default function Vozmozhnosti() {
       <BizFooter />
 
       <style>{`
-        @media (max-width: 880px) {
-          .tools-grid { grid-template-columns: 1fr !important; }
+        @media (max-width: 640px) {
+          .how-grid { grid-template-columns: 1fr !important; }
+          .how-grid > div { border-right: none !important; border-bottom: 1px solid #E2E8F0; }
         }
       `}</style>
     </div>
