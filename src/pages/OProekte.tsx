@@ -8,18 +8,68 @@ const DARK = "#0F172A";
 const GRAY = "#64748B";
 const SERIF = "'Cormorant Garamond', serif";
 
+const WHY_ITEMS = [
+  "Клиента не услышали.",
+  "Не предложили вернуться.",
+  "Не помогли сделать выбор.",
+  "Не объяснили ценность услуги.",
+  "Не поддержали внутри команды.",
+];
+
+const PILLARS = [
+  {
+    icon: "BookOpen",
+    title: "Практический опыт",
+    desc: "17 лет работы в индустрии красоты, обучения специалистов и сопровождения салонов.",
+  },
+  {
+    icon: "Calculator",
+    title: "Проверенные алгоритмы",
+    desc: "Математические модели и логика, которые помогают анализировать бизнес, персонал и процессы.",
+  },
+  {
+    icon: "Cpu",
+    title: "Искусственный интеллект",
+    desc: "Современные технологии, которые превращают данные в персональные рекомендации и помогают быстрее принимать решения.",
+  },
+];
+
+const DIALOG_POINTS = [
+  "Сообщение в мессенджере.",
+  "Ответ на отзыв.",
+  "Разговор администратора.",
+  "Консультация мастера.",
+  "Взаимодействие внутри команды.",
+];
+
 const VALUES = [
-  { icon: "Heart", title: "Коммуникация — основа прибыли", desc: "Большая часть проблем салона лежит в плоскости общения: с клиентами, внутри команды и в маркетинге." },
-  { icon: "Users", title: "Инструменты для людей, не для IT", desc: "Никакого сложного интерфейса. Всё создано для владельцев салонов, далёких от технологий." },
-  { icon: "Target", title: "Результат, а не технологии", desc: "Нас интересует не впечатление от технологий, а рост вашей выручки и возврат клиентов." },
-  { icon: "TrendingUp", title: "Рост через команду", desc: "Один сильный владелец не изменит бизнес. Когда растёт вся команда — растёт весь салон." },
+  {
+    icon: "MessageCircle",
+    title: "Коммуникация — основа роста",
+    desc: "Большинство бизнес-задач решается через качественное взаимодействие с клиентами и командой.",
+  },
+  {
+    icon: "Zap",
+    title: "Простые решения для ежедневной работы",
+    desc: "Мы создаём инструменты, которыми можно пользоваться без специальных технических знаний.",
+  },
+  {
+    icon: "BarChart2",
+    title: "Решения на основе данных",
+    desc: "Алгоритмы и аналитика помогают увидеть реальные причины проблем, а не бороться с их последствиями.",
+  },
+  {
+    icon: "Users",
+    title: "Рост через развитие команды",
+    desc: "Когда развивается владелец, администратор, мастер и специалист — развивается весь бизнес.",
+  },
 ];
 
 const TIMELINE = [
-  { year: "2002", text: "Начало работы в индустрии красоты — обучение специалистов и администраторов." },
-  { year: "2022", text: "Первые курсы по коммуникации для владельцев салонов, более 200 выпускников." },
-  { year: "2024", text: "Появление первых интеллектуальных инструментов, пилот с 20 салонами." },
-  { year: "2025", text: "Запуск платформы Про Диалог — единая экосистема для роста салона." },
+  { year: "2008", text: "Начало практической работы в индустрии красоты и обучения специалистов." },
+  { year: "2022", text: "Запуск первых программ по коммуникации и развитию салонов." },
+  { year: "2024", text: "Создание первых аналитических и интеллектуальных инструментов для бизнеса." },
+  { year: "2026", text: "Запуск платформы Про Диалог — единой экосистемы для роста салонов красоты через команду, аналитику и современные технологии." },
 ];
 
 export default function OProekte() {
@@ -35,89 +85,125 @@ export default function OProekte() {
         <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
 
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 72, alignItems: "center", position: "relative" }} className="about-hero-grid">
-          <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
-              <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Наша история</span>
-            </div>
-            <h1 style={{ fontFamily: SERIF, fontSize: "clamp(40px,5.5vw,68px)", fontWeight: 500, color: "#fff", lineHeight: 1.05, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
-              О проекте<br />Про Диалог
-            </h1>
-            <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.7)", margin: "0 0 18px", lineHeight: 1.7, fontWeight: 300 }}>
-              Про Диалог вырос из многолетней практики в индустрии красоты. Мы видели, как салоны теряют клиентов и деньги не из-за плохого сервиса, а из-за отсутствия правильного диалога.
-            </p>
-            <p style={{ fontSize: "clamp(13px,1.4vw,15px)", color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7, fontWeight: 300 }}>
-              Мы создаём платформу, где технологии служат живому бизнесу, а не усложняют его. Простые инструменты, понятные владельцу салона и его команде.
-            </p>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "center", position: "relative" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
+            <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>О проекте</span>
           </div>
-          <div className="about-hero-img" style={{ display: "flex", justifyContent: "center" }}>
-            <div style={{ position: "relative", width: "100%", maxWidth: 420 }}>
-              <div style={{
-                position: "absolute", inset: -1, borderRadius: 6,
-                background: "linear-gradient(135deg, rgba(45,212,191,0.35), transparent 50%, rgba(45,212,191,0.12))",
-                pointerEvents: "none", zIndex: 2,
-              }} />
-              <img
-                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/f5d495f7-6be9-4853-b77a-1eefed414230.jpg"
-                alt="Основатель Про Диалог"
-                style={{
-                  width: "100%", aspectRatio: "3/4", objectFit: "cover",
-                  objectPosition: "center top",
-                  borderRadius: 4, display: "block",
-                  boxShadow: "0 32px 80px rgba(0,0,0,0.55)",
-                  position: "relative", zIndex: 1,
-                }}
-              />
-              {/* floating badge */}
-              <div style={{
-                position: "absolute", bottom: 20, left: 20, right: 20, zIndex: 3,
-                background: "rgba(8,14,28,0.72)", backdropFilter: "blur(16px)",
-                border: "1px solid rgba(45,212,191,0.25)", borderRadius: 4,
-                padding: "16px 18px", display: "flex", alignItems: "center", gap: 14,
-              }}>
-                <div style={{ width: 40, height: 40, borderRadius: 4, background: "rgba(45,212,191,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Icon name="User" size={20} style={{ color: "#2DD4BF" }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>Сергей Водопьянов</div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontWeight: 300 }}>17 лет в салонном бизнесе</div>
-                </div>
-              </div>
-            </div>
+          <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
+            О проекте
+          </h1>
+          <p style={{ fontSize: "clamp(16px,1.8vw,20px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 auto 32px", fontWeight: 300, maxWidth: 580 }}>
+            Почему появился Про Диалог
+          </p>
+          <div style={{ display: "inline-block", padding: "20px 32px", background: "rgba(45,212,191,0.07)", border: "1px solid rgba(45,212,191,0.2)", borderRadius: 4, maxWidth: 640 }}>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7, fontWeight: 300 }}>
+              Проект основан на 17-летнем практическом опыте работы в индустрии красоты и развитии салонного бизнеса.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* ── КОММУНИКАЦИЯ И ПРИБЫЛЬ ── */}
+      {/* ── ПОЧЕМУ ПОЯВИЛСЯ ── */}
       <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 24 }}>Суть</div>
-          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4.5vw,52px)", fontWeight: 500, color: DARK, margin: "0 0 40px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-            Диалог — это всегда<br />два участника
-          </h2>
-          <p style={{ fontSize: 18, color: GRAY, lineHeight: 1.8, margin: "0 0 20px", fontWeight: 300 }}>
-            «Диалог» в переводе с греческого — разговор двоих. Это не монолог салона о себе, а обмен: вы слышите клиента, клиент слышит вас. Основа — вопрос и ответ, внимание и отклик, из которых рождается доверие.
-          </p>
-          <p style={{ fontSize: 18, color: GRAY, lineHeight: 1.8, margin: "0 0 20px", fontWeight: 300 }}>
-            Салон ведёт диалог постоянно — даже в молчании. Каждое сообщение в чате, тон администратора, ответ на отзыв, пост в соцсетях — часть разговора с клиентом. От качества этого диалога зависит, вернётся человек или уйдёт без объяснений.
-          </p>
-          <p style={{ fontSize: 18, color: GRAY, lineHeight: 1.8, margin: "0 0 20px", fontWeight: 300 }}>
-            Клиент редко уходит из-за качества услуги. Чаще — диалог прерывается: его не позвали вернуться, не услышали сомнения, не проявили заботу. По данным исследований, 68% клиентов уходят из-за ощущения, что их не слышат.
-          </p>
-          <p style={{ fontSize: 18, color: DARK, lineHeight: 1.8, margin: 0, fontWeight: 400 }}>
-            «Про Диалог» помогает выстроить этот процесс осознанно и непрерывно — с клиентами, внутри команды и в маркетинге. Там, где есть диалог, появляется доверие. Где есть доверие — есть и прибыль.
-          </p>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "start" }} className="why-grid">
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Суть</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,48px)", fontWeight: 500, color: DARK, margin: "0 0 24px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+              За 17 лет работы в индустрии красоты мы увидели одну закономерность
+            </h2>
+            <p style={{ fontSize: 16, color: GRAY, margin: "0 0 20px", lineHeight: 1.8, fontWeight: 300 }}>
+              Большинство салонов теряют прибыль не потому, что плохо делают свою работу. И не потому, что у них слабые специалисты.
+            </p>
+            <p style={{ fontSize: 18, color: DARK, margin: "0 0 28px", lineHeight: 1.7, fontWeight: 500 }}>
+              Проблемы возникают там, где прерывается диалог.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
+              {WHY_ITEMS.map((item, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 4, height: 4, borderRadius: "50%", background: TEAL, flexShrink: 0 }} />
+                  <span style={{ fontSize: 15, color: GRAY, fontWeight: 300 }}>{item}</span>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: 15, color: GRAY, margin: "0 0 16px", lineHeight: 1.8, fontWeight: 300 }}>
+              В результате салон теряет доверие, а вместе с ним — постоянных клиентов и прибыль.
+            </p>
+            <p style={{ fontSize: 16, color: DARK, margin: 0, lineHeight: 1.8, fontWeight: 400 }}>
+              Именно поэтому появился Про Диалог.
+            </p>
+          </div>
+          <div>
+            <p style={{ fontSize: 15, color: GRAY, margin: "0 0 28px", lineHeight: 1.8, fontWeight: 300 }}>
+              Мы создаём платформу, которая помогает владельцам и их командам выстраивать сильную систему коммуникации, принимать решения на основе данных и развивать бизнес без лишней сложности.
+            </p>
+            <div style={{ padding: "32px", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 4 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2px", marginBottom: 16 }}>Что такое «диалог»</div>
+              <p style={{ fontSize: 15, color: GRAY, margin: "0 0 16px", lineHeight: 1.8, fontWeight: 300 }}>
+                Слово «диалог» происходит от греческого <em>dialogos</em> — разговор двоих.
+              </p>
+              <p style={{ fontSize: 15, color: GRAY, margin: "0 0 20px", lineHeight: 1.8, fontWeight: 300 }}>
+                Для салона красоты диалог начинается задолго до визита клиента и продолжается после процедуры. Это:
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+                {DIALOG_POINTS.map((p, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 4, height: 4, borderRadius: "50%", background: TEAL, flexShrink: 0 }} />
+                    <span style={{ fontSize: 14, color: "#334155", fontWeight: 300 }}>{p}</span>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>
+                Каждая такая точка контакта формирует доверие. А доверие становится основой долгосрочных отношений с клиентом и устойчивого роста бизнеса.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── ПРИНЦИПЫ ── */}
-      <section style={{ padding: "120px 32px", background: "#fff" }}>
+      {/* ── ОПЫТ + АЛГОРИТМЫ + ИИ ── */}
+      <section style={{ background: "#fff", padding: "120px 32px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Основа платформы</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+              Опыт, алгоритмы и искусственный интеллект
+            </h2>
+            <p style={{ fontSize: 17, color: GRAY, margin: "0 auto 12px", fontWeight: 300, maxWidth: 560 }}>
+              Про Диалог — это не просто набор ИИ-инструментов.
+            </p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0", marginTop: 60 }} className="pillars-grid">
+            {PILLARS.map((p, i) => (
+              <div key={i} style={{ background: "#fff", padding: "44px 36px" }}>
+                <div style={{ width: 52, height: 52, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
+                  <Icon name={p.icon} size={24} style={{ color: TEAL }} />
+                </div>
+                <h3 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 600, color: DARK, margin: "0 0 12px" }}>{p.title}</h3>
+                <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{p.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 48, padding: "32px 40px", background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 4, textAlign: "center" }}>
+            <p style={{ fontSize: 16, color: GRAY, margin: "0 0 8px", lineHeight: 1.7, fontWeight: 300 }}>
+              Мы не заменяем эксперта искусственным интеллектом.
+            </p>
+            <p style={{ fontSize: 17, color: DARK, margin: 0, lineHeight: 1.7, fontWeight: 500 }}>
+              Мы усиливаем опыт и системное мышление современными технологиями.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── НАШ ПОДХОД ── */}
+      <section style={{ padding: "120px 32px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Принципы</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-              Наши принципы
+              Наш подход
             </h2>
           </div>
           <div className="values-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
@@ -126,38 +212,62 @@ export default function OProekte() {
                 onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.05)"}
                 onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "#fff"}
               >
-                <div style={{ width: 52, height: 52, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 28 }}>
-                  <Icon name={v.icon} size={24} style={{ color: TEAL }} />
+                <div style={{ width: 48, height: 48, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+                  <Icon name={v.icon} size={22} style={{ color: TEAL }} />
                 </div>
-                <h3 style={{ fontFamily: SERIF, fontSize: 23, fontWeight: 600, color: DARK, margin: "0 0 12px", lineHeight: 1.2 }}>{v.title}</h3>
-                <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{v.desc}</p>
+                <h3 style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 600, color: DARK, margin: "0 0 10px", lineHeight: 1.3 }}>{v.title}</h3>
+                <p style={{ fontSize: 13, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{v.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── ТАЙМЛАЙН ── */}
-      <section style={{ background: DARK, padding: "120px 32px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", bottom: "-10%", left: "50%", transform: "translateX(-50%)", width: 800, height: 500, background: "radial-gradient(circle, rgba(45,212,191,0.06) 0%, transparent 70%)", pointerEvents: "none" }} />
-        <div style={{ maxWidth: 800, margin: "0 auto", position: "relative" }}>
+      {/* ── ИСТОРИЯ ── */}
+      <section style={{ background: "#fff", padding: "120px 32px" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 72 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>История</div>
-            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: "#fff", margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-              Путь проекта
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Хронология</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+              История проекта
             </h2>
           </div>
-          {TIMELINE.map((t, i) => (
-            <div key={i} style={{ display: "flex", gap: 28 }}>
-              <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <div style={{ width: 64, height: 64, borderRadius: 2, border: `1px solid ${TEAL}`, background: "rgba(45,212,191,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: SERIF, fontSize: 20, fontWeight: 600, color: TEAL }}>{t.year}</div>
-                {i < TIMELINE.length - 1 && <div style={{ width: 1, flex: 1, background: "rgba(255,255,255,0.1)", marginTop: 8 }} />}
-              </div>
-              <div style={{ paddingTop: 18, paddingBottom: i < TIMELINE.length - 1 ? 40 : 0 }}>
-                <p style={{ fontSize: 17, color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{t.text}</p>
-              </div>
+          <div style={{ position: "relative" }}>
+            <div style={{ position: "absolute", left: 19, top: 0, bottom: 0, width: 1, background: "#E2E8F0" }} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+              {TIMELINE.map((item, i) => (
+                <div key={i} style={{ display: "flex", gap: 40, paddingBottom: i < TIMELINE.length - 1 ? 48 : 0 }}>
+                  <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 2, background: i === TIMELINE.length - 1 ? TEAL : "#fff", border: `1px solid ${i === TIMELINE.length - 1 ? TEAL : "#E2E8F0"}`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: i === TIMELINE.length - 1 ? DARK : TEAL, letterSpacing: "0.5px" }}>{item.year}</span>
+                    </div>
+                  </div>
+                  <div style={{ paddingTop: 8, paddingBottom: i < TIMELINE.length - 1 ? 0 : 0 }}>
+                    <p style={{ fontSize: 16, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{item.text}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ВО ЧТО МЫ ВЕРИМ ── */}
+      <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
+        <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Философия</div>
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 32px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+            Во что мы верим
+          </h2>
+          <p style={{ fontSize: 18, color: GRAY, margin: "0 0 20px", lineHeight: 1.8, fontWeight: 300 }}>
+            Технологии не должны усложнять работу.
+          </p>
+          <p style={{ fontSize: 16, color: GRAY, margin: "0 0 20px", lineHeight: 1.8, fontWeight: 300 }}>
+            Они должны помогать владельцу видеть бизнес яснее, сотрудникам — работать увереннее, а клиентам — чувствовать внимание и заботу.
+          </p>
+          <p style={{ fontSize: 17, color: DARK, margin: 0, lineHeight: 1.8, fontWeight: 500 }}>
+            Именно для этого создан Про Диалог.
+          </p>
         </div>
       </section>
 
@@ -165,21 +275,14 @@ export default function OProekte() {
       <section style={{ background: "#fff", padding: "120px 32px" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "center", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
-          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
-            Станьте частью Про Диалог
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
+            Присоединяйтесь к платформе
           </h2>
-          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 40px", fontWeight: 300, position: "relative" }}>
-            100 энергий в подарок при создании первого салона. Без карты и обязательств.
+          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", margin: "0 0 44px", fontWeight: 300, position: "relative", maxWidth: 580, marginLeft: "auto", marginRight: "auto" }}>
+            Создайте профиль своего салона и получите доступ к инструментам, которые помогают развивать команду, улучшать сервис и находить новые точки роста бизнеса.
           </p>
-          <Link to="/cabinet" style={{
-            display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 44px", borderRadius: 2,
-            background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, letterSpacing: "0.3px",
-            textDecoration: "none", position: "relative", transition: "all 0.3s",
-          }}
-            onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 16px 40px rgba(45,212,191,0.3)"; }}
-            onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
-          >
-            Попробовать бесплатно <Icon name="ArrowRight" size={16} />
+          <Link to="/cabinet" style={{ display: "inline-block", padding: "16px 44px", borderRadius: 2, background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, textDecoration: "none", letterSpacing: "0.3px", position: "relative" }}>
+            Попробовать бесплатно
           </Link>
         </div>
       </section>
@@ -187,14 +290,12 @@ export default function OProekte() {
       <BizFooter />
 
       <style>{`
-        @media (max-width: 880px) {
+        @media (max-width: 900px) {
+          .why-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+          .pillars-grid { grid-template-columns: 1fr !important; }
           .values-grid { grid-template-columns: repeat(2,1fr) !important; }
         }
-        @media (max-width: 768px) {
-          .about-hero-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
-          .about-hero-img { display: none !important; }
-        }
-        @media (max-width: 560px) {
+        @media (max-width: 600px) {
           .values-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
