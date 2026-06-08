@@ -99,7 +99,7 @@ export default function DlyaKogo() {
       <section style={{ padding: "120px 32px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           {/* Tabs */}
-          <div style={{ display: "flex", gap: 12, marginBottom: 56, flexWrap: "wrap", justifyContent: "center" }}>
+          <div className="roles-tabs" style={{ display: "flex", gap: 12, marginBottom: 56, flexWrap: "wrap", justifyContent: "center" }}>
             {ROLES.map(r => {
               const isActive = activeId === r.id;
               return (
@@ -189,6 +189,7 @@ export default function DlyaKogo() {
       <style>{`
         @media (max-width: 768px) {
           .role-grid { grid-template-columns: 1fr !important; }
+          .roles-tabs { justify-content: flex-start !important; }
         }
       `}</style>
     </div>
