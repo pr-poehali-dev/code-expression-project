@@ -53,7 +53,7 @@ export default function Index() {
         <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
 
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "100px 32px", width: "100%", display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 72, alignItems: "center" }} className="hero-grid">
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "100px 32px", width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 56, alignItems: "center" }} className="hero-grid">
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
@@ -101,7 +101,7 @@ export default function Index() {
           </div>
 
           <div style={{ display: "flex", justifyContent: "center" }} className="hero-img">
-            <div style={{ position: "relative", width: "100%", maxWidth: 580 }}>
+            <div style={{ position: "relative", width: "100%" }}>
               <div style={{
                 position: "absolute", inset: -1, borderRadius: 6,
                 background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))",
@@ -111,8 +111,7 @@ export default function Index() {
                 src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/17441cfe-b66d-4a86-ad10-5a1fca3bfed4.png"
                 alt="Платформа Про Диалог — инструменты для роста салона"
                 style={{
-                  width: "100%", aspectRatio: "9/16", objectFit: "cover",
-                  objectPosition: "center top",
+                  width: "100%", height: "auto",
                   borderRadius: 4, display: "block",
                   boxShadow: "0 32px 80px rgba(0,0,0,0.5)",
                   position: "relative", zIndex: 1,
