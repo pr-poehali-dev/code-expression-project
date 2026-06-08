@@ -71,14 +71,14 @@ export default function LkAcademy({ onNavigate }: { onNavigate?: (tab: string) =
         Академия
       </h1>
       <p style={{ fontSize: 14, color: "#888", margin: "0 0 32px" }}>
-        Онлайн-курсы для каждой роли в вашем салоне
+        Тренинги для каждой роли в вашем салоне
       </p>
 
       {/* Курсы из системы (интерактивные, с уроками) */}
       {!loading && dbCourses.length > 0 && (
         <div style={{ marginBottom: 32 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", letterSpacing: "0.08em", marginBottom: 14 }}>
-            МОИ КУРСЫ В АКАДЕМИИ
+            МОИ ТРЕНИНГИ В АКАДЕМИИ
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 14 }}>
             {dbCourses.map(c => (
@@ -104,7 +104,7 @@ export default function LkAcademy({ onNavigate }: { onNavigate?: (tab: string) =
                 <div style={{ width: 48, height: 48, borderRadius: 14, background: cat.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Icon name="Clock" size={20} style={{ color: cat.color }} />
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#555" }}>Курсы скоро появятся</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "#555" }}>Тренинги скоро появятся</div>
                 <div style={{ fontSize: 12, color: "#aaa", textAlign: "center", maxWidth: 280, lineHeight: 1.6 }}>
                   Мы готовим материалы. Следите за обновлениями в этом разделе.
                 </div>
@@ -123,7 +123,7 @@ export default function LkAcademy({ onNavigate }: { onNavigate?: (tab: string) =
       <div style={{ marginTop: 24, padding: "14px 18px", background: `hsla(185,85%,32%,0.05)`, borderRadius: 12, border: `1px solid hsla(185,85%,32%,0.12)`, display: "flex", gap: 12, alignItems: "flex-start" }}>
         <Icon name="Info" size={15} style={{ color: ACCENT, marginTop: 1, flexShrink: 0 }} />
         <div style={{ fontSize: 12, color: "#666", lineHeight: 1.7 }}>
-          Нажмите «Подробнее» на карточке курса — перейдёте на страницу с описанием и оформлением доступа.
+          Нажмите «Подробнее» на карточке тренинга — перейдёте на страницу с описанием и оформлением доступа.
         </div>
       </div>
     </div>

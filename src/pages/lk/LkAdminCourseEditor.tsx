@@ -19,7 +19,7 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
   const coverRef = useRef<HTMLInputElement>(null);
 
   const save = async () => {
-    if (!form.title?.trim()) { setMsg("Введите название курса"); return; }
+    if (!form.title?.trim()) { setMsg("Введите название тренинга"); return; }
     setSaving(true); setMsg("");
     const res = await apiFetch("admin_course_save", "POST", form);
     setSaving(false);
@@ -73,7 +73,7 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
       </button>
 
       <h2 style={{ margin: "0 0 20px", fontSize: 18, fontWeight: 700 }}>
-        {form.id ? `Курс: ${form.title}` : "Новый курс"}
+        {form.id ? `Тренинг: ${form.title}` : "Новый тренинг"}
       </h2>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }} className="admin-grid-2">
@@ -82,7 +82,7 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
 
           <div>
             <label style={labelStyle}>НАЗВАНИЕ *</label>
-            <input style={inputStyle} value={form.title || ""} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Название курса" />
+            <input style={inputStyle} value={form.title || ""} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Название тренинга" />
           </div>
           <div>
             <label style={labelStyle}>КАТЕГОРИЯ</label>
@@ -118,7 +118,7 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
-              <label style={labelStyle}>ДОСТУП К КУРСУ (⚡)</label>
+              <label style={labelStyle}>ДОСТУП К ТРЕНИНГУ (⚡)</label>
               <input style={inputStyle} type="number" min={0} value={form.access_cost ?? 0} onChange={e => setForm(f => ({ ...f, access_cost: +e.target.value }))} />
             </div>
             <div>
@@ -145,7 +145,7 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
 
           {msg && <div style={{ fontSize: 13, color: msg.includes("✓") ? "hsl(130,60%,35%)" : "hsl(0,70%,55%)", fontWeight: 600 }}>{msg}</div>}
           <button style={actionBtn(ACCENT)} onClick={save} disabled={saving}>
-            {saving ? "Сохраняем..." : form.id ? "Сохранить изменения" : "Создать курс"}
+            {saving ? "Сохраняем..." : form.id ? "Сохранить изменения" : "Создать тренинг"}
           </button>
         </div>
 

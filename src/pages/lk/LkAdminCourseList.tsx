@@ -8,14 +8,14 @@ export function CourseList({ courses, onNew, onEdit }: {
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Курсы Академии</h2>
+        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Тренинги Академии</h2>
         <button style={actionBtn(ACCENT)} onClick={onNew}>
-          <Icon name="Plus" size={15} /> Создать курс
+          <Icon name="Plus" size={15} /> Создать тренинг
         </button>
       </div>
       {courses.length === 0 ? (
         <div style={{ textAlign: "center", padding: "48px 0", color: "#aaa", fontSize: 14 }}>
-          Курсов пока нет — создайте первый
+          Тренингов пока нет — создайте первый
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

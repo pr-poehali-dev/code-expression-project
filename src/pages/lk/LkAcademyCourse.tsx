@@ -58,7 +58,7 @@ export default function LkAcademyCourse({ courseId, onBack, onNavigate }: Props)
   );
 
   if (!course) return (
-    <div style={{ textAlign: "center", padding: 48, color: "#aaa" }}>Курс не найден</div>
+    <div style={{ textAlign: "center", padding: 48, color: "#aaa" }}>Тренинг не найден</div>
   );
 
   if (activeLesson) {
@@ -90,9 +90,9 @@ export default function LkAcademyCourse({ courseId, onBack, onNavigate }: Props)
 
       {!course.has_access && (
         <div style={{ background: "hsl(185,85%,97%)", border: `1.5px solid hsl(185,85%,80%)`, borderRadius: 14, padding: "20px 24px", marginBottom: 24 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", marginBottom: 6 }}>Нужен доступ к курсу</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", marginBottom: 6 }}>Нужен доступ к тренингу</div>
           <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6, marginBottom: 14 }}>
-            Чтобы открывать уроки, сначала получите доступ к курсу.
+            Чтобы открывать уроки, сначала получите доступ к тренингу.
             {course.access_cost > 0
               ? ` Стоимость: ${course.access_cost} ⚡`
               : " Доступ бесплатный."}
@@ -104,7 +104,7 @@ export default function LkAcademyCourse({ courseId, onBack, onNavigate }: Props)
             style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 24px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700, cursor: buying ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif" }}
           >
             <Icon name="Unlock" size={15} />
-            {buying ? "Открываем..." : course.access_cost > 0 ? `Получить доступ · ${course.access_cost} ⚡` : "Получить бесплатный доступ"}
+            {buying ? "Открываем..." : course.access_cost > 0 ? `Получить доступ · ${course.access_cost} ⚡` : "Получить бесплатный доступ к тренингу"}
           </button>
         </div>
       )}
@@ -134,7 +134,7 @@ export default function LkAcademyCourse({ courseId, onBack, onNavigate }: Props)
               {mod.lessons.map(lesson => (
                 <button
                   key={lesson.id}
-                  onClick={() => course.has_access ? openLesson(lesson) : setBuyErr("Сначала получите доступ к курсу")}
+                  onClick={() => course.has_access ? openLesson(lesson) : setBuyErr("Сначала получите доступ к тренингу")}
                   style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "10px 18px", background: "none", border: "none", cursor: "pointer", textAlign: "left", transition: "background 0.15s" }}
                   onMouseEnter={e => (e.currentTarget.style.background = "#f8f8f6")}
                   onMouseLeave={e => (e.currentTarget.style.background = "")}

@@ -33,7 +33,7 @@ export function HomeTab({ onNav, role, hasSalon }: HomeTabProps) {
 
   const quickItems = [
     { tab: "tools" as Tab,  icon: "Wrench",        color: "hsl(210,85%,45%)", bg: "hsl(210,85%,96%)", title: "Инструменты",    desc: "Диагностики, тесты, шпаргалка" },
-    { tab: "academy" as Tab,icon: "GraduationCap", color: "hsl(280,60%,55%)", bg: "hsl(280,60%,96%)", title: "Академия",        desc: "Курсы и обучение" },
+    { tab: "academy" as Tab,icon: "GraduationCap", color: "hsl(280,60%,55%)", bg: "hsl(280,60%,96%)", title: "Академия",        desc: "Тренинги для команды" },
     { tab: "ai" as Tab,     icon: "Sparkles",      color: "hsl(40,90%,50%)",  bg: "hsl(40,90%,96%)",  title: "ИИ-инструменты", desc: "Генерация контента — скоро" },
     ...((role === "owner" || role === "admin") && hasSalon ? [
       { tab: "agent" as Tab,     icon: "BotMessageSquare", color: "hsl(200,70%,38%)", bg: "hsl(200,70%,94%)", title: "ИИ-Агент",  desc: "Бизнес, сервис, маркетинг, скрипты" },
