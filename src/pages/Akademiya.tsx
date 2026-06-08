@@ -158,9 +158,9 @@ export default function Akademiya() {
             <p style={{ fontSize: 17, color: GRAY, margin: 0, fontWeight: 300, lineHeight: 1.6 }}>Каждая траектория адаптирована под конкретную роль в команде салона</p>
           </div>
 
-          <div className="cat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
+          <div className="cat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gridTemplateRows: "auto 1fr", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
             {TRAJECTORIES.map((t, i) => (
-              <div key={i} style={{ background: "#fff", display: "grid", gridTemplateRows: "auto 1fr", transition: "background 0.3s", cursor: "default" }}
+              <div key={i} style={{ background: "#fff", display: "grid", gridRow: "span 2", gridTemplateRows: "subgrid", transition: "background 0.3s", cursor: "default" }}
                 onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.04)"}
                 onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "#fff"}
               >
