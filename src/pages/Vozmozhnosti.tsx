@@ -140,35 +140,6 @@ export default function Vozmozhnosti() {
         </div>
       </section>
 
-      {/* ── СХЕМА-ВОРОНКА ── */}
-      <section style={{ background: `radial-gradient(120% 100% at 80% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`, padding: "64px 32px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 0 }}>
-            {FLOW_STEPS.map((step, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center" }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-                  <div style={{
-                    width: 60, height: 60, borderRadius: 2,
-                    background: "rgba(45,212,191,0.08)",
-                    border: "1px solid rgba(45,212,191,0.22)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <Icon name={step.icon} size={22} style={{ color: TEAL }} />
-                  </div>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.55)", textAlign: "center", maxWidth: 90, lineHeight: 1.4, letterSpacing: "0.3px" }}>{step.label}</div>
-                </div>
-                {i < FLOW_STEPS.length - 1 && (
-                  <div style={{ display: "flex", alignItems: "center", padding: "0 10px", marginBottom: 28 }}>
-                    <div style={{ width: 20, height: 1, background: "rgba(45,212,191,0.25)" }} />
-                    <Icon name="ChevronRight" size={14} style={{ color: "rgba(45,212,191,0.4)", marginLeft: -5 }} />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── КАК РАБОТАЮТ ИНСТРУМЕНТЫ ── */}
       <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -193,6 +164,35 @@ export default function Vozmozhnosti() {
                 <div style={{ fontFamily: SERIF, fontSize: 52, fontWeight: 600, color: "rgba(45,212,191,0.18)", lineHeight: 1, marginBottom: 20 }}>{step.num}</div>
                 <h3 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: DARK, margin: "0 0 12px" }}>{step.title}</h3>
                 <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── СХЕМА-ВОРОНКА ── */}
+      <section style={{ background: `radial-gradient(120% 100% at 80% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`, padding: "64px 32px" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 0 }}>
+            {FLOW_STEPS.map((step, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                  <div style={{
+                    width: 60, height: 60, borderRadius: 2,
+                    background: "rgba(45,212,191,0.08)",
+                    border: "1px solid rgba(45,212,191,0.22)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <Icon name={step.icon} size={22} style={{ color: TEAL }} />
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.55)", textAlign: "center", maxWidth: 90, lineHeight: 1.4, letterSpacing: "0.3px" }}>{step.label}</div>
+                </div>
+                {i < FLOW_STEPS.length - 1 && (
+                  <div style={{ display: "flex", alignItems: "center", padding: "0 10px", marginBottom: 28 }}>
+                    <div style={{ width: 20, height: 1, background: "rgba(45,212,191,0.25)" }} />
+                    <Icon name="ChevronRight" size={14} style={{ color: "rgba(45,212,191,0.4)", marginLeft: -5 }} />
+                  </div>
+                )}
               </div>
             ))}
           </div>
