@@ -169,7 +169,7 @@ export default function Akademiya() {
                     <Icon name={t.icon} size={24} style={{ color: TEAL }} />
                   </div>
                   <h3 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 600, color: DARK, margin: "0 0 10px" }}>{t.role}</h3>
-                  <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.6, fontWeight: 300, flex: 1 }}>{t.desc}</p>
+                  <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.6, fontWeight: 300 }}>{t.desc}</p>
                 </div>
                 <div style={{ padding: "28px 32px 40px", flex: 1, display: "flex", flexDirection: "column" }}>
                   <div style={{ fontSize: 11, fontWeight: 600, color: GRAY, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 18 }}>Основные темы</div>
