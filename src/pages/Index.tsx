@@ -9,10 +9,11 @@ const GRAY = "#64748B";
 const SERIF = "'Cormorant Garamond', serif";
 
 const RESULTS = [
-  { icon: "TrendingUp", title: "Рост клиентов", desc: "Возврат клиентов через выстроенную коммуникацию и интеллектуальные сценарии." },
-  { icon: "Wallet", title: "Рост среднего чека", desc: "Инструменты допродаж и работы с возражениями для администраторов и мастеров." },
-  { icon: "Users", title: "Сильная команда", desc: "Анализ персонала, обучение и контроль эффективности каждого сотрудника." },
-  { icon: "BarChart3", title: "Контроль бизнеса", desc: "Цифровой разбор и аналитика — вы точно знаете, где теряете деньги." },
+  { icon: "UserSearch", title: "Анализ персонала", desc: "Поиск точек потери прибыли и объективная картина эффективности каждого сотрудника." },
+  { icon: "Megaphone", title: "Маркетинг и контент", desc: "ИИ-инструменты для создания контента, акций и продвижения — без маркетолога в штате." },
+  { icon: "MessagesSquare", title: "Скрипты для команды", desc: "Готовые сценарии общения для администраторов и мастеров на любую ситуацию." },
+  { icon: "BarChart3", title: "Диагностика и финансы", desc: "Диагностика роста салона и финансовый анализ — понятные данные для принятия решений." },
+  { icon: "GraduationCap", title: "Развитие сотрудников", desc: "Единая экосистема обучения и роста команды: от мастера до управленца." },
 ];
 
 const TOOLS = [
@@ -57,10 +58,10 @@ export default function Index() {
             </div>
 
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
-              Про Диалог — Платформа роста салона
+              Бизнес салона начинается с диалога
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 40px", fontWeight: 300, maxWidth: 520 }}>
-Платформа помогает салонам красоты расти через сильную команду, качественный сервис и эффективную коммуникацию с клиентами. В одном месте вы получаете обучение сотрудников, бизнес-аналитику и ИИ-инструменты для маркетинга, продаж и управления салоном.
+              Про Диалог — платформа для роста салонов красоты через сильную команду, качественный сервис и современные технологии. Все инструменты работают в одной системе и помогают находить реальные точки роста бизнеса.
             </p>
 
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
@@ -151,18 +152,82 @@ export default function Index() {
             ))}
           </div>
           <p style={{ fontSize: 18, color: GRAY, margin: "40px 0 0", fontWeight: 300, lineHeight: 1.6, maxWidth: 620 }}>
-            Про Диалог решает эти задачи системно — давая команде инструменты, аналитику и обучение в едином пространстве.
+            Мы не заменяем опыт руководителя искусственным интеллектом. Мы помогаем увидеть то, что сложно заметить в ежедневной работе, и превратить данные в понятные действия для роста бизнеса.
           </p>
         </div>
       </section>
 
-      {/* ── РЕЗУЛЬТАТЫ ── */}
+      {/* ── ПОЧЕМУ ПОДХОД РАБОТАЕТ ── */}
       <section style={{ padding: "120px 32px", background: "#F8FAFC" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "start" }} className="approach-grid">
+            {/* Левая колонка — текст */}
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Наш подход</div>
+              <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 32px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+                Почему наш подход работает?
+              </h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                <p style={{ fontSize: 16, color: GRAY, margin: 0, lineHeight: 1.75, fontWeight: 300 }}>
+                  Большинство сервисов предлагают либо простые калькуляторы, либо полностью полагаются на искусственный интеллект.
+                </p>
+                <p style={{ fontSize: 16, color: DARK, margin: 0, lineHeight: 1.75, fontWeight: 500 }}>
+                  Мы используем гибридную модель.
+                </p>
+                <p style={{ fontSize: 16, color: GRAY, margin: 0, lineHeight: 1.75, fontWeight: 300 }}>
+                  Сначала математические алгоритмы анализируют ваши показатели и находят закономерности. Затем искусственный интеллект формирует персональные рекомендации, учитывая особенности именно вашего салона.
+                </p>
+                <p style={{ fontSize: 16, color: GRAY, margin: 0, lineHeight: 1.75, fontWeight: 300 }}>
+                  Такой подход позволяет объединить точность вычислений с гибкостью экспертного анализа.
+                </p>
+              </div>
+            </div>
+            {/* Правая колонка — схема-воронка */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0, paddingTop: 8 }}>
+              {[
+                { icon: "Database", label: "Ваши данные", sub: "Показатели салона, команда, клиенты", color: "#475569", bg: "#F1F5F9", border: "#E2E8F0" },
+                { icon: "Calculator", label: "Проверенные алгоритмы", sub: "Математика и бизнес-логика", color: "#0369a1", bg: "#f0f9ff", border: "#bae6fd" },
+                { icon: "Cpu", label: "Искусственный интеллект", sub: "Персональные выводы и рекомендации", color: "#7c3aed", bg: "#faf5ff", border: "#e9d5ff" },
+                { icon: "Rocket", label: "Понятный план действий", sub: "Конкретные шаги для роста салона", color: "#059669", bg: "#f0fdf4", border: "#bbf7d0" },
+              ].map((step, i, arr) => (
+                <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+                  <div style={{
+                    width: "100%", padding: "20px 24px", background: step.bg,
+                    border: `1.5px solid ${step.border}`, borderRadius: 10,
+                    display: "flex", alignItems: "center", gap: 16,
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                  }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 10, background: "#fff", border: `1.5px solid ${step.border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Icon name={step.icon} size={20} style={{ color: step.color }} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: DARK, lineHeight: 1.3 }}>{step.label}</div>
+                      <div style={{ fontSize: 12, color: GRAY, marginTop: 3, fontWeight: 400 }}>{step.sub}</div>
+                    </div>
+                    <div style={{ marginLeft: "auto", width: 28, height: 28, borderRadius: "50%", background: step.bg, border: `1.5px solid ${step.border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ fontSize: 12, fontWeight: 800, color: step.color }}>{i + 1}</span>
+                    </div>
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "6px 0" }}>
+                      <div style={{ width: 2, height: 12, background: "#CBD5E1" }} />
+                      <Icon name="ChevronDown" size={16} style={{ color: "#94A3B8", marginTop: -4 }} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── ЧТО ПОЛУЧАЕТ ВЛАДЕЛЕЦ ── */}
+      <section style={{ padding: "120px 32px", background: "#fff" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Результат</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-              Что получает салон
+              Что получает владелец салона
             </h2>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
@@ -247,6 +312,7 @@ export default function Index() {
           .hero-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
           .hero-img { display: flex !important; order: -1; }
           .hero-img img { aspect-ratio: 16/9 !important; max-height: 280px; object-fit: cover; }
+          .approach-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
         }
       `}</style>
     </div>
