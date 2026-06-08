@@ -8,34 +8,61 @@ const DARK = "#0F172A";
 const GRAY = "#64748B";
 const SERIF = "'Cormorant Garamond', serif";
 
-const CATEGORIES = [
+const INSIDE_ITEMS = [
+  "Мышление и внутреннее состояние специалиста",
+  "Коммуникация с клиентами и командой",
+  "Продажи без давления",
+  "Управление салоном и финансами",
+  "Личный бренд и позиционирование",
+  "Системная работа с клиентом",
+  "Развитие лидерских качеств",
+  "Формирование устойчивой профессиональной практики",
+];
+
+const TRAJECTORIES = [
   {
     icon: "Crown",
-    title: "Владельцам",
-    desc: "Управление, финансы, команда и стратегия роста.",
-    courses: ["Как увеличить прибыль салона", "Финансовый учёт без бухгалтера", "Построение сильной команды", "Продвижение без бюджета"],
-    count: 12,
+    role: "Для владельцев салонов",
+    desc: "Стратегическое мышление, управление командой, финансы и построение сильного бизнеса.",
+    topics: [
+      "Рост прибыли салона",
+      "Финансовое мышление руководителя",
+      "Формирование сильной команды",
+      "Система управления без постоянного контроля",
+    ],
   },
   {
     icon: "Briefcase",
-    title: "Администраторам",
-    desc: "Продажи, сервис, работа с клиентами и возражениями.",
-    courses: ["Продажи без давления", "Повторная запись", "Скрипты администратора", "Конфликтные клиенты"],
-    count: 9,
+    role: "Для администраторов",
+    desc: "Коммуникация, сервис и умение создавать доверие с первых минут общения.",
+    topics: [
+      "Продажи через заботу о клиенте",
+      "Работа с возражениями",
+      "Повторная запись",
+      "Управление сложными ситуациями",
+    ],
   },
   {
     icon: "Scissors",
-    title: "Мастерам",
-    desc: "Личный бренд, доход, социальные сети и сервис.",
-    courses: ["Личный бренд мастера", "Как зарабатывать больше", "Социальные сети для мастера", "Клиентский сервис"],
-    count: 8,
+    role: "Для мастеров",
+    desc: "Развитие личного бренда, уверенности и профессиональной ценности.",
+    topics: [
+      "Как работать с премиальным клиентом",
+      "Повышение среднего чека",
+      "Продвижение через социальные сети",
+      "Построение долгосрочных отношений с клиентами",
+    ],
   },
   {
     icon: "HandHeart",
-    title: "Специалистам по телу",
-    desc: "Диагностика, протоколы и системная работа с клиентом.",
-    courses: ["Диагностика клиента", "Программы восстановления", "Работа с хроническими состояниями", "Клиент на курс"],
-    count: 11,
+    role: "Для специалистов по телу",
+    desc: "Глубокое понимание клиента, системное мышление и построение эффективных программ восстановления.",
+    topics: [
+      "Диагностика клиента",
+      "Логика построения программ",
+      "Работа с хроническими состояниями",
+      "Ведение клиента на длительной дистанции",
+    ],
   },
 ];
 
@@ -55,77 +82,104 @@ export default function Akademiya() {
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "center", position: "relative" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
             <Icon name="GraduationCap" size={14} style={{ color: TEAL }} />
-            <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>40+ курсов и программ</span>
+            <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Академия Про Диалог</span>
           </div>
 
           <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
             Академия Про Диалог
           </h1>
-          <p style={{ fontSize: "clamp(17px,2.2vw,21px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.6, margin: "0 auto", fontWeight: 300, maxWidth: 640 }}>
-            Обучение для каждого члена команды — от владельца до специалиста. Практика, которая работает в реальном салоне.
+          <p style={{ fontSize: "clamp(16px,1.8vw,20px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 auto 20px", fontWeight: 300, maxWidth: 620 }}>
+            Пространство профессионального и личного роста для команды салона.
+          </p>
+          <p style={{ fontSize: "clamp(14px,1.4vw,16px)", color: "rgba(255,255,255,0.42)", lineHeight: 1.8, margin: "0 auto", fontWeight: 300, maxWidth: 680 }}>
+            Сильный салон начинается с сильных людей. Академия Про Диалог помогает развивать мышление, коммуникацию, лидерские качества и профессиональные навыки, которые напрямую влияют на доверие клиентов и финансовый результат.
+          </p>
+          <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: "rgba(255,255,255,0.3)", lineHeight: 1.7, margin: "20px auto 0", fontWeight: 300, maxWidth: 580 }}>
+            Это не просто набор уроков. Это система развития владельца, администратора, мастера и специалиста по телу.
           </p>
         </div>
       </section>
 
-      {/* ── ПЛЕЙСХОЛДЕР МЕДИА ── */}
+      {/* ── МЕДИА-БАННЕР ── */}
       <section style={{ background: "#F8FAFC", padding: "120px 32px 0" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ position: "relative", borderRadius: 6, overflow: "hidden", boxShadow: "0 24px 64px rgba(15,23,42,0.18)" }}>
             <img
               src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/4a7b5d70-b350-442c-a621-708565ae81dd.jpg"
-              alt="Академия Про Диалог — обучение команды салона"
+              alt="Академия Про Диалог — развитие команды салона"
               style={{ width: "100%", height: 360, objectFit: "cover", display: "block" }}
             />
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.3) 50%, transparent 100%)" }} />
-            <div style={{ position: "absolute", top: "50%", left: 40, transform: "translateY(-50%)", maxWidth: 440 }} className="akad-img-text">
-              <h3 style={{ fontFamily: SERIF, fontSize: "clamp(24px,3vw,34px)", fontWeight: 600, color: "#fff", margin: "0 0 12px", lineHeight: 1.15 }}>
-                Обучение, которое работает в реальном салоне
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(15,23,42,0.88) 0%, rgba(15,23,42,0.35) 55%, transparent 100%)" }} />
+            <div style={{ position: "absolute", top: "50%", left: 40, transform: "translateY(-50%)", maxWidth: 480 }} className="akad-img-text">
+              <h3 style={{ fontFamily: SERIF, fontSize: "clamp(24px,3vw,36px)", fontWeight: 600, color: "#fff", margin: "0 0 14px", lineHeight: 1.15 }}>
+                Развивайтесь в том, что действительно влияет на результат
               </h3>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.65)", margin: 0, lineHeight: 1.6, fontWeight: 300 }}>
-                Практические программы для всей команды — от управления до личного бренда мастера.
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", margin: 0, lineHeight: 1.7, fontWeight: 300 }}>
+                Каждая программа создана на основе многолетней практики работы с салонами красоты и помогает формировать привычки, которые работают в ежедневной работе.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── КАТЕГОРИИ ── */}
-      <section style={{ padding: "120px 32px", background: "#F8FAFC" }}>
+      {/* ── ЧТО ВНУТРИ АКАДЕМИИ ── */}
+      <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }} className="inside-grid">
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Содержание</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,48px)", fontWeight: 500, color: DARK, margin: "0 0 20px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+              Что внутри Академии
+            </h2>
+            <p style={{ fontSize: 16, color: GRAY, margin: 0, fontWeight: 300, lineHeight: 1.7 }}>
+              Программы охватывают все ключевые аспекты профессионального роста — от внутреннего состояния до системных бизнес-навыков.
+            </p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {INSIDE_ITEMS.map((item, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                <div style={{ width: 22, height: 22, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                  <Icon name="Check" size={11} style={{ color: TEAL }} />
+                </div>
+                <span style={{ fontSize: 15, color: "#334155", lineHeight: 1.5, fontWeight: 300 }}>{item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ТРАЕКТОРИИ РАЗВИТИЯ ── */}
+      <section style={{ padding: "120px 32px", background: "#fff" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Направления</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-              Выберите направление
+              Траектории профессионального роста
             </h2>
-            <p style={{ fontSize: 17, color: GRAY, margin: 0, fontWeight: 300 }}>Обучение адаптировано под конкретную роль в салоне</p>
+            <p style={{ fontSize: 17, color: GRAY, margin: 0, fontWeight: 300, lineHeight: 1.6 }}>Каждая траектория адаптирована под конкретную роль в команде салона</p>
           </div>
 
           <div className="cat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
-            {CATEGORIES.map((cat, i) => (
+            {TRAJECTORIES.map((t, i) => (
               <div key={i} style={{ background: "#fff", display: "flex", flexDirection: "column", transition: "all 0.3s", cursor: "default" }}
-                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.05)"}
+                onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.04)"}
                 onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = "#fff"}
               >
                 <div style={{ padding: "40px 32px 28px", borderBottom: "1px solid #EAEEF3" }}>
                   <div style={{ width: 52, height: 52, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
-                    <Icon name={cat.icon} size={24} style={{ color: TEAL }} />
+                    <Icon name={t.icon} size={24} style={{ color: TEAL }} />
                   </div>
-                  <h3 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 600, color: DARK, margin: "0 0 10px" }}>{cat.title}</h3>
-                  <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.6, fontWeight: 300 }}>{cat.desc}</p>
+                  <h3 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 600, color: DARK, margin: "0 0 10px" }}>{t.role}</h3>
+                  <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.6, fontWeight: 300 }}>{t.desc}</p>
                 </div>
-                <div style={{ padding: "28px 32px", display: "flex", flexDirection: "column", flex: 1 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: GRAY, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 18 }}>Популярные программы</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 14, flex: 1 }}>
-                    {cat.courses.map((c, ci) => (
-                      <div key={ci} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                        <Icon name="Check" size={16} style={{ color: TEAL, flexShrink: 0, marginTop: 2 }} />
-                        <span style={{ fontSize: 14, color: "#334155", lineHeight: 1.5, fontWeight: 300 }}>{c}</span>
+                <div style={{ padding: "28px 32px", flex: 1, display: "flex", flexDirection: "column" }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: GRAY, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 18 }}>Основные темы</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1 }}>
+                    {t.topics.map((topic, ti) => (
+                      <div key={ti} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                        <div style={{ width: 4, height: 4, borderRadius: "50%", background: TEAL, flexShrink: 0, marginTop: 8 }} />
+                        <span style={{ fontSize: 14, color: "#334155", lineHeight: 1.5, fontWeight: 300 }}>{topic}</span>
                       </div>
                     ))}
-                  </div>
-                  <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid #EAEEF3", display: "flex", alignItems: "center", gap: 8 }}>
-                    <Icon name="BookOpen" size={16} style={{ color: TEAL }} />
-                    <span style={{ fontSize: 14, color: DARK, fontWeight: 500 }}>{cat.count} программ</span>
                   </div>
                 </div>
               </div>
@@ -134,36 +188,50 @@ export default function Akademiya() {
         </div>
       </section>
 
+      {/* ── ПОЧЕМУ АКАДЕМИЯ ОТЛИЧАЕТСЯ ── */}
+      <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Наш подход</div>
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 28px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+            Почему Академия отличается
+          </h2>
+          <p style={{ fontSize: 18, color: GRAY, margin: "0 auto 20px", fontWeight: 300, lineHeight: 1.8, maxWidth: 700 }}>
+            Мы не стремимся просто передать информацию.
+          </p>
+          <p style={{ fontSize: 16, color: GRAY, margin: "0 auto 20px", fontWeight: 300, lineHeight: 1.8, maxWidth: 720 }}>
+            Наша задача — помочь специалисту и владельцу изменить подход к работе, научиться видеть причинно-следственные связи и принимать более сильные решения.
+          </p>
+          <p style={{ fontSize: 16, color: GRAY, margin: "0 auto", fontWeight: 300, lineHeight: 1.8, maxWidth: 680 }}>
+            Практический опыт, проверенные методики и современные технологии объединяются в единую систему развития.
+          </p>
+        </div>
+      </section>
+
       {/* ── CTA ── */}
       <section style={{ background: "#fff", padding: "120px 32px" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "center", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
-          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
-            Перейти в магазин обучения
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
+            Продолжайте расти вместе с Про Диалог
           </h2>
-          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 40px", fontWeight: 300, position: "relative" }}>
-            Все курсы, программы и мастер-классы на образовательной платформе.
+          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 10px", fontWeight: 300, position: "relative" }}>
+            Все программы, практики и материалы доступны в Академии Про Диалог.
           </p>
-          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap", position: "relative" }}>
-            <Link to="/cabinet" style={{
-              display: "inline-flex", alignItems: "center", padding: "16px 38px", borderRadius: 2,
-              border: "1px solid rgba(255,255,255,0.22)", color: "#fff", fontSize: 15, fontWeight: 400, letterSpacing: "0.3px",
-              textDecoration: "none", transition: "all 0.3s",
-            }}
-              onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.5)"}
-              onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.22)"}
-            >
-              Попробовать платформу
-            </Link>
-          </div>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.35)", margin: "0 0 44px", fontWeight: 300, position: "relative" }}>
+            Создайте профиль салона и откройте для своей команды пространство постоянного развития.
+          </p>
+          <Link to="/cabinet" style={{ display: "inline-block", padding: "16px 44px", borderRadius: 2, background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, textDecoration: "none", letterSpacing: "0.3px", position: "relative" }}>
+            Перейти в Академию
+          </Link>
         </div>
       </section>
 
       <BizFooter />
 
       <style>{`
-        @media (max-width: 880px) {
-          .cat-grid { grid-template-columns: 1fr !important; }
+        @media (max-width: 768px) {
+          .inside-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+          .akad-img-text { left: 20px !important; right: 20px !important; max-width: none !important; }
         }
       `}</style>
     </div>
