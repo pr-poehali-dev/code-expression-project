@@ -82,11 +82,11 @@ const WHY_ITEMS = [
 ];
 
 const FLOW_STEPS = [
-  { icon: "Database",   label: "Данные салона",       color: "#0284c7", bg: "#f0f9ff", border: "#bae6fd" },
-  { icon: "Calculator", label: "Алгоритмы",            color: "#7c3aed", bg: "#faf5ff", border: "#e9d5ff" },
-  { icon: "Cpu",        label: "ИИ",                   color: "#059669", bg: "#f0fdf4", border: "#bbf7d0" },
-  { icon: "Lightbulb",  label: "Конкретные действия",  color: "#d97706", bg: "#fffbeb", border: "#fde68a" },
-  { icon: "TrendingUp", label: "Рост прибыли",          color: "#dc2626", bg: "#fef2f2", border: "#fca5a5" },
+  { icon: "Database",   label: "Данные салона" },
+  { icon: "Calculator", label: "Алгоритмы" },
+  { icon: "Cpu",        label: "ИИ" },
+  { icon: "Lightbulb",  label: "Конкретные действия" },
+  { icon: "TrendingUp", label: "Рост прибыли" },
 ];
 
 const HOW_STEPS = [
@@ -141,21 +141,26 @@ export default function Vozmozhnosti() {
       </section>
 
       {/* ── СХЕМА-ВОРОНКА ── */}
-      <section style={{ background: DARK, padding: "72px 32px" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+      <section style={{ background: `radial-gradient(120% 100% at 80% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`, padding: "64px 32px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 0 }}>
             {FLOW_STEPS.map((step, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center" }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 56, height: 56, borderRadius: 14, background: step.bg, border: `2px solid ${step.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Icon name={step.icon} size={22} style={{ color: step.color }} />
+                  <div style={{
+                    width: 60, height: 60, borderRadius: 2,
+                    background: "rgba(45,212,191,0.08)",
+                    border: "1px solid rgba(45,212,191,0.22)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <Icon name={step.icon} size={22} style={{ color: TEAL }} />
                   </div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.75)", textAlign: "center", maxWidth: 90, lineHeight: 1.4 }}>{step.label}</div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.55)", textAlign: "center", maxWidth: 90, lineHeight: 1.4, letterSpacing: "0.3px" }}>{step.label}</div>
                 </div>
                 {i < FLOW_STEPS.length - 1 && (
-                  <div style={{ display: "flex", alignItems: "center", padding: "0 8px", marginBottom: 28 }}>
-                    <div style={{ width: 24, height: 2, background: "rgba(45,212,191,0.3)" }} />
-                    <Icon name="ChevronRight" size={16} style={{ color: "rgba(45,212,191,0.5)", marginLeft: -6 }} />
+                  <div style={{ display: "flex", alignItems: "center", padding: "0 10px", marginBottom: 28 }}>
+                    <div style={{ width: 20, height: 1, background: "rgba(45,212,191,0.25)" }} />
+                    <Icon name="ChevronRight" size={14} style={{ color: "rgba(45,212,191,0.4)", marginLeft: -5 }} />
                   </div>
                 )}
               </div>
