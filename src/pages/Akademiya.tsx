@@ -114,7 +114,7 @@ export default function Akademiya() {
               <h3 style={{ fontFamily: SERIF, fontSize: "clamp(24px,3vw,36px)", fontWeight: 600, color: "#fff", margin: "0 0 14px", lineHeight: 1.15 }}>
                 Развивайтесь в том, что действительно влияет на результат
               </h3>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", margin: 0, lineHeight: 1.7, fontWeight: 300 }}>
+              <p style={{ fontSize: 15, color: "#fff", margin: 0, lineHeight: 1.7, fontWeight: 300 }}>
                 Каждая программа создана на основе многолетней практики работы с салонами красоты и помогает формировать привычки, которые работают в ежедневной работе.
               </p>
             </div>
