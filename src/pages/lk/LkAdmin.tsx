@@ -24,7 +24,7 @@ export default function LkAdmin() {
       <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
         {[
           { id: "ai"         as Section, icon: "Bot",          label: "ИИ-ассистент" },
-          { id: "courses"    as Section, icon: "GraduationCap", label: "Курсы"    },
+          { id: "courses"    as Section, icon: "GraduationCap", label: "Тренинги" },
           { id: "users"      as Section, icon: "Users",        label: "Пользователи" },
           { id: "candidates" as Section, icon: "UserCheck",    label: "Кандидаты"    },
           { id: "body"       as Section, icon: "User",         label: "Схема тела"   },
