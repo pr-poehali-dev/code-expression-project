@@ -282,8 +282,8 @@ def handle_lesson_open(event, conn):
     result = dict(lesson)
     result["files"] = files
     result["photos"] = photos
-    result["video_urls"] = lesson["video_urls"] or []
-    result["links"] = lesson["links"] or []
+    result["video_urls"] = json.loads(lesson["video_urls"]) if isinstance(lesson["video_urls"], str) else (lesson["video_urls"] or [])
+    result["links"] = json.loads(lesson["links"]) if isinstance(lesson["links"], str) else (lesson["links"] or [])
     result["tools"] = tools
     return ok(result)
 
@@ -857,6 +857,8 @@ def handle_admin_lesson_detail(event, conn):
     if not row:
         return err("Урок не найден", 404)
     lesson = dict(row)
+    lesson["video_urls"] = json.loads(lesson["video_urls"]) if isinstance(lesson["video_urls"], str) else (lesson["video_urls"] or [])
+    lesson["links"] = json.loads(lesson["links"]) if isinstance(lesson["links"], str) else (lesson["links"] or [])
 
     cur.execute(f"SELECT id, url, sort_order FROM {tbl('lesson_photos')} WHERE lesson_id=%s ORDER BY sort_order, id", (lesson_id,))
     lesson["photos"] = [dict(r) for r in cur.fetchall()]
