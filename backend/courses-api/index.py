@@ -110,6 +110,19 @@ def handle_courses_list(event, conn):
             f"SELECT course_id FROM {tbl('course_access')} WHERE user_id=%s", (user["id"],)
         )
         accessible = {r["course_id"] for r in cur.fetchall()}
+
+        # Доступ через member_course_access (владелец выдал сотруднику)
+        salon_id = user.get("salon_id")
+        if salon_id:
+            cur.execute(
+                f"SELECT mca.course_id FROM {tbl('member_course_access')} mca "
+                f"JOIN {tbl('salon_members')} sm ON sm.id=mca.member_id "
+                f"WHERE sm.user_id=%s AND sm.salon_id=%s AND sm.is_active=TRUE",
+                (user["id"], salon_id)
+            )
+            for r in cur.fetchall():
+                accessible.add(r["course_id"])
+
         for c in courses:
             c["has_access"] = c["id"] in accessible
     else:
@@ -143,7 +156,21 @@ def handle_course_detail(event, conn):
         f"SELECT id FROM {tbl('course_access')} WHERE user_id=%s AND course_id=%s",
         (user["id"], course_id)
     )
-    course["has_access"] = cur.fetchone() is not None
+    has_direct = cur.fetchone() is not None
+
+    has_member = False
+    if not has_direct:
+        salon_id = user.get("salon_id")
+        if salon_id:
+            cur.execute(
+                f"SELECT mca.id FROM {tbl('member_course_access')} mca "
+                f"JOIN {tbl('salon_members')} sm ON sm.id=mca.member_id "
+                f"WHERE sm.user_id=%s AND sm.salon_id=%s AND mca.course_id=%s AND sm.is_active=TRUE",
+                (user["id"], salon_id, course_id)
+            )
+            has_member = cur.fetchone() is not None
+
+    course["has_access"] = has_direct or has_member
 
     cur.execute(
         f"SELECT id,title,sort_order FROM {tbl('course_modules')} WHERE course_id=%s ORDER BY sort_order,id",
