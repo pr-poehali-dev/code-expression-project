@@ -234,12 +234,29 @@ def handle_lesson_open(event, conn):
     if not lesson:
         return err("Урок не найден", 404)
 
+    # Проверяем доступ к курсу: либо user сам купил, либо владелец дал доступ через member_course_access
     cur.execute(
         f"SELECT id FROM {tbl('course_access')} WHERE user_id=%s AND course_id=%s",
         (user["id"], lesson["cid"])
     )
-    if not cur.fetchone():
-        return err("Нет доступа к курсу", 403)
+    has_direct_access = cur.fetchone()
+
+    if not has_direct_access:
+        # Сотрудник: проверяем разрешение от владельца через salon_members + member_course_access
+        salon_id = user.get("salon_id")
+        if salon_id:
+            cur.execute(
+                f"SELECT mca.id FROM {tbl('member_course_access')} mca "
+                f"JOIN {tbl('salon_members')} sm ON sm.id = mca.member_id "
+                f"WHERE sm.user_id=%s AND sm.salon_id=%s AND mca.course_id=%s AND sm.is_active=TRUE",
+                (user["id"], salon_id, lesson["cid"])
+            )
+            has_member_access = cur.fetchone()
+        else:
+            has_member_access = None
+
+        if not has_member_access:
+            return err("Нет доступа к курсу", 403)
 
     cur.execute(
         f"SELECT id FROM {tbl('lesson_access')} WHERE user_id=%s AND lesson_id=%s",

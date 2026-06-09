@@ -2290,6 +2290,105 @@ def handle_credits_history(event: dict) -> dict:
         conn.close()
 
 
+def handle_member_course_access_get(event: dict) -> dict:
+    """Получить список купленных курсов салона + у каких сотрудников есть доступ."""
+    qs = event.get("queryStringParameters") or {}
+    member_id = qs.get("member_id")
+    if not member_id:
+        return err("Не передан member_id")
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _require_owner(user, conn)
+        if not salon:
+            return err("Нет прав", 403)
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # Проверяем что member принадлежит этому салону
+        cur.execute(f"SELECT id FROM {tbl('salon_members')} WHERE id=%s AND salon_id=%s", (member_id, salon["id"]))
+        if not cur.fetchone():
+            return err("Сотрудник не найден", 404)
+
+        # Все купленные курсы салона (course_access владельца)
+        cur.execute(
+            f"SELECT c.id, c.title, c.category "
+            f"FROM {tbl('courses')} c "
+            f"JOIN {tbl('course_access')} ca ON ca.course_id = c.id "
+            f"WHERE ca.user_id = %s "
+            f"ORDER BY c.sort_order, c.id",
+            (salon["owner_id"],)
+        )
+        courses = [dict(r) for r in cur.fetchall()]
+
+        # Какие курсы уже выданы этому сотруднику
+        cur.execute(
+            f"SELECT course_id FROM {tbl('member_course_access')} WHERE member_id=%s",
+            (member_id,)
+        )
+        granted = {r["course_id"] for r in cur.fetchall()}
+
+        for c in courses:
+            c["granted"] = c["id"] in granted
+
+        return ok({"courses": courses})
+    finally:
+        conn.close()
+
+
+def handle_member_course_access_set(event: dict) -> dict:
+    """Владелец выдаёт или отзывает доступ сотрудника к курсу."""
+    body = json.loads(event.get("body") or "{}")
+    member_id = body.get("member_id")
+    course_id = body.get("course_id")
+    granted = body.get("granted")
+
+    if not member_id or not course_id or granted is None:
+        return err("Не переданы member_id, course_id или granted")
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _require_owner(user, conn)
+        if not salon:
+            return err("Нет прав", 403)
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # Проверяем что member принадлежит этому салону
+        cur.execute(f"SELECT id FROM {tbl('salon_members')} WHERE id=%s AND salon_id=%s", (member_id, salon["id"]))
+        if not cur.fetchone():
+            return err("Сотрудник не найден", 404)
+
+        if granted:
+            cur.execute(
+                f"INSERT INTO {tbl('member_course_access')} (member_id, course_id, granted_by) "
+                f"VALUES (%s, %s, %s) ON CONFLICT (member_id, course_id) DO UPDATE SET granted_by=%s",
+                (member_id, course_id, user["id"], user["id"])
+            )
+        else:
+            cur.execute(
+                f"UPDATE {tbl('member_course_access')} SET granted_by=granted_by "
+                f"WHERE member_id=%s AND course_id=%s AND 1=2",
+                (member_id, course_id)
+            )
+            cur_del = conn.cursor()
+            cur_del.execute(
+                f"DELETE FROM {tbl('member_course_access')} WHERE member_id=%s AND course_id=%s",
+                (member_id, course_id)
+            )
+
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
 # ── Скрипты общения с клиентом ───────────────────────────────────────────────
 
 def handle_script_generate(event: dict) -> dict:
@@ -3585,6 +3684,8 @@ ROUTES = {
     ("GET",  "invite_info"): handle_invite_info,
     ("POST", "invite_accept"): handle_invite_accept,
     ("GET",  "credits_history"): handle_credits_history,
+    ("GET",  "member_course_access"): handle_member_course_access_get,
+    ("POST", "member_course_access_set"): handle_member_course_access_set,
 }
 
 

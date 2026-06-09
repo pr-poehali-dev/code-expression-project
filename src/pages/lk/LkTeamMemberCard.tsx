@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { ACCENT, ACCENT_DARK, ROLE_OPTIONS, PERM_LABELS, ROLE_COLORS, Member, inp } from "./LkTeamShared";
+
+const LK_API = "https://functions.poehali.dev/1c0ad024-179b-4644-9621-377174bbeba3";
+function sid() { return localStorage.getItem("lk_session") || ""; }
+
+interface MemberCourse { id: number; title: string; category: string; granted: boolean; }
 
 // ── Тоггл разрешения ──────────────────────────────────────────────────────────
 export function PermToggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
@@ -28,8 +33,35 @@ export function MemberCard({ member, onUpdate, onRemove }: {
   const [limit, setLimit]       = useState(String(member.monthly_credit_limit ?? ""));
   const [confirmRemove, setConfirmRemove] = useState(false);
 
+  const [courses, setCourses]         = useState<MemberCourse[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(false);
+  const [togglingCourse, setTogglingCourse] = useState<number | null>(null);
+
   const rc = ROLE_COLORS[member.role_code] || ROLE_COLORS.master;
   const roleLabel = ROLE_OPTIONS.find(r => r.code === member.role_code)?.label || member.role_code;
+
+  useEffect(() => {
+    if (!open) return;
+    setCoursesLoading(true);
+    fetch(`${LK_API}?action=member_course_access&member_id=${member.id}`, {
+      headers: { "X-Session-Id": sid() },
+    })
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d?.courses)) setCourses(d.courses); })
+      .finally(() => setCoursesLoading(false));
+  }, [open, member.id]);
+
+  async function toggleCourse(courseId: number, granted: boolean) {
+    setTogglingCourse(courseId);
+    try {
+      await fetch(`${LK_API}?action=member_course_access_set`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
+        body: JSON.stringify({ member_id: member.id, course_id: courseId, granted }),
+      });
+      setCourses(cs => cs.map(c => c.id === courseId ? { ...c, granted } : c));
+    } finally { setTogglingCourse(null); }
+  }
 
   async function save() {
     setSaving(true);
@@ -103,6 +135,35 @@ export function MemberCard({ member, onUpdate, onRemove }: {
                   onChange={v => setPerms(p => ({ ...p, [key]: v }))} />
               ))}
             </div>
+          </div>
+
+          {/* Академия */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Академия — доступ к тренингам</div>
+            {coursesLoading ? (
+              <div style={{ padding: "12px 0", display: "flex", alignItems: "center", gap: 8, color: "#bbb", fontSize: 13 }}>
+                <Icon name="Loader" size={14} style={{ animation: "spin 1s linear infinite" }} /> Загрузка...
+              </div>
+            ) : courses.length === 0 ? (
+              <div style={{ padding: "12px", borderRadius: 10, background: "#F8FAFC", border: "1px solid #E8ECF0", fontSize: 12, color: "#aaa", textAlign: "center" }}>
+                Нет купленных тренингов. Приобретите тренинг, чтобы выдать доступ сотруднику.
+              </div>
+            ) : (
+              <div style={{ background: "#fff", borderRadius: 10, padding: "4px 12px", border: "1px solid #E8ECF0" }}>
+                {courses.map(c => (
+                  <div key={c.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #F1F5F9" }}>
+                    <span style={{ fontSize: 13, color: "#444", paddingRight: 8 }}>{c.title}</span>
+                    <button
+                      disabled={togglingCourse === c.id}
+                      onClick={() => toggleCourse(c.id, !c.granted)}
+                      style={{ width: 44, height: 24, borderRadius: 12, border: "none", background: c.granted ? ACCENT : "#ddd", cursor: togglingCourse === c.id ? "not-allowed" : "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0, opacity: togglingCourse === c.id ? 0.6 : 1 }}
+                    >
+                      <div style={{ width: 18, height: 18, borderRadius: "50%", background: "#fff", position: "absolute", top: 3, left: c.granted ? 23 : 3, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.2)" }} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Лимит кредитов */}
