@@ -10,6 +10,7 @@ import LkEnergy from "./LkEnergy";
 import LkProfile from "./LkProfile";
 import LkSupport from "./LkSupport";
 import LkAcademy from "./LkAcademy";
+import LkMemberAcademy from "./LkMemberAcademy";
 import LkClientMsg from "./LkClientMsg";
 import LkMarketing from "./LkMarketing";
 import SalonAIAgent from "./SalonAIAgent";
@@ -96,7 +97,7 @@ export default function LkDashboard() {
       <main className="lk-main">
         {tab === "home"      && <HomeTab onNav={handleTabChange} role={role} hasSalon={hasSalon} />}
         {tab === "tools"     && <LkTests onNavigate={handleTabChange} />}
-        {tab === "academy"   && <LkAcademy onNavigate={handleTabChange} />}
+        {tab === "academy"   && (role === "owner" ? <LkAcademy onNavigate={handleTabChange} /> : <LkMemberAcademy onNavigate={handleTabChange} />)}
         {tab === "ai"        && <LkAiTools />}
         {tab === "agent"      && <SalonAIAgent onNavigateShop={() => handleTabChange("shop")} />}
         {tab === "clientmsg"  && <LkClientMsg />}

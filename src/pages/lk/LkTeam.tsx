@@ -4,6 +4,19 @@ import { ACCENT, ACCENT_DARK, LK_URL, sid, Member, Invite } from "./LkTeamShared
 import { MemberCard } from "./LkTeamMemberCard";
 import { InviteForm, PendingInvite } from "./LkTeamInvite";
 
+interface CourseRequest {
+  id: number;
+  course_id: number;
+  member_id: number;
+  course_title: string;
+  member_name: string;
+  message: string;
+  created_at: string;
+}
+
+const FREE_LIMIT = 3;
+const EXTRA_COST = 500;
+
 // ── Главный компонент ─────────────────────────────────────────────────────────
 export default function LkTeam() {
   const [members, setMembers]   = useState<Member[]>([]);
@@ -11,7 +24,10 @@ export default function LkTeam() {
   const [credits, setCredits]   = useState(0);
   const [loading, setLoading]   = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [tab, setTab]           = useState<"members" | "invites" | "credits">("members");
+  const [tab, setTab]           = useState<"members" | "invites" | "credits" | "requests">("members");
+  const [requests, setRequests] = useState<CourseRequest[]>([]);
+  const [requestsLoading, setRequestsLoading] = useState(false);
+  const [resolving, setResolving] = useState<number | null>(null);
 
   useEffect(() => {
     fetch(`${LK_URL}?action=team_list`, { headers: { "X-Session-Id": sid() } })
@@ -24,6 +40,29 @@ export default function LkTeam() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (tab !== "requests") return;
+    setRequestsLoading(true);
+    fetch(`${LK_URL}?action=course_requests_list`, { headers: { "X-Session-Id": sid() } })
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d?.requests)) setRequests(d.requests); })
+      .finally(() => setRequestsLoading(false));
+  }, [tab]);
+
+  async function resolveRequest(id: number, action: "approve" | "reject") {
+    setResolving(id);
+    try {
+      const res = await fetch(`${LK_URL}?action=course_request_resolve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
+        body: JSON.stringify({ request_id: id, action }),
+      }).then(r => r.json());
+      if (res.ok) {
+        setRequests(p => p.filter(r => r.id !== id));
+      }
+    } finally { setResolving(null); }
+  }
 
   async function handleUpdate(id: number, data: Partial<Member>) {
     await fetch(`${LK_URL}?action=team_member_update`, {
@@ -78,16 +117,25 @@ export default function LkTeam() {
         </div>
       )}
 
+      {/* Баннер о лимите тренингов */}
+      <div style={{ marginBottom: 16, padding: "12px 16px", background: "hsl(185,85%,97%)", borderRadius: 12, border: `1px solid hsl(185,85%,82%)`, display: "flex", gap: 10, alignItems: "flex-start" }}>
+        <Icon name="GraduationCap" size={16} style={{ color: ACCENT, marginTop: 1, flexShrink: 0 }} />
+        <div style={{ fontSize: 12, color: "#444", lineHeight: 1.7 }}>
+          <strong>Академия:</strong> при покупке тренинга вы можете бесплатно открыть доступ до <strong>{FREE_LIMIT} сотрудников</strong>. Каждый следующий — <strong>{EXTRA_COST} ⚡</strong> за человека. Количество не ограничено.
+        </div>
+      </div>
+
       {/* Табы */}
       <div style={{ display: "flex", gap: 4, background: "#f0f0ec", borderRadius: 11, padding: 4, marginBottom: 16 }}>
         {([
-          { id: "members", label: "Сотрудники", count: members.length },
-          { id: "invites", label: "Ожидают",    count: invites.length },
-          { id: "credits", label: "Кредиты",    count: null },
+          { id: "members",  label: "Сотрудники", count: members.length },
+          { id: "invites",  label: "Ожидают",    count: invites.length },
+          { id: "requests", label: "Запросы",     count: requests.length },
+          { id: "credits",  label: "Кредиты",     count: null },
         ] as { id: typeof tab; label: string; count: number | null }[]).map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "8px", borderRadius: 8, border: "none", background: tab === t.id ? "#fff" : "transparent", color: tab === t.id ? "#0F172A" : "#888", fontSize: 12, fontWeight: tab === t.id ? 700 : 500, cursor: "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: tab === t.id ? "0 1px 4px rgba(0,0,0,0.08)" : "none" }}>
             {t.label}
-            {t.count !== null && t.count > 0 && <span style={{ background: tab === t.id ? ACCENT : "#ddd", color: tab === t.id ? "#fff" : "#999", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "1px 6px" }}>{t.count}</span>}
+            {t.count !== null && t.count > 0 && <span style={{ background: tab === t.id ? ACCENT : (t.id === "requests" ? "hsl(25,90%,55%)" : "#ddd"), color: "#fff", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "1px 6px" }}>{t.count}</span>}
           </button>
         ))}
       </div>
@@ -116,6 +164,47 @@ export default function LkTeam() {
               <div style={{ fontSize: 14, fontWeight: 600, color: "#aaa" }}>Нет активных приглашений</div>
             </div>
           ) : invites.map(inv => <PendingInvite key={inv.id} invite={inv} onCancel={handleCancelInvite} />)}
+        </div>
+      ) : tab === "requests" ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {requestsLoading ? (
+            <div style={{ display: "flex", justifyContent: "center", padding: "40px 0" }}>
+              <Icon name="Loader" size={24} style={{ color: ACCENT, animation: "spin 1s linear infinite" }} />
+            </div>
+          ) : requests.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "40px 20px", background: "#fff", borderRadius: 16, border: "1px dashed #ddd" }}>
+              <Icon name="Bell" size={32} style={{ color: "#ddd", marginBottom: 12 }} />
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#aaa" }}>Нет входящих запросов</div>
+              <div style={{ fontSize: 12, color: "#bbb", marginTop: 4 }}>Когда сотрудник запросит тренинг — запрос появится здесь</div>
+            </div>
+          ) : requests.map(req => (
+            <div key={req.id} style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8ECF0", padding: "16px 18px", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 2 }}>{req.member_name}</div>
+                  <div style={{ fontSize: 12, color: "#555" }}>запрашивает: <strong>{req.course_title}</strong></div>
+                  {req.message && <div style={{ fontSize: 12, color: "#888", marginTop: 6, fontStyle: "italic" }}>«{req.message}»</div>}
+                </div>
+                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  <button
+                    onClick={() => resolveRequest(req.id, "approve")}
+                    disabled={resolving === req.id}
+                    style={{ padding: "8px 14px", borderRadius: 9, border: "none", background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, color: "#fff", fontSize: 12, fontWeight: 700, cursor: resolving === req.id ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 5 }}
+                  >
+                    {resolving === req.id ? <Icon name="Loader" size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Icon name="Check" size={12} />}
+                    Одобрить
+                  </button>
+                  <button
+                    onClick={() => resolveRequest(req.id, "reject")}
+                    disabled={resolving === req.id}
+                    style={{ padding: "8px 12px", borderRadius: 9, border: "1px solid #E2E8F0", background: "#fff", color: "#aaa", fontSize: 12, cursor: resolving === req.id ? "not-allowed" : "pointer" }}
+                  >
+                    Отклонить
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         /* Кредиты */

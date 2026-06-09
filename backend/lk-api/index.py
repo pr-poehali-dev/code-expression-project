@@ -2389,6 +2389,232 @@ def handle_member_course_access_set(event: dict) -> dict:
         conn.close()
 
 
+# ── Академия: запросы сотрудников на курсы ────────────────────────────────────
+
+EXTRA_MEMBER_COST = 500  # энергия за каждого сотрудника сверх 3
+FREE_MEMBER_LIMIT = 3    # бесплатный лимит
+
+
+def handle_member_courses_list(event: dict) -> dict:
+    """Список всех курсов с информацией о доступе и запросе (для сотрудника)."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+
+        salon_id = user.get("salon_id")
+        if not salon_id:
+            return err("Нет привязки к салону", 403)
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # Все курсы
+        cur.execute(f"SELECT id, title, description, category, cover_url FROM {tbl('courses')} ORDER BY sort_order, id")
+        courses = [dict(r) for r in cur.fetchall()]
+
+        # Мой member_id
+        cur.execute(f"SELECT id FROM {tbl('salon_members')} WHERE user_id=%s AND salon_id=%s AND is_active=TRUE", (user["id"], salon_id))
+        member_row = cur.fetchone()
+        if not member_row:
+            return ok({"courses": []})
+        member_id = member_row["id"]
+
+        # Мои доступы
+        cur.execute(f"SELECT course_id FROM {tbl('member_course_access')} WHERE member_id=%s", (member_id,))
+        granted_ids = {r["course_id"] for r in cur.fetchall()}
+
+        # Мои запросы
+        cur.execute(f"SELECT course_id, status FROM {tbl('course_access_requests')} WHERE member_id=%s", (member_id,))
+        requests = {r["course_id"]: r["status"] for r in cur.fetchall()}
+
+        # Купленные владельцем курсы (только их можно просить)
+        cur.execute(
+            f"SELECT ca.course_id FROM {tbl('course_access')} ca "
+            f"JOIN {tbl('lk_users')} u ON u.id=ca.user_id "
+            f"WHERE u.id=(SELECT owner_id FROM {tbl('salons')} WHERE id=%s)",
+            (salon_id,)
+        )
+        owner_courses = {r["course_id"] for r in cur.fetchall()}
+
+        for c in courses:
+            c["granted"] = c["id"] in granted_ids
+            c["request_status"] = requests.get(c["id"])
+            c["owner_has"] = c["id"] in owner_courses
+
+        return ok({"courses": courses})
+    finally:
+        conn.close()
+
+
+def handle_course_request(event: dict) -> dict:
+    """Сотрудник отправляет запрос на доступ к курсу владельцу."""
+    body = json.loads(event.get("body") or "{}")
+    course_id = body.get("course_id")
+    message = (body.get("message") or "").strip()[:500]
+
+    if not course_id:
+        return err("Не передан course_id")
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        if user.get("role") == "owner":
+            return err("Владелец не может отправлять запросы")
+
+        salon_id = user.get("salon_id")
+        if not salon_id:
+            return err("Нет привязки к салону", 403)
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        cur.execute(f"SELECT id FROM {tbl('salon_members')} WHERE user_id=%s AND salon_id=%s AND is_active=TRUE", (user["id"], salon_id))
+        member_row = cur.fetchone()
+        if not member_row:
+            return err("Нет в команде", 403)
+        member_id = member_row["id"]
+
+        # Проверяем что курс куплен владельцем
+        cur.execute(
+            f"SELECT ca.id FROM {tbl('course_access')} ca "
+            f"JOIN {tbl('lk_users')} u ON u.id=ca.user_id "
+            f"WHERE ca.course_id=%s AND u.id=(SELECT owner_id FROM {tbl('salons')} WHERE id=%s)",
+            (course_id, salon_id)
+        )
+        if not cur.fetchone():
+            return err("Владелец ещё не приобрёл этот тренинг")
+
+        # Не дублируем запрос
+        cur.execute(f"SELECT id, status FROM {tbl('course_access_requests')} WHERE course_id=%s AND member_id=%s", (course_id, member_id))
+        existing = cur.fetchone()
+        if existing:
+            if existing["status"] == "pending":
+                return err("Запрос уже отправлен и ожидает рассмотрения")
+            if existing["status"] == "approved":
+                return err("Доступ уже открыт")
+
+        cur.execute(
+            f"INSERT INTO {tbl('course_access_requests')} (course_id, member_id, user_id, salon_id, message) "
+            f"VALUES (%s,%s,%s,%s,%s) ON CONFLICT (course_id, member_id) DO UPDATE SET status='pending', message=%s, created_at=NOW()",
+            (course_id, member_id, user["id"], salon_id, message, message)
+        )
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
+def handle_course_requests_list(event: dict) -> dict:
+    """Список входящих запросов от сотрудников (для владельца)."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _require_owner(user, conn)
+        if not salon:
+            return err("Нет прав", 403)
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT r.id, r.course_id, r.member_id, r.status, r.message, r.created_at, "
+            f"c.title AS course_title, u.full_name AS member_name "
+            f"FROM {tbl('course_access_requests')} r "
+            f"JOIN {tbl('courses')} c ON c.id=r.course_id "
+            f"JOIN {tbl('lk_users')} u ON u.id=r.user_id "
+            f"WHERE r.salon_id=%s AND r.status='pending' ORDER BY r.created_at DESC",
+            (salon["id"],)
+        )
+        requests = [dict(r) for r in cur.fetchall()]
+        return ok({"requests": requests})
+    finally:
+        conn.close()
+
+
+def handle_course_request_resolve(event: dict) -> dict:
+    """Владелец одобряет или отклоняет запрос. При одобрении — проверяет лимит 3 сотрудников."""
+    body = json.loads(event.get("body") or "{}")
+    request_id = body.get("request_id")
+    action = body.get("action")  # "approve" | "reject"
+
+    if not request_id or action not in ("approve", "reject"):
+        return err("Не переданы request_id или action")
+
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        salon = _require_owner(user, conn)
+        if not salon:
+            return err("Нет прав", 403)
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT * FROM {tbl('course_access_requests')} WHERE id=%s AND salon_id=%s",
+            (request_id, salon["id"])
+        )
+        req = cur.fetchone()
+        if not req:
+            return err("Запрос не найден", 404)
+
+        if action == "reject":
+            cur.execute(
+                f"UPDATE {tbl('course_access_requests')} SET status='rejected', resolved_at=NOW(), resolved_by=%s WHERE id=%s",
+                (user["id"], request_id)
+            )
+            conn.commit()
+            return ok({"ok": True})
+
+        # approve — проверяем лимит 3 сотрудников
+        course_id = req["course_id"]
+        member_id = req["member_id"]
+
+        cur.execute(
+            f"SELECT COUNT(*) AS cnt FROM {tbl('member_course_access')} mca "
+            f"JOIN {tbl('salon_members')} sm ON sm.id=mca.member_id "
+            f"WHERE mca.course_id=%s AND sm.salon_id=%s",
+            (course_id, salon["id"])
+        )
+        current_count = cur.fetchone()["cnt"]
+
+        energy_cost = 0
+        if current_count >= FREE_MEMBER_LIMIT:
+            energy_cost = EXTRA_MEMBER_COST
+
+        if energy_cost > 0:
+            balance = get_salon_balance(salon["id"], conn)
+            if balance < energy_cost:
+                return err(f"Недостаточно энергии. Бесплатный лимит ({FREE_MEMBER_LIMIT} сотрудника) исчерпан. Нужно {energy_cost} ⚡, доступно {balance} ⚡", 402)
+
+        # Выдаём доступ
+        cur.execute(
+            f"INSERT INTO {tbl('member_course_access')} (member_id, course_id, granted_by) "
+            f"VALUES (%s,%s,%s) ON CONFLICT (member_id, course_id) DO UPDATE SET granted_by=%s",
+            (member_id, course_id, user["id"], user["id"])
+        )
+
+        # Списываем энергию если нужно
+        if energy_cost > 0:
+            cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            cur2.execute(f"SELECT c.title FROM {tbl('courses')} c WHERE c.id=%s", (course_id,))
+            course_row = cur2.fetchone()
+            course_name = course_row["title"] if course_row else "тренинг"
+            deduct_energy(salon["id"], user["id"], energy_cost, f"Доступ к тренингу «{course_name}» (4+ сотрудник)", conn)
+
+        # Закрываем запрос
+        cur.execute(
+            f"UPDATE {tbl('course_access_requests')} SET status='approved', resolved_at=NOW(), resolved_by=%s WHERE id=%s",
+            (user["id"], request_id)
+        )
+        conn.commit()
+        return ok({"ok": True, "energy_spent": energy_cost})
+    finally:
+        conn.close()
+
+
 # ── Скрипты общения с клиентом ───────────────────────────────────────────────
 
 def handle_script_generate(event: dict) -> dict:
@@ -3686,6 +3912,11 @@ ROUTES = {
     ("GET",  "credits_history"): handle_credits_history,
     ("GET",  "member_course_access"): handle_member_course_access_get,
     ("POST", "member_course_access_set"): handle_member_course_access_set,
+    # Академия: запросы
+    ("GET",  "member_courses_list"): handle_member_courses_list,
+    ("POST", "course_request"): handle_course_request,
+    ("GET",  "course_requests_list"): handle_course_requests_list,
+    ("POST", "course_request_resolve"): handle_course_request_resolve,
 }
 
 
