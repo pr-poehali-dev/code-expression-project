@@ -202,11 +202,8 @@ def handle_register(event: dict) -> dict:
         )
         conn.commit()
 
-        # Отправляем письмо подтверждения (не блокируем ответ при ошибке)
-        try:
-            _send_verify_email(email, full_name, verify_token)
-        except Exception:
-            pass
+        # Отправляем письмо подтверждения
+        _send_verify_email(email, full_name, verify_token)
 
         return ok({
             "session_id": session_id,
@@ -1891,6 +1888,7 @@ def _send_verify_email(to_email: str, full_name: str, token: str) -> None:
     import ssl
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
+    from email.header import Header
 
     smtp_password = os.environ.get("SMTP_PASSWORD", "")
     if not smtp_password:
@@ -1904,47 +1902,45 @@ def _send_verify_email(to_email: str, full_name: str, token: str) -> None:
 <body style="margin:0;padding:0;background:#f4f4f0;font-family:'Helvetica Neue',Arial,sans-serif;">
   <div style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
     <div style="background:linear-gradient(135deg,#1a9fae,#136e7a);padding:28px 32px;">
-      <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Про Диалог</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">Платформа для бьюти-бизнеса</div>
+      <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Pro Dialog</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">Platforma dlya byuti-biznesa</div>
     </div>
     <div style="padding:32px 32px 24px;">
       <p style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;">
-        {full_name}, подтвердите email
+        {full_name}, podtverdite email
       </p>
       <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 28px;">
-        Вы успешно зарегистрировались в Про Диалог. Нажмите кнопку ниже, чтобы подтвердить адрес электронной почты и активировать аккаунт.
+        Vy uspeshno zaregistrirovalis v Pro Dialog. Nazhite knopku nizhe, chtoby podtverdit adres elektronnoy pochty i aktivirovat akkaunt.
       </p>
       <a href="{verify_url}"
          style="display:inline-block;background:linear-gradient(135deg,#1a9fae,#136e7a);color:#fff;text-decoration:none;
                 font-size:15px;font-weight:700;padding:16px 32px;border-radius:12px;letter-spacing:0.2px;">
-        Подтвердить email
+        Podtverdit email
       </a>
       <p style="font-size:12px;color:#aaa;margin:24px 0 0;line-height:1.6;">
-        Ссылка действительна 48 часов.<br>
-        Если кнопка не работает, скопируйте адрес:<br>
+        Ssylka deystvitelna 48 chasov.<br>
+        Esli knopka ne rabotaet, skopiruyte adres:<br>
         <a href="{verify_url}" style="color:#1a9fae;word-break:break-all;">{verify_url}</a>
       </p>
     </div>
     <div style="padding:16px 32px;background:#f8f8f5;border-top:1px solid #eee;">
-      <p style="font-size:11px;color:#bbb;margin:0;">Если вы не регистрировались — просто проигнорируйте это письмо.</p>
+      <p style="font-size:11px;color:#bbb;margin:0;">Esli vy ne registrirovalis — prosto proignoriruyte eto pismo.</p>
     </div>
   </div>
 </body>
 </html>"""
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = "Подтверждение email — Про Диалог"
-    msg["From"]    = "Про Диалог <massopro@mail.ru>"
+    msg["Subject"] = str(Header("Podtverzhdenie email — Pro Dialog", "utf-8"))
+    msg["From"]    = f"Pro Dialog <{sender}>"
     msg["To"]      = to_email
+    msg["MIME-Version"] = "1.0"
     msg.attach(MIMEText(html, "html", "utf-8"))
 
-    try:
-        ctx = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.mail.ru", 465, context=ctx) as srv:
-            srv.login(sender, smtp_password)
-            srv.sendmail(sender, [to_email], msg.as_string())
-    except Exception:
-        pass
+    ctx = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.mail.ru", 465, context=ctx) as srv:
+        srv.login(sender, smtp_password)
+        srv.sendmail(sender, [to_email], msg.as_string())
 
 
 def handle_email_verify(event: dict) -> dict:
@@ -2001,10 +1997,7 @@ def handle_resend_verify(event: dict) -> dict:
         )
         conn.commit()
 
-        try:
-            _send_verify_email(user["email"], user["full_name"] or user["username"], new_token)
-        except Exception:
-            pass
+        _send_verify_email(user["email"], user["full_name"] or user["username"], new_token)
 
         return ok({"ok": True})
     finally:
