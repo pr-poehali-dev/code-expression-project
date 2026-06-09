@@ -74,50 +74,43 @@ export default function LkAcademy({ onNavigate }: { onNavigate?: (tab: string) =
         Тренинги для каждой роли в вашем салоне
       </p>
 
-      {/* Курсы из системы (интерактивные, с уроками) */}
-      {!loading && dbCourses.length > 0 && (
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#aaa", letterSpacing: "0.08em", marginBottom: 14 }}>
-            МОИ ТРЕНИНГИ В АКАДЕМИИ
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 14 }}>
-            {dbCourses.map(c => (
-              <DbCourseCard key={c.id} course={c} onClick={() => setActiveCourseId(c.id)} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Категории с лендингами */}
+      {/* Категории: лендинги + курсы из БД */}
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-        {CATEGORIES.map(cat => (
-          <div key={cat.id} style={{ background: "#fff", borderRadius: 20, border: "1.5px solid #f0f0ec", overflow: "hidden" }}>
-            <div style={{ padding: "18px 24px", borderBottom: "1px solid #f5f5f2", display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: cat.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Icon name={cat.icon} size={18} style={{ color: cat.color }} />
+        {CATEGORIES.map(cat => {
+          const catDbCourses = dbCourses.filter(c => c.category === cat.id);
+          const hasContent = cat.landings.length > 0 || catDbCourses.length > 0;
+          return (
+            <div key={cat.id} style={{ background: "#fff", borderRadius: 20, border: "1.5px solid #f0f0ec", overflow: "hidden" }}>
+              <div style={{ padding: "18px 24px", borderBottom: "1px solid #f5f5f2", display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 38, height: 38, borderRadius: 10, background: cat.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon name={cat.icon} size={18} style={{ color: cat.color }} />
+                </div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: "#1a1a1a" }}>{cat.title}</div>
               </div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#1a1a1a" }}>{cat.title}</div>
-            </div>
 
-            {cat.landings.length === 0 ? (
-              <div style={{ padding: "32px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 48, height: 48, borderRadius: 14, background: cat.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Icon name="Clock" size={20} style={{ color: cat.color }} />
+              {!hasContent ? (
+                <div style={{ padding: "32px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 14, background: cat.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Icon name="Clock" size={20} style={{ color: cat.color }} />
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "#555" }}>Тренинги скоро появятся</div>
+                  <div style={{ fontSize: 12, color: "#aaa", textAlign: "center", maxWidth: 280, lineHeight: 1.6 }}>
+                    Мы готовим материалы. Следите за обновлениями в этом разделе.
+                  </div>
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#555" }}>Тренинги скоро появятся</div>
-                <div style={{ fontSize: 12, color: "#aaa", textAlign: "center", maxWidth: 280, lineHeight: 1.6 }}>
-                  Мы готовим материалы. Следите за обновлениями в этом разделе.
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 1, background: "#f5f5f2" }}>
+                  {catDbCourses.map(c => (
+                    <DbCourseCard key={c.id} course={c} onClick={() => setActiveCourseId(c.id)} />
+                  ))}
+                  {cat.landings.map(course => (
+                    <LandingCard key={course.href} course={course} color={cat.color} bg={cat.bg} />
+                  ))}
                 </div>
-              </div>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 1, background: "#f5f5f2" }}>
-                {cat.landings.map(course => (
-                  <LandingCard key={course.href} course={course} color={cat.color} bg={cat.bg} />
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <div style={{ marginTop: 24, padding: "14px 18px", background: `hsla(185,85%,32%,0.05)`, borderRadius: 12, border: `1px solid hsla(185,85%,32%,0.12)`, display: "flex", gap: 12, alignItems: "flex-start" }}>
@@ -135,33 +128,27 @@ function DbCourseCard({ course, onClick }: { course: DbCourse; onClick: () => vo
   return (
     <div
       onClick={onClick}
-      style={{ background: "#fff", borderRadius: 14, border: `1.5px solid ${course.has_access ? "hsl(130,60%,82%)" : "#e8e8e4"}`, overflow: "hidden", cursor: "pointer", transition: "box-shadow 0.15s", display: "flex", flexDirection: "column" }}
-      onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.09)")}
-      onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
+      style={{ background: "#fff", cursor: "pointer", transition: "background 0.15s", display: "flex", flexDirection: "column", position: "relative" }}
+      onMouseEnter={e => (e.currentTarget.style.background = "hsl(185,85%,96%)")}
+      onMouseLeave={e => (e.currentTarget.style.background = "#fff")}
     >
       {course.cover_url && (
-        <img src={course.cover_url} alt="" style={{ width: "100%", height: 130, objectFit: "cover" }} />
+        <img src={course.cover_url} alt="" style={{ width: "100%", height: 120, objectFit: "cover" }} />
       )}
-      {!course.cover_url && (
-        <div style={{ height: 80, background: "hsl(340,75%,97%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Icon name="GraduationCap" size={32} style={{ color: "hsl(340,75%,60%)" }} />
+      {course.has_access && (
+        <div style={{ position: "absolute", top: 10, right: 12, fontSize: 10, fontWeight: 700, color: "hsl(130,60%,40%)", background: "hsl(130,60%,94%)", padding: "2px 8px", borderRadius: 6, border: "1px solid hsl(130,60%,75%)" }}>
+          Доступ открыт
         </div>
       )}
-      <div style={{ padding: "14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ padding: "16px 22px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4 }}>{course.title}</div>
         {course.description && (
           <div style={{ fontSize: 12, color: "#888", lineHeight: 1.6, flex: 1 }}>{course.description}</div>
         )}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
-          {course.has_access ? (
-            <span style={{ fontSize: 11, fontWeight: 700, color: "hsl(130,60%,40%)", background: "hsl(130,60%,94%)", padding: "3px 10px", borderRadius: 20 }}>
-              Доступ открыт
-            </span>
-          ) : (
-            <span style={{ fontSize: 11, color: "#aaa" }}>
-              {course.access_cost > 0 ? `${course.access_cost} ⚡` : "Бесплатно"}
-            </span>
-          )}
+          <span style={{ fontSize: 12, color: "#aaa" }}>
+            {!course.has_access && course.access_cost > 0 ? `${course.access_cost} ⚡` : ""}
+          </span>
           <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: ACCENT, fontWeight: 600 }}>
             Перейти <Icon name="ArrowRight" size={13} />
           </div>
