@@ -2459,16 +2459,29 @@ def handle_member_course_access_get(event: dict) -> dict:
         )
         granted = {r["course_id"] for r in cur.fetchall()}
 
+        # Сколько сотрудников уже получили доступ к каждому курсу (для счётчика лимита)
+        cur.execute(
+            f"SELECT mca.course_id, COUNT(*) as cnt "
+            f"FROM {tbl('member_course_access')} mca "
+            f"JOIN {tbl('salon_members')} sm ON sm.id=mca.member_id "
+            f"WHERE sm.salon_id=%s "
+            f"GROUP BY mca.course_id",
+            (salon["id"],)
+        )
+        granted_counts = {r["course_id"]: r["cnt"] for r in cur.fetchall()}
+
         for c in courses:
             c["granted"] = c["id"] in granted
+            c["granted_count"] = granted_counts.get(c["id"], 0)
+            c["free_slots_left"] = max(0, FREE_MEMBER_LIMIT - c["granted_count"])
 
-        return ok({"courses": courses})
+        return ok({"courses": courses, "free_limit": FREE_MEMBER_LIMIT, "extra_cost": EXTRA_MEMBER_COST})
     finally:
         conn.close()
 
 
 def handle_member_course_access_set(event: dict) -> dict:
-    """Владелец выдаёт или отзывает доступ сотрудника к курсу."""
+    """Владелец выдаёт доступ сотрудника к курсу. Отзыв запрещён."""
     body = json.loads(event.get("body") or "{}")
     member_id = body.get("member_id")
     course_id = body.get("course_id")
@@ -2476,6 +2489,10 @@ def handle_member_course_access_set(event: dict) -> dict:
 
     if not member_id or not course_id or granted is None:
         return err("Не переданы member_id, course_id или granted")
+
+    # Отзыв доступа запрещён — раз выдан, назад не отобрать
+    if not granted:
+        return err("Отзыв доступа к тренингу невозможен")
 
     conn = get_db()
     try:

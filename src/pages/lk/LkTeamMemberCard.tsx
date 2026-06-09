@@ -5,7 +5,10 @@ import { ACCENT, ACCENT_DARK, ROLE_OPTIONS, PERM_LABELS, ROLE_COLORS, Member, in
 const LK_API = "https://functions.poehali.dev/1c0ad024-179b-4644-9621-377174bbeba3";
 function sid() { return localStorage.getItem("lk_session") || ""; }
 
-interface MemberCourse { id: number; title: string; category: string; granted: boolean; }
+interface MemberCourse {
+  id: number; title: string; category: string; granted: boolean;
+  granted_count: number; free_slots_left: number;
+}
 
 // ── Тоггл разрешения ──────────────────────────────────────────────────────────
 export function PermToggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
@@ -36,6 +39,8 @@ export function MemberCard({ member, onUpdate, onRemove }: {
   const [courses, setCourses]         = useState<MemberCourse[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(false);
   const [togglingCourse, setTogglingCourse] = useState<number | null>(null);
+  const [freeLimit, setFreeLimit]     = useState(3);
+  const [extraCost, setExtraCost]     = useState(500);
 
   const rc = ROLE_COLORS[member.role_code] || ROLE_COLORS.master;
   const roleLabel = ROLE_OPTIONS.find(r => r.code === member.role_code)?.label || member.role_code;
@@ -47,7 +52,11 @@ export function MemberCard({ member, onUpdate, onRemove }: {
       headers: { "X-Session-Id": sid() },
     })
       .then(r => r.json())
-      .then(d => { if (Array.isArray(d?.courses)) setCourses(d.courses); })
+      .then(d => {
+        if (Array.isArray(d?.courses)) setCourses(d.courses);
+        if (d?.free_limit) setFreeLimit(d.free_limit);
+        if (d?.extra_cost) setExtraCost(d.extra_cost);
+      })
       .finally(() => setCoursesLoading(false));
   }, [open, member.id]);
 
@@ -149,19 +158,41 @@ export function MemberCard({ member, onUpdate, onRemove }: {
                 Нет купленных тренингов. Приобретите тренинг, чтобы выдать доступ сотруднику.
               </div>
             ) : (
-              <div style={{ background: "#fff", borderRadius: 10, padding: "4px 12px", border: "1px solid #E8ECF0" }}>
-                {courses.map(c => (
-                  <div key={c.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #F1F5F9" }}>
-                    <span style={{ fontSize: 13, color: "#444", paddingRight: 8 }}>{c.title}</span>
-                    <button
-                      disabled={togglingCourse === c.id}
-                      onClick={() => toggleCourse(c.id, !c.granted)}
-                      style={{ width: 44, height: 24, borderRadius: 12, border: "none", background: c.granted ? ACCENT : "#ddd", cursor: togglingCourse === c.id ? "not-allowed" : "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0, opacity: togglingCourse === c.id ? 0.6 : 1 }}
-                    >
-                      <div style={{ width: 18, height: 18, borderRadius: "50%", background: "#fff", position: "absolute", top: 3, left: c.granted ? 23 : 3, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.2)" }} />
-                    </button>
-                  </div>
-                ))}
+              <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #E8ECF0", overflow: "hidden" }}>
+                {courses.map((c, i) => {
+                  const isFree = c.free_slots_left > 0;
+                  return (
+                    <div key={c.id} style={{ padding: "10px 12px", borderBottom: i < courses.length - 1 ? "1px solid #F1F5F9" : "none" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, color: "#333", fontWeight: 500, lineHeight: 1.3 }}>{c.title}</div>
+                          {!c.granted && (
+                            <div style={{ fontSize: 11, marginTop: 3, color: isFree ? "hsl(130,55%,40%)" : "hsl(25,85%,45%)", fontWeight: 600 }}>
+                              {isFree
+                                ? `Бесплатно · осталось ${c.free_slots_left} из ${freeLimit}`
+                                : `${extraCost} ⚡ — лимит исчерпан`}
+                            </div>
+                          )}
+                        </div>
+                        {c.granted ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+                            <Icon name="CheckCircle" size={15} style={{ color: ACCENT }} />
+                            <span style={{ fontSize: 11, color: ACCENT, fontWeight: 700 }}>Выдан</span>
+                          </div>
+                        ) : (
+                          <button
+                            disabled={togglingCourse === c.id}
+                            onClick={() => toggleCourse(c.id, true)}
+                            style={{ padding: "6px 12px", borderRadius: 8, border: "none", background: isFree ? `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})` : "hsl(25,85%,55%)", color: "#fff", fontSize: 11, fontWeight: 700, cursor: togglingCourse === c.id ? "not-allowed" : "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: 4, opacity: togglingCourse === c.id ? 0.6 : 1 }}
+                          >
+                            {togglingCourse === c.id ? <Icon name="Loader" size={11} style={{ animation: "spin 1s linear infinite" }} /> : <Icon name="Unlock" size={11} />}
+                            Выдать
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
