@@ -38,10 +38,17 @@ export function UserCard({ u, editUser, setEditUser, saving, onUpdate, onNewPw, 
             <label style={labelStyle}>Заметки</label>
             <textarea value={editUser.notes || ""} onChange={e => setEditUser(p => p ? { ...p, notes: e.target.value } : null)} style={{ ...inputStyle, height: 56, resize: "none" }} />
           </div>
-          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer", marginBottom: 12 }}>
-            <input type="checkbox" checked={editUser.is_active} onChange={e => setEditUser(p => p ? { ...p, is_active: e.target.checked } : null)} />
-            Активен
-          </label>
+          <div style={{ display: "flex", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer" }}>
+              <input type="checkbox" checked={editUser.is_active} onChange={e => setEditUser(p => p ? { ...p, is_active: e.target.checked } : null)} />
+              Активен
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer", padding: "4px 10px", borderRadius: 8, background: editUser.is_admin ? "hsl(280,60%,95%)" : "#f5f5f2", border: `1.5px solid ${editUser.is_admin ? "hsl(280,60%,70%)" : "#e8e8e4"}`, transition: "all 0.15s" }}>
+              <input type="checkbox" checked={!!editUser.is_admin} onChange={e => setEditUser(p => p ? { ...p, is_admin: e.target.checked } : null)} />
+              <Icon name="ShieldCheck" size={13} style={{ color: editUser.is_admin ? "hsl(280,60%,55%)" : "#bbb" }} />
+              <span style={{ color: editUser.is_admin ? "hsl(280,60%,45%)" : "#666", fontWeight: editUser.is_admin ? 700 : 500 }}>Администратор платформы</span>
+            </label>
+          </div>
           <div style={{ marginBottom: 14 }}>
             <label style={labelStyle}>Продлить доступ</label>
             <div style={{ display: "flex", gap: 8 }}>
