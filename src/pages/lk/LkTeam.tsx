@@ -41,6 +41,19 @@ export default function LkTeam() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Загружаем запросы сразу при монтировании — чтобы знать есть ли они
+  useEffect(() => {
+    fetch(`${LK_URL}?action=course_requests_list`, { headers: { "X-Session-Id": sid() } })
+      .then(r => r.json())
+      .then(d => {
+        if (Array.isArray(d?.requests)) {
+          setRequests(d.requests);
+          // Если есть запросы — автоматически открываем вкладку
+          if (d.requests.length > 0) setTab("requests");
+        }
+      });
+  }, []);
+
   useEffect(() => {
     if (tab !== "requests") return;
     setRequestsLoading(true);
@@ -133,9 +146,9 @@ export default function LkTeam() {
           { id: "requests", label: "Запросы",     count: requests.length },
           { id: "credits",  label: "Кредиты",     count: null },
         ] as { id: typeof tab; label: string; count: number | null }[]).map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "8px", borderRadius: 8, border: "none", background: tab === t.id ? "#fff" : "transparent", color: tab === t.id ? "#0F172A" : "#888", fontSize: 12, fontWeight: tab === t.id ? 700 : 500, cursor: "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: tab === t.id ? "0 1px 4px rgba(0,0,0,0.08)" : "none" }}>
+          <button key={t.id} onClick={() => setTab(t.id)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "8px", borderRadius: 8, border: "none", background: tab === t.id ? (t.id === "requests" && t.count ? "hsl(25,90%,97%)" : "#fff") : (t.id === "requests" && t.count && t.count > 0 ? "hsl(25,90%,95%)" : "transparent"), color: tab === t.id ? (t.id === "requests" && t.count ? "hsl(25,85%,40%)" : "#0F172A") : (t.id === "requests" && t.count && t.count > 0 ? "hsl(25,85%,45%)" : "#888"), fontSize: 12, fontWeight: (tab === t.id || (t.id === "requests" && t.count && t.count > 0)) ? 700 : 500, cursor: "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: tab === t.id ? "0 1px 4px rgba(0,0,0,0.08)" : "none" }}>
             {t.label}
-            {t.count !== null && t.count > 0 && <span style={{ background: tab === t.id ? ACCENT : (t.id === "requests" ? "hsl(25,90%,55%)" : "#ddd"), color: "#fff", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "1px 6px" }}>{t.count}</span>}
+            {t.count !== null && t.count > 0 && <span style={{ background: t.id === "requests" ? "hsl(25,90%,55%)" : (tab === t.id ? ACCENT : "#ddd"), color: "#fff", fontSize: 10, fontWeight: 700, borderRadius: 6, padding: "1px 6px" }}>{t.count}</span>}
           </button>
         ))}
       </div>
