@@ -26,10 +26,13 @@ export interface LkUser {
 interface LkAuthCtx {
   user: LkUser | null;
   loading: boolean;
+  needsEmailVerify: boolean;
+  pendingEmail: string;
   login: (username: string, password: string) => Promise<void>;
   register: (full_name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  markEmailVerified: () => void;
 }
 
 const Ctx = createContext<LkAuthCtx | null>(null);
@@ -37,6 +40,8 @@ const Ctx = createContext<LkAuthCtx | null>(null);
 export function LkAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<LkUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [needsEmailVerify, setNeedsEmailVerify] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Сколько раз подряд получили AuthError — сбрасываем сессию только после 3 подряд
   const authFailCountRef = useRef(0);
@@ -94,7 +99,15 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.removeItem("lk_tab");
     const data = await lkApi.register(full_name, email, password);
     saveSession(data.session_id);
+    // После регистрации показываем экран подтверждения email, не пускаем в кабинет
+    setPendingEmail(email);
+    setNeedsEmailVerify(true);
     setUser(data.user);
+  };
+
+  const markEmailVerified = () => {
+    setNeedsEmailVerify(false);
+    setPendingEmail("");
   };
 
   const logout = async () => {
@@ -102,6 +115,8 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
     await lkApi.logout().catch(() => {});
     clearSession();
     setUser(null);
+    setNeedsEmailVerify(false);
+    setPendingEmail("");
   };
 
   const refreshUser = async () => {
@@ -109,7 +124,7 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
     setUser(u);
   };
 
-  return <Ctx.Provider value={{ user, loading, login, register, logout, refreshUser }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, loading, needsEmailVerify, pendingEmail, login, register, logout, refreshUser, markEmailVerified }}>{children}</Ctx.Provider>;
 }
 
 export function useLkAuth() {

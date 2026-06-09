@@ -186,10 +186,11 @@ def handle_register(event: dict) -> dict:
             username = f"{base}{suffix}"
 
         pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+        verify_token = secrets.token_urlsafe(40)
         cur.execute(
-            f"INSERT INTO {tbl('lk_users')} (username, email, password_hash, full_name, is_active, segment, role, welcome_bonus_given) "
-            f"VALUES (%s,%s,%s,%s,TRUE,'salon','owner',FALSE) RETURNING id",
-            (username, email, pw_hash, full_name)
+            f"INSERT INTO {tbl('lk_users')} (username, email, password_hash, full_name, is_active, segment, role, welcome_bonus_given, email_verified, email_verify_token, email_verify_sent_at) "
+            f"VALUES (%s,%s,%s,%s,TRUE,'salon','owner',FALSE,FALSE,%s,NOW()) RETURNING id",
+            (username, email, pw_hash, full_name, verify_token)
         )
         user_id = cur.fetchone()["id"]
 
@@ -201,8 +202,15 @@ def handle_register(event: dict) -> dict:
         )
         conn.commit()
 
+        # Отправляем письмо подтверждения (не блокируем ответ при ошибке)
+        try:
+            _send_verify_email(email, full_name, verify_token)
+        except Exception:
+            pass
+
         return ok({
             "session_id": session_id,
+            "email_verified": False,
             "user": {
                 "id": user_id,
                 "username": username,
@@ -216,6 +224,7 @@ def handle_register(event: dict) -> dict:
                 "role": "owner",
                 "salon_id": None,
                 "salon": None,
+                "email_verified": False,
             }
         })
     finally:
@@ -1874,6 +1883,132 @@ def _require_owner(user: dict, conn) -> dict | None:
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(f"SELECT * FROM {tbl('salons')} WHERE id=%s AND owner_id=%s", (user["salon_id"], user["id"]))
     return cur.fetchone()
+
+
+def _send_verify_email(to_email: str, full_name: str, token: str) -> None:
+    """Отправляет письмо с подтверждением email после регистрации."""
+    import smtplib
+    import ssl
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+
+    smtp_password = os.environ.get("SMTP_PASSWORD", "")
+    if not smtp_password:
+        return
+
+    sender = "massopro@mail.ru"
+    verify_url = f"https://promtdialog.ru/cabinet?verify={token}"
+
+    html = f"""<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f4f4f0;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <div style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background:linear-gradient(135deg,#1a9fae,#136e7a);padding:28px 32px;">
+      <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Про Диалог</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">Платформа для бьюти-бизнеса</div>
+    </div>
+    <div style="padding:32px 32px 24px;">
+      <p style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;">
+        {full_name}, подтвердите email
+      </p>
+      <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 28px;">
+        Вы успешно зарегистрировались в Про Диалог. Нажмите кнопку ниже, чтобы подтвердить адрес электронной почты и активировать аккаунт.
+      </p>
+      <a href="{verify_url}"
+         style="display:inline-block;background:linear-gradient(135deg,#1a9fae,#136e7a);color:#fff;text-decoration:none;
+                font-size:15px;font-weight:700;padding:16px 32px;border-radius:12px;letter-spacing:0.2px;">
+        Подтвердить email
+      </a>
+      <p style="font-size:12px;color:#aaa;margin:24px 0 0;line-height:1.6;">
+        Ссылка действительна 48 часов.<br>
+        Если кнопка не работает, скопируйте адрес:<br>
+        <a href="{verify_url}" style="color:#1a9fae;word-break:break-all;">{verify_url}</a>
+      </p>
+    </div>
+    <div style="padding:16px 32px;background:#f8f8f5;border-top:1px solid #eee;">
+      <p style="font-size:11px;color:#bbb;margin:0;">Если вы не регистрировались — просто проигнорируйте это письмо.</p>
+    </div>
+  </div>
+</body>
+</html>"""
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = "Подтверждение email — Про Диалог"
+    msg["From"]    = "Про Диалог <massopro@mail.ru>"
+    msg["To"]      = to_email
+    msg.attach(MIMEText(html, "html", "utf-8"))
+
+    try:
+        ctx = ssl.create_default_context()
+        with smtplib.SMTP_SSL("smtp.mail.ru", 465, context=ctx) as srv:
+            srv.login(sender, smtp_password)
+            srv.sendmail(sender, [to_email], msg.as_string())
+    except Exception:
+        pass
+
+
+def handle_email_verify(event: dict) -> dict:
+    """Подтверждение email по токену из письма."""
+    qs = event.get("queryStringParameters") or {}
+    token = (qs.get("token") or "").strip()
+    if not token:
+        return err("Токен не передан")
+
+    conn = get_db()
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT id, email_verified, email_verify_sent_at FROM {tbl('lk_users')} WHERE email_verify_token=%s",
+            (token,)
+        )
+        user = cur.fetchone()
+        if not user:
+            return err("Ссылка недействительна или уже использована", 404)
+        if user["email_verified"]:
+            return ok({"ok": True, "already": True})
+
+        # Проверяем срок действия (48 часов)
+        if user["email_verify_sent_at"]:
+            age = (datetime.now(timezone.utc) - user["email_verify_sent_at"]).total_seconds()
+            if age > 172800:
+                return err("Ссылка устарела. Запросите новое письмо.", 410)
+
+        cur.execute(
+            f"UPDATE {tbl('lk_users')} SET email_verified=TRUE, email_verify_token=NULL WHERE id=%s",
+            (user["id"],)
+        )
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
+def handle_resend_verify(event: dict) -> dict:
+    """Повторная отправка письма подтверждения (авторизованный пользователь)."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        if user.get("email_verified"):
+            return ok({"ok": True, "already": True})
+
+        cur = conn.cursor()
+        new_token = secrets.token_urlsafe(40)
+        cur.execute(
+            f"UPDATE {tbl('lk_users')} SET email_verify_token=%s, email_verify_sent_at=NOW() WHERE id=%s",
+            (new_token, user["id"])
+        )
+        conn.commit()
+
+        try:
+            _send_verify_email(user["email"], user["full_name"] or user["username"], new_token)
+        except Exception:
+            pass
+
+        return ok({"ok": True})
+    finally:
+        conn.close()
 
 
 def _send_invite_email(to_email: str, full_name: str, salon_name: str, role_label: str, invite_url: str) -> None:
@@ -3826,6 +3961,8 @@ ROUTES = {
     ("POST", "login"): handle_login,
     ("POST", "register"): handle_register,
     ("POST", "logout"): handle_logout,
+    ("GET",  "email_verify"): handle_email_verify,
+    ("POST", "resend_verify"): handle_resend_verify,
     ("GET",  "me"): handle_me,
     ("GET",  "tests"): handle_tests,
     ("GET",  "test_detail"): handle_test_detail,
