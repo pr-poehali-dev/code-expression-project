@@ -19,6 +19,8 @@ export default function LkEmailVerify({ email, verifyToken, onVerified }: Props)
   const [status, setStatus] = useState<"idle" | "verifying" | "success" | "error" | "resending" | "resent">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
+  const hasSession = !!sid();
+
   // Если токен пришёл из URL — сразу верифицируем
   useEffect(() => {
     if (!verifyToken) return;
@@ -28,7 +30,11 @@ export default function LkEmailVerify({ email, verifyToken, onVerified }: Props)
       .then(d => {
         if (d.ok) {
           setStatus("success");
-          setTimeout(() => onVerified(), 2000);
+          // Если есть активная сессия — автоматически переходим в кабинет
+          // Если нет (открыл ссылку в другом браузере) — показываем кнопку "Войти"
+          if (hasSession) {
+            setTimeout(() => onVerified(), 2000);
+          }
         } else {
           setStatus("error");
           setErrorMsg(d.error || "Ссылка недействительна");
@@ -99,12 +105,28 @@ export default function LkEmailVerify({ email, verifyToken, onVerified }: Props)
                 <p style={{ fontSize: 15, color: "#1a1a1a", fontWeight: 600, marginBottom: 8 }}>
                   Аккаунт активирован
                 </p>
-                <p style={{ fontSize: 13, color: GRAY, lineHeight: 1.7 }}>
-                  Перенаправляем вас в кабинет...
-                </p>
-                <div style={{ marginTop: 16, display: "flex", justifyContent: "center" }}>
-                  <div style={{ width: 24, height: 24, border: "3px solid #eee", borderTopColor: TEAL, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                </div>
+                {hasSession ? (
+                  <>
+                    <p style={{ fontSize: 13, color: GRAY, lineHeight: 1.7 }}>
+                      Перенаправляем вас в кабинет...
+                    </p>
+                    <div style={{ marginTop: 16, display: "flex", justifyContent: "center" }}>
+                      <div style={{ width: 24, height: 24, border: "3px solid #eee", borderTopColor: TEAL, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ fontSize: 13, color: GRAY, lineHeight: 1.7, marginBottom: 20 }}>
+                      Email успешно подтверждён. Войдите в кабинет.
+                    </p>
+                    <a
+                      href="/cabinet"
+                      style={{ display: "inline-block", padding: "13px 32px", borderRadius: 8, background: `linear-gradient(135deg,#1a9fae,#136e7a)`, color: "#fff", fontSize: 14, fontWeight: 700, textDecoration: "none", fontFamily: "Inter, sans-serif" }}
+                    >
+                      Войти в кабинет
+                    </a>
+                  </>
+                )}
               </div>
             )}
 

@@ -35,8 +35,8 @@ export default function LkPage() {
         verifyToken={verifyToken}
         onVerified={() => {
           markEmailVerified();
-          // Убираем ?verify= из URL без перезагрузки
-          window.history.replaceState({}, "", "/cabinet");
+          // Полная перезагрузка — очищает токен из URL и пускает в кабинет (если залогинен) или на логин
+          window.location.href = "/cabinet";
         }}
       />
     );
