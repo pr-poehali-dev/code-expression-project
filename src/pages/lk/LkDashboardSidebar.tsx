@@ -175,6 +175,30 @@ function InstallButtonMobile() {
   );
 }
 
+// ── Хук: кол-во входящих запросов на тренинги (для владельца) ─────────────────
+function useRequestsCount(role: string) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (role !== "owner") return;
+    const LK_URL = "https://functions.poehali.dev/1c0ad024-179b-4644-9621-377174bbeba3";
+    const sid = () => localStorage.getItem("lk_session") || "";
+
+    const load = () => {
+      fetch(`${LK_URL}?action=course_requests_list`, { headers: { "X-Session-Id": sid() } })
+        .then(r => r.json())
+        .then(d => { if (Array.isArray(d?.requests)) setCount(d.requests.length); })
+        .catch(() => {});
+    };
+
+    load();
+    const interval = setInterval(load, 60_000);
+    return () => clearInterval(interval);
+  }, [role]);
+
+  return count;
+}
+
 // ── Виджет баланса энергии ─────────────────────────────────────────────────────
 export function EnergyBadge({ onNav, sidebar }: { onNav: (t: string) => void; sidebar?: boolean }) {
   const { balance } = useEnergy();
@@ -212,6 +236,7 @@ interface SidebarProps {
 
 export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps) {
   const { user } = useLkAuth();
+  const requestsCount = useRequestsCount(role);
   const allowedNav = NAV_ITEMS.filter(n => {
     const allowed: Tab[] = user?.is_admin
       ? [...(ROLE_TABS["owner"] as Tab[]), "admin" as Tab]
@@ -277,11 +302,13 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
               <span style={{ flex: 1 }}>{item.label}</span>
               {locked
                 ? <Icon name="Lock" size={12} style={{ color: "rgba(255,255,255,0.25)" }} />
-                : item.badge && (
-                  <span style={{ fontSize: 9, fontWeight: 700, background: "hsl(40,90%,50%)", color: "#0F172A", borderRadius: 4, padding: "2px 5px", letterSpacing: 0.5, textTransform: "uppercase" }}>
-                    {item.badge}
-                  </span>
-                )
+                : item.id === "employees" && requestsCount > 0
+                  ? <span style={{ fontSize: 10, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 10, padding: "1px 7px", minWidth: 18, textAlign: "center" }}>{requestsCount}</span>
+                  : item.badge && (
+                    <span style={{ fontSize: 9, fontWeight: 700, background: "hsl(40,90%,50%)", color: "#0F172A", borderRadius: 4, padding: "2px 5px", letterSpacing: 0.5, textTransform: "uppercase" }}>
+                      {item.badge}
+                    </span>
+                  )
               }
             </button>
           );
@@ -357,11 +384,16 @@ interface BottomBarProps {
 }
 
 export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, setMoreOpen, onNav }: BottomBarProps) {
+  const { user } = useLkAuth();
+  const role = user?.is_admin ? "owner" : (user?.role || "body_specialist");
+  const requestsCount = useRequestsCount(role);
+
   return (
     <>
       <nav className="lk-bottombar">
         {mobileNav.map(item => {
           const locked = !hasSalon && SALON_REQUIRED.includes(item.id);
+          const showBadge = item.id === "employees" && requestsCount > 0;
           return (
             <button key={item.id} onClick={() => onNav(item.id)} style={{
               flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
@@ -371,7 +403,14 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
               cursor: "pointer", fontFamily: "Montserrat, sans-serif", padding: "7px 2px",
               position: "relative",
             }}>
-              <Icon name={item.icon} size={20} />
+              <div style={{ position: "relative" }}>
+                <Icon name={item.icon} size={20} />
+                {showBadge && (
+                  <span style={{ position: "absolute", top: -4, right: -6, fontSize: 9, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 8, padding: "1px 5px", minWidth: 14, textAlign: "center", lineHeight: "14px" }}>
+                    {requestsCount}
+                  </span>
+                )}
+              </div>
               {locked && <Icon name="Lock" size={9} style={{ position: "absolute", top: 5, right: "calc(50% - 14px)", color: "rgba(255,255,255,0.3)" }} />}
               {item.label}
             </button>
@@ -399,6 +438,7 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
             <div style={{ width: 36, height: 4, borderRadius: 2, background: "#e0e0e0", margin: "0 auto 16px" }} />
             {moreItems.map(item => {
               const locked = !hasSalon && SALON_REQUIRED.includes(item.id);
+              const showBadge = item.id === "employees" && requestsCount > 0;
               return (
                 <button key={item.id} onClick={() => onNav(item.id)} style={{
                   width: "100%", display: "flex", alignItems: "center", gap: 14,
@@ -406,11 +446,13 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
                   cursor: "pointer", fontFamily: "Montserrat, sans-serif", textAlign: "left",
                   opacity: locked ? 0.5 : 1,
                 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: tab === item.id ? `hsla(185,85%,32%,0.1)` : "#f5f5f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: tab === item.id ? `hsla(185,85%,32%,0.1)` : "#f5f5f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative" }}>
                     <Icon name={locked ? "Lock" : item.icon} size={18} style={{ color: tab === item.id ? ACCENT : "#888" }} />
+                    {showBadge && <span style={{ position: "absolute", top: -4, right: -4, fontSize: 9, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 8, padding: "1px 5px", minWidth: 14, textAlign: "center", lineHeight: "14px" }}>{requestsCount}</span>}
                   </div>
                   <span style={{ fontSize: 14, fontWeight: tab === item.id ? 700 : 500, color: tab === item.id ? ACCENT : "#1a1a1a" }}>{item.label}</span>
-                  {!locked && item.badge && <span style={{ fontSize: 9, fontWeight: 700, background: ACCENT, color: "#fff", borderRadius: 4, padding: "2px 6px", marginLeft: "auto" }}>{item.badge.toUpperCase()}</span>}
+                  {!locked && !showBadge && item.badge && <span style={{ fontSize: 9, fontWeight: 700, background: ACCENT, color: "#fff", borderRadius: 4, padding: "2px 6px", marginLeft: "auto" }}>{item.badge.toUpperCase()}</span>}
+                  {!locked && showBadge && <span style={{ fontSize: 11, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 6, padding: "2px 8px", marginLeft: "auto" }}>{requestsCount} запроса</span>}
                   {locked && <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto" }}>Нужен салон</span>}
                 </button>
               );
