@@ -2537,8 +2537,8 @@ def handle_member_courses_list(event: dict) -> dict:
 
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-        # Все курсы
-        cur.execute(f"SELECT id, title, description, category, cover_url FROM {tbl('courses')} ORDER BY sort_order, id")
+        # Только опубликованные курсы
+        cur.execute(f"SELECT id, title, description, category, cover_url FROM {tbl('courses')} WHERE is_published=TRUE ORDER BY sort_order, id")
         courses = [dict(r) for r in cur.fetchall()]
 
         # Мой member_id
