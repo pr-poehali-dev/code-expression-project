@@ -2147,6 +2147,23 @@ def handle_team_list(event: dict) -> dict:
         )
         members = [dict(r) for r in cur.fetchall()]
 
+        # Расход каждого участника за текущий месяц
+        if members:
+            user_ids = [m["user_id"] for m in members]
+            ids_placeholder = ",".join(["%s"] * len(user_ids))
+            cur.execute(
+                f"SELECT user_id, COALESCE(SUM(amount), 0) as spent "
+                f"FROM {tbl('credit_transactions')} "
+                f"WHERE salon_id=%s AND user_id IN ({ids_placeholder}) "
+                f"AND type='debit' "
+                f"AND created_at >= date_trunc('month', NOW()) "
+                f"GROUP BY user_id",
+                [salon["id"]] + user_ids
+            )
+            spent_map = {r["user_id"]: int(r["spent"]) for r in cur.fetchall()}
+            for m in members:
+                m["spent_month"] = spent_map.get(m["user_id"], 0)
+
         # Ожидающие приглашения
         cur.execute(
             f"SELECT id, token, full_name, email, phone, role_code, status, created_at, expires_at "

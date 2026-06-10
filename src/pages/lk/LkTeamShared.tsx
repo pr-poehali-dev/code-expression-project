@@ -32,6 +32,7 @@ export interface Member {
   monthly_credit_limit: number | null;
   is_active: boolean; joined_at: string;
   full_name: string; email: string; username: string;
+  spent_month?: number;
 }
 
 export interface Invite {

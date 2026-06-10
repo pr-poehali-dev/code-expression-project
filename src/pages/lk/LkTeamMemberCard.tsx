@@ -100,8 +100,15 @@ export function MemberCard({ member, onUpdate, onRemove }: {
           <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>{member.full_name}</div>
           <div style={{ display: "flex", gap: 6, marginTop: 3, flexWrap: "wrap", alignItems: "center" }}>
             <span style={{ fontSize: 10, fontWeight: 700, background: rc.bg, color: rc.color, borderRadius: 5, padding: "2px 8px" }}>{roleLabel}</span>
-            {member.monthly_credit_limit && <span style={{ fontSize: 10, color: "#aaa" }}>лимит {member.monthly_credit_limit} кред./мес</span>}
+            {member.monthly_credit_limit && <span style={{ fontSize: 10, color: "#aaa" }}>лимит {member.monthly_credit_limit} ⚡/мес</span>}
           </div>
+        </div>
+        {/* Расход за месяц */}
+        <div style={{ textAlign: "right", flexShrink: 0, marginRight: 4 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: (member.spent_month ?? 0) > 0 ? "#0F172A" : "#ccc" }}>
+            {member.spent_month ?? 0} ⚡
+          </div>
+          <div style={{ fontSize: 9, color: "#bbb", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>за месяц</div>
         </div>
         <button onClick={() => setOpen(p => !p)} style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: open ? `hsla(185,85%,32%,0.08)` : "#f5f5f2", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Icon name={open ? "ChevronUp" : "Settings"} size={15} style={{ color: open ? ACCENT : "#999" }} />
