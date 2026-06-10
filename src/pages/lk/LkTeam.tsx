@@ -130,11 +130,34 @@ export default function LkTeam() {
         </div>
       )}
 
-      {/* Баннер о лимите тренингов */}
-      <div style={{ marginBottom: 16, padding: "12px 16px", background: "hsl(185,85%,97%)", borderRadius: 12, border: `1px solid hsl(185,85%,82%)`, display: "flex", gap: 10, alignItems: "flex-start" }}>
-        <Icon name="GraduationCap" size={16} style={{ color: ACCENT, marginTop: 1, flexShrink: 0 }} />
-        <div style={{ fontSize: 12, color: "#444", lineHeight: 1.7 }}>
-          <strong>Академия:</strong> при покупке тренинга вы можете бесплатно открыть доступ до <strong>{FREE_LIMIT} сотрудников</strong>. Каждый следующий — <strong>{EXTRA_COST} ⚡</strong> за человека. Количество не ограничено.
+      {/* Возможности раздела */}
+      <div style={{ marginBottom: 16, background: "#fff", borderRadius: 14, border: "1px solid #E8ECF0", overflow: "hidden" }}>
+        <div style={{ padding: "14px 16px", borderBottom: "1px solid #F1F5F9", display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <div style={{ width: 30, height: 30, borderRadius: 8, background: "hsl(185,85%,95%)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="Users" size={15} style={{ color: ACCENT }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 2 }}>Одна команда — один счёт</div>
+            <div style={{ fontSize: 12, color: "#666", lineHeight: 1.6 }}>Пригласите сотрудников по e-mail. Все работают под вашим аккаунтом и расходуют общий баланс энергии. Вы видите кто и сколько потратил.</div>
+          </div>
+        </div>
+        <div style={{ padding: "14px 16px", borderBottom: "1px solid #F1F5F9", display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <div style={{ width: 30, height: 30, borderRadius: 8, background: "hsl(260,85%,96%)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="ShieldCheck" size={15} style={{ color: "hsl(260,70%,55%)" }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 2 }}>Роли и доступ к инструментам</div>
+            <div style={{ fontSize: 12, color: "#666", lineHeight: 1.6 }}>Назначьте каждому сотруднику роль и выберите какие ИИ-инструменты ему доступны: диагностика, финансы, репутация и другие.</div>
+          </div>
+        </div>
+        <div style={{ padding: "14px 16px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <div style={{ width: 30, height: 30, borderRadius: 8, background: "hsl(40,95%,95%)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="GraduationCap" size={15} style={{ color: "hsl(35,90%,50%)" }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 2 }}>Академия — доступ к тренингам</div>
+            <div style={{ fontSize: 12, color: "#666", lineHeight: 1.6 }}>При покупке тренинга откройте доступ до <strong>{FREE_LIMIT} сотрудников бесплатно</strong>. Каждый следующий — <strong>{EXTRA_COST} ⚡</strong>. Количество не ограничено.</div>
+          </div>
         </div>
       </div>
 
