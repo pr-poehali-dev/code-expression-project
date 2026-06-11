@@ -100,7 +100,7 @@ def handle_courses_list(event, conn):
     user = get_session_user(event, conn)
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"SELECT id,title,description,cover_url,category,access_cost,lesson_cost,sort_order "
+        f"SELECT id,title,description,cover_url,trailer_url,category,access_cost,lesson_cost,sort_order "
         f"FROM {tbl('courses')} WHERE is_published=TRUE ORDER BY sort_order,id"
     )
     courses = [dict(r) for r in cur.fetchall()]
@@ -570,6 +570,7 @@ def handle_admin_course_save(event, conn):
         "title": title,
         "description": body.get("description", ""),
         "cover_url": body.get("cover_url", ""),
+        "trailer_url": body.get("trailer_url", ""),
         "category": body.get("category", "body"),
         "is_published": bool(body.get("is_published", False)),
         "sort_order": int(body.get("sort_order", 0)),

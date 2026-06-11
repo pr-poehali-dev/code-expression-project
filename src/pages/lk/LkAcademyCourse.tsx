@@ -79,9 +79,23 @@ export default function LkAcademyCourse({ courseId, onBack, onNavigate }: Props)
         <Icon name="ChevronLeft" size={16} /> Назад к Академии
       </button>
 
-      {course.cover_url && (
+      {/* Трейлер или обложка */}
+      {course.trailer_url ? (() => {
+        const match = course.trailer_url!.match(/kinescope\.io\/([a-zA-Z0-9]+)/);
+        const embedUrl = match ? `https://kinescope.io/embed/${match[1]}` : course.trailer_url!;
+        return (
+          <div style={{ position: "relative", paddingBottom: "56.25%", borderRadius: 16, overflow: "hidden", background: "#000", marginBottom: 20 }}>
+            <iframe
+              src={embedUrl}
+              style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
+              allowFullScreen
+              allow="autoplay; fullscreen"
+            />
+          </div>
+        );
+      })() : course.cover_url ? (
         <img src={course.cover_url} alt="" style={{ width: "100%", borderRadius: 16, objectFit: "cover", maxHeight: 260, marginBottom: 20 }} />
-      )}
+      ) : null}
 
       <h1 style={{ fontFamily: SERIF, fontSize: "clamp(22px,3vw,30px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 10px" }}>{course.title}</h1>
       {course.description && (

@@ -45,6 +45,7 @@ export function renderMarkdown(text: string): string {
 
 export interface Course {
   id: number; title: string; description: string; cover_url: string;
+  trailer_url?: string;
   access_cost: number; lesson_cost: number; has_access: boolean;
   modules: Module[];
 }

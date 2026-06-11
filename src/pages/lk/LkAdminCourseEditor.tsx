@@ -177,6 +177,29 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
             <label style={labelStyle}>ИЛИ ВСТАВИТЬ URL</label>
             <input style={inputStyle} value={form.cover_url || ""} onChange={e => setForm(f => ({ ...f, cover_url: e.target.value }))} placeholder="https://..." />
           </div>
+
+          {/* Трейлер */}
+          <div>
+            <label style={labelStyle}>ТРЕЙЛЕР (KINESCOPE)</label>
+            <input
+              style={inputStyle}
+              value={form.trailer_url || ""}
+              onChange={e => setForm(f => ({ ...f, trailer_url: e.target.value }))}
+              placeholder="https://kinescope.io/abc123"
+            />
+            <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>
+              Короткое видео-знакомство. Показывается на витрине <strong>вместо обложки</strong>.
+            </div>
+            {form.trailer_url && (() => {
+              const match = form.trailer_url!.match(/kinescope\.io\/([a-zA-Z0-9]+)/);
+              const embedUrl = match ? `https://kinescope.io/embed/${match[1]}` : form.trailer_url!;
+              return (
+                <div style={{ position: "relative", paddingBottom: "56.25%", borderRadius: 10, overflow: "hidden", background: "#000", marginTop: 10 }}>
+                  <iframe src={embedUrl} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }} allowFullScreen allow="autoplay; fullscreen" />
+                </div>
+              );
+            })()}
+          </div>
         </div>
       </div>
 
