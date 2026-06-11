@@ -26,7 +26,7 @@ interface Props {
 }
 
 export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, hasUnlimited = false, showBodyTools = false, onOpenDiag, onOpenMindsetSpec, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenBodyMap, onOpenTest, onNavigateToAcademy }: Props) {
-  const COURSE_NAME = "«Развитие мышления специалиста по телу»";
+  const COURSE_NAME = "«Техники, за которые платят и возвращаются клиенты»";
   return (
     <div>
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>

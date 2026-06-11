@@ -25,7 +25,7 @@ import LkBodyMap from "./LkBodyMap";
 export default function LkTests({ onNavigate }: { onNavigate?: (tab: string) => void }) {
   const { user } = useLkAuth();
   const isSalon = user?.segment === "salon";
-  const BODY_TOOLS_COURSE_ID = 1;
+  const BODY_TOOLS_COURSE_ID = 3;
   const hasCourseAccess = user?.is_admin || (user?.course_ids ?? []).includes(BODY_TOOLS_COURSE_ID);
   const isBodySpec = (user?.role === "body_specialist" || user?.is_admin) && hasCourseAccess;
   const [tests, setTests] = useState<Test[]>([]);
