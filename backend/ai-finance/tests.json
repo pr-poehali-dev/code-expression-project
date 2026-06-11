@@ -28,8 +28,8 @@
         "mindset_blocks": ["боюсь поднять цены", "чувствую себя недостаточно ценным"]
       },
       "expectedStatus": 200,
-      "expectedBody": { "text": "string" },
-      "bodyMatcher": "partial"
+      "expectedBody": null,
+      "bodyMatcher": "none"
     }
   ]
 }

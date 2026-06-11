@@ -127,10 +127,60 @@ def build_user_prompt(data: dict) -> str:
     return "\n".join(lines)
 
 
-def call_openai(user_prompt: str, api_key: str) -> str:
+def get_academy_catalog(conn) -> str:
+    """Читает опубликованные курсы Академии из БД для включения в промт."""
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT id, title, description, category, access_cost, lesson_cost "
+            f"FROM {SCHEMA}.courses WHERE is_published=TRUE ORDER BY sort_order, id"
+        )
+        courses = cur.fetchall()
+        if not courses:
+            return ""
+        cur.execute(f"SELECT id, course_id, title FROM {SCHEMA}.course_modules ORDER BY course_id, sort_order, id")
+        modules_all = cur.fetchall()
+        cur.execute(f"SELECT module_id, title FROM {SCHEMA}.course_lessons ORDER BY course_id, sort_order, id")
+        lessons_all = cur.fetchall()
+
+        modules_by_course = {}
+        for m in modules_all:
+            modules_by_course.setdefault(m["course_id"], []).append(m)
+        lessons_by_module = {}
+        for l in lessons_all:
+            lessons_by_module.setdefault(l["module_id"], []).append(l["title"])
+
+        cat_labels = {"owner": "Для владельца и руководителя", "admin": "Для администратора",
+                      "master": "Для мастеров", "body": "Для специалистов по телу"}
+        lines = ["", "════════════════════════════════════",
+                 "ТРЕНИНГИ АКАДЕМИИ «ПРО ДИАЛОГ» (актуальный список)",
+                 "════════════════════════════════════",
+                 "Когда даёшь рекомендации — упоминай конкретные тренинги из этого списка. Они доступны в разделе «Академия» личного кабинета.", ""]
+        for c in courses:
+            cost = []
+            if c["access_cost"] and int(c["access_cost"]) > 0:
+                cost.append(f"доступ: {int(c['access_cost'])} ⚡")
+            if c["lesson_cost"] and int(c["lesson_cost"]) > 0:
+                cost.append(f"урок: {int(c['lesson_cost'])} ⚡")
+            cost_str = f" [{', '.join(cost)}]" if cost else " [бесплатно]"
+            lines.append(f"▸ «{c['title']}»{cost_str} — {cat_labels.get(c['category'], c['category'])}")
+            if c["description"]:
+                lines.append(f"  {c['description']}")
+            for m in modules_by_course.get(c["id"], []):
+                lines.append(f"  Модуль: {m['title']}")
+                for lt in lessons_by_module.get(m["id"], []):
+                    lines.append(f"    — {lt}")
+            lines.append("")
+        lines.append("════════════════════════════════════")
+        return "\n".join(lines)
+    except Exception:
+        return ""
+
+
+def call_openai(user_prompt: str, api_key: str, system_prompt: str = SYSTEM_PROMPT) -> str:
     payload = json.dumps({
         "model": "openai/gpt-4o-mini",
-        "messages": [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user_prompt}],
+        "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
         "max_tokens": 700, "temperature": 0.75,
     }).encode("utf-8")
     req = urllib.request.Request(
@@ -189,7 +239,13 @@ def handler(event: dict, context) -> dict:
         return {"statusCode": 503, "headers": CORS, "body": json.dumps({"error": "no api key"})}
 
     user_prompt = build_user_prompt(data)
-    text = call_openai(user_prompt, api_key)
+    conn3 = get_db()
+    try:
+        catalog = get_academy_catalog(conn3)
+    finally:
+        conn3.close()
+    system_prompt = SYSTEM_PROMPT + catalog
+    text = call_openai(user_prompt, api_key, system_prompt)
     sections = parse_sections(text)
     result = {"text": text, "sections": sections}
 
