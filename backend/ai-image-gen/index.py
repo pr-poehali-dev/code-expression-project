@@ -149,9 +149,9 @@ def handle_history(event, conn):
     if not user:
         return err("Не авторизован", 401)
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    # Автоудаление записей старше 24 часов
+    # Автоудаление записей старше 6 дней
     cur.execute(
-        f"DELETE FROM {SCHEMA}.ai_generated_images WHERE created_at < NOW() - INTERVAL '24 hours'"
+        f"DELETE FROM {SCHEMA}.ai_generated_images WHERE created_at < NOW() - INTERVAL '6 days'"
     )
     conn.commit()
     cur.execute(
