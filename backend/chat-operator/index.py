@@ -1,6 +1,10 @@
 import json
 import os
 import urllib.request
+import psycopg2
+import psycopg2.extras
+
+SCHEMA = "t_p84565078_code_expression_proj"
 
 SYSTEM_PROMPT = """Ты — AI-консультант платформы «Про Диалог» (promtdialog.ru). Отвечаешь дружелюбно, чётко и по делу. Пиши 2-5 предложений — не перегружай. Если вопрос выходит за рамки знаний — честно говори: «Уточните у менеджера через форму на https://promtdialog.ru/kontakty».
 
@@ -103,8 +107,87 @@ SYSTEM_PROMPT = """Ты — AI-консультант платформы «Пр�
 Отвечай только на русском языке. Если уместно — предложи конкретную страницу сайта с полной ссылкой https://promtdialog.ru/..."""
 
 
+def get_academy_catalog() -> str:
+    """Читает опубликованные курсы Академии из БД и формирует текстовый блок для промта."""
+    try:
+        conn = psycopg2.connect(os.environ["DATABASE_URL"])
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        cur.execute(
+            f"SELECT id, title, description, category, access_cost, lesson_cost "
+            f"FROM {SCHEMA}.courses WHERE is_published=TRUE ORDER BY sort_order, id"
+        )
+        courses = cur.fetchall()
+        if not courses:
+            conn.close()
+            return ""
+
+        cur.execute(
+            f"SELECT id, course_id, title, sort_order FROM {SCHEMA}.course_modules ORDER BY course_id, sort_order, id"
+        )
+        modules_all = cur.fetchall()
+
+        cur.execute(
+            f"SELECT id, module_id, title FROM {SCHEMA}.course_lessons ORDER BY course_id, sort_order, id"
+        )
+        lessons_all = cur.fetchall()
+        conn.close()
+
+        modules_by_course = {}
+        for m in modules_all:
+            modules_by_course.setdefault(m["course_id"], []).append(m)
+
+        lessons_by_module = {}
+        for l in lessons_all:
+            lessons_by_module.setdefault(l["module_id"], []).append(l["title"])
+
+        cat_labels = {
+            "owner": "Для владельца и руководителя",
+            "admin": "Для администратора",
+            "master": "Для мастеров",
+            "body": "Для специалистов по телу",
+        }
+
+        lines = [
+            "════════════════════════════════════",
+            "АКАДЕМИЯ ПЛАТФОРМЫ «ПРО ДИАЛОГ» — АКТУАЛЬНЫЙ КАТАЛОГ ТРЕНИНГОВ",
+            "════════════════════════════════════",
+            "Тренинги доступны в личном кабинете в разделе «Академия».",
+            "Когда пользователь спрашивает про обучение, тренинги или курсы — рекомендуй конкретные тренинги из этого списка.",
+            "",
+        ]
+
+        for c in courses:
+            cat = cat_labels.get(c["category"], c["category"])
+            cost_info = []
+            if c["access_cost"] and int(c["access_cost"]) > 0:
+                cost_info.append(f"доступ: {int(c['access_cost'])} ⚡")
+            if c["lesson_cost"] and int(c["lesson_cost"]) > 0:
+                cost_info.append(f"урок: {int(c['lesson_cost'])} ⚡")
+            cost_str = f" [{', '.join(cost_info)}]" if cost_info else " [бесплатно]"
+
+            lines.append(f"▸ ТРЕНИНГ: «{c['title']}»{cost_str}")
+            lines.append(f"  Категория: {cat}")
+            if c["description"]:
+                lines.append(f"  Описание: {c['description']}")
+
+            mods = modules_by_course.get(c["id"], [])
+            if mods:
+                lines.append("  Модули и уроки:")
+                for m in mods:
+                    lines.append(f"    • {m['title']}")
+                    for lesson_title in lessons_by_module.get(m["id"], []):
+                        lines.append(f"        — {lesson_title}")
+            lines.append("")
+
+        lines.append("════════════════════════════════════")
+        return "\n".join(lines)
+    except Exception:
+        return ""
+
+
 def handler(event: dict, context) -> dict:
-    """AI-оператор — отвечает на вопросы пользователей об обучении, тарифах, платформе"""
+    """AI-оператор — отвечает на вопросы пользователей об обучении, тарифах, платформе. Динамически подгружает каталог тренингов из БД."""
     cors = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -120,9 +203,15 @@ def handler(event: dict, context) -> dict:
     if not messages:
         return {"statusCode": 400, "headers": cors, "body": json.dumps({"error": "messages required"})}
 
+    # Динамически добавляем каталог Академии из БД
+    system_prompt = SYSTEM_PROMPT
+    academy_catalog = get_academy_catalog()
+    if academy_catalog:
+        system_prompt += "\n\n" + academy_catalog
+
     payload = json.dumps({
         "model": "openai/gpt-4o-mini",
-        "messages": [{"role": "system", "content": SYSTEM_PROMPT}] + messages[-10:],
+        "messages": [{"role": "system", "content": system_prompt}] + messages[-10:],
         "max_tokens": 600,
         "temperature": 0.5,
     }).encode("utf-8")

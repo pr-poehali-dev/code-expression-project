@@ -108,6 +108,82 @@ def get_salon_context(conn, salon_id: int) -> str:
     ]
     return "\n".join(lines)
 
+def get_academy_catalog(conn) -> str:
+    """Читает опубликованные курсы Академии из БД и формирует текстовый блок для промта."""
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT id, title, description, category, access_cost, lesson_cost "
+            f"FROM {tbl('courses')} WHERE is_published=TRUE ORDER BY sort_order, id"
+        )
+        courses = cur.fetchall()
+        if not courses:
+            return ""
+
+        cur.execute(
+            f"SELECT id, course_id, title, sort_order FROM {tbl('course_modules')} ORDER BY course_id, sort_order, id"
+        )
+        modules_all = cur.fetchall()
+
+        cur.execute(
+            f"SELECT id, module_id, title, sort_order FROM {tbl('course_lessons')} ORDER BY course_id, sort_order, id"
+        )
+        lessons_all = cur.fetchall()
+
+        modules_by_course = {}
+        for m in modules_all:
+            modules_by_course.setdefault(m["course_id"], []).append(m)
+
+        lessons_by_module = {}
+        for l in lessons_all:
+            lessons_by_module.setdefault(l["module_id"], []).append(l["title"])
+
+        cat_labels = {
+            "owner": "Для владельца и руководителя",
+            "admin": "Для администратора",
+            "master": "Для мастеров",
+            "body": "Для специалистов по телу",
+        }
+
+        lines = [
+            "════════════════════════════════════",
+            "АКАДЕМИЯ ПЛАТФОРМЫ «ПРО ДИАЛОГ» — АКТУАЛЬНЫЙ КАТАЛОГ ТРЕНИНГОВ",
+            "════════════════════════════════════",
+            "Все тренинги доступны в разделе «Академия» личного кабинета.",
+            "Рекомендуй конкретные тренинги когда это уместно в разговоре.",
+            "",
+        ]
+
+        for c in courses:
+            cat = cat_labels.get(c["category"], c["category"])
+            cost_info = []
+            if c["access_cost"] and int(c["access_cost"]) > 0:
+                cost_info.append(f"доступ к курсу: {int(c['access_cost'])} ⚡")
+            if c["lesson_cost"] and int(c["lesson_cost"]) > 0:
+                cost_info.append(f"урок: {int(c['lesson_cost'])} ⚡")
+            cost_str = f" [{', '.join(cost_info)}]" if cost_info else " [бесплатно]"
+
+            lines.append(f"▸ ТРЕНИНГ: «{c['title']}»{cost_str}")
+            lines.append(f"  Категория: {cat}")
+            if c["description"]:
+                lines.append(f"  Описание: {c['description']}")
+
+            mods = modules_by_course.get(c["id"], [])
+            if mods:
+                lines.append("  Модули и уроки:")
+                for m in mods:
+                    lines.append(f"    • {m['title']}")
+                    lessons = lessons_by_module.get(m["id"], [])
+                    for lesson_title in lessons:
+                        lines.append(f"        — {lesson_title}")
+            lines.append("")
+
+        lines.append("════════════════════════════════════")
+        return "\n".join(lines)
+    except Exception:
+        return ""
+
+
 def get_free_used(conn, user_id: int) -> int:
     cur = conn.cursor()
     cur.execute(
@@ -392,6 +468,11 @@ def handler(event: dict, context) -> dict:
             # Контекст салона
             salon_context = get_salon_context(conn, salon_id) if salon_id else ""
             system_prompt = AGENT_PROMPTS[agent_role].format(salon_context=salon_context)
+
+            # Динамический каталог Академии из БД
+            academy_catalog = get_academy_catalog(conn)
+            if academy_catalog:
+                system_prompt += "\n\n" + academy_catalog
 
             reply = call_ai(system_prompt, history)
 

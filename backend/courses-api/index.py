@@ -980,6 +980,42 @@ def handle_admin_rehost_images(event, conn):
     return ok({"html": html, "replaced": replaced, "errors": errors})
 
 
+def handle_courses_catalog(event, conn):
+    """Каталог курсов для ИИ-ботов: название, описание, категория, стоимость, модули и уроки."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT id, title, description, category, access_cost, lesson_cost "
+        f"FROM {tbl('courses')} WHERE is_published=TRUE ORDER BY sort_order, id"
+    )
+    courses = [dict(r) for r in cur.fetchall()]
+
+    cur.execute(
+        f"SELECT id, course_id, title, sort_order FROM {tbl('course_modules')} ORDER BY course_id, sort_order, id"
+    )
+    modules_all = cur.fetchall()
+
+    cur.execute(
+        f"SELECT id, module_id, course_id, title, sort_order FROM {tbl('course_lessons')} ORDER BY course_id, sort_order, id"
+    )
+    lessons_all = cur.fetchall()
+
+    modules_by_course = {}
+    for m in modules_all:
+        modules_by_course.setdefault(m["course_id"], []).append(dict(m))
+
+    lessons_by_module = {}
+    for l in lessons_all:
+        lessons_by_module.setdefault(l["module_id"], []).append(l["title"])
+
+    for c in courses:
+        mods = modules_by_course.get(c["id"], [])
+        for m in mods:
+            m["lessons"] = lessons_by_module.get(m["id"], [])
+        c["modules"] = mods
+
+    return ok(courses)
+
+
 # ── Роутер ────────────────────────────────────────────────────────────────────
 
 ROUTES = {
@@ -1006,6 +1042,7 @@ ROUTES = {
     "admin_lesson_detail":       handle_admin_lesson_detail,
     "admin_rehost_images":       handle_admin_rehost_images,
     "admin_course_delete":       handle_admin_course_delete,
+    "courses_catalog":           handle_courses_catalog,
 }
 
 
