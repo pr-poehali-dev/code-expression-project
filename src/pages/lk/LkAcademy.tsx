@@ -45,7 +45,11 @@ const CATEGORIES: Category[] = [
 
 export default function LkAcademy({ onNavigate }: { onNavigate?: (tab: string) => void }) {
   const [dbCourses, setDbCourses] = useState<DbCourse[]>([]);
-  const [activeCourseId, setActiveCourseId] = useState<number | null>(null);
+  const [activeCourseId, setActiveCourseId] = useState<number | null>(() => {
+    const saved = sessionStorage.getItem("lk_open_course_id");
+    if (saved) { sessionStorage.removeItem("lk_open_course_id"); return Number(saved); }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

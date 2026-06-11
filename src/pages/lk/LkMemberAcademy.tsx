@@ -26,7 +26,11 @@ const CAT_LABELS: Record<string, string> = {
 export default function LkMemberAcademy({ onNavigate }: { onNavigate?: (tab: string) => void }) {
   const [courses, setCourses] = useState<MemberCourse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCourseId, setActiveCourseId] = useState<number | null>(null);
+  const [activeCourseId, setActiveCourseId] = useState<number | null>(() => {
+    const saved = sessionStorage.getItem("lk_open_course_id");
+    if (saved) { sessionStorage.removeItem("lk_open_course_id"); return Number(saved); }
+    return null;
+  });
   const [requesting, setRequesting] = useState<number | null>(null);
   const [requestMsg, setRequestMsg] = useState<Record<number, string>>({});
   const [showMsgFor, setShowMsgFor] = useState<number | null>(null);

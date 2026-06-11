@@ -199,7 +199,11 @@ export default function LkTests({ onNavigate }: { onNavigate?: (tab: string) => 
         showSalon={isSalon}
         hasUnlimited={hasUnlimited}
         showBodyTools={isBodySpec}
-        onNavigateToAcademy={() => onNavigate?.("academy")}
+        onNavigateToAcademy={() => {
+          sessionStorage.setItem("lk_open_course_id", "3");
+          onNavigate?.("academy");
+          window.scrollTo({ top: 0, behavior: "instant" });
+        }}
         onOpenDiag={() => setOpenDiag(true)}
         onOpenMindsetSpec={() => setOpenMindsetSpec(true)}
         onOpenMindset={() => setOpenMindset(true)}
