@@ -7,6 +7,7 @@ import LkClientScripts from "./LkClientScripts";
 import SalonBot from "./SalonBot";
 import { useEnergy } from "@/contexts/EnergyContext";
 import { showEnergyGate } from "@/components/EnergyGate";
+import { useLkAuth } from "@/contexts/LkAuthContext";
 
 
 const ACCENT = "hsl(185,85%,32%)";
@@ -126,6 +127,8 @@ type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-au
 export default function LkAiTools() {
   const [activeTool, setActiveTool] = useState<Tool>(null);
   const { hasPaid, loading: energyLoading } = useEnergy();
+  const { user } = useLkAuth();
+  const hasSalon = !!user?.salon_id;
 
   function BackButton() {
     return (
@@ -139,7 +142,7 @@ export default function LkAiTools() {
     );
   }
 
-  if (!hasPaid && activeTool) {
+  if (!hasPaid && activeTool && activeTool !== "salon-diag") {
     setActiveTool(null);
   }
 
@@ -159,7 +162,7 @@ export default function LkAiTools() {
     return <div><BackButton /><LkClientScripts /></div>;
   }
 
-  if (hasPaid && activeTool === "salon-diag") {
+  if ((hasPaid || hasSalon) && activeTool === "salon-diag") {
     return <SalonBot onBack={() => setActiveTool(null)} />;
   }
 
@@ -268,18 +271,18 @@ export default function LkAiTools() {
           <PaywallToolCard icon="Star" color="hsl(185,85%,32%)" bg="hsl(185,85%,95%)" title="Ответы на отзывы" description="ИИ составит вежливый и профессиональный ответ на любой отзыв — положительный или негативный." badge="new" />
         )}
 
-        {hasPaid ? (
+        {(hasPaid || hasSalon) ? (
           <ToolCard
             icon="Scissors"
             color="hsl(335,80%,50%)"
             bg="hsl(335,80%,97%)"
             title="Диагностика роста салона PRO"
             description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока клиентов."
-            badge="new"
+            badge="бесплатно"
             onStart={() => setActiveTool("salon-diag")}
           />
         ) : (
-          <PaywallToolCard icon="Scissors" color="hsl(335,80%,50%)" bg="hsl(335,80%,97%)" title="Диагностика роста салона PRO" description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока клиентов." badge="new" />
+          <PaywallToolCard icon="Scissors" color="hsl(335,80%,50%)" bg="hsl(335,80%,97%)" title="Диагностика роста салона PRO" description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока клиентов." badge="бесплатно" />
         )}
       </div>}
 
