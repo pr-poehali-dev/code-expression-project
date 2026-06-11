@@ -1,10 +1,22 @@
+import { useState } from "react";
 import { ACCENT, actionBtn } from "./LkAdminShared";
 import Icon from "@/components/ui/icon";
-import { Course } from "./LkAdminCourses.types";
+import { Course, apiFetch } from "./LkAdminCourses.types";
 
-export function CourseList({ courses, onNew, onEdit }: {
+export function CourseList({ courses, onNew, onEdit, onReload }: {
   courses: Course[]; onNew: () => void; onEdit: (c: Course) => void; onReload: () => void;
 }) {
+  const [deleting, setDeleting] = useState<number | null>(null);
+
+  const handleDelete = async (e: React.MouseEvent, c: Course) => {
+    e.stopPropagation();
+    if (!confirm(`Удалить тренинг «${c.title}»?\n\nВсе модули, уроки и доступы будут удалены. Это действие нельзя отменить.`)) return;
+    setDeleting(c.id);
+    await apiFetch("admin_course_delete", "POST", { id: c.id });
+    setDeleting(null);
+    onReload();
+  };
+
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
@@ -37,6 +49,14 @@ export function CourseList({ courses, onNew, onEdit }: {
                 <div style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: c.is_published ? "hsl(130,60%,94%)" : "#f5f5f2", color: c.is_published ? "hsl(130,60%,35%)" : "#aaa" }}>
                   {c.is_published ? "Опубликован" : "Черновик"}
                 </div>
+                <button
+                  onClick={(e) => handleDelete(e, c)}
+                  disabled={deleting === c.id}
+                  title="Удалить тренинг"
+                  style={{ width: 30, height: 30, borderRadius: 8, border: "none", background: "hsl(0,70%,97%)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, opacity: deleting === c.id ? 0.5 : 1 }}
+                >
+                  <Icon name={deleting === c.id ? "Loader" : "Trash2"} size={14} style={{ color: "hsl(0,70%,55%)" }} />
+                </button>
                 <Icon name="ChevronRight" size={16} style={{ color: "#ccc" }} />
               </div>
             </div>

@@ -917,6 +917,20 @@ def handle_admin_lesson_detail(event, conn):
     return ok(lesson)
 
 
+def handle_admin_course_delete(event, conn):
+    """Удалить тренинг со всеми модулями, уроками и доступами."""
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    course_id = body.get("id")
+    if not course_id:
+        return err("id обязателен")
+    cur = conn.cursor()
+    cur.execute(f"DELETE FROM {tbl('courses')} WHERE id=%s", (course_id,))
+    conn.commit()
+    return ok({"ok": True})
+
+
 def handle_admin_rehost_images(event, conn):
     """Скачивает внешние картинки из HTML, загружает в S3 и возвращает HTML с заменёнными URL."""
     _, e = require_admin(event, conn)
@@ -991,6 +1005,7 @@ ROUTES = {
     "admin_course_detail":       handle_admin_course_detail,
     "admin_lesson_detail":       handle_admin_lesson_detail,
     "admin_rehost_images":       handle_admin_rehost_images,
+    "admin_course_delete":       handle_admin_course_delete,
 }
 
 
