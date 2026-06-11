@@ -69,6 +69,7 @@ export default function LkDashboard() {
     setMoreOpen(false);
     sessionStorage.setItem("lk_tab", base);
     setTab(base);
+    window.scrollTo({ top: 0, behavior: "instant" });
   }, [allowedTabs, hasSalon]);
 
   const visibleNav    = NAV_ITEMS.filter(n => allowedTabs.includes(n.id));

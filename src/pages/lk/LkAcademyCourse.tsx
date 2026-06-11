@@ -47,6 +47,7 @@ export default function LkAcademyCourse({ courseId, onBack, onNavigate }: Props)
     if (res.error) { setLessonErr(res.error); return; }
     refreshEnergy();
     setActiveLesson(res);
+    window.scrollTo({ top: 0, behavior: "instant" });
     apiFetch(`course_detail&course_id=${courseId}`).then(d => { if (!d.error) setCourse(d); });
   };
 
@@ -66,7 +67,7 @@ export default function LkAcademyCourse({ courseId, onBack, onNavigate }: Props)
       <LessonView
         lesson={activeLesson}
         courseTitle={course.title}
-        onBack={() => setActiveLesson(null)}
+        onBack={() => { setActiveLesson(null); window.scrollTo({ top: 0, behavior: "instant" }); }}
         onRefreshLesson={(l) => setActiveLesson(l)}
         onNavigate={onNavigate}
       />
@@ -75,7 +76,7 @@ export default function LkAcademyCourse({ courseId, onBack, onNavigate }: Props)
 
   return (
     <div style={{ maxWidth: 760 }}>
-      <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: ACCENT, fontWeight: 600, fontSize: 14, marginBottom: 20, padding: 0 }}>
+      <button onClick={() => { onBack(); window.scrollTo({ top: 0, behavior: "instant" }); }} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: ACCENT, fontWeight: 600, fontSize: 14, marginBottom: 20, padding: 0 }}>
         <Icon name="ChevronLeft" size={16} /> Назад к Академии
       </button>
 

@@ -59,7 +59,7 @@ export default function LkAcademy({ onNavigate }: { onNavigate?: (tab: string) =
     return (
       <LkAcademyCourse
         courseId={activeCourseId}
-        onBack={() => setActiveCourseId(null)}
+        onBack={() => { setActiveCourseId(null); window.scrollTo({ top: 0, behavior: "instant" }); }}
         onNavigate={onNavigate}
       />
     );
@@ -101,7 +101,7 @@ export default function LkAcademy({ onNavigate }: { onNavigate?: (tab: string) =
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 1, background: "#f5f5f2" }}>
                   {catDbCourses.map(c => (
-                    <DbCourseCard key={c.id} course={c} onClick={() => setActiveCourseId(c.id)} />
+                    <DbCourseCard key={c.id} course={c} onClick={() => { setActiveCourseId(c.id); window.scrollTo({ top: 0, behavior: "instant" }); }} />
                   ))}
                   {cat.landings.map(course => (
                     <LandingCard key={course.href} course={course} color={cat.color} bg={cat.bg} />

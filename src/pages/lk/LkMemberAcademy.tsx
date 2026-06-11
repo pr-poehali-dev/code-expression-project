@@ -64,7 +64,7 @@ export default function LkMemberAcademy({ onNavigate }: { onNavigate?: (tab: str
   }
 
   if (activeCourseId) {
-    return <LkAcademyCourse courseId={activeCourseId} onBack={() => setActiveCourseId(null)} onNavigate={onNavigate} />;
+    return <LkAcademyCourse courseId={activeCourseId} onBack={() => { setActiveCourseId(null); window.scrollTo({ top: 0, behavior: "instant" }); }} onNavigate={onNavigate} />;
   }
 
   const categories = [...new Set(courses.map(c => c.category))];
@@ -118,7 +118,7 @@ export default function LkMemberAcademy({ onNavigate }: { onNavigate?: (tab: str
                         <div style={{ marginTop: 4 }}>
                           {c.granted ? (
                             <button
-                              onClick={() => setActiveCourseId(c.id)}
+                              onClick={() => { setActiveCourseId(c.id); window.scrollTo({ top: 0, behavior: "instant" }); }}
                               style={{ width: "100%", padding: "9px 14px", borderRadius: 10, border: "none", background: `linear-gradient(135deg,${ACCENT},hsl(185,85%,24%))`, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
                             >
                               <Icon name="PlayCircle" size={14} /> Открыть тренинг

@@ -25,6 +25,7 @@ export function CoursesSection() {
   const openCourse = (c: Course | null) => {
     setActiveCourse(c);
     setScreen("course");
+    window.scrollTo({ top: 0, behavior: "instant" });
     if (c?.id) loadModules(c.id);
     else setModules([]);
   };
@@ -52,9 +53,9 @@ export function CoursesSection() {
         <CourseEditor
           course={activeCourse}
           modules={modules}
-          onBack={() => { setScreen("list"); loadCourses(); }}
+          onBack={() => { setScreen("list"); loadCourses(); window.scrollTo({ top: 0, behavior: "instant" }); }}
           onReloadModules={() => { if (activeCourse?.id) loadModules(activeCourse.id); }}
-          onEditLesson={(l) => { setActiveLesson(l); setScreen("lesson"); }}
+          onEditLesson={(l) => { setActiveLesson(l); setScreen("lesson"); window.scrollTo({ top: 0, behavior: "instant" }); }}
           onSaved={(c) => setActiveCourse(c)}
         />
       )}
@@ -63,7 +64,7 @@ export function CoursesSection() {
           lesson={activeLesson}
           courseId={activeCourse.id}
           modules={modules}
-          onBack={() => { setScreen("course"); if (activeCourse?.id) loadModules(activeCourse.id); }}
+          onBack={() => { setScreen("course"); window.scrollTo({ top: 0, behavior: "instant" }); if (activeCourse?.id) loadModules(activeCourse.id); }}
           onSaved={(l) => setActiveLesson(l)}
         />
       )}

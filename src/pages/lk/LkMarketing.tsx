@@ -267,6 +267,12 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
       return;
     }
     setActive(id);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
+
+  const closeTool = () => {
+    setActive(null);
+    window.scrollTo({ top: 0, behavior: "instant" });
   };
 
   // Проверка цепочки — показываем заглушку если предыдущий шаг не выполнен
@@ -276,8 +282,8 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
       return (
         <StepBlocker
           missing={prereq}
-          onGoTo={() => setActive(prereq.toolId)}
-          onBack={() => setActive(null)}
+          onGoTo={() => { setActive(prereq.toolId); window.scrollTo({ top: 0, behavior: "instant" }); }}
+          onBack={closeTool}
         />
       );
     }
@@ -286,10 +292,11 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
   if (hasPaid && active === "audience") {
     return (
       <LkMarketingAudience
-        onBack={() => setActive(null)}
+        onBack={closeTool}
         onGoToOffers={(portraits, salonName) => {
           setAudienceData({ portraits, salonName });
           setActive("offers");
+          window.scrollTo({ top: 0, behavior: "instant" });
         }}
       />
     );
@@ -298,10 +305,10 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
   if (hasPaid && active === "offers") {
     return (
       <LkMarketingOffers
-        onBack={() => setActive(null)}
+        onBack={closeTool}
         initialPortraits={audienceData?.portraits}
         initialSalonName={audienceData?.salonName}
-        onGoToSemantics={() => setActive("semantics")}
+        onGoToSemantics={() => { setActive("semantics"); window.scrollTo({ top: 0, behavior: "instant" }); }}
       />
     );
   }
@@ -309,10 +316,11 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
   if (hasPaid && active === "semantics") {
     return (
       <LkMarketingSemantics
-        onBack={() => setActive(null)}
+        onBack={closeTool}
         onGoToDirect={(groups) => {
           setSemanticData({ groups });
           setActive("direct");
+          window.scrollTo({ top: 0, behavior: "instant" });
         }}
       />
     );
@@ -321,7 +329,7 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
   if (hasPaid && active === "direct") {
     return (
       <LkMarketingDirect
-        onBack={() => setActive(null)}
+        onBack={closeTool}
         initialGroups={semanticData?.groups}
       />
     );
@@ -330,7 +338,7 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
   if (hasPaid && active === "post-gen") {
     return (
       <div>
-        <button onClick={() => setActive(null)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>
+        <button onClick={closeTool} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>
           <Icon name="ArrowLeft" size={15} /> Назад к маркетингу
         </button>
         <LkPostGen />
@@ -341,7 +349,7 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
   if (hasPaid && active === "image-gen") {
     return (
       <div>
-        <button onClick={() => setActive(null)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>
+        <button onClick={closeTool} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>
           <Icon name="ArrowLeft" size={15} /> Назад к маркетингу
         </button>
         <LkAiImageGen />
@@ -352,7 +360,7 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
   if (hasPaid && active === "reel-script") {
     return (
       <div>
-        <button onClick={() => setActive(null)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>
+        <button onClick={closeTool} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>
           <Icon name="ArrowLeft" size={15} /> Назад к маркетингу
         </button>
         <LkReelScript />
@@ -361,15 +369,15 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
   }
 
   if (hasPaid && active === "budget") {
-    return <LkMarketingBudget onBack={() => setActive(null)} />;
+    return <LkMarketingBudget onBack={closeTool} />;
   }
 
   if (hasPaid && active === "seo") {
-    return <LkMarketingSeo onBack={() => setActive(null)} initialUrl={websiteUrl} />;
+    return <LkMarketingSeo onBack={closeTool} initialUrl={websiteUrl} />;
   }
 
   if (hasPaid && activeTool) {
-    return <ComingSoonPlaceholder tool={activeTool} onBack={() => setActive(null)} />;
+    return <ComingSoonPlaceholder tool={activeTool} onBack={closeTool} />;
   }
 
   return (

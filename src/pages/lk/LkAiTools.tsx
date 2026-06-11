@@ -133,7 +133,7 @@ export default function LkAiTools() {
   function BackButton() {
     return (
       <button
-        onClick={() => setActiveTool(null)}
+        onClick={() => { setActiveTool(null); window.scrollTo({ top: 0, behavior: "instant" }); }}
         style={{ display: "flex", alignItems: "center", gap: 7, background: "none", border: "none", color: "#888", fontSize: 13, cursor: "pointer", fontFamily: "Montserrat,sans-serif", padding: 0, marginBottom: 24 }}
       >
         <Icon name="ArrowLeft" size={15} />
@@ -163,7 +163,7 @@ export default function LkAiTools() {
   }
 
   if ((hasPaid || hasSalon) && activeTool === "salon-diag") {
-    return <SalonBot onBack={() => setActiveTool(null)} />;
+    return <SalonBot onBack={() => { setActiveTool(null); window.scrollTo({ top: 0, behavior: "instant" }); }} />;
   }
 
   return (
@@ -223,7 +223,7 @@ export default function LkAiTools() {
             title="Анализ персонала"
             description="Финансовый рентген команды: кто приносит деньги, кто теряет и сколько это стоит в рублях."
             badge="new"
-            onStart={() => setActiveTool("staff-audit")}
+            onStart={() => { setActiveTool("staff-audit"); window.scrollTo({ top: 0, behavior: "instant" }); }}
           />
         ) : (
           <PaywallToolCard icon="Users" color="hsl(0,75%,50%)" bg="hsl(0,75%,97%)" title="Анализ персонала" description="Финансовый рентген команды: кто приносит деньги, кто теряет и сколько это стоит в рублях." badge="new" />
@@ -237,7 +237,7 @@ export default function LkAiTools() {
             title="Скрипты общения с клиентом"
             description="Выбери роль сотрудника, опиши ситуацию — ИИ напишет готовый сценарий диалога с клиентом."
             badge="new"
-            onStart={() => setActiveTool("client-scripts")}
+            onStart={() => { setActiveTool("client-scripts"); window.scrollTo({ top: 0, behavior: "instant" }); }}
           />
         ) : (
           <PaywallToolCard icon="MessageSquare" color="hsl(145,60%,40%)" bg="hsl(145,60%,96%)" title="Скрипты общения с клиентом" description="Выбери роль сотрудника, опиши ситуацию — ИИ напишет готовый сценарий диалога с клиентом." badge="new" />
@@ -251,7 +251,7 @@ export default function LkAiTools() {
             title="Цифровой бизнес-разбор"
             description="Заполните анкету — ИИ проанализирует салон и выдаст персональный план роста выручки."
             badge="new"
-            onStart={() => setActiveTool("salon-audit")}
+            onStart={() => { setActiveTool("salon-audit"); window.scrollTo({ top: 0, behavior: "instant" }); }}
           />
         ) : (
           <PaywallToolCard icon="BarChart2" color="hsl(185,85%,32%)" bg="hsl(185,85%,95%)" title="Цифровой бизнес-разбор" description="Заполните анкету — ИИ проанализирует салон и выдаст персональный план роста выручки." badge="new" />
@@ -265,7 +265,7 @@ export default function LkAiTools() {
             title="Ответы на отзывы"
             description="ИИ составит вежливый и профессиональный ответ на любой отзыв — положительный или негативный."
             badge="new"
-            onStart={() => setActiveTool("review-reply")}
+            onStart={() => { setActiveTool("review-reply"); window.scrollTo({ top: 0, behavior: "instant" }); }}
           />
         ) : (
           <PaywallToolCard icon="Star" color="hsl(185,85%,32%)" bg="hsl(185,85%,95%)" title="Ответы на отзывы" description="ИИ составит вежливый и профессиональный ответ на любой отзыв — положительный или негативный." badge="new" />
@@ -279,7 +279,7 @@ export default function LkAiTools() {
             title="Диагностика роста салона PRO"
             description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока клиентов."
             badge="бесплатно"
-            onStart={() => setActiveTool("salon-diag")}
+            onStart={() => { setActiveTool("salon-diag"); window.scrollTo({ top: 0, behavior: "instant" }); }}
           />
         ) : (
           <PaywallToolCard icon="Scissors" color="hsl(335,80%,50%)" bg="hsl(335,80%,97%)" title="Диагностика роста салона PRO" description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока клиентов." badge="бесплатно" />
