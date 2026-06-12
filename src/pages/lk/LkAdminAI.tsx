@@ -38,8 +38,25 @@ const ROLES: Role[] = [
   { id: "lawyer",        label: "Юрист",         icon: "Scale",        color: "hsl(240,50%,45%)", bg: "hsl(240,50%,95%)", hint: "Право, договоры, риски, защита интересов" },
 ];
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/_{1,2}(.+?)_{1,2}/g, "$1")
+    .replace(/`{3}[\s\S]*?`{3}/g, (m) => m.replace(/```\w*\n?/g, "").trim())
+    .replace(/`(.+?)`/g, "$1")
+    .replace(/^\s*[-*+]\s+/gm, "• ")
+    .replace(/^\s*\d+\.\s+/gm, (m) => m)
+    .replace(/^\s*>\s+/gm, "")
+    .replace(/\[(.+?)\]\(.+?\)/g, "$1")
+    .replace(/---+/g, "—")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function copyToClipboard(text: string, setCopied: (v: boolean) => void) {
-  navigator.clipboard.writeText(text).then(() => {
+  navigator.clipboard.writeText(stripMarkdown(text)).then(() => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   });
