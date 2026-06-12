@@ -360,14 +360,15 @@ AGENT_NAMES = {
 }
 
 MAX_HISTORY = 30
+AI_CONTEXT_MESSAGES = 8  # сколько сообщений из истории отправляем в ИИ
 
 def call_ai(system_prompt: str, messages: list) -> str:
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     payload = json.dumps({
         "model": "openai/gpt-4.1",
-        "messages": [{"role": "system", "content": system_prompt}] + messages,
+        "messages": [{"role": "system", "content": system_prompt}] + messages[-AI_CONTEXT_MESSAGES:],
         "temperature": 0.75,
-        "max_tokens": 2000,
+        "max_tokens": 1200,
     }).encode("utf-8")
     req = urllib.request.Request(
         "https://polza.ai/api/v1/chat/completions",
