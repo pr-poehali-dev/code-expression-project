@@ -212,12 +212,12 @@ def handler(event: dict, context) -> dict:
         api_key=os.environ["OPENAI_API_KEY"],
     )
 
-    full_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages
+    full_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages[-8:]
 
     completion = client.chat.completions.create(
         model="openai/gpt-4.1-mini",
         messages=full_messages,
-        max_tokens=4096,
+        max_tokens=1500,
     )
 
     reply = completion.choices[0].message.content
