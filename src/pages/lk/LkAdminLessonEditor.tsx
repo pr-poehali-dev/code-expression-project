@@ -92,22 +92,42 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
     setMsg("Сохранено ✓");
   };
 
-  const addVideo = () => {
+  const addVideo = async () => {
     if (!newVideo.trim()) return;
-    setForm(f => ({ ...f, video_urls: [...(f.video_urls || []), newVideo.trim()] }));
+    const updated = [...(form.video_urls || []), newVideo.trim()];
+    setForm(f => ({ ...f, video_urls: updated }));
     setNewVideo("");
+    if (form.id) {
+      await apiFetch("admin_lesson_save", "POST", { ...form, video_urls: updated, course_id: courseId });
+    }
   };
 
-  const removeVideo = (i: number) => setForm(f => ({ ...f, video_urls: (f.video_urls || []).filter((_, idx) => idx !== i) }));
+  const removeVideo = async (i: number) => {
+    const updated = (form.video_urls || []).filter((_, idx) => idx !== i);
+    setForm(f => ({ ...f, video_urls: updated }));
+    if (form.id) {
+      await apiFetch("admin_lesson_save", "POST", { ...form, video_urls: updated, course_id: courseId });
+    }
+  };
 
-  const addLink = () => {
+  const addLink = async () => {
     if (!newLink.url.trim()) return;
     const linkStr = newLink.label.trim() ? `${newLink.label}|${newLink.url}` : newLink.url;
-    setForm(f => ({ ...f, links: [...(f.links || []), linkStr] }));
+    const updated = [...(form.links || []), linkStr];
+    setForm(f => ({ ...f, links: updated }));
     setNewLink({ label: "", url: "" });
+    if (form.id) {
+      await apiFetch("admin_lesson_save", "POST", { ...form, links: updated, course_id: courseId });
+    }
   };
 
-  const removeLink = (i: number) => setForm(f => ({ ...f, links: (f.links || []).filter((_, idx) => idx !== i) }));
+  const removeLink = async (i: number) => {
+    const updated = (form.links || []).filter((_, idx) => idx !== i);
+    setForm(f => ({ ...f, links: updated }));
+    if (form.id) {
+      await apiFetch("admin_lesson_save", "POST", { ...form, links: updated, course_id: courseId });
+    }
+  };
 
   const uploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
