@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { ACCENT } from "./LkAdminShared";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+
 
 const AI_URL = "https://functions.poehali.dev/db81ea19-4426-448e-b956-d895d8dc266c";
 const ADMIN_TOKEN = "Sss07011974ssS";
@@ -62,6 +61,73 @@ function copyToClipboard(text: string, setCopied: (v: boolean) => void) {
   });
 }
 
+function SimpleMarkdown({ text }: { text: string }) {
+  const lines = text.split("\n");
+  const elements: React.ReactNode[] = [];
+  let i = 0;
+
+  const renderInline = (str: string): React.ReactNode => {
+    const parts = str.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);  
+    return parts.map((p, idx) => {
+      if (p.startsWith("**") && p.endsWith("**"))
+        return <strong key={idx} style={{ fontWeight: 700, color: "#0F172A" }}>{p.slice(2, -2)}</strong>;
+      if (p.startsWith("*") && p.endsWith("*"))
+        return <em key={idx} style={{ fontStyle: "italic" }}>{p.slice(1, -1)}</em>;
+      if (p.startsWith("`") && p.endsWith("`"))
+        return <code key={idx} style={{ background: "#f1f5f9", borderRadius: 4, padding: "1px 6px", fontSize: 13, fontFamily: "monospace" }}>{p.slice(1, -1)}</code>;
+      return p;
+    });
+  };
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const h3 = line.match(/^###\s+(.*)/);
+    const h2 = line.match(/^##\s+(.*)/);
+    const h1 = line.match(/^#\s+(.*)/);
+    const li = line.match(/^[-*]\s+(.*)/);
+    const oli = line.match(/^\d+\.\s+(.*)/);
+    const hr = line.match(/^---+$/);
+    const bq = line.match(/^>\s*(.*)/);
+    const code = line.match(/^```/);
+
+    if (h3) {
+      elements.push(<div key={i} style={{ fontSize: 14, fontWeight: 700, color: "#334155", margin: "8px 0 4px" }}>{renderInline(h3[1])}</div>);
+    } else if (h2) {
+      elements.push(<div key={i} style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", margin: "10px 0 5px" }}>{renderInline(h2[1])}</div>);
+    } else if (h1) {
+      elements.push(<div key={i} style={{ fontSize: 17, fontWeight: 700, color: "#0F172A", margin: "12px 0 6px" }}>{renderInline(h1[1])}</div>);
+    } else if (hr) {
+      elements.push(<hr key={i} style={{ border: "none", borderTop: "1px solid #e2e8f0", margin: "12px 0" }} />);
+    } else if (bq) {
+      elements.push(<blockquote key={i} style={{ borderLeft: "3px solid #cbd5e1", margin: "8px 0", paddingLeft: 12, color: "#64748b" }}>{renderInline(bq[1])}</blockquote>);
+    } else if (code) {
+      const codeLines: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].match(/^```/)) { codeLines.push(lines[i]); i++; }
+      elements.push(<pre key={i} style={{ background: "#f1f5f9", borderRadius: 8, padding: "10px 14px", fontSize: 13, overflowX: "auto", margin: "8px 0", fontFamily: "monospace" }}><code>{codeLines.join("\n")}</code></pre>);
+    } else if (li) {
+      const items: string[] = [li[1]];
+      while (i + 1 < lines.length && lines[i + 1].match(/^[-*]\s+(.*)/)) {
+        i++; items.push(lines[i].match(/^[-*]\s+(.*)/)![1]);
+      }
+      elements.push(<ul key={i} style={{ margin: "4px 0 8px", paddingLeft: 20 }}>{items.map((it, idx) => <li key={idx} style={{ marginBottom: 4, lineHeight: 1.65 }}>{renderInline(it)}</li>)}</ul>);
+    } else if (oli) {
+      const items: string[] = [oli[1]];
+      while (i + 1 < lines.length && lines[i + 1].match(/^\d+\.\s+(.*)/)) {
+        i++; items.push(lines[i].match(/^\d+\.\s+(.*)/)![1]);
+      }
+      elements.push(<ol key={i} style={{ margin: "4px 0 8px", paddingLeft: 20 }}>{items.map((it, idx) => <li key={idx} style={{ marginBottom: 4, lineHeight: 1.65 }}>{renderInline(it)}</li>)}</ol>);
+    } else if (line.trim() === "") {
+      elements.push(<br key={i} />);
+    } else {
+      elements.push(<p key={i} style={{ margin: "0 0 6px", lineHeight: 1.75 }}>{renderInline(line)}</p>);
+    }
+    i++;
+  }
+
+  return <div>{elements}</div>;
+}
+
 function MessageBubble({ msg }: { msg: Message }) {
   const [copied, setCopied] = useState(false);
   const isUser = msg.role === "user";
@@ -94,32 +160,7 @@ function MessageBubble({ msg }: { msg: Message }) {
           border: isUser ? "none" : "1px solid #E8ECF0",
           boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
         }}>
-          {isUser ? msg.content : (
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                h1: ({ children }) => <div style={{ fontSize: 17, fontWeight: 700, color: "#0F172A", margin: "12px 0 6px", lineHeight: 1.3 }}>{children}</div>,
-                h2: ({ children }) => <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", margin: "10px 0 5px", lineHeight: 1.3 }}>{children}</div>,
-                h3: ({ children }) => <div style={{ fontSize: 14, fontWeight: 700, color: "#334155", margin: "8px 0 4px", lineHeight: 1.3 }}>{children}</div>,
-                p: ({ children }) => <p style={{ margin: "0 0 8px", lineHeight: 1.75 }}>{children}</p>,
-                ul: ({ children }) => <ul style={{ margin: "4px 0 8px", paddingLeft: 20 }}>{children}</ul>,
-                ol: ({ children }) => <ol style={{ margin: "4px 0 8px", paddingLeft: 20 }}>{children}</ol>,
-                li: ({ children }) => <li style={{ marginBottom: 4, lineHeight: 1.65 }}>{children}</li>,
-                strong: ({ children }) => <strong style={{ fontWeight: 700, color: "#0F172A" }}>{children}</strong>,
-                em: ({ children }) => <em style={{ fontStyle: "italic" }}>{children}</em>,
-                code: ({ children, className }) => className
-                  ? <pre style={{ background: "#f1f5f9", borderRadius: 8, padding: "10px 14px", fontSize: 13, overflowX: "auto", margin: "8px 0", fontFamily: "monospace" }}><code>{children}</code></pre>
-                  : <code style={{ background: "#f1f5f9", borderRadius: 4, padding: "1px 6px", fontSize: 13, fontFamily: "monospace" }}>{children}</code>,
-                blockquote: ({ children }) => <blockquote style={{ borderLeft: "3px solid #cbd5e1", margin: "8px 0", paddingLeft: 12, color: "#64748b" }}>{children}</blockquote>,
-                hr: () => <hr style={{ border: "none", borderTop: "1px solid #e2e8f0", margin: "12px 0" }} />,
-                table: ({ children }) => <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, margin: "8px 0" }}>{children}</table>,
-                th: ({ children }) => <th style={{ background: "#f1f5f9", padding: "6px 10px", textAlign: "left", fontWeight: 700, border: "1px solid #e2e8f0" }}>{children}</th>,
-                td: ({ children }) => <td style={{ padding: "6px 10px", border: "1px solid #e2e8f0" }}>{children}</td>,
-              }}
-            >
-              {msg.content}
-            </ReactMarkdown>
-          )}
+          {isUser ? msg.content : <SimpleMarkdown text={msg.content} />}
         </div>
 
         {!isUser && (
