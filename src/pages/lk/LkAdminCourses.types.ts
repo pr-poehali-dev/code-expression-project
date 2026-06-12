@@ -13,7 +13,7 @@ export function apiFetch(action: string, method = "GET", body?: object) {
 export interface Course {
   id: number; title: string; description: string; cover_url: string;
   trailer_url?: string;
-  category: string; is_published: boolean; sort_order: number;
+  category: string; categories: string[]; is_published: boolean; sort_order: number;
   access_cost: number; lesson_cost: number;
   modules_count?: number; lessons_count?: number;
 }

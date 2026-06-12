@@ -10,7 +10,10 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
   onEditLesson: (l: Lesson | null) => void;
   onSaved: (c: Course) => void;
 }) {
-  const [form, setForm] = useState<Partial<Course>>(course || { access_cost: 0, lesson_cost: 1, category: "body", is_published: false });
+  const initCategories = course?.categories?.length ? course.categories : [course?.category || "body"];
+  const [form, setForm] = useState<Partial<Course>>(course
+    ? { ...course, categories: initCategories }
+    : { access_cost: 0, lesson_cost: 1, category: "body", categories: ["body"], is_published: false });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const [newModTitle, setNewModTitle] = useState("");
@@ -85,31 +88,47 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
             <input style={inputStyle} value={form.title || ""} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Название тренинга" />
           </div>
           <div>
-            <label style={labelStyle}>КАТЕГОРИЯ</label>
+            <label style={labelStyle}>КАТЕГОРИЯ <span style={{ fontWeight: 400, color: "#aaa" }}>(можно выбрать несколько)</span></label>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {[
-                { value: "body",    label: "Для специалистов по телу" },
-                { value: "owner",   label: "Для владельца" },
-                { value: "admin",   label: "Для администратора" },
-                { value: "master",  label: "Для мастеров" },
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, category: opt.value }))}
-                  style={{
-                    padding: "7px 14px", borderRadius: 8, border: "1.5px solid",
-                    borderColor: (form.category || "body") === opt.value ? ACCENT : "#e8e8e4",
-                    background: (form.category || "body") === opt.value ? "hsl(185,85%,95%)" : "#fafafa",
-                    color: (form.category || "body") === opt.value ? ACCENT : "#666",
-                    fontSize: 12, fontWeight: 600, cursor: "pointer",
-                    fontFamily: "Montserrat, sans-serif",
-                  }}
-                >
-                  {opt.label}
-                </button>
-              ))}
+                { value: "body",   label: "Для специалистов по телу" },
+                { value: "owner",  label: "Для владельца" },
+                { value: "admin",  label: "Для администратора" },
+                { value: "master", label: "Для мастеров" },
+              ].map(opt => {
+                const selected = (form.categories || []).includes(opt.value);
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setForm(f => {
+                      const cur = f.categories || [];
+                      const next = selected
+                        ? cur.filter(c => c !== opt.value)
+                        : [...cur, opt.value];
+                      return { ...f, categories: next.length ? next : [opt.value], category: next[0] || opt.value };
+                    })}
+                    style={{
+                      padding: "7px 14px", borderRadius: 8, border: "1.5px solid",
+                      borderColor: selected ? ACCENT : "#e8e8e4",
+                      background: selected ? "hsl(185,85%,95%)" : "#fafafa",
+                      color: selected ? ACCENT : "#666",
+                      fontSize: 12, fontWeight: 600, cursor: "pointer",
+                      fontFamily: "Montserrat, sans-serif",
+                      display: "flex", alignItems: "center", gap: 5,
+                    }}
+                  >
+                    {selected && <Icon name="Check" size={11} />}
+                    {opt.label}
+                  </button>
+                );
+              })}
             </div>
+            {(form.categories || []).length > 1 && (
+              <div style={{ fontSize: 11, color: "#888", marginTop: 6 }}>
+                Тренинг появится в {(form.categories || []).length} разделах витрины
+              </div>
+            )}
           </div>
           <div>
             <label style={labelStyle}>ОПИСАНИЕ</label>

@@ -10,7 +10,7 @@ function sid() { return localStorage.getItem("lk_session") || ""; }
 
 interface DbCourse {
   id: number; title: string; description: string; cover_url: string;
-  category: string; access_cost: number; lesson_cost: number;
+  category: string; categories: string[]; access_cost: number; lesson_cost: number;
   has_access: boolean; sort_order: number;
 }
 
@@ -81,7 +81,7 @@ export default function LkAcademy({ onNavigate }: { onNavigate?: (tab: string) =
       {/* Категории: лендинги + курсы из БД */}
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         {CATEGORIES.map(cat => {
-          const catDbCourses = dbCourses.filter(c => c.category === cat.id);
+          const catDbCourses = dbCourses.filter(c => (c.categories?.length ? c.categories : [c.category]).includes(cat.id));
           const hasContent = cat.landings.length > 0 || catDbCourses.length > 0;
           return (
             <div key={cat.id} style={{ background: "#fff", borderRadius: 20, border: "1.5px solid #f0f0ec", overflow: "hidden" }}>

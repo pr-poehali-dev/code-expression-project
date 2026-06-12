@@ -10,6 +10,7 @@ interface MemberCourse {
   title: string;
   description: string;
   category: string;
+  categories: string[];
   cover_url: string;
   granted: boolean;
   owner_has: boolean;
@@ -71,7 +72,7 @@ export default function LkMemberAcademy({ onNavigate }: { onNavigate?: (tab: str
     return <LkAcademyCourse courseId={activeCourseId} onBack={() => { setActiveCourseId(null); window.scrollTo({ top: 0, behavior: "instant" }); }} onNavigate={onNavigate} />;
   }
 
-  const categories = [...new Set(courses.map(c => c.category))];
+  const categories = [...new Set(courses.flatMap(c => c.categories?.length ? c.categories : [c.category]))];
 
   return (
     <div style={{ maxWidth: 860 }}>
@@ -105,7 +106,7 @@ export default function LkMemberAcademy({ onNavigate }: { onNavigate?: (tab: str
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {categories.map(cat => {
-            const catCourses = courses.filter(c => c.category === cat);
+            const catCourses = courses.filter(c => (c.categories?.length ? c.categories : [c.category]).includes(cat));
             return (
               <div key={cat} style={{ background: "#fff", borderRadius: 20, border: "1.5px solid #f0f0ec", overflow: "hidden" }}>
                 <div style={{ padding: "16px 22px", borderBottom: "1px solid #f5f5f2", fontSize: 15, fontWeight: 700, color: "#1a1a1a" }}>

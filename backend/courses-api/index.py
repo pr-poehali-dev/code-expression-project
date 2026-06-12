@@ -100,10 +100,18 @@ def handle_courses_list(event, conn):
     user = get_session_user(event, conn)
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"SELECT id,title,description,cover_url,trailer_url,category,access_cost,lesson_cost,sort_order "
+        f"SELECT id,title,description,cover_url,trailer_url,category,categories,access_cost,lesson_cost,sort_order "
         f"FROM {tbl('courses')} WHERE is_published=TRUE ORDER BY sort_order,id"
     )
-    courses = [dict(r) for r in cur.fetchall()]
+    rows = cur.fetchall()
+    courses = []
+    for r in rows:
+        c = dict(r)
+        cats = c.get("categories") or []
+        if not cats:
+            cats = [c.get("category", "body")]
+        c["categories"] = list(cats)
+        courses.append(c)
 
     if user:
         cur.execute(
@@ -553,7 +561,15 @@ def handle_admin_courses_list(event, conn):
         f"(SELECT COUNT(*) FROM {tbl('course_lessons')} WHERE course_id=c.id) as lessons_count "
         f"FROM {tbl('courses')} c ORDER BY c.sort_order, c.id"
     )
-    return ok([dict(r) for r in cur.fetchall()])
+    rows = []
+    for r in cur.fetchall():
+        c = dict(r)
+        cats = c.get("categories") or []
+        if not cats:
+            cats = [c.get("category", "body")]
+        c["categories"] = list(cats)
+        rows.append(c)
+    return ok(rows)
 
 
 def handle_admin_course_save(event, conn):
@@ -565,13 +581,22 @@ def handle_admin_course_save(event, conn):
     if not title:
         return err("Название обязательно")
 
+    raw_categories = body.get("categories") or []
+    if not isinstance(raw_categories, list):
+        raw_categories = [raw_categories]
+    if not raw_categories:
+        raw_categories = [body.get("category", "body")]
+    categories = [c for c in raw_categories if c]
+    category = categories[0] if categories else "body"
+
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     fields = {
         "title": title,
         "description": body.get("description", ""),
         "cover_url": body.get("cover_url", ""),
         "trailer_url": body.get("trailer_url", ""),
-        "category": body.get("category", "body"),
+        "category": category,
+        "categories": categories,
         "is_published": bool(body.get("is_published", False)),
         "sort_order": int(body.get("sort_order", 0)),
         "access_cost": int(body.get("access_cost", 0)),
