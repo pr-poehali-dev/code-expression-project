@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { ACCENT } from "./LkAdminShared";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const AI_URL = "https://functions.poehali.dev/db81ea19-4426-448e-b956-d895d8dc266c";
 const ADMIN_TOKEN = "Sss07011974ssS";
@@ -71,12 +73,36 @@ function MessageBubble({ msg }: { msg: Message }) {
           padding: "12px 16px",
           fontSize: 14,
           lineHeight: 1.75,
-          whiteSpace: "pre-wrap",
           wordBreak: "break-word",
           border: isUser ? "none" : "1px solid #E8ECF0",
           boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
         }}>
-          {msg.content}
+          {isUser ? msg.content : (
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                h1: ({ children }) => <div style={{ fontSize: 17, fontWeight: 700, color: "#0F172A", margin: "12px 0 6px", lineHeight: 1.3 }}>{children}</div>,
+                h2: ({ children }) => <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", margin: "10px 0 5px", lineHeight: 1.3 }}>{children}</div>,
+                h3: ({ children }) => <div style={{ fontSize: 14, fontWeight: 700, color: "#334155", margin: "8px 0 4px", lineHeight: 1.3 }}>{children}</div>,
+                p: ({ children }) => <p style={{ margin: "0 0 8px", lineHeight: 1.75 }}>{children}</p>,
+                ul: ({ children }) => <ul style={{ margin: "4px 0 8px", paddingLeft: 20 }}>{children}</ul>,
+                ol: ({ children }) => <ol style={{ margin: "4px 0 8px", paddingLeft: 20 }}>{children}</ol>,
+                li: ({ children }) => <li style={{ marginBottom: 4, lineHeight: 1.65 }}>{children}</li>,
+                strong: ({ children }) => <strong style={{ fontWeight: 700, color: "#0F172A" }}>{children}</strong>,
+                em: ({ children }) => <em style={{ fontStyle: "italic" }}>{children}</em>,
+                code: ({ children, className }) => className
+                  ? <pre style={{ background: "#f1f5f9", borderRadius: 8, padding: "10px 14px", fontSize: 13, overflowX: "auto", margin: "8px 0", fontFamily: "monospace" }}><code>{children}</code></pre>
+                  : <code style={{ background: "#f1f5f9", borderRadius: 4, padding: "1px 6px", fontSize: 13, fontFamily: "monospace" }}>{children}</code>,
+                blockquote: ({ children }) => <blockquote style={{ borderLeft: "3px solid #cbd5e1", margin: "8px 0", paddingLeft: 12, color: "#64748b" }}>{children}</blockquote>,
+                hr: () => <hr style={{ border: "none", borderTop: "1px solid #e2e8f0", margin: "12px 0" }} />,
+                table: ({ children }) => <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, margin: "8px 0" }}>{children}</table>,
+                th: ({ children }) => <th style={{ background: "#f1f5f9", padding: "6px 10px", textAlign: "left", fontWeight: 700, border: "1px solid #e2e8f0" }}>{children}</th>,
+                td: ({ children }) => <td style={{ padding: "6px 10px", border: "1px solid #e2e8f0" }}>{children}</td>,
+              }}
+            >
+              {msg.content}
+            </ReactMarkdown>
+          )}
         </div>
 
         {!isUser && (
