@@ -4,40 +4,60 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import Index from "./pages/Index";
-import Vozmozhnosti from "./pages/Vozmozhnosti";
-import DlyaKogo from "./pages/DlyaKogo";
-import Akademiya from "./pages/Akademiya";
-import Tseny from "./pages/Tseny";
-import Keysy from "./pages/Keysy";
-import OProekte from "./pages/OProekte";
-import Tarify from "./pages/Tarify";
-import Kontakty from "./pages/Kontakty";
-import Privacy from "./pages/Privacy";
-import Offer from "./pages/Offer";
-import Reviews from "./pages/Reviews";
-import NotFoundPage from "./pages/NotFoundPage";
-import CookieBanner from "./components/CookieBanner";
-import ChatWidget from "./components/ChatWidget";
-import LkPage from "./pages/lk/LkPage";
-import LkJoinPage from "./pages/lk/LkJoinPage";
-import RepPage from "./pages/rep/RepPage";
+import { lazy, Suspense } from "react";
 import { LkAuthProvider } from "./contexts/LkAuthContext";
 import { EnergyProvider } from "./contexts/EnergyContext";
 import EnergyGate from "./components/EnergyGate";
 import ScrollToTop from "./components/ScrollToTop";
-import Praktika from "./pages/Praktika";
-import PremiumPraktika from "./pages/PremiumPraktika";
-import EkspertTarif from "./pages/EkspertTarif";
-import FreeTarif from "./pages/FreeTarif";
-import ComingSoon from "./pages/ComingSoon";
-import DlyaSalonov from "./pages/DlyaSalonov";
-import Masters from "./pages/Masters";
-import MastersAuth from "./pages/MastersAuth";
-import MastersCabinet from "./pages/MastersCabinet";
+import CookieBanner from "./components/CookieBanner";
+import ChatWidget from "./components/ChatWidget";
 
+// Публичные страницы — lazy
+const Index = lazy(() => import("./pages/Index"));
+const Vozmozhnosti = lazy(() => import("./pages/Vozmozhnosti"));
+const DlyaKogo = lazy(() => import("./pages/DlyaKogo"));
+const Akademiya = lazy(() => import("./pages/Akademiya"));
+const Tseny = lazy(() => import("./pages/Tseny"));
+const Keysy = lazy(() => import("./pages/Keysy"));
+const OProekte = lazy(() => import("./pages/OProekte"));
+const Tarify = lazy(() => import("./pages/Tarify"));
+const Kontakty = lazy(() => import("./pages/Kontakty"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Offer = lazy(() => import("./pages/Offer"));
+const Reviews = lazy(() => import("./pages/Reviews"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const Praktika = lazy(() => import("./pages/Praktika"));
+const PremiumPraktika = lazy(() => import("./pages/PremiumPraktika"));
+const EkspertTarif = lazy(() => import("./pages/EkspertTarif"));
+const FreeTarif = lazy(() => import("./pages/FreeTarif"));
+const ComingSoon = lazy(() => import("./pages/ComingSoon"));
+const DlyaSalonov = lazy(() => import("./pages/DlyaSalonov"));
+const Masters = lazy(() => import("./pages/Masters"));
+const MastersAuth = lazy(() => import("./pages/MastersAuth"));
+const MastersCabinet = lazy(() => import("./pages/MastersCabinet"));
 
-const queryClient = new QueryClient();
+// Кабинет и rep — отдельные чанки
+const LkPage = lazy(() => import("./pages/lk/LkPage"));
+const LkJoinPage = lazy(() => import("./pages/lk/LkJoinPage"));
+const RepPage = lazy(() => import("./pages/rep/RepPage"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      retry: 1,
+    },
+  },
+});
+
+function PageFallback() {
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fff" }}>
+      <div style={{ width: 36, height: 36, border: "3px solid #e2e8f0", borderTopColor: "#2DD4BF", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
 
 function ChatWidgetConditional() {
   const { pathname } = useLocation();
@@ -57,37 +77,39 @@ const App = () => (
       <BrowserRouter>
         <ChatWidgetConditional />
         <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/vozmozhnosti" element={<Vozmozhnosti />} />
-          <Route path="/dlya-kogo" element={<DlyaKogo />} />
-          <Route path="/akademiya" element={<Akademiya />} />
-          <Route path="/tseny" element={<Tseny />} />
-          <Route path="/keysy" element={<Keysy />} />
-          <Route path="/o-proekte" element={<OProekte />} />
-          <Route path="/tarify" element={<Tarify />} />
-          <Route path="/kontakty" element={<Kontakty />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/offer" element={<Offer />} />
-          <Route path="/reviews" element={<Reviews />} />
-          <Route path="/cabinet" element={<LkPage />} />
-          <Route path="/join" element={<LkJoinPage />} />
-          <Route path="/join/:token" element={<LkJoinPage />} />
-          <Route path="/rep" element={<RepPage />} />
-          <Route path="/praktika" element={<Praktika />} />
-          <Route path="/premium" element={<PremiumPraktika />} />
-          <Route path="/ekspert" element={<EkspertTarif />} />
-          <Route path="/free" element={<FreeTarif />} />
-          <Route path="/coming-soon" element={<ComingSoon />} />
-          <Route path="/dlya-salonov" element={<DlyaSalonov />} />
-          <Route path="/masters" element={<Masters />} />
-          <Route path="/masters/register" element={<MastersAuth mode="register" />} />
-          <Route path="/masters/login" element={<MastersAuth mode="login" />} />
-          <Route path="/masters/cabinet" element={<MastersCabinet />} />
+        <Suspense fallback={<PageFallback />}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/vozmozhnosti" element={<Vozmozhnosti />} />
+            <Route path="/dlya-kogo" element={<DlyaKogo />} />
+            <Route path="/akademiya" element={<Akademiya />} />
+            <Route path="/tseny" element={<Tseny />} />
+            <Route path="/keysy" element={<Keysy />} />
+            <Route path="/o-proekte" element={<OProekte />} />
+            <Route path="/tarify" element={<Tarify />} />
+            <Route path="/kontakty" element={<Kontakty />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/offer" element={<Offer />} />
+            <Route path="/reviews" element={<Reviews />} />
+            <Route path="/cabinet" element={<LkPage />} />
+            <Route path="/join" element={<LkJoinPage />} />
+            <Route path="/join/:token" element={<LkJoinPage />} />
+            <Route path="/rep" element={<RepPage />} />
+            <Route path="/praktika" element={<Praktika />} />
+            <Route path="/premium" element={<PremiumPraktika />} />
+            <Route path="/ekspert" element={<EkspertTarif />} />
+            <Route path="/free" element={<FreeTarif />} />
+            <Route path="/coming-soon" element={<ComingSoon />} />
+            <Route path="/dlya-salonov" element={<DlyaSalonov />} />
+            <Route path="/masters" element={<Masters />} />
+            <Route path="/masters/register" element={<MastersAuth mode="register" />} />
+            <Route path="/masters/login" element={<MastersAuth mode="login" />} />
+            <Route path="/masters/cabinet" element={<MastersCabinet />} />
 
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </TooltipProvider>
     </EnergyProvider>

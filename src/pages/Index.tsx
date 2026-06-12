@@ -110,6 +110,8 @@ export default function Index() {
               <img
                 src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/17441cfe-b66d-4a86-ad10-5a1fca3bfed4.png"
                 alt="Платформа Про Диалог — инструменты для роста салона"
+                fetchPriority="high"
+                decoding="async"
                 style={{
                   width: "100%", height: "auto",
                   borderRadius: 4, display: "block",

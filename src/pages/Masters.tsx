@@ -251,7 +251,7 @@ export default function Masters() {
           <div className="m-hero-photo">
             {/* МЕСТО ДЛЯ ФОТО: 560×640px — мастер/специалист салона красоты, премиальная атмосфера, тёмный фон */}
             <div style={{ width: "100%", aspectRatio: "7/8", borderRadius: 24, overflow: "hidden" }}>
-              <img src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/62e0ee86-64f1-4db9-aad5-11162cb25d83.png" alt="Мастера" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+              <img src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/62e0ee86-64f1-4db9-aad5-11162cb25d83.png" alt="Мастера" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
             </div>
             <div style={{ position: "absolute", bottom: -20, left: -20, background: "rgba(8,14,28,0.92)", backdropFilter: "blur(16px)", border: "1px solid rgba(45,212,191,0.2)", borderRadius: 16, padding: "18px 22px", minWidth: 200 }}>
               <div style={{ fontSize: 10, color: TEAL, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Пример дохода</div>
