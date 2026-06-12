@@ -155,52 +155,19 @@ export default function LkAiImageGen() {
             style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: `1.5px solid ${error && !prompt.trim() ? "#fcc" : "#E2E8F0"}`, fontSize: 13, fontFamily: "Montserrat,sans-serif", resize: "vertical", outline: "none", background: loading ? "#f8f8f6" : "#fff", boxSizing: "border-box", color: "#0F172A", lineHeight: 1.6 }}
           />
           {!loading && (
-            <div style={{ marginTop: 10 }}>
-              {/* Подсказка */}
-              <div style={{ background: "hsl(45,90%,96%)", border: "1px solid hsl(45,80%,82%)", borderRadius: 10, padding: "10px 14px", marginBottom: 10, display: "flex", gap: 8, alignItems: "flex-start" }}>
-                <Icon name="Lightbulb" size={14} style={{ color: "hsl(40,90%,45%)", flexShrink: 0, marginTop: 1 }} />
-                <div style={{ fontSize: 11, color: "hsl(30,50%,35%)", lineHeight: 1.6 }}>
-                  <b>Совет:</b> Выберите готовый промт ниже — он автоматически подставится в поле. Чем подробнее описание, тем точнее результат. Для реалистичных людей укажите: внешность, позу, одежду, фон, освещение.
-                </div>
-              </div>
-
-              {/* Готовые промты */}
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#aaa", letterSpacing: "0.05em", marginBottom: 6 }}>ГОТОВЫЕ ПРОМТЫ — нажми чтобы вставить:</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                {[
-                  {
-                    label: "👥 Фото команды",
-                    prompt: "Профессиональное фото команды салона красоты, 3 девушки разной внешности, все славянской внешности, не похожи друг на друга — одна светловолосая, другая тёмно-русая, третья шатенка, в одинаковой форме цвета айвори, улыбаются, стоят в современном светлом интерьере салона, мягкий студийный свет, реалистичная фотография, высокое качество"
-                  },
-                  {
-                    label: "💆 Мастер за работой",
-                    prompt: "Молодая женщина-мастер славянской внешности делает массаж клиентке, спокойное лицо, аккуратно собранные волосы, белый халат, современный светлый кабинет, свечи и цветы на фоне, тёплый мягкий свет, реалистичная фотография, фотосток качество"
-                  },
-                  {
-                    label: "🌿 Атмосфера салона",
-                    prompt: "Уютный интерьер салона красоты, минимализм, пастельные тона бежевый и белый, зелёные растения, цветы, мягкий рассеянный свет из окна, деревянные детали, журнальный столик с косметикой, никаких людей, профессиональная интерьерная фотография"
-                  },
-                  {
-                    label: "📱 Пост для Instagram",
-                    prompt: "Красивая плоская раскладка сверху (flat lay), уходовая косметика, бежевый фон, живые цветы, полотенца, масла, свечи, пастельные тона, профессиональная предметная съёмка, квадратный формат Instagram"
-                  },
-                  {
-                    label: "🎁 Баннер с акцией",
-                    prompt: "Рекламный баннер салона красоты, слева место для текста на белом фоне, справа счастливая девушка славянской внешности с ухоженной кожей, светлые волосы, естественный макияж, тёплые тона, минималистичный стиль, горизонтальная композиция"
-                  },
-                ].map(item => (
-                  <button
-                    key={item.label}
-                    onClick={() => setPrompt(item.prompt)}
-                    style={{ fontSize: 11, padding: "8px 12px", borderRadius: 8, border: "1px solid #e0e0db", background: prompt === item.prompt ? "hsl(185,85%,94%)" : "#fafafa", color: prompt === item.prompt ? ACCENT : "#555", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "left", lineHeight: 1.5, fontWeight: prompt === item.prompt ? 700 : 400, borderColor: prompt === item.prompt ? ACCENT : "#e0e0db" }}
-                  >
-                    {item.label}
-                    <span style={{ display: "block", fontSize: 10, color: "#aaa", marginTop: 2, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis", maxWidth: "100%" }}>
-                      {item.prompt.slice(0, 80)}...
-                    </span>
-                  </button>
-                ))}
-              </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+              {[
+                { label: "Пост для Instagram", add: "пост для instagram" },
+                { label: "Баннер с акцией", add: "баннер с акцией" },
+                { label: "Фото команды", add: "фото команды" },
+                { label: "Атмосфера салона", add: "атмосфера салона" },
+                { label: "Славянская внешность", add: "славянская внешность" },
+                { label: "Не похожи друг на друга", add: "все люди разной внешности, не похожи друг на друга" },
+              ].map(hint => (
+                <button key={hint.label} onClick={() => setPrompt(p => p ? `${p}, ${hint.add}` : hint.add)} style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, border: "1px solid #e0e0db", background: "#fff", color: "#777", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                  + {hint.label}
+                </button>
+              ))}
             </div>
           )}
         </div>
