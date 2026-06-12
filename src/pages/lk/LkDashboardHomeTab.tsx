@@ -151,12 +151,20 @@ export function HomeTab({ onNav, role, hasSalon }: HomeTabProps) {
         <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>Новости платформы</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {[
-            { date: "31 мая 2025", text: "Платформа переименована в «Про Диалог» — новое позиционирование, новые инструменты." },
-            { date: "Скоро", text: "Раздел ИИ-инструментов: генерация постов, рилсов и маркетинговых материалов для вашего салона." },
-          ].map((n, i) => (
-            <div key={i} style={{ display: "flex", gap: 12, paddingBottom: i === 0 ? 12 : 0, borderBottom: i === 0 ? "1px solid #f0f0ec" : "none" }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: ACCENT, whiteSpace: "nowrap", marginTop: 1, minWidth: 80 }}>{n.date}</div>
-              <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6 }}>{n.text}</div>
+            { date: "12 июня 2026", text: "🎁 Бесплатная диагностика салона — пройдите «Диагностику роста салона PRO» прямо сейчас и узнайте, где ваш салон теряет деньги. Энергия уже на балансе, платить ничего не нужно.", highlight: true },
+            { date: "3 июня 2026", text: "🤖 Запущены ИИ-агенты: «Ответ на отзыв», «Скрипт записи по телефону» и «Разбор конфликтной ситуации» — помогают администраторам реагировать быстро и профессионально." },
+            { date: "24 мая 2026", text: "📸 Новый инструмент — «ИИ-генератор изображений»: создавайте фото для постов, баннеры с акциями и атмосферные фото салона без фотографа." },
+            { date: "14 мая 2026", text: "📚 Добавлен новый курс «Мышление мастера»: 8 уроков о том, как специалист влияет на возврат клиента и средний чек. Уже доступен в разделе «Обучение»." },
+            { date: "28 апреля 2026", text: "🛠 Раздел «Развитие салона» пополнился инструментами: «Генератор поста для Instagram», «Сценарий Reels» и «Генератор акции месяца»." },
+            { date: "10 апреля 2026", text: "🎓 Курс «Стандарты сервиса» — обновлён и расширен: добавлены уроки по работе с возражениями и технике повторной записи." },
+            { date: "21 марта 2026", text: "💬 Запущен ИИ-куратор домашних заданий: после каждого урока ученик может разобрать задание в диалоге с ИИ — без ожидания обратной связи от тренера." },
+            { date: "5 марта 2026", text: "📊 Появилась «Диагностика роста салона PRO» — флагманский инструмент анализа: показывает узкие места в работе салона и даёт конкретные рекомендации по росту прибыли." },
+            { date: "14 февраля 2026", text: "👥 Добавлена система ролей: теперь владелец салона может подключать сотрудников с отдельными лимитами — администраторов, мастеров, управляющих." },
+            { date: "31 мая 2025", text: "🚀 Платформа переименована в «Про Диалог» — новое позиционирование, новые инструменты для роста салонного бизнеса." },
+          ].map((n, i, arr) => (
+            <div key={i} style={{ display: "flex", gap: 12, paddingBottom: i < arr.length - 1 ? 12 : 0, borderBottom: i < arr.length - 1 ? "1px solid #f0f0ec" : "none", background: n.highlight ? "hsl(185,85%,97%)" : "transparent", borderRadius: n.highlight ? 10 : 0, padding: n.highlight ? "10px 12px" : undefined, marginLeft: n.highlight ? -12 : 0, marginRight: n.highlight ? -12 : 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: n.highlight ? ACCENT : ACCENT, whiteSpace: "nowrap", marginTop: 1, minWidth: 88 }}>{n.date}</div>
+              <div style={{ fontSize: 13, color: n.highlight ? "#1a1a1a" : "#555", lineHeight: 1.6, fontWeight: n.highlight ? 600 : 400 }}>{n.text}</div>
             </div>
           ))}
         </div>
