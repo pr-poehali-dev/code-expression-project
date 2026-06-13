@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { ACCENT, labelStyle, inputStyle, actionBtn, iconBtn } from "./LkAdminShared";
 import Icon from "@/components/ui/icon";
-import { apiFetch, Course, Module, Lesson } from "./LkAdminCourses.types";
+import { apiFetch, Course, Module, Lesson, ScheduleBlock } from "./LkAdminCourses.types";
 
 // ── Редактор курса ─────────────────────────────────────────────────────────────
 export function CourseEditor({ course, modules, onBack, onReloadModules, onEditLesson, onSaved }: {
@@ -12,14 +12,30 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
 }) {
   const initCategories = course?.categories?.length ? course.categories : [course?.category || "body"];
   const [form, setForm] = useState<Partial<Course>>(course
-    ? { ...course, categories: initCategories }
-    : { access_cost: 0, lesson_cost: 1, category: "body", categories: ["body"], is_published: false });
+    ? { ...course, categories: initCategories, schedule: course.schedule || [] }
+    : { access_cost: 0, lesson_cost: 1, category: "body", categories: ["body"], is_published: false, type: "online", schedule: [], energy_reward: 0 });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const [newModTitle, setNewModTitle] = useState("");
   const [addingMod, setAddingMod] = useState(false);
   const [coverUploading, setCoverUploading] = useState(false);
   const coverRef = useRef<HTMLInputElement>(null);
+
+  const schedule: ScheduleBlock[] = (form.schedule as ScheduleBlock[]) || [];
+
+  const addScheduleBlock = () => {
+    setForm(f => ({ ...f, schedule: [...(f.schedule || []), { time_start: "", time_end: "", title: "" }] as ScheduleBlock[] }));
+  };
+  const removeScheduleBlock = (i: number) => {
+    setForm(f => ({ ...f, schedule: (f.schedule as ScheduleBlock[]).filter((_, idx) => idx !== i) }));
+  };
+  const updateScheduleBlock = (i: number, field: keyof ScheduleBlock, value: string) => {
+    setForm(f => {
+      const s = [...((f.schedule || []) as ScheduleBlock[])];
+      s[i] = { ...s[i], [field]: value };
+      return { ...f, schedule: s };
+    });
+  };
 
   const save = async () => {
     if (!form.title?.trim()) { setMsg("Введите название тренинга"); return; }
@@ -131,19 +147,41 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
             )}
           </div>
           <div>
+            <label style={labelStyle}>ТИП</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              {([["online", "Онлайн-курс"], ["offline", "Офлайн-тренинг"]] as const).map(([val, label]) => (
+                <button key={val} type="button" onClick={() => setForm(f => ({ ...f, type: val }))}
+                  style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: "1.5px solid", cursor: "pointer", fontFamily: "Montserrat, sans-serif", fontSize: 13, fontWeight: 600,
+                    borderColor: form.type === val ? ACCENT : "#e8e8e4",
+                    background: form.type === val ? "hsl(185,85%,95%)" : "#fafafa",
+                    color: form.type === val ? ACCENT : "#666" }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
             <label style={labelStyle}>ОПИСАНИЕ</label>
             <textarea style={{ ...inputStyle, height: 90 }} value={form.description || ""} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Краткое описание для витрины" />
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
-              <label style={labelStyle}>ДОСТУП К ТРЕНИНГУ (⚡)</label>
+              <label style={labelStyle}>СТОИМОСТЬ УЧАСТИЯ (⚡)</label>
               <input style={inputStyle} type="number" min={0} value={form.access_cost ?? 0} onChange={e => setForm(f => ({ ...f, access_cost: +e.target.value }))} />
             </div>
-            <div>
-              <label style={labelStyle}>СТОИМОСТЬ УРОКА (⚡)</label>
-              <input style={inputStyle} type="number" min={0} value={form.lesson_cost ?? 1} onChange={e => setForm(f => ({ ...f, lesson_cost: +e.target.value }))} />
-            </div>
+            {form.type === "offline" ? (
+              <div>
+                <label style={labelStyle}>БОНУС ЭНЕРГИИ (⚡) после покупки</label>
+                <input style={inputStyle} type="number" min={0} value={form.energy_reward ?? 0} onChange={e => setForm(f => ({ ...f, energy_reward: +e.target.value }))} />
+              </div>
+            ) : (
+              <div>
+                <label style={labelStyle}>СТОИМОСТЬ УРОКА (⚡)</label>
+                <input style={inputStyle} type="number" min={0} value={form.lesson_cost ?? 1} onChange={e => setForm(f => ({ ...f, lesson_cost: +e.target.value }))} />
+              </div>
+            )}
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -222,7 +260,64 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
         </div>
       </div>
 
-      {form.id && (
+      {/* ── Блок офлайн-тренинга ───────────────────────────────────────────── */}
+      {form.type === "offline" && (
+        <div style={{ background: "#fff", borderRadius: 14, padding: "20px 22px", border: "1.5px solid #e8e8e4", marginTop: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>Параметры офлайн-тренинга</div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="admin-grid-3">
+            <div>
+              <label style={labelStyle}>ДАТА ПРОВЕДЕНИЯ</label>
+              <input style={inputStyle} type="date" value={form.event_date || ""} onChange={e => setForm(f => ({ ...f, event_date: e.target.value }))} />
+            </div>
+            <div>
+              <label style={labelStyle}>НАЧАЛО</label>
+              <input style={inputStyle} type="time" value={form.event_time_start || ""} onChange={e => setForm(f => ({ ...f, event_time_start: e.target.value }))} />
+            </div>
+            <div>
+              <label style={labelStyle}>КОНЕЦ</label>
+              <input style={inputStyle} type="time" value={form.event_time_end || ""} onChange={e => setForm(f => ({ ...f, event_time_end: e.target.value }))} />
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 12 }} className="admin-grid-2">
+            <div>
+              <label style={labelStyle}>МЕСТО ПРОВЕДЕНИЯ</label>
+              <input style={inputStyle} value={form.event_location || ""} onChange={e => setForm(f => ({ ...f, event_location: e.target.value }))} placeholder="Например: Москва, ул. Тверская, 10" />
+            </div>
+            <div>
+              <label style={labelStyle}>МАКС. УЧАСТНИКОВ</label>
+              <input style={inputStyle} type="number" min={1} value={form.max_participants || ""} onChange={e => setForm(f => ({ ...f, max_participants: +e.target.value || undefined }))} placeholder="20" />
+            </div>
+          </div>
+
+          <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <label style={{ ...labelStyle, margin: 0 }}>РАСПИСАНИЕ ПО БЛОКАМ</label>
+              <button type="button" onClick={addScheduleBlock}
+                style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: `1.5px solid ${ACCENT}`, borderRadius: 7, padding: "5px 12px", cursor: "pointer", color: ACCENT, fontSize: 12, fontWeight: 700, fontFamily: "Montserrat, sans-serif" }}>
+                <Icon name="Plus" size={12} /> Добавить блок
+              </button>
+            </div>
+            {schedule.length === 0 && (
+              <div style={{ fontSize: 12, color: "#aaa", padding: "12px 0" }}>Добавьте блоки расписания — например «10:00–11:30 — Введение»</div>
+            )}
+            {schedule.map((block, i) => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "90px 90px 1fr 32px", gap: 8, alignItems: "center", marginBottom: 8 }}>
+                <input style={{ ...inputStyle, margin: 0 }} type="time" value={block.time_start} onChange={e => updateScheduleBlock(i, "time_start", e.target.value)} placeholder="10:00" />
+                <input style={{ ...inputStyle, margin: 0 }} type="time" value={block.time_end} onChange={e => updateScheduleBlock(i, "time_end", e.target.value)} placeholder="11:30" />
+                <input style={{ ...inputStyle, margin: 0 }} value={block.title} onChange={e => updateScheduleBlock(i, "title", e.target.value)} placeholder="Название блока / темы" />
+                <button type="button" onClick={() => removeScheduleBlock(i)}
+                  style={{ width: 32, height: 32, borderRadius: 7, border: "1.5px solid #fcc", background: "#fff0f0", cursor: "pointer", color: "#c44", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Icon name="X" size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {form.id && form.type !== "offline" && (
         <div style={{ marginTop: 24 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
             <div style={{ fontSize: 15, fontWeight: 700 }}>Модули и уроки</div>

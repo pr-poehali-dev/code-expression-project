@@ -29,6 +29,12 @@
       "method": "GET",
       "path": "/?action=admin_courses_list",
       "expectedStatus": 403
+    },
+    {
+      "name": "offline_training_buy without auth returns 401",
+      "method": "POST",
+      "path": "/?action=offline_training_buy",
+      "expectedStatus": 401
     }
   ]
 }

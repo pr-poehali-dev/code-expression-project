@@ -40,6 +40,7 @@ const MastersCabinet = lazy(() => import("./pages/MastersCabinet"));
 const LkPage = lazy(() => import("./pages/lk/LkPage"));
 const LkJoinPage = lazy(() => import("./pages/lk/LkJoinPage"));
 const RepPage = lazy(() => import("./pages/rep/RepPage"));
+const TreningProdazhi = lazy(() => import("./pages/TreningProdazhi"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,6 +96,7 @@ const App = () => (
             <Route path="/join" element={<LkJoinPage />} />
             <Route path="/join/:token" element={<LkJoinPage />} />
             <Route path="/rep" element={<RepPage />} />
+            <Route path="/trening-prodazhi" element={<TreningProdazhi />} />
             <Route path="/praktika" element={<Praktika />} />
             <Route path="/premium" element={<PremiumPraktika />} />
             <Route path="/ekspert" element={<EkspertTarif />} />

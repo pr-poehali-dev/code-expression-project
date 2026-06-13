@@ -1,15 +1,16 @@
 """
-API для системы курсов Академии.
+API для системы курсов и тренингов Академии.
 Маршруты (?action=...):
   Витрина (пользователь):
-    courses_list        — список опубликованных курсов
-    course_detail       — курс + модули + уроки (с учётом доступа)
-    course_access       — купить доступ к курсу (списать энергию)
-    lesson_open         — открыть урок (списать энергию)
-    lesson_ask_ai       — задать вопрос ИИ по уроку (2 энергии)
+    courses_list           — список опубликованных курсов и тренингов
+    course_detail          — курс + модули + уроки (с учётом доступа)
+    course_access          — купить доступ к курсу (списать энергию)
+    offline_training_buy   — купить офлайн-тренинг (списать энергию, начислить energy_reward)
+    lesson_open            — открыть урок (списать энергию)
+    lesson_ask_ai          — задать вопрос ИИ по уроку (2 энергии)
   Админ:
-    admin_courses_list        — все курсы
-    admin_course_save         — создать/обновить курс
+    admin_courses_list        — все курсы/тренинги
+    admin_course_save         — создать/обновить курс или офлайн-тренинг
     admin_module_save         — создать/обновить модуль
     admin_module_delete       — удалить модуль
     admin_lesson_save         — создать/обновить урок
@@ -100,7 +101,8 @@ def handle_courses_list(event, conn):
     user = get_session_user(event, conn)
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"SELECT id,title,description,cover_url,trailer_url,category,categories,access_cost,lesson_cost,sort_order "
+        f"SELECT id,title,description,cover_url,trailer_url,category,categories,access_cost,lesson_cost,sort_order,"
+        f"type,event_date,event_time_start,event_time_end,event_location,schedule,energy_reward,max_participants "
         f"FROM {tbl('courses')} WHERE is_published=TRUE ORDER BY sort_order,id"
     )
     rows = cur.fetchall()
@@ -111,6 +113,9 @@ def handle_courses_list(event, conn):
         if not cats:
             cats = [c.get("category", "body")]
         c["categories"] = list(cats)
+        c["type"] = c.get("type") or "online"
+        c["schedule"] = c.get("schedule") or []
+        c["energy_reward"] = c.get("energy_reward") or 0
         courses.append(c)
 
     if user:
@@ -246,6 +251,67 @@ def handle_course_access(event, conn):
     )
     conn.commit()
     return ok({"ok": True})
+
+
+def handle_offline_training_buy(event, conn):
+    """Купить офлайн-тренинг: списать энергию с баланса, начислить energy_reward обратно."""
+    user = get_session_user(event, conn)
+    if not user:
+        return err("Не авторизован", 401)
+
+    body = json.loads(event.get("body") or "{}")
+    course_id = body.get("course_id")
+    if not course_id:
+        return err("course_id обязателен")
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT * FROM {tbl('courses')} WHERE id=%s AND is_published=TRUE AND type='offline'",
+        (course_id,)
+    )
+    course = cur.fetchone()
+    if not course:
+        return err("Тренинг не найден", 404)
+
+    cur.execute(
+        f"SELECT id FROM {tbl('course_access')} WHERE user_id=%s AND course_id=%s",
+        (user["id"], course_id)
+    )
+    if cur.fetchone():
+        return ok({"ok": True, "already": True})
+
+    cost = course["access_cost"]
+    salon_id = user.get("salon_id")
+
+    if cost > 0:
+        if not salon_id:
+            return err("Нет привязанного аккаунта для списания энергии")
+        balance = get_salon_balance(salon_id, conn)
+        if balance < cost:
+            return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}", 402)
+        deduct_energy(salon_id, user["id"], cost, f"Тренинг «{course['title']}»", conn)
+
+    cur.execute(
+        f"INSERT INTO {tbl('course_access')} (user_id, course_id) VALUES (%s,%s) ON CONFLICT DO NOTHING",
+        (user["id"], course_id)
+    )
+
+    # Начисляем energy_reward обратно на баланс (бонус за участие)
+    reward = course.get("energy_reward") or 0
+    if reward > 0 and salon_id:
+        cur2 = conn.cursor()
+        cur2.execute(
+            f"UPDATE {tbl('salons')} SET credits_balance=credits_balance+%s WHERE id=%s",
+            (reward, salon_id)
+        )
+        cur2.execute(
+            f"INSERT INTO {tbl('credit_transactions')} (salon_id, user_id, action, amount, tool_key, type) "
+            f"VALUES (%s,%s,%s,%s,'offline_training','credit')",
+            (salon_id, user["id"], f"Бонус за тренинг «{course['title']}»", reward)
+        )
+
+    conn.commit()
+    return ok({"ok": True, "energy_reward": reward})
 
 
 def handle_lesson_open(event, conn):
@@ -589,6 +655,13 @@ def handle_admin_course_save(event, conn):
     categories = [c for c in raw_categories if c]
     category = categories[0] if categories else "body"
 
+    course_type = body.get("type", "online")
+    schedule = body.get("schedule") or []
+    if isinstance(schedule, list):
+        schedule_json = json.dumps(schedule, ensure_ascii=False)
+    else:
+        schedule_json = "[]"
+
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     fields = {
         "title": title,
@@ -601,6 +674,14 @@ def handle_admin_course_save(event, conn):
         "sort_order": int(body.get("sort_order", 0)),
         "access_cost": int(body.get("access_cost", 0)),
         "lesson_cost": int(body.get("lesson_cost", 1)),
+        "type": course_type,
+        "event_date": body.get("event_date") or None,
+        "event_time_start": body.get("event_time_start") or None,
+        "event_time_end": body.get("event_time_end") or None,
+        "event_location": body.get("event_location") or None,
+        "schedule": schedule_json,
+        "energy_reward": int(body.get("energy_reward", 0)),
+        "max_participants": int(body.get("max_participants")) if body.get("max_participants") else None,
     }
     if cid:
         sets = ", ".join(f"{k}=%s" for k in fields)
@@ -1047,6 +1128,7 @@ ROUTES = {
     "courses_list":              handle_courses_list,
     "course_detail":             handle_course_detail,
     "course_access":             handle_course_access,
+    "offline_training_buy":      handle_offline_training_buy,
     "lesson_open":               handle_lesson_open,
     "lesson_ask_ai":             handle_lesson_ask_ai,
     "lesson_homework_ai":        handle_lesson_homework_ai,

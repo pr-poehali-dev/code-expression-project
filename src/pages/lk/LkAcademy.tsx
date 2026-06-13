@@ -8,10 +8,16 @@ const SERIF = "Cormorant, serif";
 
 function sid() { return localStorage.getItem("lk_session") || ""; }
 
+interface ScheduleBlock { time_start: string; time_end: string; title: string; }
+
 interface DbCourse {
   id: number; title: string; description: string; cover_url: string;
   category: string; categories: string[]; access_cost: number; lesson_cost: number;
   has_access: boolean; sort_order: number;
+  type?: "online" | "offline";
+  event_date?: string; event_time_start?: string; event_time_end?: string;
+  event_location?: string; schedule?: ScheduleBlock[];
+  energy_reward?: number; max_participants?: number;
 }
 
 // Статические лендинги (продажные страницы вне кабинета)
@@ -104,9 +110,13 @@ export default function LkAcademy({ onNavigate }: { onNavigate?: (tab: string) =
                 </div>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 1, background: "#f5f5f2" }}>
-                  {catDbCourses.map(c => (
-                    <DbCourseCard key={c.id} course={c} onClick={() => { setActiveCourseId(c.id); window.scrollTo({ top: 0, behavior: "instant" }); }} />
-                  ))}
+                  {catDbCourses.map(c => c.type === "offline"
+                    ? <OfflineCourseCard key={c.id} course={c} onBought={() => {
+                        fetch(`${API}?action=courses_list`, { headers: { "X-Session-Id": sid() } })
+                          .then(r => r.json()).then(d => { if (Array.isArray(d)) setDbCourses(d); });
+                      }} />
+                    : <DbCourseCard key={c.id} course={c} onClick={() => { setActiveCourseId(c.id); window.scrollTo({ top: 0, behavior: "instant" }); }} />
+                  )}
                   {cat.landings.map(course => (
                     <LandingCard key={course.href} course={course} color={cat.color} bg={cat.bg} />
                   ))}
@@ -157,6 +167,136 @@ function DbCourseCard({ course, onClick }: { course: DbCourse; onClick: () => vo
             Перейти <Icon name="ArrowRight" size={13} />
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Карточка офлайн-тренинга ──────────────────────────────────────────────────
+function OfflineCourseCard({ course, onBought }: { course: DbCourse; onBought: () => void }) {
+  const [buying, setBuying] = useState(false);
+  const [bought, setBought] = useState(course.has_access);
+  const [err, setErr] = useState("");
+  const [expanded, setExpanded] = useState(false);
+
+  const formatDate = (d?: string) => {
+    if (!d) return "";
+    const dt = new Date(d + "T00:00:00");
+    return dt.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+  };
+
+  const formatTime = (t?: string) => t ? t.slice(0, 5) : "";
+
+  const buy = async () => {
+    if (buying || bought) return;
+    setBuying(true); setErr("");
+    const res = await fetch(`${API}?action=offline_training_buy`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
+      body: JSON.stringify({ course_id: course.id }),
+    }).then(r => r.json());
+    setBuying(false);
+    if (res.error) { setErr(res.error); return; }
+    setBought(true);
+    onBought();
+  };
+
+  return (
+    <div style={{ background: "#fff", display: "flex", flexDirection: "column", position: "relative" }}>
+      {/* Плашка ОФЛАЙН */}
+      <div style={{ position: "absolute", top: 12, left: 12, zIndex: 2, fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", color: "#fff", background: "hsl(270,65%,52%)", padding: "3px 9px", borderRadius: 6 }}>
+        ОФЛАЙН
+      </div>
+      {bought && (
+        <div style={{ position: "absolute", top: 12, right: 12, zIndex: 2, fontSize: 10, fontWeight: 700, color: "hsl(130,60%,40%)", background: "hsl(130,60%,94%)", padding: "2px 8px", borderRadius: 6, border: "1px solid hsl(130,60%,75%)" }}>
+          Вы записаны
+        </div>
+      )}
+      {course.cover_url && (
+        <img src={course.cover_url} alt="" loading="lazy" style={{ width: "100%", height: 130, objectFit: "cover" }} />
+      )}
+      <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4 }}>{course.title}</div>
+
+        {/* Дата и место */}
+        {course.event_date && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#555" }}>
+              <Icon name="Calendar" size={13} style={{ color: ACCENT }} />
+              {formatDate(course.event_date)}
+              {course.event_time_start && (
+                <span style={{ color: "#aaa" }}>· {formatTime(course.event_time_start)}{course.event_time_end ? `–${formatTime(course.event_time_end)}` : ""}</span>
+              )}
+            </div>
+            {course.event_location && (
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#555" }}>
+                <Icon name="MapPin" size={13} style={{ color: ACCENT }} />
+                {course.event_location}
+              </div>
+            )}
+            {course.max_participants && (
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#888" }}>
+                <Icon name="Users" size={13} style={{ color: "#aaa" }} />
+                Группа до {course.max_participants} человек
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Расписание по блокам */}
+        {course.schedule && course.schedule.length > 0 && (
+          <div>
+            <button onClick={() => setExpanded(v => !v)}
+              style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: ACCENT, fontSize: 12, fontWeight: 600, padding: 0, fontFamily: "Montserrat, sans-serif" }}>
+              <Icon name={expanded ? "ChevronUp" : "ChevronDown"} size={13} />
+              {expanded ? "Скрыть расписание" : "Программа тренинга"}
+            </button>
+            {expanded && (
+              <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
+                {course.schedule.map((b, i) => (
+                  <div key={i} style={{ display: "flex", gap: 8, fontSize: 12, color: "#444", alignItems: "baseline" }}>
+                    <span style={{ flexShrink: 0, fontWeight: 700, color: ACCENT, minWidth: 95 }}>
+                      {formatTime(b.time_start)}{b.time_end ? `–${formatTime(b.time_end)}` : ""}
+                    </span>
+                    <span style={{ color: "#555" }}>{b.title}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {course.description && (
+          <div style={{ fontSize: 12, color: "#888", lineHeight: 1.6 }}>{course.description}</div>
+        )}
+
+        {/* Бонус энергии */}
+        {(course.energy_reward ?? 0) > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "hsl(40,90%,40%)", background: "hsl(40,90%,96%)", borderRadius: 8, padding: "6px 10px" }}>
+            <Icon name="Zap" size={13} />
+            <span>+{course.energy_reward} Энергии после участия</span>
+          </div>
+        )}
+
+        {err && <div style={{ fontSize: 12, color: "hsl(0,70%,55%)", fontWeight: 600 }}>{err}</div>}
+
+        {/* Кнопка покупки */}
+        {bought ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: "hsl(130,60%,40%)" }}>
+            <Icon name="CheckCircle" size={15} /> Вы записаны на тренинг
+          </div>
+        ) : (
+          <button onClick={buy} disabled={buying}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 0", borderRadius: 10, border: "none", cursor: buying ? "default" : "pointer",
+              background: buying ? "#e0e0dc" : "hsl(270,65%,52%)", color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "Montserrat, sans-serif", transition: "background 0.2s" }}>
+            {buying ? "Обрабатываем..." : (
+              <>
+                <Icon name="Ticket" size={14} />
+                Записаться{course.access_cost > 0 ? ` · ${course.access_cost} ⚡` : " бесплатно"}
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

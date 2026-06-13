@@ -10,12 +10,26 @@ export function apiFetch(action: string, method = "GET", body?: object) {
   }).then(r => r.json());
 }
 
+export interface ScheduleBlock {
+  time_start: string;
+  time_end: string;
+  title: string;
+}
+
 export interface Course {
   id: number; title: string; description: string; cover_url: string;
   trailer_url?: string;
   category: string; categories: string[]; is_published: boolean; sort_order: number;
   access_cost: number; lesson_cost: number;
   modules_count?: number; lessons_count?: number;
+  type?: "online" | "offline";
+  event_date?: string;
+  event_time_start?: string;
+  event_time_end?: string;
+  event_location?: string;
+  schedule?: ScheduleBlock[];
+  energy_reward?: number;
+  max_participants?: number;
 }
 
 export interface Module { id: number; course_id: number; title: string; sort_order: number; lessons?: Lesson[]; }
