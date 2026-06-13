@@ -682,6 +682,7 @@ def handle_admin_course_save(event, conn):
         "schedule": schedule_json,
         "energy_reward": int(body.get("energy_reward", 0)),
         "max_participants": int(body.get("max_participants")) if body.get("max_participants") else None,
+        "full_description": body.get("full_description") or None,
     }
     if cid:
         sets = ", ".join(f"{k}=%s" for k in fields)

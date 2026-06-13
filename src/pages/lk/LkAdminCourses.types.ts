@@ -30,6 +30,7 @@ export interface Course {
   schedule?: ScheduleBlock[];
   energy_reward?: number;
   max_participants?: number;
+  full_description?: string;
 }
 
 export interface Module { id: number; course_id: number; title: string; sort_order: number; lessons?: Lesson[]; }

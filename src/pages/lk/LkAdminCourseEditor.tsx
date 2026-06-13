@@ -292,6 +292,17 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
           </div>
 
           <div>
+            <label style={labelStyle}>ПОЛНОЕ ОПИСАНИЕ ТРЕНИНГА</label>
+            <textarea
+              style={{ ...inputStyle, height: 160, lineHeight: 1.6 }}
+              value={(form as Record<string, unknown>).full_description as string || ""}
+              onChange={e => setForm(f => ({ ...f, full_description: e.target.value }))}
+              placeholder={"Подробное описание для страницы тренинга:\n— что будет на тренинге\n— кому подойдёт\n— что участники унесут с собой\n— особенности формата"}
+            />
+            <div style={{ fontSize: 11, color: "#aaa", marginTop: 4 }}>Показывается на странице тренинга. Краткое описание — на витрине в кабинете.</div>
+          </div>
+
+          <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
               <label style={{ ...labelStyle, margin: 0 }}>РАСПИСАНИЕ ПО БЛОКАМ</label>
               <button type="button" onClick={addScheduleBlock}
