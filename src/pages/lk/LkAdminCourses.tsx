@@ -1,11 +1,16 @@
 import { useState, useEffect } from "react";
-import { Spinner } from "./LkAdminShared";
+import { Spinner, ACCENT } from "./LkAdminShared";
 import { apiFetch, Course, Module, Lesson, Screen } from "./LkAdminCourses.types";
 import { CourseList } from "./LkAdminCourseList";
 import { CourseEditor } from "./LkAdminCourseEditor";
 import { LessonEditor } from "./LkAdminLessonEditor";
+import { OfflineParticipantsSection } from "./LkAdminOfflineParticipants";
+import Icon from "@/components/ui/icon";
+
+type Tab = "courses" | "participants";
 
 export function CoursesSection() {
+  const [tab, setTab] = useState<Tab>("courses");
   const [screen, setScreen] = useState<Screen>("list");
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,11 +42,34 @@ export function CoursesSection() {
       });
   };
 
-  if (loading && screen === "list") return <Spinner />;
+  if (loading && screen === "list" && tab === "courses") return <Spinner />;
+
+  const offlineCount = courses.filter(c => c.type === "offline").length;
 
   return (
     <div>
-      {screen === "list" && (
+      {/* Вкладки */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+        {([
+          { id: "courses" as Tab, icon: "GraduationCap", label: "Тренинги и курсы" },
+          { id: "participants" as Tab, icon: "Users", label: "Участники офлайн", badge: offlineCount > 0 },
+        ]).map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            display: "flex", alignItems: "center", gap: 7, padding: "8px 16px",
+            borderRadius: 9, border: "none", cursor: "pointer",
+            fontFamily: "Montserrat, sans-serif", fontSize: 13, fontWeight: 600,
+            background: tab === t.id ? ACCENT : "#f0f0ec",
+            color: tab === t.id ? "#fff" : "#666",
+          }}>
+            <Icon name={t.icon} size={14} />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "participants" && <OfflineParticipantsSection courses={courses} />}
+
+      {tab === "courses" && screen === "list" && (
         <CourseList
           courses={courses}
           onNew={() => openCourse(null)}
@@ -49,7 +77,7 @@ export function CoursesSection() {
           onReload={loadCourses}
         />
       )}
-      {screen === "course" && activeCourse !== undefined && (
+      {tab === "courses" && screen === "course" && activeCourse !== undefined && (
         <CourseEditor
           course={activeCourse}
           modules={modules}
@@ -59,7 +87,7 @@ export function CoursesSection() {
           onSaved={(c) => setActiveCourse(c)}
         />
       )}
-      {screen === "lesson" && activeLesson !== undefined && activeCourse && (
+      {tab === "courses" && screen === "lesson" && activeLesson !== undefined && activeCourse && (
         <LessonEditor
           lesson={activeLesson}
           courseId={activeCourse.id}

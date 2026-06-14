@@ -1087,6 +1087,54 @@ def handle_admin_rehost_images(event, conn):
     return ok({"html": html, "replaced": replaced, "errors": errors})
 
 
+def handle_admin_offline_participants(event, conn):
+    """Список записавшихся на офлайн-тренинги: имя, email, дата записи, курс, салон или мастер без салона."""
+    _, e = require_admin(event, conn)
+    if e: return e
+
+    qs = event.get("queryStringParameters") or {}
+    course_id = qs.get("course_id")
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    if course_id:
+        course_filter = f"AND c.id={int(course_id)}"
+    else:
+        course_filter = ""
+
+    cur.execute(f"""
+        SELECT
+            ca.id            AS access_id,
+            ca.granted_at,
+            c.id             AS course_id,
+            c.title          AS course_title,
+            c.event_date,
+            c.event_time_start,
+            c.event_time_end,
+            c.event_location,
+            u.id             AS user_id,
+            u.full_name,
+            u.email,
+            u.username,
+            u.segment,
+            u.salon_id,
+            s.name           AS salon_name,
+            s.city           AS salon_city,
+            s.address        AS salon_address,
+            s.social_telegram AS salon_telegram,
+            s.social_instagram AS salon_instagram
+        FROM {tbl('course_access')} ca
+        JOIN {tbl('courses')} c ON c.id = ca.course_id
+        JOIN {tbl('lk_users')} u ON u.id = ca.user_id
+        LEFT JOIN {tbl('salons')} s ON s.id = u.salon_id
+        WHERE c.type = 'offline' {course_filter}
+        ORDER BY c.event_date NULLS LAST, ca.granted_at DESC
+    """)
+
+    rows = [dict(r) for r in cur.fetchall()]
+    return ok(rows)
+
+
 def handle_courses_catalog(event, conn):
     """Каталог курсов для ИИ-ботов: название, описание, категория, стоимость, модули и уроки."""
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -1147,6 +1195,7 @@ ROUTES = {
     "admin_grant_access":        handle_admin_grant_access,
     "admin_lesson_tools_save":   handle_admin_lesson_tools_save,
     "admin_course_detail":       handle_admin_course_detail,
+    "admin_offline_participants": handle_admin_offline_participants,
     "admin_lesson_detail":       handle_admin_lesson_detail,
     "admin_rehost_images":       handle_admin_rehost_images,
     "admin_course_delete":       handle_admin_course_delete,
