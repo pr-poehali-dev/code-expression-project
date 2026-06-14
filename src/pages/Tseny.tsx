@@ -107,7 +107,7 @@ export default function Tseny() {
       {/* ── ПАКЕТЫ ── */}
       <section style={{ padding: "120px 32px", background: "#fff" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+          <div style={{ textAlign: "left", marginBottom: 72, maxWidth: 600 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Пакеты</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
               Выберите пакет
@@ -173,7 +173,7 @@ export default function Tseny() {
       {/* ── FAQ ── */}
       <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 64 }}>
+          <div style={{ textAlign: "left", marginBottom: 64 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Вопросы</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,52px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
               Частые вопросы
@@ -192,7 +192,7 @@ export default function Tseny() {
 
       {/* ── CTA ── */}
       <section style={{ background: "#fff", padding: "120px 32px" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "left", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
             Начните бесплатно

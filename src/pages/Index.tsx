@@ -229,7 +229,7 @@ export default function Index() {
       {/* ── ЧТО ПОЛУЧАЕТ ВЛАДЕЛЕЦ ── */}
       <section style={{ padding: "120px 32px", background: "#fff" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+          <div style={{ textAlign: "left", marginBottom: 72, maxWidth: 600 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Результат</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
               Что получает владелец салона
@@ -264,7 +264,7 @@ export default function Index() {
       <section style={{ background: DARK, padding: "120px 32px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", bottom: "-10%", left: "50%", transform: "translateX(-50%)", width: 800, height: 500, background: "radial-gradient(circle, rgba(45,212,191,0.06) 0%, transparent 70%)", pointerEvents: "none" }} />
         <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative" }}>
-          <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+          <div style={{ textAlign: "left", marginBottom: 72, maxWidth: 600 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Инструменты</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
               Что внутри платформы
@@ -286,7 +286,7 @@ export default function Index() {
               </div>
             ))}
           </div>
-          <div style={{ textAlign: "center", marginTop: 56 }}>
+          <div style={{ textAlign: "left", marginTop: 56 }}>
             <Link to="/vozmozhnosti" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "15px 34px", borderRadius: 2, border: "1px solid rgba(45,212,191,0.4)", color: TEAL, fontSize: 14, fontWeight: 500, textDecoration: "none", letterSpacing: "0.3px" }}>
               Все возможности платформы <Icon name="ArrowRight" size={16} />
             </Link>
@@ -296,7 +296,7 @@ export default function Index() {
 
       {/* ── CTA ── */}
       <section style={{ background: "#fff", padding: "120px 32px" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "left", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
             Начните сегодня

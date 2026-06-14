@@ -164,12 +164,12 @@ export default function OProekte() {
       {/* ── ОПЫТ + АЛГОРИТМЫ + ИИ ── */}
       <section style={{ background: "#fff", padding: "120px 32px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 16 }}>
+          <div style={{ textAlign: "left", marginBottom: 16 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Основа платформы</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
               Опыт, алгоритмы и искусственный интеллект
             </h2>
-            <p style={{ fontSize: 17, color: GRAY, margin: "0 auto 12px", fontWeight: 300, maxWidth: 560 }}>
+            <p style={{ fontSize: 17, color: GRAY, margin: "0 0 12px", fontWeight: 300, maxWidth: 560 }}>
               Про Диалог — это не просто набор ИИ-инструментов.
             </p>
           </div>
@@ -200,7 +200,7 @@ export default function OProekte() {
       {/* ── НАШ ПОДХОД ── */}
       <section style={{ padding: "120px 32px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+          <div style={{ textAlign: "left", marginBottom: 72, maxWidth: 600 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Принципы</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
               Наш подход
@@ -226,7 +226,7 @@ export default function OProekte() {
       {/* ── ИСТОРИЯ ── */}
       <section style={{ background: "#fff", padding: "120px 32px" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 72 }}>
+          <div style={{ textAlign: "left", marginBottom: 72 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Хронология</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
               История проекта
@@ -254,7 +254,7 @@ export default function OProekte() {
 
       {/* ── ВО ЧТО МЫ ВЕРИМ ── */}
       <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
-        <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
+        <div style={{ maxWidth: 800, textAlign: "left" }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Философия</div>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 32px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
             Во что мы верим
@@ -273,12 +273,12 @@ export default function OProekte() {
 
       {/* ── CTA ── */}
       <section style={{ background: "#fff", padding: "120px 32px" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "left", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
             Присоединяйтесь к платформе
           </h2>
-          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", margin: "0 0 44px", fontWeight: 300, position: "relative", maxWidth: 580, marginLeft: "auto", marginRight: "auto" }}>
+          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", margin: "0 0 44px", fontWeight: 300, position: "relative", maxWidth: 580 }}>
             Создайте профиль своего салона и получите доступ к инструментам, которые помогают развивать команду, улучшать сервис и находить новые точки роста бизнеса.
           </p>
           <Link to="/cabinet" style={{ display: "inline-block", padding: "16px 44px", borderRadius: 2, background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, textDecoration: "none", letterSpacing: "0.3px", position: "relative" }}>

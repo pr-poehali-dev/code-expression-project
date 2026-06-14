@@ -150,7 +150,7 @@ export default function Akademiya() {
       {/* ── ТРАЕКТОРИИ РАЗВИТИЯ ── */}
       <section style={{ padding: "120px 32px", background: "#fff" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 72, maxWidth: 600, marginLeft: "auto", marginRight: "auto" }}>
+          <div style={{ textAlign: "left", marginBottom: 72, maxWidth: 600 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Направления</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
               Траектории профессионального роста
@@ -190,18 +190,18 @@ export default function Akademiya() {
 
       {/* ── ПОЧЕМУ АКАДЕМИЯ ОТЛИЧАЕТСЯ ── */}
       <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
+        <div style={{ maxWidth: 900, textAlign: "left" }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Наш подход</div>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 28px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
             Почему Академия отличается
           </h2>
-          <p style={{ fontSize: 18, color: GRAY, margin: "0 auto 20px", fontWeight: 300, lineHeight: 1.8, maxWidth: 700 }}>
+          <p style={{ fontSize: 18, color: GRAY, margin: "0 0 20px", fontWeight: 300, lineHeight: 1.8, maxWidth: 700 }}>
             Мы не стремимся просто передать информацию.
           </p>
-          <p style={{ fontSize: 16, color: GRAY, margin: "0 auto 20px", fontWeight: 300, lineHeight: 1.8, maxWidth: 720 }}>
+          <p style={{ fontSize: 16, color: GRAY, margin: "0 0 20px", fontWeight: 300, lineHeight: 1.8, maxWidth: 720 }}>
             Наша задача — помочь специалисту и владельцу изменить подход к работе, научиться видеть причинно-следственные связи и принимать более сильные решения.
           </p>
-          <p style={{ fontSize: 16, color: GRAY, margin: "0 auto", fontWeight: 300, lineHeight: 1.8, maxWidth: 680 }}>
+          <p style={{ fontSize: 16, color: GRAY, margin: 0, fontWeight: 300, lineHeight: 1.8, maxWidth: 680 }}>
             Практический опыт, проверенные методики и современные технологии объединяются в единую систему развития.
           </p>
         </div>
@@ -209,7 +209,7 @@ export default function Akademiya() {
 
       {/* ── CTA ── */}
       <section style={{ background: "#fff", padding: "120px 32px" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "left", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
             Продолжайте расти вместе с Про Диалог
