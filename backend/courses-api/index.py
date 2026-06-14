@@ -26,7 +26,12 @@ import os
 import base64
 import hashlib
 import re
+import smtplib
 import urllib.request
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
+from email.utils import formataddr
 import psycopg2
 import psycopg2.extras
 import boto3
@@ -80,6 +85,176 @@ def deduct_energy(salon_id, user_id, cost, action, conn):
         (salon_id, user_id, action, cost)
     )
     conn.commit()
+
+
+SMTP_HOST = "smtp.mail.ru"
+SMTP_PORT = 465
+FROM_EMAIL = "massopro@mail.ru"
+ADMIN_EMAIL = "massopro@mail.ru"
+
+
+def send_email(to: str, subject: str, html: str):
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = Header(subject, "utf-8")
+        msg["From"] = formataddr((str(Header("Про Диалог", "utf-8")), FROM_EMAIL))
+        msg["To"] = to
+        msg["Reply-To"] = FROM_EMAIL
+        msg.attach(MIMEText(html, "html", "utf-8"))
+        pwd = os.environ.get("SMTP_PASSWORD", "")
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as srv:
+            srv.login(FROM_EMAIL, pwd)
+            srv.sendmail(FROM_EMAIL, to, msg.as_string())
+    except Exception:
+        pass  # не блокируем покупку при сбое почты
+
+
+def fmt_date(d):
+    if not d:
+        return "уточняется"
+    try:
+        from datetime import date
+        dt = date.fromisoformat(str(d))
+        months = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"]
+        return f"{dt.day} {months[dt.month-1]} {dt.year}"
+    except Exception:
+        return str(d)
+
+
+def fmt_time(t):
+    if not t:
+        return ""
+    return str(t)[:5]
+
+
+def send_buyer_email(user, course, cost, reward):
+    event_date = fmt_date(course.get("event_date"))
+    time_start = fmt_time(course.get("event_time_start"))
+    time_end = fmt_time(course.get("event_time_end"))
+    location = course.get("event_location") or "уточняется"
+    title = course.get("title", "")
+
+    time_str = ""
+    if time_start:
+        time_str = f"{time_start}"
+        if time_end:
+            time_str += f"–{time_end}"
+
+    energy_block = ""
+    if reward > 0:
+        energy_block = f"""
+        <tr>
+          <td style="padding:6px 0;color:#666;font-size:14px;">Начислено энергии:</td>
+          <td style="padding:6px 0;color:#e67e00;font-weight:700;font-size:14px;">+{reward} ⚡</td>
+        </tr>"""
+
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"/></head>
+<body style="margin:0;padding:0;background:#f5f5f2;font-family:Inter,Arial,sans-serif;">
+<div style="max-width:560px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.07);">
+  <div style="background:linear-gradient(135deg,#4f1d9c,#7c3aed);padding:36px 36px 28px;">
+    <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:8px;letter-spacing:0.05em;text-transform:uppercase;">Офлайн-тренинг · Про Диалог</div>
+    <h1 style="margin:0;color:#fff;font-size:26px;font-weight:700;line-height:1.2;">Вы записаны на тренинг!</h1>
+    <div style="margin-top:10px;font-size:15px;color:rgba(255,255,255,0.85);">«{title}»</div>
+  </div>
+  <div style="padding:32px 36px;">
+    <p style="font-size:15px;color:#333;line-height:1.6;margin:0 0 24px;">
+      Привет, <strong>{user.get("full_name") or user.get("username", "")}!</strong><br>
+      Ваша запись подтверждена. Менеджер свяжется с вами для уточнения деталей.
+    </p>
+
+    <div style="background:#f8f5ff;border-radius:12px;padding:20px 24px;margin-bottom:24px;">
+      <div style="font-size:12px;font-weight:700;color:#7c3aed;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px;">Детали тренинга</div>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="padding:6px 0;color:#666;font-size:14px;">Дата:</td>
+          <td style="padding:6px 0;color:#1a1a1a;font-weight:600;font-size:14px;">{event_date}</td>
+        </tr>
+        {"" if not time_str else f'''<tr>
+          <td style="padding:6px 0;color:#666;font-size:14px;">Время:</td>
+          <td style="padding:6px 0;color:#1a1a1a;font-weight:600;font-size:14px;">{time_str}</td>
+        </tr>'''}
+        <tr>
+          <td style="padding:6px 0;color:#666;font-size:14px;">Место:</td>
+          <td style="padding:6px 0;color:#1a1a1a;font-weight:600;font-size:14px;">{location}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;color:#666;font-size:14px;">Потрачено энергии:</td>
+          <td style="padding:6px 0;color:#555;font-size:14px;">{cost} ⚡</td>
+        </tr>
+        {energy_block}
+      </table>
+    </div>
+
+    <div style="background:#fff8e6;border:1px solid #ffe0a0;border-radius:12px;padding:18px 22px;margin-bottom:28px;">
+      <div style="font-size:13px;font-weight:700;color:#b45309;margin-bottom:8px;">📋 Важная просьба перед тренингом</div>
+      <p style="font-size:14px;color:#78350f;line-height:1.65;margin:0;">
+        Пожалуйста, <strong>пройдите инструмент «Барьеры»</strong> в личном кабинете и сохраните результаты до начала тренинга. Это сэкономит время на разборе вашей ситуации прямо на занятии.<br><br>
+        Войдите в кабинет → раздел <strong>«Инструменты»</strong> → <strong>«Барьеры»</strong>.
+      </p>
+    </div>
+
+    <a href="https://prodialo.ru/cabinet" style="display:block;text-align:center;background:linear-gradient(135deg,#7c3aed,#4f1d9c);color:#fff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 28px;border-radius:10px;margin-bottom:24px;">
+      Перейти в личный кабинет
+    </a>
+
+    <p style="font-size:13px;color:#aaa;text-align:center;margin:0;line-height:1.6;">
+      Если у вас есть вопросы — напишите нам на <a href="mailto:{FROM_EMAIL}" style="color:#7c3aed;">{FROM_EMAIL}</a>
+    </p>
+  </div>
+</div>
+</body></html>"""
+    send_email(user["email"], f"Вы записаны на тренинг «{title}»", html)
+
+
+def send_admin_notification(user, course, cost, reward):
+    title = course.get("title", "")
+    event_date = fmt_date(course.get("event_date"))
+    time_start = fmt_time(course.get("event_time_start"))
+    time_end = fmt_time(course.get("event_time_end"))
+    location = course.get("event_location") or "не указано"
+
+    time_str = ""
+    if time_start:
+        time_str = f"{time_start}"
+        if time_end:
+            time_str += f"–{time_end}"
+
+    salon_info = ""
+    if user.get("salon_id"):
+        salon_info = f"<br><strong>Тип:</strong> Владелец/сотрудник салона (salon_id={user['salon_id']})"
+
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"/></head>
+<body style="margin:0;padding:0;background:#f5f5f2;font-family:Inter,Arial,sans-serif;">
+<div style="max-width:560px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.07);">
+  <div style="background:#1a1a1a;padding:28px 36px;">
+    <div style="font-size:12px;color:#aaa;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Новая запись · Про Диалог</div>
+    <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;">Новый участник офлайн-тренинга</h1>
+  </div>
+  <div style="padding:28px 36px;">
+    <div style="background:#f8f8f6;border-radius:10px;padding:18px 22px;margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:700;color:#888;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:12px;">Участник</div>
+      <p style="margin:0;font-size:14px;color:#333;line-height:1.8;">
+        <strong>Имя:</strong> {user.get("full_name") or user.get("username", "—")}<br>
+        <strong>Email:</strong> <a href="mailto:{user['email']}" style="color:#7c3aed;">{user['email']}</a><br>
+        <strong>Username:</strong> {user.get("username", "—")}<br>
+        <strong>Сегмент:</strong> {user.get("segment", "—")}{salon_info}
+      </p>
+    </div>
+    <div style="background:#f0f0ff;border-radius:10px;padding:18px 22px;">
+      <div style="font-size:12px;font-weight:700;color:#888;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:12px;">Тренинг</div>
+      <p style="margin:0;font-size:14px;color:#333;line-height:1.8;">
+        <strong>Название:</strong> {title}<br>
+        <strong>Дата:</strong> {event_date}{(" · " + time_str) if time_str else ""}<br>
+        <strong>Место:</strong> {location}<br>
+        <strong>Списано:</strong> {cost} ⚡ &nbsp;|&nbsp; <strong>Начислено:</strong> +{reward} ⚡
+      </p>
+    </div>
+  </div>
+</div>
+</body></html>"""
+    send_email(ADMIN_EMAIL, f"Новая запись на тренинг «{title}» — {user.get('full_name') or user.get('username', '')}", html)
 
 
 def s3_client():
@@ -311,6 +486,12 @@ def handle_offline_training_buy(event, conn):
         )
 
     conn.commit()
+
+    # Письма: покупателю + администратору
+    course_dict = dict(course)
+    send_buyer_email(user, course_dict, cost, reward)
+    send_admin_notification(user, course_dict, cost, reward)
+
     return ok({"ok": True, "energy_reward": reward})
 
 
