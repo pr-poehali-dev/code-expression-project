@@ -62,10 +62,10 @@ def get_session_user(event, conn):
 def get_salon_balance(salon_id, conn) -> int:
     cur = conn.cursor()
     cur.execute(
-        f"SELECT COALESCE(SUM(CASE WHEN type='credit' THEN amount ELSE -amount END),0) "
-        f"FROM {tbl('credit_transactions')} WHERE salon_id=%s", (salon_id,)
+        f"SELECT COALESCE(credits_balance, 0) FROM {tbl('salons')} WHERE id=%s", (salon_id,)
     )
-    return int(cur.fetchone()[0])
+    row = cur.fetchone()
+    return int(row[0]) if row else 0
 
 
 def deduct_energy(salon_id, user_id, cost, action, conn):
