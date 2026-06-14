@@ -38,7 +38,7 @@ const FORMAT = [
 
 const STEPS = [
   { num: "01", title: "Зарегистрируйтесь", desc: "Создайте аккаунт на платформе или войдите в личный кабинет" },
-  { num: "02", title: "Пополните баланс", desc: "Внесите 9 900 ₽ на баланс платформы удобным способом" },
+  { num: "02", title: "Пополните баланс", desc: "Внесите 9 990 ₽ на баланс платформы удобным способом" },
   { num: "03", title: "Запишитесь", desc: "В разделе «Академия» нажмите «Записаться» — место забронировано" },
   { num: "04", title: "Получите подтверждение", desc: "Менеджер свяжется с вами и сообщит ближайшую дату и адрес" },
 ];
@@ -142,7 +142,7 @@ export default function TreningProdazhi() {
                   transition: "all 0.3s",
                 }}>
                   <Icon name="Ticket" size={16} />
-                  Записаться — 9 900 ₽
+                  Записаться — 9 990 ₽
                 </Link>
                 <button onClick={() => setShowModal(true)} style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
@@ -176,7 +176,7 @@ export default function TreningProdazhi() {
                 { icon: "Users", label: "Размер группы", value: "до 20 человек" },
                 { icon: "CalendarDays", label: "График", value: "По воскресеньям" },
                 { icon: "MapPin", label: "Место", value: "Центр Москвы" },
-                { icon: "Banknote", label: "Участие", value: "9 900 ₽" },
+                { icon: "Banknote", label: "Участие", value: "9 990 ₽" },
                 { icon: "Zap", label: "Бонус", value: "+1500 Энергии" },
               ].map(r => (
                 <div key={r.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 14, marginBottom: 14, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -385,7 +385,7 @@ export default function TreningProdazhi() {
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <Link to="/cabinet" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "16px 32px", borderRadius: 2, background: `linear-gradient(135deg, ${PURPLE}, hsl(270,65%,38%))`, color: "#fff", fontSize: 16, fontWeight: 600, textDecoration: "none", boxShadow: `0 8px 32px hsla(270,65%,52%,0.4)` }}>
               <Icon name="Ticket" size={18} />
-              Записаться — 9 900 ₽
+              Записаться — 9 990 ₽
             </Link>
             <button onClick={() => setShowModal(true)} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "16px 24px", borderRadius: 2, border: "1px solid rgba(255,255,255,0.2)", background: "transparent", color: "#fff", fontSize: 15, fontWeight: 400, cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
               <Icon name="Calendar" size={16} />
