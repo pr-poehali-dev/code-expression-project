@@ -50,6 +50,8 @@ const ENERGY_FEATURES = [
   { icon: "Star", text: "Ответы на отзывы (позитивные и негативные)" },
   { icon: "Brain", text: "ИИ-агенты для бизнеса" },
   { icon: "TrendingUp", text: "Инструменты для удержания и возврата клиентов" },
+  { icon: "Tag", text: "Генератор акций" },
+  { icon: "Gift", text: "Генератор подарочных сертификатов" },
 ];
 
 function DateModal({ onClose }: { onClose: () => void }) {
