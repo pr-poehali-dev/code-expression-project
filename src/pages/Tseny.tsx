@@ -92,8 +92,8 @@ export default function Tseny() {
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="energy-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
             {EXPLAINER.map((e, i) => (
-              <div key={i} style={{ background: "#fff", padding: "48px 40px", textAlign: "center" }}>
-                <div style={{ width: 56, height: 56, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 28px" }}>
+              <div key={i} style={{ background: "#fff", padding: "48px 40px", textAlign: "left" }}>
+                <div style={{ width: 56, height: 56, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 0 28px" }}>
                   <Icon name={e.icon} size={24} style={{ color: TEAL }} />
                 </div>
                 <h3 style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 600, color: DARK, margin: "0 0 12px" }}>{e.title}</h3>
