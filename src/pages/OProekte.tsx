@@ -186,7 +186,7 @@ export default function OProekte() {
             ))}
           </div>
 
-          <div style={{ marginTop: 48, padding: "32px 40px", background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 4, textAlign: "center" }}>
+          <div style={{ marginTop: 48, padding: "32px 40px", background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 4, textAlign: "left" }}>
             <p style={{ fontSize: 16, color: GRAY, margin: "0 0 8px", lineHeight: 1.7, fontWeight: 300 }}>
               Мы не заменяем эксперта искусственным интеллектом.
             </p>
