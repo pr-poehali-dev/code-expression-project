@@ -79,7 +79,7 @@ export default function Akademiya() {
         <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
 
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "center", position: "relative" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "left", position: "relative" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
             <Icon name="GraduationCap" size={14} style={{ color: TEAL }} />
             <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Академия Про Диалог</span>
@@ -88,13 +88,13 @@ export default function Akademiya() {
           <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
             Академия Про Диалог
           </h1>
-          <p style={{ fontSize: "clamp(16px,1.8vw,20px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 auto 20px", fontWeight: 300, maxWidth: 620 }}>
+          <p style={{ fontSize: "clamp(16px,1.8vw,20px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 20px", fontWeight: 300, maxWidth: 620 }}>
             Пространство профессионального и личного роста для команды салона.
           </p>
-          <p style={{ fontSize: "clamp(14px,1.4vw,16px)", color: "rgba(255,255,255,0.42)", lineHeight: 1.8, margin: "0 auto", fontWeight: 300, maxWidth: 680 }}>
+          <p style={{ fontSize: "clamp(14px,1.4vw,16px)", color: "rgba(255,255,255,0.42)", lineHeight: 1.8, margin: "0", fontWeight: 300, maxWidth: 680 }}>
             Сильный салон начинается с сильных людей. Академия Про Диалог помогает развивать мышление, коммуникацию, лидерские качества и профессиональные навыки, которые напрямую влияют на доверие клиентов и финансовый результат.
           </p>
-          <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: "rgba(255,255,255,0.3)", lineHeight: 1.7, margin: "20px auto 0", fontWeight: 300, maxWidth: 580 }}>
+          <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: "rgba(255,255,255,0.3)", lineHeight: 1.7, margin: "20px 0 0", fontWeight: 300, maxWidth: 580 }}>
             Это не просто набор уроков. Это система развития владельца, администратора, мастера и специалиста по телу.
           </p>
         </div>
