@@ -62,6 +62,40 @@ export function OfflineParticipantsSection({ courses }: { courses: Course[] }) {
     load(id);
   };
 
+  const exportCsv = () => {
+    if (!participants.length) return;
+    const list = selectedCourseId === "all" ? participants
+      : participants.filter(p => p.course_id === selectedCourseId);
+
+    const esc = (v: string | undefined) => `"${(v || "").replace(/"/g, '""')}"`;
+    const rows = [
+      ["Тренинг", "Дата", "Имя", "Email", "Username", "Сегмент", "Салон", "Город", "Адрес", "Telegram", "Дата записи"].join(";"),
+      ...list.map(p => [
+        esc(p.course_title),
+        esc(p.event_date || ""),
+        esc(p.full_name),
+        esc(p.email),
+        esc(p.username),
+        esc(p.segment),
+        esc(p.salon_name),
+        esc(p.salon_city),
+        esc(p.salon_address),
+        esc(p.salon_telegram),
+        esc(new Date(p.granted_at).toLocaleString("ru-RU")),
+      ].join(";"))
+    ];
+
+    const bom = "\uFEFF";
+    const blob = new Blob([bom + rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const name = selectedCourseId === "all" ? "все_тренинги" : (list[0]?.course_title || "тренинг");
+    a.download = `участники_${name.replace(/\s+/g, "_")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // Группируем по курсу
   const grouped = participants.reduce<Record<number, Participant[]>>((acc, p) => {
     if (!acc[p.course_id]) acc[p.course_id] = [];
@@ -76,10 +110,18 @@ export function OfflineParticipantsSection({ courses }: { courses: Course[] }) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a" }}>
           Участники офлайн-тренингов
+          <span style={{ fontSize: 13, fontWeight: 400, color: "#aaa", marginLeft: 10 }}>{participants.length} чел.</span>
         </div>
-        <div style={{ fontSize: 13, color: "#888" }}>
-          Всего: {participants.length} чел.
-        </div>
+        {participants.length > 0 && (
+          <button onClick={exportCsv} style={{
+            display: "flex", alignItems: "center", gap: 6,
+            padding: "8px 16px", borderRadius: 9, border: `1.5px solid ${ACCENT}`,
+            background: "#fff", color: ACCENT, fontSize: 13, fontWeight: 600,
+            cursor: "pointer", fontFamily: "Montserrat, sans-serif",
+          }}>
+            <Icon name="Download" size={14} /> Скачать CSV
+          </button>
+        )}
       </div>
 
       {/* Фильтр по тренингу */}
