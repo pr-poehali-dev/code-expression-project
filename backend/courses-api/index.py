@@ -198,6 +198,33 @@ def send_buyer_email(user, course, cost, reward):
       Перейти в личный кабинет
     </a>
 
+    <div style="border-radius:12px;border:1px solid #e5e7eb;padding:20px 24px;margin-bottom:24px;">
+      <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">📌</span> Условия отмены и переноса
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="padding:7px 0;vertical-align:top;width:20px;">
+            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#7c3aed;margin-top:6px;"></span>
+          </td>
+          <td style="padding:7px 0;font-size:14px;color:#374151;line-height:1.6;">
+            <strong>Перенос возможен</strong> — если вы сообщите об этом <strong>не позднее чем за 24 часа</strong> до начала тренинга. Мы подберём для вас другую удобную дату.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:7px 0;vertical-align:top;">
+            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#ef4444;margin-top:6px;"></span>
+          </td>
+          <td style="padding:7px 0;font-size:14px;color:#374151;line-height:1.6;">
+            Если вы <strong>не предупредили за 24 часа</strong> или не явились без уведомления — запись аннулируется, стоимость участия не возвращается. При этом начисленная энергия остаётся на вашем балансе и доступна для использования на платформе.
+          </td>
+        </tr>
+      </table>
+      <p style="margin:12px 0 0;font-size:13px;color:#9ca3af;line-height:1.6;">
+        Для отмены или переноса напишите нам: <a href="mailto:{FROM_EMAIL}" style="color:#7c3aed;text-decoration:none;">{FROM_EMAIL}</a>
+      </p>
+    </div>
+
     <p style="font-size:13px;color:#aaa;text-align:center;margin:0;line-height:1.6;">
       Если у вас есть вопросы — напишите нам на <a href="mailto:{FROM_EMAIL}" style="color:#7c3aed;">{FROM_EMAIL}</a>
     </p>
