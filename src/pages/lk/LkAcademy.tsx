@@ -274,7 +274,7 @@ function OfflineCourseCard({ course, onBought }: { course: DbCourse; onBought: (
         {(course.energy_reward ?? 0) > 0 && (
           <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "hsl(40,90%,40%)", background: "hsl(40,90%,96%)", borderRadius: 8, padding: "6px 10px" }}>
             <Icon name="Zap" size={13} />
-            <span>+{course.energy_reward} Энергии после участия</span>
+            <span>+{course.energy_reward} Энергии вернётся сразу после оплаты</span>
           </div>
         )}
 
