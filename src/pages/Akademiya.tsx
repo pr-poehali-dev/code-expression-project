@@ -210,7 +210,7 @@ export default function Akademiya() {
 
       {/* ── ПОЧЕМУ АКАДЕМИЯ ОТЛИЧАЕТСЯ ── */}
       <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
-        <div style={{ maxWidth: 900, textAlign: "left" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "left" }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Наш подход</div>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 28px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
             Почему Академия отличается
