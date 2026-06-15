@@ -145,16 +145,17 @@ export default function TreningProdazhi() {
                   <Icon name="Ticket" size={16} />
                   Записаться — 9 990 ₽
                 </Link>
-                <button onClick={() => setShowModal(true)} style={{
+                <Link to="/cabinet" style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
                   padding: "14px 24px", borderRadius: 2,
                   border: "1px solid rgba(255,255,255,0.2)",
                   background: "transparent", color: "#fff", fontSize: 15, fontWeight: 400,
                   cursor: "pointer", fontFamily: "Inter, sans-serif", transition: "all 0.3s",
+                  textDecoration: "none",
                 }}>
                   <Icon name="Calendar" size={16} />
                   Узнать ближайшую дату
-                </button>
+                </Link>
               </div>
 
               {/* Энергия-бейдж */}
