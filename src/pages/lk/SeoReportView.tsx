@@ -91,6 +91,54 @@ function buildCodeBlock(result: AnalysisResult): string {
     lines.push(``);
   }
 
+  // Текстовые рекомендации по контенту
+  const ca = report.content_analysis;
+  const contentRecs: string[] = [];
+  if (ca?.word_count_comment) contentRecs.push(`Объём текста: ${ca.word_count_comment}`);
+  if (ca?.cta_recommendation) contentRecs.push(`CTA (призыв к действию): ${ca.cta_recommendation}`);
+  if (ca?.services_recommendation) contentRecs.push(`Услуги: ${ca.services_recommendation}`);
+  if (ca?.local_seo_recommendation) contentRecs.push(`Локальное SEO: ${ca.local_seo_recommendation}`);
+  if ((ca as { readability?: string })?.readability) contentRecs.push(`Читаемость: ${(ca as { readability?: string }).readability}`);
+  if ((ca as { uniqueness_risk?: string })?.uniqueness_risk) contentRecs.push(`Уникальность: ${(ca as { uniqueness_risk?: string }).uniqueness_risk}`);
+
+  if (contentRecs.length) {
+    lines.push(`<!-- ═══════════ РЕКОМЕНДАЦИИ ПО КОНТЕНТУ СТРАНИЦЫ ═══════════ -->`);
+    contentRecs.forEach(r => lines.push(`<!-- ${r} -->`));
+    lines.push(``);
+  }
+
+  // Улучшения в текстовом виде (не HTML-код)
+  const improvText = (report.improvements || []).filter(imp =>
+    imp.better &&
+    !imp.example?.toLowerCase().includes("robots") &&
+    !imp.better.toLowerCase().includes("sitemap")
+  );
+  if (improvText.length) {
+    lines.push(`<!-- ═══════════ ЧТО ПЕРЕПИСАТЬ/ДОБАВИТЬ НА СТРАНИЦЕ ═══════════ -->`);
+    improvText.forEach(imp => {
+      lines.push(`<!-- [${imp.area}] -->`);
+      if (imp.current) lines.push(`<!-- Сейчас: ${imp.current} -->`);
+      lines.push(`<!-- Как лучше: ${imp.better} -->`);
+      lines.push(``);
+    });
+  }
+
+  if (report.quick_wins?.length) {
+    lines.push(`<!-- ═══════════ БЫСТРЫЕ УЛУЧШЕНИЯ БЕЗ РАЗРАБОТЧИКА ═══════════ -->`);
+    report.quick_wins.forEach((w, i) => lines.push(`<!-- ${i + 1}. ${w} -->`));
+    lines.push(``);
+  }
+
+  const gr = (report as { growth_opportunities?: string[] }).growth_opportunities;
+  if (gr?.length) {
+    lines.push(`<!-- ═══════════ ТОЧКИ РОСТА ═══════════ -->`);
+    gr.forEach((g, i) => lines.push(`<!-- ${i + 1}. ${g} -->`));
+    lines.push(``);
+  }
+
+  lines.push(`<!-- ═══════════ ИТОГ ═══════════ -->`);
+  lines.push(`<!-- ${report.summary} -->`);
+
   return lines.join("\n");
 }
 
