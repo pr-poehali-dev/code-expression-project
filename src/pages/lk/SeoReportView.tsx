@@ -99,6 +99,19 @@ export default function SeoReportView({ result, onBack }: { result: AnalysisResu
         )}
       </div>
 
+      {/* SPA-предупреждение */}
+      {page_data?.is_spa_shell && (
+        <div style={{ display: "flex", gap: 12, padding: "14px 18px", background: "#fff7ed", border: "1.5px solid #fed7aa", borderRadius: 12, alignItems: "flex-start" }}>
+          <Icon name="AlertTriangle" size={18} style={{ color: "#ea580c", flexShrink: 0, marginTop: 1 }} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#9a3412", marginBottom: 4 }}>Сайт на JavaScript — контент скрыт от поисковиков</div>
+            <div style={{ fontSize: 12, color: "#c2410c", lineHeight: 1.6 }}>
+              Страница рендерится через JS (React, Vue, Tilda SPA). Поисковые роботы видят пустой HTML без текста и заголовков страницы. Анализ мета-тегов выполнен, но контент страницы недоступен. Решение: включить SSR, пре-рендеринг или использовать статические HTML-страницы.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Табы */}
       <div style={{ display: "flex", gap: 3, background: "#F1F5F9", borderRadius: 12, padding: 4 }}>
         {TABS.map(t => (
