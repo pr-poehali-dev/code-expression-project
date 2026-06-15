@@ -381,7 +381,7 @@ export default function Tarify() {
 
       {/* КАРТОЧКИ */}
       <section style={{ padding: "0 0 80px" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px" }}>
+        <div style={{ maxWidth: 1140, margin: "0 auto", padding: "0 24px" }}>
           <div className="tp-grid">
             {PLANS.map((plan, i) => (
               <FadeIn key={plan.id} delay={i * 80} style={{ height: "100%" }}>

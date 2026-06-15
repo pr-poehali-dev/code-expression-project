@@ -133,7 +133,7 @@ export default function Vozmozhnosti() {
         <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
 
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "left", position: "relative" }}>
+        <div style={{ maxWidth: 1140, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "left", position: "relative" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
             <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Возможности</span>
@@ -228,7 +228,7 @@ export default function Vozmozhnosti() {
       {/* ── РАЗДЕЛЫ ── */}
       {SECTIONS.map((s, si) => (
         <section key={si} style={{ padding: "120px 32px", background: si % 2 === 0 ? "#fff" : "#F8FAFC" }}>
-          <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <div style={{ maxWidth: 1140, margin: "0 auto" }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 24, marginBottom: s.tools.length > 0 ? 64 : 0, flexWrap: "wrap" }}>
               <div style={{ width: 56, height: 56, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <Icon name={s.icon} size={26} style={{ color: TEAL }} />

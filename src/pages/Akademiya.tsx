@@ -99,7 +99,7 @@ export default function Akademiya() {
         <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
 
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "left", position: "relative" }}>
+        <div style={{ maxWidth: 1140, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "left", position: "relative" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
             <Icon name="GraduationCap" size={14} style={{ color: TEAL }} />
             <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Академия Про Диалог</span>
@@ -122,7 +122,7 @@ export default function Akademiya() {
 
       {/* ── МЕДИА-БАННЕР ── */}
       <section style={{ background: "#F8FAFC", padding: "120px 32px 0" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1140, margin: "0 auto" }}>
           <div style={{ position: "relative", borderRadius: 6, overflow: "hidden", boxShadow: "0 24px 64px rgba(15,23,42,0.18)" }}>
             <img
               src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/4a7b5d70-b350-442c-a621-708565ae81dd.jpg"
@@ -169,7 +169,7 @@ export default function Akademiya() {
 
       {/* ── ТРАЕКТОРИИ РАЗВИТИЯ ── */}
       <section style={{ padding: "120px 32px", background: "#fff" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1140, margin: "0 auto" }}>
           <div style={{ textAlign: "left", marginBottom: 72, maxWidth: 600 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Направления</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
