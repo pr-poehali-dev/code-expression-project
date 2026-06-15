@@ -26,7 +26,7 @@ export default function DokFooter() {
   const tgLink = getTelegramLink();
   return (
     <footer style={{ borderTop: "1px solid #e8e8e4", background: "#fff", fontFamily: "Montserrat, sans-serif" }}>
-      <div style={{ maxWidth: 1140, margin: "0 auto", padding: "56px 24px 40px" }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "56px 24px 40px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 40, marginBottom: 48 }}>
           {/* Brand */}
           <div>

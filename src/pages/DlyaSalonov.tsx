@@ -124,7 +124,7 @@ export default function DlyaSalonov() {
         <div style={{ position: "absolute", top: "0%", right: "-5%", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.08) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
 
-        <div style={{ maxWidth: 1140, margin: "0 auto", padding: "80px 32px", width: "100%" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "80px 32px", width: "100%" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 32 }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
             <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Для салонов красоты</span>
@@ -163,7 +163,7 @@ export default function DlyaSalonov() {
 
       {/* ── СИСТЕМА РОЛЕЙ ── */}
       <section style={{ padding: "80px 32px", background: "#F8FAFC" }}>
-        <div style={{ maxWidth: 1140, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
             <div style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 14 }}>Как работает платформа</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,46px)", fontWeight: 500, color: DARK, margin: "0 0 16px", lineHeight: 1.1 }}>Единый кабинет для всей команды</h2>
@@ -188,7 +188,7 @@ export default function DlyaSalonov() {
 
       {/* ── ТАРИФЫ ── */}
       <section id="tariffs" style={{ padding: "96px 32px", background: "#fff" }}>
-        <div style={{ maxWidth: 1140, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 60 }}>
             <div style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 14 }}>Форматы подключения</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,46px)", fontWeight: 500, color: DARK, margin: "0 0 16px", lineHeight: 1.1 }}>Выберите формат под ваш салон</h2>
@@ -253,7 +253,7 @@ export default function DlyaSalonov() {
 
       {/* ── АУДИТ САЛОНА ── */}
       <section id="audit" style={{ padding: "96px 32px", background: "#F8FAFC" }}>
-        <div style={{ maxWidth: 1140, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
 
           {/* Заголовок */}
           <div style={{ maxWidth: 760, marginBottom: 64 }}>
@@ -361,7 +361,7 @@ export default function DlyaSalonov() {
 
       {/* ── ДОПОЛНИТЕЛЬНЫЕ УСЛУГИ ── */}
       <section style={{ padding: "80px 32px", background: "#F8FAFC" }}>
-        <div style={{ maxWidth: 1140, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 52 }}>
             <div style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 14 }}>Дополнительно</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(26px,3vw,40px)", fontWeight: 500, color: DARK, margin: "0 0 16px", lineHeight: 1.1 }}>Отдельные услуги</h2>

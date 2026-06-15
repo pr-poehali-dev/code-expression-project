@@ -52,7 +52,7 @@ export default function DokNavbar() {
       borderBottom: "1px solid #e8e8e4",
       fontFamily: "Montserrat, sans-serif",
     }}>
-      <div style={{ maxWidth: 1140, margin: "0 auto", padding: "0 24px", height: 68, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px", height: 68, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <a href="/" style={{ textDecoration: "none", display: "flex", alignItems: "baseline", gap: 4, flexShrink: 0 }}>
           <span style={{ fontFamily: "Cormorant, serif", fontSize: 26, fontWeight: 700, color: "#1a1a1a" }}>Dok</span>
           <span style={{ fontFamily: "Cormorant, serif", fontSize: 26, fontWeight: 700, color: ACCENT }}> Диалог</span>

@@ -118,7 +118,7 @@ export default function TreningProdazhi() {
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "48px 48px", pointerEvents: "none" }} />
         <div style={{ position: "absolute", top: "30%", right: "10%", width: 500, height: 500, borderRadius: "50%", background: `radial-gradient(circle, hsla(270,65%,52%,0.12) 0%, transparent 65%)`, pointerEvents: "none" }} />
 
-        <div style={{ maxWidth: 1140, margin: "0 auto", padding: "0 32px" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 32px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: 64, alignItems: "center" }} className="hero-training-grid">
             <div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)", borderRadius: 100, padding: "6px 16px", fontSize: 12, fontWeight: 600, color: "#c4b5fd", marginBottom: 28, letterSpacing: "0.05em" }}>
@@ -198,7 +198,7 @@ export default function TreningProdazhi() {
       </section>
 
       {/* ── О ТРЕНИНГЕ ────────────────────────────────────────────────────────── */}
-      <section style={{ padding: "80px 32px", maxWidth: 1140, margin: "0 auto" }}>
+      <section style={{ padding: "80px 32px", maxWidth: 1280, margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }} className="about-training-grid">
           <div>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 16 }}>ЧТО ВАС ЖДЁТ?</div>
@@ -239,7 +239,7 @@ export default function TreningProdazhi() {
 
       {/* ── ЧТО ВЫ ПОЛУЧИТЕ ────────────────────────────────────────────────────── */}
       <section style={{ background: "#f8fafc", padding: "80px 32px" }}>
-        <div style={{ maxWidth: 1140, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 52 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 12 }}>РЕЗУЛЬТАТЫ</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 600, color: DARK, margin: 0 }}>
@@ -260,7 +260,7 @@ export default function TreningProdazhi() {
       </section>
 
       {/* ── О ВЕДУЩЕМ ───────────────────────────────────────────────────────────── */}
-      <section style={{ padding: "80px 32px", maxWidth: 1140, margin: "0 auto" }}>
+      <section style={{ padding: "80px 32px", maxWidth: 1280, margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "380px 1fr", gap: 64, alignItems: "center" }} className="speaker-grid">
           <div style={{ position: "relative" }}>
             <div style={{ aspectRatio: "3/4", borderRadius: 24, background: `linear-gradient(135deg, ${DARK}, hsl(270,40%,15%))`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
@@ -305,7 +305,7 @@ export default function TreningProdazhi() {
 
       {/* ── КАК ПРОХОДИТ ────────────────────────────────────────────────────────── */}
       <section style={{ background: "#f8fafc", padding: "80px 32px" }}>
-        <div style={{ maxWidth: 1140, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 52 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 12 }}>ФОРМАТ</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 600, color: DARK, margin: 0 }}>
@@ -328,7 +328,7 @@ export default function TreningProdazhi() {
       {/* ── ЭНЕРГИЯ ─────────────────────────────────────────────────────────────── */}
       <section style={{ background: DARK, padding: "80px 32px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 800, height: 800, borderRadius: "50%", background: "radial-gradient(circle, hsla(40,90%,50%,0.06) 0%, transparent 65%)", pointerEvents: "none" }} />
-        <div style={{ maxWidth: 1140, margin: "0 auto", position: "relative" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative" }}>
           <div style={{ textAlign: "center", marginBottom: 52 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,193,7,0.12)", border: "1px solid rgba(255,193,7,0.25)", borderRadius: 100, padding: "6px 18px", fontSize: 12, fontWeight: 600, color: "hsl(40,90%,65%)", marginBottom: 16, letterSpacing: "0.05em" }}>
               <Icon name="Zap" size={12} /> +1500 ЭНЕРГИИ ПОСЛЕ УЧАСТИЯ
@@ -354,7 +354,7 @@ export default function TreningProdazhi() {
       </section>
 
       {/* ── КАК ПОПАСТЬ ─────────────────────────────────────────────────────────── */}
-      <section style={{ padding: "80px 32px", maxWidth: 1140, margin: "0 auto" }}>
+      <section style={{ padding: "80px 32px", maxWidth: 1280, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 52 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 12 }}>КАК ПОПАСТЬ</div>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 600, color: DARK, margin: 0 }}>

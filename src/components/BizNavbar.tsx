@@ -34,7 +34,7 @@ export default function BizNavbar() {
       transition: "all 0.4s ease",
       fontFamily: "Inter, sans-serif",
     }}>
-      <div style={{ maxWidth: 1140, margin: "0 auto", padding: "0 32px", height: 76, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 32px", height: 76, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Link to="/" style={{ textDecoration: "none" }}>
           <BrandLogo variant="light" size="md" />
         </Link>

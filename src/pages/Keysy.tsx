@@ -70,7 +70,7 @@ export default function Keysy() {
         <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
 
-        <div style={{ maxWidth: 1140, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "left", position: "relative" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "left", position: "relative" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
             <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Кейсы</span>
@@ -86,7 +86,7 @@ export default function Keysy() {
 
       {/* ── СТАТИСТИКА ── */}
       <section style={{ background: DARK, padding: "0 32px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-        <div style={{ maxWidth: 1140, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "rgba(255,255,255,0.06)" }} className="stats-grid">
+        <div style={{ maxWidth: 1280, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "rgba(255,255,255,0.06)" }} className="stats-grid">
           {STATS.map((s, i) => (
             <div key={i} style={{ background: DARK, padding: "56px 24px", textAlign: "center" }}>
               <div style={{ fontFamily: SERIF, fontSize: "clamp(40px,5vw,56px)", fontWeight: 600, color: "#fff", lineHeight: 1 }}>{s.value}</div>
@@ -98,7 +98,7 @@ export default function Keysy() {
 
       {/* ── КЕЙСЫ ── */}
       <section style={{ padding: "120px 32px", background: "#F8FAFC" }}>
-        <div style={{ maxWidth: 1140, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ textAlign: "left", marginBottom: 72, maxWidth: 600 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Истории</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
