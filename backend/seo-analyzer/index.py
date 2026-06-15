@@ -196,7 +196,9 @@ def parse_html(body: str, url: str) -> dict:
     text = html.unescape(text)
     text = re.sub(r"\s+", " ", text).strip()
     word_count = len(text.split())
-    text = text[:3000]
+    # Определяем: рендерится ли страница на сервере или это SPA (пустой HTML)
+    is_spa_shell = word_count < 50
+    text = text[:5000]
 
     # Ссылки (с учётом rel=nofollow)
     domain = urllib.parse.urlparse(url).netloc
@@ -220,6 +222,7 @@ def parse_html(body: str, url: str) -> dict:
     has_viewport = bool(re.search(r'<meta[^>]+name=["\']viewport["\']', body, re.IGNORECASE))
     has_favicon = bool(re.search(r'<link[^>]+rel=["\'][^"\']*icon[^"\']*["\']', body, re.IGNORECASE))
 
+    print(f"[SEO] URL={url} | title={title!r} | words={word_count} | is_spa={is_spa_shell} | h1={headings.get('h1','')}")
     return {
         "url": url,
         "title": title,
@@ -241,6 +244,7 @@ def parse_html(body: str, url: str) -> dict:
         "schema_raw": schema_raw,
         "text_preview": text,
         "word_count": word_count,
+        "is_spa_shell": is_spa_shell,
         "internal_links": len(internal),
         "external_links": len(external),
         "nofollow_links": nofollow_count,
@@ -280,22 +284,32 @@ def analyze_with_ai(page_data: dict, salon_context: str, lang: str = "ru") -> di
     schema_str = ", ".join(page_data.get("schema_types", [])) or "не найдено"
     domain = urllib.parse.urlparse(page_data["url"]).netloc
 
+    parsed_url = urllib.parse.urlparse(page_data["url"])
+    path = parsed_url.path.rstrip("/") or "/"
+    is_main_page = path == "/"
+    page_type_note = "ГЛАВНАЯ СТРАНИЦА сайта" if is_main_page else f"ПОДСТРАНИЦА сайта: {path}"
+    spa_warning = "\n⚠️ ВНИМАНИЕ: страница рендерится через JavaScript (SPA/React/Vue). HTML пришёл пустым — мета-теги и заголовки взяты из исходного HTML, но видимый текст страницы недоступен для краулеров без JS-рендеринга. Это КРИТИЧЕСКАЯ SEO-проблема." if page_data.get("is_spa_shell") else ""
+
     system = f"""Ты — опытный SEO-специалист и маркетолог для салонов красоты.
-КРИТИЧЕСКИ ВАЖНО: в каждом поле suggestion/example пиши ПОЛНЫЙ готовый HTML-тег или код для вставки без доработки.
-Никаких заглушек "[название]" — только конкретные варианты на основе контента страницы.
+КРИТИЧЕСКИ ВАЖНО: анализируй СТРОГО ТУ СТРАНИЦУ, URL которой передан. Не придумывай контент — работай только с тем, что извлечено из HTML.
+В каждом поле suggestion/example пиши ПОЛНЫЙ готовый HTML-тег или код для вставки без доработки.
+Никаких заглушек "[название]" — только конкретные варианты на основе реального контента страницы.
 Отвечай строго в JSON-формате без markdown-блоков.
 
 {salon_context}"""
 
-    prompt = f"""Проанализируй SEO страницы сайта салона.
+    prompt = f"""Проанализируй SEO страницы сайта.
 
+ТИП: {page_type_note}{spa_warning}
 URL: {page_data['url']}
 МЕТА: Title={page_data['title']!r}({page_data['title_len']}с) | Desc={page_data['description']!r}({page_data['desc_len']}с) | Keywords={page_data['keywords']!r} | Robots={page_data['robots_meta']!r}
 Canonical={page_data['canonical']!r} | OG Image={'есть' if page_data['og_image'] else 'НЕТ'} | OG URL={page_data['og_url']!r}
 Twitter: card={page_data['twitter_card']!r} | Schema.org: {schema_str}
-ЗАГОЛОВКИ: {headings_str.strip() or 'нет'}
+ЗАГОЛОВКИ H1-H6: {headings_str.strip() or 'нет (критично!)'}
 ТЕХНИКА: viewport={'✓' if page_data['has_viewport'] else '✗'} | favicon={'✓' if page_data['has_favicon'] else '✗'} | img={page_data['images_count']}(без alt:{page_data['images_no_alt']}) | links={page_data['internal_links']}int/{page_data['external_links']}ext(nofollow:{page_data['nofollow_links']})
-КОНТЕНТ: {page_data['word_count']} слов | {page_data['text_preview']}
+ТЕКСТ СТРАНИЦЫ ({page_data['word_count']} слов): {page_data['text_preview'] or '(пусто — SPA/JS-рендеринг)'}
+
+ВАЖНО: все рекомендации должны быть специфичны для ЭТОЙ конкретной страницы ({page_data['url']}), не для сайта в целом.
 
 Верни JSON:
 {{
