@@ -168,6 +168,10 @@ def handler(event: dict, context) -> dict:
     msg["From"] = formataddr((str(Header("Про Диалог", "utf-8")), FROM_EMAIL))
     msg["To"] = to_email
     msg["Reply-To"] = FROM_EMAIL
+    msg["List-Unsubscribe"] = f"<mailto:{FROM_EMAIL}?subject=unsubscribe>"
+    msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+    msg["X-Mailer"] = "ProDialog Platform"
+    msg["Precedence"] = "bulk"
 
     msg.attach(MIMEText(html_content, "html", "utf-8"))
 
