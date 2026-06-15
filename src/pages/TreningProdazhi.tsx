@@ -57,10 +57,11 @@ const ENERGY_FEATURES = [
 function DateModal({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [sent, setSent] = useState(false);
 
   const submit = () => {
-    if (!name.trim() || !phone.trim()) return;
+    if (!name.trim() || !phone.trim() || !agreed) return;
     setSent(true);
   };
 
@@ -89,10 +90,19 @@ function DateModal({ onClose }: { onClose: () => void }) {
                 style={{ padding: "12px 14px", borderRadius: 10, border: "1.5px solid #e2e8f0", fontSize: 14, fontFamily: "Inter, sans-serif", outline: "none", width: "100%", boxSizing: "border-box" }} />
               <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Телефон или e-mail"
                 style={{ padding: "12px 14px", borderRadius: 10, border: "1.5px solid #e2e8f0", fontSize: 14, fontFamily: "Inter, sans-serif", outline: "none", width: "100%", boxSizing: "border-box" }} />
-              <button onClick={submit} disabled={!name.trim() || !phone.trim()}
-                style={{ padding: "14px", borderRadius: 10, border: "none", cursor: name.trim() && phone.trim() ? "pointer" : "default",
-                  background: name.trim() && phone.trim() ? `linear-gradient(135deg, ${TEAL}, #14B8A6)` : "#e2e8f0",
-                  color: name.trim() && phone.trim() ? DARK : "#aaa", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif" }}>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+                <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
+                  style={{ marginTop: 2, flexShrink: 0, accentColor: TEAL, width: 16, height: 16, cursor: "pointer" }} />
+                <span style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>
+                  Ознакомлен и согласен с условиями участия,{" "}
+                  <a href="/offer#16" target="_blank" style={{ color: TEAL, textDecoration: "none" }}>публичной офертой</a>{" "}
+                  и правилами платформы
+                </span>
+              </label>
+              <button onClick={submit} disabled={!name.trim() || !phone.trim() || !agreed}
+                style={{ padding: "14px", borderRadius: 10, border: "none", cursor: name.trim() && phone.trim() && agreed ? "pointer" : "default",
+                  background: name.trim() && phone.trim() && agreed ? `linear-gradient(135deg, ${TEAL}, #14B8A6)` : "#e2e8f0",
+                  color: name.trim() && phone.trim() && agreed ? DARK : "#aaa", fontSize: 15, fontWeight: 600, fontFamily: "Inter, sans-serif" }}>
                 Отправить заявку
               </button>
             </div>

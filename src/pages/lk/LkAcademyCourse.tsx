@@ -20,6 +20,7 @@ export default function LkAcademyCourse({ courseId, onBack, onNavigate }: Props)
   const [loading, setLoading] = useState(true);
   const [buying, setBuying] = useState(false);
   const [buyErr, setBuyErr] = useState("");
+  const [agreedOffer, setAgreedOffer] = useState(false);
   const [activeLesson, setActiveLesson] = useState<LessonFull | null>(null);
   const [lessonLoading, setLessonLoading] = useState(false);
   const [lessonErr, setLessonErr] = useState("");
@@ -113,10 +114,18 @@ export default function LkAcademyCourse({ courseId, onBack, onNavigate }: Props)
               : " Доступ бесплатный."}
           </div>
           {buyErr && <div style={{ fontSize: 13, color: "hsl(0,70%,55%)", marginBottom: 10, fontWeight: 600 }}>{buyErr}</div>}
+          <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginBottom: 12 }}>
+            <input type="checkbox" checked={agreedOffer} onChange={e => setAgreedOffer(e.target.checked)}
+              style={{ marginTop: 2, flexShrink: 0, accentColor: ACCENT, width: 15, height: 15, cursor: "pointer" }} />
+            <span style={{ fontSize: 12, color: "#555", lineHeight: 1.6 }}>
+              Ознакомлен и согласен с условиями участия и{" "}
+              <a href="/offer" target="_blank" style={{ color: ACCENT, textDecoration: "none" }}>публичной офертой</a>
+            </span>
+          </label>
           <button
             onClick={buyCourse}
-            disabled={buying}
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 24px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700, cursor: buying ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif" }}
+            disabled={buying || !agreedOffer}
+            style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 24px", borderRadius: 10, border: "none", background: agreedOffer ? ACCENT : "#e2e8f0", color: agreedOffer ? "#fff" : "#aaa", fontSize: 14, fontWeight: 700, cursor: buying || !agreedOffer ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif" }}
           >
             <Icon name="Unlock" size={15} />
             {buying ? "Открываем..." : course.access_cost > 0 ? `Получить доступ · ${course.access_cost} ⚡` : "Получить бесплатный доступ к тренингу"}
