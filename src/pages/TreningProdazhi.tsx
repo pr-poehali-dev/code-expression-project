@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
@@ -107,6 +108,30 @@ export default function TreningProdazhi() {
 
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", color: DARK }}>
+      <Helmet>
+        <title>Тренинг по продажам для мастеров и администраторов салона | Про Диалог</title>
+        <meta name="description" content="Однодневный живой тренинг Сергея Водопьянова — научитесь продавать через заботу, а не давление. Для мастеров и администраторов салонов красоты. Москва, 9 990 ₽." />
+        <meta name="keywords" content="тренинг по продажам для салона красоты, обучение мастеров продажам, тренинг для администратора салона, продажи в салоне красоты, Сергей Водопьянов тренинг" />
+        <link rel="canonical" href="https://promtdialog.ru/trening-prodazhi" />
+        <meta property="og:title" content="Тренинг по продажам для салона красоты — Про Диалог" />
+        <meta property="og:description" content="Живой тренинг: продажи через заботу, работа с возражениями, повторные записи. Москва, 9 990 ₽. Бонус — 1500 Энергий на платформу сразу после оплаты." />
+        <meta property="og:url" content="https://promtdialog.ru/trening-prodazhi" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Тренинг по продажам для мастеров и администраторов салона" />
+        <meta name="twitter:description" content="Однодневный тренинг в Москве — навыки продаж и коммуникации для специалистов салонов красоты. 9 990 ₽." />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Course",
+          "name": "Тренинг по продажам для мастеров и администраторов салона",
+          "description": "Однодневный живой тренинг по навыкам продаж и коммуникации для специалистов салонов красоты. Ведущий — Сергей Водопьянов.",
+          "provider": { "@type": "Organization", "name": "Про Диалог", "url": "https://promtdialog.ru" },
+          "url": "https://promtdialog.ru/trening-prodazhi",
+          "courseMode": "Presential",
+          "inLanguage": "ru",
+          "offers": { "@type": "Offer", "price": "9990", "priceCurrency": "RUB", "availability": "https://schema.org/InStock" }
+        })}</script>
+      </Helmet>
       <BizNavbar />
 
       {/* ── HERO ─────────────────────────────────────────────────────────────── */}
