@@ -133,20 +133,6 @@ export default function Keysy() {
         </div>
       </section>
 
-      {/* ── ПЛЕЙСХОЛДЕР ВИДЕО ── */}
-      <section style={{ padding: "0 32px 120px", background: "#F8FAFC" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{
-            width: "100%", height: 240, borderRadius: 4, border: "1px dashed #CBD5E1", background: "#fff",
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12,
-          }}>
-            <Icon name="Video" size={32} style={{ color: "#94A3B8" }} />
-            <div style={{ fontWeight: 400, color: "#94A3B8", fontSize: 14, letterSpacing: "0.5px" }}>Видео-отзывы клиентов</div>
-            <div style={{ fontSize: 12, color: "#CBD5E1" }}>Размер: 1100 × 240 px</div>
-          </div>
-        </div>
-      </section>
-
       {/* ── CTA ── */}
       <section style={{ background: "#fff", padding: "120px 32px" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "left", position: "relative", overflow: "hidden" }}>
