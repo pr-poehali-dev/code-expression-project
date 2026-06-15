@@ -272,10 +272,7 @@ export default function TreningProdazhi() {
                 style={{ position: "absolute", width: "100%", height: "100%", top: 0, left: 0 }}
               />
             </div>
-            <div style={{ position: "absolute", top: 20, right: -16, background: "#fff", borderRadius: 14, padding: "14px 18px", boxShadow: "0 8px 32px rgba(0,0,0,0.12)", border: "1.5px solid #f0f0ec" }}>
-              <div style={{ fontSize: 26, fontWeight: 800, color: PURPLE }}>17+</div>
-              <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.4 }}>лет в<br />салонном бизнесе</div>
-            </div>
+
           </div>
           <div>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 16 }}>О ВЕДУЩЕМ</div>
