@@ -330,13 +330,13 @@ export default function TreningProdazhi() {
         <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative" }}>
           <div style={{ textAlign: "center", marginBottom: 52 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,193,7,0.12)", border: "1px solid rgba(255,193,7,0.25)", borderRadius: 100, padding: "6px 18px", fontSize: 12, fontWeight: 600, color: "hsl(40,90%,65%)", marginBottom: 16, letterSpacing: "0.05em" }}>
-              <Icon name="Zap" size={12} /> +1500 ЭНЕРГИИ ПОСЛЕ УЧАСТИЯ
+              <Icon name="Zap" size={12} /> +1500 ЭНЕРГИИ СРАЗУ ПОСЛЕ ОПЛАТЫ
             </div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 600, color: "#fff", margin: "0 0 16px" }}>
               Энергия работает на вас
             </h2>
             <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", maxWidth: 540, margin: "0 auto", lineHeight: 1.7 }}>
-              После участия в тренинге на ваш баланс начисляются 1500 Энергии — используйте их на инструменты платформы
+              Сразу после оплаты и записи на тренинг на ваш баланс начисляются 1500 Энергии — используйте их на инструменты платформы уже сейчас
             </p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
