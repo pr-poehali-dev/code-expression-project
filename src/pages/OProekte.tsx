@@ -275,7 +275,7 @@ export default function OProekte() {
 
       {/* ── ВО ЧТО МЫ ВЕРИМ ── */}
       <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
-        <div style={{ maxWidth: 800, textAlign: "left" }}>
+        <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "left" }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Философия</div>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 32px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
             Во что мы верим
