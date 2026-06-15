@@ -263,12 +263,14 @@ export default function TreningProdazhi() {
       <section style={{ padding: "80px 32px", maxWidth: 1280, margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "380px 1fr", gap: 64, alignItems: "center" }} className="speaker-grid">
           <div style={{ position: "relative" }}>
-            <div style={{ aspectRatio: "3/4", borderRadius: 24, background: `linear-gradient(135deg, ${DARK}, hsl(270,40%,15%))`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-              <Icon name="User" size={80} style={{ color: "rgba(255,255,255,0.15)" }} />
-              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "linear-gradient(transparent, rgba(0,0,0,0.7))", padding: "40px 24px 24px" }}>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#fff" }}>Сергей Водопьянов</div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>Ведущий тренинга</div>
-              </div>
+            <div style={{ borderRadius: 24, overflow: "hidden", position: "relative", paddingTop: "56.25%", width: "100%" }}>
+              <iframe
+                src="https://kinescope.io/embed/3SMYK3W9Mnwx9CUjqtdZaB"
+                allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write; screen-wake-lock;"
+                frameBorder="0"
+                allowFullScreen
+                style={{ position: "absolute", width: "100%", height: "100%", top: 0, left: 0 }}
+              />
             </div>
             <div style={{ position: "absolute", top: 20, right: -16, background: "#fff", borderRadius: 14, padding: "14px 18px", boxShadow: "0 8px 32px rgba(0,0,0,0.12)", border: "1.5px solid #f0f0ec" }}>
               <div style={{ fontSize: 26, fontWeight: 800, color: PURPLE }}>17+</div>
