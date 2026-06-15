@@ -3,7 +3,7 @@ import Icon from "@/components/ui/icon";
 import { AnalysisResult, ACCENT, ACCENT_BG, ACCENT_BORDER, cardStyle, labelStyle } from "./SeoTypes";
 import { ScoreRing, StatusChip, SuggestionBox, CopyBtn } from "./SeoShared";
 
-type Tab = "overview" | "meta" | "content" | "keywords" | "tech";
+type Tab = "overview" | "meta" | "content" | "keywords" | "tech" | "code";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "overview",  label: "Обзор",    icon: "LayoutDashboard" },
@@ -11,7 +11,88 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "content",   label: "Контент",  icon: "FileText" },
   { id: "keywords",  label: "Ключи",    icon: "Search" },
   { id: "tech",      label: "Техника",  icon: "Settings2" },
+  { id: "code",      label: "Код",      icon: "Clipboard" },
 ];
+
+function buildCodeBlock(result: AnalysisResult): string {
+  const { report, url } = result;
+  const m = report.meta;
+  const lines: string[] = [];
+
+  lines.push(`<!-- SEO-исправления для страницы: ${url} -->`);
+  lines.push(`<!-- Оценка: ${report.score}/100 -->`);
+  lines.push(``);
+  lines.push(`<!-- ═══════════ МЕТА-ТЕГИ (вставить в <head>) ═══════════ -->`);
+  lines.push(``);
+
+  if (m?.title_suggestion) {
+    lines.push(`<!-- Title -->`);
+    lines.push(m.title_suggestion);
+    lines.push(``);
+  }
+  if (m?.description_suggestion) {
+    lines.push(`<!-- Meta Description -->`);
+    lines.push(m.description_suggestion);
+    lines.push(``);
+  }
+  if (m?.canonical_suggestion) {
+    lines.push(`<!-- Canonical -->`);
+    lines.push(m.canonical_suggestion);
+    lines.push(``);
+  }
+  if (m?.og_suggestion) {
+    lines.push(`<!-- Open Graph -->`);
+    lines.push(m.og_suggestion);
+    lines.push(``);
+  }
+  if (m?.twitter_suggestion) {
+    lines.push(`<!-- Twitter Card -->`);
+    lines.push(m.twitter_suggestion);
+    lines.push(``);
+  }
+  if (m?.schema_jsonld) {
+    lines.push(`<!-- Schema.org (JSON-LD) -->`);
+    lines.push(m.schema_jsonld);
+    lines.push(``);
+  }
+  if (m?.h1_suggestion) {
+    lines.push(`<!-- ═══════════ H1 ЗАГОЛОВОК (вставить в тело страницы) ═══════════ -->`);
+    lines.push(m.h1_suggestion);
+    lines.push(``);
+  }
+
+  const criticalExamples = (report.critical || []).filter(c => c.example && !c.example.includes("robots") && !c.example.includes("sitemap"));
+  if (criticalExamples.length) {
+    lines.push(`<!-- ═══════════ КРИТИЧЕСКИЕ ИСПРАВЛЕНИЯ ═══════════ -->`);
+    criticalExamples.forEach(c => {
+      lines.push(`<!-- ${c.issue} -->`);
+      lines.push(c.example);
+      lines.push(``);
+    });
+  }
+
+  const improvExamples = (report.improvements || []).filter(imp => imp.example && !imp.example.toLowerCase().includes("robots") && !imp.example.toLowerCase().includes("sitemap") && imp.example.trim().startsWith("<"));
+  if (improvExamples.length) {
+    lines.push(`<!-- ═══════════ ДОПОЛНИТЕЛЬНЫЕ УЛУЧШЕНИЯ ═══════════ -->`);
+    improvExamples.forEach(imp => {
+      lines.push(`<!-- ${imp.area} -->`);
+      lines.push(imp.example);
+      lines.push(``);
+    });
+  }
+
+  if (report.keyword_suggestions) {
+    const ks = report.keyword_suggestions;
+    lines.push(`<!-- ═══════════ КЛЮЧЕВЫЕ СЛОВА ═══════════ -->`);
+    lines.push(`<!-- Основные: ${ks.primary.join(", ")} -->`);
+    lines.push(`<!-- LSI: ${ks.secondary.join(", ")} -->`);
+    lines.push(`<!-- Длинный хвост: ${ks.long_tail.join(", ")} -->`);
+    if (ks.comment) lines.push(`<!-- Совет: ${ks.comment} -->`);
+    lines.push(``);
+  }
+
+  return lines.join("\n");
+}
 
 function exportText(result: AnalysisResult): string {
   const { report, page_data, url } = result;
@@ -359,6 +440,54 @@ export default function SeoReportView({ result, onBack }: { result: AnalysisResu
           )}
         </div>
       )}
+
+      {/* ── Код для вставки ── */}
+      {tab === "code" && (() => {
+        const code = buildCodeBlock(result);
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ ...cardStyle, padding: "20px 22px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>Готовый код для разработчика</div>
+                  <div style={{ fontSize: 12, color: "#64748B", lineHeight: 1.6 }}>
+                    Все исправления собраны в один блок. Скопируйте и отправьте разработчику или в чат с ИИ для применения.
+                    <br />Robots.txt и карта сайта — настраиваются отдельно на сервере.
+                  </div>
+                </div>
+                <CopyBtn text={code} />
+              </div>
+              <div style={{ background: "#0F172A", borderRadius: 12, padding: "20px", overflow: "auto", position: "relative" }}>
+                <pre style={{ margin: 0, fontSize: 12, color: "#e2e8f0", lineHeight: 1.7, fontFamily: "monospace", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{code}</pre>
+              </div>
+            </div>
+
+            <div style={{ ...cardStyle, padding: "16px 20px" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 10 }}>Что включено в блок</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {[
+                  { label: "Title", ok: !!report.meta?.title_suggestion },
+                  { label: "Meta Description", ok: !!report.meta?.description_suggestion },
+                  { label: "Canonical URL", ok: !!report.meta?.canonical_suggestion },
+                  { label: "Open Graph теги", ok: !!report.meta?.og_suggestion },
+                  { label: "Twitter Card теги", ok: !!report.meta?.twitter_suggestion },
+                  { label: "Schema.org (JSON-LD)", ok: !!report.meta?.schema_jsonld },
+                  { label: "H1 заголовок", ok: !!report.meta?.h1_suggestion },
+                  { label: "Ключевые слова", ok: !!report.keyword_suggestions },
+                  { label: "Robots.txt", ok: false, skip: true },
+                  { label: "Sitemap.xml", ok: false, skip: true },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: item.skip ? "#94A3B8" : item.ok ? "#16a34a" : "#94A3B8" }}>
+                    <Icon name={item.skip ? "Minus" : item.ok ? "CheckCircle2" : "Circle"} size={14} style={{ flexShrink: 0 }} />
+                    {item.label}
+                    {item.skip && <span style={{ fontSize: 11, color: "#CBD5E1" }}>— настраивается на сервере</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Техника ── */}
       {tab === "tech" && (
