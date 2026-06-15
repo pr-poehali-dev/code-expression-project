@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
@@ -98,6 +99,30 @@ const HOW_STEPS = [
 export default function Vozmozhnosti() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
+      <Helmet>
+        <title>Возможности платформы — маркетинг, обучение и ИИ для салона | Про Диалог</title>
+        <meta name="description" content="Более 20 инструментов для роста салона красоты: генератор постов, сценарии Reels, SEO-оптимизация, анализ персонала, скрипты продаж, обучение команды. Попробуйте бесплатно." />
+        <meta name="keywords" content="инструменты для салона красоты, маркетинг для салона, обучение персонала, ИИ для салона, платформа управления салоном" />
+        <link rel="canonical" href="https://promtdialog.ru/vozmozhnosti" />
+        <meta property="og:title" content="Возможности платформы Про Диалог — всё для роста салона" />
+        <meta property="og:description" content="Более 20 интеллектуальных инструментов: маркетинг, управление, продажи, обучение команды. Всё в одном кабинете." />
+        <meta property="og:url" content="https://promtdialog.ru/vozmozhnosti" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Возможности платформы Про Диалог" />
+        <meta name="twitter:description" content="Более 20 инструментов для роста салона: маркетинг, ИИ, обучение команды." />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "Про Диалог",
+          "url": "https://promtdialog.ru",
+          "applicationCategory": "BusinessApplication",
+          "description": "Платформа роста салона красоты: маркетинг, управление, обучение персонала и ИИ-инструменты в одном кабинете.",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB", "description": "100 энергий в подарок при регистрации" },
+          "featureList": ["Генератор постов", "Сценарии Reels", "SEO-оптимизация", "Анализ персонала", "Скрипты продаж", "Обучение команды"],
+          "operatingSystem": "Web"
+        })}</script>
+      </Helmet>
       <BizNavbar />
 
       {/* ── HERO ── */}

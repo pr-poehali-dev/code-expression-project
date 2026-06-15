@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
@@ -69,6 +70,25 @@ const TRAJECTORIES = [
 export default function Akademiya() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
+      <Helmet>
+        <title>Академия Про Диалог — обучение для специалистов салона красоты</title>
+        <meta name="description" content="Профессиональные курсы и тренинги для мастеров, администраторов и владельцев салонов. Обучение по коммуникациям, продажам, управлению и развитию сервиса." />
+        <meta name="keywords" content="академия для салона красоты, обучение мастеров, курсы для администраторов, тренинги для салона" />
+        <link rel="canonical" href="https://promtdialog.ru/akademiya" />
+        <meta property="og:title" content="Академия Про Диалог — профессиональное обучение для салонов" />
+        <meta property="og:description" content="Курсы и тренинги для всей команды салона: коммуникации, продажи, управление, сервис." />
+        <meta property="og:url" content="https://promtdialog.ru/akademiya" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "EducationalOrganization",
+          "name": "Академия Про Диалог",
+          "url": "https://promtdialog.ru/akademiya",
+          "description": "Профессиональные курсы и тренинги для специалистов салонов красоты.",
+          "parentOrganization": { "@type": "Organization", "name": "Про Диалог", "url": "https://promtdialog.ru" }
+        })}</script>
+      </Helmet>
       <BizNavbar />
 
       {/* ── HERO ── */}

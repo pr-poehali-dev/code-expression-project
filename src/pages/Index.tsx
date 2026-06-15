@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
@@ -42,6 +43,26 @@ const PROBLEMS = [
 export default function Index() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
+      <Helmet>
+        <title>Про Диалог — Платформа роста салона красоты</title>
+        <meta name="description" content="ИИ-платформа для салонов красоты: маркетинг, управление, обучение персонала и аналитика в одном кабинете. 100 энергий в подарок при регистрации." />
+        <meta name="keywords" content="платформа для салона красоты, управление салоном, ИИ для салона, обучение мастеров, маркетинг для салона" />
+        <link rel="canonical" href="https://promtdialog.ru/" />
+        <meta property="og:title" content="Про Диалог — Платформа роста салона красоты" />
+        <meta property="og:description" content="Маркетинг, управление, обучение и ИИ-инструменты для роста вашего салона. Попробуйте бесплатно." />
+        <meta property="og:url" content="https://promtdialog.ru/" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Про Диалог",
+          "url": "https://promtdialog.ru",
+          "description": "Платформа роста салона красоты через коммуникацию, обучение персонала и искусственный интеллект.",
+          "sameAs": [],
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB", "description": "100 энергий бесплатно при регистрации" }
+        })}</script>
+      </Helmet>
       <BizNavbar />
 
       {/* ── HERO ── */}

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
@@ -63,6 +64,24 @@ const FAQ = [
 export default function Tseny() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
+      <Helmet>
+        <title>Цены и тарифы — энергия для работы с платформой | Про Диалог</title>
+        <meta name="description" content="Гибкая система энергии: платите только за то, что используете. Пакеты от 500 до 5000 энергий. 100 энергий бесплатно при регистрации." />
+        <meta name="keywords" content="цены Про Диалог, тарифы для салона, стоимость платформы для салона красоты" />
+        <link rel="canonical" href="https://promtdialog.ru/tseny" />
+        <meta property="og:title" content="Цены и тарифы Про Диалог — платите только за результат" />
+        <meta property="og:description" content="Гибкая система энергии без подписки. 100 энергий бесплатно при регистрации." />
+        <meta property="og:url" content="https://promtdialog.ru/tseny" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "PriceSpecification",
+          "name": "Тарифы Про Диалог",
+          "description": "Гибкая система энергии для платформы роста салона. Нет подписки — платите только за использование.",
+          "url": "https://promtdialog.ru/tseny"
+        })}</script>
+      </Helmet>
       <BizNavbar />
 
       {/* ── HERO ── */}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
@@ -70,6 +71,17 @@ export default function DlyaKogo() {
 
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
+      <Helmet>
+        <title>Для кого платформа — владельцы, администраторы, мастера | Про Диалог</title>
+        <meta name="description" content="Про Диалог помогает владельцам салонов, администраторам и мастерам: инструменты под каждую роль. Маркетинг, управление, скрипты продаж и обучение." />
+        <meta name="keywords" content="платформа для владельца салона, инструменты для администратора, обучение мастеров, управление салоном красоты" />
+        <link rel="canonical" href="https://promtdialog.ru/dlya-kogo" />
+        <meta property="og:title" content="Для кого Про Диалог — инструменты под каждую роль в салоне" />
+        <meta property="og:description" content="Владельцы, администраторы, мастера — у каждого свои инструменты для роста и развития." />
+        <meta property="og:url" content="https://promtdialog.ru/dlya-kogo" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
       <BizNavbar />
 
       {/* ── HERO ── */}

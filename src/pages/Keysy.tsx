@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
@@ -48,6 +49,17 @@ const CASES = [
 export default function Keysy() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
+      <Helmet>
+        <title>Кейсы и результаты салонов — истории успеха | Про Диалог</title>
+        <meta name="description" content="Реальные истории салонов красоты, которые выросли с платформой Про Диалог. Цифры, результаты, опыт владельцев и мастеров." />
+        <meta name="keywords" content="кейсы салонов красоты, результаты роста салона, истории успеха, платформа для салона отзывы" />
+        <link rel="canonical" href="https://promtdialog.ru/keysy" />
+        <meta property="og:title" content="Кейсы — реальные результаты салонов с Про Диалог" />
+        <meta property="og:description" content="200+ салонов уже растут с платформой. Читайте истории успеха и реальные цифры." />
+        <meta property="og:url" content="https://promtdialog.ru/keysy" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
       <BizNavbar />
 
       {/* ── HERO ── */}

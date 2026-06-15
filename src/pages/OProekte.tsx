@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
@@ -75,6 +76,26 @@ const TIMELINE = [
 export default function OProekte() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
+      <Helmet>
+        <title>О проекте — команда и философия Про Диалог</title>
+        <meta name="description" content="Про Диалог — платформа, созданная практиками индустрии красоты. Узнайте о нашей команде, истории и принципах работы." />
+        <meta name="keywords" content="о проекте Про Диалог, команда платформы, история создания, философия развития салона" />
+        <link rel="canonical" href="https://promtdialog.ru/o-proekte" />
+        <meta property="og:title" content="О проекте Про Диалог — платформа роста салона красоты" />
+        <meta property="og:description" content="Создана практиками индустрии: опыт, алгоритмы и ИИ для реального роста вашего салона." />
+        <meta property="og:url" content="https://promtdialog.ru/o-proekte" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Про Диалог",
+          "url": "https://promtdialog.ru",
+          "description": "Платформа роста салона красоты, созданная практиками индустрии. Объединяет опыт, алгоритмы и искусственный интеллект.",
+          "foundingDate": "2023",
+          "knowsAbout": ["Управление салоном красоты", "Маркетинг для салона", "Обучение персонала", "Искусственный интеллект в бьюти-индустрии"]
+        })}</script>
+      </Helmet>
       <BizNavbar />
 
       {/* ── HERO ── */}
