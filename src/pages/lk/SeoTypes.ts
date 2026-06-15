@@ -49,7 +49,8 @@ export interface AnalysisResult {
     word_count: number;
     has_viewport: boolean; has_favicon: boolean;
     http_status?: number; load_time_ms?: number; page_size_kb?: number;
-    robots_exists?: boolean; sitemap_url?: string;
+    robots_exists?: boolean; sitemap_url?: string; is_spa_shell?: boolean;
+    has_charset?: boolean; hreflang?: string[]; twitter_description?: string;
   };
   report: SeoReport;
   score: number;
