@@ -9,9 +9,9 @@ import { EnergySection } from "./LkAdminEnergy";
 import { CoursesSection } from "./LkAdminCourses";
 import { PaymentsSection } from "./LkAdminPayments";
 import LkAdminSeo from "./LkAdminSeo";
-import { TrainingGeneratorSection } from "./LkAdminTrainingGenerator";
+import { TrainingGeneratorSection, TrainingImageGenSection } from "./LkAdminTrainingGenerator";
 
-type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments" | "seo" | "training";
+type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments" | "seo" | "training" | "training-img";
 
 export default function LkAdmin() {
   const [section, setSection] = useState<Section>("ai");
@@ -26,6 +26,7 @@ export default function LkAdmin() {
         {[
           { id: "ai"         as Section, icon: "Bot",          label: "ИИ-ассистент" },
           { id: "training"   as Section, icon: "Wand2",         label: "Генератор тренингов" },
+          { id: "training-img" as Section, icon: "Image",       label: "Изображения тренинга" },
           { id: "courses"    as Section, icon: "GraduationCap", label: "Тренинги" },
           { id: "users"      as Section, icon: "Users",        label: "Пользователи" },
           { id: "candidates" as Section, icon: "UserCheck",    label: "Кандидаты"    },
@@ -49,8 +50,9 @@ export default function LkAdmin() {
         ))}
       </div>
 
-      {section === "ai"         && <AISection />}
-      {section === "training"   && <TrainingGeneratorSection />}
+      {section === "ai"           && <AISection />}
+      {section === "training"     && <TrainingGeneratorSection />}
+      {section === "training-img" && <TrainingImageGenSection />}
       {section === "courses"    && <CoursesSection />}
       {section === "users"      && <UsersSection />}
       {section === "candidates" && <CandidatesSection />}

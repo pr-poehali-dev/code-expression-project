@@ -96,6 +96,7 @@ def generate_image(prompt: str) -> str | None:
         "response_format": "b64_json",
     }).encode("utf-8")
     try:
+        print(f"[IMG] Генерирую изображение: {prompt[:80]}...")
         req = urllib.request.Request(
             f"{OPENAI_BASE}/images/generations",
             data=payload,
@@ -105,11 +106,20 @@ def generate_image(prompt: str) -> str | None:
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            result = json.loads(resp.read().decode("utf-8"))
-        b64 = result["data"][0]["b64_json"]
-        return upload_image_to_s3(b64)
-    except Exception:
+        with urllib.request.urlopen(req, timeout=180) as resp:
+            raw = resp.read().decode("utf-8")
+        result = json.loads(raw)
+        print(f"[IMG] Ответ polza.ai: {str(result)[:200]}")
+        # polza.ai может вернуть b64_json или url
+        item = result["data"][0]
+        if item.get("b64_json"):
+            return upload_image_to_s3(item["b64_json"])
+        if item.get("url"):
+            return item["url"]
+        print(f"[IMG] Нет b64_json и url в ответе: {item}")
+        return None
+    except Exception as e:
+        print(f"[IMG] Ошибка генерации изображения: {e}")
         return None
 
 
@@ -164,17 +174,17 @@ def split_into_chapters(scenario_text: str) -> list[dict]:
 
 
 def generate_chapter_content(chapter: dict, scenario_context: str, chapter_index: int, total_chapters: int) -> dict:
-    """Генерирует полный контент главы: текст + 2 изображения."""
+    """Генерирует полный контент главы: текст + 1 изображение."""
 
     image_types = ["illustration", "scheme", "infographic"]
     img_type = image_types[chapter_index % len(image_types)]
 
     if img_type == "illustration":
-        img_instruction = "образную иллюстрацию, передающую эмоциональный и психологический смысл"
+        img_instruction = "an evocative illustration conveying the emotional and psychological meaning"
     elif img_type == "scheme":
-        img_instruction = "схему или диаграмму, визуализирующую ключевую концепцию"
+        img_instruction = "a clean structural diagram or mindmap visualizing the key concept"
     else:
-        img_instruction = "инфографику с ключевыми тезисами и визуальными акцентами"
+        img_instruction = "a modern infographic with visual accents and key thesis elements"
 
     structure_variants = [
         "Открытие → Концепция → Практика → Вызов → Итог",
@@ -206,26 +216,26 @@ def generate_chapter_content(chapter: dict, scenario_context: str, chapter_index
 
 Напиши только текст главы, без заголовка, без комментариев."""
 
+    print(f"[CHAPTER] Генерирую текст для главы {chapter['num']}: {chapter['title']}")
     chapter_text = openai_chat([{"role": "user", "content": text_prompt}], max_tokens=1500)
+    print(f"[CHAPTER] Текст готов ({len(chapter_text)} символов), генерирую изображение...")
 
-    img_prompt_1 = f"""Create a {img_instruction} for a training module titled '{chapter['title']}'. 
-Professional, modern style. No text in image. 
-Theme: {chapter['summary'][:200]}. 
-High quality, clean composition, suitable for business training materials."""
+    img_prompt = (
+        f"Create {img_instruction} for a business training module. "
+        f"Title: '{chapter['title']}'. "
+        f"Theme: {chapter['summary'][:150]}. "
+        f"Professional, modern, high quality. No text in image."
+    )
 
-    img_prompt_2 = f"""Create a minimalist visual concept for '{chapter['title']}'. 
-Abstract but meaningful, psychological depth, modern art direction. 
-Represents: {chapter['summary'][:150]}. No text."""
-
-    image_1 = generate_image(img_prompt_1)
-    image_2 = generate_image(img_prompt_2)
+    image_url = generate_image(img_prompt)
+    print(f"[CHAPTER] Изображение: {image_url}")
 
     return {
         "num": chapter["num"],
         "title": chapter["title"],
         "summary": chapter["summary"],
         "text": chapter_text,
-        "images": [url for url in [image_1, image_2] if url],
+        "images": [image_url] if image_url else [],
         "structure_used": structure,
     }
 
