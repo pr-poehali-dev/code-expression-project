@@ -174,17 +174,7 @@ def split_into_chapters(scenario_text: str) -> list[dict]:
 
 
 def generate_chapter_content(chapter: dict, scenario_context: str, chapter_index: int, total_chapters: int) -> dict:
-    """Генерирует полный контент главы: текст + 1 изображение."""
-
-    image_types = ["illustration", "scheme", "infographic"]
-    img_type = image_types[chapter_index % len(image_types)]
-
-    if img_type == "illustration":
-        img_instruction = "an evocative illustration conveying the emotional and psychological meaning"
-    elif img_type == "scheme":
-        img_instruction = "a clean structural diagram or mindmap visualizing the key concept"
-    else:
-        img_instruction = "a modern infographic with visual accents and key thesis elements"
+    """Генерирует текст главы. Изображения генерируются отдельным инструментом."""
 
     structure_variants = [
         "Открытие → Концепция → Практика → Вызов → Итог",
@@ -218,24 +208,14 @@ def generate_chapter_content(chapter: dict, scenario_context: str, chapter_index
 
     print(f"[CHAPTER] Генерирую текст для главы {chapter['num']}: {chapter['title']}")
     chapter_text = openai_chat([{"role": "user", "content": text_prompt}], max_tokens=1500)
-    print(f"[CHAPTER] Текст готов ({len(chapter_text)} символов), генерирую изображение...")
-
-    img_prompt = (
-        f"Create {img_instruction} for a business training module. "
-        f"Title: '{chapter['title']}'. "
-        f"Theme: {chapter['summary'][:150]}. "
-        f"Professional, modern, high quality. No text in image."
-    )
-
-    image_url = generate_image(img_prompt)
-    print(f"[CHAPTER] Изображение: {image_url}")
+    print(f"[CHAPTER] Текст готов ({len(chapter_text)} символов)")
 
     return {
         "num": chapter["num"],
         "title": chapter["title"],
         "summary": chapter["summary"],
         "text": chapter_text,
-        "images": [image_url] if image_url else [],
+        "images": [],
         "structure_used": structure,
     }
 
