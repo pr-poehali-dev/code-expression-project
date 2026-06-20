@@ -236,6 +236,7 @@ export function TrainingImageGenSection() {
 
 const GEN_URL = "https://functions.poehali.dev/d572afc5-ec2c-41fa-a73e-7a63c926d5c3";
 const ADMIN_TOKEN = "Sss07011974ssS";
+const LS = "tgen_v1"; // ключ localStorage
 
 const TEAL = ACCENT;
 const DARK = "#1a1a1a";
@@ -252,6 +253,32 @@ interface GeneratedChapter extends Chapter {
   text: string;
   images: string[];
   structure_used?: string;
+}
+
+interface SavedState {
+  tab: "input" | "chapters" | "result";
+  scenarioText: string;
+  fileName: string;
+  chapters: Chapter[];
+  generated: GeneratedChapter[];
+  selectedNums: number[];
+}
+
+function loadSaved(): SavedState | null {
+  try {
+    const raw = localStorage.getItem(LS);
+    return raw ? (JSON.parse(raw) as SavedState) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function save(state: SavedState) {
+  try { localStorage.setItem(LS, JSON.stringify(state)); } catch (_) { /* ignore */ }
+}
+
+function clearSaved() {
+  try { localStorage.removeItem(LS); } catch (_) { /* ignore */ }
 }
 
 async function apiFetch(action: string, extra: object = {}): Promise<Record<string, unknown>> {
@@ -273,18 +300,40 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 export function TrainingGeneratorSection() {
-  const [tab, setTab] = useState<"input" | "chapters" | "result">("input");
-  const [scenarioText, setScenarioText] = useState("");
-  const [fileName, setFileName] = useState("");
-  const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [generated, setGenerated] = useState<GeneratedChapter[]>([]);
+  const saved = loadSaved();
+
+  const [tab, setTabRaw] = useState<"input" | "chapters" | "result">(saved?.tab ?? "input");
+  const [scenarioText, setScenarioTextRaw] = useState(saved?.scenarioText ?? "");
+  const [fileName, setFileNameRaw] = useState(saved?.fileName ?? "");
+  const [chapters, setChaptersRaw] = useState<Chapter[]>(saved?.chapters ?? []);
+  const [generated, setGeneratedRaw] = useState<GeneratedChapter[]>(saved?.generated ?? []);
+  const [selectedChapters, setSelectedChaptersRaw] = useState<Set<number>>(
+    new Set(saved?.selectedNums ?? [])
+  );
   const [splitLoading, setSplitLoading] = useState(false);
   const [genLoading, setGenLoading] = useState(false);
   const [genProgress, setGenProgress] = useState(0);
   const [error, setError] = useState("");
-  const [selectedChapters, setSelectedChapters] = useState<Set<number>>(new Set());
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Хелперы: устанавливают state и сохраняют в localStorage
+  const persist = (patch: Partial<SavedState>) => {
+    const cur: SavedState = {
+      tab, scenarioText, fileName, chapters, generated,
+      selectedNums: [...selectedChapters],
+      ...patch,
+    };
+    save(cur);
+  };
+
+  const setTab = (v: "input" | "chapters" | "result") => { setTabRaw(v); persist({ tab: v }); };
+  const setScenarioText = (v: string) => { setScenarioTextRaw(v); persist({ scenarioText: v }); };
+  const setFileName = (v: string) => { setFileNameRaw(v); persist({ fileName: v }); };
+  const setSelectedChapters = (v: Set<number>) => {
+    setSelectedChaptersRaw(v);
+    persist({ selectedNums: [...v] });
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -304,9 +353,12 @@ export function TrainingGeneratorSection() {
     const res = await apiFetch("split", { scenario: scenarioText });
     setSplitLoading(false);
     if (res.error) { setError(res.error); return; }
-    setChapters(res.chapters || []);
-    setSelectedChapters(new Set((res.chapters || []).map((c: Chapter) => c.num)));
-    setTab("chapters");
+    const newChapters: Chapter[] = (res.chapters as Chapter[]) || [];
+    const newNums = newChapters.map(c => c.num);
+    setChaptersRaw(newChapters);
+    setSelectedChaptersRaw(new Set(newNums));
+    setTabRaw("chapters");
+    save({ tab: "chapters", scenarioText, fileName, chapters: newChapters, generated, selectedNums: newNums });
   };
 
   const handleGenerate = async () => {
@@ -314,23 +366,28 @@ export function TrainingGeneratorSection() {
     if (!toGenerate.length) { setError("Выбери хотя бы одну главу"); return; }
     setError("");
     setGenLoading(true);
-    setGenerated([]);
+    setGeneratedRaw([]);
     setGenProgress(0);
     const results: GeneratedChapter[] = [];
     for (let i = 0; i < toGenerate.length; i++) {
-      setGenProgress(Math.round(((i) / toGenerate.length) * 100));
+      setGenProgress(Math.round((i / toGenerate.length) * 100));
       const res = await apiFetch("generate_chapter", {
         chapter: toGenerate[i],
         scenario_context: scenarioText,
         chapter_index: i,
         total_chapters: toGenerate.length,
       });
-      if (!res.error) results.push(res);
+      if (!res.error) {
+        results.push(res as unknown as GeneratedChapter);
+        // сохраняем после каждой главы — если вкладка закроется, уже готовые не потеряются
+        save({ tab: "result", scenarioText, fileName, chapters, generated: results, selectedNums: [...selectedChapters] });
+        setGeneratedRaw([...results]);
+      }
     }
     setGenProgress(100);
     setGenLoading(false);
-    setGenerated(results);
-    setTab("result");
+    setTabRaw("result");
+    save({ tab: "result", scenarioText, fileName, chapters, generated: results, selectedNums: [...selectedChapters] });
   };
 
   const copyText = (text: string, idx: number) => {
@@ -348,11 +405,13 @@ export function TrainingGeneratorSection() {
   };
 
   const resetAll = () => {
-    setTab("input");
-    setScenarioText("");
-    setFileName("");
-    setChapters([]);
-    setGenerated([]);
+    clearSaved();
+    setTabRaw("input");
+    setScenarioTextRaw("");
+    setFileNameRaw("");
+    setChaptersRaw([]);
+    setGeneratedRaw([]);
+    setSelectedChaptersRaw(new Set());
     setError("");
     setGenProgress(0);
     if (fileRef.current) fileRef.current.value = "";
@@ -383,7 +442,14 @@ export function TrainingGeneratorSection() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
         <div>
           <h2 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 700, color: DARK, margin: 0 }}>Генератор тренингов</h2>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: GRAY }}>Загрузи сценарий → ИИ разобьёт на главы → напишет тексты и создаст изображения</p>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: GRAY }}>
+            Загрузи сценарий → ИИ разобьёт на главы → напишет тексты и создаст изображения
+            {(chapters.length > 0 || generated.length > 0) && (
+              <span style={{ marginLeft: 10, fontSize: 11, color: "hsl(145,60%,38%)", fontWeight: 600 }}>
+                ● Сохранено
+              </span>
+            )}
+          </p>
         </div>
         {tab !== "input" && (
           <button onClick={resetAll} style={{ ...actionBtn("#64748b") }}>
