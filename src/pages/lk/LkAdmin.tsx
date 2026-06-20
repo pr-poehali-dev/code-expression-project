@@ -9,8 +9,9 @@ import { EnergySection } from "./LkAdminEnergy";
 import { CoursesSection } from "./LkAdminCourses";
 import { PaymentsSection } from "./LkAdminPayments";
 import LkAdminSeo from "./LkAdminSeo";
+import { TrainingGeneratorSection } from "./LkAdminTrainingGenerator";
 
-type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments" | "seo";
+type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments" | "seo" | "training";
 
 export default function LkAdmin() {
   const [section, setSection] = useState<Section>("ai");
@@ -24,6 +25,7 @@ export default function LkAdmin() {
       <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
         {[
           { id: "ai"         as Section, icon: "Bot",          label: "ИИ-ассистент" },
+          { id: "training"   as Section, icon: "Wand2",         label: "Генератор тренингов" },
           { id: "courses"    as Section, icon: "GraduationCap", label: "Тренинги" },
           { id: "users"      as Section, icon: "Users",        label: "Пользователи" },
           { id: "candidates" as Section, icon: "UserCheck",    label: "Кандидаты"    },
@@ -48,6 +50,7 @@ export default function LkAdmin() {
       </div>
 
       {section === "ai"         && <AISection />}
+      {section === "training"   && <TrainingGeneratorSection />}
       {section === "courses"    && <CoursesSection />}
       {section === "users"      && <UsersSection />}
       {section === "candidates" && <CandidatesSection />}

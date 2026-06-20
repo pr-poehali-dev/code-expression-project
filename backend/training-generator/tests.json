@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Reject unauthorized",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "split", "scenario": "test"},
+      "expectedStatus": 403
+    },
+    {
+      "name": "Split returns chapters",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "split",
+        "scenario": "Тренинг. Тема 1: Слушать клиента. Тема 2: Работа с возражениями."
+      },
+      "headers": {"X-Admin-Token": "Sss07011974ssS"},
+      "expectedStatus": 200
+    }
+  ]
+}
