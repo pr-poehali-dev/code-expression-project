@@ -34,7 +34,7 @@ export default function LkLessonTools({ tools, onNavigate, previewMode }: Props)
         </span>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12, alignItems: "stretch" }}>
         {resolved.map(tool => {
           const c = CAT_COLORS[tool!.category];
           return (
@@ -48,9 +48,10 @@ export default function LkLessonTools({ tools, onNavigate, previewMode }: Props)
                 display: "flex",
                 flexDirection: "column",
                 gap: 10,
+                height: "100%",
               }}
             >
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 12, flex: 1 }}>
                 <div style={{
                   width: 38, height: 38, borderRadius: 10,
                   background: "#fff",
@@ -81,7 +82,7 @@ export default function LkLessonTools({ tools, onNavigate, previewMode }: Props)
                 }}
                 disabled={previewMode}
                 style={{
-                  width: "100%", padding: "9px 14px", borderRadius: 9, border: "none",
+                  width: "100%", padding: "9px 14px", borderRadius: 9, border: "none", marginTop: "auto",
                   background: previewMode ? "#e8e8e4" : c.badge,
                   color: previewMode ? "#aaa" : "#fff",
                   fontSize: 12, fontWeight: 700,
