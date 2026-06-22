@@ -4,8 +4,9 @@ export interface ToolInfo {
   description: string;
   icon: string;
   tab: string;
-  category: "tools" | "ai" | "marketing";
+  category: "tools" | "ai" | "marketing" | "partners";
   audience?: string;
+  url?: string;
 }
 
 export const TOOLS_CATALOG: ToolInfo[] = [
@@ -162,6 +163,24 @@ export const TOOLS_CATALOG: ToolInfo[] = [
     icon: "Globe",
     tab: "marketing:seo",
     category: "marketing",
+  },
+  {
+    slug: "masters-register",
+    name: "Регистрация в реферальной программе",
+    description: "Приглашай салоны и зарабатывай 10% с их трат навсегда.",
+    icon: "UserPlus",
+    tab: "partners",
+    category: "partners",
+    url: "/masters/register",
+  },
+  {
+    slug: "masters-info",
+    name: "Партнёрская программа",
+    description: "Условия, калькулятор дохода, FAQ — узнай всё о реферальной программе.",
+    icon: "Star",
+    tab: "partners",
+    category: "partners",
+    url: "/masters",
   },
 ];
 

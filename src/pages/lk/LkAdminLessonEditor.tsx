@@ -470,63 +470,41 @@ export function LessonEditor({ lesson, courseId, modules, onBack, onSaved }: {
                 {savingTools ? "Сохраняем..." : `Сохранить инструменты (${tools.length})`}
               </button>
 
-              {/* Реферальная программа */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 4 }}>
-                <a
-                  href="/masters/register"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: "none" }}
-                >
-                  <div
-                    style={{
-                      background: "linear-gradient(135deg, hsl(185,85%,96%) 0%, hsl(185,85%,92%) 100%)",
-                      border: "1.5px solid hsl(185,85%,78%)",
-                      borderRadius: 12, padding: "14px 16px",
-                      display: "flex", alignItems: "center", gap: 12,
-                      cursor: "pointer", transition: "border-color 0.15s, box-shadow 0.15s",
-                    }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = ACCENT; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 14px hsla(185,85%,40%,0.15)`; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "hsl(185,85%,78%)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
-                  >
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <Icon name="UserPlus" size={17} style={{ color: "#fff" }} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 }}>Регистрация в реферальной программе</div>
-                      <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.4 }}>Приглашай салоны и зарабатывай 10% с их трат</div>
-                    </div>
-                    <Icon name="ExternalLink" size={13} style={{ color: ACCENT, flexShrink: 0, marginLeft: "auto" }} />
-                  </div>
-                </a>
-
-                <a
-                  href="/masters"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: "none" }}
-                >
-                  <div
-                    style={{
-                      background: "linear-gradient(135deg, hsl(40,90%,97%) 0%, hsl(40,90%,93%) 100%)",
-                      border: "1.5px solid hsl(40,90%,80%)",
-                      borderRadius: 12, padding: "14px 16px",
-                      display: "flex", alignItems: "center", gap: 12,
-                      cursor: "pointer", transition: "border-color 0.15s, box-shadow 0.15s",
-                    }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "hsl(40,90%,50%)"; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 14px hsla(40,90%,50%,0.15)`; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "hsl(40,90%,80%)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
-                  >
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "hsl(40,90%,50%)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <Icon name="Star" size={17} style={{ color: "#fff" }} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "#1a1a1a", marginBottom: 2 }}>Узнать подробно о партнёрской программе</div>
-                      <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.4 }}>Условия, калькулятор дохода и FAQ</div>
-                    </div>
-                    <Icon name="ExternalLink" size={13} style={{ color: "hsl(40,90%,45%)", flexShrink: 0, marginLeft: "auto" }} />
-                  </div>
-                </a>
+              {/* Партнёрская программа — переключаемые плашки */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "hsl(280,60%,50%)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Партнёрская программа</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {TOOLS_CATALOG.filter(t => t.category === "partners").map(tool => {
+                    const active = tools.includes(tool.slug);
+                    const isRegister = tool.slug === "masters-register";
+                    const color = isRegister ? ACCENT : "hsl(40,90%,45%)";
+                    const bgActive = isRegister ? "hsl(185,85%,96%)" : "hsl(40,90%,97%)";
+                    const borderActive = isRegister ? ACCENT : "hsl(40,90%,60%)";
+                    const iconBg = isRegister ? ACCENT : "hsl(40,90%,50%)";
+                    return (
+                      <div
+                        key={tool.slug}
+                        onClick={() => toggleTool(tool.slug)}
+                        style={{
+                          background: active ? bgActive : "#fafaf8",
+                          border: `1.5px solid ${active ? borderActive : "#e0e0dc"}`,
+                          borderRadius: 12, padding: "14px 16px",
+                          display: "flex", alignItems: "center", gap: 12,
+                          cursor: "pointer", transition: "all 0.15s",
+                        }}
+                      >
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: active ? iconBg : "#e8e8e4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background 0.15s" }}>
+                          <Icon name={tool.icon} size={17} style={{ color: active ? "#fff" : "#aaa" }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 12, fontWeight: active ? 700 : 500, color: active ? "#1a1a1a" : "#888", marginBottom: 2 }}>{tool.name}</div>
+                          <div style={{ fontSize: 11, color: active ? "#64748b" : "#bbb", lineHeight: 1.4 }}>{tool.description}</div>
+                        </div>
+                        {active && <Icon name="Check" size={15} style={{ color, flexShrink: 0 }} />}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </>
