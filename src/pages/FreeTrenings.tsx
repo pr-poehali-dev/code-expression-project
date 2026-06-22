@@ -180,6 +180,20 @@ export default function FreeTrenings() {
                 </div>
               </div>
             ))}
+
+            {/* Плашка "ещё курсы" */}
+            <div style={{ border: "1.5px dashed rgba(45,212,191,0.35)", borderRadius: 4, background: "rgba(45,212,191,0.04)", display: "flex", flexDirection: "column", alignItems: "flex-start", justifyContent: "center", padding: "32px 28px", gap: 16, minHeight: 200 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 8, background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Icon name="Plus" size={22} style={{ color: ACCENT }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: DARK, marginBottom: 6 }}>И другие бесплатные тренинги</div>
+                <div style={{ fontSize: 14, color: "#64748b", lineHeight: 1.6 }}>Полный список курсов доступен после регистрации в разделе «Академия»</div>
+              </div>
+              <Link to="/cabinet" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500, color: ACCENT, textDecoration: "none" }}>
+                Смотреть все <Icon name="ArrowRight" size={14} />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
