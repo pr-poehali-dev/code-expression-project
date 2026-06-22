@@ -207,7 +207,7 @@ def generate_chapter_content(chapter: dict, scenario_context: str, chapter_index
 Напиши только текст главы, без заголовка, без комментариев."""
 
     print(f"[CHAPTER] Генерирую текст для главы {chapter['num']}: {chapter['title']}")
-    chapter_text = openai_chat([{"role": "user", "content": text_prompt}], max_tokens=1500)
+    chapter_text = openai_chat([{"role": "user", "content": text_prompt}], max_tokens=3000)
     print(f"[CHAPTER] Текст готов ({len(chapter_text)} символов)")
 
     return {
