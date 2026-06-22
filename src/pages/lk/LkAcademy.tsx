@@ -213,7 +213,7 @@ function OfflineCourseCard({ course, onBought }: { course: DbCourse; onBought: (
         </div>
       )}
       {course.cover_url && (
-        <img src={course.cover_url} alt="" loading="lazy" style={{ width: "100%", height: 130, objectFit: "cover" }} />
+        <img src={course.cover_url} alt="" loading="lazy" style={{ width: "100%", objectFit: "contain", display: "block" }} />
       )}
       <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4 }}>{course.title}</div>
