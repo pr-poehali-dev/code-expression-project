@@ -264,9 +264,19 @@ export default function FreeTrenings() {
       </section>
 
       {/* ПОЧЕМУ БЕСПЛАТНО */}
-      <section style={{ background: DARK, padding: "100px 32px", fontFamily: "Inter, sans-serif" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div style={{ maxWidth: 680 }}>
+      <section style={{ background: DARK, padding: "100px 32px", fontFamily: "Inter, sans-serif", position: "relative", overflow: "hidden" }}>
+        {/* Затемнённое фото справа */}
+        <div style={{
+          position: "absolute", top: 0, right: 0, bottom: 0, width: "45%",
+          backgroundImage: "url(https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/a2dc163e-4908-47e1-9533-7a5c6b724a51.png)",
+          backgroundSize: "cover", backgroundPosition: "center",
+          maskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 30%, rgba(0,0,0,0.85) 100%)",
+        }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(8,14,28,0.55)" }} />
+        </div>
+
+        <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <div style={{ maxWidth: 600 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Почему бесплатно</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px, 4vw, 48px)", fontWeight: 500, color: "#fff", margin: "0 0 24px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
               Мы хотим, чтобы вы убедились в пользе платформы
