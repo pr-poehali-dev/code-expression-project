@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS rep_contacts (
+  id SERIAL PRIMARY KEY,
+  owner_id INTEGER NOT NULL,
+  name TEXT NOT NULL DEFAULT '',
+  email TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(owner_id, email)
+);

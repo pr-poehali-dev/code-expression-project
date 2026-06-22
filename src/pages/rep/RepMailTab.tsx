@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
-import { ACCENT, ACCENT_LIGHT, REP_MAIL_URL, EMAIL_TEMPLATES } from "./rep.constants";
+import { ACCENT, ACCENT_LIGHT, REP_MAIL_URL, REP_CONTACTS_URL, EMAIL_TEMPLATES } from "./rep.constants";
 
 interface SalonContact { name: string; email: string; }
 
@@ -19,12 +19,10 @@ function parseCsv(text: string): SalonContact[] {
   return results;
 }
 
-const LS_KEY = "rep_mail_contacts";
-
 export default function RepMailTab({ senderName }: { senderName: string }) {
-  const [contacts, setContacts] = useState<SalonContact[]>(() => {
-    try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; }
-  });
+  const [contacts, setContacts] = useState<SalonContact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [fileError, setFileError] = useState("");
@@ -41,31 +39,48 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
   const [sentTo, setSentTo] = useState("");
   const [error, setError] = useState("");
 
+  function session() { return localStorage.getItem("lk_session") || ""; }
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(REP_CONTACTS_URL, { headers: { "X-Session-Id": session() } })
+      .then(r => r.json())
+      .then(d => { if (d.contacts) setContacts(d.contacts); })
+      .finally(() => setLoading(false));
+  }, []);
+
   function handleFile(file: File) {
     setFileError("");
 
     const tryParse = (text: string) => {
-      // Проверяем на кракозябры: если много символов за пределами ASCII нет, но есть явный мусор
       const hasGarbled = /[�\uFFFD]/.test(text) || /[\x80-\x9F]/.test(text);
       return hasGarbled ? null : parseCsv(text);
     };
 
     const readWith = (encoding: string, fallback?: string) => {
       const reader = new FileReader();
-      reader.onload = e => {
+      reader.onload = async e => {
         const text = e.target?.result as string;
         const parsed = tryParse(text);
-        if (!parsed && fallback) {
-          readWith(fallback);
-          return;
-        }
+        if (!parsed && fallback) { readWith(fallback); return; }
         const final = parsed ?? parseCsv(text);
         if (final.length === 0) {
           setFileError("Не удалось найти данные. Убедитесь, что файл CSV с колонками: Название салона, Email");
           return;
         }
-        setContacts(final);
-        localStorage.setItem(LS_KEY, JSON.stringify(final));
+        setUploading(true);
+        try {
+          await fetch(REP_CONTACTS_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+            body: JSON.stringify({ contacts: final }),
+          });
+          const r = await fetch(REP_CONTACTS_URL, { headers: { "X-Session-Id": session() } });
+          const d = await r.json();
+          if (d.contacts) setContacts(d.contacts);
+        } finally {
+          setUploading(false);
+        }
         setSearch("");
       };
       reader.readAsText(file, encoding);
@@ -97,15 +112,31 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
     return text.split("\n\n").map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("\n");
   }
 
+  async function clearContacts() {
+    setUploading(true);
+    try {
+      for (const c of contacts) {
+        await fetch(REP_CONTACTS_URL, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+          body: JSON.stringify({ email: c.email }),
+        });
+      }
+      setContacts([]);
+      setSearch("");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function sendMail() {
     if (!toEmail || !subject || !bodyText) { setError("Заполните все обязательные поля"); return; }
     setSending(true); setError(""); setSent(false);
     try {
-      const session = localStorage.getItem("lk_session") || "";
       const tplLabel = EMAIL_TEMPLATES.find(t => t.id === activeTemplate)?.label || "";
       const res = await fetch(REP_MAIL_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Session-Id": session },
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
         body: JSON.stringify({
           to_email: toEmail, to_name: toName,
           subject, body_html: textToHtml(bodyText),
@@ -118,14 +149,18 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
       setSent(true);
       const sentEmail = toEmail;
       setToEmail(""); setToName(""); setSubject(""); setBodyText(""); setActiveTemplate(null);
+      await fetch(REP_CONTACTS_URL, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+        body: JSON.stringify({ email: sentEmail }),
+      });
       setContacts(prev => {
         const updated = prev.filter(c => c.email !== sentEmail);
-        localStorage.setItem(LS_KEY, JSON.stringify(updated));
+        setPage(p => {
+          const newTotal = Math.ceil(updated.length / PAGE_SIZE);
+          return Math.min(p, Math.max(0, newTotal - 1));
+        });
         return updated;
-      });
-      setPage(p => {
-        const newTotal = Math.ceil((contacts.length - 1) / PAGE_SIZE);
-        return Math.min(p, Math.max(0, newTotal - 1));
       });
       setTimeout(() => setSent(false), 6000);
     } catch (e: unknown) {
@@ -190,7 +225,9 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
           </div>
         </div>
 
-        {contacts.length === 0 ? (
+        {loading ? (
+          <div style={{ padding: "20px", textAlign: "center", fontSize: 13, color: "#aaa" }}>Загрузка базы...</div>
+        ) : contacts.length === 0 ? (
           <div
             onDragOver={e => e.preventDefault()}
             onDrop={onFileDrop}
@@ -210,11 +247,16 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, gap: 10, flexWrap: "wrap" }}>
               <div style={{ fontSize: 13, color: ACCENT, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
                 <Icon name="CheckCircle" size={14} />
-                Загружено {contacts.length} контактов
+                {uploading ? "Сохранение..." : `Загружено ${contacts.length} контактов`}
               </div>
-              <button onClick={() => { setContacts([]); localStorage.removeItem(LS_KEY); setSearch(""); }} style={{ fontSize: 12, color: "#999", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat, sans-serif" }}>
-                Заменить файл
-              </button>
+              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ fontSize: 12, color: ACCENT, background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat, sans-serif" }}>
+                  Добавить ещё
+                </button>
+                <button onClick={clearContacts} disabled={uploading} style={{ fontSize: 12, color: "#999", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat, sans-serif" }}>
+                  Очистить базу
+                </button>
+              </div>
             </div>
             <input
               value={search}
@@ -345,8 +387,7 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
           fontSize: 14, fontWeight: 700, cursor: sending ? "default" : "pointer",
           fontFamily: "Montserrat, sans-serif",
         }}>
-          <Icon name="Send" size={16} />
-          {sending ? "Отправляю..." : "Отправить письмо"}
+          {sending ? <><Icon name="Loader" size={15} /> Отправка...</> : <><Icon name="Send" size={15} /> Отправить письмо</>}
         </button>
       </div>
     </div>
