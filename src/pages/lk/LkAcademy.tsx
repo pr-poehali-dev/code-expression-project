@@ -147,7 +147,7 @@ function DbCourseCard({ course, onClick }: { course: DbCourse; onClick: () => vo
       onMouseLeave={e => (e.currentTarget.style.background = "#fff")}
     >
       {course.cover_url && (
-        <img src={course.cover_url} alt="" style={{ width: "100%", height: 120, objectFit: "cover" }} />
+        <img src={course.cover_url} alt="" style={{ width: "100%", objectFit: "contain", display: "block" }} />
       )}
       {course.has_access && (
         <div style={{ position: "absolute", top: 10, right: 12, fontSize: 10, fontWeight: 700, color: "hsl(130,60%,40%)", background: "hsl(130,60%,94%)", padding: "2px 8px", borderRadius: 6, border: "1px solid hsl(130,60%,75%)" }}>

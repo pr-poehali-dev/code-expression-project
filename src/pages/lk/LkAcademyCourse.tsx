@@ -96,7 +96,7 @@ export default function LkAcademyCourse({ courseId, onBack, onNavigate }: Props)
           </div>
         );
       })() : course.cover_url ? (
-        <img src={course.cover_url} alt="" style={{ width: "100%", borderRadius: 16, objectFit: "cover", maxHeight: 260, marginBottom: 20 }} />
+        <img src={course.cover_url} alt="" style={{ width: "100%", borderRadius: 16, objectFit: "contain", display: "block", marginBottom: 20 }} />
       ) : null}
 
       <h1 style={{ fontFamily: SERIF, fontSize: "clamp(22px,3vw,30px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 10px" }}>{course.title}</h1>

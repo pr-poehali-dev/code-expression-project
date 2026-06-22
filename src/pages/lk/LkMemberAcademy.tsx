@@ -115,7 +115,7 @@ export default function LkMemberAcademy({ onNavigate }: { onNavigate?: (tab: str
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 1, background: "#f5f5f2" }}>
                   {catCourses.map(c => (
                     <div key={c.id} style={{ background: "#fff", display: "flex", flexDirection: "column" }}>
-                      {c.cover_url && <img src={c.cover_url} alt="" style={{ width: "100%", height: 110, objectFit: "cover" }} />}
+                      {c.cover_url && <img src={c.cover_url} alt="" style={{ width: "100%", objectFit: "contain", display: "block" }} />}
                       <div style={{ padding: "14px 18px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
                         <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4 }}>{c.title}</div>
                         {c.description && <div style={{ fontSize: 12, color: "#888", lineHeight: 1.6, flex: 1 }}>{c.description}</div>}
