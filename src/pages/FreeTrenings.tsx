@@ -267,9 +267,9 @@ export default function FreeTrenings() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>
             {REVIEWS.map(r => (
-              <div key={r.name} style={{ background: "#fff", border: "1px solid #e8ecf0", borderRadius: 4, padding: "32px 28px" }}>
+              <div key={r.name} style={{ background: "#fff", border: "1px solid #e8ecf0", borderRadius: 4, padding: "32px 28px", display: "flex", flexDirection: "column" }}>
                 <Icon name="Quote" size={24} style={{ color: ACCENT, marginBottom: 20 }} />
-                <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.75, margin: "0 0 28px" }}>{r.text}</p>
+                <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.75, margin: "0 0 28px", flex: 1 }}>{r.text}</p>
                 <div style={{ borderTop: "1px solid #f0f0f0", paddingTop: 20 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, color: DARK }}>{r.name}</div>
                   <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 3 }}>{r.role}</div>
