@@ -181,7 +181,7 @@ export default function FreeTrenings() {
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>
             {FREE_COURSES.map((course) => (
-              <div key={course.id} style={{ border: "1px solid #e8ecf0", borderRadius: 4, overflow: "hidden", background: "#fff" }}>
+              <div key={course.id} style={{ border: "1px solid #e8ecf0", borderRadius: 4, overflow: "hidden", background: "#fff", display: "flex", flexDirection: "column" }}>
                 {course.cover_url ? (
                   <img src={course.cover_url} alt="" style={{ width: "100%", objectFit: "contain", display: "block" }} />
                 ) : (
@@ -189,9 +189,9 @@ export default function FreeTrenings() {
                     <Icon name="GraduationCap" size={48} style={{ color: "rgba(45,212,191,0.3)" }} />
                   </div>
                 )}
-                <div style={{ padding: "20px 24px" }}>
+                <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", flex: 1 }}>
                   <span style={{ fontSize: 11, fontWeight: 600, color: ACCENT, letterSpacing: "0.5px", textTransform: "uppercase" }}>{course.category}</span>
-                  <h3 style={{ fontSize: 17, fontWeight: 600, color: DARK, margin: "8px 0 0", lineHeight: 1.4 }}>{course.title}</h3>
+                  <h3 style={{ fontSize: 17, fontWeight: 600, color: DARK, margin: "8px 0 0", lineHeight: 1.4, flex: 1 }}>{course.title}</h3>
                   <div style={{ marginTop: 16, display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(45,212,191,0.1)", borderRadius: 4, padding: "4px 12px" }}>
                     <Icon name="Unlock" size={13} style={{ color: ACCENT }} />
                     <span style={{ fontSize: 12, fontWeight: 600, color: ACCENT }}>Бесплатно</span>
