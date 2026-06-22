@@ -270,9 +270,8 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
               ) : paginated.map((c, i) => (
                 <div
                   key={i}
-                  onClick={() => selectSalon(c)}
                   style={{
-                    padding: "10px 14px", cursor: "pointer",
+                    padding: "10px 14px",
                     borderBottom: i < paginated.length - 1 ? "1px solid #f0f0ec" : "none",
                     display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8,
                     transition: "background 0.1s",
@@ -280,11 +279,22 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
                   onMouseEnter={e => (e.currentTarget.style.background = ACCENT_LIGHT)}
                   onMouseLeave={e => (e.currentTarget.style.background = "#fff")}
                 >
-                  <div>
+                  <div onClick={() => selectSalon(c)} style={{ cursor: "pointer", flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>{c.name}</div>
                     <div style={{ fontSize: 12, color: "#888" }}>{c.email}</div>
                   </div>
-                  <Icon name="ArrowRight" size={13} style={{ color: ACCENT, flexShrink: 0 }} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                    <button
+                      onClick={async e => { e.stopPropagation(); await fetch(REP_CONTACTS_URL, { method: "DELETE", headers: { "Content-Type": "application/json", "X-Session-Id": session() }, body: JSON.stringify({ email: c.email }) }); setContacts(prev => prev.filter(x => x.email !== c.email)); }}
+                      title="Удалить"
+                      style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 26, height: 26, borderRadius: 6, border: "none", background: "transparent", cursor: "pointer", color: "#ccc", padding: 0, fontFamily: "Montserrat, sans-serif" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#e00")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#ccc")}
+                    >
+                      <Icon name="X" size={13} />
+                    </button>
+                    <Icon name="ArrowRight" size={13} style={{ color: ACCENT }} />
+                  </div>
                 </div>
               ))}
             </div>
