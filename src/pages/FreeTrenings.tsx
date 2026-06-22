@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet";
+import { Helmet } from "@/lib/helmet";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import BizNavbar from "@/components/BizNavbar";
