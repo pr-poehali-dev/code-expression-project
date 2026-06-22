@@ -7,6 +7,7 @@ import os
 import psycopg2
 import psycopg2.extras
 
+SCHEMA = "t_p84565078_code_expression_proj"
 CORS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
@@ -21,9 +22,9 @@ def get_conn():
 def get_user(session_id: str, conn):
     with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
         cur.execute(
-            "SELECT u.id, u.is_representative, u.is_admin FROM lk_sessions s "
-            "JOIN lk_users u ON u.id = s.user_id "
-            "WHERE s.session_id = %s AND s.expires_at > NOW()",
+            f"SELECT u.id, u.is_representative, u.is_admin FROM {SCHEMA}.lk_sessions s "
+            f"JOIN {SCHEMA}.lk_users u ON u.id = s.user_id "
+            f"WHERE s.id = %s AND s.expires_at > NOW() AND u.is_active = TRUE",
             (session_id,),
         )
         return cur.fetchone()
@@ -33,7 +34,8 @@ def handler(event: dict, context) -> dict:
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
-    session_id = event.get("headers", {}).get("x-session-id", "")
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "") or \
+                 (event.get("headers") or {}).get("x-session-id", "")
     if not session_id:
         return {"statusCode": 401, "headers": CORS, "body": json.dumps({"error": "Не авторизован"})}
 
@@ -49,7 +51,7 @@ def handler(event: dict, context) -> dict:
     if method == "GET":
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(
-                "SELECT id, name, email FROM rep_contacts WHERE owner_id = %s ORDER BY id",
+                f"SELECT id, name, email FROM {SCHEMA}.rep_contacts WHERE owner_id = %s ORDER BY id",
                 (owner_id,),
             )
             rows = cur.fetchall()
@@ -70,8 +72,8 @@ def handler(event: dict, context) -> dict:
                 if not email:
                     continue
                 cur.execute(
-                    "INSERT INTO rep_contacts (owner_id, name, email) VALUES (%s, %s, %s) "
-                    "ON CONFLICT (owner_id, email) DO UPDATE SET name = EXCLUDED.name",
+                    f"INSERT INTO {SCHEMA}.rep_contacts (owner_id, name, email) VALUES (%s, %s, %s) "
+                    f"ON CONFLICT (owner_id, email) DO UPDATE SET name = EXCLUDED.name",
                     (owner_id, name, email),
                 )
         conn.commit()
@@ -86,7 +88,7 @@ def handler(event: dict, context) -> dict:
             return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "email обязателен"})}
         with conn.cursor() as cur:
             cur.execute(
-                "DELETE FROM rep_contacts WHERE owner_id = %s AND email = %s",
+                f"DELETE FROM {SCHEMA}.rep_contacts WHERE owner_id = %s AND email = %s",
                 (owner_id, email),
             )
         conn.commit()
