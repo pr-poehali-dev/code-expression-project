@@ -210,7 +210,7 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
           <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a", marginBottom: 4 }}>Обложка</div>
           {form.cover_url ? (
             <div style={{ position: "relative" }}>
-              <img src={form.cover_url} alt="" style={{ width: "100%", borderRadius: 10, objectFit: "cover", maxHeight: 200 }} />
+              <img src={form.cover_url} alt="" style={{ width: "100%", borderRadius: 10, objectFit: "contain", display: "block" }} />
               <button onClick={() => setForm(f => ({ ...f, cover_url: "" }))} style={{ ...iconBtn, position: "absolute", top: 8, right: 8, background: "rgba(255,255,255,0.9)" }}>
                 <Icon name="X" size={14} />
               </button>
