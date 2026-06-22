@@ -265,8 +265,8 @@ export default function FreeTrenings() {
 
       {/* ПОЧЕМУ БЕСПЛАТНО */}
       <section style={{ background: DARK, padding: "100px 32px", fontFamily: "Inter, sans-serif", position: "relative", overflow: "hidden" }}>
-        {/* Затемнённое фото справа */}
-        <div style={{
+        {/* Затемнённое фото справа — только десктоп */}
+        <div className="hero-img" style={{
           position: "absolute", top: 0, right: 0, bottom: 0, width: "45%",
           backgroundImage: "url(https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/a2dc163e-4908-47e1-9533-7a5c6b724a51.png)",
           backgroundSize: "cover", backgroundPosition: "center",
