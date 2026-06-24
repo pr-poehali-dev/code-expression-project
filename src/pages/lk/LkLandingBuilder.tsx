@@ -219,64 +219,119 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
 
 // ── Экран выбора типа ──
 function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
+  const types = [
+    {
+      id: "budget" as LandingType,
+      icon: "FileText",
+      iconColor: "#64748B",
+      iconBg: "#F1F5F9",
+      badge: "СТАНДАРТНЫЙ",
+      badgeColor: "#64748B",
+      badgeBg: "#F1F5F9",
+      title: "Стандартный",
+      desc: "Чистый, минималистичный. Быстро и по делу.",
+      descColor: "#64748B",
+      features: BUDGET_FEATURES,
+      featureDotBg: "#E2E8F0",
+      featureDotColor: "#64748B",
+      featureTextColor: "#64748B",
+      cardBg: "#fff",
+      cardBorder: "#E8ECF0",
+      cardBorderHover: ACCENT,
+      dividerColor: "#F1F5F9",
+      ctaColor: "#64748B",
+      gradient: false,
+    },
+    {
+      id: "premium" as LandingType,
+      icon: "Sparkles",
+      iconColor: "#fff",
+      iconBg: ACCENT,
+      badge: "ПРЕМИАЛЬНЫЙ",
+      badgeColor: "#fff",
+      badgeBg: ACCENT,
+      title: "Премиум",
+      desc: "Уникальный дизайн, больше блоков, больше деталей.",
+      descColor: "#475569",
+      features: PREMIUM_FEATURES,
+      featureDotBg: ACCENT,
+      featureDotColor: "#fff",
+      featureTextColor: "#475569",
+      cardBg: `linear-gradient(135deg, ${ACCENT_LIGHT} 0%, #fff 60%)`,
+      cardBorder: `${ACCENT}40`,
+      cardBorderHover: ACCENT,
+      dividerColor: `${ACCENT}20`,
+      ctaColor: ACCENT,
+      gradient: true,
+    },
+  ];
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>Выберите тип лендинга</div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-        <button
-          onClick={() => onSelect("budget")}
-          style={{ textAlign: "left", background: "#fff", border: "2px solid #E8ECF0", borderRadius: 16, padding: 20, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "border-color 0.15s, box-shadow 0.15s" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = ACCENT; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 20px ${ACCENT}22`; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E8ECF0"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Icon name="FileText" size={20} style={{ color: "#64748B" }} />
-            </div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#64748B", background: "#F1F5F9", padding: "4px 10px", borderRadius: 20 }}>СТАНДАРТНЫЙ</span>
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>Стандартный</div>
-          <div style={{ fontSize: 12, color: "#64748B", marginBottom: 14, lineHeight: 1.5 }}>Чистый, минималистичный. Быстро и по делу.</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {BUDGET_FEATURES.map((f, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
-                <div style={{ width: 14, height: 14, borderRadius: "50%", background: "#E2E8F0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                  <Icon name="Check" size={9} style={{ color: "#64748B" }} />
-                </div>
-                <span style={{ fontSize: 11, color: "#64748B", lineHeight: 1.5 }}>{f}</span>
+      <div className="landing-type-grid">
+        {types.map(t => (
+          <button
+            key={t.id}
+            onClick={() => onSelect(t.id)}
+            className="landing-type-card"
+            style={{
+              textAlign: "left",
+              background: t.cardBg,
+              border: `2px solid ${t.cardBorder}`,
+              borderRadius: 16,
+              padding: 20,
+              cursor: "pointer",
+              fontFamily: "Montserrat,sans-serif",
+              transition: "border-color 0.15s, box-shadow 0.15s",
+              width: "100%",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = t.cardBorderHover; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 24px ${ACCENT}22`; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = t.cardBorder; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+          >
+            {/* Иконка + бейдж */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: t.iconBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Icon name={t.icon} size={20} style={{ color: t.iconColor }} />
               </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 16, padding: "10px 0 0", borderTop: "1px solid #F1F5F9", fontSize: 13, fontWeight: 700, color: "#64748B" }}>Выбрать →</div>
-        </button>
-
-        <button
-          onClick={() => onSelect("premium")}
-          style={{ textAlign: "left", background: `linear-gradient(135deg, ${ACCENT_LIGHT} 0%, #fff 60%)`, border: `2px solid ${ACCENT}40`, borderRadius: 16, padding: 20, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "border-color 0.15s, box-shadow 0.15s" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = ACCENT; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 24px ${ACCENT}33`; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = `${ACCENT}40`; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Icon name="Sparkles" size={20} style={{ color: "#fff" }} />
+              <span style={{ fontSize: 11, fontWeight: 700, color: t.badgeColor, background: t.badgeBg, padding: "4px 10px", borderRadius: 20 }}>{t.badge}</span>
             </div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: ACCENT, padding: "4px 10px", borderRadius: 20 }}>ПРЕМИАЛЬНЫЙ</span>
-          </div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>Премиум</div>
-          <div style={{ fontSize: 12, color: "#475569", marginBottom: 14, lineHeight: 1.5 }}>Уникальный дизайн, больше блоков, больше деталей.</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {PREMIUM_FEATURES.map((f, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
-                <div style={{ width: 14, height: 14, borderRadius: "50%", background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                  <Icon name="Check" size={9} style={{ color: "#fff" }} />
+            {/* Название + описание */}
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>{t.title}</div>
+            <div style={{ fontSize: 12, color: t.descColor, marginBottom: 14, lineHeight: 1.5 }}>{t.desc}</div>
+            {/* Фичи */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {t.features.map((f, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
+                  <div style={{ width: 14, height: 14, borderRadius: "50%", background: t.featureDotBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
+                    <Icon name="Check" size={9} style={{ color: t.featureDotColor }} />
+                  </div>
+                  <span style={{ fontSize: 11, color: t.featureTextColor, lineHeight: 1.5 }}>{f}</span>
                 </div>
-                <span style={{ fontSize: 11, color: "#475569", lineHeight: 1.5 }}>{f}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 16, padding: "10px 0 0", borderTop: `1px solid ${ACCENT}20`, fontSize: 13, fontWeight: 700, color: ACCENT }}>Выбрать →</div>
-        </button>
+              ))}
+            </div>
+            {/* CTA */}
+            <div style={{ marginTop: 16, paddingTop: 10, borderTop: `1px solid ${t.dividerColor}`, fontSize: 13, fontWeight: 700, color: t.ctaColor }}>
+              Выбрать →
+            </div>
+          </button>
+        ))}
       </div>
+      <style>{`
+        .landing-type-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
+        }
+        @media (max-width: 540px) {
+          .landing-type-grid {
+            grid-template-columns: 1fr;
+          }
+          .landing-type-card {
+            padding: 16px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
