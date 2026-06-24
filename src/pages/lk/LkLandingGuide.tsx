@@ -13,6 +13,7 @@ interface Section {
 }
 
 const SECTIONS: Section[] = [
+  { id: "why", icon: "TrendingUp", title: "Зачем это и сколько стоит", color: "hsl(145,60%,38%)", bg: "hsl(145,60%,96%)" },
   { id: "before", icon: "Lightbulb", title: "Перед стартом — что подготовить", color: "hsl(40,90%,45%)", bg: "hsl(40,90%,96%)" },
   { id: "budget", icon: "FileText", title: "Стандартный лендинг", color: "#64748B", bg: "#F1F5F9" },
   { id: "premium", icon: "Sparkles", title: "Премиальный лендинг", color: ACCENT, bg: ACCENT_LIGHT },
@@ -74,6 +75,140 @@ function Badge({ label, color, bg }: { label: string; color: string; bg: string 
 }
 
 // ── Контент секций ──
+
+function SectionWhy() {
+  return (
+    <>
+      {/* Hero-блок с главным посылом */}
+      <div style={{ background: "linear-gradient(135deg, hsl(185,85%,28%) 0%, hsl(185,85%,18%) 100%)", borderRadius: 16, padding: "28px 24px", marginBottom: 12, color: "#fff" }}>
+        <div style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.3, marginBottom: 10 }}>
+          Лендинг за часы — без дизайнера, без верстальщика, без ожидания
+        </div>
+        <div style={{ fontSize: 13, lineHeight: 1.75, opacity: 0.9 }}>
+          Раньше создание сайта было долгим, дорогим и зависело от чужих людей. Теперь вы сами — и автор, и заказчик, и приёмщик работы. ИИ делает всё техническое, вы управляете смыслом.
+        </div>
+      </div>
+
+      {/* Сравнение с рынком */}
+      <Block>
+        <H3>💸 Сколько это стоит на рынке без нас</H3>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+          <div style={{ background: "#FEF2F2", borderRadius: 12, padding: "14px 16px", border: "1px solid #FECACA" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#DC2626", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Стандартный лендинг</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>от 25 000 ₽</div>
+            <div style={{ fontSize: 11, color: "#64748B", lineHeight: 1.5 }}>Дизайнер + верстальщик + правки + ожидание 2–4 недели</div>
+          </div>
+          <div style={{ background: "#FEF2F2", borderRadius: 12, padding: "14px 16px", border: "1px solid #FECACA" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#DC2626", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Премиальный лендинг</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>от 100 000 ₽</div>
+            <div style={{ fontSize: 11, color: "#64748B", lineHeight: 1.5 }}>Студия + проект + итерации + согласования 4–8 недель</div>
+          </div>
+        </div>
+        <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "14px 16px", border: "1px solid #BBF7D0" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#166534", marginBottom: 6 }}>✦ С конструктором Про Диалог</div>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" as const }}>
+            <div>
+              <div style={{ fontSize: 11, color: "#166534", marginBottom: 2 }}>Стандартный</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#166534" }}>в десятки раз дешевле</div>
+            </div>
+            <div style={{ width: 1, background: "#BBF7D0" }} />
+            <div>
+              <div style={{ fontSize: 11, color: "#166534", marginBottom: 2 }}>Премиальный</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#166534" }}>в сотни раз дешевле</div>
+            </div>
+          </div>
+        </div>
+      </Block>
+
+      {/* Что такое энергия */}
+      <Block>
+        <H3>⚡ Что такое энергия и как она списывается</H3>
+        <P>Энергия — это универсальная «валюта» платформы Про Диалог. Она списывается за каждое обращение к ИИ: чем сложнее задача, тем больше энергии уходит.</P>
+        <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, margin: "12px 0" }}>
+          {[
+            { icon: "MessageCircle", label: "Диалог с ИИ в чате", desc: "небольшое количество за каждое сообщение", color: "#64748B", bg: "#F1F5F9" },
+            { icon: "Wand2", label: "Генерация лендинга", desc: "основная часть расходов — ИИ создаёт полноценный сайт", color: ACCENT, bg: ACCENT_LIGHT },
+            { icon: "Sparkles", label: "ИИ-доработка", desc: "переработка готового HTML по вашему запросу", color: "hsl(270,70%,50%)", bg: "hsl(270,70%,97%)" },
+            { icon: "Download", label: "Скачивание файла", desc: "фиксированная плата за получение готового HTML", color: "hsl(145,60%,38%)", bg: "hsl(145,60%,96%)" },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, background: item.bg, borderRadius: 10, padding: "10px 14px" }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: item.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name={item.icon} size={15} style={{ color: "#fff" }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: "#64748B", lineHeight: 1.4 }}>{item.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <P>Пополнить баланс энергии можно в разделе <strong>«Энергия»</strong> личного кабинета в любой момент.</P>
+      </Block>
+
+      {/* Преимущества */}
+      <Block>
+        <H3>✦ Почему это лучше, чем заказывать у дизайнера</H3>
+        <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+          {[
+            {
+              icon: "Clock",
+              title: "Скорость",
+              text: "Лендинг готов за 15–60 минут. Не нужно ждать дизайнера неделями, объяснять правки и проходить бесконечные согласования.",
+            },
+            {
+              icon: "Heart",
+              title: "Вы чувствуете свой бизнес лучше любого дизайнера",
+              text: "Никто не знает вашу аудиторию, ваши услуги и ваш стиль лучше вас самих. Конструктор даёт вам инструмент — вы направляете.",
+            },
+            {
+              icon: "Repeat",
+              title: "Мгновенные правки",
+              text: "Захотели поменять текст, цвет, добавить блок — одно сообщение ИИ, и лендинг уже другой. У дизайнера это — новый счёт.",
+            },
+            {
+              icon: "Eye",
+              title: "Вы видите результат сразу",
+              text: "Никаких макетов, презентаций и «посмотрите на мой творческий замысел». Что сгенерировалось — то и есть готовый сайт.",
+            },
+            {
+              icon: "Shield",
+              title: "Полный контроль",
+              text: "HTML-файл у вас на руках. Вы не зависите от подрядчика, его графика, настроения и прайса на следующий год.",
+            },
+            {
+              icon: "Zap",
+              title: "Без технических знаний",
+              text: "Не нужно знать HTML, CSS, Figma или WordPress. Просто расскажите о бизнесе — ИИ сделает всё остальное.",
+            },
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", gap: 12, padding: "14px 16px", background: "#F8FAFC", borderRadius: 12, border: "1px solid #E8ECF0" }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                <Icon name={item.icon} size={17} style={{ color: ACCENT }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 3 }}>{item.title}</div>
+                <div style={{ fontSize: 12, color: "#64748B", lineHeight: 1.65 }}>{item.text}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Block>
+
+      {/* Итог */}
+      <div style={{ background: "linear-gradient(135deg, hsl(40,90%,97%) 0%, hsl(40,90%,93%) 100%)", borderRadius: 14, border: "1px solid hsl(40,90%,82%)", padding: "18px 20px" }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <Icon name="Lightbulb" size={18} style={{ color: "hsl(40,90%,45%)", flexShrink: 0, marginTop: 1 }} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#92400E", marginBottom: 4 }}>Главное, что нужно понять</div>
+            <div style={{ fontSize: 13, color: "#78350F", lineHeight: 1.7 }}>
+              Конструктор лендингов — это не «дешёвый заменитель». Это другой подход: быстрый, честный и направленный именно на ваш результат. Вы не покупаете чьё-то видение — вы создаёте своё.
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
 
 function SectionBefore() {
   return (
@@ -338,9 +473,10 @@ function SectionDomain() {
 }
 
 export default function LkLandingGuide({ onClose }: { onClose: () => void }) {
-  const [activeSection, setActiveSection] = useState("before");
+  const [activeSection, setActiveSection] = useState("why");
 
   const contentMap: Record<string, React.ReactNode> = {
+    why: <SectionWhy />,
     before: <SectionBefore />,
     budget: <SectionBudget />,
     premium: <SectionPremium />,
