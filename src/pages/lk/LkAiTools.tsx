@@ -167,7 +167,7 @@ export default function LkAiTools() {
     return <SalonBot onBack={() => { setActiveTool(null); window.scrollTo({ top: 0, behavior: "instant" }); }} />;
   }
 
-  if (hasPaid && activeTool === "landing-builder") {
+  if (user?.is_admin && activeTool === "landing-builder") {
     return <div><BackButton /><LkLandingBuilder /></div>;
   }
 
@@ -290,18 +290,18 @@ export default function LkAiTools() {
           <PaywallToolCard icon="Scissors" color="hsl(335,80%,50%)" bg="hsl(335,80%,97%)" title="Диагностика роста салона PRO" description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока клиентов." badge="бесплатно" />
         )}
 
-        {hasPaid ? (
+        {user?.is_admin ? (
           <ToolCard
             icon="Globe"
             color="hsl(185,85%,32%)"
             bg="hsl(185,85%,96%)"
             title="Конструктор лендингов"
             description="Расскажите о бизнесе в чате — ИИ создаст готовый лендинг. Скачайте HTML и разместите на любом хостинге."
-            badge="new"
+            badge="бета"
             onStart={() => { setActiveTool("landing-builder"); window.scrollTo({ top: 0, behavior: "instant" }); }}
           />
         ) : (
-          <PaywallToolCard icon="Globe" color="hsl(185,85%,32%)" bg="hsl(185,85%,96%)" title="Конструктор лендингов" description="Расскажите о бизнесе в чате — ИИ создаст готовый лендинг. Скачайте HTML и разместите на любом хостинге." badge="new" />
+          <ComingSoonCard icon="Globe" color="hsl(185,85%,32%)" bg="hsl(185,85%,96%)" title="Конструктор лендингов" description="Расскажите о бизнесе в чате — ИИ создаст готовый лендинг. Скачайте HTML и разместите на любом хостинге." />
         )}
       </div>}
 
