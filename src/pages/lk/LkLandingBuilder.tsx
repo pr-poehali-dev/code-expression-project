@@ -56,6 +56,18 @@ export default function LkLandingBuilder() {
     localStorage.setItem(LS_PHASE, phase);
   }, [htmlResult, phase]);
 
+  function resetChat() {
+    localStorage.removeItem(LS_MSGS);
+    localStorage.removeItem(LS_HTML);
+    localStorage.removeItem(LS_PHASE);
+    setMessages([WELCOME]);
+    setInput("");
+    setPhase("chat");
+    setHtmlResult("");
+    setShowPreview(false);
+    setLoading(false);
+  }
+
   async function sendMessage(text?: string) {
     const userText = (text ?? input).trim();
     if (!userText || loading) return;
@@ -72,7 +84,13 @@ export default function LkLandingBuilder() {
         body: JSON.stringify({ messages: newMessages, mode: "chat" }),
       });
       const data = await res.json();
+      if (!res.ok || !data.reply) {
+        setMessages(prev => [...prev, { role: "assistant", content: "Сервис временно недоступен. Попробуйте через минуту." }]);
+        return;
+      }
       setMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "Ошибка соединения. Проверьте интернет и попробуйте ещё раз." }]);
     } finally {
       setLoading(false);
     }
@@ -86,17 +104,21 @@ export default function LkLandingBuilder() {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": session() },
         body: JSON.stringify({ messages, mode: "generate" }),
+        signal: AbortSignal.timeout(120_000),
       });
       const data = await res.json();
       const html = data.reply || data.html || "";
       if (!html || !html.includes("<!DOCTYPE")) {
         setPhase("chat");
-        setMessages(prev => [...prev, { role: "assistant", content: "Произошла ошибка при генерации. Попробуйте ещё раз." }]);
+        setMessages(prev => [...prev, { role: "assistant", content: "Не удалось сгенерировать лендинг — попробуйте ещё раз или добавьте больше деталей о бизнесе." }]);
         return;
       }
       setHtmlResult(html);
       setPhase("done");
       setShowPreview(true);
+    } catch {
+      setPhase("chat");
+      setMessages(prev => [...prev, { role: "assistant", content: "Генерация заняла слишком долго. Попробуйте ещё раз — обычно со второй попытки всё работает." }]);
     } finally {
       setLoading(false);
     }
@@ -259,10 +281,19 @@ export default function LkLandingBuilder() {
         <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Icon name="Globe" size={20} style={{ color: ACCENT }} />
         </div>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A" }}>Конструктор лендингов</div>
           <div style={{ fontSize: 13, color: "#888" }}>Расскажите о бизнесе — ИИ создаст готовый сайт</div>
         </div>
+        {messages.length > 1 && (
+          <button
+            onClick={resetChat}
+            style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "6px 12px", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}
+          >
+            <Icon name="RotateCcw" size={12} />
+            Начать заново
+          </button>
+        )}
       </div>
 
       {/* Чат */}
