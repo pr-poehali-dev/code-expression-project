@@ -102,6 +102,12 @@ export default function LkLandingBuilder() {
     }
   }
 
+  function openInBrowser() {
+    const blob = new Blob([htmlResult], { type: "text/html;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+  }
+
   function downloadHtml() {
     const blob = new Blob([htmlResult], { type: "text/html;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -156,18 +162,25 @@ export default function LkLandingBuilder() {
             {/* Кнопки действий */}
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <button
-                onClick={downloadHtml}
+                onClick={openInBrowser}
                 style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+              >
+                <Icon name="ExternalLink" size={16} />
+                Открыть в браузере
+              </button>
+              <button
+                onClick={downloadHtml}
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: `1.5px solid ${ACCENT}`, background: ACCENT_LIGHT, color: ACCENT, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
               >
                 <Icon name="Download" size={16} />
                 Скачать HTML
               </button>
               <button
                 onClick={() => setShowPreview(v => !v)}
-                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: `1.5px solid ${ACCENT}`, background: ACCENT_LIGHT, color: ACCENT, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "1.5px solid #E8ECF0", background: "#fff", color: "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
               >
                 <Icon name={showPreview ? "EyeOff" : "Eye"} size={16} />
-                {showPreview ? "Скрыть превью" : "Показать превью"}
+                {showPreview ? "Скрыть превью" : "Мини-превью"}
               </button>
               <button
                 onClick={() => { setPhase("chat"); setHtmlResult(""); setMessages([WELCOME]); localStorage.removeItem(LS_MSGS); localStorage.removeItem(LS_HTML); localStorage.removeItem(LS_PHASE); }}
