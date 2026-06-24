@@ -35,7 +35,7 @@ const PREMIUM_FEATURES = [
   "Расширенная форма + карта / соцсети / мессенджеры",
 ];
 
-// Скрипт редактирования, который инжектируется в iframe
+// Скрипт редактирования + замены фото, инжектируется в iframe
 const EDITOR_SCRIPT = `
 <script>
 (function() {
@@ -44,14 +44,18 @@ const EDITOR_SCRIPT = `
     [contenteditable]:hover { outline: 2px dashed #0ea5e9 !important; outline-offset: 2px !important; cursor: text !important; }
     [contenteditable]:focus { outline: 2px solid #0ea5e9 !important; outline-offset: 2px !important; background: rgba(14,165,233,0.04) !important; }
     .edit-hint { position:fixed; top:12px; left:50%; transform:translateX(-50%); background:#0ea5e9; color:#fff; padding:8px 18px; border-radius:20px; font-size:13px; font-family:sans-serif; z-index:99999; pointer-events:none; box-shadow:0 4px 16px rgba(14,165,233,0.4); }
+    img.editable-img { cursor:pointer !important; position:relative; }
+    img.editable-img:hover { outline: 3px solid #f59e0b !important; outline-offset: 2px !important; }
+    .img-replace-btn { position:absolute; background:#f59e0b; color:#fff; border:none; border-radius:8px; padding:6px 12px; font-size:12px; font-family:sans-serif; cursor:pointer; z-index:99998; pointer-events:all; box-shadow:0 2px 8px rgba(0,0,0,0.2); display:none; }
   \`;
   document.head.appendChild(style);
 
   var hint = document.createElement('div');
   hint.className = 'edit-hint';
-  hint.textContent = '✏️ Режим редактирования — кликайте на текст и меняйте';
+  hint.textContent = '✏️ Текст — кликайте и пишите · 🖼 Фото — кликайте на картинку';
   document.body.appendChild(hint);
 
+  // Текстовые элементы — contenteditable
   var tags = ['h1','h2','h3','h4','h5','p','span','a','li','button','label','td','th','blockquote','figcaption'];
   tags.forEach(function(tag) {
     document.querySelectorAll(tag).forEach(function(el) {
@@ -60,6 +64,32 @@ const EDITOR_SCRIPT = `
         el.setAttribute('spellcheck', 'false');
       }
     });
+  });
+
+  // Изображения — клик вызывает загрузку
+  var imgIndex = 0;
+  document.querySelectorAll('img').forEach(function(img) {
+    img.classList.add('editable-img');
+    img.dataset.imgIdx = String(imgIndex++);
+    img.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({ type: 'landing-img-click', idx: img.dataset.imgIdx }, '*');
+    });
+  });
+
+  // Слушаем замену фото от родителя
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'landing-img-replace') {
+      var imgs = document.querySelectorAll('img[data-img-idx]');
+      imgs.forEach(function(img) {
+        if (img.dataset.imgIdx === String(e.data.idx)) {
+          img.src = e.data.src;
+          img.removeAttribute('srcset');
+        }
+      });
+      sendHtml();
+    }
   });
 
   function sendHtml() {
@@ -74,9 +104,7 @@ const EDITOR_SCRIPT = `
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       var el = document.activeElement;
-      if (el && el.tagName !== 'TEXTAREA') {
-        e.preventDefault();
-      }
+      if (el && el.tagName !== 'TEXTAREA') { e.preventDefault(); }
     }
   });
 
@@ -200,9 +228,11 @@ export default function LkLandingBuilder() {
   const [showInstructions, setShowInstructions] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editSaved, setEditSaved] = useState(false);
+  const [pendingImgIdx, setPendingImgIdx] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -224,6 +254,10 @@ export default function LkLandingBuilder() {
       setEditSaved(true);
       setTimeout(() => setEditSaved(false), 2000);
     }
+    if (e.data?.type === "landing-img-click") {
+      setPendingImgIdx(e.data.idx);
+      fileInputRef.current?.click();
+    }
   }, []);
 
   useEffect(() => {
@@ -236,7 +270,24 @@ export default function LkLandingBuilder() {
     if (!editMode && iframeRef.current) {
       iframeRef.current.srcdoc = htmlResult;
     }
-  }, [editMode]);
+  }, [editMode]); // eslint-disable-line
+
+  // Обработка выбранного файла фото
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || pendingImgIdx === null) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const src = ev.target?.result as string;
+      iframeRef.current?.contentWindow?.postMessage(
+        { type: "landing-img-replace", idx: pendingImgIdx, src },
+        "*"
+      );
+      setPendingImgIdx(null);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  }
 
   function selectType(type: LandingType) {
     setLandingType(type);
@@ -395,8 +446,16 @@ export default function LkLandingBuilder() {
                 style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: editMode ? `1.5px solid #0ea5e9` : "1.5px solid #E8ECF0", background: editMode ? "#f0f9ff" : "#fff", color: editMode ? "#0ea5e9" : "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.15s" }}
               >
                 <Icon name={editMode ? "PenOff" : "Pencil"} size={16} />
-                {editMode ? "Завершить правки" : "Редактировать текст"}
+                {editMode ? "Завершить правки" : "Редактировать"}
               </button>
+              {/* Скрытый input для загрузки фото */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={handleFileChange}
+              />
               <button onClick={() => setShowPreview(v => !v)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "1.5px solid #E8ECF0", background: "#fff", color: "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                 <Icon name={showPreview ? "EyeOff" : "Eye"} size={16} />
                 {showPreview ? "Скрыть" : "Превью"}
@@ -409,12 +468,14 @@ export default function LkLandingBuilder() {
 
             {/* Подсказка режима редактирования */}
             {editMode && (
-              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 10, background: "#f0f9ff", border: "1.5px solid #0ea5e9" }}>
-                <Icon name="Info" size={16} style={{ color: "#0ea5e9", flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: "#0369a1", lineHeight: 1.5 }}>
-                  Кликайте на любой текст в лендинге и редактируйте прямо там. Изменения сохраняются автоматически.
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 16px", borderRadius: 10, background: "#f0f9ff", border: "1.5px solid #0ea5e9" }}>
+                <Icon name="Info" size={16} style={{ color: "#0ea5e9", flexShrink: 0, marginTop: 1 }} />
+                <div style={{ fontSize: 13, color: "#0369a1", lineHeight: 1.6 }}>
+                  <strong>✏️ Текст</strong> — кликните на любой заголовок или абзац и редактируйте прямо там.<br />
+                  <strong>🖼 Фото</strong> — кликните на любую картинку — откроется выбор файла с вашего устройства.<br />
+                  Все изменения сохраняются автоматически.
                   {editSaved && <strong style={{ marginLeft: 8, color: "#059669" }}>✓ Сохранено</strong>}
-                </span>
+                </div>
               </div>
             )}
 
