@@ -1,0 +1,2 @@
+psycopg2-binary
+openai>=1.0.0

@@ -165,6 +165,14 @@ export const TOOLS_CATALOG: ToolInfo[] = [
     category: "marketing",
   },
   {
+    slug: "landing-builder",
+    name: "Конструктор лендингов",
+    description: "Расскажите о бизнесе в чате — ИИ создаст готовый лендинг для скачивания и размещения.",
+    icon: "Globe",
+    tab: "ai",
+    category: "ai",
+  },
+  {
     slug: "masters-register",
     name: "Регистрация в реферальной программе",
     description: "Приглашай салоны и зарабатывай 10% с их трат навсегда.",
