@@ -7,7 +7,9 @@ const ACCENT_LIGHT = "hsl(185,85%,96%)";
 const LS_MSGS = "landing_builder_msgs";
 const LS_HTML = "landing_builder_html";
 const LS_PHASE = "landing_builder_phase";
+const LS_TYPE = "landing_builder_type";
 
+type LandingType = "budget" | "premium";
 interface Message { role: "user" | "assistant"; content: string; }
 
 const NETLIFY_STEPS = [
@@ -17,16 +19,120 @@ const NETLIFY_STEPS = [
   { n: "4", text: "Чтобы подключить свой домен: Settings → Domain management → Add custom domain" },
 ];
 
+const BUDGET_FEATURES = [
+  "5 блоков: обложка, услуги, преимущества, контакты, футер",
+  "Чистый минималистичный дизайн",
+  "Один акцентный цвет под тематику",
+  "Адаптивная вёрстка под мобильные",
+  "Форма обратной связи",
+];
+
+const PREMIUM_FEATURES = [
+  "7–9 блоков: обложка, о компании, услуги, кейсы, отзывы, цены, FAQ, CTA, футер",
+  "Уникальный дизайн: асимметрия, градиенты, анимации",
+  "Индивидуальная цветовая палитра и паттерны",
+  "Премиальная типографика и кастомные кнопки",
+  "Расширенная форма + карта / соцсети / мессенджеры",
+];
+
 function session() { return localStorage.getItem("lk_session") || ""; }
 
-const WELCOME: Message = {
-  role: "assistant",
-  content: "Привет! Я помогу создать красивый лендинг для вашего бизнеса 🚀\n\nРасскажите — чем занимается ваш бизнес? Название, сфера деятельности — начнём с этого.",
-};
+function getWelcome(type: LandingType): Message {
+  return {
+    role: "assistant",
+    content: type === "budget"
+      ? "Отлично, создаём бюджетный лендинг — лаконичный и современный 👍\n\nРасскажите о бизнесе: название компании и чем занимаетесь?"
+      : "Создаём премиальный лендинг — с уникальным дизайном и расширенной структурой ✨\n\nРасскажите о бизнесе: название, чем занимаетесь и кто ваши клиенты?",
+  };
+}
+
+// ── Экран выбора типа ──
+function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Icon name="Globe" size={20} style={{ color: ACCENT }} />
+        </div>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A" }}>Конструктор лендингов</div>
+          <div style={{ fontSize: 13, color: "#888" }}>Выберите тип лендинга — ИИ подберёт дизайн и структуру</div>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        {/* Бюджетный */}
+        <button
+          onClick={() => onSelect("budget")}
+          style={{ textAlign: "left", background: "#fff", border: "2px solid #E8ECF0", borderRadius: 16, padding: 20, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "border-color 0.15s, box-shadow 0.15s" }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = ACCENT; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 20px ${ACCENT}22`; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E8ECF0"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon name="FileText" size={20} style={{ color: "#64748B" }} />
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#64748B", background: "#F1F5F9", padding: "4px 10px", borderRadius: 20 }}>БЮДЖЕТНЫЙ</span>
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>Стандартный</div>
+          <div style={{ fontSize: 12, color: "#64748B", marginBottom: 14, lineHeight: 1.5 }}>Чистый, минималистичный. Быстро и по делу.</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {BUDGET_FEATURES.map((f, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
+                <div style={{ width: 14, height: 14, borderRadius: "50%", background: "#E2E8F0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                  <Icon name="Check" size={9} style={{ color: "#64748B" }} />
+                </div>
+                <span style={{ fontSize: 11, color: "#64748B", lineHeight: 1.5 }}>{f}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 16, padding: "10px 0 0", borderTop: "1px solid #F1F5F9", fontSize: 13, fontWeight: 700, color: "#64748B" }}>
+            Выбрать →
+          </div>
+        </button>
+
+        {/* Премиальный */}
+        <button
+          onClick={() => onSelect("premium")}
+          style={{ textAlign: "left", background: `linear-gradient(135deg, ${ACCENT_LIGHT} 0%, #fff 60%)`, border: `2px solid ${ACCENT}40`, borderRadius: 16, padding: 20, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "border-color 0.15s, box-shadow 0.15s", position: "relative", overflow: "hidden" }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = ACCENT; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 24px ${ACCENT}33`; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = `${ACCENT}40`; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon name="Sparkles" size={20} style={{ color: "#fff" }} />
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: ACCENT, padding: "4px 10px", borderRadius: 20 }}>ПРЕМИАЛЬНЫЙ</span>
+          </div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>Премиум</div>
+          <div style={{ fontSize: 12, color: "#475569", marginBottom: 14, lineHeight: 1.5 }}>Уникальный дизайн, больше блоков, больше деталей.</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {PREMIUM_FEATURES.map((f, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
+                <div style={{ width: 14, height: 14, borderRadius: "50%", background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                  <Icon name="Check" size={9} style={{ color: "#fff" }} />
+                </div>
+                <span style={{ fontSize: 11, color: "#475569", lineHeight: 1.5 }}>{f}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 16, padding: "10px 0 0", borderTop: `1px solid ${ACCENT}20`, fontSize: 13, fontWeight: 700, color: ACCENT }}>
+            Выбрать →
+          </div>
+        </button>
+      </div>
+
+      <style>{`@media(max-width:520px){.landing-type-grid{grid-template-columns:1fr!important}}`}</style>
+    </div>
+  );
+}
 
 export default function LkLandingBuilder() {
+  const [landingType, setLandingType] = useState<LandingType | null>(() => {
+    try { return (localStorage.getItem(LS_TYPE) as LandingType) || null; } catch { return null; }
+  });
   const [messages, setMessages] = useState<Message[]>(() => {
-    try { const s = localStorage.getItem(LS_MSGS); return s ? JSON.parse(s) : [WELCOME]; } catch { return [WELCOME]; }
+    try { const s = localStorage.getItem(LS_MSGS); return s ? JSON.parse(s) : []; } catch { return []; }
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,7 +154,7 @@ export default function LkLandingBuilder() {
   }, [messages, loading]);
 
   useEffect(() => {
-    localStorage.setItem(LS_MSGS, JSON.stringify(messages));
+    if (messages.length > 0) localStorage.setItem(LS_MSGS, JSON.stringify(messages));
   }, [messages]);
 
   useEffect(() => {
@@ -56,11 +162,20 @@ export default function LkLandingBuilder() {
     localStorage.setItem(LS_PHASE, phase);
   }, [htmlResult, phase]);
 
+  function selectType(type: LandingType) {
+    setLandingType(type);
+    localStorage.setItem(LS_TYPE, type);
+    const welcome = getWelcome(type);
+    setMessages([welcome]);
+  }
+
   function resetChat() {
     localStorage.removeItem(LS_MSGS);
     localStorage.removeItem(LS_HTML);
     localStorage.removeItem(LS_PHASE);
-    setMessages([WELCOME]);
+    localStorage.removeItem(LS_TYPE);
+    setLandingType(null);
+    setMessages([]);
     setInput("");
     setPhase("chat");
     setHtmlResult("");
@@ -81,7 +196,7 @@ export default function LkLandingBuilder() {
       const res = await fetch(AI_LANDING_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-        body: JSON.stringify({ messages: newMessages, mode: "chat" }),
+        body: JSON.stringify({ messages: newMessages, mode: "chat", landingType }),
       });
       const data = await res.json();
       if (!res.ok || !data.reply) {
@@ -103,7 +218,7 @@ export default function LkLandingBuilder() {
       const res = await fetch(AI_LANDING_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-        body: JSON.stringify({ messages, mode: "generate" }),
+        body: JSON.stringify({ messages, mode: "generate", landingType }),
         signal: AbortSignal.timeout(120_000),
       });
       const data = await res.json();
@@ -149,21 +264,30 @@ export default function LkLandingBuilder() {
 
   const isReadyToGenerate = messages.length >= 6 && phase === "chat";
 
-  // ── Генерация / Превью ──
-  if (phase === "done" && !htmlResult) {
-    setPhase("chat");
+  // ── Выбор типа ──
+  if (!landingType) {
+    return <TypeSelector onSelect={selectType} />;
   }
+
+  // ── Генерация / Превью ──
+  if (phase === "done" && !htmlResult) setPhase("chat");
+
+  const typeBadge = landingType === "premium"
+    ? { label: "Премиум", color: ACCENT, bg: ACCENT_LIGHT }
+    : { label: "Стандартный", color: "#64748B", bg: "#F1F5F9" };
 
   if (phase === "generating" || phase === "done") {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        {/* Заголовок */}
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon name="Globe" size={20} style={{ color: ACCENT }} />
           </div>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A" }}>Ваш лендинг готов</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A" }}>Ваш лендинг готов</div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: typeBadge.color, background: typeBadge.bg, padding: "3px 9px", borderRadius: 20 }}>{typeBadge.label}</span>
+            </div>
             <div style={{ fontSize: 13, color: "#888" }}>
               {htmlResult ? `HTML готов · ${Math.round(htmlResult.length / 1024)} КБ` : "Просмотрите и скачайте HTML-файл"}
             </div>
@@ -173,47 +297,33 @@ export default function LkLandingBuilder() {
         {phase === "generating" && (
           <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: 40, textAlign: "center" }}>
             <div style={{ width: 48, height: 48, border: `3px solid ${ACCENT_LIGHT}`, borderTopColor: ACCENT, borderRadius: "50%", animation: "spin 0.9s linear infinite", margin: "0 auto 16px" }} />
-            <div style={{ fontSize: 15, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>ИИ создаёт лендинг...</div>
-            <div style={{ fontSize: 13, color: "#888" }}>Обычно занимает 15–30 секунд</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>ИИ создаёт {landingType === "premium" ? "премиальный" : "стандартный"} лендинг...</div>
+            <div style={{ fontSize: 13, color: "#888" }}>{landingType === "premium" ? "Премиум занимает немного дольше — до 60 секунд" : "Обычно занимает 15–30 секунд"}</div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         )}
 
         {phase === "done" && (
           <>
-            {/* Кнопки действий */}
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button
-                onClick={openInBrowser}
-                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-              >
+              <button onClick={openInBrowser} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                 <Icon name="ExternalLink" size={16} />
                 Открыть в браузере
               </button>
-              <button
-                onClick={downloadHtml}
-                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: `1.5px solid ${ACCENT}`, background: ACCENT_LIGHT, color: ACCENT, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-              >
+              <button onClick={downloadHtml} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: `1.5px solid ${ACCENT}`, background: ACCENT_LIGHT, color: ACCENT, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                 <Icon name="Download" size={16} />
                 Скачать HTML
               </button>
-              <button
-                onClick={() => setShowPreview(v => !v)}
-                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "1.5px solid #E8ECF0", background: "#fff", color: "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-              >
+              <button onClick={() => setShowPreview(v => !v)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "1.5px solid #E8ECF0", background: "#fff", color: "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                 <Icon name={showPreview ? "EyeOff" : "Eye"} size={16} />
                 {showPreview ? "Скрыть превью" : "Мини-превью"}
               </button>
-              <button
-                onClick={() => { setPhase("chat"); setHtmlResult(""); setMessages([WELCOME]); localStorage.removeItem(LS_MSGS); localStorage.removeItem(LS_HTML); localStorage.removeItem(LS_PHASE); }}
-                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "1.5px solid #E8ECF0", background: "#fff", color: "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-              >
+              <button onClick={resetChat} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "1.5px solid #E8ECF0", background: "#fff", color: "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                 <Icon name="RefreshCw" size={15} />
                 Создать заново
               </button>
             </div>
 
-            {/* Превью */}
             {showPreview && (
               <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid #E8ECF0", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
                 <div style={{ background: "#F1F5F9", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
@@ -222,20 +332,12 @@ export default function LkLandingBuilder() {
                   </div>
                   <div style={{ flex: 1, background: "#fff", borderRadius: 6, padding: "4px 12px", fontSize: 12, color: "#888" }}>Предварительный просмотр</div>
                 </div>
-                <iframe
-                  srcDoc={htmlResult}
-                  style={{ width: "100%", height: 600, border: "none", display: "block" }}
-                  title="Превью лендинга"
-                />
+                <iframe srcDoc={htmlResult} style={{ width: "100%", height: 600, border: "none", display: "block" }} title="Превью лендинга" />
               </div>
             )}
 
-            {/* Инструкция */}
             <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8ECF0" }}>
-              <button
-                onClick={() => setShowInstructions(v => !v)}
-                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-              >
+              <button onClick={() => setShowInstructions(v => !v)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <Icon name="BookOpen" size={16} style={{ color: ACCENT }} />
                   <span style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>Как разместить лендинг в интернете (бесплатно)</span>
@@ -255,12 +357,7 @@ export default function LkLandingBuilder() {
                       </div>
                     ))}
                   </div>
-                  <a
-                    href="https://app.netlify.com/drop"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 16, padding: "9px 18px", borderRadius: 8, background: ACCENT_LIGHT, color: ACCENT, fontSize: 13, fontWeight: 700, textDecoration: "none", border: `1px solid ${ACCENT}30` }}
-                  >
+                  <a href="https://app.netlify.com/drop" target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 16, padding: "9px 18px", borderRadius: 8, background: ACCENT_LIGHT, color: ACCENT, fontSize: 13, fontWeight: 700, textDecoration: "none", border: `1px solid ${ACCENT}30` }}>
                     <Icon name="ExternalLink" size={14} />
                     Открыть Netlify Drop
                   </a>
@@ -276,27 +373,26 @@ export default function LkLandingBuilder() {
   // ── Чат ──
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Заголовок */}
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Icon name="Globe" size={20} style={{ color: ACCENT }} />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A" }}>Конструктор лендингов</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A" }}>Конструктор лендингов</div>
+            <span style={{ fontSize: 11, fontWeight: 700, color: typeBadge.color, background: typeBadge.bg, padding: "3px 9px", borderRadius: 20 }}>{typeBadge.label}</span>
+          </div>
           <div style={{ fontSize: 13, color: "#888" }}>Расскажите о бизнесе — ИИ создаст готовый сайт</div>
         </div>
-        {messages.length > 1 && (
-          <button
-            onClick={resetChat}
-            style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "6px 12px", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}
-          >
-            <Icon name="RotateCcw" size={12} />
-            Начать заново
-          </button>
-        )}
+        <button
+          onClick={resetChat}
+          style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "6px 12px", fontSize: 12, color: "#888", cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}
+        >
+          <Icon name="RotateCcw" size={12} />
+          Начать заново
+        </button>
       </div>
 
-      {/* Чат */}
       <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", maxHeight: 420, overflowY: "auto" }}>
           {messages.map((m, i) => (
@@ -333,7 +429,6 @@ export default function LkLandingBuilder() {
           <div ref={bottomRef} />
         </div>
 
-        {/* Ввод */}
         <div style={{ borderTop: "1px solid #E8ECF0", padding: "12px 16px", display: "flex", gap: 10, alignItems: "flex-end" }}>
           <textarea
             ref={textareaRef}
@@ -347,33 +442,28 @@ export default function LkLandingBuilder() {
           <button
             onClick={() => sendMessage()}
             disabled={!input.trim() || loading}
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 10, border: "none", background: !input.trim() || loading ? "#E8ECF0" : ACCENT, color: !input.trim() || loading ? "#aaa" : "#fff", cursor: !input.trim() || loading ? "default" : "pointer", flexShrink: 0 }}
+            style={{ width: 40, height: 40, borderRadius: 10, border: "none", background: input.trim() && !loading ? ACCENT : "#E8ECF0", color: input.trim() && !loading ? "#fff" : "#aaa", display: "flex", alignItems: "center", justifyContent: "center", cursor: input.trim() && !loading ? "pointer" : "default", flexShrink: 0, transition: "background 0.15s" }}
           >
             <Icon name="Send" size={16} />
           </button>
         </div>
       </div>
 
-      {/* Кнопка генерации */}
       {isReadyToGenerate && (
         <button
           onClick={generateLanding}
-          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "14px 24px", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${ACCENT}, hsl(185,85%,24%))`, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: `0 4px 20px ${ACCENT}40` }}
+          disabled={loading}
+          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "15px 24px", borderRadius: 14, border: "none", background: loading ? "#E8ECF0" : `linear-gradient(135deg, ${ACCENT} 0%, hsl(185,85%,26%) 100%)`, color: loading ? "#aaa" : "#fff", fontSize: 15, fontWeight: 700, cursor: loading ? "default" : "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: loading ? "none" : `0 4px 16px ${ACCENT}44` }}
         >
-          <Icon name="Wand2" size={18} />
-          Создать лендинг
+          <Icon name={landingType === "premium" ? "Sparkles" : "Wand2"} size={18} />
+          {landingType === "premium" ? "Создать премиальный лендинг" : "Создать лендинг"}
         </button>
-      )}
-      {!isReadyToGenerate && messages.length >= 2 && (
-        <div style={{ fontSize: 12, color: "#aaa", textAlign: "center" }}>
-          Кнопка «Создать лендинг» появится после того, как ИИ соберёт достаточно информации
-        </div>
       )}
 
       <style>{`
         @keyframes dot-pulse {
           0%, 100% { opacity: 0.3; transform: scale(0.8); }
-          50% { opacity: 1; transform: scale(1.1); }
+          50% { opacity: 1; transform: scale(1.2); }
         }
       `}</style>
     </div>
