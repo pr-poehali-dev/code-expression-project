@@ -4,6 +4,9 @@ import Icon from "@/components/ui/icon";
 const AI_LANDING_URL = "https://functions.poehali.dev/12df0290-571d-42d1-8fb0-8889ae15cd68";
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_LIGHT = "hsl(185,85%,96%)";
+const LS_MSGS = "landing_builder_msgs";
+const LS_HTML = "landing_builder_html";
+const LS_PHASE = "landing_builder_phase";
 
 interface Message { role: "user" | "assistant"; content: string; }
 
@@ -16,28 +19,40 @@ const NETLIFY_STEPS = [
 
 function session() { return localStorage.getItem("lk_session") || ""; }
 
+const WELCOME: Message = {
+  role: "assistant",
+  content: "Привет! Я помогу создать красивый лендинг для вашего бизнеса 🚀\n\nРасскажите — чем занимается ваш бизнес? Название, сфера деятельности — начнём с этого.",
+};
+
 export default function LkLandingBuilder() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try { const s = localStorage.getItem(LS_MSGS); return s ? JSON.parse(s) : [WELCOME]; } catch { return [WELCOME]; }
+  });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [phase, setPhase] = useState<"chat" | "generating" | "done">("chat");
-  const [htmlResult, setHtmlResult] = useState("");
+  const [phase, setPhase] = useState<"chat" | "generating" | "done">(() => {
+    try { return (localStorage.getItem(LS_PHASE) as "chat" | "done") || "chat"; } catch { return "chat"; }
+  });
+  const [htmlResult, setHtmlResult] = useState(() => {
+    try { return localStorage.getItem(LS_HTML) || ""; } catch { return ""; }
+  });
   const [showPreview, setShowPreview] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    // Приветственное сообщение
-    setMessages([{
-      role: "assistant",
-      content: "Привет! Я помогу создать красивый лендинг для вашего бизнеса 🚀\n\nРасскажите — чем занимается ваш бизнес? Название, сфера деятельности — начнём с этого.",
-    }]);
-  }, []);
-
-  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  useEffect(() => {
+    localStorage.setItem(LS_MSGS, JSON.stringify(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem(LS_HTML, htmlResult);
+    localStorage.setItem(LS_PHASE, phase);
+  }, [htmlResult, phase]);
 
   async function sendMessage(text?: string) {
     const userText = (text ?? input).trim();
@@ -141,7 +156,7 @@ export default function LkLandingBuilder() {
                 {showPreview ? "Скрыть превью" : "Показать превью"}
               </button>
               <button
-                onClick={() => { setPhase("chat"); setHtmlResult(""); }}
+                onClick={() => { setPhase("chat"); setHtmlResult(""); setMessages([WELCOME]); localStorage.removeItem(LS_MSGS); localStorage.removeItem(LS_HTML); localStorage.removeItem(LS_PHASE); }}
                 style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "1.5px solid #E8ECF0", background: "#fff", color: "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
               >
                 <Icon name="RefreshCw" size={15} />
