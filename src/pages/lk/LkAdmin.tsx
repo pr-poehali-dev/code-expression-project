@@ -8,10 +8,9 @@ import { CandidatesSection } from "./LkAdminCandidates";
 import { EnergySection } from "./LkAdminEnergy";
 import { CoursesSection } from "./LkAdminCourses";
 import { PaymentsSection } from "./LkAdminPayments";
-import LkAdminSeo from "./LkAdminSeo";
 import { TrainingGeneratorSection, TrainingImageGenSection } from "./LkAdminTrainingGenerator";
 
-type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments" | "seo" | "training" | "training-img";
+type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments" | "training" | "training-img";
 
 export default function LkAdmin() {
   const [section, setSection] = useState<Section>("ai");
@@ -32,7 +31,6 @@ export default function LkAdmin() {
           { id: "candidates" as Section, icon: "UserCheck",    label: "Кандидаты"    },
           { id: "body"       as Section, icon: "User",         label: "Схема тела"   },
           { id: "energy"     as Section, icon: "Zap",          label: "Энергия"      },
-          { id: "seo"        as Section, icon: "Globe",        label: "SEO"          },
           { id: "payments"   as Section, icon: "CreditCard",   label: "Платежи"      },
         ].map(s => (
           <button key={s.id} onClick={() => setSection(s.id)} style={{
@@ -58,7 +56,6 @@ export default function LkAdmin() {
       {section === "candidates" && <CandidatesSection />}
       {section === "body"       && <BodySection />}
       {section === "energy"     && <EnergySection />}
-      {section === "seo"        && <LkAdminSeo />}
       {section === "payments"   && <PaymentsSection />}
 
       <style>{`

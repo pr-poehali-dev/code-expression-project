@@ -2,8 +2,6 @@
   "ai-landing": "https://functions.poehali.dev/12df0290-571d-42d1-8fb0-8889ae15cd68",
   "rep-contacts": "https://functions.poehali.dev/689b6bbd-c1aa-4515-8df2-3c3d3284884b",
   "training-generator": "https://functions.poehali.dev/d572afc5-ec2c-41fa-a73e-7a63c926d5c3",
-  "admin-seo": "https://functions.poehali.dev/ab6ca380-8b84-4708-b715-cb3771fd07d9",
-  "gen-pwa-icons": "https://functions.poehali.dev/7a93b269-faf7-4059-ae00-38cdf9bc6e93",
   "seo-analyzer": "https://functions.poehali.dev/3603658f-6f23-4de6-b671-73bb1832b4e0",
   "agent-file-parser": "https://functions.poehali.dev/88305d14-edee-489e-b8f1-9de336eb0122",
   "ai-salon-agent": "https://functions.poehali.dev/40feaf4c-2193-430d-98ae-16712a91feb4",
@@ -28,10 +26,7 @@
   "job-ai": "https://functions.poehali.dev/78478eb2-9825-47e4-b184-32ad35d6d7c7",
   "rep-mail": "https://functions.poehali.dev/df48bb51-d4fb-4584-b725-423c7c731624",
   "ai-rep": "https://functions.poehali.dev/5659445e-489a-411e-9e90-4bb21904624d",
-  "ai-chat": "https://functions.poehali.dev/41af747e-03ee-4e7f-8c58-a5eddca468de",
-  "chat-notify": "https://functions.poehali.dev/2162b9ca-b5aa-42d7-bf9d-942e28d6cadf",
   "chat-operator": "https://functions.poehali.dev/76407b84-9806-414f-9dcb-d3e0604fccc6",
-  "demo-notify": "https://functions.poehali.dev/8b11165f-5062-4976-aad6-b3b544084195",
   "ai-diagnostic": "https://functions.poehali.dev/b06e0f0c-66c4-443f-aae0-beeab4c022ac",
   "ai-mindset-specialist": "https://functions.poehali.dev/3ce8698e-6cbe-41e1-bdc9-352867567feb",
   "ai-finance": "https://functions.poehali.dev/b3abee30-a51c-464e-8e9e-ae56a639cb26",
@@ -42,6 +37,5 @@
   "lk-setup": "https://functions.poehali.dev/facf20ed-b9ff-4b47-a649-167fa5ca157a",
   "lk-api": "https://functions.poehali.dev/1c0ad024-179b-4644-9621-377174bbeba3",
   "quiz": "https://functions.poehali.dev/ce81ec2c-593c-47ad-84fc-73713cb74197",
-  "send-inquiry": "https://functions.poehali.dev/13844979-19e6-463d-bb8e-fddd2b08479f",
-  "send-contact": "https://functions.poehali.dev/216742a2-a6fb-41bc-82a3-c2d554025422"
+  "send-inquiry": "https://functions.poehali.dev/13844979-19e6-463d-bb8e-fddd2b08479f"
 }
