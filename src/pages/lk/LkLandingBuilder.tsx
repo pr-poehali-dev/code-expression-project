@@ -36,7 +36,9 @@ export default function LkLandingBuilder() {
   const [htmlResult, setHtmlResult] = useState(() => {
     try { return localStorage.getItem(LS_HTML) || ""; } catch { return ""; }
   });
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(() => {
+    try { return !!localStorage.getItem(LS_HTML); } catch { return false; }
+  });
   const [showInstructions, setShowInstructions] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -86,7 +88,13 @@ export default function LkLandingBuilder() {
         body: JSON.stringify({ messages, mode: "generate" }),
       });
       const data = await res.json();
-      setHtmlResult(data.reply);
+      const html = data.reply || data.html || "";
+      if (!html || !html.includes("<!DOCTYPE")) {
+        setPhase("chat");
+        setMessages(prev => [...prev, { role: "assistant", content: "Произошла ошибка при генерации. Попробуйте ещё раз." }]);
+        return;
+      }
+      setHtmlResult(html);
       setPhase("done");
       setShowPreview(true);
     } finally {
@@ -114,6 +122,10 @@ export default function LkLandingBuilder() {
   const isReadyToGenerate = messages.length >= 6 && phase === "chat";
 
   // ── Генерация / Превью ──
+  if (phase === "done" && !htmlResult) {
+    setPhase("chat");
+  }
+
   if (phase === "generating" || phase === "done") {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -124,7 +136,9 @@ export default function LkLandingBuilder() {
           </div>
           <div>
             <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A" }}>Ваш лендинг готов</div>
-            <div style={{ fontSize: 13, color: "#888" }}>Просмотрите и скачайте HTML-файл</div>
+            <div style={{ fontSize: 13, color: "#888" }}>
+              {htmlResult ? `HTML готов · ${Math.round(htmlResult.length / 1024)} КБ` : "Просмотрите и скачайте HTML-файл"}
+            </div>
           </div>
         </div>
 
