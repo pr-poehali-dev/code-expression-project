@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
 
 const AI_LANDING_URL = "https://functions.poehali.dev/12df0290-571d-42d1-8fb0-8889ae15cd68";
@@ -34,6 +34,60 @@ const PREMIUM_FEATURES = [
   "Премиальная типографика и кастомные кнопки",
   "Расширенная форма + карта / соцсети / мессенджеры",
 ];
+
+// Скрипт редактирования, который инжектируется в iframe
+const EDITOR_SCRIPT = `
+<script>
+(function() {
+  var style = document.createElement('style');
+  style.textContent = \`
+    [contenteditable]:hover { outline: 2px dashed #0ea5e9 !important; outline-offset: 2px !important; cursor: text !important; }
+    [contenteditable]:focus { outline: 2px solid #0ea5e9 !important; outline-offset: 2px !important; background: rgba(14,165,233,0.04) !important; }
+    .edit-hint { position:fixed; top:12px; left:50%; transform:translateX(-50%); background:#0ea5e9; color:#fff; padding:8px 18px; border-radius:20px; font-size:13px; font-family:sans-serif; z-index:99999; pointer-events:none; box-shadow:0 4px 16px rgba(14,165,233,0.4); }
+  \`;
+  document.head.appendChild(style);
+
+  var hint = document.createElement('div');
+  hint.className = 'edit-hint';
+  hint.textContent = '✏️ Режим редактирования — кликайте на текст и меняйте';
+  document.body.appendChild(hint);
+
+  var tags = ['h1','h2','h3','h4','h5','p','span','a','li','button','label','td','th','blockquote','figcaption'];
+  tags.forEach(function(tag) {
+    document.querySelectorAll(tag).forEach(function(el) {
+      if (el.children.length === 0 || el.querySelector('br')) {
+        el.setAttribute('contenteditable', 'true');
+        el.setAttribute('spellcheck', 'false');
+      }
+    });
+  });
+
+  function sendHtml() {
+    window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
+  }
+
+  document.addEventListener('input', function() {
+    clearTimeout(window._saveTimer);
+    window._saveTimer = setTimeout(sendHtml, 800);
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      var el = document.activeElement;
+      if (el && el.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+      }
+    }
+  });
+
+  sendHtml();
+})();
+</script>
+`;
+
+function injectEditorScript(html: string): string {
+  return html.replace("</body>", EDITOR_SCRIPT + "</body>");
+}
 
 function session() { return localStorage.getItem("lk_session") || ""; }
 
@@ -72,7 +126,7 @@ function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
             <div style={{ width: 40, height: 40, borderRadius: 10, background: "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon name="FileText" size={20} style={{ color: "#64748B" }} />
             </div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#64748B", background: "#F1F5F9", padding: "4px 10px", borderRadius: 20 }}>БЮДЖЕТНЫЙ</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#64748B", background: "#F1F5F9", padding: "4px 10px", borderRadius: 20 }}>СТАНДАРТНЫЙ</span>
           </div>
           <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>Стандартный</div>
           <div style={{ fontSize: 12, color: "#64748B", marginBottom: 14, lineHeight: 1.5 }}>Чистый, минималистичный. Быстро и по делу.</div>
@@ -121,8 +175,6 @@ function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
           </div>
         </button>
       </div>
-
-      <style>{`@media(max-width:520px){.landing-type-grid{grid-template-columns:1fr!important}}`}</style>
     </div>
   );
 }
@@ -146,8 +198,11 @@ export default function LkLandingBuilder() {
     try { return !!localStorage.getItem(LS_HTML); } catch { return false; }
   });
   const [showInstructions, setShowInstructions] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editSaved, setEditSaved] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -162,11 +217,31 @@ export default function LkLandingBuilder() {
     localStorage.setItem(LS_PHASE, phase);
   }, [htmlResult, phase]);
 
+  // Слушаем postMessage от iframe-редактора
+  const handleIframeMessage = useCallback((e: MessageEvent) => {
+    if (e.data?.type === "landing-html-update" && e.data.html) {
+      setHtmlResult(e.data.html);
+      setEditSaved(true);
+      setTimeout(() => setEditSaved(false), 2000);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("message", handleIframeMessage);
+    return () => window.removeEventListener("message", handleIframeMessage);
+  }, [handleIframeMessage]);
+
+  // При выключении режима редактирования — сбрасываем iframe на чистый srcDoc
+  useEffect(() => {
+    if (!editMode && iframeRef.current) {
+      iframeRef.current.srcdoc = htmlResult;
+    }
+  }, [editMode]);
+
   function selectType(type: LandingType) {
     setLandingType(type);
     localStorage.setItem(LS_TYPE, type);
-    const welcome = getWelcome(type);
-    setMessages([welcome]);
+    setMessages([getWelcome(type)]);
   }
 
   function resetChat() {
@@ -180,6 +255,7 @@ export default function LkLandingBuilder() {
     setPhase("chat");
     setHtmlResult("");
     setShowPreview(false);
+    setEditMode(false);
     setLoading(false);
   }
 
@@ -187,11 +263,9 @@ export default function LkLandingBuilder() {
     const userText = (text ?? input).trim();
     if (!userText || loading) return;
     setInput("");
-
     const newMessages: Message[] = [...messages, { role: "user", content: userText }];
     setMessages(newMessages);
     setLoading(true);
-
     try {
       const res = await fetch(AI_LANDING_URL, {
         method: "POST",
@@ -241,8 +315,7 @@ export default function LkLandingBuilder() {
 
   function openInBrowser() {
     const blob = new Blob([htmlResult], { type: "text/html;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
+    window.open(URL.createObjectURL(blob), "_blank");
   }
 
   function downloadHtml() {
@@ -256,29 +329,26 @@ export default function LkLandingBuilder() {
   }
 
   function handleKey(e: React.KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   }
 
   const isReadyToGenerate = messages.length >= 6 && phase === "chat";
 
-  // ── Выбор типа ──
-  if (!landingType) {
-    return <TypeSelector onSelect={selectType} />;
-  }
+  if (!landingType) return <TypeSelector onSelect={selectType} />;
 
-  // ── Генерация / Превью ──
   if (phase === "done" && !htmlResult) setPhase("chat");
 
   const typeBadge = landingType === "premium"
     ? { label: "Премиум", color: ACCENT, bg: ACCENT_LIGHT }
     : { label: "Стандартный", color: "#64748B", bg: "#F1F5F9" };
 
+  // ── Генерация / Превью ──
   if (phase === "generating" || phase === "done") {
+    const iframeSrc = editMode ? injectEditorScript(htmlResult) : htmlResult;
+
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {/* Заголовок */}
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon name="Globe" size={20} style={{ color: ACCENT }} />
@@ -289,22 +359,28 @@ export default function LkLandingBuilder() {
               <span style={{ fontSize: 11, fontWeight: 700, color: typeBadge.color, background: typeBadge.bg, padding: "3px 9px", borderRadius: 20 }}>{typeBadge.label}</span>
             </div>
             <div style={{ fontSize: 13, color: "#888" }}>
-              {htmlResult ? `HTML готов · ${Math.round(htmlResult.length / 1024)} КБ` : "Просмотрите и скачайте HTML-файл"}
+              {htmlResult ? `HTML готов · ${Math.round(htmlResult.length / 1024)} КБ` : "Генерация..."}
             </div>
           </div>
         </div>
 
+        {/* Спиннер генерации */}
         {phase === "generating" && (
           <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: 40, textAlign: "center" }}>
             <div style={{ width: 48, height: 48, border: `3px solid ${ACCENT_LIGHT}`, borderTopColor: ACCENT, borderRadius: "50%", animation: "spin 0.9s linear infinite", margin: "0 auto 16px" }} />
-            <div style={{ fontSize: 15, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>ИИ создаёт {landingType === "premium" ? "премиальный" : "стандартный"} лендинг...</div>
-            <div style={{ fontSize: 13, color: "#888" }}>{landingType === "premium" ? "Премиум занимает немного дольше — до 60 секунд" : "Обычно занимает 15–30 секунд"}</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>
+              ИИ создаёт {landingType === "premium" ? "премиальный" : "стандартный"} лендинг...
+            </div>
+            <div style={{ fontSize: 13, color: "#888" }}>
+              {landingType === "premium" ? "Премиум занимает немного дольше — до 60 секунд" : "Обычно занимает 15–30 секунд"}
+            </div>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         )}
 
         {phase === "done" && (
           <>
+            {/* Кнопки действий */}
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <button onClick={openInBrowser} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                 <Icon name="ExternalLink" size={16} />
@@ -314,28 +390,63 @@ export default function LkLandingBuilder() {
                 <Icon name="Download" size={16} />
                 Скачать HTML
               </button>
+              <button
+                onClick={() => { setShowPreview(true); setEditMode(v => !v); }}
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: editMode ? `1.5px solid #0ea5e9` : "1.5px solid #E8ECF0", background: editMode ? "#f0f9ff" : "#fff", color: editMode ? "#0ea5e9" : "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.15s" }}
+              >
+                <Icon name={editMode ? "PenOff" : "Pencil"} size={16} />
+                {editMode ? "Завершить правки" : "Редактировать текст"}
+              </button>
               <button onClick={() => setShowPreview(v => !v)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "1.5px solid #E8ECF0", background: "#fff", color: "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                 <Icon name={showPreview ? "EyeOff" : "Eye"} size={16} />
-                {showPreview ? "Скрыть превью" : "Мини-превью"}
+                {showPreview ? "Скрыть" : "Превью"}
               </button>
               <button onClick={resetChat} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "1.5px solid #E8ECF0", background: "#fff", color: "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                 <Icon name="RefreshCw" size={15} />
-                Создать заново
+                Заново
               </button>
             </div>
 
-            {showPreview && (
-              <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid #E8ECF0", boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}>
-                <div style={{ background: "#F1F5F9", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ display: "flex", gap: 5 }}>
-                    {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width: 11, height: 11, borderRadius: "50%", background: c }} />)}
-                  </div>
-                  <div style={{ flex: 1, background: "#fff", borderRadius: 6, padding: "4px 12px", fontSize: 12, color: "#888" }}>Предварительный просмотр</div>
-                </div>
-                <iframe srcDoc={htmlResult} style={{ width: "100%", height: 600, border: "none", display: "block" }} title="Превью лендинга" />
+            {/* Подсказка режима редактирования */}
+            {editMode && (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 10, background: "#f0f9ff", border: "1.5px solid #0ea5e9" }}>
+                <Icon name="Info" size={16} style={{ color: "#0ea5e9", flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: "#0369a1", lineHeight: 1.5 }}>
+                  Кликайте на любой текст в лендинге и редактируйте прямо там. Изменения сохраняются автоматически.
+                  {editSaved && <strong style={{ marginLeft: 8, color: "#059669" }}>✓ Сохранено</strong>}
+                </span>
               </div>
             )}
 
+            {/* Превью / Редактор */}
+            {showPreview && (
+              <div style={{ borderRadius: 14, overflow: "hidden", border: editMode ? "2px solid #0ea5e9" : "1px solid #E8ECF0", boxShadow: "0 4px 24px rgba(0,0,0,0.08)", transition: "border-color 0.2s" }}>
+                {/* Шапка браузера */}
+                <div style={{ background: editMode ? "#e0f2fe" : "#F1F5F9", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8, transition: "background 0.2s" }}>
+                  <div style={{ display: "flex", gap: 5 }}>
+                    {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width: 11, height: 11, borderRadius: "50%", background: c }} />)}
+                  </div>
+                  <div style={{ flex: 1, background: "#fff", borderRadius: 6, padding: "4px 12px", fontSize: 12, color: "#888" }}>
+                    {editMode ? "✏️ Режим редактирования" : "Предварительный просмотр"}
+                  </div>
+                  {editMode && (
+                    <div style={{ fontSize: 11, color: "#0369a1", fontWeight: 600, background: "#bae6fd", padding: "2px 8px", borderRadius: 6 }}>
+                      РЕДАКТОР
+                    </div>
+                  )}
+                </div>
+                <iframe
+                  ref={iframeRef}
+                  key={editMode ? "edit" : "view"}
+                  srcDoc={iframeSrc}
+                  style={{ width: "100%", height: 600, border: "none", display: "block" }}
+                  title="Превью лендинга"
+                  sandbox="allow-scripts allow-same-origin"
+                />
+              </div>
+            )}
+
+            {/* Инструкция размещения */}
             <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8ECF0" }}>
               <button onClick={() => setShowInstructions(v => !v)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -393,6 +504,7 @@ export default function LkLandingBuilder() {
         </button>
       </div>
 
+      {/* Чат */}
       <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", maxHeight: 420, overflowY: "auto" }}>
           {messages.map((m, i) => (
@@ -406,7 +518,8 @@ export default function LkLandingBuilder() {
                 </div>
               )}
               <div style={{
-                maxWidth: "82%", padding: "10px 14px", borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                maxWidth: "82%", padding: "10px 14px",
+                borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
                 background: m.role === "user" ? ACCENT : "#F8FAFC",
                 color: m.role === "user" ? "#fff" : "#1a1a1a",
                 fontSize: 13, lineHeight: 1.65, whiteSpace: "pre-wrap",
