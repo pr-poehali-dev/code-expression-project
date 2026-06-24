@@ -83,11 +83,11 @@ def get_user(session_id: str):
     conn = psycopg2.connect(os.environ["DATABASE_URL"])
     try:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            safe_id = session_id.replace("'", "''")
             cur.execute(
                 f"SELECT u.id FROM {SCHEMA}.lk_sessions s "
                 f"JOIN {SCHEMA}.lk_users u ON u.id = s.user_id "
-                f"WHERE s.id = %s AND s.expires_at > NOW() AND u.is_active = TRUE",
-                (session_id,),
+                f"WHERE s.id = '{safe_id}' AND s.expires_at > NOW() AND u.is_active = TRUE"
             )
             return cur.fetchone()
     finally:
@@ -117,7 +117,7 @@ def handler(event: dict, context) -> dict:
 
     client = OpenAI(
         base_url="https://polza.ai/api/v1",
-        api_key=os.environ["OPENAI_API_KEY"],
+        api_key=os.environ["POLZA_AI_API_KEY"],
     )
 
     if mode == "generate":
@@ -127,14 +127,21 @@ def handler(event: dict, context) -> dict:
         system = SYSTEM_CHAT
         max_tokens = 600
 
-    response = client.chat.completions.create(
-        model="openai/gpt-4.1-mini",
-        messages=[{"role": "system", "content": system}] + messages,
-        max_tokens=max_tokens,
-        temperature=0.7,
-    )
-
-    reply = response.choices[0].message.content or ""
+    try:
+        response = client.chat.completions.create(
+            model="openai/gpt-4.1-mini",
+            messages=[{"role": "system", "content": system}] + messages,
+            max_tokens=max_tokens,
+            temperature=0.7,
+        )
+        reply = response.choices[0].message.content or ""
+    except Exception as e:
+        print(f"[ai-landing] ИИ ошибка: {e}")
+        return {
+            "statusCode": 502,
+            "headers": {**CORS, "Content-Type": "application/json"},
+            "body": json.dumps({"error": str(e)}, ensure_ascii=False),
+        }
 
     return {
         "statusCode": 200,
