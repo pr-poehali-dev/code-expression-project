@@ -229,6 +229,10 @@ export default function LkLandingBuilder() {
   const [editMode, setEditMode] = useState(false);
   const [editSaved, setEditSaved] = useState(false);
   const [pendingImgIdx, setPendingImgIdx] = useState<string | null>(null);
+  const [aiRefineInput, setAiRefineInput] = useState("");
+  const [aiRefining, setAiRefining] = useState(false);
+  const [aiRefineDone, setAiRefineDone] = useState(false);
+  const [showAiRefine, setShowAiRefine] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -287,6 +291,34 @@ export default function LkLandingBuilder() {
     };
     reader.readAsDataURL(file);
     e.target.value = "";
+  }
+
+  async function aiRefine() {
+    const task = aiRefineInput.trim();
+    if (!task || aiRefining) return;
+    setAiRefining(true);
+    setAiRefineDone(false);
+    try {
+      const res = await fetch(AI_LANDING_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+        body: JSON.stringify({ messages, mode: "refine", landingType, html: htmlResult, refineTask: task }),
+        signal: AbortSignal.timeout(120_000),
+      });
+      const data = await res.json();
+      const html = data.reply || data.html || "";
+      if (html && html.includes("<!DOCTYPE")) {
+        setHtmlResult(html);
+        setAiRefineInput("");
+        setAiRefineDone(true);
+        setEditMode(false);
+        setTimeout(() => setAiRefineDone(false), 3000);
+      }
+    } catch {
+      // silent — пользователь попробует ещё раз
+    } finally {
+      setAiRefining(false);
+    }
   }
 
   function selectType(type: LandingType) {
@@ -460,6 +492,13 @@ export default function LkLandingBuilder() {
                 <Icon name={showPreview ? "EyeOff" : "Eye"} size={16} />
                 {showPreview ? "Скрыть" : "Превью"}
               </button>
+              <button
+                onClick={() => setShowAiRefine(v => !v)}
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: showAiRefine ? `1.5px solid #a855f7` : "1.5px solid #E8ECF0", background: showAiRefine ? "#faf5ff" : "#fff", color: showAiRefine ? "#7c3aed" : "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.15s" }}
+              >
+                <Icon name="Wand2" size={16} />
+                ИИ-доработка
+              </button>
               <button onClick={resetChat} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "1.5px solid #E8ECF0", background: "#fff", color: "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                 <Icon name="RefreshCw" size={15} />
                 Заново
@@ -475,6 +514,50 @@ export default function LkLandingBuilder() {
                   <strong>🖼 Фото</strong> — кликните на любую картинку — откроется выбор файла с вашего устройства.<br />
                   Все изменения сохраняются автоматически.
                   {editSaved && <strong style={{ marginLeft: 8, color: "#059669" }}>✓ Сохранено</strong>}
+                </div>
+              </div>
+            )}
+
+            {/* Панель ИИ-доработки */}
+            {showAiRefine && (
+              <div style={{ background: "#faf5ff", borderRadius: 14, border: "1.5px solid #a855f7", padding: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 10, background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Icon name="Wand2" size={16} style={{ color: "#fff" }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#4c1d95" }}>Попросить ИИ доработать</div>
+                    <div style={{ fontSize: 12, color: "#7c3aed" }}>Напишите что изменить — ИИ переделает лендинг</div>
+                  </div>
+                  {aiRefineDone && (
+                    <div style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: "#059669", background: "#d1fae5", padding: "4px 10px", borderRadius: 8 }}>
+                      ✓ Готово
+                    </div>
+                  )}
+                </div>
+                <div style={{ fontSize: 12, color: "#6d28d9", marginBottom: 10, lineHeight: 1.5 }}>
+                  Примеры: «Сделай заголовок короче», «Добавь раздел с ценами», «Поменяй цвет на синий», «Убери раздел с отзывами»
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <textarea
+                    value={aiRefineInput}
+                    onChange={e => setAiRefineInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); aiRefine(); } }}
+                    placeholder="Что нужно изменить в лендинге?"
+                    rows={2}
+                    disabled={aiRefining}
+                    style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: "1.5px solid #c4b5fd", fontSize: 13, fontFamily: "Montserrat,sans-serif", outline: "none", resize: "none", lineHeight: 1.5, color: "#1a1a1a", background: aiRefining ? "#f5f3ff" : "#fff" }}
+                  />
+                  <button
+                    onClick={aiRefine}
+                    disabled={!aiRefineInput.trim() || aiRefining}
+                    style={{ padding: "10px 18px", borderRadius: 10, border: "none", background: aiRefineInput.trim() && !aiRefining ? "#7c3aed" : "#e5e7eb", color: aiRefineInput.trim() && !aiRefining ? "#fff" : "#aaa", fontSize: 13, fontWeight: 700, cursor: aiRefineInput.trim() && !aiRefining ? "pointer" : "default", fontFamily: "Montserrat,sans-serif", display: "flex", alignItems: "center", gap: 6, flexShrink: 0, transition: "background 0.15s" }}
+                  >
+                    {aiRefining
+                      ? <><div style={{ width: 14, height: 14, border: "2px solid #fff4", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> Думаю...</>
+                      : <><Icon name="Sparkles" size={14} /> Применить</>
+                    }
+                  </button>
                 </div>
               </div>
             )}

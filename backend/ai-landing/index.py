@@ -147,9 +147,15 @@ def handler(event: dict, context) -> dict:
     messages = body.get("messages", [])
     mode = body.get("mode", "chat")
     landing_type = body.get("landingType", "budget")  # "budget" или "premium"
+    html = body.get("html", "")
+    refine_task = body.get("refineTask", "")
 
-    if not messages:
+    # refine не требует messages
+    if mode != "refine" and not messages:
         return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "messages обязателен"})}
+
+    if mode == "refine" and not (html and refine_task):
+        return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "html и refineTask обязательны"})}
 
     client = OpenAI(
         base_url="https://polza.ai/api/v1",
@@ -158,17 +164,38 @@ def handler(event: dict, context) -> dict:
 
     is_premium = landing_type == "premium"
 
-    if mode == "generate":
+    if mode == "refine":
+        system = """Ты — профессиональный веб-разработчик. Пользователь просит доработать готовый HTML-лендинг.
+
+ЗАДАЧА: Выполни конкретное изменение, которое просит пользователь. Всё остальное оставь без изменений.
+
+ПРАВИЛА:
+- Верни ТОЛЬКО полный HTML-код с внесёнными правками, без объяснений и markdown
+- Начинай сразу с <!DOCTYPE html>
+- Не меняй то, о чём пользователь не просил
+- Если просят поменять цвет — меняй во всём документе через CSS-переменную или все вхождения
+- Если просят добавить блок — добавляй в логичное место
+- Если просят удалить блок — удаляй полностью вместе с CSS
+- Сохраняй все встроенные стили, шрифты, адаптивность"""
+
+        refine_messages = [
+            {"role": "user", "content": f"Вот текущий HTML лендинга:\n\n{html}\n\nЧто нужно изменить: {refine_task}"}
+        ]
+        ai_messages = refine_messages
+        max_tokens = 12000
+    elif mode == "generate":
         system = SYSTEM_GENERATE_PREMIUM if is_premium else SYSTEM_GENERATE_BUDGET
+        ai_messages = messages
         max_tokens = 10000 if is_premium else 7000
     else:
         system = SYSTEM_CHAT_PREMIUM if is_premium else SYSTEM_CHAT_BUDGET
+        ai_messages = messages
         max_tokens = 600
 
     try:
         response = client.chat.completions.create(
             model="openai/gpt-4.1-mini",
-            messages=[{"role": "system", "content": system}] + messages,
+            messages=[{"role": "system", "content": system}] + ai_messages,
             max_tokens=max_tokens,
             temperature=0.7,
         )
