@@ -5,6 +5,7 @@ import LkStaffAudit from "./LkStaffAudit";
 import LkReviewReply from "./LkReviewReply";
 import LkClientScripts from "./LkClientScripts";
 import LkLandingBuilder from "./LkLandingBuilder";
+import LkLandingGuide from "./LkLandingGuide";
 import SalonBot from "./SalonBot";
 import { useEnergy } from "@/contexts/EnergyContext";
 import { showEnergyGate } from "@/components/EnergyGate";
@@ -123,7 +124,7 @@ function PaywallToolCard({ icon, color, bg, title, description, badge }: {
   );
 }
 
-type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | "review-reply" | "client-scripts" | "salon-diag" | "landing-builder" | null;
+type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | "review-reply" | "client-scripts" | "salon-diag" | "landing-builder" | "landing-guide" | null;
 
 export default function LkAiTools() {
   const [activeTool, setActiveTool] = useState<Tool>(null);
@@ -165,6 +166,15 @@ export default function LkAiTools() {
 
   if ((hasPaid || hasSalon) && activeTool === "salon-diag") {
     return <SalonBot onBack={() => { setActiveTool(null); window.scrollTo({ top: 0, behavior: "instant" }); }} />;
+  }
+
+  if (user?.is_admin && activeTool === "landing-guide") {
+    return (
+      <div>
+        <BackButton />
+        <LkLandingGuide onClose={() => { setActiveTool("landing-builder"); window.scrollTo({ top: 0, behavior: "instant" }); }} />
+      </div>
+    );
   }
 
   if (user?.is_admin && activeTool === "landing-builder") {
@@ -298,7 +308,7 @@ export default function LkAiTools() {
             title="Конструктор лендингов"
             description="Расскажите о бизнесе в чате — ИИ создаст готовый лендинг. Скачайте HTML и разместите на любом хостинге."
             badge="бета"
-            onStart={() => { setActiveTool("landing-builder"); window.scrollTo({ top: 0, behavior: "instant" }); }}
+            onStart={() => { setActiveTool("landing-guide"); window.scrollTo({ top: 0, behavior: "instant" }); }}
           />
         ) : (
           <ComingSoonCard icon="Globe" color="hsl(185,85%,32%)" bg="hsl(185,85%,96%)" title="Конструктор лендингов" description="Расскажите о бизнесе в чате — ИИ создаст готовый лендинг. Скачайте HTML и разместите на любом хостинге." />
