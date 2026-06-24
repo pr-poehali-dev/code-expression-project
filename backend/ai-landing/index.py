@@ -128,58 +128,127 @@ JS (встроенный <script>):
 ВАЖНО: Верни ТОЛЬКО чистый HTML-код, без markdown, без объяснений. Начинай сразу с <!DOCTYPE html>."""
 
 
-def get_user(session_id: str):
-    conn = psycopg2.connect(os.environ["DATABASE_URL"])
-    try:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            safe_id = session_id.replace("'", "''")
-            cur.execute(
-                f"SELECT u.id FROM {SCHEMA}.lk_sessions s "
-                f"JOIN {SCHEMA}.lk_users u ON u.id = s.user_id "
-                f"WHERE s.id = '{safe_id}' AND s.expires_at > NOW() AND u.is_active = TRUE"
-            )
-            return cur.fetchone()
-    finally:
-        conn.close()
+def get_db():
+    return psycopg2.connect(os.environ["DATABASE_URL"])
+
+
+def ok(data):
+    return {"statusCode": 200, "headers": {**CORS, "Content-Type": "application/json"},
+            "body": json.dumps(data, ensure_ascii=False)}
+
+
+def err(msg, status=400):
+    return {"statusCode": status, "headers": CORS,
+            "body": json.dumps({"error": msg}, ensure_ascii=False)}
+
+
+def get_session_user(event, conn):
+    sid = (event.get("headers") or {}).get("X-Session-Id", "") or \
+          (event.get("headers") or {}).get("x-session-id", "")
+    if not sid:
+        return None
+    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        safe_id = sid.replace("'", "''")
+        cur.execute(
+            f"SELECT u.id, u.salon_id FROM {SCHEMA}.lk_sessions s "
+            f"JOIN {SCHEMA}.lk_users u ON u.id = s.user_id "
+            f"WHERE s.id = '{safe_id}' AND s.expires_at > NOW() AND u.is_active = TRUE"
+        )
+        return cur.fetchone()
+
+
+def get_tool_cost(conn, tool_key: str, default: int) -> int:
+    with conn.cursor() as cur:
+        cur.execute(f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key = %s", (tool_key,))
+        row = cur.fetchone()
+        return row[0] if row else default
+
+
+def get_balance(conn, salon_id: int) -> int:
+    with conn.cursor() as cur:
+        cur.execute(f"SELECT credits_balance FROM {SCHEMA}.salons WHERE id = %s", (salon_id,))
+        row = cur.fetchone()
+        return row[0] if row else 0
+
+
+def deduct(conn, salon_id: int, user_id: int, tool_key: str, cost: int, action: str):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s",
+            (cost, salon_id)
+        )
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
+            f"VALUES (%s, %s, %s, %s, %s, 'debit')",
+            (salon_id, user_id, action, cost, tool_key)
+        )
+    conn.commit()
+
+
+def check_and_spend(conn, user, tool_key: str, default_cost: int, action: str):
+    """Проверяет баланс и списывает. Возвращает err-ответ или None."""
+    salon_id = user.get("salon_id")
+    if not salon_id:
+        return err("Для использования конструктора лендингов необходим профиль салона.", 402)
+    cost = get_tool_cost(conn, tool_key, default_cost)
+    balance = get_balance(conn, salon_id)
+    if balance < cost:
+        return err(f"Недостаточно энергии. Нужно {cost} ⚡, доступно {balance} ⚡. Пополните баланс.", 402)
+    deduct(conn, salon_id, user["id"], tool_key, cost, action)
+    return None
 
 
 def handler(event: dict, context) -> dict:
-    """Генератор лендингов — чат с ИИ для сбора данных и создания HTML (бюджетный/премиальный)"""
+    """Генератор лендингов — чат с ИИ, генерация и доработка HTML. Списывает энергию за каждое действие."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
-    session_id = (event.get("headers") or {}).get("X-Session-Id", "") or \
-                 (event.get("headers") or {}).get("x-session-id", "")
-    if not session_id:
-        return {"statusCode": 401, "headers": CORS, "body": json.dumps({"error": "Не авторизован"})}
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
 
-    user = get_user(session_id)
-    if not user:
-        return {"statusCode": 401, "headers": CORS, "body": json.dumps({"error": "Сессия не найдена"})}
+        body = json.loads(event.get("body") or "{}")
+        messages = body.get("messages", [])
+        mode = body.get("mode", "chat")
+        landing_type = body.get("landingType", "budget")
+        html = body.get("html", "")
+        refine_task = body.get("refineTask", "")
 
-    body = json.loads(event.get("body") or "{}")
-    messages = body.get("messages", [])
-    mode = body.get("mode", "chat")
-    landing_type = body.get("landingType", "budget")  # "budget" или "premium"
-    html = body.get("html", "")
-    refine_task = body.get("refineTask", "")
+        if mode != "refine" and not messages:
+            return err("messages обязателен", 400)
+        if mode == "refine" and not (html and refine_task):
+            return err("html и refineTask обязательны", 400)
 
-    # refine не требует messages
-    if mode != "refine" and not messages:
-        return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "messages обязателен"})}
+        is_premium = landing_type == "premium"
 
-    if mode == "refine" and not (html and refine_task):
-        return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "html и refineTask обязательны"})}
+        # Определяем tool_key и стоимость по умолчанию
+        if mode == "generate":
+            tool_key = "landing_generate_premium" if is_premium else "landing_generate"
+            default_cost = 96 if is_premium else 64
+            action_name = "Генерация лендинга (премиальный)" if is_premium else "Генерация лендинга (стандартный)"
+        elif mode == "refine":
+            tool_key = "landing_refine"
+            default_cost = 80
+            action_name = "ИИ-доработка лендинга"
+        else:
+            tool_key = "landing_chat"
+            default_cost = 4
+            action_name = "Сообщение в чате конструктора лендингов"
 
-    client = OpenAI(
-        base_url="https://polza.ai/api/v1",
-        api_key=os.environ["POLZA_AI_API_KEY"],
-    )
+        # Проверяем баланс и списываем
+        energy_err = check_and_spend(conn, user, tool_key, default_cost, action_name)
+        if energy_err:
+            return energy_err
 
-    is_premium = landing_type == "premium"
+        client = OpenAI(
+            base_url="https://polza.ai/api/v1",
+            api_key=os.environ["POLZA_AI_API_KEY"],
+        )
 
-    if mode == "refine":
-        system = """Ты — профессиональный веб-разработчик. Пользователь просит доработать готовый HTML-лендинг.
+        if mode == "refine":
+            system = """Ты — профессиональный веб-разработчик. Пользователь просит доработать готовый HTML-лендинг.
 
 ЗАДАЧА: Выполни конкретное изменение, которое просит пользователь. Всё остальное оставь без изменений.
 
@@ -191,39 +260,30 @@ def handler(event: dict, context) -> dict:
 - Если просят добавить блок — добавляй в логичное место
 - Если просят удалить блок — удаляй полностью вместе с CSS
 - Сохраняй все встроенные стили, шрифты, адаптивность"""
+            ai_messages = [{"role": "user", "content": f"Вот текущий HTML лендинга:\n\n{html}\n\nЧто нужно изменить: {refine_task}"}]
+            max_tokens = 12000
+        elif mode == "generate":
+            system = SYSTEM_GENERATE_PREMIUM if is_premium else SYSTEM_GENERATE_BUDGET
+            ai_messages = messages
+            max_tokens = 10000 if is_premium else 7000
+        else:
+            system = SYSTEM_CHAT_PREMIUM if is_premium else SYSTEM_CHAT_BUDGET
+            ai_messages = messages
+            max_tokens = 600
 
-        refine_messages = [
-            {"role": "user", "content": f"Вот текущий HTML лендинга:\n\n{html}\n\nЧто нужно изменить: {refine_task}"}
-        ]
-        ai_messages = refine_messages
-        max_tokens = 12000
-    elif mode == "generate":
-        system = SYSTEM_GENERATE_PREMIUM if is_premium else SYSTEM_GENERATE_BUDGET
-        ai_messages = messages
-        max_tokens = 10000 if is_premium else 7000
-    else:
-        system = SYSTEM_CHAT_PREMIUM if is_premium else SYSTEM_CHAT_BUDGET
-        ai_messages = messages
-        max_tokens = 600
+        try:
+            response = client.chat.completions.create(
+                model="openai/gpt-4.1-mini",
+                messages=[{"role": "system", "content": system}] + ai_messages,
+                max_tokens=max_tokens,
+                temperature=0.7,
+            )
+            reply = response.choices[0].message.content or ""
+        except Exception as e:
+            print(f"[ai-landing] ИИ ошибка: {e}")
+            return err(str(e), 502)
 
-    try:
-        response = client.chat.completions.create(
-            model="openai/gpt-4.1-mini",
-            messages=[{"role": "system", "content": system}] + ai_messages,
-            max_tokens=max_tokens,
-            temperature=0.7,
-        )
-        reply = response.choices[0].message.content or ""
-    except Exception as e:
-        print(f"[ai-landing] ИИ ошибка: {e}")
-        return {
-            "statusCode": 502,
-            "headers": {**CORS, "Content-Type": "application/json"},
-            "body": json.dumps({"error": str(e)}, ensure_ascii=False),
-        }
+        return ok({"reply": reply, "mode": mode, "landingType": landing_type})
 
-    return {
-        "statusCode": 200,
-        "headers": {**CORS, "Content-Type": "application/json"},
-        "body": json.dumps({"reply": reply, "mode": mode, "landingType": landing_type}, ensure_ascii=False),
-    }
+    finally:
+        conn.close()

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
+import { showEnergyGate } from "@/components/EnergyGate";
 
 const AI_LANDING_URL = "https://functions.poehali.dev/12df0290-571d-42d1-8fb0-8889ae15cd68";
 const LANDING_API_URL = "https://functions.poehali.dev/b5f86006-d448-4c34-96b8-3fba0295cb14";
@@ -476,6 +477,10 @@ export default function LkLandingBuilder() {
         signal: AbortSignal.timeout(120_000),
       });
       const data = await res.json();
+      if (res.status === 402) {
+        showEnergyGate({ message: data.error || "Недостаточно энергии для доработки" });
+        return;
+      }
       const html = data.reply || data.html || "";
       if (html && html.includes("<!DOCTYPE")) {
         setHtmlResult(html);
@@ -558,6 +563,10 @@ export default function LkLandingBuilder() {
         body: JSON.stringify({ messages: newMessages, mode: "chat", landingType }),
       });
       const data = await res.json();
+      if (res.status === 402) {
+        showEnergyGate({ message: data.error || "Недостаточно энергии" });
+        return;
+      }
       if (!res.ok || !data.reply) {
         setMessages(prev => [...prev, { role: "assistant", content: "Сервис временно недоступен. Попробуйте через минуту." }]);
         return;
@@ -581,6 +590,11 @@ export default function LkLandingBuilder() {
         signal: AbortSignal.timeout(120_000),
       });
       const data = await res.json();
+      if (res.status === 402) {
+        setPhase("chat");
+        showEnergyGate({ message: data.error || "Недостаточно энергии для генерации лендинга" });
+        return;
+      }
       const html = data.reply || data.html || "";
       if (!html || !html.includes("<!DOCTYPE")) {
         setPhase("chat");
@@ -603,7 +617,20 @@ export default function LkLandingBuilder() {
     window.open(URL.createObjectURL(blob), "_blank");
   }
 
-  function downloadHtml() {
+  async function downloadHtml() {
+    // Сначала списываем энергию за скачивание
+    const res = await fetch(LANDING_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+      body: JSON.stringify({ action: "download" }),
+    });
+    if (res.status === 402) {
+      const data = await res.json();
+      showEnergyGate({ message: data.error || "Недостаточно энергии для скачивания" });
+      return;
+    }
+    if (!res.ok) return;
+    // Списание прошло — скачиваем файл
     const blob = new Blob([htmlResult], { type: "text/html;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
