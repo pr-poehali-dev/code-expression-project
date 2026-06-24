@@ -13,7 +13,7 @@ const LS_TYPE = "landing_builder_type";
 const LS_PROJECT_ID = "landing_project_id";
 const LS_TITLE = "landing_project_title";
 
-type LandingType = "budget" | "premium";
+type LandingType = "budget" | "premium" | "multipage";
 interface Message { role: "user" | "assistant"; content: string; }
 interface LandingProject {
   id: string;
@@ -21,6 +21,21 @@ interface LandingProject {
   landing_type: LandingType;
   created_at: string;
   updated_at: string;
+}
+
+const MULTIPAGE_FEATURES = [
+  "До 6 страниц: Главная, Услуги, О нас, Портфолио, FAQ, Контакты",
+  "Единый дизайн и навигация на всех страницах",
+  "Переключение страниц без перезагрузки",
+  "Гамбургер-меню на мобильных",
+  "Скачивается одним HTML-файлом",
+];
+
+// Извлекает список страниц из мини-сайта (ищет data-page атрибуты)
+function extractPages(html: string): string[] {
+  const matches = [...html.matchAll(/data-page="([^"]+)"/g)];
+  const pages = matches.map(m => m[1]);
+  return pages.length > 0 ? [...new Set(pages)] : [];
 }
 
 const NETLIFY_STEPS = [
@@ -220,87 +235,65 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
 
 // ── Экран выбора типа ──
 function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
+  const PURPLE = "hsl(270,70%,50%)";
+  const PURPLE_LIGHT = "hsl(270,70%,97%)";
+
   const types = [
     {
       id: "budget" as LandingType,
-      icon: "FileText",
-      iconColor: "#64748B",
-      iconBg: "#F1F5F9",
-      badge: "СТАНДАРТНЫЙ",
-      badgeColor: "#64748B",
-      badgeBg: "#F1F5F9",
-      title: "Стандартный",
-      desc: "Чистый, минималистичный. Быстро и по делу.",
-      descColor: "#64748B",
-      features: BUDGET_FEATURES,
-      featureDotBg: "#E2E8F0",
-      featureDotColor: "#64748B",
-      featureTextColor: "#64748B",
-      cardBg: "#fff",
-      cardBorder: "#E8ECF0",
-      cardBorderHover: ACCENT,
-      dividerColor: "#F1F5F9",
-      ctaColor: "#64748B",
-      gradient: false,
+      icon: "FileText", iconColor: "#64748B", iconBg: "#F1F5F9",
+      badge: "СТАНДАРТНЫЙ", badgeColor: "#64748B", badgeBg: "#F1F5F9",
+      title: "Стандартный лендинг", desc: "Чистый, минималистичный. Быстро и по делу.",
+      descColor: "#64748B", features: BUDGET_FEATURES,
+      featureDotBg: "#E2E8F0", featureDotColor: "#64748B", featureTextColor: "#64748B",
+      cardBg: "#fff", cardBorder: "#E8ECF0", cardBorderHover: ACCENT,
+      dividerColor: "#F1F5F9", ctaColor: "#64748B",
     },
     {
       id: "premium" as LandingType,
-      icon: "Sparkles",
-      iconColor: "#fff",
-      iconBg: ACCENT,
-      badge: "ПРЕМИАЛЬНЫЙ",
-      badgeColor: "#fff",
-      badgeBg: ACCENT,
-      title: "Премиум",
-      desc: "Уникальный дизайн, больше блоков, больше деталей.",
-      descColor: "#475569",
-      features: PREMIUM_FEATURES,
-      featureDotBg: ACCENT,
-      featureDotColor: "#fff",
-      featureTextColor: "#475569",
+      icon: "Sparkles", iconColor: "#fff", iconBg: ACCENT,
+      badge: "ПРЕМИУМ", badgeColor: "#fff", badgeBg: ACCENT,
+      title: "Премиальный лендинг", desc: "Уникальный дизайн, анимации, полная структура.",
+      descColor: "#475569", features: PREMIUM_FEATURES,
+      featureDotBg: ACCENT, featureDotColor: "#fff", featureTextColor: "#475569",
       cardBg: `linear-gradient(135deg, ${ACCENT_LIGHT} 0%, #fff 60%)`,
-      cardBorder: `${ACCENT}40`,
-      cardBorderHover: ACCENT,
-      dividerColor: `${ACCENT}20`,
-      ctaColor: ACCENT,
-      gradient: true,
+      cardBorder: `${ACCENT}40`, cardBorderHover: ACCENT,
+      dividerColor: `${ACCENT}20`, ctaColor: ACCENT,
+    },
+    {
+      id: "multipage" as LandingType,
+      icon: "LayoutDashboard", iconColor: "#fff", iconBg: PURPLE,
+      badge: "МИНИ-САЙТ", badgeColor: "#fff", badgeBg: PURPLE,
+      title: "Мини-сайт", desc: "До 6 страниц в одном файле. Полноценный сайт-визитка.",
+      descColor: "#475569", features: MULTIPAGE_FEATURES,
+      featureDotBg: PURPLE, featureDotColor: "#fff", featureTextColor: "#475569",
+      cardBg: `linear-gradient(135deg, ${PURPLE_LIGHT} 0%, #fff 60%)`,
+      cardBorder: `${PURPLE}40`, cardBorderHover: PURPLE,
+      dividerColor: `${PURPLE}20`, ctaColor: PURPLE,
     },
   ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>Выберите тип лендинга</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>Выберите тип сайта</div>
       <div className="landing-type-grid">
         {types.map(t => (
           <button
             key={t.id}
             onClick={() => onSelect(t.id)}
             className="landing-type-card"
-            style={{
-              textAlign: "left",
-              background: t.cardBg,
-              border: `2px solid ${t.cardBorder}`,
-              borderRadius: 16,
-              padding: 20,
-              cursor: "pointer",
-              fontFamily: "Montserrat,sans-serif",
-              transition: "border-color 0.15s, box-shadow 0.15s",
-              width: "100%",
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = t.cardBorderHover; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 24px ${ACCENT}22`; }}
+            style={{ textAlign: "left", background: t.cardBg, border: `2px solid ${t.cardBorder}`, borderRadius: 16, padding: 20, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "border-color 0.15s, box-shadow 0.15s", width: "100%" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = t.cardBorderHover; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 24px ${t.cardBorderHover}22`; }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = t.cardBorder; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
           >
-            {/* Иконка + бейдж */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: t.iconBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Icon name={t.icon} size={20} style={{ color: t.iconColor }} />
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, color: t.badgeColor, background: t.badgeBg, padding: "4px 10px", borderRadius: 20 }}>{t.badge}</span>
             </div>
-            {/* Название + описание */}
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>{t.title}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>{t.title}</div>
             <div style={{ fontSize: 12, color: t.descColor, marginBottom: 14, lineHeight: 1.5 }}>{t.desc}</div>
-            {/* Фичи */}
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {t.features.map((f, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
@@ -311,7 +304,6 @@ function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
                 </div>
               ))}
             </div>
-            {/* CTA */}
             <div style={{ marginTop: 16, paddingTop: 10, borderTop: `1px solid ${t.dividerColor}`, fontSize: 13, fontWeight: 700, color: t.ctaColor }}>
               Выбрать →
             </div>
@@ -319,18 +311,10 @@ function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
         ))}
       </div>
       <style>{`
-        .landing-type-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 14px;
-        }
+        .landing-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         @media (max-width: 540px) {
-          .landing-type-grid {
-            grid-template-columns: 1fr;
-          }
-          .landing-type-card {
-            padding: 16px !important;
-          }
+          .landing-type-grid { grid-template-columns: 1fr; }
+          .landing-type-card { padding: 16px !important; }
         }
       `}</style>
     </div>
@@ -372,6 +356,7 @@ export default function LkLandingBuilder() {
   const [cloudSaving, setCloudSaving] = useState(false);
   const [cloudSaved, setCloudSaved] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
+  const [activePage, setActivePage] = useState<string>("home");
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -420,6 +405,12 @@ export default function LkLandingBuilder() {
   useEffect(() => {
     if (!editMode && iframeRef.current) iframeRef.current.srcdoc = htmlResult;
   }, [editMode]); // eslint-disable-line
+
+  // Переключение страницы мини-сайта в iframe
+  function switchPage(pageId: string) {
+    setActivePage(pageId);
+    iframeRef.current?.contentWindow?.postMessage({ type: "landing-switch-page", pageId }, "*");
+  }
 
   async function saveToCloud(manual = true) {
     if (!htmlResult) return;
@@ -604,6 +595,7 @@ export default function LkLandingBuilder() {
       setHtmlResult(html);
       setPhase("done");
       setShowPreview(true);
+      setActivePage("home");
     } catch {
       setPhase("chat");
       setMessages(prev => [...prev, { role: "assistant", content: "Генерация заняла слишком долго. Попробуйте ещё раз — обычно со второй попытки всё работает." }]);
@@ -645,9 +637,20 @@ export default function LkLandingBuilder() {
   }
 
   const isReadyToGenerate = messages.length >= 6 && phase === "chat";
+  const PURPLE = "hsl(270,70%,50%)";
+  const PURPLE_LIGHT = "hsl(270,70%,97%)";
   const typeBadge = landingType === "premium"
     ? { label: "Премиум", color: ACCENT, bg: ACCENT_LIGHT }
+    : landingType === "multipage"
+    ? { label: "Мини-сайт", color: PURPLE, bg: PURPLE_LIGHT }
     : { label: "Стандартный", color: "#64748B", bg: "#F1F5F9" };
+
+  // Страницы мини-сайта из HTML
+  const sitePages = landingType === "multipage" && htmlResult ? extractPages(htmlResult) : [];
+  const PAGE_LABELS: Record<string, string> = {
+    home: "Главная", services: "Услуги", about: "О нас",
+    portfolio: "Портфолио", faq: "FAQ", contacts: "Контакты",
+  };
 
   // ── Список проектов ──
   if (view === "list") {
@@ -715,10 +718,10 @@ export default function LkLandingBuilder() {
         <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: 40, textAlign: "center" }}>
           <div style={{ width: 48, height: 48, border: `3px solid ${ACCENT_LIGHT}`, borderTopColor: ACCENT, borderRadius: "50%", animation: "spin 0.9s linear infinite", margin: "0 auto 16px" }} />
           <div style={{ fontSize: 15, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>
-            ИИ создаёт {landingType === "premium" ? "премиальный" : "стандартный"} лендинг...
+            {landingType === "multipage" ? "ИИ создаёт мини-сайт..." : landingType === "premium" ? "ИИ создаёт премиальный лендинг..." : "ИИ создаёт стандартный лендинг..."}
           </div>
           <div style={{ fontSize: 13, color: "#888" }}>
-            {landingType === "premium" ? "Премиум занимает немного дольше — до 60 секунд" : "Обычно занимает 15–30 секунд"}
+            {landingType === "multipage" ? "Мини-сайт занимает до 90 секунд — ИИ создаёт несколько страниц" : landingType === "premium" ? "Премиум занимает немного дольше — до 60 секунд" : "Обычно занимает 15–30 секунд"}
           </div>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
@@ -811,17 +814,41 @@ export default function LkLandingBuilder() {
           {/* Превью */}
           {showPreview && (
             <div style={{ borderRadius: 14, overflow: "hidden", border: editMode ? "2px solid #0ea5e9" : "1px solid #E8ECF0", boxShadow: "0 4px 24px rgba(0,0,0,0.08)", transition: "border-color 0.2s" }}>
+              {/* Шапка браузера */}
               <div style={{ background: editMode ? "#e0f2fe" : "#F1F5F9", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ display: "flex", gap: 5 }}>
+                <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
                   {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width: 11, height: 11, borderRadius: "50%", background: c }} />)}
                 </div>
-                <div style={{ flex: 1, background: "#fff", borderRadius: 6, padding: "4px 12px", fontSize: 12, color: "#888" }}>
+                <div style={{ flex: 1, background: "#fff", borderRadius: 6, padding: "4px 12px", fontSize: 12, color: "#888", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {editMode ? "✏️ Режим редактирования" : "Предварительный просмотр"}
                 </div>
-                <div style={{ fontSize: 11, color: "#888", background: "#E2E8F0", padding: "2px 8px", borderRadius: 6 }}>
+                <div style={{ fontSize: 11, color: "#888", background: "#E2E8F0", padding: "2px 8px", borderRadius: 6, flexShrink: 0 }}>
                   {htmlResult ? `${Math.round(htmlResult.length / 1024)} КБ` : ""}
                 </div>
               </div>
+
+              {/* Переключатель страниц для мини-сайта */}
+              {landingType === "multipage" && sitePages.length > 0 && (
+                <div style={{ background: "#fff", borderBottom: "1px solid #E8ECF0", padding: "8px 16px", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+                  <div style={{ display: "flex", gap: 6, width: "max-content" }}>
+                    {sitePages.map(pageId => (
+                      <button
+                        key={pageId}
+                        onClick={() => switchPage(pageId)}
+                        style={{
+                          padding: "5px 14px", borderRadius: 20, border: "none", fontSize: 12, fontWeight: 600,
+                          cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.15s", whiteSpace: "nowrap",
+                          background: activePage === pageId ? PURPLE : "#F1F5F9",
+                          color: activePage === pageId ? "#fff" : "#64748B",
+                        }}
+                      >
+                        {PAGE_LABELS[pageId] || pageId}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <iframe
                 ref={iframeRef}
                 key={editMode ? "edit" : "view"}
@@ -920,10 +947,21 @@ export default function LkLandingBuilder() {
             <button
               onClick={generateLanding}
               disabled={loading}
-              style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "15px 24px", borderRadius: 14, border: "none", background: loading ? "#E8ECF0" : `linear-gradient(135deg, ${ACCENT} 0%, hsl(185,85%,26%) 100%)`, color: loading ? "#aaa" : "#fff", fontSize: 15, fontWeight: 700, cursor: loading ? "default" : "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: loading ? "none" : `0 4px 16px ${ACCENT}44` }}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                padding: "15px 24px", borderRadius: 14, border: "none", fontSize: 15, fontWeight: 700,
+                cursor: loading ? "default" : "pointer", fontFamily: "Montserrat,sans-serif",
+                background: loading ? "#E8ECF0"
+                  : landingType === "multipage" ? `linear-gradient(135deg, ${PURPLE} 0%, hsl(270,70%,40%) 100%)`
+                  : `linear-gradient(135deg, ${ACCENT} 0%, hsl(185,85%,26%) 100%)`,
+                color: loading ? "#aaa" : "#fff",
+                boxShadow: loading ? "none"
+                  : landingType === "multipage" ? `0 4px 16px ${PURPLE}44`
+                  : `0 4px 16px ${ACCENT}44`,
+              }}
             >
-              <Icon name={landingType === "premium" ? "Sparkles" : "Wand2"} size={18} />
-              {landingType === "premium" ? "Создать премиальный лендинг" : "Создать лендинг"}
+              <Icon name={landingType === "multipage" ? "LayoutDashboard" : landingType === "premium" ? "Sparkles" : "Wand2"} size={18} />
+              {landingType === "multipage" ? "Создать мини-сайт" : landingType === "premium" ? "Создать премиальный лендинг" : "Создать лендинг"}
             </button>
           )}
         </>

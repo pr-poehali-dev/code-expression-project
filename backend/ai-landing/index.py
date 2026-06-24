@@ -1,7 +1,7 @@
 """
 Генератор лендингов: чат с ИИ собирает информацию о бизнесе и генерирует готовый HTML-лендинг.
 POST / — chat-сообщение (сбор данных или генерация финального HTML).
-Поддерживает два типа: budget (стандартный) и premium (премиальный).
+Поддерживает три типа: budget (стандартный), premium (премиальный), multipage (мини-сайт до 6 страниц).
 """
 import json
 import os
@@ -47,6 +47,34 @@ SYSTEM_CHAT_PREMIUM = """Ты — помощник по созданию пре�
 Как только у тебя есть всё необходимое (минимум пункты 1–6) — спроси "Отлично, данных достаточно для премиального лендинга! Создать?" и жди подтверждения.
 
 Отвечай по-русски, дружелюбно и профессионально. Не задавай больше 2 вопросов за раз."""
+
+SYSTEM_CHAT_MULTIPAGE = """Ты — помощник по созданию мини-сайтов для бизнеса (до 6 страниц в одном HTML-файле). Твоя задача — собрать подробную информацию и согласовать структуру сайта с пользователем.
+
+ПЕРВЫЙ шаг — обязательно спроси какие страницы нужны. Предложи на выбор:
+- Главная (home) — всегда включается
+- Услуги (services) — что предлагает компания
+- О нас (about) — история, команда, ценности
+- Портфолио (portfolio) — примеры работ, кейсы
+- FAQ (faq) — частые вопросы и ответы
+- Контакты (contacts) — форма, карта, реквизиты
+
+Максимум 6 страниц включая Главную. Запомни выбранные страницы — они понадобятся при генерации.
+
+После согласования структуры собери информацию:
+1. Название бизнеса / компании
+2. Что продаёт / какие услуги (5–8 пунктов с деталями)
+3. Для кого (целевая аудитория)
+4. Главное преимущество или уникальность
+5. Контакты: телефон, email, соцсети, мессенджеры
+6. Город или регион
+7. Цены или диапазон цен (опционально)
+8. Кейсы / портфолио — если выбрана эта страница
+9. FAQ — 5–7 частых вопросов — если выбрана эта страница
+10. Команда — имена, должности — если выбрана страница «О нас»
+
+Как только у тебя есть структура и минимальные данные (пункты 1–5) — спроси "Отлично! Создать мини-сайт?" и жди подтверждения.
+
+Отвечай по-русски, дружелюбно. Не задавай больше 2 вопросов за раз."""
 
 SYSTEM_GENERATE_BUDGET = """Ты — профессиональный веб-разработчик. На основе данных о бизнесе создай чистый, современный, минималистичный одностраничный лендинг (HTML-файл).
 
@@ -124,6 +152,89 @@ JS (встроенный <script>):
 - Mobile-first: 320px → 768px → 1024px+
 - Форма action="#" — только визуал
 - scroll-behavior: smooth на html
+
+ВАЖНО: Верни ТОЛЬКО чистый HTML-код, без markdown, без объяснений. Начинай сразу с <!DOCTYPE html>."""
+
+SYSTEM_GENERATE_MULTIPAGE = """Ты — топовый веб-разработчик. На основе данных о бизнесе создай многостраничный мини-сайт (SPA) в одном HTML-файле. Все страницы — в одном файле, переключение через JS без перезагрузки.
+
+АРХИТЕКТУРА (СТРОГО ОБЯЗАТЕЛЬНО):
+Каждая страница — это <div> с атрибутом data-page="ИД_СТРАНИЦЫ", по умолчанию скрытая (display:none), видна только активная.
+
+Структура HTML:
+```
+<body>
+  <header>...</header>
+  <div data-page="home" class="page active">...</div>
+  <div data-page="services" class="page">...</div>
+  <div data-page="about" class="page">...</div>
+  ... другие страницы по выбору пользователя ...
+  <footer>...</footer>
+</body>
+```
+
+CSS для страниц:
+```css
+.page { display: none; }
+.page.active { display: block; }
+```
+
+JS-роутер (встроенный, обязательно перед </body>):
+```javascript
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  var el = document.querySelector('[data-page="' + id + '"]');
+  if (el) { el.classList.add('active'); window.scrollTo(0, 0); }
+  // Обновляем активный пункт навигации
+  document.querySelectorAll('[data-nav]').forEach(n => {
+    n.classList.toggle('nav-active', n.dataset.nav === id);
+  });
+}
+// Обработка кликов на навигацию
+document.querySelectorAll('[data-nav]').forEach(function(el) {
+  el.addEventListener('click', function(e) {
+    e.preventDefault();
+    showPage(this.dataset.nav);
+    // Закрыть мобильное меню если открыто
+    document.querySelector('.nav-menu')?.classList.remove('open');
+  });
+});
+// Слушаем переключение из родительского окна (для превью)
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'landing-switch-page') showPage(e.data.pageId);
+});
+showPage('home');
+```
+
+НАВИГАЦИЯ (ОБЯЗАТЕЛЬНО):
+- Desktop: горизонтальное меню, каждый пункт имеет data-nav="ИД_СТРАНИЦЫ" (например data-nav="home")
+- Mobile: гамбургер → выпадающее меню с теми же data-nav ссылками
+- Активный пункт: класс .nav-active (подчёркивание или другой акцент)
+- В footer тоже повторить навигацию
+
+СТИЛЬ — ПРЕМИАЛЬНЫЙ (единая палитра для всех страниц):
+- CSS-переменные в :root: --color-primary, --color-accent, --color-bg-dark, --color-bg-light, --color-text
+- Шрифты: Playfair Display для заголовков + Montserrat для текста (Google Fonts)
+- Градиентные hero-блоки на Главной и CTA-секциях
+- SVG-иконки монохромные в цвет --color-accent
+- Плавные hover-эффекты на карточках и кнопках
+- Фиксированный хедер с backdrop-filter: blur(12px)
+
+СТРАНИЦЫ — генерируй ТОЛЬКО те, которые выбрал пользователь в чате:
+- home: Hero (полный экран), краткое о компании, ключевые услуги (3 шт.), CTA
+- services: все услуги с описанием, карточки с иконками, цены если есть
+- about: история, миссия, команда (фото-заглушки), цифры-достижения
+- portfolio: сетка кейсов/работ с фото-заглушками и описанием
+- faq: аккордеон с вопросами и ответами (JS expand/collapse)
+- contacts: форма (имя, телефон, сообщение), контакты, соцсети
+
+ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ:
+- Полный HTML5: <!DOCTYPE html> ... </html>
+- <meta name="viewport" content="width=device-width, initial-scale=1">
+- Весь CSS в <style>, весь JS в <script> перед </body>
+- Только Google Fonts через @import
+- Mobile-first: 320px → 768px → 1024px+
+- scroll-behavior: smooth на html
+- Форма action="#" — только визуал
 
 ВАЖНО: Верни ТОЛЬКО чистый HTML-код, без markdown, без объяснений. Начинай сразу с <!DOCTYPE html>."""
 
@@ -222,12 +333,22 @@ def handler(event: dict, context) -> dict:
             return err("html и refineTask обязательны", 400)
 
         is_premium = landing_type == "premium"
+        is_multipage = landing_type == "multipage"
 
         # Определяем tool_key и стоимость по умолчанию
         if mode == "generate":
-            tool_key = "landing_generate_premium" if is_premium else "landing_generate"
-            default_cost = 96 if is_premium else 64
-            action_name = "Генерация лендинга (премиальный)" if is_premium else "Генерация лендинга (стандартный)"
+            if is_multipage:
+                tool_key = "landing_generate_premium"  # мини-сайт = как премиум по стоимости
+                default_cost = 96
+                action_name = "Генерация мини-сайта"
+            elif is_premium:
+                tool_key = "landing_generate_premium"
+                default_cost = 96
+                action_name = "Генерация лендинга (премиальный)"
+            else:
+                tool_key = "landing_generate"
+                default_cost = 64
+                action_name = "Генерация лендинга (стандартный)"
         elif mode == "refine":
             tool_key = "landing_refine"
             default_cost = 80
@@ -248,7 +369,7 @@ def handler(event: dict, context) -> dict:
         )
 
         if mode == "refine":
-            system = """Ты — профессиональный веб-разработчик. Пользователь просит доработать готовый HTML-лендинг.
+            system = """Ты — профессиональный веб-разработчик. Пользователь просит доработать готовый HTML-лендинг или мини-сайт.
 
 ЗАДАЧА: Выполни конкретное изменение, которое просит пользователь. Всё остальное оставь без изменений.
 
@@ -256,20 +377,32 @@ def handler(event: dict, context) -> dict:
 - Верни ТОЛЬКО полный HTML-код с внесёнными правками, без объяснений и markdown
 - Начинай сразу с <!DOCTYPE html>
 - Не меняй то, о чём пользователь не просил
-- Если просят поменять цвет — меняй во всём документе через CSS-переменную или все вхождения
-- Если просят добавить блок — добавляй в логичное место
-- Если просят удалить блок — удаляй полностью вместе с CSS
+- Если это мини-сайт (есть data-page атрибуты) — сохраняй структуру страниц и JS-роутер
+- Если просят поменять цвет — меняй через CSS-переменные (:root) или все вхождения
+- Если просят добавить блок — добавляй в логичное место на нужной странице
 - Сохраняй все встроенные стили, шрифты, адаптивность"""
-            ai_messages = [{"role": "user", "content": f"Вот текущий HTML лендинга:\n\n{html}\n\nЧто нужно изменить: {refine_task}"}]
-            max_tokens = 12000
+            ai_messages = [{"role": "user", "content": f"Вот текущий HTML:\n\n{html}\n\nЧто нужно изменить: {refine_task}"}]
+            max_tokens = 14000
         elif mode == "generate":
-            system = SYSTEM_GENERATE_PREMIUM if is_premium else SYSTEM_GENERATE_BUDGET
+            if is_multipage:
+                system = SYSTEM_GENERATE_MULTIPAGE
+                max_tokens = 14000
+            elif is_premium:
+                system = SYSTEM_GENERATE_PREMIUM
+                max_tokens = 10000
+            else:
+                system = SYSTEM_GENERATE_BUDGET
+                max_tokens = 7000
             ai_messages = messages
-            max_tokens = 10000 if is_premium else 7000
         else:
-            system = SYSTEM_CHAT_PREMIUM if is_premium else SYSTEM_CHAT_BUDGET
+            if is_multipage:
+                system = SYSTEM_CHAT_MULTIPAGE
+            elif is_premium:
+                system = SYSTEM_CHAT_PREMIUM
+            else:
+                system = SYSTEM_CHAT_BUDGET
             ai_messages = messages
-            max_tokens = 600
+            max_tokens = 700
 
         try:
             response = client.chat.completions.create(
