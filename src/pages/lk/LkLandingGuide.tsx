@@ -92,7 +92,7 @@ function SectionWhy() {
       {/* Сравнение с рынком */}
       <Block>
         <H3>💸 Сколько это стоит на рынке без нас</H3>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+        <div className="guide-compare-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
           <div style={{ background: "#FEF2F2", borderRadius: 12, padding: "14px 16px", border: "1px solid #FECACA" }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: "#DC2626", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Стандартный лендинг</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>от 25 000 ₽</div>
@@ -488,45 +488,56 @@ export default function LkLandingGuide({ onClose }: { onClose: () => void }) {
   const active = SECTIONS.find(s => s.id === activeSection)!;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {/* Шапка */}
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <Icon name="BookOpen" size={20} style={{ color: ACCENT }} />
         </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A" }}>База знаний — Конструктор лендингов</div>
-          <div style={{ fontSize: 13, color: "#888" }}>Читайте перед созданием — сэкономит время и улучшит результат</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", lineHeight: 1.3 }}>База знаний</div>
+          <div style={{ fontSize: 12, color: "#888", lineHeight: 1.4 }}>Конструктор лендингов</div>
         </div>
         <button
           onClick={onClose}
-          style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}
+          style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0, whiteSpace: "nowrap" }}
         >
-          <Icon name="ArrowRight" size={14} />
-          Начать создание
+          <Icon name="ArrowRight" size={13} />
+          <span className="guide-btn-text">Начать создание</span>
         </button>
       </div>
 
-      {/* Навигация по разделам */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {SECTIONS.map(s => (
-          <button
-            key={s.id}
-            onClick={() => setActiveSection(s.id)}
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 20, border: activeSection === s.id ? "none" : "1px solid #E2E8F0", background: activeSection === s.id ? s.color : "#fff", color: activeSection === s.id ? "#fff" : "#555", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.15s" }}
-          >
-            <Icon name={s.icon} size={13} />
-            {s.title}
-          </button>
-        ))}
+      {/* Навигация по разделам — горизонтальный скролл на мобильном */}
+      <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", marginLeft: -2, marginRight: -2, paddingLeft: 2, paddingRight: 2, paddingBottom: 4 }}>
+        <div style={{ display: "flex", gap: 7, width: "max-content" }}>
+          {SECTIONS.map(s => (
+            <button
+              key={s.id}
+              onClick={() => setActiveSection(s.id)}
+              style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "7px 13px", borderRadius: 20,
+                border: activeSection === s.id ? "none" : "1px solid #E2E8F0",
+                background: activeSection === s.id ? s.color : "#fff",
+                color: activeSection === s.id ? "#fff" : "#555",
+                fontSize: 12, fontWeight: 600, cursor: "pointer",
+                fontFamily: "Montserrat,sans-serif", transition: "all 0.15s",
+                whiteSpace: "nowrap", flexShrink: 0,
+              }}
+            >
+              <Icon name={s.icon} size={12} />
+              {s.title}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Заголовок активного раздела */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 18px", background: active.bg, borderRadius: 12, border: `1px solid ${active.color}20` }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: active.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Icon name={active.icon} size={18} style={{ color: "#fff" }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: active.bg, borderRadius: 12, border: `1px solid ${active.color}20` }}>
+        <div style={{ width: 32, height: 32, borderRadius: 9, background: active.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Icon name={active.icon} size={16} style={{ color: "#fff" }} />
         </div>
-        <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>{active.title}</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>{active.title}</div>
       </div>
 
       {/* Контент */}
@@ -534,16 +545,25 @@ export default function LkLandingGuide({ onClose }: { onClose: () => void }) {
         {contentMap[activeSection]}
       </div>
 
-      {/* Кнопка внизу */}
-      <div style={{ display: "flex", justifyContent: "center", paddingTop: 8 }}>
+      {/* Кнопка внизу — полная ширина на мобильном */}
+      <div style={{ paddingTop: 4 }}>
         <button
           onClick={onClose}
-          style={{ display: "flex", alignItems: "center", gap: 8, padding: "13px 32px", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${ACCENT} 0%, hsl(185,85%,26%) 100%)`, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: `0 4px 16px ${ACCENT}44` }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", padding: "14px 24px", borderRadius: 12, border: "none", background: `linear-gradient(135deg, ${ACCENT} 0%, hsl(185,85%,26%) 100%)`, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: `0 4px 16px ${ACCENT}44` }}
         >
           <Icon name="Wand2" size={18} />
           Перейти к созданию лендинга
         </button>
       </div>
+
+      <style>{`
+        @media (max-width: 480px) {
+          .guide-btn-text { display: none; }
+        }
+        @media (max-width: 420px) {
+          .guide-compare-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }
