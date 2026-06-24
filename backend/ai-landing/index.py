@@ -103,17 +103,20 @@ def handler(event: dict, context) -> dict:
     if not messages:
         return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "messages обязателен"})}
 
-    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    client = OpenAI(
+        base_url="https://polza.ai/api/v1",
+        api_key=os.environ["OPENAI_API_KEY"],
+    )
 
     if mode == "generate":
         system = SYSTEM_GENERATE
         max_tokens = 8000
     else:
         system = SYSTEM_CHAT
-        max_tokens = 500
+        max_tokens = 600
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="openai/gpt-4.1-mini",
         messages=[{"role": "system", "content": system}] + messages,
         max_tokens=max_tokens,
         temperature=0.7,
