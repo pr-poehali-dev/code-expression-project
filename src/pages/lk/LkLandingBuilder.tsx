@@ -25,7 +25,6 @@ interface LandingStyle {
   headingFont: string; bodyFont: string;
 }
 interface LandingBlock { id: string; label: string; html: string; }
-interface Subpage { slug: string; name: string; html: string; }
 interface LandingProject {
   id: string; title: string; landing_type: string;
   created_at: string; updated_at: string;
@@ -212,7 +211,7 @@ const EDITOR_SCRIPT = `<script>
 })();
 </script>`;
 
-function buildFullHtml(blocks: LandingBlock[], style: LandingStyle, privacyHtmlBody?: string, subpages: Subpage[] = []): string {
+function buildFullHtml(blocks: LandingBlock[], style: LandingStyle, privacyHtmlBody?: string): string {
   const hf = `${style.headingFont}, serif`;
   const bf = `${style.bodyFont}, sans-serif`;
   const gfonts = encodeURIComponent(`${style.headingFont}:wght@700&family=${style.bodyFont}:wght@400;600`);
@@ -229,44 +228,16 @@ h1,h2,h3,h4{font-family:var(--font-heading);}
 
   const privacySection = privacyHtmlBody ? `\n<div id="page-privacy" style="display:none">\n${privacyHtmlBody}\n</div>` : "";
 
-  const subpageSections = subpages.map(sp =>
-    `\n<div id="page-subpage-${sp.slug}" style="display:none">\n${sp.html}\n</div>`
-  ).join("");
-
-  const hasExtras = !!(privacyHtmlBody || subpages.length > 0);
-
-  // Slugs подстраниц для скрытия «Узнать подробнее» у услуг без страницы
-  const subpageSlugs = subpages.map(sp => sp.slug);
-
-  const router = hasExtras ? `<script>
+  const router = privacyHtmlBody ? `<script>
 (function(){
   var landing = document.getElementById('page-landing');
-  var pages = {};
-  ${privacyHtmlBody ? `pages['privacy'] = document.getElementById('page-privacy');` : ""}
-  ${subpages.map(sp => `pages['subpage-${sp.slug}'] = document.getElementById('page-subpage-${sp.slug}');`).join("\n  ")}
-
-  // Показываем «Узнать подробнее» только для услуг с готовой подстраницей
-  var activeSlugs = ${JSON.stringify(subpageSlugs)};
-  document.querySelectorAll('a.service-more').forEach(function(a){
-    var href = a.getAttribute('href') || '';
-    var slug = href.replace('#subpage-','');
-    if(activeSlugs.indexOf(slug) === -1){ a.style.display='none'; }
-  });
-
-  function hideAll(){
-    landing.style.display='none';
-    Object.values(pages).forEach(function(p){ if(p) p.style.display='none'; });
-  }
+  var privacy = document.getElementById('page-privacy');
+  function hideAll(){ landing.style.display='none'; if(privacy) privacy.style.display='none'; }
   function route(){
     var hash = location.hash.replace('#','');
     hideAll();
-    if(hash === 'privacy' || hash === '/privacy'){
-      if(pages['privacy']) pages['privacy'].style.display='block';
-    } else if(pages[hash]){
-      pages[hash].style.display='block';
-    } else {
-      landing.style.display='block';
-    }
+    if((hash === 'privacy' || hash === '/privacy') && privacy){ privacy.style.display='block'; }
+    else { landing.style.display='block'; }
     window.scrollTo(0,0);
   }
   window.addEventListener('hashchange', route);
@@ -276,12 +247,7 @@ h1,h2,h3,h4{font-family:var(--font-heading);}
     if(a){ e.preventDefault(); location.hash='privacy'; }
   });
 })();
-</script>` : `<script>
-(function(){
-  // Скрываем все «Узнать подробнее» — подстраниц ещё нет
-  document.querySelectorAll('a.service-more').forEach(function(a){ a.style.display='none'; });
-})();
-</script>`;
+</script>` : "";
 
   return `<!DOCTYPE html>
 <html lang="ru">
@@ -294,7 +260,7 @@ ${root}
 <body>
 <div id="page-landing">
 ${htmlParts}
-</div>${privacySection}${subpageSections}
+</div>${privacySection}
 ${router}
 </body>
 </html>`;
@@ -410,201 +376,6 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
   );
 }
 
-// ── Модал создания подстраницы ─────────────────────────────────────────────────
-function SubpageModal({
-  serviceName, serviceSlug, siteStyle, messages: landingMessages,
-  onClose, onDone,
-}: {
-  serviceName: string; serviceSlug: string;
-  siteStyle: { primary: string; accent: string; dark: string; light: string; text: string; headingFont: string; bodyFont: string };
-  messages: { role: string; content: string }[];
-  onClose: () => void;
-  onDone: (subpage: { slug: string; name: string; html: string }) => void;
-}) {
-  const [mode, setMode] = useState<"choose" | "quick" | "chat">("choose");
-  const [quickDesc, setQuickDesc] = useState("");
-  const [chatMsgs, setChatMsgs] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
-  const [chatInput, setChatInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const chatBottomRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => { chatBottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatMsgs, loading]);
-
-  async function generateQuick() {
-    if (!quickDesc.trim() || loading) return;
-    setLoading(true); setError("");
-    try {
-      const res = await fetch(AI_LANDING_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-        body: JSON.stringify({
-          mode: "gen-subpage", serviceName, serviceSlug,
-          description: quickDesc, style: siteStyle, messages: landingMessages,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || "Ошибка генерации"); return; }
-      if (data.html) onDone({ slug: serviceSlug, name: serviceName, html: data.html });
-    } catch { setError("Ошибка сети, попробуйте ещё раз"); }
-    finally { setLoading(false); }
-  }
-
-  async function sendChatMsg() {
-    if (!chatInput.trim() || loading) return;
-    const newMsgs: { role: "user" | "assistant"; content: string }[] = [...chatMsgs, { role: "user", content: chatInput }];
-    setChatMsgs(newMsgs); setChatInput(""); setLoading(true); setError("");
-    try {
-      const res = await fetch(AI_LANDING_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-        body: JSON.stringify({ mode: "subpage-chat", serviceName, messages: newMsgs }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || "Ошибка"); return; }
-      const reply = data.reply || "";
-      setChatMsgs(prev => [...prev, { role: "assistant", content: reply }]);
-      if (reply.toLowerCase().includes("создать страницу")) {
-        // Авто-переход к генерации
-        setTimeout(() => generateFromChat([...newMsgs, { role: "assistant", content: reply }]), 300);
-      }
-    } catch { setError("Ошибка сети"); }
-    finally { setLoading(false); }
-  }
-
-  async function generateFromChat(msgs: { role: string; content: string }[]) {
-    setLoading(true); setError("");
-    try {
-      const res = await fetch(AI_LANDING_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-        body: JSON.stringify({
-          mode: "gen-subpage", serviceName, serviceSlug,
-          style: siteStyle, subpageMessages: msgs, messages: landingMessages,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || "Ошибка генерации"); return; }
-      if (data.html) onDone({ slug: serviceSlug, name: serviceName, html: data.html });
-    } catch { setError("Ошибка сети"); }
-    finally { setLoading(false); }
-  }
-
-  const isReadyToGen = chatMsgs.length >= 6 || chatMsgs.some(m => m.content.toLowerCase().includes("создать страницу"));
-
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", alignItems: "flex-end", justifyContent: "center", background: "rgba(15,23,42,0.6)", backdropFilter: "blur(4px)" }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ width: "100%", maxWidth: 520, background: "#fff", borderRadius: "20px 20px 0 0", padding: "24px 20px 32px", maxHeight: "88vh", display: "flex", flexDirection: "column", gap: 16, overflowY: "auto" }}>
-        {/* Шапка */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A" }}>Подстраница услуги</div>
-            <div style={{ fontSize: 12, color: "#64748B", marginTop: 3 }}>«{serviceName}»</div>
-          </div>
-          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: "50%", border: "none", background: "#F1F5F9", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Icon name="X" size={16} style={{ color: "#64748B" }} />
-          </button>
-        </div>
-
-        {/* Выбор режима */}
-        {mode === "choose" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.55 }}>
-              ИИ создаст отдельную страницу для этой услуги в том же стиле сайта. Ссылка «Узнать подробнее» будет вести на неё.
-            </div>
-            <button onClick={() => setMode("quick")}
-              style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "16px 18px", borderRadius: 14, border: "2px solid #E2E8F0", background: "#fff", cursor: "pointer", textAlign: "left", fontFamily: "Montserrat,sans-serif" }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Icon name="Zap" size={18} style={{ color: ACCENT }} />
-              </div>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>Быстро</div>
-                <div style={{ fontSize: 12, color: "#64748B", lineHeight: 1.5 }}>Опишите услугу в одном поле — ИИ сгенерирует страницу сразу</div>
-              </div>
-            </button>
-            <button onClick={() => {
-              setMode("chat");
-              setChatMsgs([{ role: "assistant", content: `Расскажите подробнее об услуге «${serviceName}». Что именно в неё входит?` }]);
-            }}
-              style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "16px 18px", borderRadius: 14, border: "2px solid #E2E8F0", background: "#fff", cursor: "pointer", textAlign: "left", fontFamily: "Montserrat,sans-serif" }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: "#f5f3ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Icon name="MessageCircle" size={18} style={{ color: "#8b5cf6" }} />
-              </div>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>С вопросами</div>
-                <div style={{ fontSize: 12, color: "#64748B", lineHeight: 1.5 }}>ИИ задаст уточняющие вопросы и создаст более детальную страницу</div>
-              </div>
-            </button>
-          </div>
-        )}
-
-        {/* Быстрый режим */}
-        {mode === "quick" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <button onClick={() => setMode("choose")} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "#94A3B8", padding: 0, fontFamily: "Montserrat,sans-serif" }}>
-              <Icon name="ArrowLeft" size={13} /> Назад
-            </button>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 2 }}>Опишите услугу подробно</div>
-            <textarea value={quickDesc} onChange={e => setQuickDesc(e.target.value)}
-              placeholder={`Например: Стрижка и укладка включает мытьё, стрижку ножницами или машинкой, укладку феном. Длится 45–60 минут. Стоимость от 1500 ₽. Подходит для любого типа волос.`}
-              rows={5} disabled={loading}
-              style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1.5px solid #E2E8F0", fontSize: 13, fontFamily: "Montserrat,sans-serif", resize: "none", outline: "none", color: "#0F172A", lineHeight: 1.55, boxSizing: "border-box" }}
-            />
-            {error && <div style={{ fontSize: 12, color: "#ef4444", padding: "8px 12px", borderRadius: 8, background: "#fef2f2" }}>{error}</div>}
-            <button onClick={generateQuick} disabled={!quickDesc.trim() || loading}
-              style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 0", borderRadius: 11, border: "none", background: quickDesc.trim() && !loading ? `linear-gradient(135deg,${ACCENT},hsl(185,85%,26%))` : "#E8ECF0", color: quickDesc.trim() && !loading ? "#fff" : "#aaa", fontSize: 14, fontWeight: 700, cursor: quickDesc.trim() && !loading ? "pointer" : "default", fontFamily: "Montserrat,sans-serif" }}>
-              {loading ? <><div style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> Генерирую страницу...</> : <><Icon name="Sparkles" size={16} /> Создать страницу</>}
-            </button>
-          </div>
-        )}
-
-        {/* Режим с вопросами */}
-        {mode === "chat" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <button onClick={() => setMode("choose")} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "#94A3B8", padding: 0, fontFamily: "Montserrat,sans-serif" }}>
-              <Icon name="ArrowLeft" size={13} /> Назад
-            </button>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 320, overflowY: "auto", padding: "4px 0" }}>
-              {chatMsgs.map((m, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
-                  <div style={{ maxWidth: "82%", padding: "10px 14px", borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px", background: m.role === "user" ? ACCENT : "#F1F5F9", color: m.role === "user" ? "#fff" : "#0F172A", fontSize: 13, lineHeight: 1.55 }}>
-                    {m.content}
-                  </div>
-                </div>
-              ))}
-              {loading && (
-                <div style={{ display: "flex", gap: 5, padding: "10px 14px", background: "#F1F5F9", borderRadius: "14px 14px 14px 4px", width: "fit-content" }}>
-                  {[0,1,2].map(i => <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT, opacity: 0.5, animation: `dot-pulse 1.2s ease-in-out ${i*0.2}s infinite` }} />)}
-                </div>
-              )}
-              <div ref={chatBottomRef} />
-            </div>
-            {error && <div style={{ fontSize: 12, color: "#ef4444", padding: "8px 12px", borderRadius: 8, background: "#fef2f2" }}>{error}</div>}
-            <div style={{ display: "flex", gap: 8 }}>
-              <input value={chatInput} onChange={e => setChatInput(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") sendChatMsg(); }}
-                placeholder="Ваш ответ..."
-                disabled={loading}
-                style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: "1.5px solid #E2E8F0", fontSize: 13, fontFamily: "Montserrat,sans-serif", outline: "none", color: "#0F172A" }}
-              />
-              <button onClick={sendChatMsg} disabled={!chatInput.trim() || loading}
-                style={{ width: 40, height: 40, borderRadius: 10, border: "none", background: chatInput.trim() && !loading ? ACCENT : "#E8ECF0", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                <Icon name="Send" size={16} />
-              </button>
-            </div>
-            {isReadyToGen && !loading && (
-              <button onClick={() => generateFromChat(chatMsgs)}
-                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 0", borderRadius: 11, border: "none", background: `linear-gradient(135deg,${ACCENT},hsl(185,85%,26%))`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
-                <Icon name="Sparkles" size={16} /> Создать страницу
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 // ── База знаний ───────────────────────────────────────────────────────────────
 const HELP_SECTIONS = [
@@ -1050,10 +821,6 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const [blockEditInput, setBlockEditInput] = useState("");
   const [blockEditing, setBlockEditing] = useState(false);
 
-  // Подстраницы
-  const [subpages, setSubpages] = useState<Subpage[]>([]);
-  const [subpageModal, setSubpageModal] = useState<{ slug: string; name: string } | null>(null);
-
   // UI
   const [showHelp, setShowHelp] = useState(false);
   const [sidePanelTab, setSidePanelTab] = useState<"blocks" | "images">("blocks");
@@ -1271,7 +1038,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   async function saveProject(blocksData: LandingBlock[], styleData: LandingStyle, manual = true) {
     if (manual) setSaving(true);
     try {
-      const html = buildFullHtml(blocksData, styleData, undefined, subpages);
+      const html = buildFullHtml(blocksData, styleData);
       const title = extractTitle(html) || projectTitle;
       const res = await fetch(LANDING_API_URL, {
         method: "POST",
@@ -1465,7 +1232,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     if (res.status === 402) { const d = await res.json(); showEnergyGate({ message: d.error }); return; }
     if (!res.ok) return;
     const privBody = (privacyData.orgName || privacyData.domain) ? buildPrivacyBody(privacyData) : undefined;
-    const html = buildFullHtml(blocks, siteStyle, privBody, subpages);
+    const html = buildFullHtml(blocks, siteStyle, privBody);
     const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
     a.download = `${projectTitle || "landing"}.html`; a.click();
@@ -1566,7 +1333,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   }
 
   const isReadyToGenerate = messages.length >= 4 && phase === "chat";
-  const fullHtml = blocks.length > 0 ? buildFullHtml(blocks, siteStyle, undefined, subpages) : "";
+  const fullHtml = blocks.length > 0 ? buildFullHtml(blocks, siteStyle) : "";
   const iframeSrc = editMode
     ? fullHtml.replace("</body>", EDITOR_SCRIPT + "</body>")
     : fullHtml;
@@ -1595,24 +1362,6 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {showHelp && <LandingHelp onClose={() => setShowHelp(false)} />}
-      {subpageModal && (
-        <SubpageModal
-          serviceName={subpageModal.name}
-          serviceSlug={subpageModal.slug}
-          siteStyle={siteStyle}
-          messages={messages}
-          onClose={() => setSubpageModal(null)}
-          onDone={sp => {
-            setSubpages(prev => {
-              const exists = prev.findIndex(p => p.slug === sp.slug);
-              if (exists >= 0) return prev.map((p, i) => i === exists ? sp : p);
-              return [...prev, sp];
-            });
-            setSubpageModal(null);
-          }}
-        />
-      )}
-
       {/* Шапка */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <button onClick={() => setView("list")} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "7px 12px", fontSize: 13, color: "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}>
@@ -1895,74 +1644,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                         style={{ width: 26, height: 26, borderRadius: 6, border: "none", background: editingBlock === block.id ? ACCENT_LIGHT : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
                         <Icon name="Wand2" size={12} style={{ color: editingBlock === block.id ? ACCENT : "#64748B" }} />
                       </button>
-                      {block.id === "services" && (
-                        <button
-                          onClick={() => setEditingBlock(editingBlock === "services_subpage" ? null : "services_subpage")}
-                          title="Добавить подстраницу услуги"
-                          style={{ width: 26, height: 26, borderRadius: 6, border: "none", background: editingBlock === "services_subpage" ? "#dcfce7" : "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                          <Icon name="FilePlus" size={12} style={{ color: "#059669" }} />
-                        </button>
-                      )}
                     </div>
-                    {/* Список подстраниц для блока services */}
-                    {block.id === "services" && subpages.length > 0 && (
-                      <div style={{ borderTop: "1px solid #E8ECF0", padding: "8px 12px", background: "#f0fdf4" }}>
-                        <div style={{ fontSize: 10, fontWeight: 700, color: "#059669", marginBottom: 6 }}>ПОДСТРАНИЦЫ</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                          {subpages.map(sp => (
-                            <div key={sp.slug} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                              <Icon name="FileText" size={11} style={{ color: "#059669", flexShrink: 0 }} />
-                              <span style={{ fontSize: 11, color: "#374151", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sp.name}</span>
-                              <button onClick={() => setSubpageModal({ slug: sp.slug, name: sp.name })}
-                                title="Перегенерировать"
-                                style={{ width: 20, height: 20, borderRadius: 5, border: "none", background: "#dcfce7", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                                <Icon name="RefreshCw" size={10} style={{ color: "#059669" }} />
-                              </button>
-                              <button onClick={() => setSubpages(prev => prev.filter(p => p.slug !== sp.slug))}
-                                title="Удалить"
-                                style={{ width: 20, height: 20, borderRadius: 5, border: "none", background: "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                                <Icon name="X" size={10} style={{ color: "#ef4444" }} />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Панель добавления подстраницы */}
-                    {block.id === "services" && editingBlock === "services_subpage" && (
-                      <div style={{ borderTop: "1px solid #E8ECF0", padding: "10px 12px", background: "#f0fdf4" }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: "#059669", marginBottom: 8 }}>НОВАЯ ПОДСТРАНИЦА</div>
-                        <input
-                          autoFocus
-                          value={blockEditInput}
-                          onChange={e => setBlockEditInput(e.target.value)}
-                          onKeyDown={e => {
-                            if (e.key === "Enter" && blockEditInput.trim()) {
-                              const slug = blockEditInput.trim().toLowerCase().replace(/[^a-zа-яё0-9\s]/gi, "").replace(/\s+/g, "-").slice(0, 40) + "-" + Date.now().toString().slice(-4);
-                              setSubpageModal({ slug, name: blockEditInput.trim() });
-                              setBlockEditInput("");
-                              setEditingBlock(null);
-                            }
-                          }}
-                          placeholder="Название услуги, напр. «Массаж спины»"
-                          style={{ width: "100%", padding: "7px 9px", borderRadius: 7, border: "1px solid #86efac", fontSize: 12, fontFamily: "Montserrat,sans-serif", outline: "none", color: "#1a1a1a", background: "#fff", boxSizing: "border-box" }}
-                        />
-                        <button
-                          disabled={!blockEditInput.trim()}
-                          onClick={() => {
-                            if (!blockEditInput.trim()) return;
-                            const slug = blockEditInput.trim().toLowerCase().replace(/[^a-zа-яё0-9\s]/gi, "").replace(/\s+/g, "-").slice(0, 40) + "-" + Date.now().toString().slice(-4);
-                            setSubpageModal({ slug, name: blockEditInput.trim() });
-                            setBlockEditInput("");
-                            setEditingBlock(null);
-                          }}
-                          style={{ width: "100%", marginTop: 6, padding: "8px 0", borderRadius: 7, border: "none", background: blockEditInput.trim() ? "#059669" : "#E8ECF0", color: blockEditInput.trim() ? "#fff" : "#aaa", fontSize: 12, fontWeight: 700, cursor: blockEditInput.trim() ? "pointer" : "default", fontFamily: "Montserrat,sans-serif" }}>
-                          Создать подстраницу →
-                        </button>
-                      </div>
-                    )}
-
                     {/* Панель загрузки фото */}
                     {editingBlock === block.id + "_photo" && BLOCK_PHOTO_SLOTS[block.id] && (
                       <div style={{ borderTop: "1px solid #E8ECF0", padding: "10px 12px", background: "#fffbeb" }}>

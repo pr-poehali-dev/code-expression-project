@@ -105,6 +105,25 @@ def check_and_deduct_energy(salon_id, user_id, amount, conn) -> tuple[bool, int]
     return True, balance
 
 
+def refund_energy(salon_id, user_id, cost, conn):
+    cur = conn.cursor()
+    cur.execute(
+        f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance + %s WHERE id = %s",
+        (cost, salon_id)
+    )
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
+        f"VALUES (%s, %s, %s, %s, %s, 'credit')",
+        (salon_id, user_id, "Возврат: ИИ-сервис недоступен", cost, TOOL_KEY)
+    )
+    conn.commit()
+
+
+def is_provider_error(e: Exception) -> bool:
+    msg = str(e).lower()
+    return any(x in msg for x in ("502", "503", "service_unavailable", "temporarily", "bad gateway"))
+
+
 def save_image_history(user_id, url, prompt, aspect_ratio, conn):
     cur = conn.cursor()
     cur.execute(
@@ -284,10 +303,26 @@ def handler(event: dict, context) -> dict:
         except urllib.error.HTTPError as e:
             body_text = e.read().decode("utf-8", errors="ignore")
             print(f"[polza.ai] HTTP {e.code}: {body_text[:300]}")
+            if e.code in (502, 503):
+                try:
+                    conn_r = get_db()
+                    refund_energy(salon_id, user["id"], cost, conn_r)
+                    conn_r.close()
+                except Exception:
+                    pass
+                return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
             return err(f"Ошибка сервиса генерации: {body_text[:150]}", 502)
         except Exception as e:
             msg = str(e)
             print(f"[polza.ai] err: {msg}")
+            if is_provider_error(e):
+                try:
+                    conn_r = get_db()
+                    refund_energy(salon_id, user["id"], cost, conn_r)
+                    conn_r.close()
+                except Exception:
+                    pass
+                return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
             if "timed out" in msg.lower() or "timeout" in msg.lower():
                 return err("Картинка генерируется дольше обычного — проверьте раздел «Мои изображения» через минуту.", 504)
             return err(f"Ошибка соединения: {msg}", 502)
