@@ -441,6 +441,8 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const [pendingImgIdx, setPendingImgIdx] = useState<string | null>(null);
   const [pendingSlotId, setPendingSlotId] = useState<string | null>(null);
   const slotFileInputRef = useRef<HTMLInputElement>(null);
+  const panelSlotFileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingPanelSlotId, setPendingPanelSlotId] = useState<string | null>(null);
   const [photoPickerOpen, setPhotoPickerOpen] = useState(false);
 
   // Персист
@@ -815,6 +817,25 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     setPendingSlotId(null);
   }
 
+  function handlePanelSlotFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const slotId = pendingPanelSlotId;
+    if (!slotId) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      iframeRef.current?.contentWindow?.postMessage({ type: "landing-slot-replace", slotId, src: ev.target?.result }, "*");
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+    setPendingPanelSlotId(null);
+  }
+
+  function openPanelSlotPicker(slotId: string) {
+    setPendingPanelSlotId(slotId);
+    setTimeout(() => panelSlotFileInputRef.current?.click(), 0);
+  }
+
   const isReadyToGenerate = messages.length >= 4 && phase === "chat";
   const fullHtml = blocks.length > 0 ? buildFullHtml(blocks, siteStyle) : "";
   const iframeSrc = editMode
@@ -1063,28 +1084,15 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                         <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", marginBottom: 8 }}>ФОТО БЛОКА</div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                           {BLOCK_PHOTO_SLOTS[block.id].map(slot => (
-                            <label key={slot.id} style={{
+                            <button key={slot.id} onClick={() => openPanelSlotPicker(slot.id)} style={{
                               display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
                               borderRadius: 8, border: "1.5px dashed #fbbf24", background: "#fff",
-                              cursor: "pointer", transition: "border-color 0.15s",
+                              cursor: "pointer", transition: "border-color 0.15s", width: "100%", textAlign: "left",
                             }}>
                               <Icon name="Upload" size={13} style={{ color: "#ca8a04", flexShrink: 0 }} />
                               <span style={{ fontSize: 12, color: "#374151", flex: 1 }}>{slot.label}</span>
                               <span style={{ fontSize: 10, color: "#94a3b8" }}>JPG / PNG</span>
-                              <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
-                                const file = e.target.files?.[0];
-                                if (!file) return;
-                                const slotId = slot.id;
-                                const reader = new FileReader();
-                                reader.onload = ev => {
-                                  iframeRef.current?.contentWindow?.postMessage(
-                                    { type: "landing-slot-replace", slotId, src: ev.target?.result }, "*"
-                                  );
-                                };
-                                reader.readAsDataURL(file);
-                                e.target.value = "";
-                              }} />
-                            </label>
+                            </button>
                           ))}
                         </div>
                       </div>
@@ -1133,6 +1141,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
 
           <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
           <input ref={slotFileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleSlotFileChange} />
+          <input ref={panelSlotFileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handlePanelSlotFileChange} />
 
           {/* Оверлей выбора фото — открывается по клику из iframe */}
           {photoPickerOpen && (
