@@ -127,6 +127,23 @@ def handler(event: dict, context) -> dict:
             body = json.loads(event.get("body") or "{}")
             action = body.get("action")
 
+            # Удаление проекта
+            if action == "delete":
+                project_id = body.get("id")
+                if not project_id:
+                    return err("id обязателен", 400)
+                safe_pid = project_id.replace("'", "''")
+                with conn.cursor() as cur:
+                    cur.execute(
+                        f"DELETE FROM {SCHEMA}.landing_projects "
+                        f"WHERE id='{safe_pid}' AND user_id={user_id}"
+                    )
+                    deleted = cur.rowcount
+                conn.commit()
+                if deleted == 0:
+                    return err("Не найдено", 404)
+                return ok({"deleted": True})
+
             # Скачивание
             if action == "download":
                 salon_id = user.get("salon_id")

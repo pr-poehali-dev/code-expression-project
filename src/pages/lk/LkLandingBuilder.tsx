@@ -130,10 +130,25 @@ function formatDate(iso: string) {
 function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; onNew: () => void }) {
   const [projects, setProjects] = useState<LandingProject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   useEffect(() => {
     fetch(LANDING_API_URL, { headers: { "X-Session-Id": session() } })
       .then(r => r.json()).then(d => setProjects(d.projects || [])).finally(() => setLoading(false));
   }, []);
+
+  async function deleteProject(id: string) {
+    setDeleting(true);
+    await fetch(LANDING_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+      body: JSON.stringify({ action: "delete", id }),
+    });
+    setProjects(prev => prev.filter(p => p.id !== id));
+    setConfirmDelete(null);
+    setDeleting(false);
+  }
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -164,22 +179,45 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
       {!loading && projects.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {projects.map(p => (
-            <button key={p.id} onClick={() => onOpen(p)}
-              style={{ display: "flex", alignItems: "center", gap: 14, background: "#fff", border: "1.5px solid #E8ECF0", borderRadius: 14, padding: "14px 18px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "left", transition: "border-color 0.15s" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = ACCENT; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E8ECF0"; }}
-            >
-              <div style={{ width: 42, height: 42, borderRadius: 10, background: p.landing_type === "premium" ? ACCENT_LIGHT : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Icon name={p.landing_type === "premium" ? "Sparkles" : "FileText"} size={20} style={{ color: p.landing_type === "premium" ? ACCENT : "#64748B" }} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title}</div>
-                <div style={{ fontSize: 12, color: "#888" }}>
-                  {p.landing_type === "premium" ? "Премиум" : "Стандартный"} · {formatDate(p.updated_at)}
+            <div key={p.id} style={{ position: "relative" }}>
+              {confirmDelete === p.id ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#fff0f0", border: "1.5px solid #fca5a5", borderRadius: 14, padding: "14px 18px" }}>
+                  <Icon name="Trash2" size={16} style={{ color: "#ef4444", flexShrink: 0 }} />
+                  <div style={{ flex: 1, fontSize: 13, color: "#7f1d1d", fontWeight: 600 }}>Удалить «{p.title}»?</div>
+                  <button onClick={() => deleteProject(p.id)} disabled={deleting}
+                    style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: "#ef4444", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                    {deleting ? "..." : "Удалить"}
+                  </button>
+                  <button onClick={() => setConfirmDelete(null)}
+                    style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #E2E8F0", background: "#fff", color: "#555", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                    Отмена
+                  </button>
                 </div>
-              </div>
-              <Icon name="ChevronRight" size={16} style={{ color: "#CBD5E1", flexShrink: 0 }} />
-            </button>
+              ) : (
+                <div style={{ display: "flex", alignItems: "center", gap: 14, background: "#fff", border: "1.5px solid #E8ECF0", borderRadius: 14, padding: "14px 18px", transition: "border-color 0.15s" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = ACCENT; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E8ECF0"; }}
+                >
+                  <div style={{ width: 42, height: 42, borderRadius: 10, background: p.landing_type === "premium" ? ACCENT_LIGHT : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Icon name={p.landing_type === "premium" ? "Sparkles" : "FileText"} size={20} style={{ color: p.landing_type === "premium" ? ACCENT : "#64748B" }} />
+                  </div>
+                  <button onClick={() => onOpen(p)} style={{ flex: 1, minWidth: 0, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0, fontFamily: "Montserrat,sans-serif" }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title}</div>
+                    <div style={{ fontSize: 12, color: "#888" }}>
+                      {p.landing_type === "premium" ? "Премиум" : "Стандартный"} · {formatDate(p.updated_at)}
+                    </div>
+                  </button>
+                  <button onClick={() => onOpen(p)}
+                    style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                    <Icon name="ChevronRight" size={15} style={{ color: ACCENT }} />
+                  </button>
+                  <button onClick={e => { e.stopPropagation(); setConfirmDelete(p.id); }}
+                    style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "#FEF2F2", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                    <Icon name="Trash2" size={14} style={{ color: "#ef4444" }} />
+                  </button>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
