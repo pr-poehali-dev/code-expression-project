@@ -377,19 +377,20 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
 }
 
 // ── Выбор типа ────────────────────────────────────────────────────────────────
-const TEMPLATES: { id: LandingType; icon: string; title: string; desc: string; blocks: string; color: string; bg: string; border: string }[] = [
-  { id: "classic",     icon: "LayoutTemplate", title: "Классический",          desc: "Шапка → Обложка → О нас → Услуги → Отзывы → Контакты → Футер",                        blocks: "7 блоков",  color: ACCENT,     bg: ACCENT_LIGHT,         border: `${ACCENT}60` },
-  { id: "storytelling",icon: "BookOpen",       title: "Сторителлинг",          desc: "Обложка → История / боли клиента → Решение → Услуги → Команда → Отзывы → Контакты",  blocks: "7 блоков",  color: "#8b5cf6",  bg: "#f5f3ff",            border: "#c4b5fd" },
-  { id: "sales",       icon: "TrendingUp",     title: "Продажник",             desc: "Оффер → Выгоды → Как работаем → Цены → FAQ → Отзывы → Форма заявки",                  blocks: "7 блоков",  color: "#ef4444",  bg: "#fef2f2",            border: "#fca5a5" },
-  { id: "portfolio",   icon: "User",           title: "Портфолио / мастер",    desc: "Личное фото + имя → Обо мне → Работы → Услуги → Отзывы → Запись",                     blocks: "6 блоков",  color: "#0ea5e9",  bg: "#f0f9ff",            border: "#7dd3fc" },
-  { id: "b2b",         icon: "Briefcase",      title: "Компания B2B",          desc: "О компании → Услуги с ценами → Кейсы → Команда → Клиенты → Контакты",                 blocks: "6 блоков",  color: "#1d4ed8",  bg: "#eff6ff",            border: "#93c5fd" },
-  { id: "event",       icon: "Calendar",       title: "Мероприятие / курс",    desc: "Анонс + дата → Программа → Спикеры → Тарифы → FAQ → Регистрация",                     blocks: "6 блоков",  color: "#d97706",  bg: "#fffbeb",            border: "#fcd34d" },
-  { id: "restaurant",  icon: "UtensilsCrossed",title: "Ресторан / кафе",       desc: "Атмосфера → Меню-хиты → О заведении → Акции → Бронирование стола",                    blocks: "5 блоков",  color: "#b45309",  bg: "#fef3c7",            border: "#fbbf24" },
-  { id: "realty",      icon: "Building2",      title: "Недвижимость",          desc: "Фото объекта → Характеристики → Район → Планировки → Контакты",                        blocks: "5 блоков",  color: "#059669",  bg: "#ecfdf5",            border: "#6ee7b7" },
-  { id: "product",     icon: "Package",        title: "Один товар",            desc: "Товар крупным планом → Выгоды → Как работает → Отзывы → Цена + заказ",                blocks: "5 блоков",  color: "#7c3aed",  bg: "#faf5ff",            border: "#c4b5fd" },
+const TEMPLATES: { id: LandingType; icon: string; title: string; desc: string; blocks: string; color: string; bg: string; border: string; preview: string }[] = [
+  { id: "classic",      icon: "LayoutTemplate",  title: "Классический",        desc: "Шапка → Обложка → О нас → Услуги → Отзывы → Контакты → Футер",                       blocks: "7 блоков", color: ACCENT,     bg: ACCENT_LIGHT, border: `${ACCENT}60`, preview: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/3dcd7e73-3fad-48a0-8865-601629a01706.jpg" },
+  { id: "storytelling", icon: "BookOpen",         title: "Сторителлинг",        desc: "Обложка → Боли клиента → Решение → Услуги → Команда → Отзывы → Контакты",            blocks: "7 блоков", color: "#8b5cf6",  bg: "#f5f3ff",    border: "#c4b5fd",       preview: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/303776e8-cb9b-43e8-8c68-c26fd97908fd.jpg" },
+  { id: "sales",        icon: "TrendingUp",       title: "Продажник",           desc: "Оффер → Выгоды → Как работаем → Цены → FAQ → Отзывы → Форма заявки",                 blocks: "7 блоков", color: "#ef4444",  bg: "#fef2f2",    border: "#fca5a5",       preview: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/be0060d7-d206-425e-bc63-3b6dca953a5a.jpg" },
+  { id: "portfolio",    icon: "User",             title: "Портфолио / мастер",  desc: "Личное фото + имя → Обо мне → Работы → Услуги → Отзывы → Запись",                    blocks: "6 блоков", color: "#0ea5e9",  bg: "#f0f9ff",    border: "#7dd3fc",       preview: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/9a8c8474-2c22-4fc7-8c3b-ad538069c49d.jpg" },
+  { id: "b2b",          icon: "Briefcase",        title: "Компания B2B",        desc: "О компании → Услуги с ценами → Кейсы → Команда → Клиенты → Контакты",                blocks: "6 блоков", color: "#1d4ed8",  bg: "#eff6ff",    border: "#93c5fd",       preview: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/5822d20f-ab6a-41b7-8c1b-1d0cfcad876c.jpg" },
+  { id: "event",        icon: "Calendar",         title: "Мероприятие / курс",  desc: "Анонс + дата → Программа → Спикеры → Тарифы → FAQ → Регистрация",                    blocks: "6 блоков", color: "#d97706",  bg: "#fffbeb",    border: "#fcd34d",       preview: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/80f2203b-d7cd-4579-95cc-ff4e39e0dad6.jpg" },
+  { id: "restaurant",   icon: "UtensilsCrossed",  title: "Ресторан / кафе",     desc: "Атмосфера → Меню-хиты → О заведении → Акции → Бронирование стола",                   blocks: "5 блоков", color: "#b45309",  bg: "#fef3c7",    border: "#fbbf24",       preview: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/4a334c7b-026d-46b9-aceb-8fe3e0335083.jpg" },
+  { id: "realty",       icon: "Building2",        title: "Недвижимость",        desc: "Фото объекта → Характеристики → Район → Планировки → Контакты",                       blocks: "5 блоков", color: "#059669",  bg: "#ecfdf5",    border: "#6ee7b7",       preview: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/95238cdf-c70f-4134-afc2-0ee3a3757f41.jpg" },
+  { id: "product",      icon: "Package",          title: "Один товар",          desc: "Товар крупным планом → Выгоды → Как работает → Отзывы → Цена + заказ",               blocks: "5 блоков", color: "#7c3aed",  bg: "#faf5ff",    border: "#c4b5fd",       preview: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/8e760322-4f76-4a2d-b33c-729aad4757b8.jpg" },
 ];
 
 function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
+  const [hovered, setHovered] = useState<LandingType | null>(null);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
@@ -399,20 +400,28 @@ function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {TEMPLATES.map(t => (
           <button key={t.id} onClick={() => onSelect(t.id)}
-            style={{ textAlign: "left", background: t.bg, border: `2px solid ${t.border}`, borderRadius: 14, padding: "14px 16px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "box-shadow 0.15s, border-color 0.15s" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 16px ${t.color}22`; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+            onMouseEnter={() => setHovered(t.id)}
+            onMouseLeave={() => setHovered(null)}
+            style={{ textAlign: "left", background: hovered === t.id ? t.bg : "#fff", border: `2px solid ${hovered === t.id ? t.color : "#E8ECF0"}`, borderRadius: 14, padding: 0, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.18s", overflow: "hidden", boxShadow: hovered === t.id ? `0 6px 20px ${t.color}28` : "none" }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: t.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Icon name={t.icon} size={16} style={{ color: "#fff" }} />
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", lineHeight: 1.2 }}>{t.title}</div>
+            {/* Превью */}
+            <div style={{ width: "100%", height: 110, overflow: "hidden", position: "relative", background: t.bg }}>
+              <img src={t.preview} alt={t.title}
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", transition: "transform 0.3s", transform: hovered === t.id ? "scale(1.06)" : "scale(1)" }}
+              />
+              <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to bottom, transparent 50%, ${t.bg}ee 100%)` }} />
+              <span style={{ position: "absolute", top: 8, right: 8, fontSize: 10, fontWeight: 700, color: t.color, background: "#ffffffdd", padding: "2px 8px", borderRadius: 10 }}>{t.blocks}</span>
             </div>
-            <div style={{ fontSize: 11, color: "#64748B", lineHeight: 1.5, marginBottom: 8 }}>{t.desc}</div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: t.color, background: `${t.color}18`, padding: "2px 8px", borderRadius: 10 }}>{t.blocks}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: t.color }}>Выбрать →</span>
+            {/* Текст */}
+            <div style={{ padding: "10px 12px 12px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
+                <div style={{ width: 22, height: 22, borderRadius: 6, background: t.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon name={t.icon} size={12} style={{ color: "#fff" }} />
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{t.title}</div>
+              </div>
+              <div style={{ fontSize: 10, color: "#64748B", lineHeight: 1.5, marginBottom: 8 }}>{t.desc}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: t.color }}>Выбрать →</div>
             </div>
           </button>
         ))}
