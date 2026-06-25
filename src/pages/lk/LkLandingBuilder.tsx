@@ -1149,11 +1149,15 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         body: JSON.stringify({ mode: "chat", landingType, messages: newMsgs }),
         signal: AbortSignal.timeout(30_000),
       });
+      if (res.status === 402) { const d = await res.json(); showEnergyGate({ message: d.error }); return; }
+      if (!res.ok) {
+        setMessages(prev => [...prev, { role: "assistant", content: "ИИ-сервис временно недоступен. Подождите минуту и попробуйте ещё раз." }]);
+        return;
+      }
       const data = await res.json();
-      if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
-      setMessages(prev => [...prev, { role: "assistant", content: data.reply || "" }]);
+      setMessages(prev => [...prev, { role: "assistant", content: data.reply || "Не удалось получить ответ. Попробуйте ещё раз." }]);
     } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "Ошибка связи. Попробуйте ещё раз." }]);
+      setMessages(prev => [...prev, { role: "assistant", content: "Ошибка связи. Проверьте интернет и попробуйте ещё раз." }]);
     } finally {
       setChatLoading(false);
     }
