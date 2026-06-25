@@ -79,7 +79,7 @@ CHAT_PROMPTS = {
 
 # ── БЛОЧНАЯ ГЕНЕРАЦИЯ: СТИЛЬ ──────────────────────────────────────────────────
 
-SYSTEM_GEN_STYLE = """На основе данных о бизнесе придумай CSS-тему для лендинга и верни ТОЛЬКО JSON (без markdown, без объяснений).
+SYSTEM_GEN_STYLE = """На основе данных о бизнесе придумай CSS-тему и фавикон для лендинга. Верни ТОЛЬКО JSON (без markdown, без объяснений).
 
 Формат ответа:
 {
@@ -89,7 +89,8 @@ SYSTEM_GEN_STYLE = """На основе данных о бизнесе прид�
   "light": "#HEX",
   "text": "#HEX",
   "headingFont": "Название шрифта Google Fonts",
-  "bodyFont": "Название шрифта Google Fonts"
+  "bodyFont": "Название шрифта Google Fonts",
+  "faviconSvg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 32 32\\">...</svg>"
 }
 
 Правила:
@@ -101,6 +102,7 @@ SYSTEM_GEN_STYLE = """На основе данных о бизнесе прид�
 - text — цвет основного текста (тёмный)
 - headingFont — красивый заголовочный шрифт (Playfair Display, Cormorant Garamond, Raleway и тп)
 - bodyFont — читаемый шрифт для текста (Montserrat, Inter, Open Sans и тп)
+- faviconSvg — SVG-фавикон 32×32, стилизованный под бизнес: первая буква названия или тематическая иконка, цвета из палитры, на круглом или квадратном фоне. Только inline SVG, без внешних зависимостей.
 
 Верни ТОЛЬКО JSON без каких-либо других символов."""
 
@@ -792,7 +794,7 @@ def handler(event: dict, context) -> dict:
                         {"role": "system", "content": SYSTEM_GEN_STYLE},
                         {"role": "user", "content": f"Данные о бизнесе:\n{context_text}"}
                     ],
-                    max_tokens=300, temperature=0.8,
+                    max_tokens=600, temperature=0.8,
                 )
             except Exception as e:
                 if is_provider_error(e):
@@ -811,8 +813,11 @@ def handler(event: dict, context) -> dict:
                 style = {
                     "primary": "#1a3a4a", "accent": "#e67e22", "dark": "#0f2030",
                     "light": "#f8f9fa", "text": "#2c3e50",
-                    "headingFont": "Playfair Display", "bodyFont": "Montserrat"
+                    "headingFont": "Playfair Display", "bodyFont": "Montserrat",
+                    "faviconSvg": '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#1a3a4a"/><text x="16" y="22" text-anchor="middle" font-size="18" font-weight="bold" fill="#e67e22" font-family="sans-serif">С</text></svg>'
                 }
+            if "faviconSvg" not in style:
+                style["faviconSvg"] = ""
             return ok({"style": style, "mode": "gen-style"})
 
         # ── GEN-BLOCK: генерация одного блока ────────────────────────────────

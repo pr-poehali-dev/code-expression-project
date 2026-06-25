@@ -17,6 +17,7 @@ const LS_TITLE   = "landing_project_title";
 const LS_BLOCKS   = "landing_builder_blocks";
 const LS_STYLE    = "landing_builder_style";
 const LS_PRIVACY  = "landing_builder_privacy";
+const LS_SEO      = "landing_builder_seo";
 
 type LandingType = "classic" | "storytelling" | "sales" | "portfolio" | "b2b" | "event" | "restaurant" | "realty" | "product";
 interface Message { role: "user" | "assistant"; content: string; }
@@ -37,6 +38,15 @@ interface PrivacyData {
   address: string;
   email: string;
   domain: string;
+}
+interface SeoData {
+  title: string;
+  description: string;
+  keywords: string;
+  robots: string;          // index,follow | noindex,nofollow
+  faviconSvg: string;      // inline SVG для favicon
+  metrikaId: string;       // ID счётчика Яндекс.Метрики
+  webmasterVerify: string; // Код верификации Яндекс.Вебмастер
 }
 
 const BLOCKS_ORDER: { id: string; label: string }[] = [
@@ -211,7 +221,9 @@ const EDITOR_SCRIPT = `<script>
 })();
 </script>`;
 
-function buildFullHtml(blocks: LandingBlock[], style: LandingStyle, privacyHtmlBody?: string): string {
+const SEO_DEFAULTS: SeoData = { title: "", description: "", keywords: "", robots: "index,follow", faviconSvg: "", metrikaId: "", webmasterVerify: "" };
+
+function buildFullHtml(blocks: LandingBlock[], style: LandingStyle, privacyHtmlBody?: string, seo: SeoData = SEO_DEFAULTS): string {
   const hf = `${style.headingFont}, serif`;
   const bf = `${style.bodyFont}, sans-serif`;
   const gfonts = encodeURIComponent(`${style.headingFont}:wght@700&family=${style.bodyFont}:wght@400;600`);
@@ -225,8 +237,29 @@ h1,h2,h3,h4{font-family:var(--font-heading);}
 @import url('https://fonts.googleapis.com/css2?family=${gfonts}&display=swap');
 </style>`;
   const htmlParts = blocks.map(b => `<div data-block-id="${b.id}">${b.html}</div>`).join("\n");
-
   const privacySection = privacyHtmlBody ? `\n<div id="page-privacy" style="display:none">\n${privacyHtmlBody}\n</div>` : "";
+
+  // SEO теги
+  const pageTitle = seo.title || "Лендинг";
+  const metaDesc = seo.description ? `\n<meta name="description" content="${seo.description.replace(/"/g, "&quot;")}"/>` : "";
+  const metaKeys = seo.keywords ? `\n<meta name="keywords" content="${seo.keywords.replace(/"/g, "&quot;")}"/>` : "";
+  const metaRobots = seo.robots ? `\n<meta name="robots" content="${seo.robots}"/>` : "";
+  const metaWebmaster = seo.webmasterVerify ? `\n<meta name="yandex-verification" content="${seo.webmasterVerify}"/>` : "";
+  const faviconTag = seo.faviconSvg
+    ? `\n<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(seo.faviconSvg)}"/>`
+    : "";
+
+  // Яндекс.Метрика
+  const metrikaScript = seo.metrikaId ? `
+<script type="text/javascript">
+(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+m[i].l=1*new Date();
+for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
+k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+(window,document,"script","https://mc.yandex.ru/metrika/tag.js","ym");
+ym(${seo.metrikaId},"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/${seo.metrikaId}" style="position:absolute;left:-9999px;" alt=""/></div></noscript>` : "";
 
   const router = privacyHtmlBody ? `<script>
 (function(){
@@ -253,11 +286,11 @@ h1,h2,h3,h4{font-family:var(--font-heading);}
 <html lang="ru">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Лендинг</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>${faviconTag}
+<title>${pageTitle}</title>${metaDesc}${metaKeys}${metaRobots}${metaWebmaster}
 ${root}
 </head>
-<body>
+<body>${metrikaScript}
 <div id="page-landing">
 ${htmlParts}
 </div>${privacySection}
@@ -768,6 +801,101 @@ function StyleEditor({ style, onChange }: { style: LandingStyle; onChange: (s: L
   );
 }
 
+// ── SEO редактор ──────────────────────────────────────────────────────────────
+function SeoEditor({ seo, onChange }: { seo: SeoData; onChange: (s: SeoData) => void }) {
+  const set = (k: keyof SeoData, v: string) => onChange({ ...seo, [k]: v });
+  const inputStyle = { width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 13, fontFamily: "Montserrat,sans-serif", outline: "none", color: "#1a1a1a", boxSizing: "border-box" as const };
+  const labelStyle = { fontSize: 11, color: "#888", fontWeight: 600 as const, marginBottom: 4, display: "block" as const };
+  const hintStyle = { fontSize: 11, color: "#94a3b8", marginTop: 3, lineHeight: 1.4 };
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8ECF0", padding: 18 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>SEO и аналитика</div>
+      <div style={{ fontSize: 12, color: "#888", marginBottom: 16 }}>Настройки влияют на отображение сайта в поисковиках и подключение счётчиков.</div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+        {/* Тайтл */}
+        <div>
+          <label style={labelStyle}>ЗАГОЛОВОК СТРАНИЦЫ (TITLE)</label>
+          <input value={seo.title} onChange={e => set("title", e.target.value)}
+            placeholder="Название вашего бизнеса — краткое описание услуги"
+            style={inputStyle} />
+          <div style={hintStyle}>Отображается во вкладке браузера и в результатах поиска. 50–60 символов.</div>
+        </div>
+
+        {/* Дескрипшн */}
+        <div>
+          <label style={labelStyle}>ОПИСАНИЕ СТРАНИЦЫ (DESCRIPTION)</label>
+          <textarea value={seo.description} onChange={e => set("description", e.target.value)}
+            placeholder="Краткое описание услуги или бизнеса для поисковиков. Что вы предлагаете и для кого."
+            rows={3}
+            style={{ ...inputStyle, resize: "none" as const }} />
+          <div style={hintStyle}>Сниппет в поисковой выдаче. 120–160 символов.</div>
+        </div>
+
+        {/* Ключевые слова */}
+        <div>
+          <label style={labelStyle}>КЛЮЧЕВЫЕ СЛОВА (KEYWORDS)</label>
+          <input value={seo.keywords} onChange={e => set("keywords", e.target.value)}
+            placeholder="массаж, салон красоты, стрижка, маникюр Москва"
+            style={inputStyle} />
+          <div style={hintStyle}>Через запятую. Google их игнорирует, но Яндекс учитывает.</div>
+        </div>
+
+        {/* Robots */}
+        <div>
+          <label style={labelStyle}>ИНДЕКСАЦИЯ (ROBOTS)</label>
+          <select value={seo.robots} onChange={e => set("robots", e.target.value)}
+            style={{ ...inputStyle, cursor: "pointer" }}>
+            <option value="index,follow">Индексировать (index, follow)</option>
+            <option value="noindex,nofollow">Не индексировать (noindex, nofollow)</option>
+            <option value="noindex,follow">Страницу не индексировать, ссылки следовать</option>
+          </select>
+        </div>
+
+        {/* Фавикон */}
+        <div>
+          <label style={labelStyle}>ФАВИКОН (SVG-КОД)</label>
+          <textarea value={seo.faviconSvg} onChange={e => set("faviconSvg", e.target.value)}
+            placeholder={'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#2D5A87"/><text x="16" y="22" text-anchor="middle" font-size="18" fill="#fff">С</text></svg>'}
+            rows={4}
+            style={{ ...inputStyle, resize: "none" as const, fontFamily: "monospace", fontSize: 11 }} />
+          <div style={hintStyle}>Вставьте SVG-код иконки. ИИ генерирует фавикон автоматически при создании лендинга.</div>
+        </div>
+
+        {/* Разделитель */}
+        <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#475569", marginBottom: 12 }}>АНАЛИТИКА И ВЕРИФИКАЦИЯ</div>
+        </div>
+
+        {/* Яндекс.Метрика */}
+        <div>
+          <label style={labelStyle}>ЯНДЕКС.МЕТРИКА — ID СЧЁТЧИКА</label>
+          <input value={seo.metrikaId} onChange={e => set("metrikaId", e.target.value.replace(/\D/g, ""))}
+            placeholder="12345678"
+            style={inputStyle} />
+          <div style={hintStyle}>Только цифры. Найти в Яндекс.Метрике: Настройки → Счётчик → Номер счётчика.</div>
+        </div>
+
+        {/* Яндекс.Вебмастер */}
+        <div>
+          <label style={labelStyle}>ЯНДЕКС.ВЕБМАСТЕР — КОД ВЕРИФИКАЦИИ</label>
+          <input value={seo.webmasterVerify} onChange={e => set("webmasterVerify", e.target.value.trim())}
+            placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            style={inputStyle} />
+          <div style={hintStyle}>В Яндекс.Вебмастере: Добавить сайт → HTML-метатег → скопируйте значение content="..."</div>
+        </div>
+
+      </div>
+
+      <div style={{ marginTop: 14, padding: "10px 12px", background: "#eff6ff", borderRadius: 8, fontSize: 12, color: "#3b82f6", lineHeight: 1.6 }}>
+        Настройки SEO встраиваются в &lt;head&gt; лендинга — работают при скачивании и при просмотре по ссылке.
+      </div>
+    </div>
+  );
+}
+
 // ── Главный компонент ─────────────────────────────────────────────────────────
 export default function LkLandingBuilder({ forceList = false }: { forceList?: boolean }) {
   const [view, setView] = useState<"list" | "new" | "editor">("list");
@@ -812,6 +940,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const [editMode, setEditMode] = useState(false);
   const [showStyleEditor, setShowStyleEditor] = useState(false);
   const [showPrivacyEditor, setShowPrivacyEditor] = useState(false);
+  const [showSeoEditor, setShowSeoEditor] = useState(false);
+  const [seoData, setSeoData] = useState<SeoData>(() => {
+    try { const s = localStorage.getItem(LS_SEO); return s ? JSON.parse(s) : { ...SEO_DEFAULTS }; } catch { return { ...SEO_DEFAULTS }; }
+  });
   const [privacyData, setPrivacyData] = useState<PrivacyData>(() => {
     try { const s = localStorage.getItem(LS_PRIVACY); return s ? JSON.parse(s) : { orgName: "", inn: "", ogrn: "", address: "", email: "", domain: "" }; } catch { return { orgName: "", inn: "", ogrn: "", address: "", email: "", domain: "" }; }
   });
@@ -846,19 +978,20 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   useEffect(() => { if (projectId) localStorage.setItem(LS_PID, projectId); }, [projectId]);
   useEffect(() => { localStorage.setItem(LS_TITLE, projectTitle); }, [projectTitle]);
   useEffect(() => { localStorage.setItem(LS_PRIVACY, JSON.stringify(privacyData)); }, [privacyData]);
+  useEffect(() => { localStorage.setItem(LS_SEO, JSON.stringify(seoData)); }, [seoData]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, chatLoading]);
 
   // Восстановить в iframe при смене editMode
   useEffect(() => {
     if (!editMode && iframeRef.current && blocks.length > 0) {
-      iframeRef.current.srcdoc = buildFullHtml(blocks, siteStyle);
+      iframeRef.current.srcdoc = buildFullHtml(blocks, siteStyle, undefined, seoData);
     }
   }, [editMode]); // eslint-disable-line
 
   // Если блоки изменились стилем — перестраиваем iframe
   useEffect(() => {
     if (phase === "done" && iframeRef.current && !editMode) {
-      iframeRef.current.srcdoc = buildFullHtml(blocks, siteStyle);
+      iframeRef.current.srcdoc = buildFullHtml(blocks, siteStyle, undefined, seoData);
     }
   }, [siteStyle]); // eslint-disable-line
 
@@ -955,6 +1088,9 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       if (data.style) {
         style = { ...DEFAULT_STYLE, ...data.style };
         setSiteStyle(style);
+        if (data.style.faviconSvg) {
+          setSeoData(prev => ({ ...prev, faviconSvg: data.style.faviconSvg }));
+        }
       }
     } catch {
       // Продолжаем с дефолтным стилем
@@ -1232,7 +1368,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     if (res.status === 402) { const d = await res.json(); showEnergyGate({ message: d.error }); return; }
     if (!res.ok) return;
     const privBody = (privacyData.orgName || privacyData.domain) ? buildPrivacyBody(privacyData) : undefined;
-    const html = buildFullHtml(blocks, siteStyle, privBody);
+    const html = buildFullHtml(blocks, siteStyle, privBody, seoData);
     const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
     a.download = `${projectTitle || "landing"}.html`; a.click();
@@ -1333,7 +1469,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   }
 
   const isReadyToGenerate = messages.length >= 4 && phase === "chat";
-  const fullHtml = blocks.length > 0 ? buildFullHtml(blocks, siteStyle) : "";
+  const fullHtml = blocks.length > 0 ? buildFullHtml(blocks, siteStyle, undefined, seoData) : "";
   const iframeSrc = editMode
     ? fullHtml.replace("</body>", EDITOR_SCRIPT + "</body>")
     : fullHtml;
@@ -1508,6 +1644,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
               style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: showPrivacyEditor ? "1.5px solid #10b981" : "1.5px solid #E8ECF0", background: showPrivacyEditor ? "#ecfdf5" : "#fff", color: showPrivacyEditor ? "#059669" : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
               <Icon name="FileText" size={15} />Документы
             </button>
+            <button onClick={() => setShowSeoEditor(v => !v)}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: showSeoEditor ? "1.5px solid #3b82f6" : "1.5px solid #E8ECF0", background: showSeoEditor ? "#eff6ff" : "#fff", color: showSeoEditor ? "#3b82f6" : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+              <Icon name="Search" size={15} />SEO
+            </button>
             <button onClick={() => { setShowVersions(v => !v); if (!showVersions) loadVersions(); }}
               style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: showVersions ? `1.5px solid #f59e0b` : "1.5px solid #E8ECF0", background: showVersions ? "#fffbeb" : "#fff", color: showVersions ? "#d97706" : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
               <Icon name="History" size={15} />Версии
@@ -1570,6 +1710,11 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                 Политика встраивается прямо в лендинг — всё в одном файле. При скачивании получите один HTML-файл с обеими страницами внутри.
               </div>
             </div>
+          )}
+
+          {/* SEO */}
+          {showSeoEditor && (
+            <SeoEditor seo={seoData} onChange={setSeoData} />
           )}
 
           {/* История версий */}
