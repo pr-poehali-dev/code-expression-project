@@ -18,7 +18,7 @@ const LS_BLOCKS   = "landing_builder_blocks";
 const LS_STYLE    = "landing_builder_style";
 const LS_PRIVACY  = "landing_builder_privacy";
 
-type LandingType = "budget" | "premium";
+type LandingType = "classic" | "storytelling" | "sales" | "portfolio" | "b2b" | "event" | "restaurant" | "realty" | "product";
 interface Message { role: "user" | "assistant"; content: string; }
 interface LandingStyle {
   primary: string; accent: string; dark: string; light: string; text: string;
@@ -26,7 +26,7 @@ interface LandingStyle {
 }
 interface LandingBlock { id: string; label: string; html: string; }
 interface LandingProject {
-  id: string; title: string; landing_type: LandingType;
+  id: string; title: string; landing_type: string;
   created_at: string; updated_at: string;
 }
 interface Version { savedAt: string; html: string; blocks: LandingBlock[]; style: LandingStyle; }
@@ -48,7 +48,38 @@ const BLOCKS_ORDER: { id: string; label: string }[] = [
   { id: "reviews",  label: "Отзывы" },
   { id: "contact",  label: "Контакты" },
   { id: "footer",   label: "Футер" },
+  { id: "pain",     label: "Боли клиента" },
+  { id: "solution", label: "Решение" },
+  { id: "team",     label: "Команда" },
+  { id: "benefits", label: "Выгоды" },
+  { id: "howworks", label: "Как работаем" },
+  { id: "pricing",  label: "Цены" },
+  { id: "faq",      label: "FAQ" },
+  { id: "cases",    label: "Кейсы" },
+  { id: "clients",  label: "Клиенты" },
+  { id: "program",  label: "Программа" },
+  { id: "speakers", label: "Спикеры" },
+  { id: "menu",     label: "Меню / хиты" },
+  { id: "promo",    label: "Акции" },
+  { id: "booking",  label: "Бронирование" },
+  { id: "object",   label: "Об объекте" },
+  { id: "location", label: "Район / расположение" },
+  { id: "plans",    label: "Планировки" },
+  { id: "product",  label: "Товар" },
+  { id: "order",    label: "Оформить заказ" },
 ];
+
+const TEMPLATE_BLOCKS: Record<LandingType, string[]> = {
+  classic:      ["header", "hero", "about", "services", "reviews", "contact", "footer"],
+  storytelling: ["hero", "pain", "solution", "services", "team", "reviews", "contact"],
+  sales:        ["hero", "benefits", "howworks", "pricing", "faq", "reviews", "contact"],
+  portfolio:    ["hero", "about", "gallery", "services", "reviews", "contact"],
+  b2b:          ["header", "hero", "services", "cases", "team", "clients", "contact"],
+  event:        ["hero", "program", "speakers", "pricing", "faq", "contact"],
+  restaurant:   ["hero", "menu", "about", "promo", "booking"],
+  realty:       ["hero", "object", "location", "plans", "contact"],
+  product:      ["hero", "benefits", "howworks", "reviews", "order"],
+};
 
 const BLOCK_PHOTO_SLOTS: Record<string, { id: string; label: string }[]> = {
   hero:    [{ id: "hero", label: "Главное фото" }],
@@ -346,30 +377,43 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
 }
 
 // ── Выбор типа ────────────────────────────────────────────────────────────────
+const TEMPLATES: { id: LandingType; icon: string; title: string; desc: string; blocks: string; color: string; bg: string; border: string }[] = [
+  { id: "classic",     icon: "LayoutTemplate", title: "Классический",          desc: "Шапка → Обложка → О нас → Услуги → Отзывы → Контакты → Футер",                        blocks: "7 блоков",  color: ACCENT,     bg: ACCENT_LIGHT,         border: `${ACCENT}60` },
+  { id: "storytelling",icon: "BookOpen",       title: "Сторителлинг",          desc: "Обложка → История / боли клиента → Решение → Услуги → Команда → Отзывы → Контакты",  blocks: "7 блоков",  color: "#8b5cf6",  bg: "#f5f3ff",            border: "#c4b5fd" },
+  { id: "sales",       icon: "TrendingUp",     title: "Продажник",             desc: "Оффер → Выгоды → Как работаем → Цены → FAQ → Отзывы → Форма заявки",                  blocks: "7 блоков",  color: "#ef4444",  bg: "#fef2f2",            border: "#fca5a5" },
+  { id: "portfolio",   icon: "User",           title: "Портфолио / мастер",    desc: "Личное фото + имя → Обо мне → Работы → Услуги → Отзывы → Запись",                     blocks: "6 блоков",  color: "#0ea5e9",  bg: "#f0f9ff",            border: "#7dd3fc" },
+  { id: "b2b",         icon: "Briefcase",      title: "Компания B2B",          desc: "О компании → Услуги с ценами → Кейсы → Команда → Клиенты → Контакты",                 blocks: "6 блоков",  color: "#1d4ed8",  bg: "#eff6ff",            border: "#93c5fd" },
+  { id: "event",       icon: "Calendar",       title: "Мероприятие / курс",    desc: "Анонс + дата → Программа → Спикеры → Тарифы → FAQ → Регистрация",                     blocks: "6 блоков",  color: "#d97706",  bg: "#fffbeb",            border: "#fcd34d" },
+  { id: "restaurant",  icon: "UtensilsCrossed",title: "Ресторан / кафе",       desc: "Атмосфера → Меню-хиты → О заведении → Акции → Бронирование стола",                    blocks: "5 блоков",  color: "#b45309",  bg: "#fef3c7",            border: "#fbbf24" },
+  { id: "realty",      icon: "Building2",      title: "Недвижимость",          desc: "Фото объекта → Характеристики → Район → Планировки → Контакты",                        blocks: "5 блоков",  color: "#059669",  bg: "#ecfdf5",            border: "#6ee7b7" },
+  { id: "product",     icon: "Package",        title: "Один товар",            desc: "Товар крупным планом → Выгоды → Как работает → Отзывы → Цена + заказ",                blocks: "5 блоков",  color: "#7c3aed",  bg: "#faf5ff",            border: "#c4b5fd" },
+];
+
 function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
-  const types = [
-    { id: "budget" as LandingType, icon: "FileText", iconColor: "#64748B", iconBg: "#F1F5F9", badge: "СТАНДАРТНЫЙ", badgeColor: "#64748B", badgeBg: "#F1F5F9", title: "Стандартный", desc: "5 блоков, минимализм, быстрая генерация.", color: "#64748B", bg: "#fff", border: "#E8ECF0" },
-    { id: "premium" as LandingType, icon: "Sparkles", iconColor: "#fff", iconBg: ACCENT, badge: "ПРЕМИУМ", badgeColor: "#fff", badgeBg: ACCENT, title: "Премиальный", desc: "7 блоков, уникальный дизайн, анимации, индивидуальная палитра.", color: ACCENT, bg: ACCENT_LIGHT, border: `${ACCENT}40` },
-  ];
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>Выберите тип лендинга</div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-        {types.map(t => (
+      <div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>Выберите шаблон лендинга</div>
+        <div style={{ fontSize: 12, color: "#64748B" }}>ИИ адаптирует вопросы и структуру под выбранный шаблон</div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        {TEMPLATES.map(t => (
           <button key={t.id} onClick={() => onSelect(t.id)}
-            style={{ textAlign: "left", background: t.bg, border: `2px solid ${t.border}`, borderRadius: 16, padding: 20, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "border-color 0.15s, box-shadow 0.15s" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = t.color; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = t.border; }}
+            style={{ textAlign: "left", background: t.bg, border: `2px solid ${t.border}`, borderRadius: 14, padding: "14px 16px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "box-shadow 0.15s, border-color 0.15s" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 16px ${t.color}22`; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: t.iconBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Icon name={t.icon} size={20} style={{ color: t.iconColor }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: t.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name={t.icon} size={16} style={{ color: "#fff" }} />
               </div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: t.badgeColor, background: t.badgeBg, padding: "4px 10px", borderRadius: 20 }}>{t.badge}</span>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", lineHeight: 1.2 }}>{t.title}</div>
             </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>{t.title}</div>
-            <div style={{ fontSize: 12, color: "#64748B", lineHeight: 1.5, marginBottom: 14 }}>{t.desc}</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: t.color }}>Выбрать →</div>
+            <div style={{ fontSize: 11, color: "#64748B", lineHeight: 1.5, marginBottom: 8 }}>{t.desc}</div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: t.color, background: `${t.color}18`, padding: "2px 8px", borderRadius: 10 }}>{t.blocks}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: t.color }}>Выбрать →</span>
+            </div>
           </button>
         ))}
       </div>
@@ -671,9 +715,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     }
 
     // Шаг 2: генерировать блоки по очереди
-    const blocksToGen = landingType === "budget"
-      ? ["header", "hero", "services", "contact", "footer"]
-      : ["header", "hero", "about", "services", "reviews", "contact", "footer"];
+    const blocksToGen = landingType ? TEMPLATE_BLOCKS[landingType] ?? TEMPLATE_BLOCKS["classic"] : TEMPLATE_BLOCKS["classic"];
 
     const generatedBlocks: LandingBlock[] = [];
     const done: string[] = [];
@@ -845,11 +887,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
 
   function selectType(type: LandingType) {
     setLandingType(type);
+    const tpl = TEMPLATES.find(t => t.id === type);
     const welcome: Message = {
       role: "assistant",
-      content: type === "budget"
-        ? "Создаём лендинг 👍\n\nРасскажите о бизнесе: название и чем занимаетесь?"
-        : "Создаём премиальный лендинг ✨\n\nРасскажите: название компании, чем занимаетесь и кто ваши клиенты?",
+      content: `Создаём лендинг «${tpl?.title || type}» ✨\n\nРасскажите о вашем бизнесе: как называется и чем занимаетесь?`,
     };
     setMessages([welcome]);
     setView("editor");
@@ -1076,8 +1117,8 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         </button>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{projectTitle}</div>
         {landingType && (
-          <span style={{ fontSize: 11, fontWeight: 700, color: landingType === "premium" ? ACCENT : "#64748B", background: landingType === "premium" ? ACCENT_LIGHT : "#F1F5F9", padding: "3px 10px", borderRadius: 20 }}>
-            {landingType === "premium" ? "Премиум" : "Стандарт"}
+          <span style={{ fontSize: 11, fontWeight: 700, color: TEMPLATES.find(t=>t.id===landingType)?.color ?? ACCENT, background: TEMPLATES.find(t=>t.id===landingType)?.bg ?? ACCENT_LIGHT, padding: "3px 10px", borderRadius: 20 }}>
+            {TEMPLATES.find(t=>t.id===landingType)?.title ?? landingType}
           </span>
         )}
         {phase === "done" && (
@@ -1101,11 +1142,8 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
             {/* Шаг 0: стиль */}
             {(() => {
               const styleStep = { id: "style", label: "Дизайн и цвета" };
-              const allSteps = [styleStep, ...BLOCKS_ORDER.filter(b =>
-                landingType === "budget"
-                  ? ["header","hero","services","contact","footer"].includes(b.id)
-                  : ["header","hero","about","services","reviews","contact","footer"].includes(b.id)
-              )];
+              const tplBlocks = landingType ? TEMPLATE_BLOCKS[landingType] ?? TEMPLATE_BLOCKS["classic"] : TEMPLATE_BLOCKS["classic"];
+              const allSteps = [styleStep, ...BLOCKS_ORDER.filter(b => tplBlocks.includes(b.id))];
               return allSteps.map(step => {
                 const isDone = genProgress.done.includes(step.id) || (step.id === "style" && genProgress.current !== "style" && genProgress.current !== "");
                 const isActive = genProgress.current === step.id;
