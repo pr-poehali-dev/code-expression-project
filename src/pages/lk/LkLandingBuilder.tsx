@@ -35,6 +35,7 @@ const BLOCKS_ORDER: { id: string; label: string }[] = [
   { id: "hero",     label: "Обложка" },
   { id: "about",    label: "О нас" },
   { id: "services", label: "Услуги" },
+  { id: "gallery",  label: "Галерея фото" },
   { id: "reviews",  label: "Отзывы" },
   { id: "contact",  label: "Контакты" },
   { id: "footer",   label: "Футер" },
