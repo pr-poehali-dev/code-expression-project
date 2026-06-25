@@ -170,7 +170,7 @@ CSS требования:
 - .trust-item: font-size:13px; opacity:0.8; font-weight:500;
 - .hero-visual .photo-slot: aspect-ratio:1/1; border-radius:24px; overflow:hidden; background:rgba(255,255,255,0.08); border:2px dashed rgba(255,255,255,0.25); display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; transition:border-color 0.2s; — hover: border-color:rgba(255,255,255,0.55)
 - .photo-placeholder: text-align:center; color:rgba(255,255,255,0.5); padding:20px;
-- MOBILE (<768px): .hero-grid: grid-template-columns:1fr; — .hero-visual: display:none на мобилке ИЛИ уменьшить; текст по центру
+- MOBILE (<768px): .hero-grid: grid-template-columns:1fr; gap:32px; — .hero-visual ОБЯЗАТЕЛЬНО видимо (display:block, НЕ display:none), ширина 100%, max-width:320px, margin:0 auto; .hero-visual .photo-slot: aspect-ratio:4/3; border-radius:16px; — .hero-text: text-align:center; — .hero-actions: justify-content:center; — .hero-trust: justify-content:center; — порядок в grid: сначала .hero-visual (order:-1), потом .hero-text
 - Анимация: @keyframes fadeInUp для .hero-text (from: opacity:0; transform:translateY(30px) — to: opacity:1; transform:none) — animation: 0.7s ease
 
 Верни ТОЛЬКО HTML <section id="hero"> + <style data-block="hero">.""",
