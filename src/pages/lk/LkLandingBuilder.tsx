@@ -788,10 +788,12 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
 
   function handleSlotFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !pendingSlotId) return;
+    if (!file) return;
+    const slotId = pendingSlotId;
+    if (!slotId) return;
     const reader = new FileReader();
     reader.onload = ev => {
-      iframeRef.current?.contentWindow?.postMessage({ type: "landing-slot-replace", slotId: pendingSlotId, src: ev.target?.result }, "*");
+      iframeRef.current?.contentWindow?.postMessage({ type: "landing-slot-replace", slotId, src: ev.target?.result }, "*");
     };
     reader.readAsDataURL(file);
     e.target.value = "";
@@ -1012,9 +1014,9 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
           )}
 
           {/* Блоки + превью */}
-          <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 14, alignItems: "start" }}>
+          <div className="lnd-editor-layout">
             {/* Боковая панель блоков */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div className="lnd-blocks-panel">
               <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", marginBottom: 4, paddingLeft: 4 }}>БЛОКИ САЙТА</div>
               {blocks.map((block) => (
                 <div key={block.id}>
@@ -1023,13 +1025,13 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                       <div style={{ width: 6, height: 6, borderRadius: "50%", background: block.html && block.html !== "<!-- regenerating -->" ? "#34d399" : "#e2e8f0", flexShrink: 0 }} />
                       <span style={{ fontSize: 12, fontWeight: 600, color: "#374151", flex: 1 }}>{block.label}</span>
                       <button onClick={() => regenerateBlock(block.id)} title="Перегенерировать"
-                        style={{ width: 22, height: 22, borderRadius: 6, border: "none", background: "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                        <Icon name="RefreshCw" size={11} style={{ color: "#64748B" }} />
+                        style={{ width: 26, height: 26, borderRadius: 6, border: "none", background: "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                        <Icon name="RefreshCw" size={12} style={{ color: "#64748B" }} />
                       </button>
                       <button onClick={() => { setEditingBlock(editingBlock === block.id ? null : block.id); setBlockEditInput(""); }}
                         title="Редактировать через ИИ"
-                        style={{ width: 22, height: 22, borderRadius: 6, border: "none", background: editingBlock === block.id ? ACCENT_LIGHT : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                        <Icon name="Wand2" size={11} style={{ color: editingBlock === block.id ? ACCENT : "#64748B" }} />
+                        style={{ width: 26, height: 26, borderRadius: 6, border: "none", background: editingBlock === block.id ? ACCENT_LIGHT : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                        <Icon name="Wand2" size={12} style={{ color: editingBlock === block.id ? ACCENT : "#64748B" }} />
                       </button>
                     </div>
                     {/* ИИ-редактор блока */}
@@ -1039,10 +1041,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); editBlock(block.id); } }}
                           placeholder="Что изменить в этом блоке?"
                           rows={2}
-                          style={{ width: "100%", padding: "7px 9px", borderRadius: 7, border: `1px solid ${ACCENT}40`, fontSize: 11, fontFamily: "Montserrat,sans-serif", outline: "none", resize: "none", lineHeight: 1.4, color: "#1a1a1a", background: "#fff" }}
+                          style={{ width: "100%", padding: "7px 9px", borderRadius: 7, border: `1px solid ${ACCENT}40`, fontSize: 12, fontFamily: "Montserrat,sans-serif", outline: "none", resize: "none", lineHeight: 1.4, color: "#1a1a1a", background: "#fff" }}
                         />
                         <button onClick={() => editBlock(block.id)} disabled={!blockEditInput.trim() || blockEditing}
-                          style={{ width: "100%", marginTop: 6, padding: "6px 0", borderRadius: 7, border: "none", background: blockEditInput.trim() && !blockEditing ? ACCENT : "#E8ECF0", color: blockEditInput.trim() && !blockEditing ? "#fff" : "#aaa", fontSize: 11, fontWeight: 700, cursor: blockEditInput.trim() && !blockEditing ? "pointer" : "default", fontFamily: "Montserrat,sans-serif" }}>
+                          style={{ width: "100%", marginTop: 6, padding: "8px 0", borderRadius: 7, border: "none", background: blockEditInput.trim() && !blockEditing ? ACCENT : "#E8ECF0", color: blockEditInput.trim() && !blockEditing ? "#fff" : "#aaa", fontSize: 12, fontWeight: 700, cursor: blockEditInput.trim() && !blockEditing ? "pointer" : "default", fontFamily: "Montserrat,sans-serif" }}>
                           {blockEditing ? "Думаю..." : "Применить"}
                         </button>
                       </div>
@@ -1055,18 +1057,19 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
             {/* Превью */}
             <div style={{ borderRadius: 14, overflow: "hidden", border: editMode ? "2px solid #0ea5e9" : "1px solid #E8ECF0", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
               <div style={{ background: editMode ? "#e0f2fe" : "#F1F5F9", padding: "8px 14px", display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ display: "flex", gap: 5 }}>
+                <div className="lnd-browser-dots" style={{ display: "flex", gap: 5 }}>
                   {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
                 </div>
-                <div style={{ flex: 1, background: "#fff", borderRadius: 5, padding: "3px 10px", fontSize: 11, color: "#888" }}>
-                  {editMode ? "✏️ Кликайте на текст чтобы редактировать, на фото-блок чтобы загрузить фото" : "Предварительный просмотр"}
+                <div style={{ flex: 1, background: "#fff", borderRadius: 5, padding: "3px 10px", fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {editMode ? "✏️ Кликайте на текст или фото-блок для редактирования" : "Предварительный просмотр"}
                 </div>
-                <span style={{ fontSize: 10, color: "#888", background: "#E2E8F0", padding: "2px 7px", borderRadius: 5 }}>
+                <span style={{ fontSize: 10, color: "#888", background: "#E2E8F0", padding: "2px 7px", borderRadius: 5, flexShrink: 0 }}>
                   {Math.round(fullHtml.length / 1024)} КБ
                 </span>
               </div>
               <iframe ref={iframeRef} srcDoc={iframeSrc}
-                style={{ width: "100%", height: 640, border: "none", display: "block" }}
+                className="lnd-preview-iframe"
+                style={{ width: "100%", border: "none", display: "block" }}
                 title="Превью лендинга" sandbox="allow-scripts allow-same-origin"
               />
             </div>
@@ -1119,8 +1122,47 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         @keyframes dot-pulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
-        @media (max-width: 640px) {
-          .landing-blocks-grid { grid-template-columns: 1fr !important; }
+
+        .lnd-editor-layout {
+          display: grid;
+          grid-template-columns: 220px 1fr;
+          gap: 14px;
+          align-items: start;
+        }
+        .lnd-blocks-panel {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .lnd-preview-iframe {
+          height: 640px;
+        }
+
+        @media (max-width: 768px) {
+          .lnd-editor-layout {
+            grid-template-columns: 1fr;
+          }
+          .lnd-blocks-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+          }
+          .lnd-blocks-panel > div:first-child {
+            grid-column: 1 / -1;
+          }
+          .lnd-preview-iframe {
+            height: 420px;
+          }
+          .lnd-browser-dots { display: none !important; }
+        }
+
+        @media (max-width: 480px) {
+          .lnd-blocks-panel {
+            grid-template-columns: 1fr;
+          }
+          .lnd-preview-iframe {
+            height: 360px;
+          }
         }
       `}</style>
     </div>
