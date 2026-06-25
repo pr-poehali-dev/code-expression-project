@@ -41,6 +41,16 @@ const BLOCKS_ORDER: { id: string; label: string }[] = [
   { id: "footer",   label: "Футер" },
 ];
 
+const BLOCK_PHOTO_SLOTS: Record<string, { id: string; label: string }[]> = {
+  hero:    [{ id: "hero", label: "Главное фото" }],
+  about:   [{ id: "about-main", label: "Основное фото" }, { id: "about-small", label: "Доп. фото" }],
+  gallery: [
+    { id: "gallery-1", label: "Фото 1" }, { id: "gallery-2", label: "Фото 2" },
+    { id: "gallery-3", label: "Фото 3" }, { id: "gallery-4", label: "Фото 4" },
+    { id: "gallery-5", label: "Фото 5" }, { id: "gallery-6", label: "Фото 6" },
+  ],
+};
+
 const DEFAULT_STYLE: LandingStyle = {
   primary: "#1a3a4a", accent: "#e67e22", dark: "#0f2030",
   light: "#f8f9fa", text: "#2c3e50",
@@ -1024,6 +1034,13 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 12px" }}>
                       <div style={{ width: 6, height: 6, borderRadius: "50%", background: block.html && block.html !== "<!-- regenerating -->" ? "#34d399" : "#e2e8f0", flexShrink: 0 }} />
                       <span style={{ fontSize: 12, fontWeight: 600, color: "#374151", flex: 1 }}>{block.label}</span>
+                      {BLOCK_PHOTO_SLOTS[block.id] && (
+                        <button onClick={() => { setEditingBlock(editingBlock === block.id + "_photo" ? null : block.id + "_photo"); setBlockEditInput(""); }}
+                          title="Загрузить фото"
+                          style={{ width: 26, height: 26, borderRadius: 6, border: "none", background: editingBlock === block.id + "_photo" ? "#fef9c3" : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                          <Icon name="Image" size={12} style={{ color: editingBlock === block.id + "_photo" ? "#ca8a04" : "#64748B" }} />
+                        </button>
+                      )}
                       <button onClick={() => regenerateBlock(block.id)} title="Перегенерировать"
                         style={{ width: 26, height: 26, borderRadius: 6, border: "none", background: "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
                         <Icon name="RefreshCw" size={12} style={{ color: "#64748B" }} />
@@ -1034,6 +1051,40 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                         <Icon name="Wand2" size={12} style={{ color: editingBlock === block.id ? ACCENT : "#64748B" }} />
                       </button>
                     </div>
+
+                    {/* Панель загрузки фото */}
+                    {editingBlock === block.id + "_photo" && BLOCK_PHOTO_SLOTS[block.id] && (
+                      <div style={{ borderTop: "1px solid #E8ECF0", padding: "10px 12px", background: "#fffbeb" }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", marginBottom: 8 }}>ФОТО БЛОКА</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          {BLOCK_PHOTO_SLOTS[block.id].map(slot => (
+                            <label key={slot.id} style={{
+                              display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
+                              borderRadius: 8, border: "1.5px dashed #fbbf24", background: "#fff",
+                              cursor: "pointer", transition: "border-color 0.15s",
+                            }}>
+                              <Icon name="Upload" size={13} style={{ color: "#ca8a04", flexShrink: 0 }} />
+                              <span style={{ fontSize: 12, color: "#374151", flex: 1 }}>{slot.label}</span>
+                              <span style={{ fontSize: 10, color: "#94a3b8" }}>JPG / PNG</span>
+                              <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                const slotId = slot.id;
+                                const reader = new FileReader();
+                                reader.onload = ev => {
+                                  iframeRef.current?.contentWindow?.postMessage(
+                                    { type: "landing-slot-replace", slotId, src: ev.target?.result }, "*"
+                                  );
+                                };
+                                reader.readAsDataURL(file);
+                                e.target.value = "";
+                              }} />
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* ИИ-редактор блока */}
                     {editingBlock === block.id && (
                       <div style={{ borderTop: "1px solid #E8ECF0", padding: "10px 12px", background: ACCENT_LIGHT }}>
