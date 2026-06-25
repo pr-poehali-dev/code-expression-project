@@ -857,11 +857,25 @@ function SeoEditor({ seo, onChange }: { seo: SeoData; onChange: (s: SeoData) => 
         {/* Фавикон */}
         <div>
           <label style={labelStyle}>ФАВИКОН (SVG-КОД)</label>
+          {seo.faviconSvg && (
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, padding: "10px 12px", background: "#f8fafc", borderRadius: 8, border: "1px solid #e2e8f0" }}>
+              <div
+                style={{ width: 48, height: 48, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "#fff", border: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}
+                dangerouslySetInnerHTML={{ __html: seo.faviconSvg }}
+              />
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 16, height: 16, borderRadius: 3, overflow: "hidden", border: "1px solid #e2e8f0", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
+                  dangerouslySetInnerHTML={{ __html: seo.faviconSvg }}
+                />
+                <span style={{ fontSize: 12, color: "#64748b" }}>Так выглядит во вкладке браузера</span>
+              </div>
+            </div>
+          )}
           <textarea value={seo.faviconSvg} onChange={e => set("faviconSvg", e.target.value)}
             placeholder={'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="#2D5A87"/><text x="16" y="22" text-anchor="middle" font-size="18" fill="#fff">С</text></svg>'}
             rows={4}
             style={{ ...inputStyle, resize: "none" as const, fontFamily: "monospace", fontSize: 11 }} />
-          <div style={hintStyle}>Вставьте SVG-код иконки. ИИ генерирует фавикон автоматически при создании лендинга.</div>
+          <div style={hintStyle}>ИИ генерирует фавикон автоматически при создании лендинга. Можно отредактировать SVG вручную.</div>
         </div>
 
         {/* Разделитель */}
