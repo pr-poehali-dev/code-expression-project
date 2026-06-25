@@ -49,6 +49,11 @@ const BLOCK_PHOTO_SLOTS: Record<string, { id: string; label: string }[]> = {
     { id: "gallery-3", label: "Фото 3" }, { id: "gallery-4", label: "Фото 4" },
     { id: "gallery-5", label: "Фото 5" }, { id: "gallery-6", label: "Фото 6" },
   ],
+  reviews: [
+    { id: "review-avatar-1", label: "Фото клиента 1" },
+    { id: "review-avatar-2", label: "Фото клиента 2" },
+    { id: "review-avatar-3", label: "Фото клиента 3" },
+  ],
 };
 
 const DEFAULT_STYLE: LandingStyle = {

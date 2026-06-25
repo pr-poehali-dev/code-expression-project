@@ -296,7 +296,7 @@ CSS требования:
 
     "reviews": """Сгенерируй HTML-блок #reviews для лендинга.
 
-Структура:
+Структура (генерируй 3 отзыва):
 <section id="reviews">
   <div class="container">
     <div class="section-header">
@@ -308,16 +308,25 @@ CSS требования:
         <div class="review-stars">★★★★★</div>
         <p class="review-text">«Реальный отзыв — конкретный, с деталями, по теме бизнеса»</p>
         <div class="review-author">
-          <div class="author-avatar">ИН</div><!-- инициалы -->
+          <div class="author-avatar photo-slot" data-photo-slot="review-avatar-1">
+            <span class="avatar-initials">ИН</span>
+          </div>
           <div>
             <div class="author-name">Имя Фамилия</div>
             <div class="author-meta">постоянный клиент · Город</div>
           </div>
         </div>
       </div>
+      <!-- review-avatar-2, review-avatar-3 для остальных карточек -->
     </div>
   </div>
 </section>
+
+ВАЖНО по аватарам:
+- Каждый аватар: <div class="author-avatar photo-slot" data-photo-slot="review-avatar-N">
+- Внутри — <span class="avatar-initials">ИН</span> (инициалы как fallback)
+- Когда фото загружено — img перекрывает initials через object-fit:cover
+- Нумерация: review-avatar-1, review-avatar-2, review-avatar-3
 
 CSS требования:
 - section#reviews: padding:90px 0; background:#fff;
@@ -326,7 +335,8 @@ CSS требования:
 - .review-stars: color:var(--c-accent); font-size:18px; letter-spacing:2px; margin-bottom:16px;
 - .review-text: font-size:15px; line-height:1.75; color:#4a5568; font-style:italic; margin-bottom:24px;
 - .review-author: display:flex; align-items:center; gap:14px;
-- .author-avatar: width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,var(--c-primary),var(--c-accent)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0;
+- .author-avatar: width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--c-primary),var(--c-accent)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0; overflow:hidden; position:relative; cursor:pointer;
+- .author-avatar img: position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:50%;
 - .author-name: font-weight:700; font-size:14px; color:var(--c-dark);
 - .author-meta: font-size:12px; color:#94a3b8; margin-top:2px;
 - МОБАЙЛ: grid-template-columns:1fr
