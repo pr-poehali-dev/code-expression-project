@@ -248,6 +248,9 @@ CSS требования:
 
     "services": """Сгенерируй HTML-блок #services для лендинга.
 
+ВАЖНО: для каждой услуги добавь data-атрибут data-service-id со slug (транслит названия, строчные буквы, дефисы вместо пробелов).
+Пример: услуга "Стрижка и укладка" → data-service-id="strizhka-i-ukladka"
+
 Структура:
 <section id="services">
   <div class="container">
@@ -258,12 +261,15 @@ CSS требования:
     </div>
     <div class="services-grid">
       <!-- 4-6 карточек по количеству услуг из данных -->
-      <div class="service-card">
+      <div class="service-card" data-service-id="slug-uslugi">
         <div class="service-icon"><!-- SVG-иконка 36x36 по теме услуги --></div>
         <h3>Название услуги</h3>
         <p>Описание 2 предложения — что получает клиент</p>
         <div class="service-price">от X ₽</div><!-- если цены есть в данных -->
-        <a href="#contact" class="service-link">Записаться →</a>
+        <div class="service-actions">
+          <a href="#contact" class="service-link">Записаться →</a>
+          <a href="#subpage-slug-uslugi" class="service-more">Узнать подробнее</a>
+        </div>
       </div>
     </div>
   </div>
@@ -283,7 +289,9 @@ CSS требования:
 - h3: font-size:18px; font-weight:700; color:var(--c-dark); margin-bottom:10px;
 - .service-card p: font-size:14px; line-height:1.65; color:#64748b; margin-bottom:16px; flex:1;
 - .service-price: font-size:15px; font-weight:700; color:var(--c-accent); margin-bottom:14px;
-- .service-link: font-size:13px; font-weight:700; color:var(--c-accent); text-decoration:none; display:inline-flex; align-items:center; gap:4px; transition:gap 0.2s; — hover: gap:8px
+- .service-actions: display:flex; flex-direction:column; gap:8px; margin-top:auto;
+- .service-link: font-size:13px; font-weight:700; color:#fff; background:var(--c-accent); text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:10px 18px; border-radius:9px; transition:opacity 0.2s; — hover: opacity:0.85
+- .service-more: font-size:12px; font-weight:600; color:var(--c-accent); text-decoration:none; display:inline-flex; align-items:center; gap:4px; transition:gap 0.2s; — hover: gap:8px; text-decoration:underline
 - MOBILE: grid-template-columns:1fr
 
 Верни ТОЛЬКО HTML <section id="services"> + <style data-block="services">.""",
@@ -847,6 +855,101 @@ def handler(event: dict, context) -> dict:
             )
             html_fragment = resp.choices[0].message.content or ""
             return ok({"html": html_fragment, "blockId": block_id, "mode": "edit-block"})
+
+        # ── GEN-SUBPAGE: генерация подстраницы услуги ────────────────────────
+        if mode == "gen-subpage":
+            service_name = body.get("serviceName", "")
+            service_slug = body.get("serviceSlug", "")
+            description = body.get("description", "")
+            style = body.get("style", {})
+            chat_messages = body.get("subpageMessages", [])
+
+            if not service_name or not service_slug:
+                return err("serviceName и serviceSlug обязательны", 400)
+
+            energy_err = check_and_spend(conn, user, "landing_generate", 24, f"Генерация подстраницы: {service_name}")
+            if energy_err:
+                return energy_err
+
+            dark_rgb = hex_to_rgb(style.get("dark", "#0f2030"))
+            gfonts_url = f"https://fonts.googleapis.com/css2?family={style.get('headingFont','Playfair Display').replace(' ','+')}:wght@700&family={style.get('bodyFont','Montserrat').replace(' ','+')}:wght@400;600&display=swap"
+
+            context_for_subpage = description or "\n".join([f"{m['role']}: {m['content']}" for m in chat_messages[-8:]])
+
+            subpage_system = f"""Ты — senior frontend-разработчик. Сгенерируй полноценную HTML-подстраницу для услуги "{service_name}".
+
+CSS-переменные сайта (используй их, не хардкоди цвета):
+--c-primary: {style.get('primary','#1a3a4a')}; --c-accent: {style.get('accent','#e67e22')};
+--c-dark: {style.get('dark','#0f2030')}; --c-light: {style.get('light','#f8f9fa')}; --c-text: {style.get('text','#2c3e50')};
+--font-heading: '{style.get('headingFont','Playfair Display')}', serif;
+--font-body: '{style.get('bodyFont','Montserrat')}', sans-serif;
+
+Описание услуги от пользователя:
+{context_for_subpage}
+
+СТРУКТУРА страницы (строгий порядок):
+1. <div id="sp-{service_slug}"> — обёртка всей подстраницы
+2. Компактная шапка с логотипом/названием и кнопкой «← Назад» (href="#" onclick="history.back();return false;")
+3. Hero-секция услуги: крупный заголовок, подзаголовок, CTA-кнопка «Записаться»
+4. Подробное описание: что входит в услугу, этапы/процесс (3-5 шагов с иконками)
+5. Ключевые преимущества (3-4 карточки)
+6. Цены/тарифы (если есть в описании)
+7. FAQ — 3-4 частых вопроса с ответами (аккордеон на чистом JS)
+8. Форма обратной связи (имя, телефон, кнопка)
+9. Футер с ссылкой «← Вернуться на главную» (href="#" onclick="history.back();return false;")
+</div>
+
+ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ:
+- Весь CSS scope через #sp-{service_slug} — НЕ влияет на основной лендинг
+- Google Fonts: подключи через @import url('{gfonts_url}') внутри <style>
+- CSS-переменные используй как есть — они уже объявлены на странице
+- Адаптивность: мобильный first, breakpoint 768px
+- data-rgb для rgba(): --c-dark-rgb: {dark_rgb};
+- Все кнопки «Записаться» scrollTo к #contact или открывают tel:
+
+Верни ТОЛЬКО готовый HTML-фрагмент <style data-subpage="{service_slug}">...</style><div id="sp-{service_slug}">...</div>"""
+
+            resp = client.chat.completions.create(
+                model="openai/gpt-4.1",
+                messages=[
+                    {"role": "system", "content": subpage_system},
+                    {"role": "user", "content": f"Сгенерируй подстраницу для услуги: {service_name}"}
+                ],
+                max_tokens=4000, temperature=0.65,
+            )
+            html_fragment = resp.choices[0].message.content or ""
+            if html_fragment.startswith("```"):
+                lines = html_fragment.split("\n")
+                html_fragment = "\n".join(lines[1:-1]) if lines[-1].strip() == "```" else "\n".join(lines[1:])
+            return ok({"html": html_fragment, "serviceSlug": service_slug, "serviceName": service_name, "mode": "gen-subpage"})
+
+        # ── SUBPAGE-CHAT: диалог для сбора данных о подстранице ──────────────
+        if mode == "subpage-chat":
+            service_name = body.get("serviceName", "")
+            chat_messages = body.get("messages", [])
+
+            energy_err = check_and_spend(conn, user, "landing_chat", 4, f"Чат подстраницы: {service_name}")
+            if energy_err:
+                return energy_err
+
+            subpage_chat_system = f"""Ты — помощник по созданию страниц услуг для сайта. Собери информацию об услуге "{service_name}" через короткий дружелюбный чат.
+
+Нужно узнать (задавай строго 1-2 вопроса за раз):
+1. Что именно входит в услугу — подробно
+2. Для кого она подходит (целевая аудитория)
+3. Как проходит процесс — шаги/этапы
+4. Сколько стоит и сколько длится
+5. Частые вопросы клиентов об этой услуге
+
+Когда получишь ответы на все 5 пунктов — ответь ТОЛЬКО фразой: "Отлично, данных достаточно! Создать страницу?" и жди подтверждения.
+Отвечай по-русски, коротко и дружелюбно."""
+
+            resp = client.chat.completions.create(
+                model="openai/gpt-4.1-mini",
+                messages=[{"role": "system", "content": subpage_chat_system}] + chat_messages,
+                max_tokens=500, temperature=0.7,
+            )
+            return ok({"reply": resp.choices[0].message.content or "", "mode": "subpage-chat"})
 
         # ── EDIT-STYLE: изменить стиль сайта по запросу ─────────────────────
         if mode == "edit-style":
