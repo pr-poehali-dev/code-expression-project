@@ -153,7 +153,8 @@ JS (встроенный <script>):
 - Форма action="#" — только визуал
 - scroll-behavior: smooth на html
 
-ВАЖНО: Верни ТОЛЬКО чистый HTML-код, без markdown, без объяснений. Начинай сразу с <!DOCTYPE html>."""
+ВАЖНО: Верни ТОЛЬКО чистый HTML-код, без markdown, без объяснений. Начинай сразу с <!DOCTYPE html>.
+ЛИМИТ: код должен уложиться в 7500 токенов. Пиши компактный CSS (без лишних комментариев), SVG-иконки используй только простые (5–7 строк path, не более). Не повторяй стили — используй классы."""
 
 SYSTEM_GENERATE_MULTIPAGE = """Ты — топовый веб-разработчик. На основе данных о бизнесе создай многостраничный мини-сайт (SPA) в одном HTML-файле. Все страницы — в одном файле, переключение через JS без перезагрузки.
 
@@ -236,7 +237,8 @@ showPage('home');
 - scroll-behavior: smooth на html
 - Форма action="#" — только визуал
 
-ВАЖНО: Верни ТОЛЬКО чистый HTML-код, без markdown, без объяснений. Начинай сразу с <!DOCTYPE html>."""
+ВАЖНО: Верни ТОЛЬКО чистый HTML-код, без markdown, без объяснений. Начинай сразу с <!DOCTYPE html>.
+ЛИМИТ: код должен уложиться в 7500 токенов. Пиши компактный CSS, не повторяй стили — используй классы. Генерируй только те страницы, которые выбрал пользователь."""
 
 
 def get_db():
@@ -386,13 +388,13 @@ def handler(event: dict, context) -> dict:
         elif mode == "generate":
             if is_multipage:
                 system = SYSTEM_GENERATE_MULTIPAGE
-                max_tokens = 14000
+                max_tokens = 8000
             elif is_premium:
                 system = SYSTEM_GENERATE_PREMIUM
-                max_tokens = 10000
+                max_tokens = 8000
             else:
                 system = SYSTEM_GENERATE_BUDGET
-                max_tokens = 7000
+                max_tokens = 6000
             ai_messages = messages
         else:
             if is_multipage:
