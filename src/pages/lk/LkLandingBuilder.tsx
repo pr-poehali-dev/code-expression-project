@@ -19,7 +19,7 @@ const LS_STYLE    = "landing_builder_style";
 const LS_PRIVACY  = "landing_builder_privacy";
 const LS_SEO      = "landing_builder_seo";
 
-type LandingType = "classic" | "storytelling" | "sales" | "portfolio" | "b2b" | "event" | "restaurant" | "realty" | "product";
+type LandingType = "classic" | "storytelling" | "sales" | "portfolio" | "b2b" | "event" | "restaurant" | "realty" | "product" | "ai";
 interface Message { role: "user" | "assistant"; content: string; }
 interface LandingStyle {
   primary: string; accent: string; dark: string; light: string; text: string;
@@ -89,6 +89,7 @@ const TEMPLATE_BLOCKS: Record<LandingType, string[]> = {
   restaurant:   ["hero", "menu", "about", "promo", "booking"],
   realty:       ["hero", "object", "location", "plans", "contact"],
   product:      ["hero", "benefits", "howworks", "reviews", "order"],
+  ai:           ["hero", "about", "services", "reviews", "contact"],
 };
 
 const BLOCK_PHOTO_SLOTS: Record<string, { id: string; label: string }[]> = {
@@ -659,6 +660,24 @@ function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
         <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>Выберите шаблон лендинга</div>
         <div style={{ fontSize: 12, color: "#64748B" }}>ИИ адаптирует вопросы и структуру под выбранный шаблон</div>
       </div>
+
+      {/* Карточка "Доверяю ИИ" на всю ширину */}
+      <button
+        onClick={() => onSelect("ai")}
+        onMouseEnter={() => setHovered("ai")}
+        onMouseLeave={() => setHovered(null)}
+        style={{ textAlign: "left", background: hovered === "ai" ? "linear-gradient(135deg,hsl(185,85%,94%),hsl(270,70%,96%))" : "linear-gradient(135deg,hsl(185,85%,97%),hsl(270,70%,98%))", border: `2px solid ${hovered === "ai" ? ACCENT : "#d1fae5"}`, borderRadius: 14, padding: "16px 18px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.18s", display: "flex", alignItems: "center", gap: 16, boxShadow: hovered === "ai" ? `0 6px 20px ${ACCENT}22` : "none" }}
+      >
+        <div style={{ width: 48, height: 48, borderRadius: 12, background: `linear-gradient(135deg,${ACCENT},hsl(270,70%,50%))`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Icon name="Sparkles" size={24} style={{ color: "#fff" }} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", marginBottom: 3 }}>Доверяю ИИ</div>
+          <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.5 }}>ИИ сам подберёт оптимальную структуру и количество блоков под ваш бизнес в процессе диалога</div>
+        </div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: ACCENT, flexShrink: 0 }}>Выбрать →</div>
+      </button>
+
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {TEMPLATES.map(t => (
           <button key={t.id} onClick={() => onSelect(t.id)}
@@ -1086,6 +1105,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     // Шаг 1: получить стиль
     setGenProgress({ current: "style", done: [] });
     let style = DEFAULT_STYLE;
+    let aiSuggestedBlocks: string[] | null = null;
     try {
       const res = await fetch(AI_LANDING_URL, {
         method: "POST",
@@ -1106,12 +1126,16 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
           setSeoData(prev => ({ ...prev, faviconSvg: data.style.faviconSvg }));
         }
       }
+      if (data.blocks && Array.isArray(data.blocks)) {
+        aiSuggestedBlocks = data.blocks;
+      }
     } catch {
       // Продолжаем с дефолтным стилем
     }
 
     // Шаг 2: генерировать блоки по очереди
-    const blocksToGen = landingType ? TEMPLATE_BLOCKS[landingType] ?? TEMPLATE_BLOCKS["classic"] : TEMPLATE_BLOCKS["classic"];
+    const blocksToGen = aiSuggestedBlocks
+      ?? (landingType ? TEMPLATE_BLOCKS[landingType] ?? TEMPLATE_BLOCKS["classic"] : TEMPLATE_BLOCKS["classic"]);
 
     const generatedBlocks: LandingBlock[] = [];
     const done: string[] = [];

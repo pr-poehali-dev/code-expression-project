@@ -75,6 +75,12 @@ CHAT_PROMPTS = {
 как работает/используется (3 простых шага), отзывы покупателей, цена и условия заказа/доставки.
 Когда есть название + выгоды + цена + контакты — скажи "Отлично, данных достаточно! Создать лендинг?" и жди подтверждения.
 Отвечай убедительно, по-русски. Задавай строго 1-2 вопроса за раз.""",
+
+    "ai": """Ты — эксперт по созданию лендингов. Пользователь доверил тебе выбор структуры — ты сам подберёшь оптимальные блоки под его бизнес.
+Сначала узнай: название бизнеса, чем занимаются, кто целевая аудитория, есть ли уникальные преимущества.
+Задавай по 1–2 вопроса за раз, дружелюбно и коротко.
+Когда соберёшь достаточно данных (название + суть бизнеса + аудитория + контакты) — скажи "Отлично, данных достаточно! Создать лендинг?" и жди подтверждения.
+По-русски, строго 1-2 вопроса за раз.""",
 }
 
 # ── БЛОЧНАЯ ГЕНЕРАЦИЯ: СТИЛЬ ──────────────────────────────────────────────────
@@ -787,14 +793,25 @@ def handler(event: dict, context) -> dict:
             if energy_err:
                 return energy_err
             context_text = "\n".join([f"{m['role']}: {m['content']}" for m in messages[-10:]])
+
+            # Для режима "Доверяю ИИ" — также подбираем блоки
+            ai_blocks_instruction = ""
+            if landing_type == "ai":
+                ai_blocks_instruction = """
+
+Дополнительно: подбери оптимальный список блоков для этого бизнеса и добавь поле "blocks" в JSON.
+Доступные блоки: header, hero, about, services, gallery, reviews, contact, footer, pain, solution, team, benefits, howworks, pricing, faq, cases, clients, program, speakers, menu, promo, booking, object, location, plans, product, order.
+Выбери 5–8 наиболее подходящих блоков для данного бизнеса. Обязательно включи hero и contact.
+Формат: "blocks": ["hero", "about", "services", ...]"""
+
             try:
                 resp = client.chat.completions.create(
                     model="anthropic/claude-sonnet-4",
                     messages=[
-                        {"role": "system", "content": SYSTEM_GEN_STYLE},
+                        {"role": "system", "content": SYSTEM_GEN_STYLE + ai_blocks_instruction},
                         {"role": "user", "content": f"Данные о бизнесе:\n{context_text}"}
                     ],
-                    max_tokens=600, temperature=0.8,
+                    max_tokens=700, temperature=0.8,
                 )
             except Exception as e:
                 if is_provider_error(e):
@@ -818,7 +835,12 @@ def handler(event: dict, context) -> dict:
                 }
             if "faviconSvg" not in style:
                 style["faviconSvg"] = ""
-            return ok({"style": style, "mode": "gen-style"})
+            # Извлекаем список блоков (если ИИ вернул)
+            ai_blocks = style.pop("blocks", None)
+            result = {"style": style, "mode": "gen-style"}
+            if ai_blocks and isinstance(ai_blocks, list):
+                result["blocks"] = ai_blocks
+            return ok(result)
 
         # ── GEN-BLOCK: генерация одного блока ────────────────────────────────
         if mode == "gen-block":
