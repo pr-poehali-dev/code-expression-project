@@ -768,7 +768,7 @@ def handler(event: dict, context) -> dict:
             system = CHAT_PROMPTS.get(landing_type, CHAT_PROMPTS["classic"])
             try:
                 resp = client.chat.completions.create(
-                    model="openai/gpt-4.1",
+                    model="anthropic/claude-sonnet-4",
                     messages=[{"role": "system", "content": system}] + messages,
                     max_tokens=700, temperature=0.7,
                 )
@@ -787,7 +787,7 @@ def handler(event: dict, context) -> dict:
             context_text = "\n".join([f"{m['role']}: {m['content']}" for m in messages[-10:]])
             try:
                 resp = client.chat.completions.create(
-                    model="openai/gpt-4.1",
+                    model="anthropic/claude-sonnet-4",
                     messages=[
                         {"role": "system", "content": SYSTEM_GEN_STYLE},
                         {"role": "user", "content": f"Данные о бизнесе:\n{context_text}"}
@@ -845,7 +845,7 @@ def handler(event: dict, context) -> dict:
 
             try:
                 resp = client.chat.completions.create(
-                    model="openai/gpt-4.1",
+                    model="anthropic/claude-sonnet-4",
                     messages=[
                         {"role": "system", "content": system},
                         {"role": "user", "content": block_prompt}
@@ -889,7 +889,7 @@ def handler(event: dict, context) -> dict:
             )
             try:
                 resp = client.chat.completions.create(
-                    model="openai/gpt-4.1",
+                    model="anthropic/claude-sonnet-4",
                     messages=[
                         {"role": "system", "content": system},
                         {"role": "user", "content": f"Измени этот блок: {edit_task}"}
@@ -959,7 +959,7 @@ CSS-переменные сайта (используй их, не хардко�
 
             try:
                 resp = client.chat.completions.create(
-                    model="openai/gpt-4.1",
+                    model="anthropic/claude-sonnet-4",
                     messages=[
                         {"role": "system", "content": subpage_system},
                         {"role": "user", "content": f"Сгенерируй подстраницу для услуги: {service_name}"}
@@ -1000,7 +1000,7 @@ CSS-переменные сайта (используй их, не хардко�
 
             try:
                 resp = client.chat.completions.create(
-                    model="openai/gpt-4.1",
+                    model="anthropic/claude-sonnet-4",
                     messages=[{"role": "system", "content": subpage_chat_system}] + chat_messages,
                     max_tokens=500, temperature=0.7,
                 )
@@ -1056,7 +1056,7 @@ CSS-переменные сайта (используй их, не хардко�
 
             try:
                 resp = client.chat.completions.create(
-                    model="openai/gpt-4.1",
+                    model="anthropic/claude-sonnet-4",
                     messages=[
                         {"role": "system", "content": system_style},
                         {"role": "user", "content": style_task}
