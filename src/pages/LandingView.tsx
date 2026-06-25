@@ -15,6 +15,7 @@ export default function LandingView() {
   const { id } = useParams<{ id: string }>();
   const [data, setData] = useState<LandingData | null>(null);
   const [error, setError] = useState("");
+  const [blobUrl, setBlobUrl] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -31,6 +32,31 @@ export default function LandingView() {
     if (data?.title) document.title = data.title;
   }, [data]);
 
+  useEffect(() => {
+    if (!data) return;
+
+    const blocksHtml = data.blocks && data.blocks.length > 0
+      ? data.blocks.map((b) => b.html).join("\n")
+      : data.html || "";
+
+    const fullDoc = data.html && data.html.includes("<!DOCTYPE")
+      ? data.html
+      : `<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>${data.title}</title>
+</head>
+<body style="margin:0;padding:0;">${blocksHtml}</body>
+</html>`;
+
+    const blob = new Blob([fullDoc], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    setBlobUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [data]);
+
   if (error) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif", color: "#64748b" }}>
@@ -43,7 +69,7 @@ export default function LandingView() {
     );
   }
 
-  if (!data) {
+  if (!blobUrl) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ width: 36, height: 36, border: "3px solid #e2e8f0", borderTopColor: "#2DD4BF", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
@@ -52,26 +78,11 @@ export default function LandingView() {
     );
   }
 
-  const blocksHtml = data.blocks && data.blocks.length > 0
-    ? data.blocks.map((b) => b.html).join("\n")
-    : data.html || "";
-
-  const fullDoc = `<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>${data.title}</title>
-<style>*,*::before,*::after{box-sizing:border-box;}body{margin:0;padding:0;}</style>
-</head>
-<body>${blocksHtml}</body>
-</html>`;
-
   return (
     <iframe
-      srcDoc={fullDoc}
+      src={blobUrl}
       style={{ width: "100%", height: "100vh", border: "none", display: "block" }}
-      title={data.title}
+      title={data?.title}
     />
   );
 }
