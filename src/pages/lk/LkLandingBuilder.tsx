@@ -381,6 +381,132 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
   );
 }
 
+// ── Генератор изображений в редакторе ─────────────────────────────────────────
+const AI_IMAGE_URL = "https://functions.poehali.dev/4b0ee2e5-a98e-40b8-bb9a-8a11d39d6e5a";
+const IMG_ASPECTS = [
+  { value: "1024x1024", label: "Квадрат",  icon: "Square"  },
+  { value: "1792x1024", label: "Пейзаж",   icon: "Monitor" },
+  { value: "1024x1792", label: "Портрет",  icon: "Smartphone" },
+];
+
+function LandingImageGen() {
+  const [prompt, setPrompt]   = useState("");
+  const [aspect, setAspect]   = useState("1792x1024");
+  const [loading, setLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [error, setError]     = useState("");
+  const [copied, setCopied]   = useState(false);
+
+  async function generate() {
+    if (!prompt.trim() || loading) return;
+    setLoading(true); setError(""); setImageUrl(null);
+    try {
+      const res = await fetch(AI_IMAGE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+        body: JSON.stringify({ prompt: prompt.trim(), aspect_ratio: aspect }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Ошибка генерации"); return; }
+      const url = data.images?.[0]?.url;
+      if (url) setImageUrl(url);
+      else setError("Сервис не вернул изображение");
+    } catch { setError("Ошибка сети, попробуйте ещё раз"); }
+    finally { setLoading(false); }
+  }
+
+  async function copyUrl() {
+    if (!imageUrl) return;
+    await navigator.clipboard.writeText(imageUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function download() {
+    if (!imageUrl) return;
+    const res = await fetch(imageUrl);
+    const blob = await res.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "landing-image.png";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <style>{`@keyframes imgSpin{to{transform:rotate(360deg)}}`}</style>
+
+      {/* Промпт */}
+      <div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", marginBottom: 6, paddingLeft: 2 }}>ОПИСАНИЕ ИЗОБРАЖЕНИЯ</div>
+        <textarea
+          value={prompt} onChange={e => setPrompt(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); generate(); } }}
+          placeholder="Например: уютный офис, современный интерьер, мягкий свет, минимализм"
+          rows={3}
+          disabled={loading}
+          style={{ width: "100%", padding: "9px 11px", borderRadius: 9, border: "1.5px solid #E2E8F0", fontSize: 12, fontFamily: "Montserrat,sans-serif", resize: "none", outline: "none", color: "#0F172A", lineHeight: 1.5, boxSizing: "border-box" }}
+        />
+        {/* Подсказки */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 6 }}>
+          {["Фото команды", "Интерьер офиса", "Продукт крупным планом", "Баннер с акцией", "Городской пейзаж"].map(hint => (
+            <button key={hint} onClick={() => setPrompt(p => p ? `${p}, ${hint.toLowerCase()}` : hint.toLowerCase())}
+              style={{ fontSize: 10, padding: "3px 9px", borderRadius: 20, border: "1px solid #E2E8F0", background: "#fff", color: "#64748B", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+              + {hint}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Формат */}
+      <div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", marginBottom: 6, paddingLeft: 2 }}>ФОРМАТ</div>
+        <div style={{ display: "flex", gap: 6 }}>
+          {IMG_ASPECTS.map(a => (
+            <button key={a.value} onClick={() => setAspect(a.value)}
+              style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "8px 4px", borderRadius: 9, border: `1.5px solid ${aspect === a.value ? ACCENT : "#E2E8F0"}`, background: aspect === a.value ? ACCENT_LIGHT : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+              <Icon name={a.icon} size={14} style={{ color: aspect === a.value ? ACCENT : "#94A3B8" }} />
+              <span style={{ fontSize: 10, fontWeight: aspect === a.value ? 700 : 400, color: aspect === a.value ? ACCENT : "#64748B" }}>{a.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Кнопка */}
+      <button onClick={generate} disabled={!prompt.trim() || loading}
+        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "11px 0", borderRadius: 10, border: "none", background: prompt.trim() && !loading ? `linear-gradient(135deg,hsl(40,90%,50%),hsl(30,95%,55%))` : "#E8ECF0", color: prompt.trim() && !loading ? "#fff" : "#aaa", fontSize: 13, fontWeight: 700, cursor: prompt.trim() && !loading ? "pointer" : "default", fontFamily: "Montserrat,sans-serif" }}>
+        {loading
+          ? <><div style={{ width: 14, height: 14, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "imgSpin 0.8s linear infinite" }} /> Генерирую...</>
+          : <><Icon name="Sparkles" size={15} /> Сгенерировать</>}
+      </button>
+
+      {/* Ошибка */}
+      {error && <div style={{ fontSize: 12, color: "#ef4444", padding: "8px 12px", borderRadius: 8, background: "#fef2f2", border: "1px solid #fca5a5" }}>{error}</div>}
+
+      {/* Результат */}
+      {imageUrl && (
+        <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #E8ECF0" }}>
+          <img src={imageUrl} alt="Сгенерированное" style={{ width: "100%", display: "block" }} />
+          <div style={{ display: "flex", gap: 6, padding: "10px 10px" }}>
+            <button onClick={download}
+              style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "8px 0", borderRadius: 8, border: `1px solid ${ACCENT}`, background: ACCENT_LIGHT, color: ACCENT, fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+              <Icon name="Download" size={13} /> Скачать
+            </button>
+            <button onClick={copyUrl}
+              style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "8px 0", borderRadius: 8, border: "1px solid #E2E8F0", background: copied ? "#f0fdf4" : "#fff", color: copied ? "#059669" : "#64748B", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+              <Icon name={copied ? "Check" : "Copy"} size={13} /> {copied ? "Скопировано" : "Копировать ссылку"}
+            </button>
+          </div>
+          <div style={{ padding: "0 10px 10px", fontSize: 11, color: "#94A3B8", lineHeight: 1.5 }}>
+            Скопируйте ссылку → нажмите на фото-слот в лендинге → вставьте URL
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Выбор типа ────────────────────────────────────────────────────────────────
 const TEMPLATES: { id: LandingType; icon: string; title: string; desc: string; blocks: string; color: string; bg: string; border: string; preview: string }[] = [
   { id: "classic",      icon: "LayoutTemplate",  title: "Классический",        desc: "Шапка → Обложка → О нас → Услуги → Отзывы → Контакты → Футер",                       blocks: "7 блоков", color: ACCENT,     bg: ACCENT_LIGHT, border: `${ACCENT}60`, preview: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/3dcd7e73-3fad-48a0-8865-601629a01706.jpg" },
@@ -596,6 +722,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const [editingBlock, setEditingBlock] = useState<string | null>(null);
   const [blockEditInput, setBlockEditInput] = useState("");
   const [blockEditing, setBlockEditing] = useState(false);
+
+  // UI
+  const [showHelp, setShowHelp] = useState(false);
+  const [sidePanelTab, setSidePanelTab] = useState<"blocks" | "images">("blocks");
 
   // Refs
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -1109,20 +1239,27 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   // ── RENDER LIST ───────────────────────────────────────────────────────────
   if (view === "list") return <ProjectsList onOpen={openProject} onNew={startNew} />;
   if (view === "new") return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <button onClick={() => setView("list")} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "7px 12px", fontSize: 13, color: "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
-          <Icon name="ArrowLeft" size={14} /> Назад
-        </button>
-        <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A" }}>Новый лендинг</div>
+    <>
+      {showHelp && <LandingHelp onClose={() => setShowHelp(false)} />}
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button onClick={() => setView("list")} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "7px 12px", fontSize: 13, color: "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+            <Icon name="ArrowLeft" size={14} /> Назад
+          </button>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", flex: 1 }}>Новый лендинг</div>
+          <button onClick={() => setShowHelp(true)} style={{ display: "flex", alignItems: "center", gap: 5, padding: "7px 12px", borderRadius: 8, border: "1px solid #E2E8F0", background: "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif", fontSize: 12, fontWeight: 600, color: "#8b5cf6" }}>
+            <Icon name="BookOpen" size={14} style={{ color: "#8b5cf6" }} />Справка
+          </button>
+        </div>
+        <TypeSelector onSelect={selectType} />
       </div>
-      <TypeSelector onSelect={selectType} />
-    </div>
+    </>
   );
 
   // ── RENDER EDITOR ─────────────────────────────────────────────────────────
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {showHelp && <LandingHelp onClose={() => setShowHelp(false)} />}
 
       {/* Шапка */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -1135,6 +1272,9 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
             {TEMPLATES.find(t=>t.id===landingType)?.title ?? landingType}
           </span>
         )}
+        <button onClick={() => setShowHelp(true)} title="Справка" style={{ width: 32, height: 32, borderRadius: 8, border: "1px solid #E2E8F0", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Icon name="CircleHelp" size={16} style={{ color: "#8b5cf6" }} />
+        </button>
         {phase === "done" && (
           <>
             <button onClick={() => saveProject(blocks, siteStyle, true)} disabled={saving}
@@ -1358,6 +1498,22 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
           <div className="lnd-editor-layout">
             {/* Боковая панель блоков */}
             <div className="lnd-blocks-panel">
+              {/* Переключатель вкладок */}
+              <div style={{ display: "flex", gap: 4, marginBottom: 10, background: "#F1F5F9", borderRadius: 10, padding: 3 }}>
+                {([
+                  { id: "blocks", icon: "LayoutTemplate", label: "Блоки" },
+                  { id: "images", icon: "Image",           label: "Изображения" },
+                ] as { id: "blocks" | "images"; icon: string; label: string }[]).map(tab => (
+                  <button key={tab.id} onClick={() => setSidePanelTab(tab.id)}
+                    style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "6px 0", borderRadius: 8, border: "none", background: sidePanelTab === tab.id ? "#fff" : "transparent", color: sidePanelTab === tab.id ? "#0F172A" : "#94A3B8", fontSize: 12, fontWeight: sidePanelTab === tab.id ? 700 : 500, cursor: "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: sidePanelTab === tab.id ? "0 1px 4px rgba(0,0,0,0.08)" : "none", transition: "all 0.15s" }}>
+                    <Icon name={tab.icon} size={13} style={{ color: sidePanelTab === tab.id ? ACCENT : "#94A3B8" }} />
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Вкладка: Блоки */}
+              {sidePanelTab === "blocks" && <>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", marginBottom: 4, paddingLeft: 4 }}>БЛОКИ САЙТА</div>
               {blocks.map((block) => (
                 <div key={block.id}>
@@ -1421,6 +1577,12 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                   </div>
                 </div>
               ))}
+              </>}
+
+              {/* Вкладка: Изображения */}
+              {sidePanelTab === "images" && (
+                <LandingImageGen />
+              )}
             </div>
 
             {/* Превью */}
