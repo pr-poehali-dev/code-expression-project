@@ -47,7 +47,7 @@ const DEFAULT_STYLE: LandingStyle = {
   headingFont: "Playfair Display", bodyFont: "Montserrat",
 };
 
-// Editor script: contenteditable + image click → postMessage
+// Editor script: contenteditable + photo-slot click + image replace → postMessage
 const EDITOR_SCRIPT = `<script>
 (function() {
   var style = document.createElement('style');
@@ -55,19 +55,31 @@ const EDITOR_SCRIPT = `<script>
     [contenteditable]:hover { outline: 2px dashed #0ea5e9 !important; outline-offset: 2px !important; cursor: text !important; }
     [contenteditable]:focus { outline: 2px solid #0ea5e9 !important; outline-offset: 2px !important; background: rgba(14,165,233,0.04) !important; }
     img.edit-img:hover { outline: 3px solid #f59e0b !important; outline-offset: 2px !important; cursor: pointer !important; }
+    [data-photo-slot]:hover { outline: 3px solid #f59e0b !important; outline-offset: 0 !important; cursor: pointer !important; }
+    [data-photo-slot] { position: relative !important; }
+    [data-photo-slot]::after { content: '📷 Загрузить фото'; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; padding: 4px 10px; border-radius: 20px; pointer-events: none; white-space: nowrap; opacity: 0; transition: opacity 0.2s; }
+    [data-photo-slot]:hover::after { opacity: 1 !important; }
   \`;
   document.head.appendChild(style);
   var tags = ['h1','h2','h3','h4','p','span','li','button','label','td'];
   tags.forEach(function(tag) {
     document.querySelectorAll(tag).forEach(function(el) {
-      if (!el.querySelector('img') && !el.closest('script') && !el.closest('style')) {
+      if (!el.querySelector('img') && !el.closest('script') && !el.closest('style') && !el.closest('[data-photo-slot]')) {
         el.setAttribute('contenteditable','true');
         el.setAttribute('spellcheck','false');
       }
     });
   });
+  // Клики по photo-slot
+  document.querySelectorAll('[data-photo-slot]').forEach(function(slot) {
+    slot.addEventListener('click', function(e) {
+      e.preventDefault(); e.stopPropagation();
+      window.parent.postMessage({ type: 'landing-slot-click', slotId: slot.dataset.photoSlot }, '*');
+    });
+  });
+  // Клики по уже загруженным img (для замены)
   var imgIdx = 0;
-  document.querySelectorAll('img').forEach(function(img) {
+  document.querySelectorAll('img:not([data-photo-slot] img)').forEach(function(img) {
     img.classList.add('edit-img');
     img.dataset.imgIdx = String(imgIdx++);
     img.addEventListener('click', function(e) {
@@ -80,6 +92,15 @@ const EDITOR_SCRIPT = `<script>
       document.querySelectorAll('img[data-img-idx]').forEach(function(img) {
         if (img.dataset.imgIdx === String(e.data.idx)) { img.src = e.data.src; img.removeAttribute('srcset'); }
       });
+      sendHtml();
+    }
+    if (e.data && e.data.type === 'landing-slot-replace') {
+      var slot = document.querySelector('[data-photo-slot="' + e.data.slotId + '"]');
+      if (slot) {
+        slot.innerHTML = '<img src="' + e.data.src + '" style="width:100%;height:100%;object-fit:cover;display:block;" />';
+        slot.style.border = 'none';
+        slot.style.cursor = 'default';
+      }
       sendHtml();
     }
   });
@@ -361,6 +382,8 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingImgIdx, setPendingImgIdx] = useState<string | null>(null);
+  const [pendingSlotId, setPendingSlotId] = useState<string | null>(null);
+  const slotFileInputRef = useRef<HTMLInputElement>(null);
 
   // Персист
   useEffect(() => { if (messages.length > 0) localStorage.setItem(LS_MSGS, JSON.stringify(messages)); }, [messages]);
@@ -413,6 +436,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     if (e.data?.type === "landing-img-click") {
       setPendingImgIdx(e.data.idx);
       fileInputRef.current?.click();
+    }
+    if (e.data?.type === "landing-slot-click") {
+      setPendingSlotId(e.data.slotId);
+      slotFileInputRef.current?.click();
     }
   }, []);
 
@@ -716,6 +743,18 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     setPendingImgIdx(null);
   }
 
+  function handleSlotFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !pendingSlotId) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      iframeRef.current?.contentWindow?.postMessage({ type: "landing-slot-replace", slotId: pendingSlotId, src: ev.target?.result }, "*");
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+    setPendingSlotId(null);
+  }
+
   const isReadyToGenerate = messages.length >= 4 && phase === "chat";
   const fullHtml = blocks.length > 0 ? buildFullHtml(blocks, siteStyle) : "";
   const iframeSrc = editMode
@@ -977,7 +1016,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                   {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
                 </div>
                 <div style={{ flex: 1, background: "#fff", borderRadius: 5, padding: "3px 10px", fontSize: 11, color: "#888" }}>
-                  {editMode ? "✏️ Режим редактирования — кликайте на текст или картинку" : "Предварительный просмотр"}
+                  {editMode ? "✏️ Кликайте на текст чтобы редактировать, на фото-блок чтобы загрузить фото" : "Предварительный просмотр"}
                 </div>
                 <span style={{ fontSize: 10, color: "#888", background: "#E2E8F0", padding: "2px 7px", borderRadius: 5 }}>
                   {Math.round(fullHtml.length / 1024)} КБ
@@ -991,6 +1030,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
           </div>
 
           <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
+          <input ref={slotFileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleSlotFileChange} />
         </>
       )}
 
