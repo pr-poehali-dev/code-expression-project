@@ -307,7 +307,7 @@ function StyleEditor({ style, onChange }: { style: LandingStyle; onChange: (s: L
 }
 
 // ── Главный компонент ─────────────────────────────────────────────────────────
-export default function LkLandingBuilder({ forceList }: { forceList?: boolean } = {}) {
+export default function LkLandingBuilder({ forceList = false }: { forceList?: boolean }) {
   const [view, setView] = useState<"list" | "new" | "editor">("list");
   const [landingType, setLandingType] = useState<LandingType | null>(() => {
     try { return (localStorage.getItem(LS_TYPE) as LandingType) || null; } catch { return null; }
