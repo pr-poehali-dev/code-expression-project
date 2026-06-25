@@ -536,6 +536,13 @@ def hex_to_rgb(h):
         return "0,0,0"
 
 
+def safe_format(template: str, **kwargs) -> str:
+    """Заменяет только известные плейсхолдеры, не трогая остальные {…}"""
+    for key, value in kwargs.items():
+        template = template.replace("{" + key + "}", str(value))
+    return template
+
+
 def handler(event: dict, context) -> dict:
     """Генератор лендингов: чат + блочная генерация + редактирование блоков"""
     if event.get("httpMethod") == "OPTIONS":
@@ -615,7 +622,7 @@ def handler(event: dict, context) -> dict:
             context_text = "\n".join(context_parts)
 
             dark_rgb = hex_to_rgb(style.get("dark", "#0f2030"))
-            system = SYSTEM_GEN_BLOCK.format(
+            system = safe_format(SYSTEM_GEN_BLOCK,
                 context=context_text,
                 primary=style.get("primary", "#1a3a4a"),
                 accent=style.get("accent", "#e67e22"),
@@ -626,7 +633,7 @@ def handler(event: dict, context) -> dict:
                 body_font=style.get("bodyFont", "Montserrat"),
                 dark_rgb=dark_rgb,
             )
-            block_prompt = BLOCK_PROMPTS[block_id].format(dark_rgb=dark_rgb)
+            block_prompt = safe_format(BLOCK_PROMPTS[block_id], dark_rgb=dark_rgb)
 
             resp = client.chat.completions.create(
                 model="openai/gpt-4.1",
@@ -656,7 +663,7 @@ def handler(event: dict, context) -> dict:
             if energy_err:
                 return energy_err
 
-            system = SYSTEM_EDIT_BLOCK.format(
+            system = safe_format(SYSTEM_EDIT_BLOCK,
                 block_html=block_html,
                 primary=style.get("primary", "#1a3a4a"),
                 accent=style.get("accent", "#e67e22"),
