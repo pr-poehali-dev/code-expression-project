@@ -333,10 +333,18 @@ export default function LkLandingBuilder() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [phase, setPhase] = useState<"chat" | "generating" | "done">(() => {
-    try { return (localStorage.getItem(LS_PHASE) as "chat" | "done") || "chat"; } catch { return "chat"; }
+    try {
+      const savedHtml = localStorage.getItem(LS_HTML) || "";
+      const savedPhase = localStorage.getItem(LS_PHASE) as "chat" | "done" || "chat";
+      if (savedPhase === "done" && !savedHtml.includes("</html>")) return "chat";
+      return savedPhase;
+    } catch { return "chat"; }
   });
   const [htmlResult, setHtmlResult] = useState(() => {
-    try { return localStorage.getItem(LS_HTML) || ""; } catch { return ""; }
+    try {
+      const h = localStorage.getItem(LS_HTML) || "";
+      return h.includes("</html>") ? h : "";
+    } catch { return ""; }
   });
   const [projectId, setProjectId] = useState<string | null>(() => {
     try { return localStorage.getItem(LS_PROJECT_ID) || null; } catch { return null; }
@@ -377,7 +385,15 @@ export default function LkLandingBuilder() {
   useEffect(() => {
     const savedPhase = localStorage.getItem(LS_PHASE);
     const savedType = localStorage.getItem(LS_TYPE);
-    if (savedType && savedPhase) setView("editor");
+    const savedHtml = localStorage.getItem(LS_HTML) || "";
+    if (savedType && savedPhase) {
+      // Если HTML сломан (нет закрывающего тега) — сбрасываем фазу на chat
+      if (savedPhase === "done" && !savedHtml.includes("</html>")) {
+        localStorage.setItem(LS_PHASE, "chat");
+        localStorage.setItem(LS_HTML, "");
+      }
+      setView("editor");
+    }
   }, []);
 
   // Автосохранение в облако при изменении html
@@ -499,17 +515,18 @@ export default function LkLandingBuilder() {
       .then(r => r.json())
       .then(data => {
         const proj = data.project;
+        const htmlOk = proj.html && proj.html.includes("</html>");
         setProjectId(proj.id);
         setProjectTitle(proj.title);
         setLandingType(proj.landing_type);
-        setHtmlResult(proj.html);
+        setHtmlResult(proj.html || "");
         setMessages(proj.messages || []);
-        setPhase(proj.html ? "done" : "chat");
-        setShowPreview(!!proj.html);
+        setPhase(htmlOk ? "done" : "chat");
+        setShowPreview(htmlOk);
         setHasBackup(!!(proj.html_backup && proj.html_backup.length > 100));
         localStorage.setItem(LS_TYPE, proj.landing_type);
-        localStorage.setItem(LS_HTML, proj.html);
-        localStorage.setItem(LS_PHASE, proj.html ? "done" : "chat");
+        localStorage.setItem(LS_HTML, proj.html || "");
+        localStorage.setItem(LS_PHASE, htmlOk ? "done" : "chat");
         localStorage.setItem(LS_PROJECT_ID, proj.id);
         localStorage.setItem(LS_TITLE, proj.title);
         setView("editor");
@@ -989,6 +1006,23 @@ export default function LkLandingBuilder() {
       {/* Чат */}
       {phase === "chat" && (
         <>
+          {/* Баннер восстановления — если данные о бизнесе уже есть */}
+          {messages.length >= 4 && (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 18px", borderRadius: 12, background: "#fff7ed", border: "1.5px solid #fb923c" }}>
+              <Icon name="AlertTriangle" size={18} style={{ color: "#ea580c", flexShrink: 0, marginTop: 1 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#9a3412", marginBottom: 3 }}>Предыдущая версия сайта повреждена</div>
+                <div style={{ fontSize: 12, color: "#c2410c", lineHeight: 1.5 }}>Данные о бизнесе сохранены. Нажмите кнопку ниже — ИИ создаст сайт заново на основе вашего описания.</div>
+              </div>
+              <button
+                onClick={generateLanding}
+                disabled={loading}
+                style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, border: "none", background: "#ea580c", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+              >
+                <Icon name="RefreshCw" size={14} />Восстановить сайт
+              </button>
+            </div>
+          )}
           <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", overflow: "hidden" }}>
             <div style={{ padding: "16px 20px", maxHeight: 420, overflowY: "auto" }}>
               {messages.map((m, i) => (
