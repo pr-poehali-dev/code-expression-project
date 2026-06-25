@@ -508,7 +508,7 @@ export default function LkLandingGuide({ onClose }: { onClose: () => void }) {
       </div>
 
       {/* Навигация по разделам — горизонтальный скролл на мобильном */}
-      <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", marginLeft: -2, marginRight: -2, paddingLeft: 2, paddingRight: 2, paddingBottom: 4 }}>
+      <div style={{ overflowX: "auto", marginLeft: -2, marginRight: -2, paddingLeft: 2, paddingRight: 2, paddingBottom: 4 } as React.CSSProperties}>
         <div style={{ display: "flex", gap: 7, width: "max-content" }}>
           {SECTIONS.map(s => (
             <button

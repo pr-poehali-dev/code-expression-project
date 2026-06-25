@@ -829,7 +829,7 @@ export default function LkLandingBuilder() {
 
               {/* Переключатель страниц для мини-сайта */}
               {landingType === "multipage" && sitePages.length > 0 && (
-                <div style={{ background: "#fff", borderBottom: "1px solid #E8ECF0", padding: "8px 16px", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+                <div style={{ background: "#fff", borderBottom: "1px solid #E8ECF0", padding: "8px 16px", overflowX: "auto" } as React.CSSProperties}>
                   <div style={{ display: "flex", gap: 6, width: "max-content" }}>
                     {sitePages.map(pageId => (
                       <button
