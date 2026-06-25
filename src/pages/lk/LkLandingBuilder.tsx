@@ -1763,6 +1763,12 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
               style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: showVersions ? `1.5px solid #f59e0b` : "1.5px solid #E8ECF0", background: showVersions ? "#fffbeb" : "#fff", color: showVersions ? "#d97706" : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
               <Icon name="History" size={15} />Версии
             </button>
+            {projectId && (
+              <button onClick={() => window.open(`/landing/${projectId}`, "_blank")}
+                style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: `1.5px solid ${ACCENT}`, background: ACCENT, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                <Icon name="ExternalLink" size={15} />Открыть в браузере
+              </button>
+            )}
             <button onClick={downloadHtml}
               style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: `1.5px solid ${ACCENT}`, background: ACCENT_LIGHT, color: ACCENT, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
               <Icon name="Download" size={15} />Скачать HTML

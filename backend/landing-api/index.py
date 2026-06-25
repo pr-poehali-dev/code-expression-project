@@ -83,13 +83,30 @@ def handler(event: dict, context) -> dict:
 
     conn = get_conn()
     try:
+        method = event.get("httpMethod", "GET")
+        params = event.get("queryStringParameters") or {}
+
+        # ── ПУБЛИЧНЫЙ ПРОСМОТР: GET /?public=id ──────────────────────────────
+        if method == "GET" and params.get("public"):
+            safe_pid = params["public"].replace("'", "''")
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    f"SELECT id, title, html, blocks, style "
+                    f"FROM {SCHEMA}.landing_projects WHERE id = '{safe_pid}'"
+                )
+                row = cur.fetchone()
+            if not row:
+                return err("Лендинг не найден", 404)
+            d = dict(row)
+            d["blocks"] = d["blocks"] or []
+            d["style"] = d["style"] or {}
+            return ok(d)
+
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
 
         user_id = user["id"]
-        method = event.get("httpMethod", "GET")
-        params = event.get("queryStringParameters") or {}
 
         # ── GET ──────────────────────────────────────────────────────────────
         if method == "GET":
