@@ -235,12 +235,23 @@ h1,h2,h3,h4{font-family:var(--font-heading);}
 
   const hasExtras = !!(privacyHtmlBody || subpages.length > 0);
 
+  // Slugs подстраниц для скрытия «Узнать подробнее» у услуг без страницы
+  const subpageSlugs = subpages.map(sp => sp.slug);
+
   const router = hasExtras ? `<script>
 (function(){
   var landing = document.getElementById('page-landing');
   var pages = {};
   ${privacyHtmlBody ? `pages['privacy'] = document.getElementById('page-privacy');` : ""}
   ${subpages.map(sp => `pages['subpage-${sp.slug}'] = document.getElementById('page-subpage-${sp.slug}');`).join("\n  ")}
+
+  // Показываем «Узнать подробнее» только для услуг с готовой подстраницей
+  var activeSlugs = ${JSON.stringify(subpageSlugs)};
+  document.querySelectorAll('a.service-more').forEach(function(a){
+    var href = a.getAttribute('href') || '';
+    var slug = href.replace('#subpage-','');
+    if(activeSlugs.indexOf(slug) === -1){ a.style.display='none'; }
+  });
 
   function hideAll(){
     landing.style.display='none';
@@ -265,7 +276,12 @@ h1,h2,h3,h4{font-family:var(--font-heading);}
     if(a){ e.preventDefault(); location.hash='privacy'; }
   });
 })();
-</script>` : "";
+</script>` : `<script>
+(function(){
+  // Скрываем все «Узнать подробнее» — подстраниц ещё нет
+  document.querySelectorAll('a.service-more').forEach(function(a){ a.style.display='none'; });
+})();
+</script>`;
 
   return `<!DOCTYPE html>
 <html lang="ru">
