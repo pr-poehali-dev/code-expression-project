@@ -358,6 +358,8 @@ export default function LkLandingBuilder() {
   const [editingTitle, setEditingTitle] = useState(false);
   const [activePage, setActivePage] = useState<string>("home");
   const [genStep, setGenStep] = useState<"structure" | "style" | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const [hasBackup, setHasBackup] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -428,7 +430,11 @@ export default function LkLandingBuilder() {
         setProjectId(data.id);
         setProjectTitle(title);
         localStorage.setItem(LS_PROJECT_ID, data.id);
-        if (manual) { setCloudSaved(true); setTimeout(() => setCloudSaved(false), 2500); }
+        if (manual) {
+          setCloudSaved(true);
+          setHasBackup(true);
+          setTimeout(() => setCloudSaved(false), 2500);
+        }
       }
     } finally {
       if (manual) setCloudSaving(false);
@@ -489,7 +495,6 @@ export default function LkLandingBuilder() {
   }
 
   function openProject(p: LandingProject) {
-    // Загружаем полный проект с HTML
     fetch(`${LANDING_API_URL}?id=${p.id}`, { headers: { "X-Session-Id": session() } })
       .then(r => r.json())
       .then(data => {
@@ -501,6 +506,7 @@ export default function LkLandingBuilder() {
         setMessages(proj.messages || []);
         setPhase(proj.html ? "done" : "chat");
         setShowPreview(!!proj.html);
+        setHasBackup(!!(proj.html_backup && proj.html_backup.length > 100));
         localStorage.setItem(LS_TYPE, proj.landing_type);
         localStorage.setItem(LS_HTML, proj.html);
         localStorage.setItem(LS_PHASE, proj.html ? "done" : "chat");
@@ -508,6 +514,26 @@ export default function LkLandingBuilder() {
         localStorage.setItem(LS_TITLE, proj.title);
         setView("editor");
       });
+  }
+
+  async function restoreHtml() {
+    if (!projectId) return;
+    setRestoring(true);
+    try {
+      const res = await fetch(LANDING_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+        body: JSON.stringify({ action: "restore", id: projectId }),
+      });
+      const data = await res.json();
+      if (data.html) {
+        setHtmlResult(data.html);
+        setHasBackup(false);
+        localStorage.setItem(LS_HTML, data.html);
+      }
+    } finally {
+      setRestoring(false);
+    }
   }
 
   function startNew() {
@@ -812,6 +838,18 @@ export default function LkLandingBuilder() {
             >
               <Icon name="Wand2" size={16} />ИИ-доработка
             </button>
+            {hasBackup && projectId && (
+              <button
+                onClick={restoreHtml}
+                disabled={restoring}
+                title="Вернуть предыдущую версию сайта"
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "1.5px solid #fca5a5", background: "#fff5f5", color: restoring ? "#aaa" : "#dc2626", fontSize: 14, fontWeight: 700, cursor: restoring ? "default" : "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.15s" }}
+              >
+                {restoring
+                  ? <><div style={{ width: 14, height: 14, border: "2px solid #fca5a5", borderTopColor: "#dc2626", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />Откат...</>
+                  : <><Icon name="RotateCcw" size={16} />Откатить</>}
+              </button>
+            )}
           </div>
 
           {/* Подсказка редактора */}

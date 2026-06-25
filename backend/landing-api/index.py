@@ -96,7 +96,7 @@ def handler(event: dict, context) -> dict:
                 if project_id:
                     safe_pid = project_id.replace("'", "''")
                     cur.execute(
-                        f"SELECT id, title, landing_type, html, messages, created_at, updated_at "
+                        f"SELECT id, title, landing_type, html, html_backup, messages, created_at, updated_at "
                         f"FROM {SCHEMA}.landing_projects "
                         f"WHERE id = '{safe_pid}' AND user_id = {user_id}"
                     )
@@ -139,10 +139,35 @@ def handler(event: dict, context) -> dict:
                 deduct(conn, salon_id, user_id, "landing_download", cost, "Скачивание готового лендинга")
                 return ok({"ok": True, "spent": cost})
 
+            # Откат к предыдущей версии
+            if action == "restore":
+                project_id = body.get("id")
+                if not project_id:
+                    return err("id обязателен", 400)
+                safe_pid = project_id.replace("'", "''")
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    cur.execute(
+                        f"SELECT html_backup FROM {SCHEMA}.landing_projects "
+                        f"WHERE id='{safe_pid}' AND user_id={user_id}"
+                    )
+                    row = cur.fetchone()
+                    if not row or not row["html_backup"]:
+                        return err("Нет сохранённой резервной копии", 404)
+                    backup_html = row["html_backup"]
+                    safe_backup = backup_html.replace("'", "''")
+                    cur.execute(
+                        f"UPDATE {SCHEMA}.landing_projects "
+                        f"SET html='{safe_backup}', html_backup='', updated_at=NOW() "
+                        f"WHERE id='{safe_pid}' AND user_id={user_id}"
+                    )
+                    conn.commit()
+                    return ok({"html": backup_html, "restored": True})
+
             # Сохранение проекта (без списания)
             project_id = body.get("id")
             title = (body.get("title") or "Без названия")[:255].replace("'", "''")
-            landing_type = "premium" if body.get("landingType") == "premium" else "budget"
+            lt = body.get("landingType", "budget")
+            landing_type = lt if lt in ("premium", "multipage") else "budget"
             html = body.get("html", "")
             messages_json = json.dumps(body.get("messages", []), ensure_ascii=False)
 
@@ -151,9 +176,11 @@ def handler(event: dict, context) -> dict:
                     safe_pid = project_id.replace("'", "''")
                     safe_html = html.replace("'", "''")
                     safe_msg = messages_json.replace("'", "''")
+                    # Сохраняем старый HTML в backup перед перезаписью
                     cur.execute(
                         f"UPDATE {SCHEMA}.landing_projects "
                         f"SET title='{title}', landing_type='{landing_type}', "
+                        f"html_backup=html, "
                         f"html='{safe_html}', messages='{safe_msg}'::jsonb, updated_at=NOW() "
                         f"WHERE id='{safe_pid}' AND user_id={user_id} RETURNING id"
                     )
