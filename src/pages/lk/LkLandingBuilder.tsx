@@ -269,7 +269,7 @@ function StyleEditor({ style, onChange }: { style: LandingStyle; onChange: (s: L
 }
 
 // ── Главный компонент ─────────────────────────────────────────────────────────
-export default function LkLandingBuilder() {
+export default function LkLandingBuilder({ forceList }: { forceList?: boolean } = {}) {
   const [view, setView] = useState<"list" | "new" | "editor">("list");
   const [landingType, setLandingType] = useState<LandingType | null>(() => {
     try { return (localStorage.getItem(LS_TYPE) as LandingType) || null; } catch { return null; }
@@ -347,8 +347,9 @@ export default function LkLandingBuilder() {
     }
   }, [siteStyle]); // eslint-disable-line
 
-  // Восстановить если были блоки
+  // Восстановить если были блоки (не восстанавливаем если forceList)
   useEffect(() => {
+    if (forceList) return;
     const savedPhase = localStorage.getItem(LS_PHASE);
     const savedType = localStorage.getItem(LS_TYPE);
     const savedBlocks = localStorage.getItem(LS_BLOCKS);
@@ -358,7 +359,7 @@ export default function LkLandingBuilder() {
       }
       setView("editor");
     }
-  }, []);
+  }, []); // eslint-disable-line
 
   const handleIframeMessage = useCallback((e: MessageEvent) => {
     if (e.data?.type === "landing-html-update") {
