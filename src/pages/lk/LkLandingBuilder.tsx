@@ -426,6 +426,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const [pendingImgIdx, setPendingImgIdx] = useState<string | null>(null);
   const [pendingSlotId, setPendingSlotId] = useState<string | null>(null);
   const slotFileInputRef = useRef<HTMLInputElement>(null);
+  const [photoPickerOpen, setPhotoPickerOpen] = useState(false);
 
   // Персист
   useEffect(() => { if (messages.length > 0) localStorage.setItem(LS_MSGS, JSON.stringify(messages)); }, [messages]);
@@ -481,7 +482,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     }
     if (e.data?.type === "landing-slot-click") {
       setPendingSlotId(e.data.slotId);
-      slotFileInputRef.current?.click();
+      setPhotoPickerOpen(true);
     }
   }, []);
 
@@ -1073,6 +1074,44 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
 
           <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
           <input ref={slotFileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleSlotFileChange} />
+
+          {/* Оверлей выбора фото — открывается по клику из iframe */}
+          {photoPickerOpen && (
+            <div onClick={() => setPhotoPickerOpen(false)} style={{
+              position: "fixed", inset: 0, zIndex: 9999,
+              background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <div onClick={e => e.stopPropagation()} style={{
+                background: "#fff", borderRadius: 20, padding: "32px 28px", maxWidth: 340, width: "90%",
+                textAlign: "center", boxShadow: "0 24px 60px rgba(0,0,0,0.25)",
+              }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>🖼️</div>
+                <div style={{ fontSize: 17, fontWeight: 700, color: "#0F172A", marginBottom: 8, fontFamily: "Montserrat,sans-serif" }}>
+                  Загрузить фото
+                </div>
+                <div style={{ fontSize: 13, color: "#64748b", marginBottom: 24, fontFamily: "Montserrat,sans-serif", lineHeight: 1.5 }}>
+                  Выберите изображение с вашего устройства. Рекомендуемый формат: JPG или PNG, не менее 800px.
+                </div>
+                <label style={{
+                  display: "block", width: "100%", padding: "13px", borderRadius: 12, cursor: "pointer",
+                  background: "hsl(185,85%,32%)", color: "#fff", fontSize: 15, fontWeight: 700,
+                  fontFamily: "Montserrat,sans-serif", marginBottom: 10,
+                }}>
+                  Выбрать файл
+                  <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
+                    setPhotoPickerOpen(false);
+                    handleSlotFileChange(e);
+                  }} />
+                </label>
+                <button onClick={() => { setPhotoPickerOpen(false); setPendingSlotId(null); }} style={{
+                  width: "100%", padding: "11px", borderRadius: 12, border: "1px solid #E2E8F0",
+                  background: "none", color: "#64748b", fontSize: 14, cursor: "pointer", fontFamily: "Montserrat,sans-serif",
+                }}>
+                  Отмена
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
 
