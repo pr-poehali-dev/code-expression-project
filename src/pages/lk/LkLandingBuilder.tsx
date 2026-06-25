@@ -357,6 +357,7 @@ export default function LkLandingBuilder() {
   const [cloudSaved, setCloudSaved] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [activePage, setActivePage] = useState<string>("home");
+  const [genStep, setGenStep] = useState<"structure" | "style" | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -570,29 +571,55 @@ export default function LkLandingBuilder() {
     }
   }
 
+  async function callGenerate(body: object): Promise<{ html: string; error?: string; status?: number }> {
+    const res = await fetch(AI_LANDING_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(90_000),
+    });
+    const data = await res.json();
+    return { html: data.reply || data.html || "", status: res.status, error: data.error };
+  }
+
   async function generateLanding() {
     setPhase("generating");
     setLoading(true);
+    const isTwoStep = landingType === "premium" || landingType === "multipage";
     try {
-      const res = await fetch(AI_LANDING_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-        body: JSON.stringify({ messages, mode: "generate", landingType }),
-        signal: AbortSignal.timeout(180_000),
-      });
-      const data = await res.json();
-      if (res.status === 402) {
+      // Этап 1: структура + текст
+      setGenStep("structure");
+      const step1 = await callGenerate({ messages, mode: "generate", landingType });
+      if (step1.status === 402) {
         setPhase("chat");
-        showEnergyGate({ message: data.error || "Недостаточно энергии для генерации лендинга" });
+        showEnergyGate({ message: step1.error || "Недостаточно энергии для генерации" });
         return;
       }
-      const html = data.reply || data.html || "";
-      if (!html || !html.includes("<!DOCTYPE")) {
+      if (!step1.html || !step1.html.includes("<!DOCTYPE")) {
         setPhase("chat");
-        setMessages(prev => [...prev, { role: "assistant", content: "Не удалось сгенерировать лендинг — попробуйте ещё раз или добавьте больше деталей о бизнесе." }]);
+        setMessages(prev => [...prev, { role: "assistant", content: "Не удалось сгенерировать — попробуйте ещё раз или добавьте больше деталей о бизнесе." }]);
         return;
       }
-      setHtmlResult(html);
+
+      // Этап 2: стилизация (только для премиума)
+      let finalHtml = step1.html;
+      if (isTwoStep) {
+        setGenStep("style");
+        const step2 = await callGenerate({ html: step1.html, mode: "style", landingType });
+        if (step2.status === 402) {
+          // Нет энергии на стилизацию — отдаём структурный вариант
+          setHtmlResult(step1.html);
+          setPhase("done");
+          setShowPreview(true);
+          setActivePage("home");
+          return;
+        }
+        if (step2.html && step2.html.includes("<!DOCTYPE")) {
+          finalHtml = step2.html;
+        }
+      }
+
+      setHtmlResult(finalHtml);
       setPhase("done");
       setShowPreview(true);
       setActivePage("home");
@@ -601,6 +628,7 @@ export default function LkLandingBuilder() {
       setMessages(prev => [...prev, { role: "assistant", content: "Генерация заняла слишком долго. Попробуйте ещё раз — обычно со второй попытки всё работает." }]);
     } finally {
       setLoading(false);
+      setGenStep(null);
     }
   }
 
@@ -716,13 +744,42 @@ export default function LkLandingBuilder() {
       {/* Спиннер генерации */}
       {phase === "generating" && (
         <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: 40, textAlign: "center" }}>
-          <div style={{ width: 48, height: 48, border: `3px solid ${ACCENT_LIGHT}`, borderTopColor: ACCENT, borderRadius: "50%", animation: "spin 0.9s linear infinite", margin: "0 auto 16px" }} />
-          <div style={{ fontSize: 15, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>
-            {landingType === "multipage" ? "ИИ создаёт мини-сайт..." : landingType === "premium" ? "ИИ создаёт премиальный лендинг..." : "ИИ создаёт стандартный лендинг..."}
-          </div>
-          <div style={{ fontSize: 13, color: "#888" }}>
-            {landingType === "multipage" ? "Мини-сайт занимает до 90 секунд — ИИ создаёт несколько страниц" : landingType === "premium" ? "Премиум занимает немного дольше — до 60 секунд" : "Обычно занимает 15–30 секунд"}
-          </div>
+          <div style={{ width: 48, height: 48, border: `3px solid ${ACCENT_LIGHT}`, borderTopColor: ACCENT, borderRadius: "50%", animation: "spin 0.9s linear infinite", margin: "0 auto 20px" }} />
+
+          {/* Двухэтапный прогресс для премиума / мини-сайта */}
+          {(landingType === "premium" || landingType === "multipage") ? (
+            <>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 16 }}>
+                {[
+                  { key: "structure", label: "1. Структура и текст", icon: "FileText" },
+                  { key: "style", label: "2. Дизайн и стили", icon: "Sparkles" },
+                ].map((step, i) => {
+                  const isDone = (step.key === "structure" && genStep === "style");
+                  const isActive = genStep === step.key;
+                  return (
+                    <div key={step.key} style={{ display: "flex", alignItems: "center", gap: i === 0 ? 0 : 8 }}>
+                      {i > 0 && <div style={{ width: 24, height: 2, background: isDone || isActive ? ACCENT : "#E2E8F0", margin: "0 4px" }} />}
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 20, background: isActive ? ACCENT_LIGHT : isDone ? "#F0FDF4" : "#F8FAFC", border: `1px solid ${isActive ? ACCENT : isDone ? "#86EFAC" : "#E2E8F0"}` }}>
+                        <Icon name={isDone ? "CheckCircle" : step.icon} size={13} style={{ color: isActive ? ACCENT : isDone ? "#16A34A" : "#94A3B8" }} />
+                        <span style={{ fontSize: 12, fontWeight: 600, color: isActive ? ACCENT : isDone ? "#16A34A" : "#94A3B8" }}>{step.label}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>
+                {genStep === "structure" ? "Создаю структуру и наполняю текстом..." : "Применяю премиальный дизайн..."}
+              </div>
+              <div style={{ fontSize: 13, color: "#888" }}>
+                {genStep === "structure" ? "Шаг 1 из 2 — обычно 20–40 секунд" : "Шаг 2 из 2 — добавляю анимации, шрифты, цвета..."}
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>ИИ создаёт лендинг...</div>
+              <div style={{ fontSize: 13, color: "#888" }}>Обычно занимает 20–40 секунд</div>
+            </>
+          )}
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       )}

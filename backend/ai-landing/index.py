@@ -106,55 +106,51 @@ SYSTEM_GENERATE_BUDGET = """Ты — профессиональный веб-р�
 
 ВАЖНО: Верни ТОЛЬКО чистый HTML-код, без markdown, без объяснений. Начинай сразу с <!DOCTYPE html>."""
 
-SYSTEM_GENERATE_PREMIUM = """Ты — топовый веб-дизайнер уровня Awwwards. На основе данных о бизнесе создай выдающийся, премиальный одностраничный лендинг (HTML-файл) — такой, за который не стыдно просить дорого.
+SYSTEM_GENERATE_PREMIUM = """Ты — профессиональный веб-разработчик. Создай полный HTML-лендинг на основе данных о бизнесе.
 
-СТИЛЬ — ПРЕМИУМ-КЛАСС:
-- Индивидуальная цветовая палитра под тематику бизнеса: 1 тёмный фон, 1 светлый фон, 1–2 акцентных цвета. Задай их как CSS-переменные (--color-primary, --color-accent, --color-bg-dark, --color-bg-light, --color-text) и используй везде только через переменные.
-- Шрифты: Playfair Display для заголовков + Montserrat для текста (Google Fonts)
-- Градиентные фоны в hero и CTA (linear-gradient из цветовых переменных)
-- Асимметричные секции: чередуй расположение (текст слева/декор справа и наоборот)
-- Плавные CSS-анимации: fadeIn + slideUp при загрузке hero, hover на карточках (translateY(-6px) + box-shadow)
-- Кастомные кнопки: градиент из переменных + box-shadow + scale(1.03) при наведении
-- Декоративные элементы: SVG-фигуры или clip-path волны/диагонали между секциями
-- Фиксированный хедер: backdrop-filter: blur(12px) + полупрозрачный фон из --color-bg-dark
+СТРУКТУРА (7 секций):
+1. header — логотип + горизонтальная навигация desktop / гамбургер mobile. Фиксированный.
+2. #hero — min-height:100vh, крупный h1, подзаголовок, 2 кнопки.
+3. #about — текст о компании + 3 цифры-достижения.
+4. #services — карточки услуг в grid (2–3 колонки).
+5. #reviews — 2–3 отзыва с именем (придумай реалистичные).
+6. #contact — форма (имя, телефон, кнопка) + контакты.
+7. footer — копирайт.
 
-ИКОНКИ И ЭМОДЗИ — ПРЕМИАЛЬНЫЙ ПОДХОД:
-- НЕ использовать разношерстные цветные эмодзи (❤️🔥💰 и т.п.)
-- Вместо этого: SVG-иконки встроенные (простые, монохромные, цвет = var(--color-accent)) ИЛИ нейтральные символы (→ ✦ ◆ ▸) в цвет акцента
-- Если используешь эмодзи — только монохромные/нейтральные (✓ ★ ◉), стилизованные через CSS (font-size, color: var(--color-accent))
-- Иконки в карточках услуг: SVG-круг с акцентным фоном + простой SVG-путь внутри
+ДИЗАЙН:
+- CSS-переменные в :root: --c-primary, --c-accent, --c-dark, --c-light, --c-text
+- Подбери палитру под тематику бизнеса (не используй дефолтный синий)
+- Google Fonts: один заголовочный + один текстовый шрифт
+- Градиент в hero и кнопках через переменные
+- hover на карточках: translateY(-4px) + box-shadow
+- Гамбургер: JS toggle .open, max-height анимация
 
-ОБЯЗАТЕЛЬНАЯ СТРУКТУРА (8 блоков):
-1. <header> — логотип + навигация (Desktop: горизонтальная; Mobile: гамбургер-аккордеон) + CTA-кнопка. Фиксированный, blur-эффект.
-2. #hero — полноэкранный (min-height: 100vh): крупный заголовок, подзаголовок, 2 кнопки, декоративный SVG-элемент или градиентный блок справа
-3. #about — о компании: заглушка фото слева (серый блок "Фото 600x400" с border-radius) + текст справа + 3 цифры-достижения внизу
-4. #services — услуги: карточки в сетке, SVG-иконка в акцентном круге, hover-эффект, цветная полоска сверху карточки
-5. #cases — кейсы/преимущества: 3–4 блока с крупным номером в цвет акцента + заголовок + текст
-6. #reviews — отзывы: 2–3 карточки с декоративной кавычкой «», именем и ролью (придумай реалистичные для сферы бизнеса)
-7. #contact — тёмный фон, форма (имя, телефон, сообщение, кнопка) + контакты + соцсети если есть
-8. <footer> — тёмный фон, логотип + навигация + копирайт
+ТРЕБОВАНИЯ:
+- Только <!DOCTYPE html>…</html>, весь CSS в <style>, JS в <script> перед </body>
+- Mobile-first: 320px, 768px, 1024px
+- Форма action="#"
+- Без внешних библиотек кроме Google Fonts
 
-НАВИГАЦИЯ (ОБЯЗАТЕЛЬНО):
-- Desktop (768px+): горизонтальное меню, ссылки на якоря, hover подчёркивание акцентом
-- Mobile: гамбургер (три полоски → крест при открытии), меню раскрывается аккордеоном (max-height transition), ссылки в столбик, при клике на ссылку — меню закрывается
+ВАЖНО: только чистый HTML без markdown. Начинай с <!DOCTYPE html>.
+ЛИМИТ: уложись в 5500 токенов. Минимум комментариев, компактный CSS."""
 
-JS (встроенный <script>):
-- Гамбургер: toggle класса .nav-open, анимация max-height
-- Хедер: при прокрутке > 60px добавляет класс .scrolled (фон становится непрозрачным)
-- Плавный скролл к секциям
+SYSTEM_STYLE_PREMIUM = """Ты — топовый веб-дизайнер уровня Awwwards. Тебе дан функциональный HTML-лендинг. Твоя задача — сделать его визуально выдающимся, не меняя структуру и тексты.
 
-ТЕХНИЧЕСКИЕ ТРЕБОВАНИЯ:
-- Полный HTML5 документ (<!DOCTYPE html> ... </html>)
-- <meta name="viewport" content="width=device-width, initial-scale=1">
-- CSS-переменные в :root для всей палитры
-- Весь CSS в <style>, JS в <script> перед </body>
-- Только Google Fonts через @import
-- Mobile-first: 320px → 768px → 1024px+
-- Форма action="#" — только визуал
-- scroll-behavior: smooth на html
+ЧТО УЛУЧШИТЬ (только CSS и JS, не трогай HTML-структуру и тексты):
+1. Замени все цвета на индивидуальную премиальную палитру через CSS-переменные (:root). Подбери под тематику бизнеса.
+2. Шрифты: замени на Playfair Display (заголовки) + Montserrat (текст) через Google Fonts @import
+3. Hero: добавь градиентный фон, декоративный clip-path или SVG-фигуру справа, анимацию fadeIn+slideUp
+4. Карточки: hover translateY(-6px) + box-shadow + акцентная полоска сверху
+5. Кнопки: градиент + box-shadow + scale(1.03) при наведении
+6. Header: backdrop-filter:blur(12px) + при scroll добавляет класс .scrolled (непрозрачный фон)
+7. Между секциями: clip-path диагональ или волна
+8. Отзывы: добавь крупную декоративную кавычку «» в цвет акцента
 
-ВАЖНО: Верни ТОЛЬКО чистый HTML-код, без markdown, без объяснений. Начинай сразу с <!DOCTYPE html>.
-ЛИМИТ: код должен уложиться в 7500 токенов. Пиши компактный CSS (без лишних комментариев), SVG-иконки используй только простые (5–7 строк path, не более). Не повторяй стили — используй классы."""
+ЗАПРЕЩЕНО: менять тексты, структуру тегов, id/class секций, содержимое форм.
+РАЗРЕШЕНО: полностью переписать <style>, дополнить <script>, заменить @import шрифты.
+
+Верни ПОЛНЫЙ HTML-файл с улучшенным дизайном. Только чистый HTML без markdown.
+ЛИМИТ: 5500 токенов. Компактный CSS без лишних комментариев."""
 
 SYSTEM_GENERATE_MULTIPAGE = """Ты — топовый веб-разработчик. На основе данных о бизнесе создай многостраничный мини-сайт (SPA) в одном HTML-файле. Все страницы — в одном файле, переключение через JS без перезагрузки.
 
@@ -329,24 +325,27 @@ def handler(event: dict, context) -> dict:
         html = body.get("html", "")
         refine_task = body.get("refineTask", "")
 
-        if mode != "refine" and not messages:
+        needs_messages = mode not in ("refine", "style")
+        if needs_messages and not messages:
             return err("messages обязателен", 400)
         if mode == "refine" and not (html and refine_task):
             return err("html и refineTask обязательны", 400)
+        if mode == "style" and not html:
+            return err("html обязателен для style", 400)
 
         is_premium = landing_type == "premium"
         is_multipage = landing_type == "multipage"
 
-        # Определяем tool_key и стоимость по умолчанию
-        if mode == "generate":
+        # Определяем tool_key и стоимость
+        if mode in ("generate", "style"):
             if is_multipage:
-                tool_key = "landing_generate_premium"  # мини-сайт = как премиум по стоимости
-                default_cost = 96
-                action_name = "Генерация мини-сайта"
+                tool_key = "landing_generate_premium"
+                default_cost = 48
+                action_name = "Генерация мини-сайта (этап)" if mode == "generate" else "Стилизация мини-сайта"
             elif is_premium:
                 tool_key = "landing_generate_premium"
-                default_cost = 96
-                action_name = "Генерация лендинга (премиальный)"
+                default_cost = 48
+                action_name = "Генерация лендинга (этап)" if mode == "generate" else "Стилизация премиум-лендинга"
             else:
                 tool_key = "landing_generate"
                 default_cost = 64
@@ -384,17 +383,22 @@ def handler(event: dict, context) -> dict:
 - Если просят добавить блок — добавляй в логичное место на нужной странице
 - Сохраняй все встроенные стили, шрифты, адаптивность"""
             ai_messages = [{"role": "user", "content": f"Вот текущий HTML:\n\n{html}\n\nЧто нужно изменить: {refine_task}"}]
-            max_tokens = 14000
+            max_tokens = 7000
+        elif mode == "style":
+            # Второй этап: стилизация готовой структуры
+            system = SYSTEM_STYLE_PREMIUM
+            ai_messages = [{"role": "user", "content": f"Вот HTML-лендинг для улучшения дизайна:\n\n{html}"}]
+            max_tokens = 6000
         elif mode == "generate":
             if is_multipage:
                 system = SYSTEM_GENERATE_MULTIPAGE
-                max_tokens = 8000
+                max_tokens = 6000
             elif is_premium:
-                system = SYSTEM_GENERATE_PREMIUM
-                max_tokens = 8000
+                system = SYSTEM_GENERATE_PREMIUM  # этап 1: структура
+                max_tokens = 5500
             else:
                 system = SYSTEM_GENERATE_BUDGET
-                max_tokens = 6000
+                max_tokens = 5500
             ai_messages = messages
         else:
             if is_multipage:
