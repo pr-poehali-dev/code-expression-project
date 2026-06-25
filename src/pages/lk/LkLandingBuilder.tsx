@@ -14,8 +14,9 @@ const LS_PHASE   = "landing_builder_phase";
 const LS_TYPE    = "landing_builder_type";
 const LS_PID     = "landing_project_id";
 const LS_TITLE   = "landing_project_title";
-const LS_BLOCKS  = "landing_builder_blocks";
-const LS_STYLE   = "landing_builder_style";
+const LS_BLOCKS   = "landing_builder_blocks";
+const LS_STYLE    = "landing_builder_style";
+const LS_PRIVACY  = "landing_builder_privacy";
 
 type LandingType = "budget" | "premium";
 interface Message { role: "user" | "assistant"; content: string; }
@@ -29,6 +30,14 @@ interface LandingProject {
   created_at: string; updated_at: string;
 }
 interface Version { savedAt: string; html: string; blocks: LandingBlock[]; style: LandingStyle; }
+interface PrivacyData {
+  orgName: string;   // ИП Иванов Иван Иванович / ООО "Ромашка"
+  inn: string;
+  ogrn: string;
+  address: string;
+  email: string;
+  domain: string;
+}
 
 const BLOCKS_ORDER: { id: string; label: string }[] = [
   { id: "header",   label: "Шапка и меню" },
@@ -488,6 +497,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   // Превью и редактирование
   const [editMode, setEditMode] = useState(false);
   const [showStyleEditor, setShowStyleEditor] = useState(false);
+  const [showPrivacyEditor, setShowPrivacyEditor] = useState(false);
+  const [privacyData, setPrivacyData] = useState<PrivacyData>(() => {
+    try { const s = localStorage.getItem(LS_PRIVACY); return s ? JSON.parse(s) : { orgName: "", inn: "", ogrn: "", address: "", email: "", domain: "" }; } catch { return { orgName: "", inn: "", ogrn: "", address: "", email: "", domain: "" }; }
+  });
 
   // Редактирование блока через ИИ
   const [editingBlock, setEditingBlock] = useState<string | null>(null);
@@ -514,6 +527,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   useEffect(() => { localStorage.setItem(LS_STYLE, JSON.stringify(siteStyle)); }, [siteStyle]);
   useEffect(() => { if (projectId) localStorage.setItem(LS_PID, projectId); }, [projectId]);
   useEffect(() => { localStorage.setItem(LS_TITLE, projectTitle); }, [projectTitle]);
+  useEffect(() => { localStorage.setItem(LS_PRIVACY, JSON.stringify(privacyData)); }, [privacyData]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, chatLoading]);
 
   // Восстановить в iframe при смене editMode
@@ -817,6 +831,88 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     return "";
   }
 
+  function buildPrivacyHtml(pd: PrivacyData): string {
+    const domain = pd.domain || "example.com";
+    const orgName = pd.orgName || "Организация";
+    const inn = pd.inn ? `ИНН: ${pd.inn}` : "";
+    const ogrn = pd.ogrn ? `, ОГРН: ${pd.ogrn}` : "";
+    const address = pd.address || "";
+    const email = pd.email || "";
+    const year = new Date().getFullYear();
+    return `<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Политика конфиденциальности — ${domain}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;color:#2c3e50;background:#f8f9fa;line-height:1.7;}
+.wrap{max-width:800px;margin:0 auto;padding:40px 24px;}
+h1{font-size:28px;font-weight:700;margin-bottom:8px;color:#1a1a2e;}
+.meta{font-size:13px;color:#888;margin-bottom:40px;}
+h2{font-size:18px;font-weight:700;margin:32px 0 12px;color:#1a1a2e;}
+p,li{font-size:15px;color:#444;margin-bottom:10px;}
+ul{padding-left:20px;margin-bottom:10px;}
+.back{display:inline-block;margin-bottom:32px;color:#0ea5e9;text-decoration:none;font-size:14px;font-weight:600;}
+.back:hover{text-decoration:underline;}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid #e2e8f0;font-size:13px;color:#aaa;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/">← Вернуться на сайт</a>
+  <h1>Политика конфиденциальности</h1>
+  <p class="meta">Сайт: ${domain} &nbsp;|&nbsp; Последнее обновление: ${year} г.</p>
+
+  <h2>1. Общие положения</h2>
+  <p>Настоящая Политика конфиденциальности определяет порядок обработки персональных данных пользователей сайта <strong>${domain}</strong>.</p>
+  <p>Оператор персональных данных: <strong>${orgName}</strong>${inn ? ` (${inn}${ogrn})` : ""}${address ? `. Адрес: ${address}` : ""}.</p>
+  <p>Используя сайт, вы соглашаетесь с условиями настоящей Политики.</p>
+
+  <h2>2. Какие данные мы собираем</h2>
+  <ul>
+    <li>Имя и контактный телефон (при заполнении формы заявки)</li>
+    <li>Email-адрес (при его указании)</li>
+    <li>Данные о выбранной услуге и комментарии</li>
+    <li>Технические данные: IP-адрес, тип браузера, время визита (в рамках аналитики)</li>
+  </ul>
+
+  <h2>3. Цели обработки данных</h2>
+  <ul>
+    <li>Обработка и ответ на входящие заявки и вопросы</li>
+    <li>Запись на услуги и консультации</li>
+    <li>Улучшение работы сайта и качества обслуживания</li>
+  </ul>
+
+  <h2>4. Хранение и защита данных</h2>
+  <p>Персональные данные хранятся на защищённых серверах и не передаются третьим лицам без вашего согласия, за исключением случаев, предусмотренных законодательством РФ.</p>
+  <p>Срок хранения данных — не более 3 лет с момента последнего обращения или до момента отзыва согласия.</p>
+
+  <h2>5. Права пользователя</h2>
+  <p>Вы вправе в любой момент:</p>
+  <ul>
+    <li>Запросить информацию об обрабатываемых данных</li>
+    <li>Потребовать исправления или удаления своих данных</li>
+    <li>Отозвать согласие на обработку персональных данных</li>
+  </ul>
+  <p>Для этого направьте запрос${email ? ` на email: <strong>${email}</strong>` : " через контактную форму на сайте"}.</p>
+
+  <h2>6. Cookies</h2>
+  <p>Сайт использует файлы cookie для корректной работы и аналитики. Продолжая использование сайта, вы соглашаетесь с их применением. Вы можете отключить cookie в настройках браузера.</p>
+
+  <h2>7. Изменения Политики</h2>
+  <p>Мы оставляем за собой право вносить изменения в настоящую Политику. Актуальная версия всегда доступна на странице <strong>${domain}/privacy</strong>.</p>
+
+  <h2>8. Контакты</h2>
+  <p>${orgName}${address ? `<br>${address}` : ""}${email ? `<br>Email: ${email}` : ""}</p>
+
+  <footer>© ${year} ${orgName}. Все права защищены.</footer>
+</div>
+</body>
+</html>`;
+  }
+
   async function downloadHtml() {
     const res = await fetch(LANDING_API_URL, {
       method: "POST",
@@ -830,6 +926,16 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
     a.download = `${projectTitle || "landing"}.html`; a.click();
     URL.revokeObjectURL(a.href);
+    // Также скачиваем privacy.html если есть данные
+    if (privacyData.orgName || privacyData.domain) {
+      setTimeout(() => {
+        const privHtml = buildPrivacyHtml(privacyData);
+        const privBlob = new Blob([privHtml], { type: "text/html;charset=utf-8;" });
+        const b = document.createElement("a"); b.href = URL.createObjectURL(privBlob);
+        b.download = "privacy.html"; b.click();
+        URL.revokeObjectURL(b.href);
+      }, 500);
+    }
   }
 
   async function regenerateBlock(blockId: string) {
@@ -1091,6 +1197,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
               style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: showStyleEditor ? `1.5px solid ${PURPLE}` : "1.5px solid #E8ECF0", background: showStyleEditor ? PURPLE_LIGHT : "#fff", color: showStyleEditor ? PURPLE : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
               <Icon name="Palette" size={15} />Стиль
             </button>
+            <button onClick={() => setShowPrivacyEditor(v => !v)}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: showPrivacyEditor ? "1.5px solid #10b981" : "1.5px solid #E8ECF0", background: showPrivacyEditor ? "#ecfdf5" : "#fff", color: showPrivacyEditor ? "#059669" : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+              <Icon name="FileText" size={15} />Документы
+            </button>
             <button onClick={() => { setShowVersions(v => !v); if (!showVersions) loadVersions(); }}
               style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: showVersions ? `1.5px solid #f59e0b` : "1.5px solid #E8ECF0", background: showVersions ? "#fffbeb" : "#fff", color: showVersions ? "#d97706" : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
               <Icon name="History" size={15} />Версии
@@ -1107,6 +1217,47 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
               setSiteStyle(newStyle);
               setShowStyleEditor(false);
             }} />
+          )}
+
+          {/* Политика конфиденциальности */}
+          {showPrivacyEditor && (
+            <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8ECF0", padding: 18 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>Политика конфиденциальности</div>
+              <div style={{ fontSize: 12, color: "#888", marginBottom: 16 }}>Заполните данные — политика автоматически встроится в лендинг и будет доступна по ссылке /privacy при скачивании.</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {([
+                  { key: "orgName", label: "Название организации", placeholder: 'ИП Иванов Иван Иванович или ООО "Ромашка"' },
+                  { key: "inn", label: "ИНН", placeholder: "1234567890" },
+                  { key: "ogrn", label: "ОГРН / ОГРНИП", placeholder: "1234567890123" },
+                  { key: "address", label: "Юридический адрес", placeholder: "г. Москва, ул. Примерная, д. 1" },
+                  { key: "email", label: "Email для обращений", placeholder: "info@example.com" },
+                  { key: "domain", label: "Домен сайта", placeholder: "example.com" },
+                ] as { key: keyof PrivacyData; label: string; placeholder: string }[]).map(f => (
+                  <div key={f.key}>
+                    <div style={{ fontSize: 11, color: "#888", fontWeight: 600, marginBottom: 4 }}>{f.label.toUpperCase()}</div>
+                    <input
+                      value={privacyData[f.key]}
+                      onChange={e => setPrivacyData(prev => ({ ...prev, [f.key]: e.target.value }))}
+                      placeholder={f.placeholder}
+                      style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 13, fontFamily: "Montserrat,sans-serif", outline: "none", color: "#1a1a1a" }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  const html = buildPrivacyHtml(privacyData);
+                  const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
+                  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+                  a.download = "privacy.html"; a.click(); URL.revokeObjectURL(a.href);
+                }}
+                style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: "none", background: "#059669", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                <Icon name="Download" size={14} />Скачать privacy.html
+              </button>
+              <div style={{ marginTop: 10, fontSize: 11, color: "#94A3B8", lineHeight: 1.5 }}>
+                При скачивании лендинга файл privacy.html будет скачан автоматически вместе с ним. Разместите оба файла на хостинге рядом.
+              </div>
+            </div>
           )}
 
           {/* История версий */}

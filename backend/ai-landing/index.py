@@ -366,8 +366,13 @@ CSS требования:
           <div class="form-group"><label>Телефон *</label><input type="tel" placeholder="+7 (___) ___-__-__" required></div>
           <div class="form-group"><label>Услуга</label><select><option value="">Выберите услугу...</option><!-- по данным --></select></div>
           <div class="form-group"><label>Комментарий</label><textarea rows="3" placeholder="Пожелания, вопросы..."></textarea></div>
+          <div class="form-group form-checkbox-group">
+            <label class="form-checkbox-label">
+              <input type="checkbox" required>
+              <span>Я согласен(а) с <a href="/privacy" target="_blank" class="form-policy-link">политикой конфиденциальности</a> и обработкой персональных данных</span>
+            </label>
+          </div>
           <button type="submit" class="form-submit">Отправить заявку</button>
-          <p class="form-note">Нажимая кнопку, вы соглашаетесь с обработкой персональных данных</p>
         </form>
       </div>
     </div>
@@ -392,7 +397,10 @@ CSS требования:
 - input, select, textarea: width:100%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:13px 16px; color:#fff; font-size:15px; font-family:var(--font-body); outline:none; transition:border-color 0.2s; — focus: border-color:var(--c-accent); background:rgba(255,255,255,0.12)
 - select option: background:#1a2a3a; color:#fff;
 - .form-submit: width:100%; background:var(--c-accent); color:#fff; border:none; padding:16px; border-radius:12px; font-size:16px; font-weight:700; cursor:pointer; font-family:var(--font-body); transition:opacity 0.2s; — hover: opacity:0.85
-- .form-note: font-size:11px; opacity:0.4; text-align:center; margin-top:12px; line-height:1.5;
+- .form-checkbox-group: margin-bottom:16px;
+- .form-checkbox-label: display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size:13px; color:rgba(255,255,255,0.7); line-height:1.5;
+- .form-checkbox-label input[type=checkbox]: width:16px; height:16px; min-width:16px; margin-top:2px; accent-color:var(--c-accent); cursor:pointer;
+- .form-policy-link: color:var(--c-accent); text-decoration:underline; — hover: opacity:0.8
 - MOBILE: .contact-grid: grid-template-columns:1fr; gap:40px;
 
 Верни ТОЛЬКО HTML <section id="contact"> + <style data-block="contact">.""",
@@ -421,7 +429,7 @@ CSS требования:
     </div>
     <div class="footer-bottom">
       <span>© 2025 <!-- название -->. Все права защищены.</span>
-      <span class="footer-policy">Политика конфиденциальности</span>
+      <a href="/privacy" target="_blank" class="footer-policy">Политика конфиденциальности</a>
     </div>
   </div>
 </footer>
@@ -437,7 +445,7 @@ CSS требования:
 - .footer-contacts p: font-size:14px;
 - .footer-social: display:flex; gap:12px; margin-top:20px;
 - .footer-bottom: border-top:1px solid rgba(255,255,255,0.08); padding:20px 0; display:flex; justify-content:space-between; align-items:center; font-size:13px;
-- .footer-policy: color:rgba(255,255,255,0.4); cursor:pointer; — hover: color:#fff
+- .footer-policy: color:rgba(255,255,255,0.4); text-decoration:none; — hover: color:#fff
 - MOBILE: .footer-grid: grid-template-columns:1fr; gap:32px; — .footer-bottom: flex-direction:column; gap:8px; text-align:center
 
 Верни ТОЛЬКО HTML <footer>...</footer> + <style data-block="footer">.""",
