@@ -1518,11 +1518,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
           <Icon name="ArrowLeft" size={14} /> Мои лендинги
         </button>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{projectTitle}</div>
-        {landingType && (
-          <span style={{ fontSize: 11, fontWeight: 700, color: TEMPLATES.find(t=>t.id===landingType)?.color ?? ACCENT, background: TEMPLATES.find(t=>t.id===landingType)?.bg ?? ACCENT_LIGHT, padding: "3px 10px", borderRadius: 20 }}>
-            {TEMPLATES.find(t=>t.id===landingType)?.title ?? landingType}
-          </span>
-        )}
+
         <button onClick={() => setShowHelp(true)} title="Справка" style={{ width: 32, height: 32, borderRadius: 8, border: "1px solid #E2E8F0", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <Icon name="CircleHelp" size={16} style={{ color: "#8b5cf6" }} />
         </button>
