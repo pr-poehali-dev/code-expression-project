@@ -348,9 +348,69 @@ function StyleEditor({ style, onChange }: { style: LandingStyle; onChange: (s: L
   const fonts = ["Playfair Display", "Cormorant Garamond", "Raleway", "Merriweather", "Roboto Slab"];
   const bodyFonts = ["Montserrat", "Inter", "Open Sans", "Lato", "Nunito"];
 
+  const [aiInput, setAiInput] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiVariants, setAiVariants] = useState<Array<LandingStyle & { name: string }>>([]);
+
+  async function askAiStyle() {
+    if (!aiInput.trim() || aiLoading) return;
+    setAiLoading(true);
+    setAiVariants([]);
+    try {
+      const res = await fetch(AI_LANDING_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": localStorage.getItem("lk_session") || "" },
+        body: JSON.stringify({ mode: "edit-style", style, styleTask: aiInput }),
+        signal: AbortSignal.timeout(30_000),
+      });
+      const data = await res.json();
+      if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
+      if (data.variants?.length) setAiVariants(data.variants);
+    } catch (_e) {
+      // ignore
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   return (
     <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8ECF0", padding: 18 }}>
       <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 14 }}>Стиль сайта</div>
+
+      {/* ИИ-чат для стиля */}
+      <div style={{ marginBottom: 16, background: "hsl(270,70%,97%)", borderRadius: 10, padding: 12, border: "1px solid hsl(270,70%,88%)" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "hsl(270,60%,45%)", marginBottom: 8 }}>✨ СПРОСИ ИИ</div>
+        <div style={{ display: "flex", gap: 6 }}>
+          <input
+            value={aiInput}
+            onChange={e => setAiInput(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") askAiStyle(); }}
+            placeholder='Например: "сделай тёмный премиальный стиль"'
+            style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid hsl(270,70%,80%)", fontSize: 12, fontFamily: "Montserrat,sans-serif", outline: "none", background: "#fff", color: "#1a1a1a" }}
+          />
+          <button onClick={askAiStyle} disabled={aiLoading || !aiInput.trim()}
+            style={{ padding: "8px 14px", borderRadius: 8, border: "none", background: "hsl(270,70%,50%)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: aiLoading ? "wait" : "pointer", fontFamily: "Montserrat,sans-serif", opacity: aiLoading || !aiInput.trim() ? 0.6 : 1, whiteSpace: "nowrap" }}>
+            {aiLoading ? "..." : "Создать"}
+          </button>
+        </div>
+        {aiVariants.length > 0 && (
+          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+            {aiVariants.map((v, i) => (
+              <button key={i} onClick={() => { const { name: _n, ...s } = v; onChange(s as LandingStyle); setAiVariants([]); setAiInput(""); }}
+                style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 8, border: "1px solid hsl(270,70%,80%)", background: "#fff", cursor: "pointer", textAlign: "left", width: "100%" }}>
+                <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
+                  {(["dark", "primary", "accent"] as (keyof LandingStyle)[]).map(k => (
+                    <div key={k} style={{ width: 14, height: 14, borderRadius: 4, background: String(v[k]) }} />
+                  ))}
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#374151", flex: 1 }}>{v.name}</span>
+                <span style={{ fontSize: 11, color: "hsl(270,70%,50%)", fontWeight: 700 }}>Применить</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div style={{ marginBottom: 14 }}>
         <div style={{ fontSize: 11, color: "#888", marginBottom: 8, fontWeight: 600 }}>ЦВЕТА</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>

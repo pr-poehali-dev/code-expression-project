@@ -713,6 +713,69 @@ def handler(event: dict, context) -> dict:
             html_fragment = resp.choices[0].message.content or ""
             return ok({"html": html_fragment, "blockId": block_id, "mode": "edit-block"})
 
+        # ── EDIT-STYLE: изменить стиль сайта по запросу ─────────────────────
+        if mode == "edit-style":
+            current_style = body.get("style", {})
+            style_task = body.get("styleTask", "")
+            if not style_task:
+                return err("styleTask обязателен", 400)
+
+            energy_err = check_and_spend(conn, user, "landing_refine", 12, "Изменение стиля лендинга")
+            if energy_err:
+                return energy_err
+
+            system_style = f"""Ты — дизайнер интерфейсов. Пользователь хочет изменить стиль лендинга.
+
+Текущий стиль:
+{json.dumps(current_style, ensure_ascii=False)}
+
+На основе запроса пользователя предложи 3 варианта нового стиля. Верни ТОЛЬКО JSON без markdown:
+{{
+  "variants": [
+    {{
+      "name": "Название варианта (2-3 слова)",
+      "primary": "#HEX",
+      "accent": "#HEX",
+      "dark": "#HEX",
+      "light": "#HEX",
+      "text": "#HEX",
+      "headingFont": "Название шрифта Google Fonts",
+      "bodyFont": "Название шрифта Google Fonts"
+    }}
+  ]
+}}
+
+Правила:
+- Каждый вариант должен отличаться по настроению: например тёмный, светлый, яркий
+- primary — основной цвет бренда
+- accent — яркий акцент для кнопок
+- dark — тёмный фон (hero, footer)
+- light — очень светлый фон (#f8f9fa или похожий)
+- text — тёмный цвет текста
+- headingFont: Playfair Display, Cormorant Garamond, Raleway, Merriweather, Roboto Slab, Cinzel и т.д.
+- bodyFont: Montserrat, Inter, Open Sans, Lato, Nunito и т.д.
+Верни ТОЛЬКО JSON."""
+
+            resp = client.chat.completions.create(
+                model="openai/gpt-4.1-mini",
+                messages=[
+                    {"role": "system", "content": system_style},
+                    {"role": "user", "content": style_task}
+                ],
+                max_tokens=600, temperature=0.85,
+            )
+            raw = resp.choices[0].message.content or "{}"
+            if "```" in raw:
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            try:
+                result = json.loads(raw.strip())
+                variants = result.get("variants", [])
+            except Exception:
+                variants = []
+            return ok({"variants": variants, "mode": "edit-style"})
+
         # ── REFINE: доработка всего HTML (совместимость) ─────────────────────
         if mode == "refine":
             html = body.get("html", "")
