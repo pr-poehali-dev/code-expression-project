@@ -824,25 +824,39 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     const slotId = pendingPanelSlotIdRef.current || pendingPanelSlotId;
     if (!slotId) return;
     pendingPanelSlotIdRef.current = null;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const src = ev.target?.result as string;
-      if (!src) return;
-      // Патчим HTML блока напрямую через DOM-парсер — не зависит от editMode
-      setBlocks(prev => prev.map(block => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(block.html, "text/html");
-        const slot = doc.querySelector(`[data-photo-slot="${slotId}"]`);
-        if (!slot) return block;
-        slot.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;" />`;
-        slot.classList.add("has-photo");
-        (slot as HTMLElement).style.border = "none";
-        return { ...block, html: doc.body.innerHTML };
-      }));
-    };
-    reader.readAsDataURL(file);
     e.target.value = "";
     setPendingPanelSlotId(null);
+
+    // Сжимаем картинку до max 1200px чтобы не крашить мобильный браузер
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const raw = ev.target?.result as string;
+      if (!raw) return;
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 1200;
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const src = canvas.toDataURL("image/jpeg", 0.82);
+        setBlocks(prev => prev.map(block => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(block.html, "text/html");
+          const slot = doc.querySelector(`[data-photo-slot="${slotId}"]`);
+          if (!slot) return block;
+          slot.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;" />`;
+          slot.classList.add("has-photo");
+          (slot as HTMLElement).style.border = "none";
+          return { ...block, html: doc.body.innerHTML };
+        }));
+      };
+      img.src = raw;
+    };
+    reader.readAsDataURL(file);
   }
 
   function openPanelSlotPicker(slotId: string) {
