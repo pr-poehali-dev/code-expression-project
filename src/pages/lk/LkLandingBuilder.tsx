@@ -381,6 +381,108 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
   );
 }
 
+// ── База знаний ───────────────────────────────────────────────────────────────
+const HELP_SECTIONS = [
+  {
+    id: "create", icon: "Sparkles", color: "#8b5cf6", title: "Как создать лендинг",
+    steps: [
+      { icon: "LayoutTemplate", text: "Выберите шаблон — классический, продажник, портфолио и другие" },
+      { icon: "MessageCircle", text: "Ответьте на вопросы ИИ о вашем бизнесе: название, услуги, контакты" },
+      { icon: "Zap", text: "Нажмите «Создать» — ИИ сгенерирует все блоки автоматически" },
+      { icon: "Eye", text: "Просмотрите результат и при необходимости отредактируйте блоки" },
+    ],
+  },
+  {
+    id: "edit", icon: "Edit3", color: "#0ea5e9", title: "Как редактировать",
+    steps: [
+      { icon: "MousePointer", text: "Кликните на любой текст прямо в превью — он станет редактируемым" },
+      { icon: "RefreshCw", text: "Кнопка «↻» рядом с блоком — попросите ИИ переделать только этот блок" },
+      { icon: "Palette", text: "Вкладка «Стиль» — меняйте цвета и шрифты всего лендинга сразу" },
+      { icon: "Save", text: "Не забывайте нажимать «Сохранить» — изменения хранятся в вашем проекте" },
+    ],
+  },
+  {
+    id: "chat", icon: "MessageCircle", color: "#10b981", title: "Как общаться с ИИ",
+    steps: [
+      { icon: "Info", text: "Рассказывайте о бизнесе своими словами — ИИ сам разберётся и задаст нужные вопросы" },
+      { icon: "CheckCircle", text: "Когда данных достаточно, ИИ предложит «Создать лендинг» — соглашайтесь" },
+      { icon: "RotateCcw", text: "После генерации можно продолжить чат: «Сделай текст про скидку 20%»" },
+      { icon: "Lightbulb", text: "Совет: чем больше деталей вы дадите — тем точнее получится лендинг" },
+    ],
+  },
+  {
+    id: "photos", icon: "Image", color: "#f59e0b", title: "Как вставить фотографии",
+    steps: [
+      { icon: "MousePointer", text: "В лендинге есть серые заглушки-слоты — кликните на любую из них" },
+      { icon: "Upload", text: "Выберите фото с компьютера или телефона — оно сразу встанет на место" },
+      { icon: "Crop", text: "Фото автоматически обрезается под нужный размер блока" },
+      { icon: "Lightbulb", text: "Совет: используйте качественные фото — это сильно влияет на впечатление от сайта" },
+    ],
+  },
+  {
+    id: "publish", icon: "Globe", color: "#ef4444", title: "Как опубликовать",
+    steps: [
+      { icon: "Save", text: "Сохраните лендинг кнопкой «Сохранить» в шапке редактора" },
+      { icon: "ExternalLink", text: "Нажмите «Опубликовать» — сайт мгновенно становится доступен в интернете" },
+      { icon: "Link", text: "Вы получите ссылку вида yourbrand.poehali.site — её можно отправить клиентам" },
+      { icon: "Globe", text: "Хотите свой домен? Подключите через раздел «Домен» в настройках публикации" },
+    ],
+  },
+];
+
+function LandingHelp({ onClose }: { onClose: () => void }) {
+  const [activeSection, setActiveSection] = useState("create");
+  const section = HELP_SECTIONS.find(s => s.id === activeSection)!;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", alignItems: "flex-end", justifyContent: "center", background: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ width: "100%", maxWidth: 480, background: "#fff", borderRadius: "20px 20px 0 0", padding: "24px 20px 32px", maxHeight: "85vh", display: "flex", flexDirection: "column", gap: 20, overflowY: "auto" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "#0F172A" }}>База знаний</div>
+            <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>Как работать с конструктором лендингов</div>
+          </div>
+          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: "50%", border: "none", background: "#F1F5F9", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Icon name="X" size={16} style={{ color: "#64748B" }} />
+          </button>
+        </div>
+        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
+          {HELP_SECTIONS.map(s => (
+            <button key={s.id} onClick={() => setActiveSection(s.id)}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 20, border: `1.5px solid ${activeSection === s.id ? s.color : "#E2E8F0"}`, background: activeSection === s.id ? `${s.color}14` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap", transition: "all 0.15s" }}>
+              <Icon name={s.icon} size={13} style={{ color: activeSection === s.id ? s.color : "#94A3B8" }} />
+              <span style={{ fontSize: 12, fontWeight: activeSection === s.id ? 700 : 500, color: activeSection === s.id ? s.color : "#64748B" }}>{s.title}</span>
+            </button>
+          ))}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderRadius: 14, background: `${section.color}10`, border: `1.5px solid ${section.color}30` }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: section.color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Icon name={section.icon} size={18} style={{ color: "#fff" }} />
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>{section.title}</div>
+          </div>
+          {section.steps.map((step, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 14px", borderRadius: 12, background: "#F8FAFC", border: "1px solid #E8ECF0" }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: `${section.color}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                <Icon name={step.icon} size={14} style={{ color: section.color }} />
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: section.color, marginTop: 3, flexShrink: 0 }}>{i + 1}.</span>
+                <span style={{ fontSize: 13, color: "#334155", lineHeight: 1.55 }}>{step.text}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 10, padding: "12px 14px", borderRadius: 12, background: "#fffbeb", border: "1px solid #fcd34d" }}>
+          <Icon name="Lightbulb" size={16} style={{ color: "#d97706", flexShrink: 0, marginTop: 1 }} />
+          <span style={{ fontSize: 12, color: "#92400e", lineHeight: 1.55 }}>Если что-то пошло не так — напишите в чат ИИ: «Переделай» или «Измени текст на ...» и ИИ поправит нужный блок.</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Генератор изображений в редакторе ─────────────────────────────────────────
 const AI_IMAGE_URL = "https://functions.poehali.dev/4b0ee2e5-a98e-40b8-bb9a-8a11d39d6e5a";
 const IMG_ASPECTS = [
