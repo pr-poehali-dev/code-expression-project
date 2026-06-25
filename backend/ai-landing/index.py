@@ -743,7 +743,7 @@ def handler(event: dict, context) -> dict:
                 return energy_err
             system = CHAT_PROMPTS.get(landing_type, CHAT_PROMPTS["classic"])
             resp = client.chat.completions.create(
-                model="openai/gpt-4.1-mini",
+                model="openai/gpt-4.1",
                 messages=[{"role": "system", "content": system}] + messages,
                 max_tokens=700, temperature=0.7,
             )
@@ -756,7 +756,7 @@ def handler(event: dict, context) -> dict:
                 return energy_err
             context_text = "\n".join([f"{m['role']}: {m['content']}" for m in messages[-10:]])
             resp = client.chat.completions.create(
-                model="openai/gpt-4.1-mini",
+                model="openai/gpt-4.1",
                 messages=[
                     {"role": "system", "content": SYSTEM_GEN_STYLE},
                     {"role": "user", "content": f"Данные о бизнесе:\n{context_text}"}
@@ -945,7 +945,7 @@ CSS-переменные сайта (используй их, не хардко�
 Отвечай по-русски, коротко и дружелюбно."""
 
             resp = client.chat.completions.create(
-                model="openai/gpt-4.1-mini",
+                model="openai/gpt-4.1",
                 messages=[{"role": "system", "content": subpage_chat_system}] + chat_messages,
                 max_tokens=500, temperature=0.7,
             )
@@ -995,7 +995,7 @@ CSS-переменные сайта (используй их, не хардко�
 Верни ТОЛЬКО JSON."""
 
             resp = client.chat.completions.create(
-                model="openai/gpt-4.1-mini",
+                model="openai/gpt-4.1",
                 messages=[
                     {"role": "system", "content": system_style},
                     {"role": "user", "content": style_task}
@@ -1024,7 +1024,7 @@ CSS-переменные сайта (используй их, не хардко�
             if energy_err:
                 return energy_err
             resp = client.chat.completions.create(
-                model="openai/gpt-4.1-mini",
+                model="openai/gpt-4.1",
                 messages=[
                     {"role": "system", "content": "Ты — профессиональный верстальщик. Выполни конкретное изменение в HTML-лендинге. Верни ТОЛЬКО полный HTML без markdown. Начинай с <!DOCTYPE html>."},
                     {"role": "user", "content": f"HTML:\n{html}\n\nЧто изменить: {refine_task}"}
