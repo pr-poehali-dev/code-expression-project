@@ -54,13 +54,20 @@ const EDITOR_SCRIPT = `<script>
   style.textContent = \`
     [contenteditable]:hover { outline: 2px dashed #0ea5e9 !important; outline-offset: 2px !important; cursor: text !important; }
     [contenteditable]:focus { outline: 2px solid #0ea5e9 !important; outline-offset: 2px !important; background: rgba(14,165,233,0.04) !important; }
-    img.edit-img:hover { outline: 3px solid #f59e0b !important; outline-offset: 2px !important; cursor: pointer !important; }
-    [data-photo-slot]:hover { outline: 3px solid #f59e0b !important; outline-offset: 0 !important; cursor: pointer !important; }
-    [data-photo-slot] { position: relative !important; }
-    [data-photo-slot]::after { content: '📷 Загрузить фото'; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; padding: 4px 10px; border-radius: 20px; pointer-events: none; white-space: nowrap; opacity: 0; transition: opacity 0.2s; }
+    [data-photo-slot] { position: relative !important; cursor: pointer !important; }
+    [data-photo-slot]:hover { outline: 3px solid #f59e0b !important; outline-offset: 0 !important; }
+    [data-photo-slot]::after { content: '📷 Загрузить фото'; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.65); color: #fff; font-size: 12px; padding: 5px 12px; border-radius: 20px; pointer-events: none; white-space: nowrap; opacity: 0; transition: opacity 0.2s; z-index: 10; }
     [data-photo-slot]:hover::after { opacity: 1 !important; }
+    [data-photo-slot].has-photo::after { content: '✏️ Изменить фото'; }
+    .lnd-img-menu { position: absolute; z-index: 999; background: #1e293b; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.35); padding: 6px; display: flex; flex-direction: column; gap: 2px; min-width: 160px; }
+    .lnd-img-menu button { background: none; border: none; color: #f1f5f9; font-size: 13px; font-weight: 500; padding: 9px 14px; border-radius: 8px; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 8px; }
+    .lnd-img-menu button:hover { background: rgba(255,255,255,0.1); }
+    .lnd-img-menu button.danger { color: #f87171; }
+    .lnd-img-menu button.danger:hover { background: rgba(248,113,113,0.12); }
   \`;
   document.head.appendChild(style);
+
+  // contenteditable для текста
   var tags = ['h1','h2','h3','h4','p','span','li','button','label','td'];
   tags.forEach(function(tag) {
     document.querySelectorAll(tag).forEach(function(el) {
@@ -70,40 +77,75 @@ const EDITOR_SCRIPT = `<script>
       }
     });
   });
-  // Клики по photo-slot
+
+  // Всплывающее меню для фото
+  var activeMenu = null;
+  function closeMenu() {
+    if (activeMenu) { activeMenu.remove(); activeMenu = null; }
+  }
+  document.addEventListener('click', function(e) {
+    if (activeMenu && !activeMenu.contains(e.target)) closeMenu();
+  });
+
+  function showImgMenu(x, y, onReplace, onDelete) {
+    closeMenu();
+    var menu = document.createElement('div');
+    menu.className = 'lnd-img-menu';
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+    var btnReplace = document.createElement('button');
+    btnReplace.innerHTML = '🔄 Заменить фото';
+    btnReplace.onclick = function(e) { e.stopPropagation(); closeMenu(); onReplace(); };
+    var btnDelete = document.createElement('button');
+    btnDelete.className = 'danger';
+    btnDelete.innerHTML = '🗑️ Удалить фото';
+    btnDelete.onclick = function(e) { e.stopPropagation(); closeMenu(); onDelete(); };
+    menu.appendChild(btnReplace);
+    menu.appendChild(btnDelete);
+    document.body.appendChild(menu);
+    activeMenu = menu;
+    // Поправить позицию если выходит за край
+    var rect = menu.getBoundingClientRect();
+    if (rect.right > window.innerWidth - 10) menu.style.left = (window.innerWidth - rect.width - 10) + 'px';
+    if (rect.bottom > window.innerHeight - 10) menu.style.top = (y - rect.height - 8) + 'px';
+  }
+
+  // Обработка photo-slot
   document.querySelectorAll('[data-photo-slot]').forEach(function(slot) {
+    var slotId = slot.dataset.photoSlot;
     slot.addEventListener('click', function(e) {
       e.preventDefault(); e.stopPropagation();
-      window.parent.postMessage({ type: 'landing-slot-click', slotId: slot.dataset.photoSlot }, '*');
+      var hasPhoto = slot.classList.contains('has-photo');
+      if (hasPhoto) {
+        showImgMenu(e.clientX + window.scrollX, e.clientY + window.scrollY,
+          function() { window.parent.postMessage({ type: 'landing-slot-click', slotId: slotId }, '*'); },
+          function() {
+            slot.innerHTML = slot.dataset.placeholder || '<div class="photo-placeholder" style="text-align:center;color:#94a3b8;padding:20px;"><svg width=32 height=32 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><div style="margin-top:8px;font-size:13px">Нажмите, чтобы загрузить фото</div></div>';
+            slot.classList.remove('has-photo');
+            slot.style.cssText = '';
+            sendHtml();
+          }
+        );
+      } else {
+        window.parent.postMessage({ type: 'landing-slot-click', slotId: slotId }, '*');
+      }
     });
   });
-  // Клики по уже загруженным img (для замены)
-  var imgIdx = 0;
-  document.querySelectorAll('img:not([data-photo-slot] img)').forEach(function(img) {
-    img.classList.add('edit-img');
-    img.dataset.imgIdx = String(imgIdx++);
-    img.addEventListener('click', function(e) {
-      e.preventDefault(); e.stopPropagation();
-      window.parent.postMessage({ type: 'landing-img-click', idx: img.dataset.imgIdx }, '*');
-    });
-  });
+
   window.addEventListener('message', function(e) {
-    if (e.data && e.data.type === 'landing-img-replace') {
-      document.querySelectorAll('img[data-img-idx]').forEach(function(img) {
-        if (img.dataset.imgIdx === String(e.data.idx)) { img.src = e.data.src; img.removeAttribute('srcset'); }
-      });
-      sendHtml();
-    }
     if (e.data && e.data.type === 'landing-slot-replace') {
       var slot = document.querySelector('[data-photo-slot="' + e.data.slotId + '"]');
       if (slot) {
+        slot.dataset.placeholder = slot.innerHTML;
         slot.innerHTML = '<img src="' + e.data.src + '" style="width:100%;height:100%;object-fit:cover;display:block;" />';
+        slot.classList.add('has-photo');
         slot.style.border = 'none';
-        slot.style.cursor = 'default';
+        slot.style.outline = 'none';
       }
       sendHtml();
     }
   });
+
   function sendHtml() {
     window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
   }
