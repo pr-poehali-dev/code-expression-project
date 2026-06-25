@@ -1261,7 +1261,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
               <button
                 onClick={() => {
                   const privBody = buildPrivacyBody(privacyData);
-                  const url = window.URL.createObjectURL(new Blob([`<!DOCTYPE html><html><body>${privBody}</body></html>`], { type: "text/html" }));
+                  const url = window.URL.createObjectURL(new Blob([`<!DOCTYPE html><html><head><meta charset="UTF-8"/></head><body>${privBody}</body></html>`], { type: "text/html;charset=utf-8" }));
                   window.open(url, "_blank");
                 }}
                 style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: "1px solid #059669", background: "#fff", color: "#059669", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
