@@ -180,7 +180,7 @@ const EDITOR_SCRIPT = `<script>
 })();
 </script>`;
 
-function buildFullHtml(blocks: LandingBlock[], style: LandingStyle): string {
+function buildFullHtml(blocks: LandingBlock[], style: LandingStyle, privacyHtmlBody?: string): string {
   const hf = `${style.headingFont}, serif`;
   const bf = `${style.bodyFont}, sans-serif`;
   const gfonts = encodeURIComponent(`${style.headingFont}:wght@700&family=${style.bodyFont}:wght@400;600`);
@@ -194,6 +194,35 @@ h1,h2,h3,h4{font-family:var(--font-heading);}
 @import url('https://fonts.googleapis.com/css2?family=${gfonts}&display=swap');
 </style>`;
   const htmlParts = blocks.map(b => `<div data-block-id="${b.id}">${b.html}</div>`).join("\n");
+
+  const privacySection = privacyHtmlBody ? `
+<div id="page-privacy" style="display:none">
+${privacyHtmlBody}
+</div>` : "";
+
+  const router = privacyHtmlBody ? `<script>
+(function(){
+  var landing = document.getElementById('page-landing');
+  var privacy = document.getElementById('page-privacy');
+  function route(){
+    var hash = location.hash;
+    if(hash === '#privacy' || hash === '#/privacy'){
+      landing.style.display='none'; privacy.style.display='block';
+      window.scrollTo(0,0);
+    } else {
+      landing.style.display='block'; privacy.style.display='none';
+    }
+  }
+  window.addEventListener('hashchange', route);
+  route();
+  // Перехватываем клики на /privacy ссылки
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('a[href="/privacy"]');
+    if(a){ e.preventDefault(); location.hash='#privacy'; }
+  });
+})();
+</script>` : "";
+
   return `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -203,7 +232,10 @@ h1,h2,h3,h4{font-family:var(--font-heading);}
 ${root}
 </head>
 <body>
+<div id="page-landing">
 ${htmlParts}
+</div>${privacySection}
+${router}
 </body>
 </html>`;
 }
@@ -831,7 +863,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     return "";
   }
 
-  function buildPrivacyHtml(pd: PrivacyData): string {
+  function buildPrivacyBody(pd: PrivacyData): string {
     const domain = pd.domain || "example.com";
     const orgName = pd.orgName || "Организация";
     const inn = pd.inn ? `ИНН: ${pd.inn}` : "";
@@ -839,28 +871,21 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     const address = pd.address || "";
     const email = pd.email || "";
     const year = new Date().getFullYear();
-    return `<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Политика конфиденциальности — ${domain}</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Arial,sans-serif;color:#2c3e50;background:#f8f9fa;line-height:1.7;}
-.wrap{max-width:800px;margin:0 auto;padding:40px 24px;}
-h1{font-size:28px;font-weight:700;margin-bottom:8px;color:#1a1a2e;}
-.meta{font-size:13px;color:#888;margin-bottom:40px;}
-h2{font-size:18px;font-weight:700;margin:32px 0 12px;color:#1a1a2e;}
-p,li{font-size:15px;color:#444;margin-bottom:10px;}
-ul{padding-left:20px;margin-bottom:10px;}
-.back{display:inline-block;margin-bottom:32px;color:#0ea5e9;text-decoration:none;font-size:14px;font-weight:600;}
-.back:hover{text-decoration:underline;}
-footer{margin-top:48px;padding-top:20px;border-top:1px solid #e2e8f0;font-size:13px;color:#aaa;text-align:center;}
+    return `<style>
+#page-privacy *{box-sizing:border-box;}
+#page-privacy{font-family:Arial,sans-serif;color:#2c3e50;background:#f8f9fa;line-height:1.7;min-height:100vh;}
+#page-privacy .priv-wrap{max-width:800px;margin:0 auto;padding:40px 24px;}
+#page-privacy h1{font-size:28px;font-weight:700;margin-bottom:8px;color:#1a1a2e;}
+#page-privacy .meta{font-size:13px;color:#888;margin-bottom:40px;}
+#page-privacy h2{font-size:18px;font-weight:700;margin:32px 0 12px;color:#1a1a2e;}
+#page-privacy p,#page-privacy li{font-size:15px;color:#444;margin-bottom:10px;}
+#page-privacy ul{padding-left:20px;margin-bottom:10px;}
+#page-privacy .back{display:inline-block;margin-bottom:32px;color:#0ea5e9;text-decoration:none;font-size:14px;font-weight:600;}
+#page-privacy .back:hover{text-decoration:underline;}
+#page-privacy footer{margin-top:48px;padding-top:20px;border-top:1px solid #e2e8f0;font-size:13px;color:#aaa;text-align:center;}
 </style>
-</head>
-<body>
-<div class="wrap">
+<div class="priv-wrap">
+  <a class="back" href="#" onclick="history.back();return false;">← Вернуться на сайт</a>
   <a class="back" href="/">← Вернуться на сайт</a>
   <h1>Политика конфиденциальности</h1>
   <p class="meta">Сайт: ${domain} &nbsp;|&nbsp; Последнее обновление: ${year} г.</p>
@@ -908,9 +933,7 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid #e2e8f0;font-size:1
   <p>${orgName}${address ? `<br>${address}` : ""}${email ? `<br>Email: ${email}` : ""}</p>
 
   <footer>© ${year} ${orgName}. Все права защищены.</footer>
-</div>
-</body>
-</html>`;
+</div>`;
   }
 
   async function downloadHtml() {
@@ -921,21 +944,12 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid #e2e8f0;font-size:1
     });
     if (res.status === 402) { const d = await res.json(); showEnergyGate({ message: d.error }); return; }
     if (!res.ok) return;
-    const html = buildFullHtml(blocks, siteStyle);
+    const privBody = (privacyData.orgName || privacyData.domain) ? buildPrivacyBody(privacyData) : undefined;
+    const html = buildFullHtml(blocks, siteStyle, privBody);
     const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
     a.download = `${projectTitle || "landing"}.html`; a.click();
     URL.revokeObjectURL(a.href);
-    // Также скачиваем privacy.html если есть данные
-    if (privacyData.orgName || privacyData.domain) {
-      setTimeout(() => {
-        const privHtml = buildPrivacyHtml(privacyData);
-        const privBlob = new Blob([privHtml], { type: "text/html;charset=utf-8;" });
-        const b = document.createElement("a"); b.href = URL.createObjectURL(privBlob);
-        b.download = "privacy.html"; b.click();
-        URL.revokeObjectURL(b.href);
-      }, 500);
-    }
   }
 
   async function regenerateBlock(blockId: string) {
@@ -1246,16 +1260,15 @@ footer{margin-top:48px;padding-top:20px;border-top:1px solid #e2e8f0;font-size:1
               </div>
               <button
                 onClick={() => {
-                  const html = buildPrivacyHtml(privacyData);
-                  const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
-                  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-                  a.download = "privacy.html"; a.click(); URL.revokeObjectURL(a.href);
+                  const privBody = buildPrivacyBody(privacyData);
+                  const url = window.URL.createObjectURL(new Blob([`<!DOCTYPE html><html><body>${privBody}</body></html>`], { type: "text/html" }));
+                  window.open(url, "_blank");
                 }}
-                style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: "none", background: "#059669", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
-                <Icon name="Download" size={14} />Скачать privacy.html
+                style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: "1px solid #059669", background: "#fff", color: "#059669", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                <Icon name="Eye" size={14} />Предпросмотр политики
               </button>
-              <div style={{ marginTop: 10, fontSize: 11, color: "#94A3B8", lineHeight: 1.5 }}>
-                При скачивании лендинга файл privacy.html будет скачан автоматически вместе с ним. Разместите оба файла на хостинге рядом.
+              <div style={{ marginTop: 10, padding: "10px 12px", background: "#ecfdf5", borderRadius: 8, fontSize: 12, color: "#059669", lineHeight: 1.6 }}>
+                Политика встраивается прямо в лендинг — всё в одном файле. При скачивании получите один HTML-файл с обеими страницами внутри.
               </div>
             </div>
           )}
