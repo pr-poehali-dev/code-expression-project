@@ -443,6 +443,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const slotFileInputRef = useRef<HTMLInputElement>(null);
   const panelSlotFileInputRef = useRef<HTMLInputElement>(null);
   const [pendingPanelSlotId, setPendingPanelSlotId] = useState<string | null>(null);
+  const pendingPanelSlotIdRef = useRef<string | null>(null);
   const [photoPickerOpen, setPhotoPickerOpen] = useState(false);
 
   // Персист
@@ -820,8 +821,9 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   function handlePanelSlotFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const slotId = pendingPanelSlotId;
+    const slotId = pendingPanelSlotIdRef.current || pendingPanelSlotId;
     if (!slotId) return;
+    pendingPanelSlotIdRef.current = null;
     const reader = new FileReader();
     reader.onload = ev => {
       const src = ev.target?.result as string;
@@ -844,8 +846,9 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   }
 
   function openPanelSlotPicker(slotId: string) {
+    pendingPanelSlotIdRef.current = slotId;
     setPendingPanelSlotId(slotId);
-    setTimeout(() => panelSlotFileInputRef.current?.click(), 0);
+    panelSlotFileInputRef.current?.click();
   }
 
   const isReadyToGenerate = messages.length >= 4 && phase === "chat";
