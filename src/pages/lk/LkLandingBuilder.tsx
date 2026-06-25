@@ -824,7 +824,19 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     if (!slotId) return;
     const reader = new FileReader();
     reader.onload = ev => {
-      iframeRef.current?.contentWindow?.postMessage({ type: "landing-slot-replace", slotId, src: ev.target?.result }, "*");
+      const src = ev.target?.result as string;
+      if (!src) return;
+      // Патчим HTML блока напрямую через DOM-парсер — не зависит от editMode
+      setBlocks(prev => prev.map(block => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(block.html, "text/html");
+        const slot = doc.querySelector(`[data-photo-slot="${slotId}"]`);
+        if (!slot) return block;
+        slot.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;" />`;
+        slot.classList.add("has-photo");
+        (slot as HTMLElement).style.border = "none";
+        return { ...block, html: doc.body.innerHTML };
+      }));
     };
     reader.readAsDataURL(file);
     e.target.value = "";
