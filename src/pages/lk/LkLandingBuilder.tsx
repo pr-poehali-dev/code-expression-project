@@ -105,7 +105,7 @@ h1,h2,h3,h4{font-family:var(--font-heading);}
 .container{max-width:1200px;margin:0 auto;padding:0 20px;}
 @import url('https://fonts.googleapis.com/css2?family=${gfonts}&display=swap');
 </style>`;
-  const htmlParts = blocks.map(b => b.html).join("\n");
+  const htmlParts = blocks.map(b => `<div data-block-id="${b.id}">${b.html}</div>`).join("\n");
   return `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -401,12 +401,11 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
 
   const handleIframeMessage = useCallback((e: MessageEvent) => {
     if (e.data?.type === "landing-html-update") {
-      // Парсим html и обновляем блоки
       const parser = new DOMParser();
       const doc = parser.parseFromString(e.data.html, "text/html");
       setBlocks(prev => prev.map(b => {
-        const el = doc.querySelector(`[data-block-id="${b.id}"]`);
-        if (el) return { ...b, html: el.outerHTML };
+        const wrapper = doc.querySelector(`[data-block-id="${b.id}"]`);
+        if (wrapper) return { ...b, html: wrapper.innerHTML };
         return b;
       }));
     }
