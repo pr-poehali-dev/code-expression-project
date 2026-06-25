@@ -349,13 +349,18 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = ACCENT; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E8ECF0"; }}
                 >
-                  <div style={{ width: 42, height: 42, borderRadius: 10, background: p.landing_type === "premium" ? ACCENT_LIGHT : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <Icon name={p.landing_type === "premium" ? "Sparkles" : "FileText"} size={20} style={{ color: p.landing_type === "premium" ? ACCENT : "#64748B" }} />
-                  </div>
+                  {(() => {
+                    const tpl = TEMPLATES.find(t => t.id === p.landing_type);
+                    return (
+                      <div style={{ width: 42, height: 42, borderRadius: 10, background: tpl ? tpl.bg : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: `1.5px solid ${tpl ? tpl.border : "#E8ECF0"}` }}>
+                        <Icon name={tpl ? tpl.icon : "FileText"} size={20} style={{ color: tpl ? tpl.color : "#64748B" }} />
+                      </div>
+                    );
+                  })()}
                   <button onClick={() => onOpen(p)} style={{ flex: 1, minWidth: 0, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0, fontFamily: "Montserrat,sans-serif" }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title}</div>
                     <div style={{ fontSize: 12, color: "#888" }}>
-                      {p.landing_type === "premium" ? "Премиум" : "Стандартный"} · {formatDate(p.updated_at)}
+                      {(() => { const tpl = TEMPLATES.find(t => t.id === p.landing_type); return tpl ? tpl.title : (p.landing_type || "Лендинг"); })()}  · {formatDate(p.updated_at)}
                     </div>
                   </button>
                   <button onClick={() => onOpen(p)}
