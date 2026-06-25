@@ -699,6 +699,30 @@ def check_and_spend(conn, user, tool_key, default_cost, action_name):
     return None
 
 
+def refund_energy(conn, user, tool_key, default_cost, action_name):
+    """Возвращает энергию если ИИ-провайдер вернул ошибку (503 и т.п.)"""
+    salon_id = user.get("salon_id")
+    if not salon_id:
+        return
+    with conn.cursor() as cur:
+        cur.execute(f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key = %s", (tool_key,))
+        row = cur.fetchone()
+        cost = row[0] if row else default_cost
+        cur.execute(f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance + %s WHERE id = %s", (cost, salon_id))
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
+            f"VALUES (%s, %s, %s, %s, %s, 'credit')",
+            (salon_id, user["id"], f"Возврат: {action_name} (сбой сервиса)", cost, tool_key)
+        )
+    conn.commit()
+
+
+def is_provider_error(e: Exception) -> bool:
+    """503/502 от провайдера — временный сбой, нужен возврат"""
+    msg = str(e)
+    return "503" in msg or "502" in msg or "SERVICE_UNAVAILABLE" in msg or "temporarily" in msg.lower()
+
+
 def hex_to_rgb(h):
     h = h.lstrip("#")
     try:
@@ -742,11 +766,17 @@ def handler(event: dict, context) -> dict:
             if energy_err:
                 return energy_err
             system = CHAT_PROMPTS.get(landing_type, CHAT_PROMPTS["classic"])
-            resp = client.chat.completions.create(
-                model="openai/gpt-4.1",
-                messages=[{"role": "system", "content": system}] + messages,
-                max_tokens=700, temperature=0.7,
-            )
+            try:
+                resp = client.chat.completions.create(
+                    model="openai/gpt-4.1",
+                    messages=[{"role": "system", "content": system}] + messages,
+                    max_tokens=700, temperature=0.7,
+                )
+            except Exception as e:
+                if is_provider_error(e):
+                    refund_energy(conn, user, "landing_chat", 4, "Сообщение в чате конструктора лендингов")
+                    return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+                raise
             return ok({"reply": resp.choices[0].message.content or "", "mode": "chat"})
 
         # ── GEN-STYLE: генерация CSS-темы ────────────────────────────────────
@@ -755,14 +785,20 @@ def handler(event: dict, context) -> dict:
             if energy_err:
                 return energy_err
             context_text = "\n".join([f"{m['role']}: {m['content']}" for m in messages[-10:]])
-            resp = client.chat.completions.create(
-                model="openai/gpt-4.1",
-                messages=[
-                    {"role": "system", "content": SYSTEM_GEN_STYLE},
-                    {"role": "user", "content": f"Данные о бизнесе:\n{context_text}"}
-                ],
-                max_tokens=300, temperature=0.8,
-            )
+            try:
+                resp = client.chat.completions.create(
+                    model="openai/gpt-4.1",
+                    messages=[
+                        {"role": "system", "content": SYSTEM_GEN_STYLE},
+                        {"role": "user", "content": f"Данные о бизнесе:\n{context_text}"}
+                    ],
+                    max_tokens=300, temperature=0.8,
+                )
+            except Exception as e:
+                if is_provider_error(e):
+                    refund_energy(conn, user, "landing_generate", 16, "Генерация стиля лендинга")
+                    return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+                raise
             raw = resp.choices[0].message.content or "{}"
             # Извлекаем JSON если обёрнут в markdown
             if "```" in raw:
@@ -807,14 +843,20 @@ def handler(event: dict, context) -> dict:
             )
             block_prompt = safe_format(BLOCK_PROMPTS[block_id], dark_rgb=dark_rgb)
 
-            resp = client.chat.completions.create(
-                model="openai/gpt-4.1",
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": block_prompt}
-                ],
-                max_tokens=3500, temperature=0.65,
-            )
+            try:
+                resp = client.chat.completions.create(
+                    model="openai/gpt-4.1",
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": block_prompt}
+                    ],
+                    max_tokens=3500, temperature=0.65,
+                )
+            except Exception as e:
+                if is_provider_error(e):
+                    refund_energy(conn, user, "landing_generate", 20, f"Генерация блока {block_id}")
+                    return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+                raise
             html_fragment = resp.choices[0].message.content or ""
             # Убираем markdown если модель всё-таки обернула
             if html_fragment.startswith("```"):
@@ -845,14 +887,20 @@ def handler(event: dict, context) -> dict:
                 heading_font=style.get("headingFont", "Playfair Display"),
                 body_font=style.get("bodyFont", "Montserrat"),
             )
-            resp = client.chat.completions.create(
-                model="openai/gpt-4.1",
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": f"Измени этот блок: {edit_task}"}
-                ],
-                max_tokens=3500, temperature=0.65,
-            )
+            try:
+                resp = client.chat.completions.create(
+                    model="openai/gpt-4.1",
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": f"Измени этот блок: {edit_task}"}
+                    ],
+                    max_tokens=3500, temperature=0.65,
+                )
+            except Exception as e:
+                if is_provider_error(e):
+                    refund_energy(conn, user, "landing_refine", 24, f"Редактирование блока {block_id}")
+                    return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+                raise
             html_fragment = resp.choices[0].message.content or ""
             return ok({"html": html_fragment, "blockId": block_id, "mode": "edit-block"})
 
@@ -909,14 +957,20 @@ CSS-переменные сайта (используй их, не хардко�
 
 Верни ТОЛЬКО готовый HTML-фрагмент <style data-subpage="{service_slug}">...</style><div id="sp-{service_slug}">...</div>"""
 
-            resp = client.chat.completions.create(
-                model="openai/gpt-4.1",
-                messages=[
-                    {"role": "system", "content": subpage_system},
-                    {"role": "user", "content": f"Сгенерируй подстраницу для услуги: {service_name}"}
-                ],
-                max_tokens=4000, temperature=0.65,
-            )
+            try:
+                resp = client.chat.completions.create(
+                    model="openai/gpt-4.1",
+                    messages=[
+                        {"role": "system", "content": subpage_system},
+                        {"role": "user", "content": f"Сгенерируй подстраницу для услуги: {service_name}"}
+                    ],
+                    max_tokens=4000, temperature=0.65,
+                )
+            except Exception as e:
+                if is_provider_error(e):
+                    refund_energy(conn, user, "landing_generate", 24, f"Генерация подстраницы: {service_name}")
+                    return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+                raise
             html_fragment = resp.choices[0].message.content or ""
             if html_fragment.startswith("```"):
                 lines = html_fragment.split("\n")
@@ -944,11 +998,17 @@ CSS-переменные сайта (используй их, не хардко�
 Когда получишь ответы на все 5 пунктов — ответь ТОЛЬКО фразой: "Отлично, данных достаточно! Создать страницу?" и жди подтверждения.
 Отвечай по-русски, коротко и дружелюбно."""
 
-            resp = client.chat.completions.create(
-                model="openai/gpt-4.1",
-                messages=[{"role": "system", "content": subpage_chat_system}] + chat_messages,
-                max_tokens=500, temperature=0.7,
-            )
+            try:
+                resp = client.chat.completions.create(
+                    model="openai/gpt-4.1",
+                    messages=[{"role": "system", "content": subpage_chat_system}] + chat_messages,
+                    max_tokens=500, temperature=0.7,
+                )
+            except Exception as e:
+                if is_provider_error(e):
+                    refund_energy(conn, user, "landing_chat", 4, f"Чат подстраницы: {service_name}")
+                    return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+                raise
             return ok({"reply": resp.choices[0].message.content or "", "mode": "subpage-chat"})
 
         # ── EDIT-STYLE: изменить стиль сайта по запросу ─────────────────────
@@ -994,14 +1054,20 @@ CSS-переменные сайта (используй их, не хардко�
 - bodyFont: Montserrat, Inter, Open Sans, Lato, Nunito и т.д.
 Верни ТОЛЬКО JSON."""
 
-            resp = client.chat.completions.create(
-                model="openai/gpt-4.1",
-                messages=[
-                    {"role": "system", "content": system_style},
-                    {"role": "user", "content": style_task}
-                ],
-                max_tokens=600, temperature=0.85,
-            )
+            try:
+                resp = client.chat.completions.create(
+                    model="openai/gpt-4.1",
+                    messages=[
+                        {"role": "system", "content": system_style},
+                        {"role": "user", "content": style_task}
+                    ],
+                    max_tokens=600, temperature=0.85,
+                )
+            except Exception as e:
+                if is_provider_error(e):
+                    refund_energy(conn, user, "landing_refine", 12, "Изменение стиля лендинга")
+                    return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+                raise
             raw = resp.choices[0].message.content or "{}"
             if "```" in raw:
                 raw = raw.split("```")[1]
