@@ -1099,7 +1099,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                         <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", marginBottom: 8 }}>ФОТО БЛОКА</div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                           {BLOCK_PHOTO_SLOTS[block.id].map(slot => (
-                            <button key={slot.id} onClick={() => openPanelSlotPicker(slot.id)} style={{
+                            <button key={slot.id} onClick={e => { e.stopPropagation(); openPanelSlotPicker(slot.id); }} style={{
                               display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
                               borderRadius: 8, border: "1.5px dashed #fbbf24", background: "#fff",
                               cursor: "pointer", transition: "border-color 0.15s", width: "100%", textAlign: "left",
