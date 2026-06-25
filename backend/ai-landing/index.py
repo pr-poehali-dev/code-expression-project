@@ -397,10 +397,11 @@ CSS требования:
 - input, select, textarea: width:100%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:13px 16px; color:#fff; font-size:15px; font-family:var(--font-body); outline:none; transition:border-color 0.2s; — focus: border-color:var(--c-accent); background:rgba(255,255,255,0.12)
 - select option: background:#1a2a3a; color:#fff;
 - .form-submit: width:100%; background:var(--c-accent); color:#fff; border:none; padding:16px; border-radius:12px; font-size:16px; font-weight:700; cursor:pointer; font-family:var(--font-body); transition:opacity 0.2s; — hover: opacity:0.85
-- .form-checkbox-group: margin-bottom:16px;
-- .form-checkbox-label: display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size:13px; color:rgba(255,255,255,0.7); line-height:1.5;
-- .form-checkbox-label input[type=checkbox]: width:16px; height:16px; min-width:16px; margin-top:2px; accent-color:var(--c-accent); cursor:pointer;
-- .form-policy-link: color:var(--c-accent); text-decoration:underline; — hover: opacity:0.8
+- КРИТИЧЕСКИ ВАЖНО — чекбокс согласия (обязателен в каждой форме!):
+  .form-checkbox-group: margin-bottom:16px;
+  .form-checkbox-label: display:flex !important; flex-direction:row !important; align-items:flex-start !important; gap:10px !important; cursor:pointer; font-size:13px; color:rgba(255,255,255,0.75); line-height:1.5; text-transform:none !important; letter-spacing:0 !important; opacity:1 !important; font-weight:400 !important; margin-bottom:0 !important;
+  .form-checkbox-label input[type=checkbox]: width:18px; height:18px; min-width:18px; margin-top:2px; flex-shrink:0; accent-color:var(--c-accent); cursor:pointer; background:transparent;
+  .form-policy-link: color:var(--c-accent); text-decoration:underline; — hover: opacity:0.8
 - MOBILE: .contact-grid: grid-template-columns:1fr; gap:40px;
 
 Верни ТОЛЬКО HTML <section id="contact"> + <style data-block="contact">.""",
