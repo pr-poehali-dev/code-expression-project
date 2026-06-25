@@ -6,165 +6,134 @@ const AI_LANDING_URL = "https://functions.poehali.dev/12df0290-571d-42d1-8fb0-88
 const LANDING_API_URL = "https://functions.poehali.dev/b5f86006-d448-4c34-96b8-3fba0295cb14";
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_LIGHT = "hsl(185,85%,96%)";
-const LS_MSGS = "landing_builder_msgs";
-const LS_HTML = "landing_builder_html";
-const LS_PHASE = "landing_builder_phase";
-const LS_TYPE = "landing_builder_type";
-const LS_PROJECT_ID = "landing_project_id";
-const LS_TITLE = "landing_project_title";
+const PURPLE = "hsl(270,70%,50%)";
+const PURPLE_LIGHT = "hsl(270,70%,97%)";
 
-type LandingType = "budget" | "premium" | "multipage";
+const LS_MSGS    = "landing_builder_msgs";
+const LS_PHASE   = "landing_builder_phase";
+const LS_TYPE    = "landing_builder_type";
+const LS_PID     = "landing_project_id";
+const LS_TITLE   = "landing_project_title";
+const LS_BLOCKS  = "landing_builder_blocks";
+const LS_STYLE   = "landing_builder_style";
+
+type LandingType = "budget" | "premium";
 interface Message { role: "user" | "assistant"; content: string; }
+interface LandingStyle {
+  primary: string; accent: string; dark: string; light: string; text: string;
+  headingFont: string; bodyFont: string;
+}
+interface LandingBlock { id: string; label: string; html: string; }
 interface LandingProject {
-  id: string;
-  title: string;
-  landing_type: LandingType;
-  created_at: string;
-  updated_at: string;
+  id: string; title: string; landing_type: LandingType;
+  created_at: string; updated_at: string;
 }
+interface Version { savedAt: string; html: string; blocks: LandingBlock[]; style: LandingStyle; }
 
-const MULTIPAGE_FEATURES = [
-  "До 6 страниц: Главная, Услуги, О нас, Портфолио, FAQ, Контакты",
-  "Единый дизайн и навигация на всех страницах",
-  "Переключение страниц без перезагрузки",
-  "Гамбургер-меню на мобильных",
-  "Скачивается одним HTML-файлом",
+const BLOCKS_ORDER: { id: string; label: string }[] = [
+  { id: "header",   label: "Шапка и меню" },
+  { id: "hero",     label: "Обложка" },
+  { id: "about",    label: "О нас" },
+  { id: "services", label: "Услуги" },
+  { id: "reviews",  label: "Отзывы" },
+  { id: "contact",  label: "Контакты" },
+  { id: "footer",   label: "Футер" },
 ];
 
-// Извлекает список страниц из мини-сайта (ищет data-page атрибуты)
-function extractPages(html: string): string[] {
-  const matches = [...html.matchAll(/data-page="([^"]+)"/g)];
-  const pages = matches.map(m => m[1]);
-  return pages.length > 0 ? [...new Set(pages)] : [];
-}
+const DEFAULT_STYLE: LandingStyle = {
+  primary: "#1a3a4a", accent: "#e67e22", dark: "#0f2030",
+  light: "#f8f9fa", text: "#2c3e50",
+  headingFont: "Playfair Display", bodyFont: "Montserrat",
+};
 
-const NETLIFY_STEPS = [
-  { n: "1", text: "Зайдите на сайт netlify.com и нажмите «Sign up» (бесплатно)" },
-  { n: "2", text: "После регистрации откроется раздел Sites — перетащите скачанный HTML-файл прямо в браузер" },
-  { n: "3", text: "Через 10 секунд сайт будет онлайн по адресу вида random-name.netlify.app" },
-  { n: "4", text: "Чтобы подключить свой домен: Settings → Domain management → Add custom domain" },
-];
-
-const BUDGET_FEATURES = [
-  "5 блоков: обложка, услуги, преимущества, контакты, футер",
-  "Чистый минималистичный дизайн",
-  "Один акцентный цвет под тематику",
-  "Адаптивная вёрстка под мобильные",
-  "Форма обратной связи",
-];
-
-const PREMIUM_FEATURES = [
-  "7–9 блоков: обложка, о компании, услуги, кейсы, отзывы, цены, FAQ, CTA, футер",
-  "Уникальный дизайн: асимметрия, градиенты, анимации",
-  "Индивидуальная цветовая палитра и паттерны",
-  "Премиальная типографика и кастомные кнопки",
-  "Расширенная форма + карта / соцсети / мессенджеры",
-];
-
-const EDITOR_SCRIPT = `
-<script>
+// Editor script: contenteditable + image click → postMessage
+const EDITOR_SCRIPT = `<script>
 (function() {
   var style = document.createElement('style');
   style.textContent = \`
     [contenteditable]:hover { outline: 2px dashed #0ea5e9 !important; outline-offset: 2px !important; cursor: text !important; }
     [contenteditable]:focus { outline: 2px solid #0ea5e9 !important; outline-offset: 2px !important; background: rgba(14,165,233,0.04) !important; }
-    .edit-hint { position:fixed; top:12px; left:50%; transform:translateX(-50%); background:#0ea5e9; color:#fff; padding:8px 18px; border-radius:20px; font-size:13px; font-family:sans-serif; z-index:99999; pointer-events:none; box-shadow:0 4px 16px rgba(14,165,233,0.4); }
-    img.editable-img { cursor:pointer !important; }
-    img.editable-img:hover { outline: 3px solid #f59e0b !important; outline-offset: 2px !important; }
+    img.edit-img:hover { outline: 3px solid #f59e0b !important; outline-offset: 2px !important; cursor: pointer !important; }
   \`;
   document.head.appendChild(style);
-
-  var hint = document.createElement('div');
-  hint.className = 'edit-hint';
-  hint.textContent = '✏️ Текст — кликайте и пишите · 🖼 Фото — кликайте на картинку';
-  document.body.appendChild(hint);
-
-  var tags = ['h1','h2','h3','h4','h5','p','span','a','li','button','label','td','th','blockquote','figcaption'];
+  var tags = ['h1','h2','h3','h4','p','span','li','button','label','td'];
   tags.forEach(function(tag) {
     document.querySelectorAll(tag).forEach(function(el) {
-      if (el.children.length === 0 || el.querySelector('br')) {
-        el.setAttribute('contenteditable', 'true');
-        el.setAttribute('spellcheck', 'false');
+      if (!el.querySelector('img') && !el.closest('script') && !el.closest('style')) {
+        el.setAttribute('contenteditable','true');
+        el.setAttribute('spellcheck','false');
       }
     });
   });
-
-  var imgIndex = 0;
+  var imgIdx = 0;
   document.querySelectorAll('img').forEach(function(img) {
-    img.classList.add('editable-img');
-    img.dataset.imgIdx = String(imgIndex++);
+    img.classList.add('edit-img');
+    img.dataset.imgIdx = String(imgIdx++);
     img.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault(); e.stopPropagation();
       window.parent.postMessage({ type: 'landing-img-click', idx: img.dataset.imgIdx }, '*');
     });
   });
-
   window.addEventListener('message', function(e) {
     if (e.data && e.data.type === 'landing-img-replace') {
       document.querySelectorAll('img[data-img-idx]').forEach(function(img) {
-        if (img.dataset.imgIdx === String(e.data.idx)) {
-          img.src = e.data.src;
-          img.removeAttribute('srcset');
-        }
+        if (img.dataset.imgIdx === String(e.data.idx)) { img.src = e.data.src; img.removeAttribute('srcset'); }
       });
       sendHtml();
     }
   });
-
   function sendHtml() {
     window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
   }
-
   document.addEventListener('input', function() {
-    clearTimeout(window._saveTimer);
-    window._saveTimer = setTimeout(sendHtml, 800);
+    clearTimeout(window._t); window._t = setTimeout(sendHtml, 800);
   });
-
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      var el = document.activeElement;
-      if (el && el.tagName !== 'TEXTAREA') { e.preventDefault(); }
-    }
-  });
-
   sendHtml();
 })();
-</script>
-`;
+</script>`;
 
-function injectEditorScript(html: string): string {
-  return html.replace("</body>", EDITOR_SCRIPT + "</body>");
+function buildFullHtml(blocks: LandingBlock[], style: LandingStyle): string {
+  const hf = `${style.headingFont}, serif`;
+  const bf = `${style.bodyFont}, sans-serif`;
+  const gfonts = encodeURIComponent(`${style.headingFont}:wght@700&family=${style.bodyFont}:wght@400;600`);
+  const root = `<style id="root-vars">
+:root{--c-primary:${style.primary};--c-accent:${style.accent};--c-dark:${style.dark};--c-light:${style.light};--c-text:${style.text};--font-heading:${hf};--font-body:${bf};}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-body);color:var(--c-text);background:var(--c-light);}
+h1,h2,h3,h4{font-family:var(--font-heading);}
+.container{max-width:1200px;margin:0 auto;padding:0 20px;}
+@import url('https://fonts.googleapis.com/css2?family=${gfonts}&display=swap');
+</style>`;
+  const htmlParts = blocks.map(b => b.html).join("\n");
+  return `<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Лендинг</title>
+${root}
+</head>
+<body>
+${htmlParts}
+</body>
+</html>`;
 }
 
 function session() { return localStorage.getItem("lk_session") || ""; }
 
-function getWelcome(type: LandingType): Message {
-  return {
-    role: "assistant",
-    content: type === "budget"
-      ? "Отлично, создаём бюджетный лендинг — лаконичный и современный 👍\n\nРасскажите о бизнесе: название компании и чем занимаетесь?"
-      : "Создаём премиальный лендинг — с уникальным дизайном и расширенной структурой ✨\n\nРасскажите о бизнесе: название, чем занимаетесь и кто ваши клиенты?",
-  };
-}
-
 function formatDate(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" });
+  return new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
-// ── Список проектов ──
+// ── Список проектов ────────────────────────────────────────────────────────────
 function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; onNew: () => void }) {
   const [projects, setProjects] = useState<LandingProject[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     fetch(LANDING_API_URL, { headers: { "X-Session-Id": session() } })
-      .then(r => r.json())
-      .then(d => setProjects(d.projects || []))
-      .finally(() => setLoading(false));
+      .then(r => r.json()).then(d => setProjects(d.projects || [])).finally(() => setLoading(false));
   }, []);
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -175,53 +144,38 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
           <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A" }}>Конструктор лендингов</div>
           <div style={{ fontSize: 13, color: "#888" }}>Ваши проекты</div>
         </div>
-        <button
-          onClick={onNew}
-          style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-        >
-          <Icon name="Plus" size={16} />
-          Новый лендинг
+        <button onClick={onNew} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+          <Icon name="Plus" size={16} />Новый лендинг
         </button>
       </div>
-
-      {loading && (
-        <div style={{ padding: 40, textAlign: "center", color: "#888", fontSize: 14 }}>Загрузка...</div>
-      )}
-
+      {loading && <div style={{ padding: 40, textAlign: "center", color: "#888" }}>Загрузка...</div>}
       {!loading && projects.length === 0 && (
         <div style={{ background: "#fff", borderRadius: 16, border: "2px dashed #E8ECF0", padding: 48, textAlign: "center" }}>
           <div style={{ width: 56, height: 56, borderRadius: 16, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
             <Icon name="Globe" size={28} style={{ color: ACCENT }} />
           </div>
           <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 8 }}>Лендингов пока нет</div>
-          <div style={{ fontSize: 13, color: "#888", marginBottom: 20 }}>Создайте первый лендинг — ИИ соберёт его за несколько минут</div>
-          <button
-            onClick={onNew}
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-          >
-            <Icon name="Plus" size={16} />
-            Создать первый лендинг
+          <div style={{ fontSize: 13, color: "#888", marginBottom: 20 }}>Создайте первый — ИИ соберёт его по блокам за пару минут</div>
+          <button onClick={onNew} style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+            <Icon name="Plus" size={16} />Создать первый лендинг
           </button>
         </div>
       )}
-
       {!loading && projects.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {projects.map(p => (
-            <button
-              key={p.id}
-              onClick={() => onOpen(p)}
-              style={{ display: "flex", alignItems: "center", gap: 14, background: "#fff", border: "1.5px solid #E8ECF0", borderRadius: 14, padding: "14px 18px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "left", transition: "border-color 0.15s, box-shadow 0.15s" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = ACCENT; (e.currentTarget as HTMLElement).style.boxShadow = `0 2px 12px ${ACCENT}18`; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E8ECF0"; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+            <button key={p.id} onClick={() => onOpen(p)}
+              style={{ display: "flex", alignItems: "center", gap: 14, background: "#fff", border: "1.5px solid #E8ECF0", borderRadius: 14, padding: "14px 18px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "left", transition: "border-color 0.15s" }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = ACCENT; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E8ECF0"; }}
             >
-              <div style={{ width: 42, height: 42, borderRadius: 10, background: p.landing_type === "premium" ? ACCENT : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Icon name={p.landing_type === "premium" ? "Sparkles" : "FileText"} size={20} style={{ color: p.landing_type === "premium" ? "#fff" : "#64748B" }} />
+              <div style={{ width: 42, height: 42, borderRadius: 10, background: p.landing_type === "premium" ? ACCENT_LIGHT : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name={p.landing_type === "premium" ? "Sparkles" : "FileText"} size={20} style={{ color: p.landing_type === "premium" ? ACCENT : "#64748B" }} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.title}</div>
                 <div style={{ fontSize: 12, color: "#888" }}>
-                  {p.landing_type === "premium" ? "Премиум" : "Стандартный"} · изменён {formatDate(p.updated_at)}
+                  {p.landing_type === "premium" ? "Премиум" : "Стандартный"} · {formatDate(p.updated_at)}
                 </div>
               </div>
               <Icon name="ChevronRight" size={16} style={{ color: "#CBD5E1", flexShrink: 0 }} />
@@ -233,58 +187,21 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
   );
 }
 
-// ── Экран выбора типа ──
+// ── Выбор типа ────────────────────────────────────────────────────────────────
 function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
-  const PURPLE = "hsl(270,70%,50%)";
-  const PURPLE_LIGHT = "hsl(270,70%,97%)";
-
   const types = [
-    {
-      id: "budget" as LandingType,
-      icon: "FileText", iconColor: "#64748B", iconBg: "#F1F5F9",
-      badge: "СТАНДАРТНЫЙ", badgeColor: "#64748B", badgeBg: "#F1F5F9",
-      title: "Стандартный лендинг", desc: "Чистый, минималистичный. Быстро и по делу.",
-      descColor: "#64748B", features: BUDGET_FEATURES,
-      featureDotBg: "#E2E8F0", featureDotColor: "#64748B", featureTextColor: "#64748B",
-      cardBg: "#fff", cardBorder: "#E8ECF0", cardBorderHover: ACCENT,
-      dividerColor: "#F1F5F9", ctaColor: "#64748B",
-    },
-    {
-      id: "premium" as LandingType,
-      icon: "Sparkles", iconColor: "#fff", iconBg: ACCENT,
-      badge: "ПРЕМИУМ", badgeColor: "#fff", badgeBg: ACCENT,
-      title: "Премиальный лендинг", desc: "Уникальный дизайн, анимации, полная структура.",
-      descColor: "#475569", features: PREMIUM_FEATURES,
-      featureDotBg: ACCENT, featureDotColor: "#fff", featureTextColor: "#475569",
-      cardBg: `linear-gradient(135deg, ${ACCENT_LIGHT} 0%, #fff 60%)`,
-      cardBorder: `${ACCENT}40`, cardBorderHover: ACCENT,
-      dividerColor: `${ACCENT}20`, ctaColor: ACCENT,
-    },
-    {
-      id: "multipage" as LandingType,
-      icon: "LayoutDashboard", iconColor: "#fff", iconBg: PURPLE,
-      badge: "МИНИ-САЙТ", badgeColor: "#fff", badgeBg: PURPLE,
-      title: "Мини-сайт", desc: "До 6 страниц в одном файле. Полноценный сайт-визитка.",
-      descColor: "#475569", features: MULTIPAGE_FEATURES,
-      featureDotBg: PURPLE, featureDotColor: "#fff", featureTextColor: "#475569",
-      cardBg: `linear-gradient(135deg, ${PURPLE_LIGHT} 0%, #fff 60%)`,
-      cardBorder: `${PURPLE}40`, cardBorderHover: PURPLE,
-      dividerColor: `${PURPLE}20`, ctaColor: PURPLE,
-    },
+    { id: "budget" as LandingType, icon: "FileText", iconColor: "#64748B", iconBg: "#F1F5F9", badge: "СТАНДАРТНЫЙ", badgeColor: "#64748B", badgeBg: "#F1F5F9", title: "Стандартный", desc: "5 блоков, минимализм, быстрая генерация.", color: "#64748B", bg: "#fff", border: "#E8ECF0" },
+    { id: "premium" as LandingType, icon: "Sparkles", iconColor: "#fff", iconBg: ACCENT, badge: "ПРЕМИУМ", badgeColor: "#fff", badgeBg: ACCENT, title: "Премиальный", desc: "7 блоков, уникальный дизайн, анимации, индивидуальная палитра.", color: ACCENT, bg: ACCENT_LIGHT, border: `${ACCENT}40` },
   ];
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>Выберите тип сайта</div>
-      <div className="landing-type-grid">
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>Выберите тип лендинга</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
         {types.map(t => (
-          <button
-            key={t.id}
-            onClick={() => onSelect(t.id)}
-            className="landing-type-card"
-            style={{ textAlign: "left", background: t.cardBg, border: `2px solid ${t.cardBorder}`, borderRadius: 16, padding: 20, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "border-color 0.15s, box-shadow 0.15s", width: "100%" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = t.cardBorderHover; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 24px ${t.cardBorderHover}22`; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = t.cardBorder; (e.currentTarget as HTMLElement).style.boxShadow = "none"; }}
+          <button key={t.id} onClick={() => onSelect(t.id)}
+            style={{ textAlign: "left", background: t.bg, border: `2px solid ${t.border}`, borderRadius: 16, padding: 20, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "border-color 0.15s, box-shadow 0.15s" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = t.color; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = t.border; }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: t.iconBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -292,37 +209,67 @@ function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
               </div>
               <span style={{ fontSize: 11, fontWeight: 700, color: t.badgeColor, background: t.badgeBg, padding: "4px 10px", borderRadius: 20 }}>{t.badge}</span>
             </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>{t.title}</div>
-            <div style={{ fontSize: 12, color: t.descColor, marginBottom: 14, lineHeight: 1.5 }}>{t.desc}</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {t.features.map((f, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
-                  <div style={{ width: 14, height: 14, borderRadius: "50%", background: t.featureDotBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
-                    <Icon name="Check" size={9} style={{ color: t.featureDotColor }} />
-                  </div>
-                  <span style={{ fontSize: 11, color: t.featureTextColor, lineHeight: 1.5 }}>{f}</span>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: 16, paddingTop: 10, borderTop: `1px solid ${t.dividerColor}`, fontSize: 13, fontWeight: 700, color: t.ctaColor }}>
-              Выбрать →
-            </div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>{t.title}</div>
+            <div style={{ fontSize: 12, color: "#64748B", lineHeight: 1.5, marginBottom: 14 }}>{t.desc}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: t.color }}>Выбрать →</div>
           </button>
         ))}
       </div>
-      <style>{`
-        .landing-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        @media (max-width: 540px) {
-          .landing-type-grid { grid-template-columns: 1fr; }
-          .landing-type-card { padding: 16px !important; }
-        }
-      `}</style>
     </div>
   );
 }
 
+// ── Редактор стиля ────────────────────────────────────────────────────────────
+function StyleEditor({ style, onChange }: { style: LandingStyle; onChange: (s: LandingStyle) => void }) {
+  const colors = [
+    { key: "primary" as keyof LandingStyle, label: "Основной" },
+    { key: "accent"  as keyof LandingStyle, label: "Акцент" },
+    { key: "dark"    as keyof LandingStyle, label: "Тёмный фон" },
+    { key: "light"   as keyof LandingStyle, label: "Светлый фон" },
+    { key: "text"    as keyof LandingStyle, label: "Текст" },
+  ];
+  const fonts = ["Playfair Display", "Cormorant Garamond", "Raleway", "Merriweather", "Roboto Slab"];
+  const bodyFonts = ["Montserrat", "Inter", "Open Sans", "Lato", "Nunito"];
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8ECF0", padding: 18 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 14 }}>Стиль сайта</div>
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 11, color: "#888", marginBottom: 8, fontWeight: 600 }}>ЦВЕТА</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+          {colors.map(c => (
+            <div key={c.key} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <input type="color" value={String(style[c.key])}
+                onChange={e => onChange({ ...style, [c.key]: e.target.value })}
+                style={{ width: 36, height: 36, border: "none", borderRadius: 8, cursor: "pointer", padding: 2 }}
+              />
+              <span style={{ fontSize: 10, color: "#888" }}>{c.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div>
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 4, fontWeight: 600 }}>ЗАГОЛОВКИ</div>
+          <select value={style.headingFont} onChange={e => onChange({ ...style, headingFont: e.target.value })}
+            style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 12, fontFamily: "Montserrat,sans-serif", cursor: "pointer" }}>
+            {fonts.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: "#888", marginBottom: 4, fontWeight: 600 }}>ТЕКСТ</div>
+          <select value={style.bodyFont} onChange={e => onChange({ ...style, bodyFont: e.target.value })}
+            style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 12, fontFamily: "Montserrat,sans-serif", cursor: "pointer" }}>
+            {bodyFonts.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Главный компонент ─────────────────────────────────────────────────────────
 export default function LkLandingBuilder() {
-  // view: "list" | "new" | "editor"
   const [view, setView] = useState<"list" | "new" | "editor">("list");
   const [landingType, setLandingType] = useState<LandingType | null>(() => {
     try { return (localStorage.getItem(LS_TYPE) as LandingType) || null; } catch { return null; }
@@ -331,84 +278,98 @@ export default function LkLandingBuilder() {
     try { const s = localStorage.getItem(LS_MSGS); return s ? JSON.parse(s) : []; } catch { return []; }
   });
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [chatLoading, setChatLoading] = useState(false);
   const [phase, setPhase] = useState<"chat" | "generating" | "done">(() => {
-    try {
-      const savedHtml = localStorage.getItem(LS_HTML) || "";
-      const savedPhase = localStorage.getItem(LS_PHASE) as "chat" | "done" || "chat";
-      if (savedPhase === "done" && !savedHtml.includes("</html>")) return "chat";
-      return savedPhase;
-    } catch { return "chat"; }
+    try { return (localStorage.getItem(LS_PHASE) as "chat" | "done") || "chat"; } catch { return "chat"; }
   });
-  const [htmlResult, setHtmlResult] = useState(() => {
-    try {
-      const h = localStorage.getItem(LS_HTML) || "";
-      return h.includes("</html>") ? h : "";
-    } catch { return ""; }
+
+  // Блоки и стиль
+  const [blocks, setBlocks] = useState<LandingBlock[]>(() => {
+    try { const s = localStorage.getItem(LS_BLOCKS); return s ? JSON.parse(s) : []; } catch { return []; }
   });
+  const [siteStyle, setSiteStyle] = useState<LandingStyle>(() => {
+    try { const s = localStorage.getItem(LS_STYLE); return s ? JSON.parse(s) : DEFAULT_STYLE; } catch { return DEFAULT_STYLE; }
+  });
+
+  // Генерация
+  const [genProgress, setGenProgress] = useState<{ current: string; done: string[] }>({ current: "", done: [] });
+
+  // Проект
   const [projectId, setProjectId] = useState<string | null>(() => {
-    try { return localStorage.getItem(LS_PROJECT_ID) || null; } catch { return null; }
+    try { return localStorage.getItem(LS_PID) || null; } catch { return null; }
   });
   const [projectTitle, setProjectTitle] = useState(() => {
     try { return localStorage.getItem(LS_TITLE) || "Без названия"; } catch { return "Без названия"; }
   });
-  const [showPreview, setShowPreview] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savedOk, setSavedOk] = useState(false);
+
+  // Версии
+  const [versions, setVersions] = useState<Version[]>([]);
+  const [showVersions, setShowVersions] = useState(false);
+
+  // Превью и редактирование
   const [editMode, setEditMode] = useState(false);
-  const [editSaved, setEditSaved] = useState(false);
-  const [pendingImgIdx, setPendingImgIdx] = useState<string | null>(null);
-  const [aiRefineInput, setAiRefineInput] = useState("");
-  const [aiRefining, setAiRefining] = useState(false);
-  const [aiRefineDone, setAiRefineDone] = useState(false);
-  const [showAiRefine, setShowAiRefine] = useState(false);
-  const [cloudSaving, setCloudSaving] = useState(false);
-  const [cloudSaved, setCloudSaved] = useState(false);
-  const [editingTitle, setEditingTitle] = useState(false);
-  const [activePage, setActivePage] = useState<string>("home");
-  const [genStep, setGenStep] = useState<"structure" | "style" | null>(null);
-  const [restoring, setRestoring] = useState(false);
-  const [hasBackup, setHasBackup] = useState(false);
+  const [showStyleEditor, setShowStyleEditor] = useState(false);
 
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // Редактирование блока через ИИ
+  const [editingBlock, setEditingBlock] = useState<string | null>(null);
+  const [blockEditInput, setBlockEditInput] = useState("");
+  const [blockEditing, setBlockEditing] = useState(false);
+
+  // Refs
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [pendingImgIdx, setPendingImgIdx] = useState<string | null>(null);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
+  // Персист
   useEffect(() => { if (messages.length > 0) localStorage.setItem(LS_MSGS, JSON.stringify(messages)); }, [messages]);
-  useEffect(() => { localStorage.setItem(LS_HTML, htmlResult); localStorage.setItem(LS_PHASE, phase); }, [htmlResult, phase]);
-  useEffect(() => { if (projectId) localStorage.setItem(LS_PROJECT_ID, projectId); }, [projectId]);
+  useEffect(() => { localStorage.setItem(LS_PHASE, phase); }, [phase]);
+  useEffect(() => { if (landingType) localStorage.setItem(LS_TYPE, landingType); }, [landingType]);
+  useEffect(() => { localStorage.setItem(LS_BLOCKS, JSON.stringify(blocks)); }, [blocks]);
+  useEffect(() => { localStorage.setItem(LS_STYLE, JSON.stringify(siteStyle)); }, [siteStyle]);
+  useEffect(() => { if (projectId) localStorage.setItem(LS_PID, projectId); }, [projectId]);
   useEffect(() => { localStorage.setItem(LS_TITLE, projectTitle); }, [projectTitle]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, chatLoading]);
 
-  // Если есть незаконченный проект в localStorage — сразу в редактор
+  // Восстановить в iframe при смене editMode
+  useEffect(() => {
+    if (!editMode && iframeRef.current && blocks.length > 0) {
+      iframeRef.current.srcdoc = buildFullHtml(blocks, siteStyle);
+    }
+  }, [editMode]); // eslint-disable-line
+
+  // Если блоки изменились стилем — перестраиваем iframe
+  useEffect(() => {
+    if (phase === "done" && iframeRef.current && !editMode) {
+      iframeRef.current.srcdoc = buildFullHtml(blocks, siteStyle);
+    }
+  }, [siteStyle]); // eslint-disable-line
+
+  // Восстановить если были блоки
   useEffect(() => {
     const savedPhase = localStorage.getItem(LS_PHASE);
     const savedType = localStorage.getItem(LS_TYPE);
-    const savedHtml = localStorage.getItem(LS_HTML) || "";
+    const savedBlocks = localStorage.getItem(LS_BLOCKS);
     if (savedType && savedPhase) {
-      // Если HTML сломан (нет закрывающего тега) — сбрасываем фазу на chat
-      if (savedPhase === "done" && !savedHtml.includes("</html>")) {
+      if (savedPhase === "done" && (!savedBlocks || JSON.parse(savedBlocks).length === 0)) {
         localStorage.setItem(LS_PHASE, "chat");
-        localStorage.setItem(LS_HTML, "");
       }
       setView("editor");
     }
   }, []);
 
-  // Автосохранение в облако при изменении html
-  useEffect(() => {
-    if (!htmlResult || phase !== "done") return;
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => { saveToCloud(false); }, 3000);
-    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
-  }, [htmlResult]); // eslint-disable-line
-
   const handleIframeMessage = useCallback((e: MessageEvent) => {
-    if (e.data?.type === "landing-html-update" && e.data.html) {
-      setHtmlResult(e.data.html);
-      setEditSaved(true);
-      setTimeout(() => setEditSaved(false), 2000);
+    if (e.data?.type === "landing-html-update") {
+      // Парсим html и обновляем блоки
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(e.data.html, "text/html");
+      setBlocks(prev => prev.map(b => {
+        const el = doc.querySelector(`[data-block-id="${b.id}"]`);
+        if (el) return { ...b, html: el.outerHTML };
+        return b;
+      }));
     }
     if (e.data?.type === "landing-img-click") {
       setPendingImgIdx(e.data.idx);
@@ -421,612 +382,404 @@ export default function LkLandingBuilder() {
     return () => window.removeEventListener("message", handleIframeMessage);
   }, [handleIframeMessage]);
 
-  useEffect(() => {
-    if (!editMode && iframeRef.current) iframeRef.current.srcdoc = htmlResult;
-  }, [editMode]); // eslint-disable-line
-
-  // Переключение страницы мини-сайта в iframe
-  function switchPage(pageId: string) {
-    setActivePage(pageId);
-    iframeRef.current?.contentWindow?.postMessage({ type: "landing-switch-page", pageId }, "*");
+  // ── ЧАТИНГ ────────────────────────────────────────────────────────────────
+  async function sendMessage() {
+    const text = input.trim();
+    if (!text || chatLoading) return;
+    const newMsgs: Message[] = [...messages, { role: "user", content: text }];
+    setMessages(newMsgs);
+    setInput("");
+    setChatLoading(true);
+    try {
+      const res = await fetch(AI_LANDING_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+        body: JSON.stringify({ mode: "chat", landingType, messages: newMsgs }),
+        signal: AbortSignal.timeout(30_000),
+      });
+      const data = await res.json();
+      if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
+      setMessages(prev => [...prev, { role: "assistant", content: data.reply || "" }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "Ошибка связи. Попробуйте ещё раз." }]);
+    } finally {
+      setChatLoading(false);
+    }
   }
 
-  async function saveToCloud(manual = true) {
-    if (!htmlResult) return;
-    if (manual) setCloudSaving(true);
+  // ── БЛОЧНАЯ ГЕНЕРАЦИЯ ─────────────────────────────────────────────────────
+  async function generateLanding() {
+    setPhase("generating");
+    setGenProgress({ current: "", done: [] });
+    setBlocks([]);
+
+    // Шаг 1: получить стиль
+    setGenProgress({ current: "style", done: [] });
+    let style = DEFAULT_STYLE;
     try {
-      const title = extractTitle(htmlResult) || projectTitle;
+      const res = await fetch(AI_LANDING_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+        body: JSON.stringify({ mode: "gen-style", landingType, messages }),
+        signal: AbortSignal.timeout(30_000),
+      });
+      const data = await res.json();
+      if (res.status === 402) {
+        setPhase("chat");
+        showEnergyGate({ message: data.error });
+        return;
+      }
+      if (data.style) {
+        style = { ...DEFAULT_STYLE, ...data.style };
+        setSiteStyle(style);
+      }
+    } catch {
+      // Продолжаем с дефолтным стилем
+    }
+
+    // Шаг 2: генерировать блоки по очереди
+    const blocksToGen = landingType === "budget"
+      ? ["header", "hero", "services", "contact", "footer"]
+      : ["header", "hero", "about", "services", "reviews", "contact", "footer"];
+
+    const generatedBlocks: LandingBlock[] = [];
+    const done: string[] = [];
+
+    for (const blockId of blocksToGen) {
+      setGenProgress({ current: blockId, done: [...done] });
+      try {
+        const res = await fetch(AI_LANDING_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+          body: JSON.stringify({ mode: "gen-block", blockId, style, landingType, messages }),
+          signal: AbortSignal.timeout(60_000),
+        });
+        const data = await res.json();
+        if (res.status === 402) {
+          showEnergyGate({ message: data.error });
+          break;
+        }
+        if (data.html) {
+          const label = BLOCKS_ORDER.find(b => b.id === blockId)?.label || blockId;
+          const newBlock: LandingBlock = { id: blockId, label, html: data.html };
+          generatedBlocks.push(newBlock);
+          setBlocks([...generatedBlocks]);
+        }
+      } catch {
+        // Блок не сгенерировался — пропускаем
+      }
+      done.push(blockId);
+    }
+
+    setGenProgress({ current: "", done });
+
+    if (generatedBlocks.length > 0) {
+      setPhase("done");
+      // Авто-создаём проект если нет
+      await saveProject(generatedBlocks, style, false);
+    } else {
+      setPhase("chat");
+      setMessages(prev => [...prev, { role: "assistant", content: "Не удалось сгенерировать — попробуйте ещё раз." }]);
+    }
+  }
+
+  // ── РЕДАКТИРОВАНИЕ БЛОКА ──────────────────────────────────────────────────
+  async function editBlock(blockId: string) {
+    if (!blockEditInput.trim() || blockEditing) return;
+    const block = blocks.find(b => b.id === blockId);
+    if (!block) return;
+    setBlockEditing(true);
+    try {
+      const res = await fetch(AI_LANDING_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+        body: JSON.stringify({
+          mode: "edit-block", blockId, blockHtml: block.html,
+          editTask: blockEditInput, style: siteStyle,
+        }),
+        signal: AbortSignal.timeout(60_000),
+      });
+      const data = await res.json();
+      if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
+      if (data.html) {
+        setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: data.html } : b));
+        setEditingBlock(null);
+        setBlockEditInput("");
+      }
+    } catch {
+      // ignore
+    } finally {
+      setBlockEditing(false);
+    }
+  }
+
+  // ── СОХРАНЕНИЕ ПРОЕКТА ────────────────────────────────────────────────────
+  async function saveProject(blocksData: LandingBlock[], styleData: LandingStyle, manual = true) {
+    if (manual) setSaving(true);
+    try {
+      const html = buildFullHtml(blocksData, styleData);
+      const title = extractTitle(html) || projectTitle;
       const res = await fetch(LANDING_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-        body: JSON.stringify({ id: projectId || undefined, title, landingType, html: htmlResult, messages }),
+        body: JSON.stringify({
+          id: projectId || undefined, title, landingType,
+          html, blocks: blocksData, style: styleData, messages,
+        }),
       });
       const data = await res.json();
       if (data.id) {
         setProjectId(data.id);
         setProjectTitle(title);
-        localStorage.setItem(LS_PROJECT_ID, data.id);
-        if (manual) {
-          setCloudSaved(true);
-          setHasBackup(true);
-          setTimeout(() => setCloudSaved(false), 2500);
-        }
+        localStorage.setItem(LS_PID, data.id);
       }
+      if (manual) { setSavedOk(true); setTimeout(() => setSavedOk(false), 2500); }
     } finally {
-      if (manual) setCloudSaving(false);
+      if (manual) setSaving(false);
     }
+  }
+
+  // ── СОХРАНИТЬ ВЕРСИЮ ──────────────────────────────────────────────────────
+  async function saveVersion() {
+    if (!projectId) { await saveProject(blocks, siteStyle, true); return; }
+    const res = await fetch(LANDING_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+      body: JSON.stringify({ action: "save-version", id: projectId }),
+    });
+    const data = await res.json();
+    if (data.saved) {
+      setSavedOk(true); setTimeout(() => setSavedOk(false), 2500);
+      loadVersions();
+    }
+  }
+
+  async function loadVersions() {
+    if (!projectId) return;
+    const res = await fetch(`${LANDING_API_URL}?id=${projectId}`, { headers: { "X-Session-Id": session() } });
+    const data = await res.json();
+    setVersions(data.project?.versions || []);
+  }
+
+  async function restoreVersion(idx: number) {
+    if (!projectId) return;
+    const res = await fetch(LANDING_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+      body: JSON.stringify({ action: "restore-version", id: projectId, versionIdx: idx }),
+    });
+    const data = await res.json();
+    if (data.restored) {
+      if (data.blocks?.length > 0) setBlocks(data.blocks);
+      if (data.style) setSiteStyle(data.style);
+      setShowVersions(false);
+    }
+  }
+
+  // ── ОТКРЫТЬ ПРОЕКТ ────────────────────────────────────────────────────────
+  function openProject(p: LandingProject) {
+    fetch(`${LANDING_API_URL}?id=${p.id}`, { headers: { "X-Session-Id": session() } })
+      .then(r => r.json())
+      .then(data => {
+        const proj = data.project;
+        setProjectId(proj.id);
+        setProjectTitle(proj.title);
+        setLandingType(proj.landing_type);
+        setMessages(proj.messages || []);
+        const savedBlocks: LandingBlock[] = proj.blocks || [];
+        const savedStyle: LandingStyle = proj.style && proj.style.primary ? proj.style : DEFAULT_STYLE;
+        setBlocks(savedBlocks);
+        setSiteStyle(savedStyle);
+        setVersions(proj.versions || []);
+        const hasBlocks = savedBlocks.length > 0;
+        setPhase(hasBlocks ? "done" : "chat");
+        localStorage.setItem(LS_TYPE, proj.landing_type);
+        localStorage.setItem(LS_PHASE, hasBlocks ? "done" : "chat");
+        localStorage.setItem(LS_PID, proj.id);
+        localStorage.setItem(LS_TITLE, proj.title);
+        localStorage.setItem(LS_BLOCKS, JSON.stringify(savedBlocks));
+        localStorage.setItem(LS_STYLE, JSON.stringify(savedStyle));
+        setView("editor");
+      });
+  }
+
+  function startNew() {
+    [LS_MSGS, LS_PHASE, LS_TYPE, LS_PID, LS_TITLE, LS_BLOCKS, LS_STYLE].forEach(k => localStorage.removeItem(k));
+    setLandingType(null); setMessages([]); setInput(""); setPhase("chat");
+    setBlocks([]); setSiteStyle(DEFAULT_STYLE); setProjectId(null); setProjectTitle("Без названия");
+    setEditMode(false); setView("new");
+  }
+
+  function selectType(type: LandingType) {
+    setLandingType(type);
+    const welcome: Message = {
+      role: "assistant",
+      content: type === "budget"
+        ? "Создаём лендинг 👍\n\nРасскажите о бизнесе: название и чем занимаетесь?"
+        : "Создаём премиальный лендинг ✨\n\nРасскажите: название компании, чем занимаетесь и кто ваши клиенты?",
+    };
+    setMessages([welcome]);
+    setView("editor");
   }
 
   function extractTitle(html: string): string {
     const m = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     if (m) return m[1].trim().slice(0, 80);
     const h1 = html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
-    if (h1) return h1[1].trim().slice(0, 80);
+    if (h1) return h1[1].replace(/<[^>]+>/g, "").trim().slice(0, 80);
     return "";
+  }
+
+  async function downloadHtml() {
+    const res = await fetch(LANDING_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+      body: JSON.stringify({ action: "download" }),
+    });
+    if (res.status === 402) { const d = await res.json(); showEnergyGate({ message: d.error }); return; }
+    if (!res.ok) return;
+    const html = buildFullHtml(blocks, siteStyle);
+    const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = `${projectTitle || "landing"}.html`; a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  async function regenerateBlock(blockId: string) {
+    const label = BLOCKS_ORDER.find(b => b.id === blockId)?.label || blockId;
+    setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: `<!-- regenerating -->` } : b));
+    try {
+      const res = await fetch(AI_LANDING_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+        body: JSON.stringify({ mode: "gen-block", blockId, style: siteStyle, landingType, messages }),
+        signal: AbortSignal.timeout(60_000),
+      });
+      const data = await res.json();
+      if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
+      if (data.html) {
+        setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: data.html, label } : b));
+      }
+    } catch {
+      setBlocks(prev => prev.map(b => b.id === blockId && b.html === "<!-- regenerating -->" ? { ...b, html: "" } : b));
+    }
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || pendingImgIdx === null) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      const src = ev.target?.result as string;
-      iframeRef.current?.contentWindow?.postMessage({ type: "landing-img-replace", idx: pendingImgIdx, src }, "*");
-      setPendingImgIdx(null);
+    reader.onload = ev => {
+      iframeRef.current?.contentWindow?.postMessage({ type: "landing-img-replace", idx: pendingImgIdx, src: ev.target?.result }, "*");
     };
     reader.readAsDataURL(file);
     e.target.value = "";
+    setPendingImgIdx(null);
   }
 
-  async function aiRefine() {
-    const task = aiRefineInput.trim();
-    if (!task || aiRefining) return;
-    setAiRefining(true);
-    setAiRefineDone(false);
-    try {
-      const res = await fetch(AI_LANDING_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-        body: JSON.stringify({ messages, mode: "refine", landingType, html: htmlResult, refineTask: task }),
-        signal: AbortSignal.timeout(120_000),
-      });
-      const data = await res.json();
-      if (res.status === 402) {
-        showEnergyGate({ message: data.error || "Недостаточно энергии для доработки" });
-        return;
-      }
-      const html = data.reply || data.html || "";
-      if (html && html.includes("<!DOCTYPE")) {
-        setHtmlResult(html);
-        setAiRefineInput("");
-        setAiRefineDone(true);
-        setEditMode(false);
-        setTimeout(() => setAiRefineDone(false), 3000);
-      }
-    } catch (err) {
-      console.error("[aiRefine]", err);
-    } finally {
-      setAiRefining(false);
-    }
-  }
+  const isReadyToGenerate = messages.length >= 4 && phase === "chat";
+  const fullHtml = blocks.length > 0 ? buildFullHtml(blocks, siteStyle) : "";
+  const iframeSrc = editMode
+    ? fullHtml.replace("</body>", EDITOR_SCRIPT + "</body>")
+    : fullHtml;
 
-  function openProject(p: LandingProject) {
-    fetch(`${LANDING_API_URL}?id=${p.id}`, { headers: { "X-Session-Id": session() } })
-      .then(r => r.json())
-      .then(data => {
-        const proj = data.project;
-        const htmlOk = proj.html && proj.html.includes("</html>");
-        setProjectId(proj.id);
-        setProjectTitle(proj.title);
-        setLandingType(proj.landing_type);
-        setHtmlResult(proj.html || "");
-        setMessages(proj.messages || []);
-        setPhase(htmlOk ? "done" : "chat");
-        setShowPreview(htmlOk);
-        setHasBackup(!!(proj.html_backup && proj.html_backup.length > 100));
-        localStorage.setItem(LS_TYPE, proj.landing_type);
-        localStorage.setItem(LS_HTML, proj.html || "");
-        localStorage.setItem(LS_PHASE, htmlOk ? "done" : "chat");
-        localStorage.setItem(LS_PROJECT_ID, proj.id);
-        localStorage.setItem(LS_TITLE, proj.title);
-        setView("editor");
-      });
-  }
-
-  async function restoreHtml() {
-    if (!projectId) return;
-    setRestoring(true);
-    try {
-      const res = await fetch(LANDING_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-        body: JSON.stringify({ action: "restore", id: projectId }),
-      });
-      const data = await res.json();
-      if (data.html) {
-        setHtmlResult(data.html);
-        setHasBackup(false);
-        localStorage.setItem(LS_HTML, data.html);
-      }
-    } finally {
-      setRestoring(false);
-    }
-  }
-
-  function startNew() {
-    // Сброс всего
-    localStorage.removeItem(LS_MSGS);
-    localStorage.removeItem(LS_HTML);
-    localStorage.removeItem(LS_PHASE);
-    localStorage.removeItem(LS_TYPE);
-    localStorage.removeItem(LS_PROJECT_ID);
-    localStorage.removeItem(LS_TITLE);
-    setLandingType(null);
-    setMessages([]);
-    setInput("");
-    setPhase("chat");
-    setHtmlResult("");
-    setProjectId(null);
-    setProjectTitle("Без названия");
-    setShowPreview(false);
-    setEditMode(false);
-    setView("new");
-  }
-
-  function backToList() {
-    setView("list");
-  }
-
-  function selectType(type: LandingType) {
-    setLandingType(type);
-    localStorage.setItem(LS_TYPE, type);
-    setMessages([getWelcome(type)]);
-    setView("editor");
-  }
-
-  async function sendMessage(text?: string) {
-    const userText = (text ?? input).trim();
-    if (!userText || loading) return;
-    setInput("");
-    const newMessages: Message[] = [...messages, { role: "user", content: userText }];
-    setMessages(newMessages);
-    setLoading(true);
-    try {
-      const res = await fetch(AI_LANDING_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-        body: JSON.stringify({ messages: newMessages, mode: "chat", landingType }),
-      });
-      const data = await res.json();
-      if (res.status === 402) {
-        showEnergyGate({ message: data.error || "Недостаточно энергии" });
-        return;
-      }
-      if (!res.ok || !data.reply) {
-        setMessages(prev => [...prev, { role: "assistant", content: "Сервис временно недоступен. Попробуйте через минуту." }]);
-        return;
-      }
-      setMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
-    } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "Ошибка соединения. Проверьте интернет и попробуйте ещё раз." }]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function callGenerate(body: object): Promise<{ html: string; error?: string; status?: number }> {
-    const res = await fetch(AI_LANDING_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(115_000),
-    });
-    const data = await res.json();
-    return { html: data.reply || data.html || "", status: res.status, error: data.error };
-  }
-
-  async function generateLanding() {
-    setPhase("generating");
-    setLoading(true);
-    const isTwoStep = landingType === "premium" || landingType === "multipage";
-    try {
-      // Этап 1: структура + текст
-      setGenStep("structure");
-      const step1 = await callGenerate({ messages, mode: "generate", landingType });
-      if (step1.status === 402) {
-        setPhase("chat");
-        showEnergyGate({ message: step1.error || "Недостаточно энергии для генерации" });
-        return;
-      }
-      if (!step1.html || !step1.html.includes("<!DOCTYPE")) {
-        setPhase("chat");
-        setMessages(prev => [...prev, { role: "assistant", content: "Не удалось сгенерировать — попробуйте ещё раз или добавьте больше деталей о бизнесе." }]);
-        return;
-      }
-
-      // Этап 2: стилизация (только для премиума)
-      let finalHtml = step1.html;
-      if (isTwoStep) {
-        setGenStep("style");
-        const step2 = await callGenerate({ html: step1.html, mode: "style", landingType });
-        if (step2.status === 402) {
-          // Нет энергии на стилизацию — отдаём структурный вариант
-          setHtmlResult(step1.html);
-          setPhase("done");
-          setShowPreview(true);
-          setActivePage("home");
-          return;
-        }
-        if (step2.html && step2.html.includes("<!DOCTYPE")) {
-          finalHtml = step2.html;
-        }
-      }
-
-      setHtmlResult(finalHtml);
-      setPhase("done");
-      setShowPreview(true);
-      setActivePage("home");
-    } catch {
-      setPhase("chat");
-      setMessages(prev => [...prev, { role: "assistant", content: "Генерация заняла слишком долго. Попробуйте ещё раз — обычно со второй попытки всё работает." }]);
-    } finally {
-      setLoading(false);
-      setGenStep(null);
-    }
-  }
-
-  function openInBrowser() {
-    const blob = new Blob([htmlResult], { type: "text/html;charset=utf-8;" });
-    window.open(URL.createObjectURL(blob), "_blank");
-  }
-
-  async function downloadHtml() {
-    // Сначала списываем энергию за скачивание
-    const res = await fetch(LANDING_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-      body: JSON.stringify({ action: "download" }),
-    });
-    if (res.status === 402) {
-      const data = await res.json();
-      showEnergyGate({ message: data.error || "Недостаточно энергии для скачивания" });
-      return;
-    }
-    if (!res.ok) return;
-    // Списание прошло — скачиваем файл
-    const blob = new Blob([htmlResult], { type: "text/html;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${projectTitle || "landing"}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function handleKey(e: React.KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  }
-
-  const isReadyToGenerate = messages.length >= 6 && phase === "chat";
-  const PURPLE = "hsl(270,70%,50%)";
-  const PURPLE_LIGHT = "hsl(270,70%,97%)";
-  const typeBadge = landingType === "premium"
-    ? { label: "Премиум", color: ACCENT, bg: ACCENT_LIGHT }
-    : landingType === "multipage"
-    ? { label: "Мини-сайт", color: PURPLE, bg: PURPLE_LIGHT }
-    : { label: "Стандартный", color: "#64748B", bg: "#F1F5F9" };
-
-  // Страницы мини-сайта из HTML
-  const sitePages = landingType === "multipage" && htmlResult ? extractPages(htmlResult) : [];
-  const PAGE_LABELS: Record<string, string> = {
-    home: "Главная", services: "Услуги", about: "О нас",
-    portfolio: "Портфолио", faq: "FAQ", contacts: "Контакты",
-  };
-
-  // ── Список проектов ──
-  if (view === "list") {
-    return <ProjectsList onOpen={openProject} onNew={startNew} />;
-  }
-
-  // ── Выбор типа (новый проект) ──
-  if (view === "new") {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <button onClick={backToList} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "7px 12px", fontSize: 13, color: "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
-            <Icon name="ArrowLeft" size={14} /> Назад
-          </button>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A" }}>Новый лендинг</div>
-        </div>
-        <TypeSelector onSelect={selectType} />
+  // ── RENDER LIST ───────────────────────────────────────────────────────────
+  if (view === "list") return <ProjectsList onOpen={openProject} onNew={startNew} />;
+  if (view === "new") return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <button onClick={() => setView("list")} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "7px 12px", fontSize: 13, color: "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+          <Icon name="ArrowLeft" size={14} /> Назад
+        </button>
+        <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A" }}>Новый лендинг</div>
       </div>
-    );
-  }
+      <TypeSelector onSelect={selectType} />
+    </div>
+  );
 
-  // ── Редактор ──
-  if (phase === "done" && !htmlResult) setPhase("chat");
-  const iframeSrc = editMode ? injectEditorScript(htmlResult) : htmlResult;
-
+  // ── RENDER EDITOR ─────────────────────────────────────────────────────────
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Шапка редактора */}
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+      {/* Шапка */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <button onClick={backToList} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "7px 12px", fontSize: 13, color: "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}>
+        <button onClick={() => setView("list")} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "7px 12px", fontSize: 13, color: "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}>
           <Icon name="ArrowLeft" size={14} /> Мои лендинги
         </button>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {editingTitle ? (
-            <input
-              autoFocus
-              value={projectTitle}
-              onChange={e => setProjectTitle(e.target.value)}
-              onBlur={() => setEditingTitle(false)}
-              onKeyDown={e => { if (e.key === "Enter") setEditingTitle(false); }}
-              style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", border: "1.5px solid #CBD5E1", borderRadius: 8, padding: "4px 10px", outline: "none", fontFamily: "Montserrat,sans-serif", width: "100%", maxWidth: 300 }}
-            />
-          ) : (
-            <button onClick={() => setEditingTitle(true)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "Montserrat,sans-serif" }}>
-              <span style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 220 }}>{projectTitle}</span>
-              <Icon name="Pencil" size={13} style={{ color: "#94A3B8", flexShrink: 0 }} />
-            </button>
-          )}
-          {landingType && <span style={{ fontSize: 11, fontWeight: 700, color: typeBadge.color, background: typeBadge.bg, padding: "2px 8px", borderRadius: 20, marginLeft: 6 }}>{typeBadge.label}</span>}
-        </div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{projectTitle}</div>
+        {landingType && (
+          <span style={{ fontSize: 11, fontWeight: 700, color: landingType === "premium" ? ACCENT : "#64748B", background: landingType === "premium" ? ACCENT_LIGHT : "#F1F5F9", padding: "3px 10px", borderRadius: 20 }}>
+            {landingType === "premium" ? "Премиум" : "Стандарт"}
+          </span>
+        )}
         {phase === "done" && (
-          <button
-            onClick={() => saveToCloud(true)}
-            disabled={cloudSaving}
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1px solid #E2E8F0", background: cloudSaved ? "#f0fdf4" : "#fff", color: cloudSaved ? "#059669" : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}
-          >
-            <Icon name={cloudSaved ? "CheckCircle" : "Save"} size={14} />
-            {cloudSaving ? "Сохранение..." : cloudSaved ? "Сохранено" : "Сохранить"}
-          </button>
+          <>
+            <button onClick={() => saveProject(blocks, siteStyle, true)} disabled={saving}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1px solid #E2E8F0", background: savedOk ? "#f0fdf4" : "#fff", color: savedOk ? "#059669" : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}>
+              <Icon name={savedOk ? "CheckCircle" : saving ? "Loader" : "Save"} size={14} />
+              {savedOk ? "Сохранено" : saving ? "..." : "Сохранить"}
+            </button>
+          </>
         )}
       </div>
 
-      {/* Спиннер генерации */}
+      {/* Спиннер блочной генерации */}
       {phase === "generating" && (
-        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: 40, textAlign: "center" }}>
-          <div style={{ width: 48, height: 48, border: `3px solid ${ACCENT_LIGHT}`, borderTopColor: ACCENT, borderRadius: "50%", animation: "spin 0.9s linear infinite", margin: "0 auto 20px" }} />
-
-          {/* Двухэтапный прогресс для премиума / мини-сайта */}
-          {(landingType === "premium" || landingType === "multipage") ? (
-            <>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 16 }}>
-                {[
-                  { key: "structure", label: "1. Структура и текст", icon: "FileText" },
-                  { key: "style", label: "2. Дизайн и стили", icon: "Sparkles" },
-                ].map((step, i) => {
-                  const isDone = (step.key === "structure" && genStep === "style");
-                  const isActive = genStep === step.key;
-                  return (
-                    <div key={step.key} style={{ display: "flex", alignItems: "center", gap: i === 0 ? 0 : 8 }}>
-                      {i > 0 && <div style={{ width: 24, height: 2, background: isDone || isActive ? ACCENT : "#E2E8F0", margin: "0 4px" }} />}
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 20, background: isActive ? ACCENT_LIGHT : isDone ? "#F0FDF4" : "#F8FAFC", border: `1px solid ${isActive ? ACCENT : isDone ? "#86EFAC" : "#E2E8F0"}` }}>
-                        <Icon name={isDone ? "CheckCircle" : step.icon} size={13} style={{ color: isActive ? ACCENT : isDone ? "#16A34A" : "#94A3B8" }} />
-                        <span style={{ fontSize: 12, fontWeight: 600, color: isActive ? ACCENT : isDone ? "#16A34A" : "#94A3B8" }}>{step.label}</span>
-                      </div>
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: 28 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 16 }}>
+            {genProgress.current === "style" ? "Подбираю дизайн и цвета..." : `Генерирую блок: ${BLOCKS_ORDER.find(b => b.id === genProgress.current)?.label || genProgress.current}`}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {/* Шаг 0: стиль */}
+            {(() => {
+              const styleStep = { id: "style", label: "Дизайн и цвета" };
+              const allSteps = [styleStep, ...BLOCKS_ORDER.filter(b =>
+                landingType === "budget"
+                  ? ["header","hero","services","contact","footer"].includes(b.id)
+                  : ["header","hero","about","services","reviews","contact","footer"].includes(b.id)
+              )];
+              return allSteps.map(step => {
+                const isDone = genProgress.done.includes(step.id) || (step.id === "style" && genProgress.current !== "style" && genProgress.current !== "");
+                const isActive = genProgress.current === step.id;
+                const blockHtml = blocks.find(b => b.id === step.id)?.html;
+                const hasContent = blockHtml && blockHtml !== "<!-- regenerating -->";
+                return (
+                  <div key={step.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 22, height: 22, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                      background: (isDone || hasContent) ? "#d1fae5" : isActive ? ACCENT_LIGHT : "#F1F5F9",
+                      border: `2px solid ${(isDone || hasContent) ? "#34d399" : isActive ? ACCENT : "#E2E8F0"}` }}>
+                      {(isDone || hasContent)
+                        ? <Icon name="Check" size={11} style={{ color: "#059669" }} />
+                        : isActive
+                          ? <div style={{ width: 8, height: 8, borderRadius: "50%", background: ACCENT, animation: "pulse 1s infinite" }} />
+                          : null}
                     </div>
-                  );
-                })}
-              </div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>
-                {genStep === "structure" ? "Создаю структуру и наполняю текстом..." : "Применяю премиальный дизайн..."}
-              </div>
-              <div style={{ fontSize: 13, color: "#888" }}>
-                {genStep === "structure" ? "Шаг 1 из 2 — обычно 20–40 секунд" : "Шаг 2 из 2 — добавляю анимации, шрифты, цвета..."}
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>ИИ создаёт лендинг...</div>
-              <div style={{ fontSize: 13, color: "#888" }}>Обычно занимает 20–40 секунд</div>
-            </>
-          )}
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                    <span style={{ fontSize: 13, color: (isDone || hasContent) ? "#059669" : isActive ? "#0F172A" : "#94A3B8", fontWeight: isActive ? 600 : 400 }}>{step.label}</span>
+                    {isActive && <div style={{ width: 14, height: 14, border: `2px solid ${ACCENT_LIGHT}`, borderTopColor: ACCENT, borderRadius: "50%", animation: "spin 0.8s linear infinite", flexShrink: 0 }} />}
+                  </div>
+                );
+              });
+            })()}
+          </div>
+          <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}`}</style>
         </div>
       )}
 
-      {/* Панель действий (только когда лендинг готов) */}
-      {phase === "done" && (
-        <>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button onClick={openInBrowser} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
-              <Icon name="ExternalLink" size={16} />Открыть в браузере
-            </button>
-            <button onClick={downloadHtml} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: `1.5px solid ${ACCENT}`, background: ACCENT_LIGHT, color: ACCENT, fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
-              <Icon name="Download" size={16} />Скачать HTML
-            </button>
-            <button
-              onClick={() => { setShowPreview(true); setEditMode(v => !v); }}
-              style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: editMode ? `1.5px solid #0ea5e9` : "1.5px solid #E8ECF0", background: editMode ? "#f0f9ff" : "#fff", color: editMode ? "#0ea5e9" : "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.15s" }}
-            >
-              <Icon name={editMode ? "PenOff" : "Pencil"} size={16} />
-              {editMode ? "Завершить правки" : "Редактировать"}
-            </button>
-            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
-            <button onClick={() => setShowPreview(v => !v)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "1.5px solid #E8ECF0", background: "#fff", color: "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
-              <Icon name={showPreview ? "EyeOff" : "Eye"} size={16} />
-              {showPreview ? "Скрыть" : "Превью"}
-            </button>
-            <button
-              onClick={() => setShowAiRefine(v => !v)}
-              style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: showAiRefine ? `1.5px solid #a855f7` : "1.5px solid #E8ECF0", background: showAiRefine ? "#faf5ff" : "#fff", color: showAiRefine ? "#7c3aed" : "#555", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.15s" }}
-            >
-              <Icon name="Wand2" size={16} />ИИ-доработка
-            </button>
-            {hasBackup && projectId && (
-              <button
-                onClick={restoreHtml}
-                disabled={restoring}
-                title="Вернуть предыдущую версию сайта"
-                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 22px", borderRadius: 10, border: "1.5px solid #fca5a5", background: "#fff5f5", color: restoring ? "#aaa" : "#dc2626", fontSize: 14, fontWeight: 700, cursor: restoring ? "default" : "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.15s" }}
-              >
-                {restoring
-                  ? <><div style={{ width: 14, height: 14, border: "2px solid #fca5a5", borderTopColor: "#dc2626", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />Откат...</>
-                  : <><Icon name="RotateCcw" size={16} />Откатить</>}
-              </button>
-            )}
-          </div>
-
-          {/* Подсказка редактора */}
-          {editMode && (
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 16px", borderRadius: 10, background: "#f0f9ff", border: "1.5px solid #0ea5e9" }}>
-              <Icon name="Info" size={16} style={{ color: "#0ea5e9", flexShrink: 0, marginTop: 1 }} />
-              <div style={{ fontSize: 13, color: "#0369a1", lineHeight: 1.6 }}>
-                <strong>✏️ Текст</strong> — кликните на любой заголовок или абзац и редактируйте прямо там.<br />
-                <strong>🖼 Фото</strong> — кликните на любую картинку — откроется выбор файла с вашего устройства.<br />
-                Все изменения сохраняются автоматически.
-                {editSaved && <strong style={{ marginLeft: 8, color: "#059669" }}>✓ Сохранено</strong>}
-              </div>
-            </div>
-          )}
-
-          {/* ИИ-доработка */}
-          {showAiRefine && (
-            <div style={{ background: "#faf5ff", borderRadius: 14, border: "1.5px solid #a855f7", padding: 20 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 10, background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Icon name="Wand2" size={16} style={{ color: "#fff" }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#4c1d95" }}>Попросить ИИ доработать</div>
-                  <div style={{ fontSize: 12, color: "#7c3aed" }}>Напишите что изменить — ИИ переделает лендинг</div>
-                </div>
-                {aiRefineDone && (
-                  <div style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: "#059669", background: "#d1fae5", padding: "4px 10px", borderRadius: 8 }}>✓ Готово</div>
-                )}
-              </div>
-              <div style={{ fontSize: 12, color: "#6d28d9", marginBottom: 10, lineHeight: 1.5 }}>
-                Примеры: «Сделай заголовок короче», «Добавь раздел с ценами», «Поменяй цвет на синий»
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <textarea
-                  value={aiRefineInput}
-                  onChange={e => setAiRefineInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); aiRefine(); } }}
-                  placeholder="Что нужно изменить в лендинге?"
-                  rows={2}
-                  disabled={aiRefining}
-                  style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: "1.5px solid #c4b5fd", fontSize: 13, fontFamily: "Montserrat,sans-serif", outline: "none", resize: "none", lineHeight: 1.5, color: "#1a1a1a", background: aiRefining ? "#f5f3ff" : "#fff" }}
-                />
-                <button
-                  onClick={aiRefine}
-                  disabled={!aiRefineInput.trim() || aiRefining}
-                  style={{ padding: "10px 18px", borderRadius: 10, border: "none", background: aiRefineInput.trim() && !aiRefining ? "#7c3aed" : "#e5e7eb", color: aiRefineInput.trim() && !aiRefining ? "#fff" : "#aaa", fontSize: 13, fontWeight: 700, cursor: aiRefineInput.trim() && !aiRefining ? "pointer" : "default", fontFamily: "Montserrat,sans-serif", display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}
-                >
-                  {aiRefining
-                    ? <><div style={{ width: 14, height: 14, border: "2px solid #fff4", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />Думаю...</>
-                    : <><Icon name="Sparkles" size={14} />Применить</>}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Превью */}
-          {showPreview && (
-            <div style={{ borderRadius: 14, overflow: "hidden", border: editMode ? "2px solid #0ea5e9" : "1px solid #E8ECF0", boxShadow: "0 4px 24px rgba(0,0,0,0.08)", transition: "border-color 0.2s" }}>
-              {/* Шапка браузера */}
-              <div style={{ background: editMode ? "#e0f2fe" : "#F1F5F9", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
-                  {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width: 11, height: 11, borderRadius: "50%", background: c }} />)}
-                </div>
-                <div style={{ flex: 1, background: "#fff", borderRadius: 6, padding: "4px 12px", fontSize: 12, color: "#888", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {editMode ? "✏️ Режим редактирования" : "Предварительный просмотр"}
-                </div>
-                <div style={{ fontSize: 11, color: "#888", background: "#E2E8F0", padding: "2px 8px", borderRadius: 6, flexShrink: 0 }}>
-                  {htmlResult ? `${Math.round(htmlResult.length / 1024)} КБ` : ""}
-                </div>
-              </div>
-
-              {/* Переключатель страниц для мини-сайта */}
-              {landingType === "multipage" && sitePages.length > 0 && (
-                <div style={{ background: "#fff", borderBottom: "1px solid #E8ECF0", padding: "8px 16px", overflowX: "auto" } as React.CSSProperties}>
-                  <div style={{ display: "flex", gap: 6, width: "max-content" }}>
-                    {sitePages.map(pageId => (
-                      <button
-                        key={pageId}
-                        onClick={() => switchPage(pageId)}
-                        style={{
-                          padding: "5px 14px", borderRadius: 20, border: "none", fontSize: 12, fontWeight: 600,
-                          cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.15s", whiteSpace: "nowrap",
-                          background: activePage === pageId ? PURPLE : "#F1F5F9",
-                          color: activePage === pageId ? "#fff" : "#64748B",
-                        }}
-                      >
-                        {PAGE_LABELS[pageId] || pageId}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <iframe
-                ref={iframeRef}
-                key={editMode ? "edit" : "view"}
-                srcDoc={iframeSrc}
-                style={{ width: "100%", height: 600, border: "none", display: "block" }}
-                title="Превью лендинга"
-                sandbox="allow-scripts allow-same-origin"
-              />
-            </div>
-          )}
-
-          {/* Инструкция размещения */}
-          <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8ECF0" }}>
-            <button onClick={() => setShowInstructions(v => !v)} style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <Icon name="BookOpen" size={16} style={{ color: ACCENT }} />
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>Как разместить лендинг в интернете (бесплатно)</span>
-              </div>
-              <Icon name={showInstructions ? "ChevronUp" : "ChevronDown"} size={16} style={{ color: "#888" }} />
-            </button>
-            {showInstructions && (
-              <div style={{ padding: "0 20px 20px" }}>
-                <div style={{ fontSize: 13, color: "#555", marginBottom: 16, lineHeight: 1.6 }}>
-                  Самый простой способ — <strong>Netlify Drop</strong>. Бесплатно, без регистрации домена, за 1 минуту.
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {NETLIFY_STEPS.map(s => (
-                    <div key={s.n} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                      <div style={{ width: 24, height: 24, borderRadius: "50%", background: ACCENT, color: "#fff", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>{s.n}</div>
-                      <div style={{ fontSize: 13, color: "#444", lineHeight: 1.6 }}>{s.text}</div>
-                    </div>
-                  ))}
-                </div>
-                <a href="https://app.netlify.com/drop" target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 16, padding: "9px 18px", borderRadius: 8, background: ACCENT_LIGHT, color: ACCENT, fontSize: 13, fontWeight: 700, textDecoration: "none", border: `1px solid ${ACCENT}30` }}>
-                  <Icon name="ExternalLink" size={14} />Открыть Netlify Drop
-                </a>
-              </div>
-            )}
-          </div>
-        </>
+      {/* Баннер: данные есть — предлагаем восстановить */}
+      {phase === "chat" && messages.length >= 4 && blocks.length === 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 12, background: "#fff7ed", border: "1.5px solid #fb923c" }}>
+          <Icon name="AlertTriangle" size={16} style={{ color: "#ea580c", flexShrink: 0 }} />
+          <div style={{ flex: 1, fontSize: 13, color: "#9a3412" }}>Данные о бизнесе сохранены. Нажмите «Создать» ниже — сайт будет восстановлен.</div>
+        </div>
       )}
 
       {/* Чат */}
       {phase === "chat" && (
         <>
-          {/* Баннер восстановления — если данные о бизнесе уже есть */}
-          {messages.length >= 4 && (
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "14px 18px", borderRadius: 12, background: "#fff7ed", border: "1.5px solid #fb923c" }}>
-              <Icon name="AlertTriangle" size={18} style={{ color: "#ea580c", flexShrink: 0, marginTop: 1 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#9a3412", marginBottom: 3 }}>Предыдущая версия сайта повреждена</div>
-                <div style={{ fontSize: 12, color: "#c2410c", lineHeight: 1.5 }}>Данные о бизнесе сохранены. Нажмите кнопку ниже — ИИ создаст сайт заново на основе вашего описания.</div>
-              </div>
-              <button
-                onClick={generateLanding}
-                disabled={loading}
-                style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, border: "none", background: "#ea580c", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-              >
-                <Icon name="RefreshCw" size={14} />Восстановить сайт
-              </button>
-            </div>
-          )}
           <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", overflow: "hidden" }}>
-            <div style={{ padding: "16px 20px", maxHeight: 420, overflowY: "auto" }}>
+            <div style={{ padding: "16px 20px", maxHeight: 380, overflowY: "auto" }}>
               {messages.map((m, i) => (
-                <div key={i} style={{ marginBottom: 16, display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
+                <div key={i} style={{ marginBottom: 14, display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
                   {m.role === "assistant" && (
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
                       <div style={{ width: 20, height: 20, borderRadius: "50%", background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1040,8 +793,8 @@ export default function LkLandingBuilder() {
                   </div>
                 </div>
               ))}
-              {loading && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16 }}>
+              {chatLoading && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 14 }}>
                   <div style={{ width: 20, height: 20, borderRadius: "50%", background: ACCENT, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Icon name="Sparkles" size={11} style={{ color: "#fff" }} />
                   </div>
@@ -1053,55 +806,162 @@ export default function LkLandingBuilder() {
               <div ref={bottomRef} />
             </div>
             <div style={{ borderTop: "1px solid #E8ECF0", padding: "12px 16px", display: "flex", gap: 10, alignItems: "flex-end" }}>
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleKey}
-                placeholder="Напишите о своём бизнесе..."
+              <textarea value={input} onChange={e => setInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                placeholder="Расскажите о бизнесе..."
                 rows={2}
                 style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: "1.5px solid #E8ECF0", fontSize: 13, fontFamily: "Montserrat,sans-serif", outline: "none", resize: "none", lineHeight: 1.5, color: "#1a1a1a" }}
               />
-              <button
-                onClick={() => sendMessage()}
-                disabled={!input.trim() || loading}
-                style={{ width: 40, height: 40, borderRadius: 10, border: "none", background: input.trim() && !loading ? ACCENT : "#E8ECF0", color: input.trim() && !loading ? "#fff" : "#aaa", display: "flex", alignItems: "center", justifyContent: "center", cursor: input.trim() && !loading ? "pointer" : "default", flexShrink: 0, transition: "background 0.15s" }}
-              >
+              <button onClick={sendMessage} disabled={!input.trim() || chatLoading}
+                style={{ width: 40, height: 40, borderRadius: 10, border: "none", background: input.trim() && !chatLoading ? ACCENT : "#E8ECF0", color: input.trim() && !chatLoading ? "#fff" : "#aaa", display: "flex", alignItems: "center", justifyContent: "center", cursor: input.trim() && !chatLoading ? "pointer" : "default", flexShrink: 0 }}>
                 <Icon name="Send" size={16} />
               </button>
             </div>
           </div>
 
           {isReadyToGenerate && (
-            <button
-              onClick={generateLanding}
-              disabled={loading}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                padding: "15px 24px", borderRadius: 14, border: "none", fontSize: 15, fontWeight: 700,
-                cursor: loading ? "default" : "pointer", fontFamily: "Montserrat,sans-serif",
-                background: loading ? "#E8ECF0"
-                  : landingType === "multipage" ? `linear-gradient(135deg, ${PURPLE} 0%, hsl(270,70%,40%) 100%)`
-                  : `linear-gradient(135deg, ${ACCENT} 0%, hsl(185,85%,26%) 100%)`,
-                color: loading ? "#aaa" : "#fff",
-                boxShadow: loading ? "none"
-                  : landingType === "multipage" ? `0 4px 16px ${PURPLE}44`
-                  : `0 4px 16px ${ACCENT}44`,
-              }}
-            >
-              <Icon name={landingType === "multipage" ? "LayoutDashboard" : landingType === "premium" ? "Sparkles" : "Wand2"} size={18} />
-              {landingType === "multipage" ? "Создать мини-сайт" : landingType === "premium" ? "Создать премиальный лендинг" : "Создать лендинг"}
+            <button onClick={generateLanding}
+              style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "15px 24px", borderRadius: 14, border: "none", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", background: `linear-gradient(135deg, ${ACCENT} 0%, hsl(185,85%,26%) 100%)`, color: "#fff", boxShadow: `0 4px 16px ${ACCENT}44` }}>
+              <Icon name="Sparkles" size={18} />
+              Создать лендинг по блокам
             </button>
           )}
         </>
       )}
 
+      {/* Готовый сайт: блоки + превью */}
+      {phase === "done" && (
+        <>
+          {/* Панель инструментов */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button onClick={() => { setEditMode(v => !v); }}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: editMode ? `1.5px solid ${ACCENT}` : "1.5px solid #E8ECF0", background: editMode ? ACCENT_LIGHT : "#fff", color: editMode ? ACCENT : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+              <Icon name={editMode ? "PenOff" : "Pencil"} size={15} />
+              {editMode ? "Выйти из редактора" : "Редактировать текст"}
+            </button>
+            <button onClick={() => setShowStyleEditor(v => !v)}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: showStyleEditor ? `1.5px solid ${PURPLE}` : "1.5px solid #E8ECF0", background: showStyleEditor ? PURPLE_LIGHT : "#fff", color: showStyleEditor ? PURPLE : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+              <Icon name="Palette" size={15} />Стиль
+            </button>
+            <button onClick={() => { setShowVersions(v => !v); if (!showVersions) loadVersions(); }}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: showVersions ? `1.5px solid #f59e0b` : "1.5px solid #E8ECF0", background: showVersions ? "#fffbeb" : "#fff", color: showVersions ? "#d97706" : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+              <Icon name="History" size={15} />Версии
+            </button>
+            <button onClick={downloadHtml}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: `1.5px solid ${ACCENT}`, background: ACCENT_LIGHT, color: ACCENT, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+              <Icon name="Download" size={15} />Скачать HTML
+            </button>
+          </div>
+
+          {/* Редактор стиля */}
+          {showStyleEditor && (
+            <StyleEditor style={siteStyle} onChange={newStyle => {
+              setSiteStyle(newStyle);
+              setShowStyleEditor(false);
+            }} />
+          )}
+
+          {/* История версий */}
+          {showVersions && (
+            <div style={{ background: "#fff", borderRadius: 14, border: "1px solid #E8ECF0", padding: 18 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>История версий</div>
+                <button onClick={saveVersion}
+                  style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "none", background: ACCENT, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                  <Icon name="BookmarkPlus" size={13} />Сохранить версию
+                </button>
+              </div>
+              {versions.length === 0
+                ? <div style={{ fontSize: 13, color: "#888", textAlign: "center", padding: "16px 0" }}>Нет сохранённых версий. Нажмите «Сохранить версию» чтобы зафиксировать текущее состояние.</div>
+                : <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {versions.map((v, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 10, background: "#F8FAFC", border: "1px solid #E8ECF0" }}>
+                        <Icon name="Clock" size={14} style={{ color: "#94A3B8", flexShrink: 0 }} />
+                        <div style={{ flex: 1, fontSize: 13, color: "#555" }}>{formatDate(v.savedAt)}</div>
+                        <div style={{ fontSize: 11, color: "#888" }}>{v.blocks?.length || 0} блоков</div>
+                        <button onClick={() => restoreVersion(i)}
+                          style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 7, border: "1px solid #E2E8F0", background: "#fff", color: "#555", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                          <Icon name="RotateCcw" size={12} />Откатить
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+              }
+            </div>
+          )}
+
+          {/* Блоки + превью */}
+          <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 14, alignItems: "start" }}>
+            {/* Боковая панель блоков */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", marginBottom: 4, paddingLeft: 4 }}>БЛОКИ САЙТА</div>
+              {blocks.map((block) => (
+                <div key={block.id}>
+                  <div style={{ background: "#fff", borderRadius: 10, border: `1.5px solid ${editingBlock === block.id ? ACCENT : "#E8ECF0"}`, overflow: "hidden" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 12px" }}>
+                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: block.html && block.html !== "<!-- regenerating -->" ? "#34d399" : "#e2e8f0", flexShrink: 0 }} />
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "#374151", flex: 1 }}>{block.label}</span>
+                      <button onClick={() => regenerateBlock(block.id)} title="Перегенерировать"
+                        style={{ width: 22, height: 22, borderRadius: 6, border: "none", background: "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                        <Icon name="RefreshCw" size={11} style={{ color: "#64748B" }} />
+                      </button>
+                      <button onClick={() => { setEditingBlock(editingBlock === block.id ? null : block.id); setBlockEditInput(""); }}
+                        title="Редактировать через ИИ"
+                        style={{ width: 22, height: 22, borderRadius: 6, border: "none", background: editingBlock === block.id ? ACCENT_LIGHT : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                        <Icon name="Wand2" size={11} style={{ color: editingBlock === block.id ? ACCENT : "#64748B" }} />
+                      </button>
+                    </div>
+                    {/* ИИ-редактор блока */}
+                    {editingBlock === block.id && (
+                      <div style={{ borderTop: "1px solid #E8ECF0", padding: "10px 12px", background: ACCENT_LIGHT }}>
+                        <textarea value={blockEditInput} onChange={e => setBlockEditInput(e.target.value)}
+                          onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); editBlock(block.id); } }}
+                          placeholder="Что изменить в этом блоке?"
+                          rows={2}
+                          style={{ width: "100%", padding: "7px 9px", borderRadius: 7, border: `1px solid ${ACCENT}40`, fontSize: 11, fontFamily: "Montserrat,sans-serif", outline: "none", resize: "none", lineHeight: 1.4, color: "#1a1a1a", background: "#fff" }}
+                        />
+                        <button onClick={() => editBlock(block.id)} disabled={!blockEditInput.trim() || blockEditing}
+                          style={{ width: "100%", marginTop: 6, padding: "6px 0", borderRadius: 7, border: "none", background: blockEditInput.trim() && !blockEditing ? ACCENT : "#E8ECF0", color: blockEditInput.trim() && !blockEditing ? "#fff" : "#aaa", fontSize: 11, fontWeight: 700, cursor: blockEditInput.trim() && !blockEditing ? "pointer" : "default", fontFamily: "Montserrat,sans-serif" }}>
+                          {blockEditing ? "Думаю..." : "Применить"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Превью */}
+            <div style={{ borderRadius: 14, overflow: "hidden", border: editMode ? "2px solid #0ea5e9" : "1px solid #E8ECF0", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
+              <div style={{ background: editMode ? "#e0f2fe" : "#F1F5F9", padding: "8px 14px", display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex", gap: 5 }}>
+                  {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
+                </div>
+                <div style={{ flex: 1, background: "#fff", borderRadius: 5, padding: "3px 10px", fontSize: 11, color: "#888" }}>
+                  {editMode ? "✏️ Режим редактирования — кликайте на текст или картинку" : "Предварительный просмотр"}
+                </div>
+                <span style={{ fontSize: 10, color: "#888", background: "#E2E8F0", padding: "2px 7px", borderRadius: 5 }}>
+                  {Math.round(fullHtml.length / 1024)} КБ
+                </span>
+              </div>
+              <iframe ref={iframeRef} srcDoc={iframeSrc}
+                style={{ width: "100%", height: 640, border: "none", display: "block" }}
+                title="Превью лендинга" sandbox="allow-scripts allow-same-origin"
+              />
+            </div>
+          </div>
+
+          <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
+        </>
+      )}
+
       <style>{`
-        @keyframes dot-pulse {
-          0%, 100% { opacity: 0.3; transform: scale(0.8); }
-          50% { opacity: 1; transform: scale(1.2); }
-        }
+        @keyframes dot-pulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+        @media (max-width: 640px) {
+          .landing-blocks-grid { grid-template-columns: 1fr !important; }
+        }
       `}</style>
     </div>
   );

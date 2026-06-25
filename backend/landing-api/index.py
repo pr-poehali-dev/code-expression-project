@@ -1,13 +1,17 @@
 """
-API для управления проектами лендингов пользователя.
-GET /        — список всех лендингов пользователя
-GET /?id=... — получить один лендинг по id
-POST /       — создать или обновить лендинг (если передан id — обновляем, иначе создаём)
+CRUD лендингов + версии.
+GET /          — список лендингов пользователя
+GET /?id=...   — получить один лендинг (html, blocks, style, messages, versions)
+POST /         — создать/обновить лендинг
+POST / action=save-version   — сохранить текущее состояние как версию (ручное)
+POST / action=restore-version — откатить к версии по индексу
+POST / action=download       — списать энергию за скачивание
 """
 import json
 import os
 import psycopg2
 import psycopg2.extras
+from datetime import datetime, timezone
 
 SCHEMA = "t_p84565078_code_expression_proj"
 CORS = {
@@ -15,6 +19,7 @@ CORS = {
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, X-Session-Id",
 }
+MAX_VERSIONS = 5
 
 
 def get_conn():
@@ -46,26 +51,23 @@ def get_session_user(event, conn):
         return cur.fetchone()
 
 
-def get_tool_cost(conn, tool_key: str, default: int) -> int:
+def get_tool_cost(conn, tool_key, default):
     with conn.cursor() as cur:
         cur.execute(f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key = %s", (tool_key,))
         row = cur.fetchone()
         return row[0] if row else default
 
 
-def get_balance(conn, salon_id: int) -> int:
+def get_balance(conn, salon_id):
     with conn.cursor() as cur:
         cur.execute(f"SELECT credits_balance FROM {SCHEMA}.salons WHERE id = %s", (salon_id,))
         row = cur.fetchone()
         return row[0] if row else 0
 
 
-def deduct(conn, salon_id: int, user_id: int, tool_key: str, cost: int, action: str):
+def deduct(conn, salon_id, user_id, tool_key, cost, action):
     with conn.cursor() as cur:
-        cur.execute(
-            f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s",
-            (cost, salon_id)
-        )
+        cur.execute(f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s", (cost, salon_id))
         cur.execute(
             f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
             f"VALUES (%s, %s, %s, %s, %s, 'debit')",
@@ -75,7 +77,7 @@ def deduct(conn, salon_id: int, user_id: int, tool_key: str, cost: int, action: 
 
 
 def handler(event: dict, context) -> dict:
-    """CRUD лендингов + списание энергии за скачивание"""
+    """CRUD лендингов: список, открыть, сохранить, версии, скачать"""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -89,45 +91,43 @@ def handler(event: dict, context) -> dict:
         method = event.get("httpMethod", "GET")
         params = event.get("queryStringParameters") or {}
 
-        # ── GET — список или один лендинг ──
+        # ── GET ──────────────────────────────────────────────────────────────
         if method == "GET":
             project_id = params.get("id")
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 if project_id:
                     safe_pid = project_id.replace("'", "''")
                     cur.execute(
-                        f"SELECT id, title, landing_type, html, html_backup, messages, created_at, updated_at "
+                        f"SELECT id, title, landing_type, html, html_backup, "
+                        f"blocks, style, versions, messages, created_at, updated_at "
                         f"FROM {SCHEMA}.landing_projects "
                         f"WHERE id = '{safe_pid}' AND user_id = {user_id}"
                     )
                     row = cur.fetchone()
                     if not row:
                         return err("Не найдено", 404)
-                    row = dict(row)
-                    row["created_at"] = str(row["created_at"])
-                    row["updated_at"] = str(row["updated_at"])
-                    return ok({"project": row})
+                    d = dict(row)
+                    d["created_at"] = str(d["created_at"])
+                    d["updated_at"] = str(d["updated_at"])
+                    return ok({"project": d})
                 else:
                     cur.execute(
                         f"SELECT id, title, landing_type, created_at, updated_at "
                         f"FROM {SCHEMA}.landing_projects "
                         f"WHERE user_id = {user_id} ORDER BY updated_at DESC"
                     )
-                    rows = cur.fetchall()
-                    result = []
+                    rows = [dict(r) for r in cur.fetchall()]
                     for r in rows:
-                        d = dict(r)
-                        d["created_at"] = str(d["created_at"])
-                        d["updated_at"] = str(d["updated_at"])
-                        result.append(d)
-                    return ok({"projects": result})
+                        r["created_at"] = str(r["created_at"])
+                        r["updated_at"] = str(r["updated_at"])
+                    return ok({"projects": rows})
 
-        # ── POST — создать/обновить или списать за скачивание ──
+        # ── POST ─────────────────────────────────────────────────────────────
         if method == "POST":
             body = json.loads(event.get("body") or "{}")
             action = body.get("action")
 
-            # Специальный action: списание за скачивание
+            # Скачивание
             if action == "download":
                 salon_id = user.get("salon_id")
                 if not salon_id:
@@ -135,53 +135,101 @@ def handler(event: dict, context) -> dict:
                 cost = get_tool_cost(conn, "landing_download", 5)
                 balance = get_balance(conn, salon_id)
                 if balance < cost:
-                    return err(f"Недостаточно энергии. Нужно {cost} ⚡, доступно {balance} ⚡. Пополните баланс.", 402)
-                deduct(conn, salon_id, user_id, "landing_download", cost, "Скачивание готового лендинга")
+                    return err(f"Недостаточно энергии. Нужно {cost} ⚡, доступно {balance} ⚡.", 402)
+                deduct(conn, salon_id, user_id, "landing_download", cost, "Скачивание лендинга")
                 return ok({"ok": True, "spent": cost})
 
-            # Откат к предыдущей версии
-            if action == "restore":
+            # Ручное сохранение версии
+            if action == "save-version":
                 project_id = body.get("id")
                 if not project_id:
                     return err("id обязателен", 400)
                 safe_pid = project_id.replace("'", "''")
                 with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                     cur.execute(
-                        f"SELECT html_backup FROM {SCHEMA}.landing_projects "
+                        f"SELECT html, blocks, style, versions FROM {SCHEMA}.landing_projects "
                         f"WHERE id='{safe_pid}' AND user_id={user_id}"
                     )
                     row = cur.fetchone()
-                    if not row or not row["html_backup"]:
-                        return err("Нет сохранённой резервной копии", 404)
-                    backup_html = row["html_backup"]
-                    safe_backup = backup_html.replace("'", "''")
+                    if not row:
+                        return err("Не найдено", 404)
+                    versions = list(row["versions"] or [])
+                    new_version = {
+                        "savedAt": datetime.now(timezone.utc).isoformat(),
+                        "html": row["html"],
+                        "blocks": row["blocks"],
+                        "style": row["style"],
+                    }
+                    versions = [new_version] + versions
+                    versions = versions[:MAX_VERSIONS]
+                    versions_json = json.dumps(versions, ensure_ascii=False).replace("'", "''")
                     cur.execute(
-                        f"UPDATE {SCHEMA}.landing_projects "
-                        f"SET html='{safe_backup}', html_backup='', updated_at=NOW() "
+                        f"UPDATE {SCHEMA}.landing_projects SET versions='{versions_json}'::jsonb "
                         f"WHERE id='{safe_pid}' AND user_id={user_id}"
                     )
                     conn.commit()
-                    return ok({"html": backup_html, "restored": True})
+                    return ok({"saved": True, "versionsCount": len(versions)})
 
-            # Сохранение проекта (без списания)
+            # Откат к версии
+            if action == "restore-version":
+                project_id = body.get("id")
+                version_idx = body.get("versionIdx", 0)
+                if not project_id:
+                    return err("id обязателен", 400)
+                safe_pid = project_id.replace("'", "''")
+                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                    cur.execute(
+                        f"SELECT versions FROM {SCHEMA}.landing_projects "
+                        f"WHERE id='{safe_pid}' AND user_id={user_id}"
+                    )
+                    row = cur.fetchone()
+                    if not row:
+                        return err("Не найдено", 404)
+                    versions = list(row["versions"] or [])
+                    if version_idx >= len(versions):
+                        return err("Версия не найдена", 404)
+                    v = versions[version_idx]
+                    safe_html = (v.get("html") or "").replace("'", "''")
+                    blocks_json = json.dumps(v.get("blocks") or [], ensure_ascii=False).replace("'", "''")
+                    style_json = json.dumps(v.get("style") or {}, ensure_ascii=False).replace("'", "''")
+                    cur.execute(
+                        f"UPDATE {SCHEMA}.landing_projects "
+                        f"SET html='{safe_html}', blocks='{blocks_json}'::jsonb, "
+                        f"style='{style_json}'::jsonb, updated_at=NOW() "
+                        f"WHERE id='{safe_pid}' AND user_id={user_id}"
+                    )
+                    conn.commit()
+                    return ok({
+                        "html": v.get("html", ""),
+                        "blocks": v.get("blocks", []),
+                        "style": v.get("style", {}),
+                        "restored": True,
+                    })
+
+            # Сохранение / создание проекта
             project_id = body.get("id")
             title = (body.get("title") or "Без названия")[:255].replace("'", "''")
             lt = body.get("landingType", "budget")
-            landing_type = lt if lt in ("premium", "multipage") else "budget"
+            landing_type = lt if lt in ("premium", "multipage", "budget") else "budget"
             html = body.get("html", "")
-            messages_json = json.dumps(body.get("messages", []), ensure_ascii=False)
+            blocks = body.get("blocks", [])
+            style = body.get("style", {})
+            messages_data = body.get("messages", [])
+
+            safe_html = html.replace("'", "''")
+            safe_msg = json.dumps(messages_data, ensure_ascii=False).replace("'", "''")
+            safe_blocks = json.dumps(blocks, ensure_ascii=False).replace("'", "''")
+            safe_style = json.dumps(style, ensure_ascii=False).replace("'", "''")
 
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 if project_id:
                     safe_pid = project_id.replace("'", "''")
-                    safe_html = html.replace("'", "''")
-                    safe_msg = messages_json.replace("'", "''")
-                    # Сохраняем старый HTML в backup перед перезаписью
                     cur.execute(
                         f"UPDATE {SCHEMA}.landing_projects "
                         f"SET title='{title}', landing_type='{landing_type}', "
-                        f"html_backup=html, "
-                        f"html='{safe_html}', messages='{safe_msg}'::jsonb, updated_at=NOW() "
+                        f"html='{safe_html}', blocks='{safe_blocks}'::jsonb, "
+                        f"style='{safe_style}'::jsonb, messages='{safe_msg}'::jsonb, "
+                        f"updated_at=NOW() "
                         f"WHERE id='{safe_pid}' AND user_id={user_id} RETURNING id"
                     )
                     row = cur.fetchone()
@@ -190,11 +238,11 @@ def handler(event: dict, context) -> dict:
                     conn.commit()
                     return ok({"id": str(row["id"]), "saved": True})
                 else:
-                    safe_html = html.replace("'", "''")
-                    safe_msg = messages_json.replace("'", "''")
                     cur.execute(
-                        f"INSERT INTO {SCHEMA}.landing_projects (user_id, title, landing_type, html, messages) "
-                        f"VALUES ({user_id}, '{title}', '{landing_type}', '{safe_html}', '{safe_msg}'::jsonb) "
+                        f"INSERT INTO {SCHEMA}.landing_projects "
+                        f"(user_id, title, landing_type, html, blocks, style, messages) "
+                        f"VALUES ({user_id}, '{title}', '{landing_type}', '{safe_html}', "
+                        f"'{safe_blocks}'::jsonb, '{safe_style}'::jsonb, '{safe_msg}'::jsonb) "
                         f"RETURNING id"
                     )
                     row = cur.fetchone()
