@@ -576,7 +576,7 @@ export default function LkLandingBuilder() {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Session-Id": session() },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(90_000),
+      signal: AbortSignal.timeout(115_000),
     });
     const data = await res.json();
     return { html: data.reply || data.html || "", status: res.status, error: data.error };

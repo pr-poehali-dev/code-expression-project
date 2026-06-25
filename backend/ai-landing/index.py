@@ -106,51 +106,48 @@ SYSTEM_GENERATE_BUDGET = """Ты — профессиональный веб-р�
 
 ВАЖНО: Верни ТОЛЬКО чистый HTML-код, без markdown, без объяснений. Начинай сразу с <!DOCTYPE html>."""
 
-SYSTEM_GENERATE_PREMIUM = """Ты — профессиональный веб-разработчик. Создай полный HTML-лендинг на основе данных о бизнесе.
+SYSTEM_GENERATE_PREMIUM = """Создай HTML-скелет лендинга. ТОЛЬКО структура и тексты, БЕЗ дизайна.
 
-СТРУКТУРА (7 секций):
-1. header — логотип + горизонтальная навигация desktop / гамбургер mobile. Фиксированный.
-2. #hero — min-height:100vh, крупный h1, подзаголовок, 2 кнопки.
-3. #about — текст о компании + 3 цифры-достижения.
-4. #services — карточки услуг в grid (2–3 колонки).
-5. #reviews — 2–3 отзыва с именем (придумай реалистичные).
-6. #contact — форма (имя, телефон, кнопка) + контакты.
-7. footer — копирайт.
+СЕКЦИИ (все в одном файле):
+- header: nav с логотипом и ссылками на якоря, кнопка «Связаться»
+- #hero: h1 с главным заголовком, p с подзаголовком, 2 кнопки-ссылки
+- #about: заголовок, 2-3 абзаца текста о компании, 3 числа-достижения (число + подпись)
+- #services: заголовок, 3-6 карточек div.card (каждая: h3 + p с описанием)
+- #reviews: заголовок, 2-3 div.review (цитата + имя + должность — придумай реалистичные)
+- #contact: заголовок, form (input name, input tel, button), p с телефоном и email
+- footer: p с копирайтом
 
-ДИЗАЙН:
-- CSS-переменные в :root: --c-primary, --c-accent, --c-dark, --c-light, --c-text
-- Подбери палитру под тематику бизнеса (не используй дефолтный синий)
-- Google Fonts: один заголовочный + один текстовый шрифт
-- Градиент в hero и кнопках через переменные
-- hover на карточках: translateY(-4px) + box-shadow
-- Гамбургер: JS toggle .open, max-height анимация
+CSS: ТОЛЬКО минимальный reset + body{font-family:sans-serif;margin:0} + display:flex/grid для карточек. Никакого дизайна.
+JS: только гамбургер-меню (toggle класса .open).
 
-ТРЕБОВАНИЯ:
-- Только <!DOCTYPE html>…</html>, весь CSS в <style>, JS в <script> перед </body>
-- Mobile-first: 320px, 768px, 1024px
-- Форма action="#"
-- Без внешних библиотек кроме Google Fonts
+Заполни всё РЕАЛЬНЫМ текстом на основе данных о бизнесе.
 
-ВАЖНО: только чистый HTML без markdown. Начинай с <!DOCTYPE html>.
-ЛИМИТ: уложись в 5500 токенов. Минимум комментариев, компактный CSS."""
+Верни только <!DOCTYPE html>…</html>. ЛИМИТ: 2500 токенов."""
 
-SYSTEM_STYLE_PREMIUM = """Ты — топовый веб-дизайнер уровня Awwwards. Тебе дан функциональный HTML-лендинг. Твоя задача — сделать его визуально выдающимся, не меняя структуру и тексты.
+SYSTEM_STYLE_PREMIUM = """Ты — топовый веб-дизайнер. Тебе дан HTML-скелет лендинга с текстом. Добавь премиальный дизайн — перепиши ТОЛЬКО блок <style> и дополни <script>. HTML и тексты не трогай.
 
-ЧТО УЛУЧШИТЬ (только CSS и JS, не трогай HTML-структуру и тексты):
-1. Замени все цвета на индивидуальную премиальную палитру через CSS-переменные (:root). Подбери под тематику бизнеса.
-2. Шрифты: замени на Playfair Display (заголовки) + Montserrat (текст) через Google Fonts @import
-3. Hero: добавь градиентный фон, декоративный clip-path или SVG-фигуру справа, анимацию fadeIn+slideUp
-4. Карточки: hover translateY(-6px) + box-shadow + акцентная полоска сверху
-5. Кнопки: градиент + box-shadow + scale(1.03) при наведении
-6. Header: backdrop-filter:blur(12px) + при scroll добавляет класс .scrolled (непрозрачный фон)
-7. Между секциями: clip-path диагональ или волна
-8. Отзывы: добавь крупную декоративную кавычку «» в цвет акцента
+НОВЫЙ <style> должен содержать:
+:root { --c-primary: [цвет под тематику]; --c-accent: [яркий акцент]; --c-dark: [тёмный]; --c-light: [светлый фон]; --c-text: [текст]; }
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap');
 
-ЗАПРЕЩЕНО: менять тексты, структуру тегов, id/class секций, содержимое форм.
-РАЗРЕШЕНО: полностью переписать <style>, дополнить <script>, заменить @import шрифты.
+Стили:
+- body: font-family Montserrat, background var(--c-light)
+- h1,h2,h3: font-family Playfair Display
+- header: position:fixed, width:100%, backdrop-filter:blur(12px), background rgba темный 80%, z-index:100
+- #hero: min-height:100vh, background linear-gradient(135deg, var(--c-dark), var(--c-primary)), color:#fff, display:flex align center, padding-top:80px
+- кнопки: background var(--c-accent), color:#fff, border:none, padding:14px 32px, border-radius:6px, transition 0.2s; hover: transform scale(1.03) box-shadow
+- .card: background:#fff, border-radius:12px, padding:28px, box-shadow 0 2px 16px rgba(0,0,0,.08), border-top:3px solid var(--c-accent); hover: transform translateY(-5px)
+- #services .cards: display:grid, grid-template-columns repeat(auto-fit,minmax(240px,1fr)), gap:20px
+- .review: background:#fff, border-radius:12px, padding:24px, position:relative; ::before content '«' font-size:80px color var(--c-accent) opacity .15
+- #contact: background var(--c-dark), color:#fff
+- form input: width:100%, padding:12px, margin-bottom:12px, border-radius:6px, border:1px solid #ddd
+- footer: background #111, color:#aaa, text-align:center, padding:20px
 
-Верни ПОЛНЫЙ HTML-файл с улучшенным дизайном. Только чистый HTML без markdown.
-ЛИМИТ: 5500 токенов. Компактный CSS без лишних комментариев."""
+Адаптив @media(max-width:768px): nav скрыт, .hamburger виден, grid 1 колонка.
+
+Добавь в <script>: при scroll > 60px добавляй класс .scrolled на header (фон становится непрозрачным).
+
+Верни ПОЛНЫЙ HTML-файл. ЛИМИТ: 3500 токенов. Только чистый HTML без markdown."""
 
 SYSTEM_GENERATE_MULTIPAGE = """Ты — топовый веб-разработчик. На основе данных о бизнесе создай многостраничный мини-сайт (SPA) в одном HTML-файле. Все страницы — в одном файле, переключение через JS без перезагрузки.
 
@@ -383,22 +380,21 @@ def handler(event: dict, context) -> dict:
 - Если просят добавить блок — добавляй в логичное место на нужной странице
 - Сохраняй все встроенные стили, шрифты, адаптивность"""
             ai_messages = [{"role": "user", "content": f"Вот текущий HTML:\n\n{html}\n\nЧто нужно изменить: {refine_task}"}]
-            max_tokens = 7000
+            max_tokens = 5000
         elif mode == "style":
-            # Второй этап: стилизация готовой структуры
             system = SYSTEM_STYLE_PREMIUM
-            ai_messages = [{"role": "user", "content": f"Вот HTML-лендинг для улучшения дизайна:\n\n{html}"}]
-            max_tokens = 6000
+            ai_messages = [{"role": "user", "content": f"Вот HTML-скелет для стилизации:\n\n{html}"}]
+            max_tokens = 3500
         elif mode == "generate":
             if is_multipage:
                 system = SYSTEM_GENERATE_MULTIPAGE
-                max_tokens = 6000
+                max_tokens = 5000
             elif is_premium:
-                system = SYSTEM_GENERATE_PREMIUM  # этап 1: структура
-                max_tokens = 5500
+                system = SYSTEM_GENERATE_PREMIUM  # этап 1: только скелет
+                max_tokens = 2500
             else:
                 system = SYSTEM_GENERATE_BUDGET
-                max_tokens = 5500
+                max_tokens = 4500
             ai_messages = messages
         else:
             if is_multipage:
