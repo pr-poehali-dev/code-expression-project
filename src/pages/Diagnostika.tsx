@@ -19,10 +19,10 @@ const WHAT_YOU_GET = [
 ];
 
 const FEELINGS = [
-  { emoji: "😌", title: "Ясность",      desc: "Полная картина бизнеса — без догадок и ощущения «что-то идёт не так»." },
-  { emoji: "💡", title: "Понимание",    desc: "Знаете точно, что делать первым — и какой эффект это даст в рублях." },
-  { emoji: "🔥", title: "Энергия",      desc: "Азарт действовать, когда путь к росту становится конкретным и измеримым." },
-  { emoji: "🏆", title: "Уверенность",  desc: "Решения принимаются на основе данных, а не интуиции." },
+  { icon: "ScanEye",     num: "01", title: "Ясность",      desc: "Полная картина бизнеса — без догадок и ощущения «что-то идёт не так»." },
+  { icon: "Layers",      num: "02", title: "Понимание",    desc: "Знаете точно, что делать первым — и какой эффект это даст в рублях." },
+  { icon: "Flame",       num: "03", title: "Энергия",      desc: "Азарт действовать, когда путь к росту становится конкретным и измеримым." },
+  { icon: "ShieldCheck", num: "04", title: "Уверенность",  desc: "Решения принимаются на основе данных, а не интуиции." },
 ];
 
 const STEPS = [
@@ -249,12 +249,17 @@ export default function Diagnostika() {
               Что вы почувствуете,<br />когда увидите результат
             </h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "rgba(255,255,255,0.07)", borderRadius: 4, overflow: "hidden" }} className="feelings-grid">
-            {FEELINGS.map(({ emoji, title, desc }, i) => (
-              <div key={i} style={{ padding: "36px 24px", background: "rgba(255,255,255,0.02)" }}>
-                <div style={{ fontSize: 40, marginBottom: 16, lineHeight: 1 }}>{emoji}</div>
-                <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: "#fff", marginBottom: 10 }}>{title}</div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.65 }}>{desc}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, background: "rgba(255,255,255,0.06)", borderRadius: 4, overflow: "hidden" }} className="feelings-grid">
+            {FEELINGS.map(({ icon, num, title, desc }, i) => (
+              <div key={i} style={{ padding: "40px 28px", background: "rgba(255,255,255,0.02)", position: "relative", overflow: "hidden" }}>
+                {/* Номер-водяной знак */}
+                <div style={{ position: "absolute", top: -8, right: 16, fontFamily: SERIF, fontSize: 96, fontWeight: 700, color: "rgba(255,255,255,0.04)", lineHeight: 1, userSelect: "none", pointerEvents: "none" }}>{num}</div>
+                {/* Иконка */}
+                <div style={{ width: 48, height: 48, borderRadius: 12, border: "1px solid rgba(45,212,191,0.25)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, background: "rgba(45,212,191,0.06)" }}>
+                  <Icon name={icon} size={20} style={{ color: TEAL }} />
+                </div>
+                <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: "#fff", marginBottom: 10, letterSpacing: "-0.2px" }}>{title}</div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.42)", lineHeight: 1.7 }}>{desc}</div>
               </div>
             ))}
           </div>
