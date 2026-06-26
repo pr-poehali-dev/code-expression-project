@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { label: "Для кого", href: "/dlya-kogo" },
   { label: "Академия", href: "/akademiya" },
   { label: "Тарифы", href: "/tseny" },
+  { label: "Аудит салона", href: "/diagnostika" },
   { label: "Кейсы", href: "/keysy" },
   { label: "О проекте", href: "/o-proekte" },
 ];
