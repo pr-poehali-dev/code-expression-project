@@ -221,7 +221,7 @@ export default function Masters() {
             </h1>
 
             <p style={{ fontSize: "clamp(15px,2vw,18px)", color: "rgba(255,255,255,0.6)", lineHeight: 1.7, margin: "0 0 36px", fontWeight: 300, maxWidth: 480 }}>
-              Приглашайте владельцев салонов на платформу «Про Диалог» и получайте <strong style={{ color: "#fff", fontWeight: 600 }}>10% с каждой их траты</strong> — без ограничений по времени и количеству салонов.
+              Рекомендуйте платформу, которая помогает салонам возвращать клиентов и загружать мастеров — и получайте <strong style={{ color: "#fff", fontWeight: 600 }}>10% с каждой их траты</strong> без ограничений.
             </p>
 
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>

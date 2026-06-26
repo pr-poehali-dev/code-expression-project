@@ -97,7 +97,7 @@ export default function Tseny() {
             Тарифы
           </h1>
           <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 32px", fontWeight: 300, maxWidth: 600 }}>
-            Платите только за то, что используете. Без скрытых платежей и абонентской платы.
+            Доступ к инструментам возврата клиентов и роста загрузки мастеров — без абонентской платы.
           </p>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "9px 20px" }}>
             <Icon name="Gift" size={16} style={{ color: TEAL }} />

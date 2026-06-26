@@ -115,7 +115,7 @@ export default function OProekte() {
             О проекте
           </h1>
           <p style={{ fontSize: "clamp(16px,1.8vw,20px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 32px", fontWeight: 300, maxWidth: 580 }}>
-            Почему появился Про Диалог
+            Создан практиками индустрии красоты — чтобы салоны возвращали клиентов и загружали мастеров системно.
           </p>
           <div style={{ display: "inline-block", padding: "20px 32px", background: "rgba(45,212,191,0.07)", border: "1px solid rgba(45,212,191,0.2)", borderRadius: 4, maxWidth: 640 }}>
             <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.7, fontWeight: 300 }}>
