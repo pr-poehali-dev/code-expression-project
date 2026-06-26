@@ -37,6 +37,7 @@ const Masters = lazy(() => import("./pages/Masters"));
 const MastersAuth = lazy(() => import("./pages/MastersAuth"));
 const MastersCabinet = lazy(() => import("./pages/MastersCabinet"));
 const LandingView = lazy(() => import("./pages/LandingView"));
+const Diagnostika = lazy(() => import("./pages/Diagnostika"));
 
 // Кабинет и rep — отдельные чанки
 const LkPage = lazy(() => import("./pages/lk/LkPage"));
@@ -112,6 +113,7 @@ const App = () => (
             <Route path="/masters/cabinet" element={<MastersCabinet />} />
 
             <Route path="/landing/:id" element={<LandingView />} />
+            <Route path="/diagnostika" element={<Diagnostika />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFoundPage />} />
