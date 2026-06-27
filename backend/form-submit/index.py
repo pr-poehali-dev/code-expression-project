@@ -73,7 +73,7 @@ def handler(event: dict, context) -> dict:
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = "Новая заявка с вашего лендинга"
-    msg["From"] = f"Про Диалог <{from_email}>"
+    msg["From"] = from_email
     msg["To"] = to_email
     msg.attach(MIMEText(html_body, "html"))
 
