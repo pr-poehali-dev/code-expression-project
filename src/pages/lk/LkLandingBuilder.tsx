@@ -294,29 +294,30 @@ ym(${seo.metrikaId},"init",{clickmap:true,trackLinks:true,accurateTrackBounce:tr
     if(!form || form.tagName !== 'FORM') return;
     e.preventDefault();
     var btn = form.querySelector('button[type="submit"],input[type="submit"]');
-    var origText = btn ? btn.textContent : '';
-    if(btn) btn.textContent = 'Отправляю...';
+    var origText = btn ? (btn.textContent || btn.value) : '';
+    if(btn) { btn.textContent = 'Отправляю...'; btn.disabled = true; }
     var fields = {};
     var els = form.elements;
     for(var i=0;i<els.length;i++){
       var el = els[i];
-      if(el.name && el.type !== 'submit' && el.value) fields[el.placeholder || el.name] = el.value;
+      if(el.type === 'submit' || el.type === 'button' || !el.value) continue;
+      var key = el.placeholder || el.name || el.id || ('Поле ' + (i+1));
+      fields[key] = el.value;
     }
     fetch(SUBMIT_URL, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({uid: UID, fields: fields})
-    }).then(function(){
+    }).then(function(r){ return r.json(); }).then(function(){
       form.reset();
+      if(btn){ btn.textContent = origText; btn.disabled = false; }
       var msg = document.createElement('div');
       msg.textContent = 'Спасибо! Ваша заявка отправлена.';
       msg.style.cssText = 'margin-top:12px;padding:12px 16px;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:8px;color:#065f46;font-size:14px;font-weight:600;';
       form.appendChild(msg);
       setTimeout(function(){ msg.remove(); }, 5000);
     }).catch(function(){
-      if(btn) btn.textContent = origText;
-    }).finally(function(){
-      if(btn) btn.textContent = origText;
+      if(btn){ btn.textContent = origText; btn.disabled = false; }
     });
   });
 })();
