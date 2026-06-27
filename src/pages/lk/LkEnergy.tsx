@@ -245,13 +245,24 @@ export default function LkEnergy() {
                       <div style={{ fontSize: 12, color: "#94A3B8", marginBottom: 16 }}>
                         {Math.round(pkg.price_rub / pkg.energy_amount * 10) / 10} ₽ за единицу
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #F1F5F9" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, paddingBottom: 8, borderBottom: "none" }}>
                         <div style={{ width: 28, height: 28, borderRadius: 8, background: c.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
                           <Icon name="Zap" size={14} style={{ color: c.color }} />
                         </div>
                         <div>
                           <span style={{ fontSize: 16, fontWeight: 700, color: "#0F172A" }}>{pkg.energy_amount.toLocaleString()}</span>
                           <span style={{ fontSize: 12, color: "#94A3B8", marginLeft: 4 }}>единиц энергии</span>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #F1F5F9" }}>
+                        <div style={{ width: 28, height: 28, borderRadius: 8, background: c.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Icon name="Globe" size={14} style={{ color: c.color }} />
+                        </div>
+                        <div>
+                          <span style={{ fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
+                            {{ start: 3, business: 5, growth: 10, premium: 50 }[pkg.code] ?? 3}
+                          </span>
+                          <span style={{ fontSize: 12, color: "#94A3B8", marginLeft: 4 }}>лендинга в конструкторе</span>
                         </div>
                       </div>
 
