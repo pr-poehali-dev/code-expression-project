@@ -601,9 +601,10 @@ def handle_profile_update(event: dict) -> dict:
         cur.execute(f"SELECT id FROM {tbl('lk_users')} WHERE email=%s AND id!=%s", (email, user["id"]))
         if cur.fetchone():
             return err("Этот email уже используется другим пользователем")
+        notification_email = (body.get("notification_email") or "").strip().lower() or None
         cur.execute(
-            f"UPDATE {tbl('lk_users')} SET full_name=%s, email=%s WHERE id=%s",
-            (full_name, email, user["id"])
+            f"UPDATE {tbl('lk_users')} SET full_name=%s, email=%s, notification_email=%s WHERE id=%s",
+            (full_name, email, notification_email, user["id"])
         )
         conn.commit()
         return ok({"ok": True})

@@ -171,7 +171,7 @@ def handler(event: dict, context) -> dict:
                 if balance < cost:
                     return err(f"Недостаточно энергии. Нужно {cost} ⚡, доступно {balance} ⚡.", 402)
                 deduct(conn, salon_id, user_id, "landing_download", cost, "Скачивание лендинга")
-                return ok({"ok": True, "spent": cost})
+                return ok({"ok": True, "spent": cost, "user_id": user_id})
 
             # Ручное сохранение версии
             if action == "save-version":

@@ -46,6 +46,7 @@ export default function LkProfile() {
   // Данные аккаунта
   const [fullName, setFullName] = useState(user?.full_name || "");
   const [email, setEmail] = useState(user?.email || "");
+  const [notifEmail, setNotifEmail] = useState((user as Record<string, unknown>)?.notification_email as string || "");
   const [savingInfo, setSavingInfo] = useState(false);
   const [infoMsg, setInfoMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -62,7 +63,7 @@ export default function LkProfile() {
     e.preventDefault();
     setSavingInfo(true); setInfoMsg(null);
     try {
-      await lkApi.profileUpdate(fullName, email);
+      await lkApi.profileUpdate(fullName, email, notifEmail || undefined);
       await refreshUser();
       setInfoMsg({ ok: true, text: "Данные успешно обновлены" });
     } catch (err) {
@@ -128,13 +129,28 @@ export default function LkProfile() {
               onBlur={e => (e.target as HTMLInputElement).style.borderColor = "#E2E8F0"}
             />
           </div>
-          <div style={{ marginBottom: 4 }}>
+          <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: "#64748B", display: "block", marginBottom: 7, textTransform: "uppercase", letterSpacing: "0.7px" }}>
               Email
             </label>
             <input
               type="email" value={email} onChange={e => setEmail(e.target.value)}
               placeholder="email@example.com" required style={inputStyle}
+              onFocus={e => (e.target as HTMLInputElement).style.borderColor = ACCENT}
+              onBlur={e => (e.target as HTMLInputElement).style.borderColor = "#E2E8F0"}
+            />
+          </div>
+
+          <div style={{ marginBottom: 4, borderTop: "1px dashed #E8ECF0", paddingTop: 16 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "#64748B", display: "block", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.7px" }}>
+              Email для заявок с лендинга
+            </label>
+            <p style={{ fontSize: 12, color: "#94A3B8", margin: "0 0 8px" }}>
+              Сюда будут приходить заявки с форм скачанных лендингов. Если не указан — используется основной email.
+            </p>
+            <input
+              type="email" value={notifEmail} onChange={e => setNotifEmail(e.target.value)}
+              placeholder={email || "email@example.com"} style={inputStyle}
               onFocus={e => (e.target as HTMLInputElement).style.borderColor = ACCENT}
               onBlur={e => (e.target as HTMLInputElement).style.borderColor = "#E2E8F0"}
             />

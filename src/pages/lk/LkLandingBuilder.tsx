@@ -224,7 +224,9 @@ const EDITOR_SCRIPT = `<script>
 
 const SEO_DEFAULTS: SeoData = { title: "", description: "", keywords: "", robots: "index,follow", faviconSvg: "", metrikaId: "", webmasterVerify: "" };
 
-function buildFullHtml(blocks: LandingBlock[], style: LandingStyle, privacyHtmlBody?: string, seo: SeoData = SEO_DEFAULTS): string {
+const FORM_SUBMIT_URL = "https://functions.poehali.dev/041d6ee6-6786-4ccf-bb8a-5cda8dfb333b";
+
+function buildFullHtml(blocks: LandingBlock[], style: LandingStyle, privacyHtmlBody?: string, seo: SeoData = SEO_DEFAULTS, userId?: number): string {
   const hf = `${style.headingFont}, serif`;
   const bf = `${style.bodyFont}, sans-serif`;
   const gfonts = encodeURIComponent(`${style.headingFont}:wght@700&family=${style.bodyFont}:wght@400;600`);
@@ -283,6 +285,43 @@ ym(${seo.metrikaId},"init",{clickmap:true,trackLinks:true,accurateTrackBounce:tr
 })();
 </script>` : "";
 
+  const formScript = userId ? `<script>
+(function(){
+  var UID = ${userId};
+  var SUBMIT_URL = '${FORM_SUBMIT_URL}';
+  document.addEventListener('submit', function(e){
+    var form = e.target;
+    if(!form || form.tagName !== 'FORM') return;
+    e.preventDefault();
+    var btn = form.querySelector('button[type="submit"],input[type="submit"]');
+    var origText = btn ? btn.textContent : '';
+    if(btn) btn.textContent = 'Отправляю...';
+    var fields = {};
+    var els = form.elements;
+    for(var i=0;i<els.length;i++){
+      var el = els[i];
+      if(el.name && el.type !== 'submit' && el.value) fields[el.placeholder || el.name] = el.value;
+    }
+    fetch(SUBMIT_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({uid: UID, fields: fields})
+    }).then(function(){
+      form.reset();
+      var msg = document.createElement('div');
+      msg.textContent = 'Спасибо! Ваша заявка отправлена.';
+      msg.style.cssText = 'margin-top:12px;padding:12px 16px;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:8px;color:#065f46;font-size:14px;font-weight:600;';
+      form.appendChild(msg);
+      setTimeout(function(){ msg.remove(); }, 5000);
+    }).catch(function(){
+      if(btn) btn.textContent = origText;
+    }).finally(function(){
+      if(btn) btn.textContent = origText;
+    });
+  });
+})();
+</script>` : "";
+
   return `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -296,6 +335,7 @@ ${root}
 ${htmlParts}
 </div>${privacySection}
 ${router}
+${formScript}
 </body>
 </html>`;
 }
@@ -1405,8 +1445,9 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     });
     if (res.status === 402) { const d = await res.json(); showEnergyGate({ message: d.error }); return; }
     if (!res.ok) return;
+    const d = await res.json();
     const privBody = (privacyData.orgName || privacyData.domain) ? buildPrivacyBody(privacyData) : undefined;
-    const html = buildFullHtml(blocks, siteStyle, privBody, seoData);
+    const html = buildFullHtml(blocks, siteStyle, privBody, seoData, d.user_id);
     const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
     a.download = `${projectTitle || "landing"}.html`; a.click();
