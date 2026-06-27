@@ -400,12 +400,12 @@ CSS требования:
         </div>
       </div>
       <div class="contact-form-wrap">
-        <form class="contact-form" onsubmit="return false;">
+        <form class="contact-form">
           <h3>Записаться / Задать вопрос</h3>
-          <div class="form-group"><label>Ваше имя *</label><input type="text" placeholder="Как к вам обращаться?" required></div>
-          <div class="form-group"><label>Телефон *</label><input type="tel" placeholder="+7 (___) ___-__-__" required></div>
-          <div class="form-group"><label>Услуга</label><select><option value="">Выберите услугу...</option><!-- по данным --></select></div>
-          <div class="form-group"><label>Комментарий</label><textarea rows="3" placeholder="Пожелания, вопросы..."></textarea></div>
+          <div class="form-group"><label>Ваше имя *</label><input type="text" name="name" placeholder="Как к вам обращаться?" required></div>
+          <div class="form-group"><label>Телефон *</label><input type="tel" name="phone" placeholder="+7 (___) ___-__-__" required></div>
+          <div class="form-group"><label>Услуга</label><select name="service"><option value="">Выберите услугу...</option><!-- по данным --></select></div>
+          <div class="form-group"><label>Комментарий</label><textarea name="comment" rows="3" placeholder="Пожелания, вопросы..."></textarea></div>
           <div class="form-group form-checkbox-group">
             <label class="form-checkbox-label">
               <input type="checkbox" required>
@@ -443,6 +443,8 @@ CSS требования:
   .form-checkbox-label input[type=checkbox]: width:18px; height:18px; min-width:18px; margin-top:2px; flex-shrink:0; accent-color:var(--c-accent); cursor:pointer; background:transparent;
   .form-policy-link: color:var(--c-accent); text-decoration:underline; — hover: opacity:0.8
 - MOBILE: .contact-grid: grid-template-columns:1fr; gap:40px;
+- КРИТИЧЕСКИ ВАЖНО — у всех полей формы (input, select, textarea) обязательно указывать атрибут name (name="name", name="phone", name="service", name="comment" и т.д.)
+- КРИТИЧЕСКИ ВАЖНО — у тега <form> НЕ указывать onsubmit, action или method — форма управляется внешним скриптом
 
 Верни ТОЛЬКО HTML <section id="contact"> + <style data-block="contact">.""",
 
