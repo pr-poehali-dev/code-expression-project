@@ -399,9 +399,9 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
 
       {/* Плашка тарифа и лимита */}
       {!loading && planInfo && (
-        <div style={{ background: "#fff", border: "1.5px solid #E8ECF0", borderRadius: 14, padding: "14px 18px", display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Icon name="Layers" size={18} style={{ color: ACCENT }} />
+        <div style={{ background: limitReached ? "#FFF7ED" : "#fff", border: `1.5px solid ${limitReached ? "#FED7AA" : "#E8ECF0"}`, borderRadius: 14, padding: "14px 18px", display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: limitReached ? "#FEF3C7" : ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name={limitReached ? "AlertTriangle" : "Layers"} size={18} style={{ color: limitReached ? "#f59e0b" : ACCENT }} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
@@ -412,9 +412,14 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
               <div style={{ height: "100%", width: `${fillPct}%`, borderRadius: 6, background: barColor, transition: "width 0.4s" }} />
             </div>
             {limitReached && (
-              <div style={{ fontSize: 12, color: "#ef4444", marginTop: 5, fontWeight: 600 }}>Лимит достигнут — обратитесь к менеджеру для повышения тарифа</div>
+              <div style={{ fontSize: 12, color: "#92400e", marginTop: 5 }}>Лимит исчерпан — перейдите на тариф выше, чтобы создавать новые лендинги</div>
             )}
           </div>
+          {limitReached && (
+            <a href="/tseny" style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 10, background: "#f59e0b", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap" }}>
+              <Icon name="ArrowUp" size={14} />Повысить тариф
+            </a>
+          )}
         </div>
       )}
       {loading && <div style={{ padding: 40, textAlign: "center", color: "#888" }}>Загрузка...</div>}
