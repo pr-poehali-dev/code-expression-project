@@ -137,7 +137,23 @@ def handler(event: dict, context) -> dict:
                     for r in rows:
                         r["created_at"] = str(r["created_at"])
                         r["updated_at"] = str(r["updated_at"])
-                    return ok({"projects": rows})
+
+                    # Инфо о плане и лимите
+                    salon_id = user.get("salon_id")
+                    plan_info = {"plan": 1, "plan_name": "Старт", "max_landings": 3}
+                    if salon_id:
+                        cur.execute(
+                            f"SELECT s.subscription_plan, l.plan_name, l.max_landings "
+                            f"FROM {SCHEMA}.salons s "
+                            f"JOIN {SCHEMA}.landing_plan_limits l ON l.plan = s.subscription_plan "
+                            f"WHERE s.id = %s",
+                            (salon_id,)
+                        )
+                        pr = cur.fetchone()
+                        if pr:
+                            plan_info = {"plan": pr["plan"], "plan_name": pr["plan_name"], "max_landings": pr["max_landings"]}
+
+                    return ok({"projects": rows, "plan": plan_info, "used": len(rows)})
 
         # ── POST ─────────────────────────────────────────────────────────────
         if method == "POST":

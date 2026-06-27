@@ -348,15 +348,21 @@ function formatDate(iso: string) {
 }
 
 // ── Список проектов ────────────────────────────────────────────────────────────
+interface PlanInfo { plan: number; plan_name: string; max_landings: number; }
+
 function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; onNew: () => void }) {
   const [projects, setProjects] = useState<LandingProject[]>([]);
+  const [planInfo, setPlanInfo] = useState<PlanInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetch(LANDING_API_URL, { headers: { "X-Session-Id": session() } })
-      .then(r => r.json()).then(d => setProjects(d.projects || [])).finally(() => setLoading(false));
+      .then(r => r.json()).then(d => {
+        setProjects(d.projects || []);
+        if (d.plan) setPlanInfo(d.plan);
+      }).finally(() => setLoading(false));
   }, []);
 
   async function deleteProject(id: string) {
@@ -370,6 +376,12 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
     setConfirmDelete(null);
     setDeleting(false);
   }
+  const used = projects.length;
+  const max = planInfo?.max_landings ?? 3;
+  const limitReached = used >= max;
+  const fillPct = Math.min(100, Math.round((used / max) * 100));
+  const barColor = fillPct >= 100 ? "#ef4444" : fillPct >= 75 ? "#f59e0b" : ACCENT;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -380,10 +392,31 @@ function ProjectsList({ onOpen, onNew }: { onOpen: (p: LandingProject) => void; 
           <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A" }}>Конструктор лендингов</div>
           <div style={{ fontSize: 13, color: "#888" }}>Ваши проекты</div>
         </div>
-        <button onClick={onNew} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 10, border: "none", background: ACCENT, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+        <button onClick={onNew} disabled={limitReached} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 10, border: "none", background: limitReached ? "#E2E8F0" : ACCENT, color: limitReached ? "#94A3B8" : "#fff", fontSize: 14, fontWeight: 700, cursor: limitReached ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif" }}>
           <Icon name="Plus" size={16} />Новый лендинг
         </button>
       </div>
+
+      {/* Плашка тарифа и лимита */}
+      {!loading && planInfo && (
+        <div style={{ background: "#fff", border: "1.5px solid #E8ECF0", borderRadius: 14, padding: "14px 18px", display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="Layers" size={18} style={{ color: ACCENT }} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>Тариф «{planInfo.plan_name}»</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: limitReached ? "#ef4444" : "#0F172A" }}>{used} / {max} лендингов</span>
+            </div>
+            <div style={{ height: 6, borderRadius: 6, background: "#F1F5F9", overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${fillPct}%`, borderRadius: 6, background: barColor, transition: "width 0.4s" }} />
+            </div>
+            {limitReached && (
+              <div style={{ fontSize: 12, color: "#ef4444", marginTop: 5, fontWeight: 600 }}>Лимит достигнут — обратитесь к менеджеру для повышения тарифа</div>
+            )}
+          </div>
+        </div>
+      )}
       {loading && <div style={{ padding: 40, textAlign: "center", color: "#888" }}>Загрузка...</div>}
       {!loading && projects.length === 0 && (
         <div style={{ background: "#fff", borderRadius: 16, border: "2px dashed #E8ECF0", padding: 48, textAlign: "center" }}>
