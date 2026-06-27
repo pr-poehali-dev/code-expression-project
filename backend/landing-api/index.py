@@ -272,6 +272,28 @@ def handler(event: dict, context) -> dict:
                     conn.commit()
                     return ok({"id": str(row["id"]), "saved": True})
                 else:
+                    # Проверяем лимит лендингов по тарифу
+                    salon_id = user.get("salon_id")
+                    with conn.cursor() as lim_cur:
+                        lim_cur.execute(
+                            f"SELECT s.subscription_plan, l.max_landings "
+                            f"FROM {SCHEMA}.salons s "
+                            f"JOIN {SCHEMA}.landing_plan_limits l ON l.plan = s.subscription_plan "
+                            f"WHERE s.id = %s",
+                            (salon_id,)
+                        )
+                        plan_row = lim_cur.fetchone()
+                        max_landings = plan_row[1] if plan_row else 3
+
+                        lim_cur.execute(
+                            f"SELECT COUNT(*) FROM {SCHEMA}.landing_projects WHERE user_id = %s",
+                            (user_id,)
+                        )
+                        current_count = lim_cur.fetchone()[0]
+
+                    if current_count >= max_landings:
+                        return err(f"Достигнут лимит лендингов для вашего тарифа ({max_landings} шт.). Повысьте тариф для создания новых.", 402)
+
                     cur.execute(
                         f"INSERT INTO {SCHEMA}.landing_projects "
                         f"(user_id, title, landing_type, html, blocks, style, messages) "
