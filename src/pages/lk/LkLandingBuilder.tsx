@@ -1028,6 +1028,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
 
   // UI
   const [showHelp, setShowHelp] = useState(false);
+  const [showEmailHint, setShowEmailHint] = useState(false);
   const [sidePanelTab, setSidePanelTab] = useState<"blocks" | "images">("blocks");
 
   // Refs
@@ -1446,6 +1447,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     if (res.status === 402) { const d = await res.json(); showEnergyGate({ message: d.error }); return; }
     if (!res.ok) return;
     const d = await res.json();
+    if (!d.notification_email) {
+      setShowEmailHint(true);
+      setTimeout(() => setShowEmailHint(false), 8000);
+    }
     const privBody = (privacyData.orgName || privacyData.domain) ? buildPrivacyBody(privacyData) : undefined;
     const html = buildFullHtml(blocks, siteStyle, privBody, seoData, d.user_id);
     const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
@@ -1738,6 +1743,21 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
               <Icon name="Download" size={15} />Скачать HTML
             </button>
           </div>
+
+          {showEmailHint && (
+            <div style={{ margin: "12px 0 0", padding: "12px 16px", background: "#fffbeb", border: "1.5px solid #fbbf24", borderRadius: 10, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <Icon name="AlertTriangle" size={16} style={{ color: "#d97706", flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: "#92400e", flex: 1 }}>
+                Вы не указали email для получения заявок с лендинга. Зайдите в <b>Профиль</b> и укажите его — иначе заявки с формы не дойдут.
+              </span>
+              <button
+                onClick={() => setShowEmailHint(false)}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "#d97706", padding: 4, flexShrink: 0 }}
+              >
+                <Icon name="X" size={14} />
+              </button>
+            </div>
+          )}
 
           {/* Редактор стиля */}
           {showStyleEditor && (
