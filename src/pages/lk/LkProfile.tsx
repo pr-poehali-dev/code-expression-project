@@ -141,21 +141,6 @@ export default function LkProfile() {
             />
           </div>
 
-          <div style={{ marginBottom: 4, borderTop: "1px dashed #E8ECF0", paddingTop: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "#64748B", display: "block", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.7px" }}>
-              Email для заявок с лендинга
-            </label>
-            <p style={{ fontSize: 12, color: "#94A3B8", margin: "0 0 8px" }}>
-              Сюда будут приходить заявки с форм скачанных лендингов. Если не указан — используется основной email.
-            </p>
-            <input
-              type="email" value={notifEmail} onChange={e => setNotifEmail(e.target.value)}
-              placeholder={email || "email@example.com"} style={inputStyle}
-              onFocus={e => (e.target as HTMLInputElement).style.borderColor = ACCENT}
-              onBlur={e => (e.target as HTMLInputElement).style.borderColor = "#E2E8F0"}
-            />
-          </div>
-
           {infoMsg && (infoMsg.ok ? <SuccessMsg text={infoMsg.text} /> : <ErrorMsg text={infoMsg.text} />)}
 
           <button type="submit" disabled={savingInfo} style={{
@@ -241,6 +226,47 @@ export default function LkProfile() {
           </button>
         </form>
       </Section>
+
+      {/* Email для заявок с лендинга */}
+      <div style={{ background: "linear-gradient(135deg, hsl(185,85%,97%), hsl(185,85%,93%))", border: "1.5px solid hsl(185,85%,75%)", borderRadius: 16, padding: "22px 24px", marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+          <Icon name="Mail" size={18} style={{ color: ACCENT }} />
+          <h2 style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 600, color: "#0F172A", margin: 0 }}>Куда приходят заявки с лендинга</h2>
+        </div>
+        <p style={{ fontSize: 13, color: "#64748B", margin: "0 0 14px", lineHeight: 1.5 }}>
+          Когда посетитель вашего сайта заполнит форму — заявка придёт на этот email.
+          Если оставите пустым, заявки пойдут на основной email аккаунта.
+        </p>
+        <input
+          type="email" value={notifEmail} onChange={e => setNotifEmail(e.target.value)}
+          placeholder={email || "email@example.com"}
+          style={{ ...inputStyle, marginBottom: 12 }}
+          onFocus={e => (e.target as HTMLInputElement).style.borderColor = ACCENT}
+          onBlur={e => (e.target as HTMLInputElement).style.borderColor = "#E2E8F0"}
+        />
+        <button
+          onClick={async () => {
+            setSavingInfo(true); setInfoMsg(null);
+            try {
+              await lkApi.profileUpdate(fullName, email, notifEmail || undefined);
+              await refreshUser();
+              setInfoMsg({ ok: true, text: "Email для заявок сохранён" });
+            } catch (err) {
+              setInfoMsg({ ok: false, text: err instanceof Error ? err.message : "Ошибка сохранения" });
+            } finally { setSavingInfo(false); }
+          }}
+          disabled={savingInfo}
+          style={{
+            padding: "10px 24px", borderRadius: 10, border: "none",
+            background: savingInfo ? "#ccc" : `linear-gradient(135deg, ${ACCENT}, hsl(185,85%,24%))`,
+            color: "#fff", fontSize: 14, fontWeight: 600, cursor: savingInfo ? "not-allowed" : "pointer",
+            fontFamily: "Montserrat, sans-serif", display: "inline-flex", alignItems: "center", gap: 8,
+          }}
+        >
+          <Icon name="Save" size={15} /> Сохранить
+        </button>
+        {infoMsg && <div style={{ marginTop: 10 }}>{infoMsg.ok ? <SuccessMsg text={infoMsg.text} /> : <ErrorMsg text={infoMsg.text} />}</div>}
+      </div>
 
       {/* Инфо об аккаунте */}
       <Section title="Информация об аккаунте">
