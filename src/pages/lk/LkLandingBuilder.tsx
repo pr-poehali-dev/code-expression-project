@@ -300,14 +300,14 @@ ym(${seo.metrikaId},"init",{clickmap:true,trackLinks:true,accurateTrackBounce:tr
     var els = form.elements;
     for(var i=0;i<els.length;i++){
       var el = els[i];
-      if(el.type === 'submit' || el.type === 'button' || !el.value) continue;
+      if(el.type === 'submit' || el.type === 'button' || el.type === 'checkbox' || !el.value) continue;
       var key = el.placeholder || el.name || el.id || ('Поле ' + (i+1));
       fields[key] = el.value;
     }
     fetch(SUBMIT_URL, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({uid: UID, fields: fields})
+      body: JSON.stringify({uid: UID, fields: fields, domain: window.location.hostname})
     }).then(function(r){ return r.json(); }).then(function(){
       form.reset();
       if(btn){ btn.textContent = origText; btn.disabled = false; }
