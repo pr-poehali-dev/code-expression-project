@@ -107,13 +107,13 @@ export default function Akademiya() {
             </div>
 
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(38px,5.5vw,70px)", fontWeight: 500, color: "#fff", lineHeight: 1.05, margin: "0 0 24px", letterSpacing: "-0.5px" }}>
-              Развивайся вместе с ИИ-агентом. Удобно. Персонально. Эффективно
+              Развивайся с ИИ-агентом
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 520 }}>
               Онлайн и офлайн тренинги для специалистов и команд. Прокачай навыки, которые реально влияют на доход и качество сервиса.
             </p>
-            <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: "rgba(255,255,255,0.35)", lineHeight: 1.7, margin: "0 0 40px", fontWeight: 300 }}>
-              Бесплатно и платно — без «ловушек», только рабочие инструменты
+            <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: TEAL, lineHeight: 1.6, margin: "0 0 40px", fontWeight: 500, letterSpacing: "0.5px" }}>
+              Удобно · Персонально · Эффективно
             </p>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
               <Link to="/cabinet" style={{
