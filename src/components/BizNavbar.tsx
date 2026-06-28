@@ -7,7 +7,7 @@ const NAV_LINKS = [
   { label: "Возможности", href: "/vozmozhnosti" },
   { label: "Для кого", href: "/dlya-kogo" },
   { label: "Почему мы", href: "/preimushchestva" },
-  { label: "Академия", href: "/akademiya" },
+  { label: "Прокачка навыков", href: "/akademiya" },
   { label: "Тарифы", href: "/tseny" },
   { label: "Аудит салона", href: "/diagnostika" },
   { label: "Кейсы", href: "/keysy" },
