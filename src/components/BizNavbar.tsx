@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { label: "Прокачка навыков", href: "/akademiya" },
   { label: "Тарифы", href: "/tseny" },
   { label: "Аудит салона", href: "/diagnostika" },
-
+  { label: "О проекте", href: "/o-proekte" },
 ];
 
 export default function BizNavbar() {
