@@ -434,6 +434,28 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
         ))}
       </div>
 
+      {/* Конструктор лендингов */}
+      <div style={{ marginBottom: 16, padding: "18px 20px", background: "linear-gradient(135deg, rgba(45,212,191,0.08), rgba(20,184,166,0.04))", borderRadius: 14, border: "1.5px solid rgba(45,212,191,0.25)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="LayoutTemplate" size={20} style={{ color: "#2DD4BF" }} />
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
+              Конструктор лендингов
+              <span style={{ fontSize: 10, fontWeight: 700, background: "#2DD4BF", color: "#0F172A", padding: "2px 8px", borderRadius: 20, letterSpacing: 0.5 }}>НОВОЕ</span>
+            </div>
+            <div style={{ fontSize: 13, color: "#64748B", lineHeight: 1.5, maxWidth: 420 }}>
+              Создайте продающую страницу для услуги или акции за несколько минут — без дизайнера и верстальщика.
+            </div>
+          </div>
+        </div>
+        <a href="/cabinet?section=landings" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 8, background: "#2DD4BF", color: "#0F172A", fontSize: 13, fontWeight: 600, textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap" }}>
+          <Icon name="ExternalLink" size={14} />
+          Создать лендинг
+        </a>
+      </div>
+
       {/* Яндекс.Директ */}
       <div style={{ marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
         <Icon name="Target" size={15} style={{ color: ACCENT }} />
