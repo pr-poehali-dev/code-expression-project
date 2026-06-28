@@ -10,7 +10,6 @@ const NAV_LINKS = [
   { label: "Тарифы", href: "/tseny" },
   { label: "Аудит салона", href: "/diagnostika" },
 
-  { label: "О проекте", href: "/o-proekte" },
 ];
 
 export default function BizNavbar() {
