@@ -99,45 +99,59 @@ export default function Akademiya() {
         <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
 
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "120px 32px", width: "100%", position: "relative" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
-            <Icon name="GraduationCap" size={14} style={{ color: TEAL }} />
-            <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Прокачка навыков</span>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "100px 32px", width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 56, alignItems: "center", position: "relative" }} className="akad-hero-grid">
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
+              <Icon name="GraduationCap" size={14} style={{ color: TEAL }} />
+              <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Прокачка навыков</span>
+            </div>
+
+            <h1 style={{ fontFamily: SERIF, fontSize: "clamp(38px,5.5vw,70px)", fontWeight: 500, color: "#fff", lineHeight: 1.05, margin: "0 0 24px", letterSpacing: "-0.5px" }}>
+              Развивайся вместе с ИИ-агентом. Удобно. Персонально. Эффективно
+            </h1>
+            <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 520 }}>
+              Онлайн и офлайн тренинги для специалистов и команд. Прокачай навыки, которые реально влияют на доход и качество сервиса.
+            </p>
+            <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: "rgba(255,255,255,0.35)", lineHeight: 1.7, margin: "0 0 40px", fontWeight: 300 }}>
+              Бесплатно и платно — без «ловушек», только рабочие инструменты
+            </p>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+              <Link to="/cabinet" style={{
+                display: "inline-flex", alignItems: "center", gap: 10,
+                padding: "15px 36px", borderRadius: 2, fontSize: 15, fontWeight: 600,
+                background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A",
+                textDecoration: "none", transition: "all 0.3s",
+              }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 12px 32px rgba(45,212,191,0.3)"; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
+              >
+                <Icon name="Zap" size={16} />
+                Начать бесплатно
+              </Link>
+              <Link to="/free-trenings" style={{
+                display: "inline-flex", alignItems: "center", gap: 10,
+                padding: "15px 36px", borderRadius: 2, fontSize: 15, fontWeight: 500,
+                border: "1.5px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.75)",
+                textDecoration: "none", transition: "all 0.3s",
+              }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.borderColor = "rgba(255,255,255,0.5)"; el.style.color = "#fff"; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.borderColor = "rgba(255,255,255,0.2)"; el.style.color = "rgba(255,255,255,0.75)"; }}
+              >
+                Посмотреть тренинги <Icon name="ArrowRight" size={16} />
+              </Link>
+            </div>
           </div>
 
-          <h1 style={{ fontFamily: SERIF, fontSize: "clamp(38px,5.5vw,72px)", fontWeight: 500, color: "#fff", lineHeight: 1.05, margin: "0 0 24px", letterSpacing: "-0.5px", maxWidth: 760 }}>
-            Развивайся вместе с ИИ-агентом. Удобно. Персонально. Эффективно
-          </h1>
-          <p style={{ fontSize: "clamp(15px,1.7vw,19px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 640 }}>
-            Онлайн и офлайн тренинги для специалистов и команд. Прокачай навыки, которые реально влияют на доход и качество сервиса.
-          </p>
-          <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: "rgba(255,255,255,0.35)", lineHeight: 1.7, margin: "0 0 44px", fontWeight: 300, maxWidth: 580 }}>
-            Бесплатно и платно — без «ловушек», только рабочие инструменты
-          </p>
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <Link to="/cabinet" style={{
-              display: "inline-flex", alignItems: "center", gap: 10,
-              padding: "15px 36px", borderRadius: 2, fontSize: 15, fontWeight: 600,
-              background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A",
-              textDecoration: "none", transition: "all 0.3s",
-            }}
-              onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 12px 32px rgba(45,212,191,0.3)"; }}
-              onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
-            >
-              <Icon name="Zap" size={16} />
-              Начать бесплатно
-            </Link>
-            <Link to="/free-trenings" style={{
-              display: "inline-flex", alignItems: "center", gap: 10,
-              padding: "15px 36px", borderRadius: 2, fontSize: 15, fontWeight: 500,
-              border: "1.5px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.75)",
-              textDecoration: "none", transition: "all 0.3s",
-            }}
-              onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.borderColor = "rgba(255,255,255,0.5)"; el.style.color = "#fff"; }}
-              onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.borderColor = "rgba(255,255,255,0.2)"; el.style.color = "rgba(255,255,255,0.75)"; }}
-            >
-              Посмотреть тренинги <Icon name="ArrowRight" size={16} />
-            </Link>
+          <div style={{ display: "flex", justifyContent: "center" }} className="akad-hero-img">
+            <div style={{ position: "relative", width: "100%" }}>
+              <div style={{ position: "absolute", inset: -1, borderRadius: 6, background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))", pointerEvents: "none", zIndex: 2 }} />
+              <img
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/a13d552d-2660-4c12-833d-56b1d288471f.png"
+                alt="Прокачка навыков с ИИ-агентом — тренинги Промт Диалог"
+                decoding="async"
+                style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -425,6 +439,8 @@ export default function Akademiya() {
 
       <style>{`
         @media (max-width: 768px) {
+          .akad-hero-grid { grid-template-columns: 1fr !important; }
+          .akad-hero-img { margin-top: 32px; }
           .for-whom-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
           .format-grid { grid-template-columns: 1fr !important; }
           .stories-grid { grid-template-columns: 1fr !important; }
