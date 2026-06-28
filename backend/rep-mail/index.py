@@ -49,7 +49,7 @@ def get_session_user(event: dict):
 
 
 def build_html_email(to_name: str, subject: str, body_html: str, sender_name: str) -> str:
-    """Формирует красивое брендовое HTML-письмо Про Диалог."""
+    """Формирует красивое брендовое HTML-письмо Промт Диалог."""
     return f"""<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -67,10 +67,10 @@ def build_html_email(to_name: str, subject: str, body_html: str, sender_name: st
         <tr>
           <td style="background:#1a2e2a;border-radius:16px 16px 0 0;padding:28px 40px;text-align:center;">
             <div style="font-family:Georgia,serif;font-size:26px;font-weight:700;color:#ffffff;letter-spacing:1px;">
-              Про <span style="color:#4ecdc4;">Диалог</span>
+              Промт <span style="color:#4ecdc4;">Диалог</span>
             </div>
             <div style="font-size:12px;color:#8ab8b4;margin-top:4px;letter-spacing:2px;text-transform:uppercase;">
-              ИИ-инструменты для салонов красоты
+              ИИ-агенты для вашего салона
             </div>
           </td>
         </tr>
@@ -113,7 +113,7 @@ def build_html_email(to_name: str, subject: str, body_html: str, sender_name: st
             <p style="margin:0;font-size:14px;color:#555;">
               С уважением,<br>
               <strong style="color:#1a1a1a;">{sender_name}</strong><br>
-              <span style="color:#888;">Администратор Про Диалог</span>
+              <span style="color:#888;">Администратор Промт Диалог</span>
             </p>
           </td>
         </tr>
@@ -125,7 +125,7 @@ def build_html_email(to_name: str, subject: str, body_html: str, sender_name: st
               <a href="{SITE_URL}" style="color:#1a7a74;text-decoration:none;">{SITE_URL}</a>
             </p>
             <p style="margin:0;font-size:11px;color:#bbb;">
-              Это письмо отправлено администратором платформы Про Диалог.
+              Это письмо отправлено администратором платформы Промт Диалог.
             </p>
           </td>
         </tr>
@@ -139,7 +139,7 @@ def build_html_email(to_name: str, subject: str, body_html: str, sender_name: st
 
 
 def handler(event: dict, context) -> dict:
-    """Отправка брендового письма представителем Dok Диалог клиенту-салону."""
+    """Отправка брендового письма представителем Промт Диалог клиенту-салону."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -165,7 +165,7 @@ def handler(event: dict, context) -> dict:
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = Header(subject, "utf-8")
-    msg["From"] = formataddr((str(Header("Про Диалог", "utf-8")), FROM_EMAIL))
+    msg["From"] = formataddr((str(Header("Промт Диалог", "utf-8")), FROM_EMAIL))
     msg["To"] = to_email
     msg["Reply-To"] = FROM_EMAIL
     msg["List-Unsubscribe"] = f"<mailto:{FROM_EMAIL}?subject=unsubscribe>"
