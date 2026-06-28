@@ -133,35 +133,47 @@ export default function Vozmozhnosti() {
         <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%, black, transparent)" }} />
 
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "left", position: "relative" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
-            <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Возможности</span>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "100px 32px", width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 56, alignItems: "center", position: "relative" }} className="voz-hero-grid">
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
+              <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Возможности</span>
+            </div>
+
+            <h1 style={{ fontFamily: SERIF, fontSize: "clamp(40px,5.5vw,70px)", fontWeight: 500, color: "#fff", lineHeight: 1.05, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
+              Возможности платформы
+            </h1>
+            <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 520 }}>
+              Инструменты, которые возвращают клиентов и повышают загрузку каждого мастера.
+            </p>
+            <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: TEAL, lineHeight: 1.6, margin: "0 0 40px", fontWeight: 500, letterSpacing: "0.5px" }}>
+              Маркетинг · Управление · Продажи · Развитие команды
+            </p>
+
+            <Link to="/cabinet" style={{
+              display: "inline-flex", alignItems: "center", gap: 10,
+              padding: "16px 40px", borderRadius: 2, fontSize: 15, fontWeight: 600,
+              background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A",
+              textDecoration: "none", transition: "all 0.3s",
+            }}
+              onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 16px 40px rgba(45,212,191,0.3)"; }}
+              onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
+            >
+              Попробовать бесплатно
+            </Link>
           </div>
 
-          <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
-            Возможности платформы
-          </h1>
-          <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 680 }}>
-            Инструменты, которые возвращают клиентов и повышают загрузку каждого мастера.
-          </p>
-          <p style={{ fontSize: "clamp(14px,1.4vw,16px)", color: "rgba(255,255,255,0.45)", lineHeight: 1.8, margin: "0 0 16px", fontWeight: 300, maxWidth: 660 }}>
-            Промт Диалог объединяет аналитику, маркетинг, обучение сотрудников и искусственный интеллект в единую систему управления салоном. Каждый инструмент работает по гибридному принципу: сначала анализ данных и проверенные алгоритмы, затем — персональные рекомендации ИИ для вашей ситуации.
-          </p>
-          <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: TEAL, lineHeight: 1.6, margin: "0 0 40px", fontWeight: 500, letterSpacing: "0.5px" }}>
-            Маркетинг · Управление · Продажи · Развитие команды
-          </p>
-
-          <Link to="/cabinet" style={{
-            display: "inline-block", padding: "16px 38px", borderRadius: 2, fontSize: 15, fontWeight: 500, letterSpacing: "0.3px",
-            background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A",
-            textDecoration: "none", transition: "all 0.3s",
-          }}
-            onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 16px 40px rgba(45,212,191,0.3)"; }}
-            onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
-          >
-            Попробовать бесплатно
-          </Link>
+          <div style={{ display: "flex", justifyContent: "center" }} className="voz-hero-img">
+            <div style={{ position: "relative", width: "100%" }}>
+              <div style={{ position: "absolute", inset: -1, borderRadius: 6, background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))", pointerEvents: "none", zIndex: 2 }} />
+              <img
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/003d1705-274b-4191-a9b4-4256bcb76568.png"
+                alt="Возможности платформы Промт Диалог — ИИ-инструменты для салона красоты"
+                decoding="async"
+                style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -306,6 +318,10 @@ export default function Vozmozhnosti() {
       <BizFooter />
 
       <style>{`
+        @media (max-width: 768px) {
+          .voz-hero-grid { grid-template-columns: 1fr !important; }
+          .voz-hero-img { margin-top: 32px; }
+        }
         @media (max-width: 640px) {
           .how-grid { grid-template-columns: 1fr !important; }
           .how-grid > div { border-right: none !important; border-bottom: 1px solid #E2E8F0; }
