@@ -100,10 +100,13 @@ export default function DlyaKogo() {
             </div>
 
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(40px,5.5vw,70px)", fontWeight: 500, color: "#fff", lineHeight: 1.05, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
-              Для кого Промт Диалог
+              Инструменты под каждую роль в вашем салоне
             </h1>
-            <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0", fontWeight: 300, maxWidth: 520 }}>
-              Каждая роль в команде влияет на возврат клиентов. Владелец, администратор, мастер — у каждого свои инструменты для роста загрузки.
+            <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 520 }}>
+              Владелец, управляющий, администратор, мастер — каждый получает именно то, что нужно для роста его результата.
+            </p>
+            <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: TEAL, lineHeight: 1.6, margin: "0", fontWeight: 500, letterSpacing: "0.5px" }}>
+              Владелец · Администратор · Мастер · Специалист по телу
             </p>
           </div>
 
