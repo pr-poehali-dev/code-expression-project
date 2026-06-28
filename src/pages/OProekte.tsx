@@ -116,7 +116,7 @@ export default function OProekte() {
               17 лет в индустрии — и один честный инструмент
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 520 }}>
-              Создан практиками индустрии красоты — чтобы салоны возвращали клиентов и загружали мастеров системно, а не на удачу.
+              Мы строили этот инструмент для себя. Он помог нам расти — и мы решили поделиться с коллегами по индустрии.
             </p>
             <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: TEAL, lineHeight: 1.6, margin: "0", fontWeight: 500, letterSpacing: "0.5px" }}>
               Опыт · Практика · Результат
