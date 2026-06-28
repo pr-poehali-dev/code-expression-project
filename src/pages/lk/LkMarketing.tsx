@@ -450,10 +450,17 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
             </div>
           </div>
         </div>
-        <a href="/cabinet?section=landings" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 8, background: "#2DD4BF", color: "#0F172A", fontSize: 13, fontWeight: 600, textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap" }}>
-          <Icon name="ExternalLink" size={14} />
-          Создать лендинг
-        </a>
+        <button
+          onClick={() => {
+            sessionStorage.setItem("lk_ai_tool_pending", "landing-guide");
+            sessionStorage.setItem("lk_tab", "ai");
+            window.location.reload();
+          }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 8, background: "#2DD4BF", color: "#0F172A", fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap", fontFamily: "Montserrat, sans-serif" }}
+        >
+          <Icon name="LayoutTemplate" size={14} />
+          База знаний и создание
+        </button>
       </div>
 
       {/* Яндекс.Директ */}

@@ -127,7 +127,11 @@ function PaywallToolCard({ icon, color, bg, title, description, badge }: {
 type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | "review-reply" | "client-scripts" | "salon-diag" | "landing-builder" | "landing-guide" | null;
 
 export default function LkAiTools() {
-  const [activeTool, setActiveTool] = useState<Tool>(null);
+  const [activeTool, setActiveTool] = useState<Tool>(() => {
+    const pending = sessionStorage.getItem("lk_ai_tool_pending") as Tool | null;
+    if (pending) { sessionStorage.removeItem("lk_ai_tool_pending"); return pending; }
+    return null;
+  });
   const [landingForceList, setLandingForceList] = useState(false);
   const { hasPaid, loading: energyLoading } = useEnergy();
   const { user } = useLkAuth();
