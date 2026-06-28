@@ -16,6 +16,7 @@ const COLS = [
     title: "Компания",
     links: [
       { label: "О проекте", href: "/o-proekte" },
+      { label: "Почему мы", href: "/preimushchestva" },
       { label: "Кейсы", href: "/keysy" },
       { label: "Контакты", href: "/kontakty" },
     ],
