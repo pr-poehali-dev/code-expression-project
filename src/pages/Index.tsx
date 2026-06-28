@@ -492,7 +492,7 @@ export default function Index() {
       <style>{`
         @media (max-width: 768px) {
           .hero-grid { grid-template-columns: 1fr !important; }
-          .hero-img { display: none !important; }
+          .hero-img { margin-top: 32px; }
           .value-grid { grid-template-columns: 1fr !important; }
           .dir-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
           .tarif-grid { grid-template-columns: 1fr !important; }
