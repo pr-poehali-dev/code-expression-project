@@ -32,7 +32,7 @@ const FORMAT = [
   { icon: "CalendarDays", text: "Проходит по воскресеньям в уютном зале в центре Москвы" },
   { icon: "Clock", text: "6-часовой интерактив с практикой и разбором реальных кейсов" },
   { icon: "Users", text: "Группы до 20 человек — максимум внимания каждому" },
-  { icon: "Zap", text: "После оплаты — +1500 Энергии сразу на баланс платформы «Про диалог»" },
+  { icon: "Zap", text: "После оплаты — +1500 Энергии сразу на баланс платформы «Промт Диалог»" },
 
 ];
 
@@ -119,11 +119,11 @@ export default function TreningProdazhi() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", color: DARK }}>
       <Helmet>
-        <title>Тренинг по продажам для мастеров и администраторов салона | Про Диалог</title>
+        <title>Тренинг по продажам для мастеров и администраторов салона | Промт Диалог</title>
         <meta name="description" content="Однодневный живой тренинг Сергея Водопьянова — научитесь продавать через заботу, а не давление. Для мастеров и администраторов салонов красоты. Москва, 9 990 ₽." />
         <meta name="keywords" content="тренинг по продажам для салона красоты, обучение мастеров продажам, тренинг для администратора салона, продажи в салоне красоты, Сергей Водопьянов тренинг" />
         <link rel="canonical" href="https://promtdialog.ru/trening-prodazhi" />
-        <meta property="og:title" content="Тренинг по продажам для салона красоты — Про Диалог" />
+        <meta property="og:title" content="Тренинг по продажам для салона красоты — Промт Диалог" />
         <meta property="og:description" content="Живой тренинг: продажи через заботу, работа с возражениями, повторные записи. Москва, 9 990 ₽. Бонус — 1500 Энергий на платформу сразу после оплаты." />
         <meta property="og:url" content="https://promtdialog.ru/trening-prodazhi" />
         <meta property="og:type" content="website" />
@@ -135,7 +135,7 @@ export default function TreningProdazhi() {
           "@type": "Course",
           "name": "Тренинг по продажам для мастеров и администраторов салона",
           "description": "Однодневный живой тренинг по навыкам продаж и коммуникации для специалистов салонов красоты. Ведущий — Сергей Водопьянов.",
-          "provider": { "@type": "Organization", "name": "Про Диалог", "url": "https://promtdialog.ru" },
+          "provider": { "@type": "Organization", "name": "Промт Диалог", "url": "https://promtdialog.ru" },
           "url": "https://promtdialog.ru/trening-prodazhi",
           "courseMode": "Presential",
           "inLanguage": "ru",
@@ -200,7 +200,7 @@ export default function TreningProdazhi() {
                 </div>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "hsl(40,90%,65%)" }}>+1500 Энергии</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>начисляются после участия и используются<br />на инструменты платформы «Про диалог»</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>начисляются после участия и используются<br />на инструменты платформы «Промт Диалог»</div>
                 </div>
               </div>
             </div>
@@ -416,7 +416,7 @@ export default function TreningProdazhi() {
             Готовы начать диалог с клиентами по-новому?
           </h2>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", margin: "0 0 36px", lineHeight: 1.7 }}>
-            Запишитесь на тренинг и получите не только знания, но и 1500 Энергии для роста на платформе «Про диалог»
+            Запишитесь на тренинг и получите не только знания, но и 1500 Энергии для роста на платформе «Промт Диалог»
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <Link to="/cabinet" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "16px 32px", borderRadius: 2, background: `linear-gradient(135deg, ${PURPLE}, hsl(270,65%,38%))`, color: "#fff", fontSize: 16, fontWeight: 600, textDecoration: "none", boxShadow: `0 8px 32px hsla(270,65%,52%,0.4)` }}>

@@ -100,21 +100,21 @@ export default function Vozmozhnosti() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
-        <title>Возможности платформы — маркетинг, обучение и ИИ для салона | Про Диалог</title>
+        <title>Возможности платформы — маркетинг, обучение и ИИ для салона | Промт Диалог</title>
         <meta name="description" content="Более 20 инструментов для роста салона красоты: генератор постов, сценарии Reels, SEO-оптимизация, анализ персонала, скрипты продаж, обучение команды. Попробуйте бесплатно." />
         <meta name="keywords" content="инструменты для салона красоты, маркетинг для салона, обучение персонала, ИИ для салона, платформа управления салоном" />
         <link rel="canonical" href="https://promtdialog.ru/vozmozhnosti" />
-        <meta property="og:title" content="Возможности платформы Про Диалог — всё для роста салона" />
+        <meta property="og:title" content="Возможности платформы Промт Диалог — всё для роста салона" />
         <meta property="og:description" content="Более 20 интеллектуальных инструментов: маркетинг, управление, продажи, обучение команды. Всё в одном кабинете." />
         <meta property="og:url" content="https://promtdialog.ru/vozmozhnosti" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Возможности платформы Про Диалог" />
+        <meta name="twitter:title" content="Возможности платформы Промт Диалог" />
         <meta name="twitter:description" content="Более 20 инструментов для роста салона: маркетинг, ИИ, обучение команды." />
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "SoftwareApplication",
-          "name": "Про Диалог",
+          "name": "Промт Диалог",
           "url": "https://promtdialog.ru",
           "applicationCategory": "BusinessApplication",
           "description": "Платформа роста салона красоты: маркетинг, управление, обучение персонала и ИИ-инструменты в одном кабинете.",
@@ -146,7 +146,7 @@ export default function Vozmozhnosti() {
             Инструменты, которые возвращают клиентов и повышают загрузку каждого мастера.
           </p>
           <p style={{ fontSize: "clamp(14px,1.4vw,16px)", color: "rgba(255,255,255,0.45)", lineHeight: 1.8, margin: "0 0 16px", fontWeight: 300, maxWidth: 660 }}>
-            Про Диалог объединяет аналитику, маркетинг, обучение сотрудников и искусственный интеллект в единую систему управления салоном. Каждый инструмент работает по гибридному принципу: сначала анализ данных и проверенные алгоритмы, затем — персональные рекомендации ИИ для вашей ситуации.
+            Промт Диалог объединяет аналитику, маркетинг, обучение сотрудников и искусственный интеллект в единую систему управления салоном. Каждый инструмент работает по гибридному принципу: сначала анализ данных и проверенные алгоритмы, затем — персональные рекомендации ИИ для вашей ситуации.
           </p>
           <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: TEAL, lineHeight: 1.6, margin: "0 0 40px", fontWeight: 500, letterSpacing: "0.5px" }}>
             Маркетинг · Управление · Продажи · Развитие команды
@@ -261,14 +261,14 @@ export default function Vozmozhnosti() {
         </section>
       ))}
 
-      {/* ── ПОЧЕМУ ПРО ДИАЛОГ ── */}
+      {/* ── ПОЧЕМУ ПРОМТ ДИАЛОГ ── */}
       <section style={{ background: DARK, padding: "120px 32px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", bottom: "-10%", left: "50%", transform: "translateX(-50%)", width: 800, height: 500, background: "radial-gradient(circle, rgba(45,212,191,0.06) 0%, transparent 70%)", pointerEvents: "none" }} />
         <div style={{ maxWidth: 1000, margin: "0 auto", position: "relative" }}>
           <div style={{ textAlign: "left", marginBottom: 56 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Преимущества</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: "#fff", margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-              Почему Про Диалог
+              Почему Промт Диалог
             </h2>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 16 }}>

@@ -34,7 +34,7 @@ export default function RepDashboard() {
           </div>
           <div>
             <div style={{ fontWeight: 700, fontSize: 14, color: "#1a1a1a" }}>Кабинет представителя</div>
-            <div style={{ fontSize: 11, color: "#aaa" }}>Про Диалог · {senderName}</div>
+            <div style={{ fontSize: 11, color: "#aaa" }}>Промт Диалог · {senderName}</div>
           </div>
         </div>
         <button onClick={logout} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 8, border: "1.5px solid #e8e8e4", background: "#fff", color: "#888", fontSize: 13, cursor: "pointer", fontFamily: "Montserrat, sans-serif" }}>

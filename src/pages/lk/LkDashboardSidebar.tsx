@@ -79,7 +79,7 @@ const INSTALL_INSTRUCTIONS: Record<string, { subtitle: string; steps: string[] }
     steps: [
       'Нажмите три точки (⋮) внизу справа — они видны прямо сейчас за этой шторкой',
       'Выберите «Добавить на главный экран»',
-      'Нажмите «Добавить» — иконка «Про Диалог» появится на рабочем столе',
+      'Нажмите «Добавить» — иконка «Промт Диалог» появится на рабочем столе',
     ],
   },
   "android-chrome": {
@@ -95,7 +95,7 @@ const INSTALL_INSTRUCTIONS: Record<string, { subtitle: string; steps: string[] }
     steps: [
       'Откройте меню браузера (три точки или значок настроек)',
       'Найдите пункт «Добавить на главный экран» или «Установить»',
-      'Подтвердите — иконка «Про Диалог» появится на рабочем столе',
+      'Подтвердите — иконка «Промт Диалог» появится на рабочем столе',
     ],
   },
 };
@@ -358,7 +358,7 @@ export function LkMobileHeader({ hasSalonId, onNav, onLogout }: MobileHeaderProp
         <div style={{ width: 30, height: 30, borderRadius: 8, background: `linear-gradient(135deg,${TEAL_BRIGHT},#14B8A6)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Icon name="MessageSquare" size={15} style={{ color: "#0F172A" }} />
         </div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Про Диалог</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Промт Диалог</div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {hasSalonId && <EnergyBadge onNav={onNav} />}

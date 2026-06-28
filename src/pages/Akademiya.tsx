@@ -71,11 +71,11 @@ export default function Akademiya() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
-        <title>Академия Про Диалог — обучение для специалистов салона красоты</title>
+        <title>Академия Промт Диалог — обучение для специалистов салона красоты</title>
         <meta name="description" content="Профессиональные курсы и тренинги для мастеров, администраторов и владельцев салонов. Обучение по коммуникациям, продажам, управлению и развитию сервиса." />
         <meta name="keywords" content="академия для салона красоты, обучение мастеров, курсы для администраторов, тренинги для салона" />
         <link rel="canonical" href="https://promtdialog.ru/akademiya" />
-        <meta property="og:title" content="Академия Про Диалог — профессиональное обучение для салонов" />
+        <meta property="og:title" content="Академия Промт Диалог — профессиональное обучение для салонов" />
         <meta property="og:description" content="Курсы и тренинги для всей команды салона: коммуникации, продажи, управление, сервис." />
         <meta property="og:url" content="https://promtdialog.ru/akademiya" />
         <meta property="og:type" content="website" />
@@ -83,10 +83,10 @@ export default function Akademiya() {
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "EducationalOrganization",
-          "name": "Академия Про Диалог",
+          "name": "Академия Промт Диалог",
           "url": "https://promtdialog.ru/akademiya",
           "description": "Профессиональные курсы и тренинги для специалистов салонов красоты.",
-          "parentOrganization": { "@type": "Organization", "name": "Про Диалог", "url": "https://promtdialog.ru" }
+          "parentOrganization": { "@type": "Organization", "name": "Промт Диалог", "url": "https://promtdialog.ru" }
         })}</script>
       </Helmet>
       <BizNavbar />
@@ -102,17 +102,17 @@ export default function Akademiya() {
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "120px 32px", width: "100%", textAlign: "left", position: "relative" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
             <Icon name="GraduationCap" size={14} style={{ color: TEAL }} />
-            <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Академия Про Диалог</span>
+            <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Академия Промт Диалог</span>
           </div>
 
           <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
-            Академия Про Диалог
+            Академия Промт Диалог
           </h1>
           <p style={{ fontSize: "clamp(16px,1.8vw,20px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 20px", fontWeight: 300, maxWidth: 620 }}>
             Мастера, которые растут профессионально, удерживают клиентов и увеличивают свою загрузку.
           </p>
           <p style={{ fontSize: "clamp(14px,1.4vw,16px)", color: "rgba(255,255,255,0.42)", lineHeight: 1.8, margin: "0", fontWeight: 300, maxWidth: 680 }}>
-            Сильный салон начинается с сильных людей. Академия Про Диалог помогает развивать мышление, коммуникацию, лидерские качества и профессиональные навыки, которые напрямую влияют на доверие клиентов и финансовый результат.
+            Сильный салон начинается с сильных людей. Академия Промт Диалог помогает развивать мышление, коммуникацию, лидерские качества и профессиональные навыки, которые напрямую влияют на доверие клиентов и финансовый результат.
           </p>
           <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: "rgba(255,255,255,0.3)", lineHeight: 1.7, margin: "20px 0 0", fontWeight: 300, maxWidth: 580 }}>
             Это не просто набор уроков. Это система развития владельца, администратора, мастера и специалиста по телу.
@@ -126,7 +126,7 @@ export default function Akademiya() {
           <div style={{ position: "relative", borderRadius: 6, overflow: "hidden", boxShadow: "0 24px 64px rgba(15,23,42,0.18)" }}>
             <img
               src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/4a7b5d70-b350-442c-a621-708565ae81dd.jpg"
-              alt="Академия Про Диалог — развитие команды салона"
+              alt="Академия Промт Диалог — развитие команды салона"
               style={{ width: "100%", height: 360, objectFit: "cover", display: "block" }}
             />
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(15,23,42,0.88) 0%, rgba(15,23,42,0.35) 55%, transparent 100%)" }} />
@@ -232,10 +232,10 @@ export default function Akademiya() {
         <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "left", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
-            Продолжайте расти вместе с Про Диалог
+            Продолжайте расти вместе с Промт Диалог
           </h2>
           <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 10px", fontWeight: 300, position: "relative" }}>
-            Все программы, практики и материалы доступны в Академии Про Диалог.
+            Все программы, практики и материалы доступны в Академии Промт Диалог.
           </p>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.35)", margin: "0 0 44px", fontWeight: 300, position: "relative" }}>
             Создайте профиль салона и откройте для своей команды пространство постоянного развития.

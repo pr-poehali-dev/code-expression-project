@@ -70,18 +70,18 @@ const TIMELINE = [
   { year: "2008", text: "Начало практической работы в индустрии красоты и обучения специалистов." },
   { year: "2022", text: "Запуск первых программ по коммуникации и развитию салонов." },
   { year: "2024", text: "Создание первых аналитических и интеллектуальных инструментов для бизнеса." },
-  { year: "2026", text: "Запуск платформы Про Диалог — единой экосистемы для роста салонов красоты через команду, аналитику и современные технологии." },
+  { year: "2026", text: "Запуск платформы Промт Диалог — единой экосистемы для роста салонов красоты через команду, аналитику и современные технологии." },
 ];
 
 export default function OProekte() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
-        <title>О проекте — команда и философия Про Диалог</title>
-        <meta name="description" content="Про Диалог — платформа, созданная практиками индустрии красоты. Узнайте о нашей команде, истории и принципах работы." />
-        <meta name="keywords" content="о проекте Про Диалог, команда платформы, история создания, философия развития салона" />
+        <title>О проекте — команда и философия Промт Диалог</title>
+        <meta name="description" content="Промт Диалог — платформа, созданная практиками индустрии красоты. Узнайте о нашей команде, истории и принципах работы." />
+        <meta name="keywords" content="о проекте Промт Диалог, команда платформы, история создания, философия развития салона" />
         <link rel="canonical" href="https://promtdialog.ru/o-proekte" />
-        <meta property="og:title" content="О проекте Про Диалог — платформа роста салона красоты" />
+        <meta property="og:title" content="О проекте Промт Диалог — платформа роста салона красоты" />
         <meta property="og:description" content="Создана практиками индустрии: опыт, алгоритмы и ИИ для реального роста вашего салона." />
         <meta property="og:url" content="https://promtdialog.ru/o-proekte" />
         <meta property="og:type" content="website" />
@@ -89,7 +89,7 @@ export default function OProekte() {
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
-          "name": "Про Диалог",
+          "name": "Промт Диалог",
           "url": "https://promtdialog.ru",
           "description": "Платформа роста салона красоты, созданная практиками индустрии. Объединяет опыт, алгоритмы и искусственный интеллект.",
           "foundingDate": "2023",
@@ -151,7 +151,7 @@ export default function OProekte() {
               В результате салон теряет доверие, а вместе с ним — постоянных клиентов и прибыль.
             </p>
             <p style={{ fontSize: 16, color: DARK, margin: 0, lineHeight: 1.8, fontWeight: 400 }}>
-              Именно поэтому появился Про Диалог.
+              Именно поэтому появился Промт Диалог.
             </p>
           </div>
           <div>
@@ -191,7 +191,7 @@ export default function OProekte() {
               Опыт, алгоритмы и искусственный интеллект
             </h2>
             <p style={{ fontSize: 17, color: GRAY, margin: "0 0 12px", fontWeight: 300, maxWidth: 560 }}>
-              Про Диалог — это не просто набор ИИ-инструментов.
+              Промт Диалог — это не просто набор ИИ-инструментов.
             </p>
           </div>
 
@@ -287,7 +287,7 @@ export default function OProekte() {
             Они должны помогать владельцу видеть бизнес яснее, сотрудникам — работать увереннее, а клиентам — чувствовать внимание и заботу.
           </p>
           <p style={{ fontSize: 17, color: DARK, margin: 0, lineHeight: 1.8, fontWeight: 500 }}>
-            Именно для этого создан Про Диалог.
+            Именно для этого создан Промт Диалог.
           </p>
         </div>
       </section>

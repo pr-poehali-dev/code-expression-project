@@ -105,7 +105,7 @@ function SectionWhy() {
           </div>
         </div>
         <div style={{ background: "#F0FDF4", borderRadius: 12, padding: "14px 16px", border: "1px solid #BBF7D0" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#166534", marginBottom: 6 }}>✦ С конструктором Про Диалог</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#166534", marginBottom: 6 }}>✦ С конструктором Промт Диалог</div>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" as const }}>
             <div>
               <div style={{ fontSize: 11, color: "#166534", marginBottom: 2 }}>Стандартный</div>
@@ -123,7 +123,7 @@ function SectionWhy() {
       {/* Что такое энергия */}
       <Block>
         <H3>⚡ Что такое энергия и как она списывается</H3>
-        <P>Энергия — это универсальная «валюта» платформы Про Диалог. Она списывается за каждое обращение к ИИ: чем сложнее задача, тем больше энергии уходит.</P>
+        <P>Энергия — это универсальная «валюта» платформы Промт Диалог. Она списывается за каждое обращение к ИИ: чем сложнее задача, тем больше энергии уходит.</P>
         <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, margin: "12px 0" }}>
           {[
             { icon: "MessageCircle", label: "Диалог с ИИ в чате", desc: "небольшое количество за каждое сообщение", color: "#64748B", bg: "#F1F5F9" },

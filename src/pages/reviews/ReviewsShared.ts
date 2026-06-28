@@ -38,7 +38,7 @@ export interface TextSection {
 export const VIDEO_SECTIONS: VideoSection[] = [
   {
     title: "Прохождение онлайн-курса",
-    subtitle: "Специалисты о результатах после прохождения курса «Про Диалог»",
+    subtitle: "Специалисты о результатах после прохождения курса «Промт Диалог»",
     href: "/tarify",
     linkText: "Смотреть тарифы",
     videos: [
@@ -115,7 +115,7 @@ export const TEXT_SECTIONS: TextSection[] = [
   },
   {
     badge: "ДЛЯ СПЕЦИАЛИСТОВ",
-    title: "Тариф «Про Диалог — Эксперт»",
+    title: "Тариф «Промт Диалог — Эксперт»",
     subtitle: "Полная трансформация практики: от техник до личного бренда и масштаба",
     href: "/ekspert",
     linkText: "Подробнее о тарифе",
@@ -184,7 +184,7 @@ export const TEXT_SECTIONS: TextSection[] = [
   },
   {
     badge: "ДЛЯ САЛОНОВ",
-    title: "Формат «Про Диалог Business»",
+    title: "Формат «Промт Диалог Business»",
     subtitle: "Полное сопровождение: от обучения персонала до системы роста салона",
     href: "/kontakty",
     linkText: "Оставить заявку",

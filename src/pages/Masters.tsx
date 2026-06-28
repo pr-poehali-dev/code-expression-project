@@ -156,7 +156,7 @@ function MastersNavbar() {
 
           {/* Подпись */}
           <div style={{ marginTop: 20, textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.2)" }}>
-            Партнёрская программа «Про Диалог»
+            Партнёрская программа «Промт Диалог»
           </div>
         </div>
       )}
@@ -402,7 +402,7 @@ export default function Masters() {
             <a href="mailto:info@promtdialog.ru" style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>info@promtdialog.ru</a>
           </div>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.2)" }}>
-            © 2026 Про Диалог · Партнёрская программа для мастеров салона красоты
+            © 2026 Промт Диалог · Партнёрская программа для мастеров салона красоты
           </div>
         </div>
       </footer>

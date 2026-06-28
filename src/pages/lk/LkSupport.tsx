@@ -14,7 +14,7 @@ interface Message {
 
 const WELCOME: Message = {
   role: "assistant",
-  content: "Привет! Я AI-помощник техподдержки платформы «Про Диалог». Опишите вашу проблему или задайте вопрос — постараюсь помочь. Если нужна помощь живого специалиста, нажмите кнопку ниже.",
+  content: "Привет! Я AI-помощник техподдержки платформы «Промт Диалог». Опишите вашу проблему или задайте вопрос — постараюсь помочь. Если нужна помощь живого специалиста, нажмите кнопку ниже.",
 };
 
 export default function LkSupport() {
@@ -103,7 +103,7 @@ export default function LkSupport() {
       {/* Заголовок */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 12, fontWeight: 600, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-          Личный кабинет · Про Диалог
+          Личный кабинет · Промт Диалог
         </div>
         <h1 style={{ fontSize: "clamp(22px,3vw,28px)", fontWeight: 700, color: "#0F172A", margin: "0 0 6px", letterSpacing: "-0.3px" }}>
           Техническая поддержка

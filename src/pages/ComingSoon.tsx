@@ -12,7 +12,7 @@ const PLANS = [
   { value: "free",     label: "Бесплатный доступ",                price: null,        discounted: null },
   { value: "practika", label: "Тариф «Практика»",                 price: "90 900 ₽",  discounted: "27 270 ₽" },
   { value: "premium",  label: "Тариф «Премиальная практика»",      price: "290 000 ₽", discounted: "87 000 ₽" },
-  { value: "ekspert",  label: "Тариф «Про Диалог — Эксперт»",     price: "500 000 ₽", discounted: "150 000 ₽" },
+  { value: "ekspert",  label: "Тариф «Промт Диалог — Эксперт»",     price: "500 000 ₽", discounted: "150 000 ₽" },
 ];
 
 const inp: React.CSSProperties = {
@@ -59,8 +59,8 @@ export default function ComingSoon() {
   return (
     <div style={{ background: DARK, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#fff" }}>
       <Helmet>
-        <title>Скоро открытие — Про Диалог</title>
-        <meta name="description" content="Курсы платформы «Про Диалог» скоро появятся в постоянной продаже. Оставьте заявку сейчас и получите скидку 70% — после запуска такой цены не будет." />
+        <title>Скоро открытие — Промт Диалог</title>
+        <meta name="description" content="Курсы платформы «Промт Диалог» скоро появятся в постоянной продаже. Оставьте заявку сейчас и получите скидку 70% — после запуска такой цены не будет." />
       </Helmet>
 
       <BizNavbar />

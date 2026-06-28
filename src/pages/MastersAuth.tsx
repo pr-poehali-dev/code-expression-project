@@ -232,7 +232,7 @@ export default function MastersAuth({ mode }: Props) {
           </p>
 
           <p style={{ textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.2)", marginTop: 12 }}>
-            Партнёрская программа «Про Диалог» · Для мастеров салона красоты
+            Партнёрская программа «Промт Диалог» · Для мастеров салона красоты
           </p>
         </div>
       </div>

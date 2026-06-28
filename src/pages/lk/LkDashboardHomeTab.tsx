@@ -50,7 +50,7 @@ export function HomeTab({ onNav, role, hasSalon }: HomeTabProps) {
       {/* Приветствие */}
       <div style={{ marginBottom: 32 }}>
         <div style={{ fontSize: 12, fontWeight: 600, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-          {ROLE_LABELS[role] || "Специалист"} · Про Диалог
+          {ROLE_LABELS[role] || "Специалист"} · Промт Диалог
         </div>
         <h1 style={{ fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px", letterSpacing: "-0.3px" }}>
           Добро пожаловать{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}!

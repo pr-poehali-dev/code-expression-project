@@ -75,7 +75,7 @@ export default function RepAITab() {
             <div style={{ width: 52, height: 52, borderRadius: 14, background: ACCENT_LIGHT, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
               <Icon name="Bot" size={24} style={{ color: ACCENT }} />
             </div>
-            <div style={{ fontWeight: 700, fontSize: 15, color: "#1a1a1a", marginBottom: 6 }}>ИИ-ассистент по продажам Про Диалог</div>
+            <div style={{ fontWeight: 700, fontSize: 15, color: "#1a1a1a", marginBottom: 6 }}>ИИ-ассистент по продажам Промт Диалог</div>
             <div style={{ fontSize: 13, color: "#aaa", lineHeight: 1.6 }}>Генерирую КП, письма, скрипты, расчёты окупаемости.<br />Знает все ИИ-инструменты платформы и систему ролей для салонов.<br />Опишите задачу — подберу роль сам.</div>
           </div>
         )}

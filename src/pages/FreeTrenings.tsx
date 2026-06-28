@@ -69,7 +69,7 @@ export default function FreeTrenings() {
   return (
     <>
       <Helmet>
-        <title>Бесплатные онлайн-тренинги для мастеров и администраторов | Про Диалог</title>
+        <title>Бесплатные онлайн-тренинги для мастеров и администраторов | Промт Диалог</title>
         <meta name="description" content="Бесплатные онлайн-тренинги для мастеров, администраторов, массажистов и специалистов бьюти и wellness. Психология общения с клиентом, личный бренд, самопрезентация. Доступны сразу после регистрации." />
         <meta name="keywords" content="бесплатные тренинги для мастеров, онлайн курсы для администраторов салона, обучение для мастеров красоты, тренинг для массажистов, психология общения с клиентом, личный бренд мастера, академия про диалог" />
         <link rel="canonical" href="https://pro-dialog.ru/free-trenings" />
@@ -81,7 +81,7 @@ export default function FreeTrenings() {
         <meta property="og:description" content="Получите бесплатный доступ к практическим тренингам по психологии общения, личному бренду и самопрезентации. Для специалистов индустрии красоты и здоровья." />
         <meta property="og:image" content="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/courses/covers/16/training-image (1).png" />
         <meta property="og:locale" content="ru_RU" />
-        <meta property="og:site_name" content="Про Диалог" />
+        <meta property="og:site_name" content="Промт Диалог" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -108,7 +108,7 @@ export default function FreeTrenings() {
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
-              <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Академия Про Диалог</span>
+              <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Академия Промт Диалог</span>
             </div>
 
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(38px, 5.5vw, 68px)", fontWeight: 500, color: "#fff", lineHeight: 1.08, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
@@ -282,7 +282,7 @@ export default function FreeTrenings() {
               Мы хотим, чтобы вы убедились в пользе платформы
             </h2>
             <p style={{ fontSize: 17, color: "rgba(255,255,255,0.6)", lineHeight: 1.8, margin: 0, fontWeight: 300 }}>
-              «Про Диалог» — платформа роста для специалистов индустрии красоты и здоровья. Мы даём бесплатный доступ к тренингам, потому что уверены: когда вы получите первые результаты, вы захотите большего. Никаких скрытых условий — только реальные инструменты.
+              «Промт Диалог» — платформа роста для специалистов индустрии красоты и здоровья. Мы даём бесплатный доступ к тренингам, потому что уверены: когда вы получите первые результаты, вы захотите большего. Никаких скрытых условий — только реальные инструменты.
             </p>
           </div>
         </div>

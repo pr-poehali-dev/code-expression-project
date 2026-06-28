@@ -138,7 +138,7 @@ export default function Kontakty() {
         <div style={{ maxWidth: 760, margin: "0 auto" }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 16 }}>Контакты</div>
           <h1 style={{ fontFamily: SERIF, fontSize: "clamp(32px,5vw,52px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-            Связаться с Про Диалог
+            Связаться с Промт Диалог
           </h1>
           <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.55)", margin: 0, fontWeight: 300, lineHeight: 1.7, maxWidth: 520 }}>
             Хотите узнать, как увеличить возврат клиентов и загрузку мастеров? Напишите — разберём ситуацию вашего салона.

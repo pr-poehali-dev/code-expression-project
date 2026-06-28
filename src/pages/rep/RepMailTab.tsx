@@ -359,7 +359,7 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
         </div>
         <div style={{ marginBottom: 12 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: "#666", display: "block", marginBottom: 5 }}>Тема письма *</label>
-          <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Про Диалог — платформа для вашего салона" style={inp} />
+          <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Промт Диалог — платформа для вашего салона" style={inp} />
         </div>
         <div style={{ marginBottom: 16 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: "#666", display: "block", marginBottom: 5 }}>
@@ -375,7 +375,7 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
         </div>
 
         <div style={{ background: "#f8f8f6", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#888" }}>
-          <strong>От кого:</strong> Про Диалог &lt;massopro@mail.ru&gt; · Подпись: <strong>{senderName}</strong>, Администратор Про Диалог
+          <strong>От кого:</strong> Промт Диалог &lt;massopro@mail.ru&gt; · Подпись: <strong>{senderName}</strong>, Администратор Промт Диалог
         </div>
 
         {error && (

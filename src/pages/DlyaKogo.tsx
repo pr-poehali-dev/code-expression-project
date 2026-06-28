@@ -72,11 +72,11 @@ export default function DlyaKogo() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
-        <title>Для кого платформа — владельцы, администраторы, мастера | Про Диалог</title>
-        <meta name="description" content="Про Диалог помогает владельцам салонов, администраторам и мастерам: инструменты под каждую роль. Маркетинг, управление, скрипты продаж и обучение." />
+        <title>Для кого платформа — владельцы, администраторы, мастера | Промт Диалог</title>
+        <meta name="description" content="Промт Диалог помогает владельцам салонов, администраторам и мастерам: инструменты под каждую роль. Маркетинг, управление, скрипты продаж и обучение." />
         <meta name="keywords" content="платформа для владельца салона, инструменты для администратора, обучение мастеров, управление салоном красоты" />
         <link rel="canonical" href="https://promtdialog.ru/dlya-kogo" />
-        <meta property="og:title" content="Для кого Про Диалог — инструменты под каждую роль в салоне" />
+        <meta property="og:title" content="Для кого Промт Диалог — инструменты под каждую роль в салоне" />
         <meta property="og:description" content="Владельцы, администраторы, мастера — у каждого свои инструменты для роста и развития." />
         <meta property="og:url" content="https://promtdialog.ru/dlya-kogo" />
         <meta property="og:type" content="website" />
@@ -99,7 +99,7 @@ export default function DlyaKogo() {
           </div>
 
           <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,6vw,76px)", fontWeight: 500, color: "#fff", lineHeight: 1.04, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
-            Для кого Про Диалог
+            Для кого Промт Диалог
           </h1>
           <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0", fontWeight: 300, maxWidth: 640 }}>
             Каждая роль в команде влияет на возврат клиентов. Владелец, администратор, мастер — у каждого свои инструменты для роста загрузки.

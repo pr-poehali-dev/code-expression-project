@@ -50,11 +50,11 @@ export default function Keysy() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
-        <title>Кейсы и результаты салонов — истории успеха | Про Диалог</title>
-        <meta name="description" content="Реальные истории салонов красоты, которые выросли с платформой Про Диалог. Цифры, результаты, опыт владельцев и мастеров." />
+        <title>Кейсы и результаты салонов — истории успеха | Промт Диалог</title>
+        <meta name="description" content="Реальные истории салонов красоты, которые выросли с платформой Промт Диалог. Цифры, результаты, опыт владельцев и мастеров." />
         <meta name="keywords" content="кейсы салонов красоты, результаты роста салона, истории успеха, платформа для салона отзывы" />
         <link rel="canonical" href="https://promtdialog.ru/keysy" />
-        <meta property="og:title" content="Кейсы — реальные результаты салонов с Про Диалог" />
+        <meta property="og:title" content="Кейсы — реальные результаты салонов с Промт Диалог" />
         <meta property="og:description" content="200+ салонов уже растут с платформой. Читайте истории успеха и реальные цифры." />
         <meta property="og:url" content="https://promtdialog.ru/keysy" />
         <meta property="og:type" content="website" />
@@ -79,7 +79,7 @@ export default function Keysy() {
             Результаты наших клиентов
           </h1>
           <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0", fontWeight: 300, maxWidth: 620 }}>
-            Реальные результаты: как салоны увеличили возврат клиентов и загрузку мастеров с Про Диалог.
+            Реальные результаты: как салоны увеличили возврат клиентов и загрузку мастеров с Промт Диалог.
           </p>
         </div>
       </section>

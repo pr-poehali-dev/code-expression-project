@@ -45,7 +45,7 @@ export default function Diagnostika() {
   return (
     <>
       <Helmet>
-        <title>Диагностика роста салона красоты — бесплатный аудит потенциала за 10 минут | Про Диалог</title>
+        <title>Диагностика роста салона красоты — бесплатный аудит потенциала за 10 минут | Промт Диалог</title>
         <meta name="description" content="Бесплатная диагностика салона красоты на основе математических алгоритмов. Узнайте потенциал роста выручки, загрузки мастеров и возврата клиентов. Конкретные цифры по вашим данным — за 10 минут. 100 энергий в подарок при регистрации." />
         <meta name="keywords" content="диагностика салона красоты, аудит салона красоты бесплатно, потенциал роста салона, как увеличить выручку салона, загрузка мастеров, аналитика салона красоты, инструменты для управляющего салоном, рост прибыли салона, анализ бизнеса салона, про диалог диагностика" />
       </Helmet>
@@ -121,7 +121,7 @@ export default function Diagnostika() {
                   <div style={{ display: "flex", gap: 6 }}>
                     {["#ef4444","#f59e0b","#22c55e"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
                   </div>
-                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginLeft: 8 }}>Диагностика роста · Про Диалог</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginLeft: 8 }}>Диагностика роста · Промт Диалог</span>
                 </div>
                 <div style={{ padding: 24 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>

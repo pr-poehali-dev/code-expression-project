@@ -11,9 +11,9 @@ export default function Reviews() {
   return (
     <div style={{ background: DARK, minHeight: "100vh", fontFamily: "Montserrat, sans-serif", color: "#fff" }}>
       <Helmet>
-        <title>Истории специалистов — Про Диалог</title>
+        <title>Истории специалистов — Промт Диалог</title>
         <meta name="description" content="Истории специалистов и команд, которые изменили подход к практике: мышление, стоимость, работа с клиентом, внедрение в салоне." />
-        <meta property="og:title" content="Истории специалистов — Про Диалог" />
+        <meta property="og:title" content="Истории специалистов — Промт Диалог" />
       </Helmet>
 
       <BizNavbar />
