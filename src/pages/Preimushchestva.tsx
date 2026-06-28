@@ -105,7 +105,7 @@ export default function Preimushchestva() {
               <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Почему мы</span>
             </div>
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(38px,5.5vw,72px)", fontWeight: 500, color: "#fff", lineHeight: 1.05, margin: "0 0 24px", letterSpacing: "-0.5px" }}>
-              Почему с нами растут быстрее?
+              Результат, который превосходит ожидания
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.55)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 520 }}>
               5 ключевых преимуществ платформы
