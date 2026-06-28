@@ -141,10 +141,10 @@ export default function Vozmozhnosti() {
             </div>
 
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(40px,5.5vw,70px)", fontWeight: 500, color: "#fff", lineHeight: 1.05, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
-              Возможности платформы
+              Больше клиентов, выше чек, сильнее команда
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 520 }}>
-              Инструменты, которые возвращают клиентов и повышают загрузку каждого мастера.
+              20+ ИИ-инструментов, которые каждый день работают на рост вашего салона — без найма консультантов и лишних сервисов.
             </p>
             <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: TEAL, lineHeight: 1.6, margin: "0 0 40px", fontWeight: 500, letterSpacing: "0.5px" }}>
               Маркетинг · Управление · Продажи · Развитие команды
