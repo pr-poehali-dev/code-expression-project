@@ -32,7 +32,7 @@ export default function IndexHero() {
             </div>
 
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(40px,5.5vw,70px)", fontWeight: 500, color: "#fff", lineHeight: 1.05, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
-              Растите быстрее — с ИИ вместо штата
+              ИИ-агенты для развития индустрии красоты
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 520 }}>
               Диагностика, маркетинг, обучение команды и аналитика — всё в одной платформе. ИИ-агенты работают под задачи вашего салона каждый день.
