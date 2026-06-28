@@ -16,6 +16,7 @@ import ChatWidget from "./components/ChatWidget";
 const Index = lazy(() => import("./pages/Index"));
 const Vozmozhnosti = lazy(() => import("./pages/Vozmozhnosti"));
 const DlyaKogo = lazy(() => import("./pages/DlyaKogo"));
+const Preimushchestva = lazy(() => import("./pages/Preimushchestva"));
 const Akademiya = lazy(() => import("./pages/Akademiya"));
 const Tseny = lazy(() => import("./pages/Tseny"));
 const Keysy = lazy(() => import("./pages/Keysy"));
@@ -86,6 +87,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/vozmozhnosti" element={<Vozmozhnosti />} />
             <Route path="/dlya-kogo" element={<DlyaKogo />} />
+            <Route path="/preimushchestva" element={<Preimushchestva />} />
             <Route path="/akademiya" element={<Akademiya />} />
             <Route path="/tseny" element={<Tseny />} />
             <Route path="/keysy" element={<Keysy />} />
