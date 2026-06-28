@@ -103,7 +103,7 @@ export default function DlyaKogo() {
               Инструменты под каждую роль в вашем салоне
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 520 }}>
-              Владелец, управляющий, администратор, мастер — каждый получает именно то, что нужно для роста его результата.
+              Каждый получает именно то, что нужно для роста его результата.
             </p>
             <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: TEAL, lineHeight: 1.6, margin: "0", fontWeight: 500, letterSpacing: "0.5px" }}>
               Владелец · Администратор · Мастер · Специалист по телу
