@@ -1014,6 +1014,7 @@ function SeoEditor({ seo, onChange }: { seo: SeoData; onChange: (s: SeoData) => 
 export default function LkLandingBuilder({ forceList = false }: { forceList?: boolean }) {
   const { user } = useLkAuth();
   const [view, setView] = useState<"list" | "new" | "editor">("list");
+  const [listKey, setListKey] = useState(0);
   const [landingType, setLandingType] = useState<LandingType | null>(() => {
     try { return (localStorage.getItem(LS_TYPE) as LandingType) || null; } catch { return null; }
   });
@@ -1121,19 +1122,8 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     }
   }, [siteStyle]); // eslint-disable-line
 
-  // Восстановить если были блоки (не восстанавливаем если forceList)
-  useEffect(() => {
-    if (forceList) return;
-    const savedPhase = localStorage.getItem(LS_PHASE);
-    const savedType = localStorage.getItem(LS_TYPE);
-    const savedBlocks = localStorage.getItem(LS_BLOCKS);
-    if (savedType && savedPhase) {
-      if (savedPhase === "done" && (!savedBlocks || JSON.parse(savedBlocks).length === 0)) {
-        localStorage.setItem(LS_PHASE, "chat");
-      }
-      setView("editor");
-    }
-  }, []); // eslint-disable-line
+  // Больше не восстанавливаем editor из localStorage автоматически —
+  // пользователь выбирает лендинг из списка сам (openProject)
 
   const handleIframeMessage = useCallback((e: MessageEvent) => {
     if (e.data?.type === "landing-html-update") {
@@ -1764,13 +1754,13 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     : fullHtml;
 
   // ── RENDER LIST ───────────────────────────────────────────────────────────
-  if (view === "list") return <ProjectsList onOpen={openProject} onNew={startNew} />;
+  if (view === "list") return <ProjectsList key={listKey} onOpen={openProject} onNew={startNew} />;
   if (view === "new") return (
     <>
       {showHelp && <LandingHelp onClose={() => setShowHelp(false)} />}
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <button onClick={() => setView("list")} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "7px 12px", fontSize: 13, color: "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+          <button onClick={() => { setView("list"); setListKey(k => k + 1); }} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "7px 12px", fontSize: 13, color: "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
             <Icon name="ArrowLeft" size={14} /> Назад
           </button>
           <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", flex: 1 }}>Новый лендинг</div>
@@ -1789,7 +1779,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       {showHelp && <LandingHelp onClose={() => setShowHelp(false)} />}
       {/* Шапка */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <button onClick={() => setView("list")} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "7px 12px", fontSize: 13, color: "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}>
+        <button onClick={() => { setView("list"); setListKey(k => k + 1); }} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "7px 12px", fontSize: 13, color: "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}>
           <Icon name="ArrowLeft" size={14} /> Мои лендинги
         </button>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{projectTitle}</div>
