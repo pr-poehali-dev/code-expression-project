@@ -1205,9 +1205,12 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       if (data.style) {
         style = { ...DEFAULT_STYLE, ...data.style };
         setSiteStyle(style);
-        if (data.style.faviconSvg) {
-          setSeoData(prev => ({ ...prev, faviconSvg: data.style.faviconSvg }));
-        }
+        setSeoData(prev => ({
+          ...prev,
+          ...(data.style.faviconSvg ? { faviconSvg: data.style.faviconSvg } : {}),
+          ...(data.style.seoTitle && !prev.title ? { title: data.style.seoTitle } : {}),
+          ...(data.style.seoDescription && !prev.description ? { description: data.style.seoDescription } : {}),
+        }));
       }
       if (data.blocks && Array.isArray(data.blocks)) {
         aiSuggestedBlocks = data.blocks;
