@@ -1068,6 +1068,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const [blockEditInput, setBlockEditInput] = useState("");
   const [blockEditing, setBlockEditing] = useState(false);
 
+  // Видео / карта
+  const [videoInput, setVideoInput] = useState<Record<string, string>>({});
+  const [mapInput, setMapInput] = useState("");
+
   // Чат по готовому сайту
   const [siteMessages, setSiteMessages] = useState<Message[]>([]);
   const [siteInput, setSiteInput] = useState("");
@@ -1223,6 +1227,117 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   }
 
   useEffect(() => { siteChatBottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [siteMessages, siteChatLoading]);
+
+  // ── ФОТО-СЛОТЫ: добавить / удалить ────────────────────────────────────────
+  function addPhotoSlot(blockId: string) {
+    setBlocks(prev => prev.map(block => {
+      if (block.id !== blockId) return block;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(block.html, "text/html");
+      // Находим последний photo-slot в блоке
+      const slots = doc.querySelectorAll("[data-photo-slot]");
+      const idx = slots.length + 1;
+      const slotId = `${blockId}-extra-${idx}`;
+      const newSlot = doc.createElement("div");
+      newSlot.setAttribute("data-photo-slot", slotId);
+      newSlot.style.cssText = "aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#e9eef2;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px dashed #cbd5e1;margin-top:14px;";
+      newSlot.innerHTML = `<div class="photo-placeholder" style="text-align:center;color:#94a3b8;font-size:13px;padding:16px;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 8px;opacity:.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span>Фото ${idx}</span></div>`;
+      // Вставляем после последнего слота или в конец блока
+      if (slots.length > 0) {
+        slots[slots.length - 1].after(newSlot);
+      } else {
+        doc.body.firstElementChild?.appendChild(newSlot);
+      }
+      return { ...block, html: doc.body.innerHTML };
+    }));
+  }
+
+  function removeLastPhotoSlot(blockId: string) {
+    setBlocks(prev => prev.map(block => {
+      if (block.id !== blockId) return block;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(block.html, "text/html");
+      const slots = doc.querySelectorAll("[data-photo-slot]");
+      if (slots.length <= 1) return block; // минимум 1 оставляем
+      slots[slots.length - 1].remove();
+      return { ...block, html: doc.body.innerHTML };
+    }));
+  }
+
+  // ── ВСТАВКА ВИДЕО ─────────────────────────────────────────────────────────
+  function insertVideo(blockId: string, url: string) {
+    if (!url.trim()) return;
+    // Кинескоп: https://kinescope.io/XXXX → iframe
+    // Яндекс.Диск: https://disk.yandex.ru/i/XXXX → embed
+    let embedHtml = "";
+    const kinescopeMatch = url.match(/kinescope\.io\/(?:embed\/)?([a-zA-Z0-9]+)/);
+    const yaDiskMatch = url.match(/disk\.yandex\.(ru|com)\/(?:i|d)\/([a-zA-Z0-9_-]+)/);
+    const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+    const vkMatch = url.match(/vk\.com\/video(-?\d+_\d+)/);
+
+    if (kinescopeMatch) {
+      embedHtml = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;margin:20px 0;"><iframe src="https://kinescope.io/embed/${kinescopeMatch[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen allow="autoplay;fullscreen"></iframe></div>`;
+    } else if (yaDiskMatch) {
+      embedHtml = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;margin:20px 0;"><iframe src="https://disk.yandex.ru/i/${yaDiskMatch[2]}/preview" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen></iframe></div>`;
+    } else if (youtubeMatch) {
+      embedHtml = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;margin:20px 0;"><iframe src="https://www.youtube.com/embed/${youtubeMatch[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen></iframe></div>`;
+    } else if (vkMatch) {
+      embedHtml = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;margin:20px 0;"><iframe src="https://vk.com/video_ext.php?oid=${vkMatch[1].split('_')[0]}&id=${vkMatch[1].split('_')[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen></iframe></div>`;
+    } else {
+      // Пробуем как прямую ссылку
+      embedHtml = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;margin:20px 0;"><iframe src="${url}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen></iframe></div>`;
+    }
+
+    setBlocks(prev => prev.map(block => {
+      if (block.id !== blockId) return block;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(block.html, "text/html");
+      // Вставляем видео перед первым photo-slot или в начало блока
+      const slot = doc.querySelector("[data-photo-slot]");
+      const videoEl = doc.createElement("div");
+      videoEl.setAttribute("data-video-embed", "true");
+      videoEl.innerHTML = embedHtml;
+      if (slot) {
+        slot.before(videoEl);
+      } else {
+        doc.body.firstElementChild?.prepend(videoEl);
+      }
+      return { ...block, html: doc.body.innerHTML };
+    }));
+    setVideoInput(prev => ({ ...prev, [blockId]: "" }));
+  }
+
+  // ── ЯНДЕКС-КАРТА ─────────────────────────────────────────────────────────
+  function insertYandexMap(address: string) {
+    if (!address.trim()) return;
+    const encoded = encodeURIComponent(address);
+    const mapHtml = `<div data-ymap-block="true" style="margin-top:32px;border-radius:16px;overflow:hidden;height:280px;"><iframe src="https://yandex.ru/map-widget/v1/?text=${encoded}&z=16" style="width:100%;height:100%;border:none;" allowfullscreen></iframe></div>`;
+
+    setBlocks(prev => prev.map(block => {
+      if (block.id !== "contact") return block;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(block.html, "text/html");
+      // Удаляем старую карту если есть
+      doc.querySelector("[data-ymap-block]")?.remove();
+      // Вставляем перед закрывающим тегом секции
+      const section = doc.querySelector("section#contact, section");
+      const mapEl = doc.createElement("div");
+      mapEl.innerHTML = mapHtml;
+      section?.appendChild(mapEl.firstElementChild!);
+      return { ...block, html: doc.body.innerHTML };
+    }));
+    setMapInput("");
+  }
+
+  function removeYandexMap() {
+    setBlocks(prev => prev.map(block => {
+      if (block.id !== "contact") return block;
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(block.html, "text/html");
+      doc.querySelector("[data-ymap-block]")?.remove();
+      return { ...block, html: doc.body.innerHTML };
+    }));
+  }
 
   // ── БЛОЧНАЯ ГЕНЕРАЦИЯ ─────────────────────────────────────────────────────
   async function generateLanding() {
@@ -1980,13 +2095,11 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                     <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 12px" }}>
                       <div style={{ width: 6, height: 6, borderRadius: "50%", background: block.html && block.html !== "<!-- regenerating -->" ? "#34d399" : "#e2e8f0", flexShrink: 0 }} />
                       <span style={{ fontSize: 12, fontWeight: 600, color: "#374151", flex: 1 }}>{block.label}</span>
-                      {BLOCK_PHOTO_SLOTS[block.id] && (
-                        <button onClick={() => { setEditingBlock(editingBlock === block.id + "_photo" ? null : block.id + "_photo"); setBlockEditInput(""); }}
-                          title="Загрузить фото"
-                          style={{ width: 26, height: 26, borderRadius: 6, border: "none", background: editingBlock === block.id + "_photo" ? "#fef9c3" : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                          <Icon name="Image" size={12} style={{ color: editingBlock === block.id + "_photo" ? "#ca8a04" : "#64748B" }} />
-                        </button>
-                      )}
+                      <button onClick={() => { setEditingBlock(editingBlock === block.id + "_photo" ? null : block.id + "_photo"); setBlockEditInput(""); }}
+                        title="Фото / Видео / Карта"
+                        style={{ width: 26, height: 26, borderRadius: 6, border: "none", background: editingBlock === block.id + "_photo" ? "#fef9c3" : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                        <Icon name="Image" size={12} style={{ color: editingBlock === block.id + "_photo" ? "#ca8a04" : "#64748B" }} />
+                      </button>
                       <button onClick={() => regenerateBlock(block.id)} title="Перегенерировать"
                         style={{ width: 26, height: 26, borderRadius: 6, border: "none", background: "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
                         <Icon name="RefreshCw" size={12} style={{ color: "#64748B" }} />
@@ -1997,23 +2110,77 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                         <Icon name="Wand2" size={12} style={{ color: editingBlock === block.id ? ACCENT : "#64748B" }} />
                       </button>
                     </div>
-                    {/* Панель загрузки фото */}
-                    {editingBlock === block.id + "_photo" && BLOCK_PHOTO_SLOTS[block.id] && (
+                    {/* Панель загрузки фото + видео + карта */}
+                    {editingBlock === block.id + "_photo" && (
                       <div style={{ borderTop: "1px solid #E8ECF0", padding: "10px 12px", background: "#fffbeb" }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", marginBottom: 8 }}>ФОТО БЛОКА</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                          {BLOCK_PHOTO_SLOTS[block.id].map(slot => (
-                            <button key={slot.id} onClick={e => { e.stopPropagation(); openPanelSlotPicker(slot.id); }} style={{
-                              display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
-                              borderRadius: 8, border: "1.5px dashed #fbbf24", background: "#fff",
-                              cursor: "pointer", transition: "border-color 0.15s", width: "100%", textAlign: "left",
-                            }}>
-                              <Icon name="Upload" size={13} style={{ color: "#ca8a04", flexShrink: 0 }} />
-                              <span style={{ fontSize: 12, color: "#374151", flex: 1 }}>{slot.label}</span>
-                              <span style={{ fontSize: 10, color: "#94a3b8" }}>JPG / PNG</span>
-                            </button>
-                          ))}
+
+                        {/* Фото-слоты из шаблона */}
+                        {BLOCK_PHOTO_SLOTS[block.id] && (
+                          <>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>ФОТО БЛОКА</div>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 8 }}>
+                              {BLOCK_PHOTO_SLOTS[block.id].map(slot => (
+                                <button key={slot.id} onClick={e => { e.stopPropagation(); openPanelSlotPicker(slot.id); }} style={{
+                                  display: "flex", alignItems: "center", gap: 8, padding: "7px 10px",
+                                  borderRadius: 8, border: "1.5px dashed #fbbf24", background: "#fff",
+                                  cursor: "pointer", width: "100%", textAlign: "left",
+                                }}>
+                                  <Icon name="Upload" size={12} style={{ color: "#ca8a04", flexShrink: 0 }} />
+                                  <span style={{ fontSize: 12, color: "#374151", flex: 1 }}>{slot.label}</span>
+                                  <span style={{ fontSize: 10, color: "#94a3b8" }}>JPG/PNG</span>
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+
+                        {/* Добавить / удалить фото-слот */}
+                        <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
+                          <button onClick={() => addPhotoSlot(block.id)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "6px 8px", borderRadius: 7, border: "1px solid #d97706", background: "#fff", color: "#d97706", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                            <Icon name="PlusCircle" size={12} /> Добавить фото
+                          </button>
+                          <button onClick={() => removeLastPhotoSlot(block.id)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "6px 8px", borderRadius: 7, border: "1px solid #e2e8f0", background: "#fff", color: "#64748b", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                            <Icon name="MinusCircle" size={12} /> Удалить фото
+                          </button>
                         </div>
+
+                        {/* Вставить видео */}
+                        <div style={{ marginBottom: block.id === "contact" ? 10 : 0 }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", marginBottom: 5 }}>ВИДЕО</div>
+                          <div style={{ display: "flex", gap: 5 }}>
+                            <input
+                              value={videoInput[block.id] || ""}
+                              onChange={e => setVideoInput(prev => ({ ...prev, [block.id]: e.target.value }))}
+                              placeholder="Ссылка (Кинескоп, YouTube, VK…)"
+                              style={{ flex: 1, padding: "6px 8px", borderRadius: 7, border: "1px solid #fbbf24", fontSize: 11, fontFamily: "Montserrat,sans-serif", outline: "none", background: "#fff" }}
+                            />
+                            <button onClick={() => insertVideo(block.id, videoInput[block.id] || "")} style={{ padding: "6px 10px", borderRadius: 7, border: "none", background: "#d97706", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}>
+                              <Icon name="Play" size={12} />
+                            </button>
+                          </div>
+                          <div style={{ fontSize: 10, color: "#92400e", marginTop: 3 }}>Кинескоп, Яндекс.Диск, YouTube, VK</div>
+                        </div>
+
+                        {/* Яндекс-карта — только для блока contact */}
+                        {block.id === "contact" && (
+                          <div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", marginBottom: 5 }}>ЯНДЕКС-КАРТА</div>
+                            <div style={{ display: "flex", gap: 5 }}>
+                              <input
+                                value={mapInput}
+                                onChange={e => setMapInput(e.target.value)}
+                                placeholder="Адрес (г. Москва, ул. Пример, 1)"
+                                style={{ flex: 1, padding: "6px 8px", borderRadius: 7, border: "1px solid #fbbf24", fontSize: 11, fontFamily: "Montserrat,sans-serif", outline: "none", background: "#fff" }}
+                              />
+                              <button onClick={() => insertYandexMap(mapInput)} style={{ padding: "6px 10px", borderRadius: 7, border: "none", background: "#d97706", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}>
+                                <Icon name="MapPin" size={12} />
+                              </button>
+                            </div>
+                            <button onClick={removeYandexMap} style={{ marginTop: 4, padding: "4px 10px", borderRadius: 6, border: "1px solid #e2e8f0", background: "#fff", color: "#64748b", fontSize: 10, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                              Удалить карту
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
 
