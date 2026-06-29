@@ -119,7 +119,7 @@ def handler(event: dict, context) -> dict:
       {source_row}
     </table>
     <div style="padding:16px 12px;border-top:1px solid #f1f5f9">
-      <p style="margin:0;color:#94a3b8;font-size:12px">Заявка принята через Про Диалог · С баланса списано {LEAD_COST} ⚡</p>
+      <p style="margin:0;color:#94a3b8;font-size:12px">Заявка принята через Промт Диалог · С баланса списано {LEAD_COST} ⚡</p>
     </div>
   </div>
 </div>
