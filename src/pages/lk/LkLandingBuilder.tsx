@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
 import { showEnergyGate } from "@/components/EnergyGate";
+import { useLkAuth } from "@/contexts/LkAuthContext";
+import { loadDraft } from "./SalonProfileTypes";
 
 const AI_LANDING_URL = "https://functions.poehali.dev/12df0290-571d-42d1-8fb0-8889ae15cd68";
 const LANDING_API_URL = "https://functions.poehali.dev/b5f86006-d448-4c34-96b8-3fba0295cb14";
@@ -1010,6 +1012,7 @@ function SeoEditor({ seo, onChange }: { seo: SeoData; onChange: (s: SeoData) => 
 
 // ── Главный компонент ─────────────────────────────────────────────────────────
 export default function LkLandingBuilder({ forceList = false }: { forceList?: boolean }) {
+  const { user } = useLkAuth();
   const [view, setView] = useState<"list" | "new" | "editor">("list");
   const [landingType, setLandingType] = useState<LandingType | null>(() => {
     try { return (localStorage.getItem(LS_TYPE) as LandingType) || null; } catch { return null; }
@@ -1759,7 +1762,28 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
               style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: showStyleEditor ? `1.5px solid ${PURPLE}` : "1.5px solid #E8ECF0", background: showStyleEditor ? PURPLE_LIGHT : "#fff", color: showStyleEditor ? PURPLE : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
               <Icon name="Palette" size={15} />Стиль
             </button>
-            <button onClick={() => setShowPrivacyEditor(v => !v)}
+            <button onClick={() => {
+                setShowPrivacyEditor(v => {
+                  if (!v) {
+                    // Автозаполнение из профиля салона если поля пустые
+                    setPrivacyData(prev => {
+                      const hasAny = prev.orgName || prev.email || prev.address || prev.domain;
+                      if (hasAny) return prev;
+                      const draft = user?.id ? loadDraft(user.id) : null;
+                      const salon = draft?.form;
+                      return {
+                        orgName: salon?.name || user?.salon?.name || "",
+                        inn: prev.inn || "",
+                        ogrn: prev.ogrn || "",
+                        address: salon ? [salon.city, salon.address].filter(Boolean).join(", ") : "",
+                        email: user?.email || "",
+                        domain: salon?.website_url?.replace(/^https?:\/\//, "").replace(/\/$/, "") || "",
+                      };
+                    });
+                  }
+                  return !v;
+                });
+              }}
               style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: showPrivacyEditor ? "1.5px solid #10b981" : "1.5px solid #E8ECF0", background: showPrivacyEditor ? "#ecfdf5" : "#fff", color: showPrivacyEditor ? "#059669" : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
               <Icon name="FileText" size={15} />Документы
             </button>

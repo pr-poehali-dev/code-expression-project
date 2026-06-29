@@ -259,8 +259,9 @@ def handler(event: dict, context) -> dict:
             # Сохранение / создание проекта
             project_id = body.get("id")
             title = (body.get("title") or "Без названия")[:255].replace("'", "''")
-            lt = body.get("landingType", "budget")
-            landing_type = lt if lt in ("premium", "multipage", "budget") else "budget"
+            lt = body.get("landingType", "classic")
+            valid_types = ("classic", "storytelling", "sales", "portfolio", "b2b", "event", "restaurant", "realty", "product", "ai", "premium", "multipage", "budget")
+            landing_type = lt if lt in valid_types else "classic"
             html = body.get("html", "")
             blocks = body.get("blocks", [])
             style = body.get("style", {})
