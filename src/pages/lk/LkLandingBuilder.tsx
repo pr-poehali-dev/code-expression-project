@@ -1068,10 +1068,16 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const [blockEditInput, setBlockEditInput] = useState("");
   const [blockEditing, setBlockEditing] = useState(false);
 
+  // Чат по готовому сайту
+  const [siteMessages, setSiteMessages] = useState<Message[]>([]);
+  const [siteInput, setSiteInput] = useState("");
+  const [siteChatLoading, setSiteChatLoading] = useState(false);
+  const siteChatBottomRef = useRef<HTMLDivElement>(null);
+
   // UI
   const [showHelp, setShowHelp] = useState(false);
   const [showEmailHint, setShowEmailHint] = useState(false);
-  const [sidePanelTab, setSidePanelTab] = useState<"blocks" | "images">("blocks");
+  const [sidePanelTab, setSidePanelTab] = useState<"blocks" | "images" | "chat">("blocks");
 
   // Refs
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -1178,6 +1184,45 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       setChatLoading(false);
     }
   }
+
+  // ── ЧАТ ПО ГОТОВОМУ САЙТУ ─────────────────────────────────────────────────
+  async function sendSiteMessage() {
+    const text = siteInput.trim();
+    if (!text || siteChatLoading) return;
+    const newMsgs: Message[] = [...siteMessages, { role: "user", content: text }];
+    setSiteMessages(newMsgs);
+    setSiteInput("");
+    setSiteChatLoading(true);
+    // Краткое описание блоков для контекста
+    const blocksSummary = blocks.map(b => `- ${b.label}`).join("\n");
+    try {
+      const res = await fetch(AI_LANDING_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+        body: JSON.stringify({
+          mode: "site-chat",
+          landingType,
+          messages,          // история создания (контекст о бизнесе)
+          siteMessages: newMsgs,
+          blocksSummary,
+        }),
+        signal: AbortSignal.timeout(30_000),
+      });
+      if (res.status === 402) { const d = await res.json(); showEnergyGate({ message: d.error }); return; }
+      if (!res.ok) {
+        setSiteMessages(prev => [...prev, { role: "assistant", content: "ИИ-сервис временно недоступен. Попробуйте ещё раз." }]);
+        return;
+      }
+      const data = await res.json();
+      setSiteMessages(prev => [...prev, { role: "assistant", content: data.reply || "Не удалось получить ответ." }]);
+    } catch {
+      setSiteMessages(prev => [...prev, { role: "assistant", content: "Ошибка связи. Проверьте интернет." }]);
+    } finally {
+      setSiteChatLoading(false);
+    }
+  }
+
+  useEffect(() => { siteChatBottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [siteMessages, siteChatLoading]);
 
   // ── БЛОЧНАЯ ГЕНЕРАЦИЯ ─────────────────────────────────────────────────────
   async function generateLanding() {
@@ -1915,11 +1960,12 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
               <div style={{ display: "flex", gap: 4, marginBottom: 10, background: "#F1F5F9", borderRadius: 10, padding: 3 }}>
                 {([
                   { id: "blocks", icon: "LayoutTemplate", label: "Блоки" },
-                  { id: "images", icon: "Image",           label: "Изображения" },
-                ] as { id: "blocks" | "images"; icon: string; label: string }[]).map(tab => (
+                  { id: "images", icon: "Image",           label: "Фото" },
+                  { id: "chat",   icon: "MessageCircle",   label: "ИИ-чат" },
+                ] as { id: "blocks" | "images" | "chat"; icon: string; label: string }[]).map(tab => (
                   <button key={tab.id} onClick={() => setSidePanelTab(tab.id)}
-                    style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "6px 0", borderRadius: 8, border: "none", background: sidePanelTab === tab.id ? "#fff" : "transparent", color: sidePanelTab === tab.id ? "#0F172A" : "#94A3B8", fontSize: 12, fontWeight: sidePanelTab === tab.id ? 700 : 500, cursor: "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: sidePanelTab === tab.id ? "0 1px 4px rgba(0,0,0,0.08)" : "none", transition: "all 0.15s" }}>
-                    <Icon name={tab.icon} size={13} style={{ color: sidePanelTab === tab.id ? ACCENT : "#94A3B8" }} />
+                    style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, padding: "6px 0", borderRadius: 8, border: "none", background: sidePanelTab === tab.id ? "#fff" : "transparent", color: sidePanelTab === tab.id ? "#0F172A" : "#94A3B8", fontSize: 11, fontWeight: sidePanelTab === tab.id ? 700 : 500, cursor: "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: sidePanelTab === tab.id ? "0 1px 4px rgba(0,0,0,0.08)" : "none", transition: "all 0.15s" }}>
+                    <Icon name={tab.icon} size={12} style={{ color: sidePanelTab === tab.id ? (tab.id === "chat" ? PURPLE : ACCENT) : "#94A3B8" }} />
                     {tab.label}
                   </button>
                 ))}
@@ -1994,6 +2040,71 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
               {/* Вкладка: Изображения */}
               {sidePanelTab === "images" && (
                 <LandingImageGen />
+              )}
+
+              {/* Вкладка: ИИ-чат по всему сайту */}
+              {sidePanelTab === "chat" && (
+                <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 340 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", marginBottom: 8, paddingLeft: 2 }}>ИИ-КОНСУЛЬТАНТ ПО ЛЕНДИНГУ</div>
+                  {siteMessages.length === 0 && (
+                    <div style={{ background: PURPLE_LIGHT, borderRadius: 10, border: `1px solid ${PURPLE}30`, padding: "10px 12px", marginBottom: 10 }}>
+                      <div style={{ fontSize: 12, color: PURPLE, fontWeight: 600, marginBottom: 4 }}>Спросите о вашем сайте</div>
+                      <div style={{ fontSize: 11, color: "#64748B", lineHeight: 1.5 }}>Как улучшить конверсию? Что добавить? Как переформулировать заголовок? ИИ знает контекст вашего бизнеса.</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 5, marginTop: 10 }}>
+                        {[
+                          "Как улучшить конверсию?",
+                          "Какой блок добавить?",
+                          "Помоги с заголовком",
+                        ].map(q => (
+                          <button key={q} onClick={() => { setSiteInput(q); }}
+                            style={{ textAlign: "left", padding: "6px 10px", borderRadius: 7, border: `1px solid ${PURPLE}30`, background: "#fff", color: PURPLE, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                            {q} →
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }}>
+                    {siteMessages.map((m, i) => (
+                      <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
+                        {m.role === "assistant" && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
+                            <div style={{ width: 16, height: 16, borderRadius: "50%", background: PURPLE, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <Icon name="Sparkles" size={9} style={{ color: "#fff" }} />
+                            </div>
+                            <span style={{ fontSize: 10, fontWeight: 600, color: "#888" }}>ИИ-консультант</span>
+                          </div>
+                        )}
+                        <div style={{ maxWidth: "90%", padding: "8px 11px", borderRadius: m.role === "user" ? "12px 12px 3px 12px" : "12px 12px 12px 3px", background: m.role === "user" ? PURPLE : "#F8FAFC", color: m.role === "user" ? "#fff" : "#1a1a1a", fontSize: 12, lineHeight: 1.6, whiteSpace: "pre-wrap", border: m.role === "assistant" ? "1px solid #E8ECF0" : "none" }}>
+                          {m.content}
+                        </div>
+                      </div>
+                    ))}
+                    {siteChatLoading && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <div style={{ width: 16, height: 16, borderRadius: "50%", background: PURPLE, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Icon name="Sparkles" size={9} style={{ color: "#fff" }} />
+                        </div>
+                        <div style={{ display: "flex", gap: 3, padding: "6px 10px", background: "#F8FAFC", borderRadius: "12px 12px 12px 3px", border: "1px solid #E8ECF0" }}>
+                          {[0,1,2].map(i => <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: PURPLE, opacity: 0.5, animation: `dot-pulse 1.2s ease-in-out ${i * 0.2}s infinite` }} />)}
+                        </div>
+                      </div>
+                    )}
+                    <div ref={siteChatBottomRef} />
+                  </div>
+                  <div style={{ display: "flex", gap: 6, alignItems: "flex-end" }}>
+                    <textarea value={siteInput} onChange={e => setSiteInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendSiteMessage(); } }}
+                      placeholder="Спросите об улучшении сайта..."
+                      rows={2}
+                      style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: `1.5px solid ${PURPLE}40`, fontSize: 12, fontFamily: "Montserrat,sans-serif", outline: "none", resize: "none", lineHeight: 1.4, color: "#1a1a1a" }}
+                    />
+                    <button onClick={sendSiteMessage} disabled={!siteInput.trim() || siteChatLoading}
+                      style={{ width: 34, height: 34, borderRadius: 8, border: "none", background: siteInput.trim() && !siteChatLoading ? PURPLE : "#E8ECF0", color: siteInput.trim() && !siteChatLoading ? "#fff" : "#aaa", display: "flex", alignItems: "center", justifyContent: "center", cursor: siteInput.trim() && !siteChatLoading ? "pointer" : "default", flexShrink: 0 }}>
+                      <Icon name="Send" size={14} />
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
 

@@ -914,6 +914,47 @@ def handler(event: dict, context) -> dict:
                 raise
             return ok({"reply": resp.choices[0].message.content or "", "mode": "chat"})
 
+        # ── SITE-CHAT: консультант по готовому лендингу ───────────────────────
+        if mode == "site-chat":
+            energy_err = check_and_spend(conn, user, "landing_chat", 4, "Консультация по лендингу")
+            if energy_err:
+                return energy_err
+            blocks_summary = body.get("blocksSummary", "")
+            site_chat_system = f"""Ты — эксперт-консультант по лендингам и маркетингу. Помогаешь пользователю улучшить уже созданный лендинг.
+
+ТЕКУЩАЯ СТРУКТУРА ЛЕНДИНГА:
+{blocks_summary}
+
+ИСТОРИЯ СОЗДАНИЯ (контекст о бизнесе):
+{chr(10).join([f"{m['role']}: {m['content']}" for m in messages[-8:] if m.get('role') in ('user','assistant')])}
+
+ЧТО ТЫ УМЕЕШЬ:
+• Давать конкретные советы по улучшению текстов, структуры, конверсии
+• Предлагать добавить или убрать блоки — объяснять зачем
+• Помогать с SEO, заголовками, CTA, офферами
+• Рассказывать как сделать лендинг более убедительным для целевой аудитории
+• Отвечать на вопросы про размещение, домен, рекламу
+
+ПРАВИЛА:
+- Отвечай конкретно и по делу, без воды
+- Если советуешь добавить блок — объясни что туда написать
+- Если советуешь изменить текст — предложи конкретную формулировку
+- Максимум 4–5 предложений на ответ, если не просят подробнее
+- По-русски, дружелюбно и профессионально"""
+            try:
+                site_msgs = [m for m in body.get("siteMessages", messages[-6:])]
+                resp = client.chat.completions.create(
+                    model="anthropic/claude-sonnet-4",
+                    messages=[{"role": "system", "content": site_chat_system}] + site_msgs,
+                    max_tokens=600, temperature=0.7,
+                )
+            except Exception as e:
+                if is_provider_error(e):
+                    refund_energy(conn, user, "landing_chat", 4, "Консультация по лендингу")
+                    return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+                raise
+            return ok({"reply": resp.choices[0].message.content or "", "mode": "site-chat"})
+
         # ── GEN-STYLE: генерация CSS-темы ────────────────────────────────────
         if mode == "gen-style":
             energy_err = check_and_spend(conn, user, "landing_generate", 16, "Генерация стиля лендинга")
