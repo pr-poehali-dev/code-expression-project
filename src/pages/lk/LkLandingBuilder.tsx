@@ -2088,8 +2088,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
 #page-privacy footer{margin-top:48px;padding-top:20px;border-top:1px solid #e2e8f0;font-size:13px;color:#aaa;text-align:center;}
 </style>
 <div class="priv-wrap">
-  <a class="back" href="#" onclick="history.back();return false;">← Вернуться на сайт</a>
-  <a class="back" href="/">← Вернуться на сайт</a>
+  <a class="back" href="#" onclick="location.hash='';return false;">← Вернуться на сайт</a>
   <h1>Политика конфиденциальности</h1>
   <p class="meta">Сайт: ${domain} &nbsp;|&nbsp; Последнее обновление: ${year} г.</p>
 
