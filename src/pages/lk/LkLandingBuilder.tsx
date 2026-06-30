@@ -1164,19 +1164,43 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const buildPrivBodyFromData = (pd: PrivacyData) =>
     (pd.orgName || pd.domain || pd.inn) ? buildPrivacyBody(pd) : undefined;
 
-  // Восстановить в iframe при смене editMode
+  // Единственная функция обновления iframe — вызываем явно, никогда не через srcDoc пропс
+  const refreshIframe = useCallback((withEditor = false) => {
+    if (!iframeRef.current) return;
+    const html = buildFullHtml(blocks, siteStyle, buildPrivBodyFromData(privacyData), seoData);
+    iframeRef.current.srcdoc = withEditor
+      ? html.replace("</body>", EDITOR_SCRIPT + "</body>")
+      : html;
+  }, [blocks, siteStyle, privacyData, seoData]); // eslint-disable-line
+
+  // Переключение режима редактирования
   useEffect(() => {
-    if (!editMode && iframeRef.current && blocks.length > 0) {
-      iframeRef.current.srcdoc = buildFullHtml(blocks, siteStyle, buildPrivBodyFromData(privacyData), seoData);
-    }
+    if (blocks.length > 0) refreshIframe(editMode);
   }, [editMode]); // eslint-disable-line
 
-  // Если блоки изменились стилем — перестраиваем iframe
+  // Смена стилей — перерисовываем (не в editMode, иначе потеряем contenteditable)
   useEffect(() => {
-    if (phase === "done" && iframeRef.current && !editMode) {
-      iframeRef.current.srcdoc = buildFullHtml(blocks, siteStyle, buildPrivBodyFromData(privacyData), seoData);
-    }
+    if (phase === "done" && !editMode) refreshIframe(false);
   }, [siteStyle]); // eslint-disable-line
+
+  // Автосохранение при изменении блоков (debounce 3s) + обновление iframe
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (blocks.length === 0 || phase !== "done") return;
+    // Обновляем iframe только если НЕ в режиме редактирования — иначе iframe сам шлёт HTML
+    if (!editMode) refreshIframe(false);
+    // Дебаунс авто-сохранения
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      saveProject(blocks, siteStyle, false).catch(() => {});
+    }, 3000);
+    return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
+  }, [blocks]); // eslint-disable-line
+
+  // При первом маунте — если блоки уже есть (открыт проект), рисуем iframe
+  useEffect(() => {
+    if (blocks.length > 0 && phase === "done") refreshIframe(editMode);
+  }, []); // eslint-disable-line
 
   // Больше не восстанавливаем editor из localStorage автоматически —
   // пользователь выбирает лендинг из списка сам (openProject)
@@ -1808,11 +1832,16 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         setBlocks(prev => prev.map(block => {
           const parser = new DOMParser();
           const doc = parser.parseFromString(block.html, "text/html");
-          const slot = doc.querySelector(`[data-photo-slot="${slotId}"]`);
+          // ищем слот по атрибуту data-photo-slot или по классу .photo-slot с нужным id
+          const slot: Element | null =
+            doc.querySelector(`[data-photo-slot="${slotId}"]`) ||
+            doc.querySelector(`.photo-slot[id="${slotId}"]`) ||
+            doc.querySelector(`.photo-slot`); // fallback — первый доступный слот в блоке
           if (!slot) return block;
-          slot.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;" />`;
+          slot.setAttribute("data-photo-slot", slotId); // нормализуем атрибут
+          slot.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;" />`;
           slot.classList.add("has-photo");
-          (slot as HTMLElement).style.border = "none";
+          (slot as HTMLElement).style.cssText += ";border:none;outline:none;overflow:hidden;";
           return { ...block, html: doc.body.innerHTML };
         }));
       };
@@ -1828,12 +1857,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   }
 
   const isReadyToGenerate = messages.length >= 4 && phase === "chat";
-  const getPrivBody = () => (privacyData.orgName || privacyData.domain || privacyData.inn)
-    ? buildPrivacyBody(privacyData) : undefined;
-  const fullHtml = blocks.length > 0 ? buildFullHtml(blocks, siteStyle, getPrivBody(), seoData) : "";
-  const iframeSrc = editMode
-    ? fullHtml.replace("</body>", EDITOR_SCRIPT + "</body>")
-    : fullHtml;
+  const fullHtml = blocks.length > 0 ? buildFullHtml(blocks, siteStyle, buildPrivBodyFromData(privacyData), seoData) : "";
 
   // ── RENDER LIST ───────────────────────────────────────────────────────────
   if (view === "list") return <ProjectsList key={listKey} onOpen={openProject} onNew={startNew} />;
@@ -2360,7 +2384,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                   {Math.round(fullHtml.length / 1024)} КБ
                 </span>
               </div>
-              <iframe ref={iframeRef} srcDoc={iframeSrc}
+              <iframe ref={iframeRef}
                 className="lnd-preview-iframe"
                 style={{ width: "100%", border: "none", display: "block" }}
                 title="Превью лендинга" sandbox="allow-scripts allow-same-origin"
