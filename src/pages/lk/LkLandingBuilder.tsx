@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import { showEnergyGate } from "@/components/EnergyGate";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { loadDraft } from "./SalonProfileTypes";
+import LkLandingGuide from "./LkLandingGuide";
 
 const AI_LANDING_URL = "https://functions.poehali.dev/12df0290-571d-42d1-8fb0-8889ae15cd68";
 const LANDING_API_URL = "https://functions.poehali.dev/b5f86006-d448-4c34-96b8-3fba0295cb14";
@@ -2110,7 +2111,39 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   // ── RENDER EDITOR ─────────────────────────────────────────────────────────
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      {showHelp && <LandingHelp onClose={() => setShowHelp(false)} />}
+      {/* ── Модалка Базы знаний ── */}
+      {showHelp && (
+        <div onClick={() => setShowHelp(false)} style={{
+          position: "fixed", inset: 0, zIndex: 10000,
+          background: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)",
+          display: "flex", alignItems: "flex-start", justifyContent: "center",
+          padding: "clamp(12px,4vw,40px)", overflowY: "auto",
+          animation: "lndGuideFade 0.2s ease",
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: "#fff", borderRadius: 20, width: "100%", maxWidth: 760,
+            boxShadow: "0 32px 80px rgba(0,0,0,0.35)", position: "relative",
+            animation: "lndGuidePop 0.25s cubic-bezier(0.16,1,0.3,1)",
+          }}>
+            <button onClick={() => setShowHelp(false)} title="Закрыть" style={{
+              position: "absolute", top: 16, right: 16, zIndex: 2,
+              width: 34, height: 34, borderRadius: 10, border: "none",
+              background: "#F1F5F9", cursor: "pointer", display: "flex",
+              alignItems: "center", justifyContent: "center",
+            }}>
+              <Icon name="X" size={17} style={{ color: "#64748B" }} />
+            </button>
+            <div style={{ padding: "clamp(20px,4vw,30px)" }}>
+              <LkLandingGuide onClose={() => setShowHelp(false)} />
+            </div>
+          </div>
+        </div>
+      )}
+      <style>{`
+        @keyframes lndGuideFade { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes lndGuidePop { from { opacity: 0; transform: translateY(16px) scale(0.98) } to { opacity: 1; transform: none } }
+        @media (max-width: 600px) { .lnd-help-text { display: none } }
+      `}</style>
       {/* Шапка */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         <button onClick={() => { setView("list"); setListKey(k => k + 1); }} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "1px solid #E2E8F0", borderRadius: 8, padding: "7px 12px", fontSize: 13, color: "#666", cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0 }}>
@@ -2118,8 +2151,16 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         </button>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{projectTitle}</div>
 
-        <button onClick={() => setShowHelp(true)} title="Справка" style={{ width: 32, height: 32, borderRadius: 8, border: "1px solid #E2E8F0", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <Icon name="CircleHelp" size={16} style={{ color: "#8b5cf6" }} />
+        <button onClick={() => setShowHelp(true)} title="База знаний — как создать лендинг, видео, карты, SEO" style={{
+          display: "flex", alignItems: "center", gap: 6, height: 32, padding: "0 12px",
+          borderRadius: 8, border: "1px solid #ede9fe", background: "#f5f3ff",
+          cursor: "pointer", flexShrink: 0, fontFamily: "Montserrat,sans-serif",
+          fontSize: 12.5, fontWeight: 700, color: "#7c3aed", transition: "all 0.15s",
+        }}
+          onMouseEnter={e => { e.currentTarget.style.background = "#7c3aed"; e.currentTarget.style.color = "#fff"; (e.currentTarget.querySelector("svg") as SVGElement)?.style.setProperty("color", "#fff"); }}
+          onMouseLeave={e => { e.currentTarget.style.background = "#f5f3ff"; e.currentTarget.style.color = "#7c3aed"; (e.currentTarget.querySelector("svg") as SVGElement)?.style.setProperty("color", "#7c3aed"); }}>
+          <Icon name="BookOpen" size={15} style={{ color: "#7c3aed" }} />
+          <span className="lnd-help-text">База знаний</span>
         </button>
         {phase === "done" && (
           <>
