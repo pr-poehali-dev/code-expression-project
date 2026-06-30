@@ -1478,6 +1478,53 @@ def handler(event: dict, context) -> dict:
                 lines = html_fragment.split("\n")
                 html_fragment = "\n".join(lines[1:-1]) if lines[-1].strip() == "```" else "\n".join(lines[1:])
             html_fragment = sanitize_external_images(html_fragment)
+
+            # ── POST-PROCESSING: детерминированная вставка данных ────────────
+            import re as _re
+
+            # 1. Любые ссылки на "политику" → /privacy (во всех блоках)
+            html_fragment = _re.sub(
+                r'href=["\'](?!#|tel:|mailto:)(?!\/privacy)[^"\']*(?:privacy|konfidenc|конфиденц)[^"\']*["\']',
+                'href="/privacy"',
+                html_fragment, flags=_re.IGNORECASE
+            )
+
+            # 2. Для footer — детерминированно вставляем реквизиты ИП в footer-bottom
+            if block_id == "footer":
+                pd = body.get("privacyData", {})
+                org_name = (pd.get("orgName") or "").strip()
+                inn = (pd.get("inn") or "").strip()
+                ogrn = (pd.get("ogrn") or "").strip()
+
+                if org_name or inn or ogrn:
+                    # Строим строку реквизитов
+                    legal_parts = []
+                    if org_name:
+                        legal_parts.append(org_name)
+                    if inn:
+                        legal_parts.append(f"ИНН: {inn}")
+                    if ogrn:
+                        label = "ОГРНИП" if inn and len(inn) == 12 else "ОГРН"
+                        legal_parts.append(f"{label}: {ogrn}")
+                    legal_line = " · ".join(legal_parts)
+
+                    legal_html = f'<span class="footer-legal" style="font-size:11px;color:rgba(255,255,255,0.35);display:block;margin-top:4px;line-height:1.5;">{legal_line}</span>'
+
+                    # Пробуем заменить заглушку .footer-legal если ИИ её поставил
+                    if 'class="footer-legal"' in html_fragment or "class='footer-legal'" in html_fragment:
+                        html_fragment = _re.sub(
+                            r'<span[^>]*class=["\']footer-legal["\'][^>]*>.*?</span>',
+                            legal_html,
+                            html_fragment, flags=_re.DOTALL
+                        )
+                    else:
+                        # Вставляем после строки копирайта © внутри footer-bottom
+                        html_fragment = _re.sub(
+                            r'(<span[^>]*>©[^<]*</span>)',
+                            r'\1' + legal_html,
+                            html_fragment
+                        )
+
             return ok({"html": html_fragment, "blockId": block_id, "mode": "gen-block"})
 
         # ── EDIT-BLOCK: переделать один блок ─────────────────────────────────
