@@ -132,6 +132,10 @@ const EDITOR_SCRIPT = `<script>
     .lnd-img-menu button:hover { background: rgba(255,255,255,0.1); }
     .lnd-img-menu button.danger { color: #f87171; }
     .lnd-img-menu button.danger:hover { background: rgba(248,113,113,0.12); }
+    [data-block-id] { cursor: default; transition: outline 0.15s; }
+    [data-block-id]:hover { outline: 2px solid #6366f130 !important; outline-offset: -2px; }
+    [data-block-id].lnd-selected { outline: 3px solid #6366f1 !important; outline-offset: -3px; }
+    .lnd-block-badge { position: absolute; top: 8px; left: 8px; background: #6366f1; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; pointer-events: none; z-index: 50; font-family: sans-serif; letter-spacing: 0.3px; }
   \`;
   document.head.appendChild(style);
 
@@ -267,6 +271,54 @@ const EDITOR_SCRIPT = `<script>
     }
   });
 
+  // ── Выделение блока кликом → плавающий чат в родителе ──────────────────────
+  var selectedBlockEl = null;
+  var selectedBadge = null;
+  function deselectBlock() {
+    if (selectedBlockEl) {
+      selectedBlockEl.classList.remove('lnd-selected');
+      if (selectedBadge) { selectedBadge.remove(); selectedBadge = null; }
+      selectedBlockEl = null;
+    }
+    window.parent.postMessage({ type: 'landing-block-deselect' }, '*');
+  }
+  document.querySelectorAll('[data-block-id]').forEach(function(block) {
+    block.style.position = 'relative';
+    block.addEventListener('click', function(e) {
+      // Не перехватываем кликли по contenteditable-элементам в режиме фокуса и по photo-slot
+      var tag = e.target.tagName ? e.target.tagName.toLowerCase() : '';
+      var inEditable = e.target.closest && e.target.closest('[contenteditable="true"]');
+      var inPhotoSlot = e.target.closest && e.target.closest('[data-photo-slot]');
+      if (inPhotoSlot) return;
+      // Если кликнули по тексту — выделяем блок но не блокируем редактирование текста
+      if (selectedBlockEl === block) { return; } // уже выбран
+      deselectBlock();
+      selectedBlockEl = block;
+      block.classList.add('lnd-selected');
+      // Бейдж с именем
+      var badge = document.createElement('div');
+      badge.className = 'lnd-block-badge';
+      badge.textContent = '✏️ ' + (block.getAttribute('data-block-label') || block.getAttribute('data-block-id') || 'Блок');
+      block.appendChild(badge);
+      selectedBadge = badge;
+      // Шлём в родитель
+      window.parent.postMessage({
+        type: 'landing-block-select',
+        blockId: block.getAttribute('data-block-id'),
+        blockHtml: block.innerHTML,
+        selectedText: window.getSelection ? window.getSelection().toString() : ''
+      }, '*');
+    });
+  });
+  // Клик вне блока — снимаем выделение
+  document.addEventListener('click', function(e) {
+    if (selectedBlockEl && !selectedBlockEl.contains(e.target)) deselectBlock();
+  });
+  // Снять выделение по команде
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'landing-deselect') deselectBlock();
+  });
+
   function sendHtml() {
     window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
   }
@@ -294,7 +346,7 @@ h1,h2,h3,h4{font-family:var(--font-heading);}
 .container{max-width:1200px;margin:0 auto;padding:0 20px;}
 @import url('https://fonts.googleapis.com/css2?family=${gfonts}&display=swap');
 </style>`;
-  const htmlParts = blocks.map(b => `<div data-block-id="${b.id}">${b.html}</div>`).join("\n");
+  const htmlParts = blocks.map(b => `<div data-block-id="${b.id}" data-block-label="${b.label}">${b.html}</div>`).join("\n");
   const privacySection = privacyHtmlBody ? `\n<div id="page-privacy" style="display:none">\n${privacyHtmlBody}\n</div>` : "";
 
   // SEO теги
@@ -1117,10 +1169,18 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     try { const s = localStorage.getItem(LS_PRIVACY); return s ? JSON.parse(s) : { orgName: "", inn: "", ogrn: "", address: "", email: "", domain: "" }; } catch { return { orgName: "", inn: "", ogrn: "", address: "", email: "", domain: "" }; }
   });
 
-  // Редактирование блока через ИИ
+  // Редактирование блока через ИИ (панель)
   const [editingBlock, setEditingBlock] = useState<string | null>(null);
   const [blockEditInput, setBlockEditInput] = useState("");
   const [blockEditing, setBlockEditing] = useState(false);
+
+  // ── ПЛАВАЮЩИЙ ЧАТ ─────────────────────────────────────────────────────────
+  // Выбранный блок (кликнули прямо на лендинге)
+  const [selectedBlock, setSelectedBlock] = useState<{ id: string; html: string; label: string } | null>(null);
+  const [floatChatInput, setFloatChatInput] = useState("");
+  const [floatChatLoading, setFloatChatLoading] = useState(false);
+  const [floatChatPhoto, setFloatChatPhoto] = useState<string | null>(null); // base64 фото из чата
+  const floatPhotoInputRef = useRef<HTMLInputElement>(null);
 
   // Видео / карта
   const [videoInput, setVideoInput] = useState<Record<string, string>>({});
@@ -1223,7 +1283,18 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       setPendingSlotId(e.data.slotId);
       setPhotoPickerOpen(true);
     }
-  }, []);
+    if (e.data?.type === "landing-block-select") {
+      const { blockId, blockHtml, selectedText } = e.data;
+      setSelectedBlock({ id: blockId, html: blockHtml, label: blockId });
+      setFloatChatInput(selectedText ? `"${selectedText}" — ` : "");
+      setFloatChatPhoto(null);
+    }
+    if (e.data?.type === "landing-block-deselect") {
+      setSelectedBlock(null);
+      setFloatChatInput("");
+      setFloatChatPhoto(null);
+    }
+  }, []);  
 
   useEffect(() => {
     window.addEventListener("message", handleIframeMessage);
@@ -1297,6 +1368,76 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   }
 
   useEffect(() => { siteChatBottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [siteMessages, siteChatLoading]);
+
+  // ── ПЛАВАЮЩИЙ ЧАТ: отправка команды по выбранному блоку ───────────────────
+  async function sendFloatChat() {
+    const text = floatChatInput.trim();
+    if ((!text && !floatChatPhoto) || floatChatLoading || !selectedBlock) return;
+    setFloatChatLoading(true);
+    const taskText = text || "Вставь это фото в блок";
+    try {
+      const res = await fetch(AI_LANDING_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+        body: JSON.stringify({
+          mode: "edit-block",
+          blockId: selectedBlock.id,
+          blockHtml: selectedBlock.html,
+          editTask: taskText,
+          photoBase64: floatChatPhoto || undefined,
+          style: siteStyle,
+          businessContext: messages.slice(-6).map(m => m.content).join("\n"),
+        }),
+        signal: AbortSignal.timeout(60_000),
+      });
+      const data = await res.json();
+      if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
+      if (data.html !== undefined) {
+        if (data.html.includes("<!-- REMOVE_BLOCK -->") || data.html.trim() === "") {
+          // Удалить блок
+          setBlocks(prev => prev.filter(b => b.id !== selectedBlock.id));
+        } else {
+          setBlocks(prev => prev.map(b => b.id === selectedBlock.id ? { ...b, html: data.html } : b));
+        }
+        setFloatChatInput("");
+        setFloatChatPhoto(null);
+        iframeRef.current?.contentWindow?.postMessage({ type: "landing-deselect" }, "*");
+        setSelectedBlock(null);
+      } else if (data.clarify) {
+        // ИИ задаёт уточняющий вопрос — показываем как подсказку в поле
+        setFloatChatInput(data.clarify + "\n\nМой ответ: ");
+      }
+    } catch {
+      // ignore
+    } finally {
+      setFloatChatLoading(false);
+    }
+  }
+
+  function handleFloatChatPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Сжимаем до 800px
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const raw = ev.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 800;
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        setFloatChatPhoto(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      img.src = raw;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  }
 
   // ── ФОТО-СЛОТЫ: добавить / удалить ────────────────────────────────────────
   function addPhotoSlot(blockId: string) {
@@ -2372,13 +2513,13 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
             </div>
 
             {/* Превью */}
-            <div style={{ borderRadius: 14, overflow: "hidden", border: editMode ? "2px solid #0ea5e9" : "1px solid #E8ECF0", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
+            <div style={{ borderRadius: 14, overflow: "hidden", border: editMode ? "2px solid #0ea5e9" : "1px solid #E8ECF0", boxShadow: "0 4px 24px rgba(0,0,0,0.06)", position: "relative" }}>
               <div style={{ background: editMode ? "#e0f2fe" : "#F1F5F9", padding: "8px 14px", display: "flex", alignItems: "center", gap: 8 }}>
                 <div className="lnd-browser-dots" style={{ display: "flex", gap: 5 }}>
                   {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
                 </div>
                 <div style={{ flex: 1, background: "#fff", borderRadius: 5, padding: "3px 10px", fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {editMode ? "✏️ Кликайте на текст или фото-блок для редактирования" : "Предварительный просмотр"}
+                  {editMode ? (selectedBlock ? `✏️ Выбран блок — пишите команду в чат ниже` : "👆 Кликните на блок лендинга для редактирования") : "Предварительный просмотр"}
                 </div>
                 <span style={{ fontSize: 10, color: "#888", background: "#E2E8F0", padding: "2px 7px", borderRadius: 5, flexShrink: 0 }}>
                   {Math.round(fullHtml.length / 1024)} КБ
@@ -2389,11 +2530,97 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                 style={{ width: "100%", border: "none", display: "block" }}
                 title="Превью лендинга" sandbox="allow-scripts allow-same-origin"
               />
+
+              {/* ── ПЛАВАЮЩИЙ ЧАТ поверх превью ── */}
+              {editMode && selectedBlock && (
+                <div style={{
+                  position: "absolute", bottom: 16, left: 16, right: 16, zIndex: 200,
+                  background: "#fff", borderRadius: 16, boxShadow: "0 8px 40px rgba(0,0,0,0.22)",
+                  border: "2px solid #6366f1", overflow: "hidden",
+                }}>
+                  {/* Шапка */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: "#6366f1" }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#a5b4fc", flexShrink: 0 }} />
+                    <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: "#fff", fontFamily: "Montserrat,sans-serif" }}>
+                      ✏️ {blocks.find(b => b.id === selectedBlock.id)?.label || selectedBlock.id}
+                    </span>
+                    <button onClick={() => {
+                      iframeRef.current?.contentWindow?.postMessage({ type: "landing-deselect" }, "*");
+                      setSelectedBlock(null); setFloatChatInput(""); setFloatChatPhoto(null);
+                    }} style={{ background: "rgba(255,255,255,0.2)", border: "none", borderRadius: 6, width: 24, height: 24, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Icon name="X" size={13} style={{ color: "#fff" }} />
+                    </button>
+                  </div>
+
+                  {/* Подсказки быстрых команд */}
+                  <div style={{ display: "flex", gap: 6, padding: "8px 12px 0", flexWrap: "wrap" }}>
+                    {["Переделай этот блок", "Убери этот блок", "Сделай красивее", "Добавь фото сюда"].map(tip => (
+                      <button key={tip} onClick={() => setFloatChatInput(tip)} style={{
+                        padding: "3px 10px", borderRadius: 20, border: "1px solid #e0e7ff", background: "#f5f3ff",
+                        color: "#6366f1", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif",
+                        whiteSpace: "nowrap",
+                      }}>{tip}</button>
+                    ))}
+                  </div>
+
+                  {/* Превью прикреплённого фото */}
+                  {floatChatPhoto && (
+                    <div style={{ padding: "8px 12px 0", display: "flex", alignItems: "center", gap: 8 }}>
+                      <img src={floatChatPhoto} alt="" style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 8, border: "1px solid #e0e7ff" }} />
+                      <span style={{ fontSize: 11, color: "#6366f1", fontWeight: 600, fontFamily: "Montserrat,sans-serif" }}>Фото прикреплено</span>
+                      <button onClick={() => setFloatChatPhoto(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}>
+                        <Icon name="X" size={12} style={{ color: "#94a3b8" }} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Поле ввода */}
+                  <div style={{ display: "flex", gap: 6, padding: "8px 12px 12px", alignItems: "flex-end" }}>
+                    {/* Кнопка прикрепить фото */}
+                    <button onClick={() => floatPhotoInputRef.current?.click()} title="Прикрепить фото" style={{
+                      width: 36, height: 36, borderRadius: 10, border: "1px solid #e0e7ff", background: floatChatPhoto ? "#f5f3ff" : "#f8fafc",
+                      display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0,
+                    }}>
+                      <Icon name="ImagePlus" size={16} style={{ color: floatChatPhoto ? "#6366f1" : "#94a3b8" }} />
+                    </button>
+                    <textarea
+                      value={floatChatInput}
+                      onChange={e => setFloatChatInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendFloatChat(); } }}
+                      placeholder="Что изменить? Напишите простыми словами… (Enter — отправить)"
+                      rows={2}
+                      autoFocus
+                      style={{ flex: 1, padding: "8px 10px", borderRadius: 10, border: "1.5px solid #e0e7ff", fontSize: 13, fontFamily: "Montserrat,sans-serif", outline: "none", resize: "none", lineHeight: 1.5, color: "#1a1a1a" }}
+                    />
+                    <button onClick={sendFloatChat} disabled={(!floatChatInput.trim() && !floatChatPhoto) || floatChatLoading} style={{
+                      width: 36, height: 36, borderRadius: 10, border: "none", flexShrink: 0,
+                      background: (floatChatInput.trim() || floatChatPhoto) && !floatChatLoading ? "#6366f1" : "#E8ECF0",
+                      color: (floatChatInput.trim() || floatChatPhoto) && !floatChatLoading ? "#fff" : "#aaa",
+                      display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+                    }}>
+                      {floatChatLoading
+                        ? <div style={{ width: 14, height: 14, borderRadius: "50%", border: "2px solid #fff", borderTopColor: "transparent", animation: "spin 0.7s linear infinite" }} />
+                        : <Icon name="Send" size={15} />}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* Подсказка в editMode без выбранного блока */}
+            {editMode && !selectedBlock && (
+              <div style={{ marginTop: 8, padding: "10px 16px", background: "#f5f3ff", borderRadius: 10, border: "1px dashed #6366f1", display: "flex", alignItems: "center", gap: 10 }}>
+                <Icon name="MousePointerClick" size={16} style={{ color: "#6366f1", flexShrink: 0 }} />
+                <span style={{ fontSize: 12, color: "#6366f1", fontWeight: 600, fontFamily: "Montserrat,sans-serif" }}>
+                  Кликните на любой блок лендинга — появится чат для его редактирования
+                </span>
+              </div>
+            )}
           </div>
 
           <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
           <input ref={slotFileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleSlotFileChange} />
+          <input ref={floatPhotoInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFloatChatPhoto} />
           <input ref={panelSlotFileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handlePanelSlotFileChange} />
 
           {/* Оверлей выбора фото — открывается по клику из iframe */}

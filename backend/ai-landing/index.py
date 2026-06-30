@@ -788,7 +788,7 @@ HEADER/NAV:
 5. Якорные id: hero, about, services, pricing, gallery, reviews, contact, faq
 6. Верни ТОЛЬКО HTML-фрагмент. Без <!DOCTYPE>, без <html>, без <head>, без markdown ```, без пояснений."""
 
-SYSTEM_EDIT_BLOCK = """Ты — senior frontend-разработчик и профессиональный веб-копирайтер. Ты ОБЯЗАН точно и буквально выполнить то, что просит пользователь. Пользователи пишут простым, разговорным языком — ты должен понять их и сделать именно это.
+SYSTEM_EDIT_BLOCK = """Ты — senior frontend-разработчик и профессиональный веб-копирайтер. Пользователь кликнул на блок лендинга и написал тебе простым языком что нужно сделать. Выполни задание точно и буквально.
 
 ТЕКУЩИЙ HTML БЛОКА:
 {block_html}
@@ -798,9 +798,27 @@ CSS-ПЕРЕМЕННЫЕ сайта (используй только их, не 
 --font-heading: '{heading_font}', serif; --font-body: '{body_font}', sans-serif
 
 ━━━ ГЛАВНОЕ ПРАВИЛО ━━━
-Делай РОВНО то, что написал пользователь. Не додумывай, не делай "похожее", не переписывай лишнее.
+Делай РОВНО то, что написал пользователь. Пользователи пишут простым языком — переводи в код буквально.
 Если задание касается нескольких мест в блоке — исправь ВСЕ такие места.
 Если просят убрать — удали элемент полностью. Если изменить — измени именно его.
+
+━━━ ВСТАВКА ФОТО ━━━
+Если пользователь прикрепил фото (придёт как image в сообщении):
+• Найди в блоке [data-photo-slot] или .photo-slot → замени содержимое на <img src="[URL_ФОТО]" style="width:100%;height:100%;object-fit:cover;display:block;">
+• Если слотов нет — найди подходящий <img> и замени его src
+• Если в блоке вообще нет места для фото — добавь <div data-photo-slot="new-photo" style="aspect-ratio:16/9;overflow:hidden;border-radius:14px;margin:20px 0"><img src="[URL_ФОТО]" style="width:100%;height:100%;object-fit:cover;display:block;"></div> в подходящее место
+
+━━━ УТОЧНЯЮЩИЕ ВОПРОСЫ ━━━
+Задавай уточняющий вопрос ТОЛЬКО если задание реально неоднозначное и от ответа зависит результат.
+Примеры когда СТОИТ уточнить:
+• "добавь блок" — какой именно? (цены, отзывы, услуги?)
+• "измени цвет" — какого элемента? на какой цвет?
+Примеры когда НЕ НУЖНО уточнять (просто делай):
+• "сделай кнопку", "убери эту плашку", "сделай красивее", "переделай цены", "добавь фото"
+Если уточняешь — верни ТОЛЬКО вопрос, без HTML. Коротко, на русском.
+
+━━━ УДАЛЕНИЕ БЛОКА ━━━
+Если пользователь пишет "убери этот блок", "удали", "не нужен" — верни пустую строку: верни только <!-- REMOVE_BLOCK --> и ничего больше.
 
 ━━━ СЛОВАРЬ РАЗГОВОРНЫХ ФРАЗ → ЧТО ДЕЛАТЬ ━━━
 
@@ -1214,8 +1232,12 @@ def handler(event: dict, context) -> dict:
             block_html = body.get("blockHtml", "")
             edit_task = body.get("editTask", "")
             style = body.get("style", {})
-            if not block_html or not edit_task:
-                return err("blockHtml и editTask обязательны", 400)
+            photo_base64 = body.get("photoBase64")      # base64 фото из плавающего чата
+            business_context = body.get("businessContext", "")  # последние сообщения о бизнесе
+
+            # Разрешаем запрос без editTask если есть фото
+            if not block_html or (not edit_task and not photo_base64):
+                return err("blockHtml и editTask (или photoBase64) обязательны", 400)
 
             energy_err = check_and_spend(conn, user, "landing_refine", 24, f"Редактирование блока {block_id}")
             if energy_err:
@@ -1231,22 +1253,56 @@ def handler(event: dict, context) -> dict:
                 heading_font=style.get("headingFont", "Playfair Display"),
                 body_font=style.get("bodyFont", "Montserrat"),
             )
+
+            # Строим сообщение пользователя — текст + опциональный контекст бизнеса
+            task_parts = []
+            if business_context:
+                task_parts.append(f"Контекст бизнеса: {business_context}\n")
+            if edit_task:
+                task_parts.append(f"Задание: {edit_task}")
+            elif photo_base64:
+                task_parts.append("Задание: Вставь прикреплённое фото в подходящее место этого блока (photo-slot или img). Сохрани всю остальную структуру блока без изменений.")
+            user_text = "\n".join(task_parts)
+
+            # Сборка сообщений для API — с фото если есть
+            if photo_base64:
+                # Мультимодальный запрос с картинкой
+                user_content = [
+                    {"type": "text", "text": user_text},
+                    {"type": "image_url", "image_url": {"url": photo_base64}},
+                ]
+            else:
+                user_content = user_text
+
             try:
                 resp = client.chat.completions.create(
                     model="anthropic/claude-sonnet-4",
                     messages=[
                         {"role": "system", "content": system},
-                        {"role": "user", "content": f"Измени этот блок: {edit_task}"}
+                        {"role": "user", "content": user_content}
                     ],
-                    max_tokens=3500, temperature=0.65,
+                    max_tokens=4000, temperature=0.55,
                 )
             except Exception as e:
                 if is_provider_error(e):
                     refund_energy(conn, user, "landing_refine", 24, f"Редактирование блока {block_id}")
                     return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
                 raise
-            html_fragment = resp.choices[0].message.content or ""
-            return ok({"html": html_fragment, "blockId": block_id, "mode": "edit-block"})
+
+            result_text = resp.choices[0].message.content or ""
+
+            # Очищаем markdown-обёртку если модель добавила
+            if "```" in result_text:
+                lines = result_text.split("\n")
+                filtered = [l for l in lines if not l.strip().startswith("```")]
+                result_text = "\n".join(filtered).strip()
+
+            # Если ИИ вернул уточняющий вопрос (не HTML) — передаём как clarify
+            is_html = result_text.strip().startswith("<") or "<section" in result_text or "<div" in result_text or "<style" in result_text
+            if not is_html and len(result_text) < 400:
+                return ok({"clarify": result_text, "blockId": block_id, "mode": "edit-block"})
+
+            return ok({"html": result_text, "blockId": block_id, "mode": "edit-block"})
 
         # ── GEN-SUBPAGE: генерация подстраницы услуги ────────────────────────
         if mode == "gen-subpage":
