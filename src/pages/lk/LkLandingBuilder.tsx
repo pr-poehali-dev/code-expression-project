@@ -1216,6 +1216,32 @@ function fixServicesHtml(html: string): string {
   return result;
 }
 
+// ── Гарантированная замена всех ссылок на политику → /privacy ─────────────────
+// Применяется к ЛЮБОМУ блоку после генерации — не зависит от ИИ
+function fixPrivacyLinks(html: string): string {
+  if (!html) return html;
+  // Заменяем href любых ссылок, чей текст содержит "политик" или "конфиденц"
+  let result = html.replace(
+    /(<a\b[^>]*>)([\s\S]*?)<\/a>/gi,
+    (match, openTag, inner) => {
+      const text = inner.replace(/<[^>]+>/g, "").toLowerCase();
+      if (text.includes("политик") || text.includes("конфиденц") || text.includes("privacy")) {
+        const fixed = openTag
+          .replace(/href=["'][^"']*["']/i, 'href="/privacy"')
+          .replace(/target=["'][^"']*["']/i, '');
+        return `${fixed}${inner}</a>`;
+      }
+      return match;
+    }
+  );
+  // Дополнительно: href ведёт на что-то с "privacy" в URL — тоже нормализуем
+  result = result.replace(
+    /href=["'](?!\/privacy["'])([^"']*privacy[^"']*)["']/gi,
+    'href="/privacy"'
+  );
+  return result;
+}
+
 // ── Главный компонент ─────────────────────────────────────────────────────────
 export default function LkLandingBuilder({ forceList = false }: { forceList?: boolean }) {
   const { user } = useLkAuth();
@@ -1240,7 +1266,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       if (!s) return [];
       const parsed: LandingBlock[] = JSON.parse(s);
       return parsed.map(b => {
-        const html = stripDeadImages(b.id === "services" ? fixServicesHtml(b.html) : b.html);
+        const html = fixPrivacyLinks(stripDeadImages(b.id === "services" ? fixServicesHtml(b.html) : b.html));
         return { ...b, html };
       });
     } catch { return []; }
@@ -1560,7 +1586,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
           setBlocks(prev => prev.filter(b => b.id !== selectedBlock.id));
         } else {
           const cleaned = stripTargetMarker(data.html);
-          const finalHtml = selectedBlock.id === "services" ? fixServicesHtml(cleaned) : cleaned;
+          const finalHtml = fixPrivacyLinks(selectedBlock.id === "services" ? fixServicesHtml(cleaned) : cleaned);
           setBlocks(prev => prev.map(b => b.id === selectedBlock.id ? { ...b, html: finalHtml } : b));
         }
         setFloatChatInput("");
@@ -1772,7 +1798,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         }
         if (data.html) {
           const label = BLOCKS_ORDER.find(b => b.id === blockId)?.label || blockId;
-          const blockHtml = blockId === "services" ? fixServicesHtml(data.html) : data.html;
+          const blockHtml = fixPrivacyLinks(blockId === "services" ? fixServicesHtml(data.html) : data.html);
           const newBlock: LandingBlock = { id: blockId, label, html: blockHtml };
           generatedBlocks.push(newBlock);
           setBlocks([...generatedBlocks]);
@@ -1816,7 +1842,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       const data = await res.json();
       if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
       if (data.html) {
-        const fixedHtml = blockId === "services" ? fixServicesHtml(data.html) : data.html;
+        const fixedHtml = fixPrivacyLinks(blockId === "services" ? fixServicesHtml(data.html) : data.html);
         setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: fixedHtml } : b));
         setEditingBlock(null);
         setBlockEditInput("");
@@ -1928,7 +1954,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         const rawBlocks: LandingBlock[] = proj.blocks || [];
         const savedBlocks = rawBlocks.map(b => ({
           ...b,
-          html: stripDeadImages(b.id === "services" ? fixServicesHtml(b.html) : b.html),
+          html: fixPrivacyLinks(stripDeadImages(b.id === "services" ? fixServicesHtml(b.html) : b.html)),
         }));
         const savedStyle: LandingStyle = proj.style && proj.style.primary ? proj.style : DEFAULT_STYLE;
         setBlocks(savedBlocks);
