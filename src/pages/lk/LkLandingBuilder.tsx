@@ -283,6 +283,31 @@ const EDITOR_SCRIPT = `<script>
       window.parent.postMessage({ type: 'landing-photo-result', ok: ok }, '*');
       if (ok) window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
     }
+    // Установка цели кнопки/ссылки (без ИИ, мгновенно)
+    if (e.data.type === 'landing-set-btn-target' && picked) {
+      var target = e.data.target; // 'contact' | 'hero' | '#id' | 'https://...'
+      var isExternal = target.indexOf('http') === 0;
+      var href = isExternal ? target : '#' + target.replace(/^#/, '');
+      var scrollJs = isExternal
+        ? 'window.open("' + href + '","_blank")'
+        : 'document.getElementById("' + target.replace(/^#/, '') + '")?.scrollIntoView({behavior:"smooth"})';
+      var t = picked.tagName ? picked.tagName.toLowerCase() : '';
+      if (t === 'a') {
+        picked.href = href;
+        picked.removeAttribute('onclick');
+        if (isExternal) { picked.target = '_blank'; picked.rel = 'noopener'; }
+      } else if (t === 'button') {
+        picked.removeAttribute('href');
+        picked.onclick = new Function(scrollJs);
+        picked.setAttribute('onclick', scrollJs);
+      } else {
+        // любой другой элемент — добавляем onclick
+        picked.setAttribute('onclick', scrollJs);
+        picked.style.cursor = 'pointer';
+      }
+      window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
+      window.parent.postMessage({ type: 'landing-btn-target-set', ok: true }, '*');
+    }
     // Вставка видео в выделенный фото-слот/элемент (embedHtml готов в родителе)
     if (e.data.type === 'landing-video-into-picked' && e.data.embed) {
       var vt = findPhotoTarget();
@@ -1242,6 +1267,36 @@ function fixPrivacyLinks(html: string): string {
   return result;
 }
 
+// ── Автофикс CTA-кнопок без цели → #contact ───────────────────────────────────
+// Кнопки с href="#" или href="" или без href в секциях hero/benefits/solution/order → прокрутка к #contact
+const CTA_KEYWORDS = ["записат", "заказат", "оставит", "получит", "начат", "связат", "купит", "забронир", "регистр", "подат", "узнат", "отправит", "консульт"];
+function fixButtonTargets(html: string): string {
+  if (!html) return html;
+  // <a> с пустым или якорным href="#" и CTA-текстом
+  let result = html.replace(
+    /(<a\b(?![^>]*href=["'](?!["'#])[^"']+["'])[^>]*>)([\s\S]*?)<\/a>/gi,
+    (match, openTag, inner) => {
+      const text = inner.replace(/<[^>]+>/g, "").toLowerCase();
+      const isCta = CTA_KEYWORDS.some(k => text.includes(k));
+      if (!isCta) return match;
+      const fixed = openTag.replace(/href=["'][^"']*["']/i, '').replace(/<a\b/, '<a href="#contact"');
+      return `${fixed}${inner}</a>`;
+    }
+  );
+  // <button> без onclick или с пустым onclick и CTA-текстом
+  result = result.replace(
+    /(<button\b(?![^>]*onclick)[^>]*>)([\s\S]*?)<\/button>/gi,
+    (match, openTag, inner) => {
+      const text = inner.replace(/<[^>]+>/g, "").toLowerCase();
+      const isCta = CTA_KEYWORDS.some(k => text.includes(k));
+      if (!isCta) return match;
+      const fixed = openTag.replace(/<button\b/, '<button onclick="document.getElementById(\'contact\')?.scrollIntoView({behavior:\'smooth\'})"');
+      return `${fixed}${inner}</button>`;
+    }
+  );
+  return result;
+}
+
 // ── Главный компонент ─────────────────────────────────────────────────────────
 export default function LkLandingBuilder({ forceList = false }: { forceList?: boolean }) {
   const { user } = useLkAuth();
@@ -1266,7 +1321,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       if (!s) return [];
       const parsed: LandingBlock[] = JSON.parse(s);
       return parsed.map(b => {
-        const html = fixPrivacyLinks(stripDeadImages(b.id === "services" ? fixServicesHtml(b.html) : b.html));
+        const html = fixButtonTargets(fixPrivacyLinks(stripDeadImages(b.id === "services" ? fixServicesHtml(b.html) : b.html)));
         return { ...b, html };
       });
     } catch { return []; }
@@ -1343,6 +1398,8 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const [showFloatVideo, setShowFloatVideo] = useState(false);
   const [floatVideoUrl, setFloatVideoUrl] = useState("");
   const [floatVideoError, setFloatVideoError] = useState(false);
+  // Установка цели кнопки (без ИИ)
+  const [showFloatScroll, setShowFloatScroll] = useState(false);
 
   // Видео / карта
   const [videoInput, setVideoInput] = useState<Record<string, string>>({});
@@ -1455,15 +1512,23 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       setFloatChatInput("");
       setFloatChatPhoto(null);
       setShowFloatVideo(false); setFloatVideoUrl(""); setFloatVideoError(false);
+      setShowFloatScroll(false);
     }
     if (e.data?.type === "landing-deselect-ack") {
       setSelectedBlock(null);
       setFloatChatInput("");
       setFloatChatPhoto(null);
       setShowFloatVideo(false); setFloatVideoUrl(""); setFloatVideoError(false);
+      setShowFloatScroll(false);
     }
     // Результат прямой вставки фото: если не нашли куда — снимаем выделение
     if (e.data?.type === "landing-photo-result") {
+      iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
+      setSelectedBlock(null);
+    }
+    // Кнопка привязана к разделу — закрываем панель
+    if (e.data?.type === "landing-btn-target-set") {
+      setShowFloatScroll(false);
       iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
       setSelectedBlock(null);
     }
@@ -1586,7 +1651,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
           setBlocks(prev => prev.filter(b => b.id !== selectedBlock.id));
         } else {
           const cleaned = stripTargetMarker(data.html);
-          const finalHtml = fixPrivacyLinks(selectedBlock.id === "services" ? fixServicesHtml(cleaned) : cleaned);
+          const finalHtml = fixButtonTargets(fixPrivacyLinks(selectedBlock.id === "services" ? fixServicesHtml(cleaned) : cleaned));
           setBlocks(prev => prev.map(b => b.id === selectedBlock.id ? { ...b, html: finalHtml } : b));
         }
         setFloatChatInput("");
@@ -1798,7 +1863,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         }
         if (data.html) {
           const label = BLOCKS_ORDER.find(b => b.id === blockId)?.label || blockId;
-          const blockHtml = fixPrivacyLinks(blockId === "services" ? fixServicesHtml(data.html) : data.html);
+          const blockHtml = fixButtonTargets(fixPrivacyLinks(blockId === "services" ? fixServicesHtml(data.html) : data.html));
           const newBlock: LandingBlock = { id: blockId, label, html: blockHtml };
           generatedBlocks.push(newBlock);
           setBlocks([...generatedBlocks]);
@@ -1842,7 +1907,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       const data = await res.json();
       if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
       if (data.html) {
-        const fixedHtml = fixPrivacyLinks(blockId === "services" ? fixServicesHtml(data.html) : data.html);
+        const fixedHtml = fixButtonTargets(fixPrivacyLinks(blockId === "services" ? fixServicesHtml(data.html) : data.html));
         setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: fixedHtml } : b));
         setEditingBlock(null);
         setBlockEditInput("");
@@ -1954,7 +2019,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         const rawBlocks: LandingBlock[] = proj.blocks || [];
         const savedBlocks = rawBlocks.map(b => ({
           ...b,
-          html: fixPrivacyLinks(stripDeadImages(b.id === "services" ? fixServicesHtml(b.html) : b.html)),
+          html: fixButtonTargets(fixPrivacyLinks(stripDeadImages(b.id === "services" ? fixServicesHtml(b.html) : b.html))),
         }));
         const savedStyle: LandingStyle = proj.style && proj.style.primary ? proj.style : DEFAULT_STYLE;
         setBlocks(savedBlocks);
@@ -2873,6 +2938,36 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                       }}>{tip}</button>
                     ))}
                   </div>
+
+                  {/* Для кнопки: привязка к разделу (без ИИ) */}
+                  {selectedBlock.kind === "button" && (
+                    <div style={{ padding: "8px 12px 0" }}>
+                      <button
+                        onClick={() => setShowFloatScroll(v => !v)}
+                        style={{ display: "flex", alignItems: "center", gap: 6, width: "100%", padding: "9px 12px", borderRadius: 9, border: `1.5px solid ${showFloatScroll ? "#10b981" : "#e0e7ff"}`, background: showFloatScroll ? "#ecfdf5" : "#f8fafc", color: showFloatScroll ? "#059669" : "#4338ca", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+                      >
+                        <Icon name="ArrowDownToLine" size={14} />
+                        Прокрутить до раздела
+                      </button>
+                      {showFloatScroll && (
+                        <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 4 }}>
+                          <div style={{ fontSize: 10, color: "#94a3b8", fontFamily: "Montserrat,sans-serif", marginBottom: 2 }}>Выберите раздел — кнопка будет прокручивать к нему:</div>
+                          {blocks.map(b => (
+                            <button
+                              key={b.id}
+                              onClick={() => {
+                                iframeRef.current?.contentWindow?.postMessage({ type: "landing-set-btn-target", target: b.id }, "*");
+                              }}
+                              style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 8, border: "1px solid #d1fae5", background: "#f0fdf4", color: "#065f46", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "left" as const }}
+                            >
+                              <Icon name="Hash" size={12} style={{ color: "#10b981", flexShrink: 0 }} />
+                              {b.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Для фото-слота: выбор Фото или Видео */}
                   {selectedBlock.kind === "photo" && !floatChatPhoto && (
