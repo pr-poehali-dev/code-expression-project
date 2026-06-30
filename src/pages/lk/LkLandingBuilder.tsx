@@ -2462,6 +2462,17 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                     {/* ИИ-редактор блока */}
                     {editingBlock === block.id && (
                       <div style={{ borderTop: "1px solid #E8ECF0", padding: "10px 12px", background: ACCENT_LIGHT }}>
+                        {/* Подсказка для блока услуг */}
+                        {block.id === "services" && (
+                          <div style={{ marginBottom: 8, padding: "8px 10px", background: "#fff", borderRadius: 8, border: "1px solid #e0e7ff" }}>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "#4338ca", marginBottom: 6 }}>⚡ Быстрые действия</div>
+                            <button
+                              onClick={() => regenerateBlock(block.id)}
+                              style={{ width: "100%", padding: "8px 10px", borderRadius: 7, border: "none", background: "#6366f1", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                              <Icon name="RefreshCw" size={11} />Пересоздать блок с кнопками и модалками
+                            </button>
+                          </div>
+                        )}
                         <textarea value={blockEditInput} onChange={e => setBlockEditInput(e.target.value)}
                           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); editBlock(block.id); } }}
                           placeholder="Что изменить в этом блоке?"
