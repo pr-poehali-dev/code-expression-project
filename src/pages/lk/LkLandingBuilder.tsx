@@ -21,7 +21,7 @@ const LS_STYLE    = "landing_builder_style";
 const LS_PRIVACY  = "landing_builder_privacy";
 const LS_SEO      = "landing_builder_seo";
 
-type LandingType = "classic" | "storytelling" | "sales" | "portfolio" | "b2b" | "event" | "restaurant" | "realty" | "product" | "ai";
+type LandingType = "classic" | "storytelling" | "sales" | "portfolio" | "b2b" | "event" | "restaurant" | "realty" | "product" | "ai" | "premium" | "budget";
 interface Message { role: "user" | "assistant"; content: string; }
 interface LandingStyle {
   primary: string; accent: string; dark: string; light: string; text: string;
@@ -92,6 +92,8 @@ const TEMPLATE_BLOCKS: Record<LandingType, string[]> = {
   realty:       ["hero", "object", "location", "plans", "contact"],
   product:      ["hero", "benefits", "howworks", "reviews", "order"],
   ai:           ["hero", "about", "services", "reviews", "contact"],
+  premium:      ["header", "hero", "about", "services", "gallery", "reviews", "contact", "footer"],
+  budget:       ["hero", "services", "reviews", "contact"],
 };
 
 const BLOCK_PHOTO_SLOTS: Record<string, { id: string; label: string }[]> = {
@@ -836,6 +838,8 @@ const TEMPLATES: { id: LandingType; icon: string; title: string; desc: string; b
   { id: "restaurant",   icon: "UtensilsCrossed",  title: "Ресторан / кафе",     desc: "Атмосфера → Меню-хиты → О заведении → Акции → Бронирование стола",                   blocks: "5 блоков", color: "#b45309",  bg: "#fef3c7",    border: "#fbbf24",       preview: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/4a334c7b-026d-46b9-aceb-8fe3e0335083.jpg" },
   { id: "realty",       icon: "Building2",        title: "Недвижимость",        desc: "Фото объекта → Характеристики → Район → Планировки → Контакты",                       blocks: "5 блоков", color: "#059669",  bg: "#ecfdf5",    border: "#6ee7b7",       preview: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/95238cdf-c70f-4134-afc2-0ee3a3757f41.jpg" },
   { id: "product",      icon: "Package",          title: "Один товар",          desc: "Товар крупным планом → Выгоды → Как работает → Отзывы → Цена + заказ",               blocks: "5 блоков", color: "#7c3aed",  bg: "#faf5ff",    border: "#c4b5fd",       preview: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/8e760322-4f76-4a2d-b33c-729aad4757b8.jpg" },
+  { id: "premium",      icon: "Crown",            title: "Премиум",             desc: "Шапка → Обложка → О нас → Услуги → Галерея → Отзывы → Контакты → Футер",                blocks: "8 блоков", color: "#a16207",  bg: "#fefce8",    border: "#fde047",       preview: "" },
+  { id: "budget",       icon: "LayoutTemplate",   title: "Лендинг",             desc: "Обложка → Услуги → Отзывы → Контакты",                                                  blocks: "4 блока",  color: ACCENT,     bg: ACCENT_LIGHT, border: `${ACCENT}60`,   preview: "" },
 ];
 
 function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
