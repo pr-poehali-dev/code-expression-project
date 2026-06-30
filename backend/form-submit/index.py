@@ -133,9 +133,15 @@ def handler(event: dict, context) -> dict:
         msg["To"] = to_email
         msg.attach(MIMEText(html_body, "html"))
 
-        with smtplib.SMTP_SSL("smtp.mail.ru", 465) as server:
-            server.login(from_email, smtp_password)
-            server.sendmail(from_email, to_email, msg.as_string())
+        print(f"[form-submit] Отправка письма на {to_email}, lead_id={lead_id}, domain={source_domain}")
+        try:
+            with smtplib.SMTP_SSL("smtp.mail.ru", 465, timeout=10) as server:
+                server.login(from_email, smtp_password)
+                server.sendmail(from_email, to_email, msg.as_string())
+            print(f"[form-submit] Письмо отправлено успешно на {to_email}")
+        except Exception as smtp_err:
+            print(f"[form-submit] SMTP ошибка: {smtp_err}")
+            return ok({"ok": True, "saved": True, "email_sent": False, "smtp_error": str(smtp_err)})
 
         return ok({"ok": True, "saved": True, "email_sent": True})
 

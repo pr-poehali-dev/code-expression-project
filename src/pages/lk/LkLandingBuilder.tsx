@@ -1446,11 +1446,11 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   // Единственная функция обновления iframe — вызываем явно, никогда не через srcDoc пропс
   const refreshIframe = useCallback((withEditor = false) => {
     if (!iframeRef.current) return;
-    const html = buildFullHtml(blocks, siteStyle, buildPrivBodyFromData(privacyData), seoData);
+    const html = buildFullHtml(blocks, siteStyle, buildPrivBodyFromData(privacyData), seoData, user?.id);
     iframeRef.current.srcdoc = withEditor
       ? html.replace("</body>", EDITOR_SCRIPT + "</body>")
       : html;
-  }, [blocks, siteStyle, privacyData, seoData]); // eslint-disable-line
+  }, [blocks, siteStyle, privacyData, seoData, user]); // eslint-disable-line
 
   // Переключение режима редактирования
   useEffect(() => {
@@ -1926,7 +1926,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   async function saveProject(blocksData: LandingBlock[], styleData: LandingStyle, manual = true) {
     if (manual) setSaving(true);
     try {
-      const html = buildFullHtml(blocksData, styleData, buildPrivBodyFromData(privacyData), seoData);
+      const html = buildFullHtml(blocksData, styleData, buildPrivBodyFromData(privacyData), seoData, user?.id);
       const title = extractTitle(html) || projectTitle;
       const res = await fetch(LANDING_API_URL, {
         method: "POST",
@@ -1953,7 +1953,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     // Сначала сохраняем текущее состояние в БД, потом фиксируем версию
     setSaving(true);
     try {
-      const html = buildFullHtml(blocks, siteStyle, buildPrivBodyFromData(privacyData), seoData);
+      const html = buildFullHtml(blocks, siteStyle, buildPrivBodyFromData(privacyData), seoData, user?.id);
       const title = extractTitle(html) || projectTitle;
       const saveRes = await fetch(LANDING_API_URL, {
         method: "POST",
