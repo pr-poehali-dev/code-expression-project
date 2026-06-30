@@ -283,6 +283,28 @@ const EDITOR_SCRIPT = `<script>
       window.parent.postMessage({ type: 'landing-photo-result', ok: ok }, '*');
       if (ok) window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
     }
+    // Вставка видео в выделенный фото-слот/элемент (embedHtml готов в родителе)
+    if (e.data.type === 'landing-video-into-picked' && e.data.embed) {
+      var vt = findPhotoTarget();
+      if (vt) {
+        var tn = vt.tagName ? vt.tagName.toLowerCase() : '';
+        if (tn === 'img') {
+          // заменяем картинку обёрткой с видео
+          var holder = document.createElement('div');
+          holder.innerHTML = e.data.embed;
+          vt.parentNode.replaceChild(holder.firstElementChild, vt);
+        } else {
+          vt.innerHTML = e.data.embed;
+          vt.classList.add('has-photo');
+          vt.style.border = 'none'; vt.style.outline = 'none'; vt.style.overflow = 'hidden';
+          if (!vt.style.minHeight && vt.offsetHeight < 60) vt.style.minHeight = '220px';
+        }
+        window.parent.postMessage({ type: 'landing-photo-result', ok: true }, '*');
+        window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
+      } else {
+        window.parent.postMessage({ type: 'landing-photo-result', ok: false }, '*');
+      }
+    }
   });
 
   // Esc — снять выделение
@@ -811,25 +833,8 @@ function TypeSelector({ onSelect }: { onSelect: (t: LandingType) => void }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <div>
         <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>Выберите шаблон лендинга</div>
-        <div style={{ fontSize: 12, color: "#64748B" }}>ИИ адаптирует вопросы и структуру под выбранный шаблон</div>
+        <div style={{ fontSize: 12, color: "#64748B" }}>Выберите готовую структуру под вашу задачу — ИИ задаст вопросы и наполнит её вашим контентом</div>
       </div>
-
-      {/* Карточка "Доверяю ИИ" на всю ширину */}
-      <button
-        onClick={() => onSelect("ai")}
-        onMouseEnter={() => setHovered("ai")}
-        onMouseLeave={() => setHovered(null)}
-        style={{ textAlign: "left", background: hovered === "ai" ? "linear-gradient(135deg,hsl(185,85%,94%),hsl(270,70%,96%))" : "linear-gradient(135deg,hsl(185,85%,97%),hsl(270,70%,98%))", border: `2px solid ${hovered === "ai" ? ACCENT : "#d1fae5"}`, borderRadius: 14, padding: "16px 18px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", transition: "all 0.18s", display: "flex", alignItems: "center", gap: 16, boxShadow: hovered === "ai" ? `0 6px 20px ${ACCENT}22` : "none" }}
-      >
-        <div style={{ width: 48, height: 48, borderRadius: 12, background: `linear-gradient(135deg,${ACCENT},hsl(270,70%,50%))`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <Icon name="Sparkles" size={24} style={{ color: "#fff" }} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", marginBottom: 3 }}>Доверяю ИИ</div>
-          <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.5 }}>ИИ сам подберёт оптимальную структуру и количество блоков под ваш бизнес в процессе диалога</div>
-        </div>
-        <div style={{ fontSize: 12, fontWeight: 700, color: ACCENT, flexShrink: 0 }}>Выбрать →</div>
-      </button>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {TEMPLATES.map(t => (
@@ -1092,6 +1097,29 @@ function stripTargetMarker(html: string): string {
     });
 }
 
+// Строит embed-HTML видео по ссылке (Кинескоп, YouTube, Rutube, VK, Я.Диск, прямой mp4)
+function buildVideoEmbed(url: string): string | null {
+  const u = (url || "").trim();
+  if (!u) return null;
+  const wrap = (src: string) =>
+    `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:inherit;width:100%;"><iframe src="${src}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen allow="autoplay;fullscreen;encrypted-media"></iframe></div>`;
+  const kinescope = u.match(/kinescope\.io\/(?:embed\/)?([a-zA-Z0-9]+)/);
+  const yaDisk = u.match(/disk\.yandex\.(?:ru|com)\/(?:i|d)\/([a-zA-Z0-9_-]+)/);
+  const youtube = u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  const vkExt = u.match(/video_ext\.php\?[^"']*oid=(-?\d+)[^"']*id=(\d+)/) || u.match(/video_ext\.php\?[^"']*id=(\d+)[^"']*oid=(-?\d+)/);
+  const vk = u.match(/(?:vk\.com|vkvideo\.ru)\/(?:video|clip)(-?\d+)_(\d+)/);
+  const rutube = u.match(/rutube\.ru\/(?:video|play\/embed)\/([a-zA-Z0-9]+)/);
+  if (kinescope) return wrap(`https://kinescope.io/embed/${kinescope[1]}`);
+  if (youtube) return wrap(`https://www.youtube.com/embed/${youtube[1]}`);
+  if (rutube) return wrap(`https://rutube.ru/play/embed/${rutube[1]}`);
+  if (vkExt) return wrap(`https://vk.com/video_ext.php?oid=${vkExt[1]}&id=${vkExt[2]}&hd=2`);
+  if (vk) return wrap(`https://vk.com/video_ext.php?oid=${vk[1]}&id=${vk[2]}&hd=2`);
+  if (yaDisk) return wrap(`https://disk.yandex.ru/i/${yaDisk[1]}/preview`);
+  // прямая ссылка/готовый embed
+  if (/^https?:\/\//i.test(u)) return wrap(u);
+  return null;
+}
+
 // Плейсхолдер фото-слота (заглушка «Загрузить фото»)
 const PHOTO_SLOT_PLACEHOLDER =
   '<div class="photo-slot" data-photo-slot="auto-fix" style="aspect-ratio:16/9;overflow:hidden;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;cursor:pointer;">' +
@@ -1285,6 +1313,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const [floatChatLoading, setFloatChatLoading] = useState(false);
   const [floatChatPhoto, setFloatChatPhoto] = useState<string | null>(null); // base64 фото из чата
   const floatPhotoInputRef = useRef<HTMLInputElement>(null);
+  // Вставка видео в выделенный слот
+  const [showFloatVideo, setShowFloatVideo] = useState(false);
+  const [floatVideoUrl, setFloatVideoUrl] = useState("");
+  const [floatVideoError, setFloatVideoError] = useState(false);
 
   // Видео / карта
   const [videoInput, setVideoInput] = useState<Record<string, string>>({});
@@ -1396,11 +1428,13 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       setSelectedBlock({ id: blockId, html: blockHtml, label: blockLabel || blockId, kind, kindLabel, preview, hasPhoto });
       setFloatChatInput("");
       setFloatChatPhoto(null);
+      setShowFloatVideo(false); setFloatVideoUrl(""); setFloatVideoError(false);
     }
     if (e.data?.type === "landing-deselect-ack") {
       setSelectedBlock(null);
       setFloatChatInput("");
       setFloatChatPhoto(null);
+      setShowFloatVideo(false); setFloatVideoUrl(""); setFloatVideoError(false);
     }
     // Результат прямой вставки фото: если не нашли куда — снимаем выделение
     if (e.data?.type === "landing-photo-result") {
@@ -1543,40 +1577,6 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     }
   }
 
-  // Перегенерация выделенного блока полностью (новый дизайн)
-  async function regenerateSelectedBlock() {
-    if (!selectedBlock || floatChatLoading) return;
-    const blockId = selectedBlock.id;
-    setFloatChatLoading(true);
-    try {
-      const res = await fetch(AI_LANDING_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-        body: JSON.stringify({
-          mode: "gen-block",
-          blockId,
-          isRegenerate: true,
-          style: siteStyle,
-          messages: messages.slice(-12),
-        }),
-        signal: AbortSignal.timeout(90_000),
-      });
-      const data = await res.json();
-      if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
-      if (data.html) {
-        pushUndo(blocks);
-        const finalHtml = blockId === "services" ? fixServicesHtml(data.html) : data.html;
-        setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: finalHtml } : b));
-        iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
-        setSelectedBlock(null);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setFloatChatLoading(false);
-    }
-  }
-
   function handleFloatChatPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1641,38 +1641,8 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   // ── ВСТАВКА ВИДЕО ─────────────────────────────────────────────────────────
   function insertVideo(blockId: string, url: string) {
     if (!url.trim()) return;
-    // Кинескоп: https://kinescope.io/XXXX → iframe
-    // Яндекс.Диск: https://disk.yandex.ru/i/XXXX → embed
-    const u = url.trim();
-    const wrap = (src: string) => `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;margin:20px 0;"><iframe src="${src}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen allow="autoplay;fullscreen;encrypted-media"></iframe></div>`;
-    let embedHtml = "";
-
-    const kinescopeMatch = u.match(/kinescope\.io\/(?:embed\/)?([a-zA-Z0-9]+)/);
-    const yaDiskMatch = u.match(/disk\.yandex\.(?:ru|com)\/(?:i|d)\/([a-zA-Z0-9_-]+)/);
-    const youtubeMatch = u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/);
-    // ВК: vk.com/video-123_456, vkvideo.ru/video-123_456, vk.com/clip-123_456, готовый video_ext.php
-    const vkExt = u.match(/video_ext\.php\?[^"']*oid=(-?\d+)[^"']*id=(\d+)/) || u.match(/video_ext\.php\?[^"']*id=(\d+)[^"']*oid=(-?\d+)/);
-    const vkMatch = u.match(/(?:vk\.com|vkvideo\.ru)\/(?:video|clip)(-?\d+)_(\d+)/);
-    const rutubeMatch = u.match(/rutube\.ru\/(?:video|play\/embed)\/([a-zA-Z0-9]+)/);
-
-    if (kinescopeMatch) {
-      embedHtml = wrap(`https://kinescope.io/embed/${kinescopeMatch[1]}`);
-    } else if (youtubeMatch) {
-      embedHtml = wrap(`https://www.youtube.com/embed/${youtubeMatch[1]}`);
-    } else if (rutubeMatch) {
-      embedHtml = wrap(`https://rutube.ru/play/embed/${rutubeMatch[1]}`);
-    } else if (vkExt) {
-      const oid = vkExt[1].startsWith("-") || /^-?\d+$/.test(vkExt[1]) ? vkExt[1] : vkExt[2];
-      const id = oid === vkExt[1] ? vkExt[2] : vkExt[1];
-      embedHtml = wrap(`https://vk.com/video_ext.php?oid=${oid}&id=${id}&hd=2`);
-    } else if (vkMatch) {
-      embedHtml = wrap(`https://vk.com/video_ext.php?oid=${vkMatch[1]}&id=${vkMatch[2]}&hd=2`);
-    } else if (yaDiskMatch) {
-      embedHtml = wrap(`https://disk.yandex.ru/i/${yaDiskMatch[1]}/preview`);
-    } else {
-      // Пробуем как прямую ссылку (mp4 или готовый embed)
-      embedHtml = wrap(u);
-    }
+    const embedHtml = buildVideoEmbed(url);
+    if (!embedHtml) return;
 
     setBlocks(prev => prev.map(block => {
       if (block.id !== blockId) return block;
@@ -1682,6 +1652,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       const slot = doc.querySelector("[data-photo-slot]");
       const videoEl = doc.createElement("div");
       videoEl.setAttribute("data-video-embed", "true");
+      videoEl.style.margin = "20px 0";
       videoEl.innerHTML = embedHtml;
       if (slot) {
         slot.before(videoEl);
@@ -1691,6 +1662,19 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       return { ...block, html: doc.body.innerHTML };
     }));
     setVideoInput(prev => ({ ...prev, [blockId]: "" }));
+  }
+
+  // Вставка видео в выделенный фото-слот (фото ИЛИ видео в одно место)
+  function insertVideoIntoPicked(url: string) {
+    const embed = buildVideoEmbed(url);
+    if (!embed || !selectedBlock) {
+      setFloatVideoError(true);
+      return;
+    }
+    pushUndo(blocks);
+    iframeRef.current?.contentWindow?.postMessage({ type: "landing-video-into-picked", embed }, "*");
+    setFloatVideoUrl("");
+    setShowFloatVideo(false);
   }
 
   // ── ЯНДЕКС-КАРТА ─────────────────────────────────────────────────────────
@@ -2080,27 +2064,6 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
     a.download = `${projectTitle || "landing"}.html`; a.click();
     URL.revokeObjectURL(a.href);
-  }
-
-  async function regenerateBlock(blockId: string) {
-    const label = BLOCKS_ORDER.find(b => b.id === blockId)?.label || blockId;
-    setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: `<!-- regenerating -->` } : b));
-    try {
-      const res = await fetch(AI_LANDING_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-        body: JSON.stringify({ mode: "gen-block", blockId, isRegenerate: true, style: siteStyle, landingType, messages }),
-        signal: AbortSignal.timeout(60_000),
-      });
-      const data = await res.json();
-      if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
-      if (data.html) {
-        const fixedHtml = blockId === "services" ? fixServicesHtml(data.html) : data.html;
-        setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: fixedHtml, label } : b));
-      }
-    } catch {
-      setBlocks(prev => prev.map(b => b.id === blockId && b.html === "<!-- regenerating -->" ? { ...b, html: "" } : b));
-    }
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -2609,10 +2572,6 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                         style={{ width: 26, height: 26, borderRadius: 6, border: "none", background: editingBlock === block.id + "_photo" ? "#fef9c3" : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
                         <Icon name="Image" size={12} style={{ color: editingBlock === block.id + "_photo" ? "#ca8a04" : "#64748B" }} />
                       </button>
-                      <button onClick={() => regenerateBlock(block.id)} title="Перегенерировать"
-                        style={{ width: 26, height: 26, borderRadius: 6, border: "none", background: "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-                        <Icon name="RefreshCw" size={12} style={{ color: "#64748B" }} />
-                      </button>
                       <button onClick={() => { setEditingBlock(editingBlock === block.id ? null : block.id); setBlockEditInput(""); }}
                         title="Редактировать через ИИ"
                         style={{ width: 26, height: 26, borderRadius: 6, border: "none", background: editingBlock === block.id ? ACCENT_LIGHT : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
@@ -2696,17 +2655,6 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                     {/* ИИ-редактор блока */}
                     {editingBlock === block.id && (
                       <div style={{ borderTop: "1px solid #E8ECF0", padding: "10px 12px", background: ACCENT_LIGHT }}>
-                        {/* Подсказка для блока услуг */}
-                        {block.id === "services" && (
-                          <div style={{ marginBottom: 8, padding: "8px 10px", background: "#fff", borderRadius: 8, border: "1px solid #e0e7ff" }}>
-                            <div style={{ fontSize: 11, fontWeight: 700, color: "#4338ca", marginBottom: 6 }}>⚡ Быстрые действия</div>
-                            <button
-                              onClick={() => regenerateBlock(block.id)}
-                              style={{ width: "100%", padding: "8px 10px", borderRadius: 7, border: "none", background: "#6366f1", color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                              <Icon name="RefreshCw" size={11} />Пересоздать блок с кнопками и модалками
-                            </button>
-                          </div>
-                        )}
                         <textarea value={blockEditInput} onChange={e => setBlockEditInput(e.target.value)}
                           onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); editBlock(block.id); } }}
                           placeholder="Что изменить в этом блоке?"
@@ -2843,24 +2791,15 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                     </button>
                   </div>
 
-                  {/* Перегенерация всего блока */}
-                  <div style={{ display: "flex", gap: 6, padding: "8px 12px 0", alignItems: "center" }}>
-                    <button onClick={regenerateSelectedBlock} disabled={floatChatLoading} title="Создать этот блок заново в новом виде"
-                      style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 8, border: "1px solid #c7d2fe", background: "#eef2ff", color: "#4338ca", fontSize: 11, fontWeight: 700, cursor: floatChatLoading ? "default" : "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap", opacity: floatChatLoading ? 0.5 : 1 }}>
-                      <Icon name="RefreshCw" size={12} /> Сделать блок заново <span style={{ opacity: 0.6, fontWeight: 600 }}>~45 ⚡</span>
-                    </button>
-                    <span style={{ fontSize: 10, color: "#94a3b8", fontFamily: "Montserrat,sans-serif" }}>или правка ниже ↓ <b style={{ color: "#64748b" }}>~24 ⚡</b></span>
-                  </div>
-
-                  {/* Подсказки быстрых команд — контекстные под тип элемента */}
-                  <div style={{ display: "flex", gap: 6, padding: "8px 12px 0", flexWrap: "wrap" }}>
+                  {/* Подсказки быстрых команд — только редактирование текста и элементов */}
+                  <div style={{ display: "flex", gap: 6, padding: "10px 12px 0", flexWrap: "wrap" }}>
                     {(selectedBlock.kind === "photo"
-                      ? ["Замени это фото", "Удали эту плашку", "Сделай фото круглым", "Увеличь фото"]
+                      ? ["Сделай фото круглым", "Увеличь фото", "Скругли углы"]
                       : selectedBlock.kind === "button"
-                      ? ["Поменяй текст кнопки", "Сделай кнопку ярче", "Убери эту кнопку"]
+                      ? ["Поменяй текст кнопки", "Сделай кнопку ярче", "Другой цвет кнопки"]
                       : selectedBlock.kind === "heading" || selectedBlock.kind === "text" || selectedBlock.kind === "subheading"
-                      ? ["Перепиши этот текст", "Сделай короче", "Крупнее шрифт", "Убери это"]
-                      : ["Сделай красивее", "Убери это", "Добавь фото сюда", "Другой цвет"]
+                      ? ["Перепиши этот текст", "Сделай короче", "Сделай убедительнее", "Крупнее шрифт"]
+                      : ["Перепиши текст", "Поменяй цвет", "Сделай аккуратнее"]
                     ).map(tip => (
                       <button key={tip} onClick={() => setFloatChatInput(tip)} style={{
                         padding: "3px 10px", borderRadius: 20, border: "1px solid #e0e7ff", background: "#f5f3ff",
@@ -2869,6 +2808,51 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                       }}>{tip}</button>
                     ))}
                   </div>
+
+                  {/* Для фото-слота: выбор Фото или Видео */}
+                  {selectedBlock.kind === "photo" && !floatChatPhoto && (
+                    <div style={{ padding: "10px 12px 0" }}>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button onClick={() => { setShowFloatVideo(false); floatPhotoInputRef.current?.click(); }} style={{
+                          flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                          padding: "9px 10px", borderRadius: 9, border: "1.5px solid #e0e7ff", background: "#f8fafc",
+                          color: "#4338ca", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif",
+                        }}>
+                          <Icon name="ImagePlus" size={15} /> Загрузить фото
+                        </button>
+                        <button onClick={() => { setShowFloatVideo(v => !v); setFloatVideoError(false); }} style={{
+                          flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                          padding: "9px 10px", borderRadius: 9, border: `1.5px solid ${showFloatVideo ? "#d97706" : "#e0e7ff"}`,
+                          background: showFloatVideo ? "#fffbeb" : "#f8fafc",
+                          color: showFloatVideo ? "#d97706" : "#4338ca", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif",
+                        }}>
+                          <Icon name="Play" size={14} /> Вставить видео
+                        </button>
+                      </div>
+                      {showFloatVideo && (
+                        <div style={{ marginTop: 8 }}>
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <input
+                              value={floatVideoUrl}
+                              onChange={e => { setFloatVideoUrl(e.target.value); setFloatVideoError(false); }}
+                              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); insertVideoIntoPicked(floatVideoUrl); } }}
+                              placeholder="Ссылка: Кинескоп, YouTube, VK, Rutube…"
+                              autoFocus
+                              style={{ flex: 1, padding: "8px 10px", borderRadius: 9, border: `1.5px solid ${floatVideoError ? "#ef4444" : "#fbbf24"}`, fontSize: 12, fontFamily: "Montserrat,sans-serif", outline: "none" }}
+                            />
+                            <button onClick={() => insertVideoIntoPicked(floatVideoUrl)} disabled={!floatVideoUrl.trim()} style={{
+                              padding: "0 14px", borderRadius: 9, border: "none",
+                              background: floatVideoUrl.trim() ? "#d97706" : "#E8ECF0", color: floatVideoUrl.trim() ? "#fff" : "#aaa",
+                              fontSize: 12, fontWeight: 700, cursor: floatVideoUrl.trim() ? "pointer" : "default", fontFamily: "Montserrat,sans-serif", flexShrink: 0,
+                            }}>Вставить</button>
+                          </div>
+                          <div style={{ fontSize: 10, color: floatVideoError ? "#ef4444" : "#94a3b8", marginTop: 4 }}>
+                            {floatVideoError ? "Не удалось распознать ссылку — проверьте формат" : "Видео заменит эту фото-плашку"}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Превью прикреплённого фото + кнопка мгновенной вставки */}
                   {floatChatPhoto && (
@@ -2931,7 +2915,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                     👆 Кликните на фото, текст, кнопку или секцию
                   </div>
                   <div style={{ fontSize: 11, color: "#6366f1", fontFamily: "Montserrat,sans-serif" }}>
-                    Опишите ИИ что сделать — заменить фото, переписать текст, убрать лишнее, сделать заново
+                    Опишите ИИ что сделать — переписать текст, поменять цвет, загрузить фото или видео
                   </div>
                 </div>
               </div>
