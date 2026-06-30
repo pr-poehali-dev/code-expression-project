@@ -1190,11 +1190,8 @@ def handler(event: dict, context) -> dict:
             api_key=os.environ["POLZA_AI_API_KEY"],
         )
 
-        # ── ЧАТ: сбор данных о бизнесе ──────────────────────────────────────
+        # ── ЧАТ: сбор данных о бизнесе (бесплатно — оплачивается только генерация) ──
         if mode == "chat":
-            energy_err = check_and_spend(conn, user, "landing_chat", 4, "Сообщение в чате конструктора лендингов")
-            if energy_err:
-                return energy_err
             system = CHAT_PROMPTS.get(landing_type, CHAT_PROMPTS["classic"])
             try:
                 resp = client.chat.completions.create(
@@ -1204,16 +1201,12 @@ def handler(event: dict, context) -> dict:
                 )
             except Exception as e:
                 if is_provider_error(e):
-                    refund_energy(conn, user, "landing_chat", 4, "Сообщение в чате конструктора лендингов")
-                    return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+                    return err("ИИ-сервис временно недоступен. Попробуйте через минуту.", 503)
                 raise
             return ok({"reply": resp.choices[0].message.content or "", "mode": "chat"})
 
-        # ── SITE-CHAT: консультант по готовому лендингу ───────────────────────
+        # ── SITE-CHAT: консультант по готовому лендингу (бесплатно) ────────────
         if mode == "site-chat":
-            energy_err = check_and_spend(conn, user, "landing_chat", 4, "Консультация по лендингу")
-            if energy_err:
-                return energy_err
             blocks_summary = body.get("blocksSummary", "")
             site_chat_system = f"""Ты — эксперт-консультант по лендингам и маркетингу. Помогаешь пользователю улучшить уже созданный лендинг.
 
@@ -1245,14 +1238,13 @@ def handler(event: dict, context) -> dict:
                 )
             except Exception as e:
                 if is_provider_error(e):
-                    refund_energy(conn, user, "landing_chat", 4, "Консультация по лендингу")
-                    return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+                    return err("ИИ-сервис временно недоступен. Попробуйте через минуту.", 503)
                 raise
             return ok({"reply": resp.choices[0].message.content or "", "mode": "site-chat"})
 
         # ── GEN-STYLE: генерация CSS-темы ────────────────────────────────────
         if mode == "gen-style":
-            energy_err = check_and_spend(conn, user, "landing_generate", 16, "Генерация стиля лендинга")
+            energy_err = check_and_spend(conn, user, "landing_style", 70, "Подбор дизайна и стиля лендинга")
             if energy_err:
                 return energy_err
             context_text = "\n".join([f"{m['role']}: {m['content']}" for m in messages[-10:]])
@@ -1311,7 +1303,7 @@ def handler(event: dict, context) -> dict:
                 )
             except Exception as e:
                 if is_provider_error(e):
-                    refund_energy(conn, user, "landing_generate", 16, "Генерация стиля лендинга")
+                    refund_energy(conn, user, "landing_style", 70, "Подбор дизайна и стиля лендинга")
                     return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
                 raise
             raw = resp.choices[0].message.content or "{}"
@@ -1342,10 +1334,15 @@ def handler(event: dict, context) -> dict:
         if mode == "gen-block":
             block_id = body.get("blockId", "")
             style = body.get("style", {})
+            is_regenerate = bool(body.get("isRegenerate"))  # перегенерация дешевле первичной генерации
             if not block_id or block_id not in BLOCK_PROMPTS:
                 return err(f"Неизвестный blockId: {block_id}", 400)
 
-            energy_err = check_and_spend(conn, user, "landing_generate", 20, f"Генерация блока {block_id}")
+            if is_regenerate:
+                spend_key, spend_default, spend_label = "landing_regen_block", 45, f"Пересоздание блока {block_id}"
+            else:
+                spend_key, spend_default, spend_label = "landing_block", 90, f"Генерация блока {block_id}"
+            energy_err = check_and_spend(conn, user, spend_key, spend_default, spend_label)
             if energy_err:
                 return energy_err
 
@@ -1377,7 +1374,7 @@ def handler(event: dict, context) -> dict:
                 )
             except Exception as e:
                 if is_provider_error(e):
-                    refund_energy(conn, user, "landing_generate", 20, f"Генерация блока {block_id}")
+                    refund_energy(conn, user, spend_key, spend_default, spend_label)
                     return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
                 raise
             html_fragment = resp.choices[0].message.content or ""
@@ -1498,7 +1495,7 @@ def handler(event: dict, context) -> dict:
             if not service_name or not service_slug:
                 return err("serviceName и serviceSlug обязательны", 400)
 
-            energy_err = check_and_spend(conn, user, "landing_generate", 24, f"Генерация подстраницы: {service_name}")
+            energy_err = check_and_spend(conn, user, "landing_subpage", 70, f"Генерация подстраницы: {service_name}")
             if energy_err:
                 return energy_err
 
@@ -1551,7 +1548,7 @@ CSS-переменные сайта (используй их, не хардко�
                 )
             except Exception as e:
                 if is_provider_error(e):
-                    refund_energy(conn, user, "landing_generate", 24, f"Генерация подстраницы: {service_name}")
+                    refund_energy(conn, user, "landing_subpage", 70, f"Генерация подстраницы: {service_name}")
                     return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
                 raise
             html_fragment = resp.choices[0].message.content or ""
@@ -1562,12 +1559,9 @@ CSS-переменные сайта (используй их, не хардко�
 
         # ── SUBPAGE-CHAT: диалог для сбора данных о подстранице ──────────────
         if mode == "subpage-chat":
+            # Чат бесплатный — оплачивается только генерация страницы
             service_name = body.get("serviceName", "")
             chat_messages = body.get("messages", [])
-
-            energy_err = check_and_spend(conn, user, "landing_chat", 4, f"Чат подстраницы: {service_name}")
-            if energy_err:
-                return energy_err
 
             subpage_chat_system = f"""Ты — помощник по созданию страниц услуг для сайта. Собери информацию об услуге "{service_name}" через короткий дружелюбный чат.
 
@@ -1589,8 +1583,7 @@ CSS-переменные сайта (используй их, не хардко�
                 )
             except Exception as e:
                 if is_provider_error(e):
-                    refund_energy(conn, user, "landing_chat", 4, f"Чат подстраницы: {service_name}")
-                    return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+                    return err("ИИ-сервис временно недоступен. Попробуйте через минуту.", 503)
                 raise
             return ok({"reply": resp.choices[0].message.content or "", "mode": "subpage-chat"})
 
@@ -1601,7 +1594,7 @@ CSS-переменные сайта (используй их, не хардко�
             if not style_task:
                 return err("styleTask обязателен", 400)
 
-            energy_err = check_and_spend(conn, user, "landing_refine", 12, "Изменение стиля лендинга")
+            energy_err = check_and_spend(conn, user, "landing_edit_style", 20, "Изменение цветов и шрифтов")
             if energy_err:
                 return energy_err
 
@@ -1648,7 +1641,7 @@ CSS-переменные сайта (используй их, не хардко�
                 )
             except Exception as e:
                 if is_provider_error(e):
-                    refund_energy(conn, user, "landing_refine", 12, "Изменение стиля лендинга")
+                    refund_energy(conn, user, "landing_edit_style", 20, "Изменение цветов и шрифтов")
                     return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
                 raise
             raw = resp.choices[0].message.content or "{}"

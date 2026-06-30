@@ -1459,6 +1459,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         body: JSON.stringify({
           mode: "gen-block",
           blockId,
+          isRegenerate: true,
           style: siteStyle,
           messages: messages.slice(-12),
         }),
@@ -1979,7 +1980,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       const res = await fetch(AI_LANDING_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-        body: JSON.stringify({ mode: "gen-block", blockId, style: siteStyle, landingType, messages }),
+        body: JSON.stringify({ mode: "gen-block", blockId, isRegenerate: true, style: siteStyle, landingType, messages }),
         signal: AbortSignal.timeout(60_000),
       });
       const data = await res.json();
@@ -2212,13 +2213,28 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
             </div>
           </div>
 
-          {isReadyToGenerate && (
-            <button onClick={generateLanding}
-              style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "15px 24px", borderRadius: 14, border: "none", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", background: `linear-gradient(135deg, ${ACCENT} 0%, hsl(185,85%,26%) 100%)`, color: "#fff", boxShadow: `0 4px 16px ${ACCENT}44` }}>
-              <Icon name="Sparkles" size={18} />
-              Создать лендинг по блокам
-            </button>
-          )}
+          {isReadyToGenerate && (() => {
+            const blockCount = (landingType && TEMPLATE_BLOCKS[landingType]?.length) || 6;
+            const estimate = 70 + blockCount * 90; // стиль + блоки
+            const estLow = Math.round(estimate * 0.9 / 10) * 10;
+            const estHigh = Math.round(estimate * 1.05 / 10) * 10;
+            return (
+              <>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "12px 16px", marginBottom: 12, background: "#f0fdfa", border: "1px solid #99f6e4", borderRadius: 12 }}>
+                  <Icon name="Zap" size={18} style={{ color: ACCENT, flexShrink: 0, marginTop: 1 }} />
+                  <div style={{ fontSize: 12.5, color: "#0f766e", fontFamily: "Montserrat,sans-serif", lineHeight: 1.5 }}>
+                    <b>Создание лендинга — примерно {estLow}–{estHigh} ⚡</b> (дизайн + {blockCount} блоков).
+                    <span style={{ color: "#5e7d79" }}> Чат и советы — бесплатно. Правки оплачиваются отдельно по сложности: мелкая правка ~24 ⚡, пересоздать блок ~45 ⚡.</span>
+                  </div>
+                </div>
+                <button onClick={generateLanding}
+                  style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "15px 24px", borderRadius: 14, border: "none", fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", background: `linear-gradient(135deg, ${ACCENT} 0%, hsl(185,85%,26%) 100%)`, color: "#fff", boxShadow: `0 4px 16px ${ACCENT}44` }}>
+                  <Icon name="Sparkles" size={18} />
+                  Создать лендинг по блокам
+                </button>
+              </>
+            );
+          })()}
         </>
       )}
 
@@ -2682,9 +2698,9 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                   <div style={{ display: "flex", gap: 6, padding: "8px 12px 0", alignItems: "center" }}>
                     <button onClick={regenerateSelectedBlock} disabled={floatChatLoading} title="Создать этот блок заново в новом виде"
                       style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 8, border: "1px solid #c7d2fe", background: "#eef2ff", color: "#4338ca", fontSize: 11, fontWeight: 700, cursor: floatChatLoading ? "default" : "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap", opacity: floatChatLoading ? 0.5 : 1 }}>
-                      <Icon name="RefreshCw" size={12} /> Сделать блок заново
+                      <Icon name="RefreshCw" size={12} /> Сделать блок заново <span style={{ opacity: 0.6, fontWeight: 600 }}>~45 ⚡</span>
                     </button>
-                    <span style={{ fontSize: 10, color: "#94a3b8", fontFamily: "Montserrat,sans-serif" }}>или опишите правку ниже ↓</span>
+                    <span style={{ fontSize: 10, color: "#94a3b8", fontFamily: "Montserrat,sans-serif" }}>или правка ниже ↓ <b style={{ color: "#64748b" }}>~24 ⚡</b></span>
                   </div>
 
                   {/* Подсказки быстрых команд — контекстные под тип элемента */}
