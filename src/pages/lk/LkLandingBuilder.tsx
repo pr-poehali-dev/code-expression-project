@@ -1139,6 +1139,23 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       return parsed.map(b => b.id === "services" ? { ...b, html: fixServicesHtml(b.html) } : b);
     } catch { return []; }
   });
+
+  // История изменений для отмены (стек снимков blocks, максимум 20)
+  const undoStackRef = useRef<LandingBlock[][]>([]);
+  const [canUndo, setCanUndo] = useState(false);
+  const pushUndo = useCallback((snapshot: LandingBlock[]) => {
+    undoStackRef.current.push(snapshot.map(b => ({ ...b })));
+    if (undoStackRef.current.length > 20) undoStackRef.current.shift();
+    setCanUndo(true);
+  }, []);
+  const undoLastEdit = useCallback(() => {
+    const prev = undoStackRef.current.pop();
+    if (!prev) { setCanUndo(false); return; }
+    setBlocks(prev);
+    setCanUndo(undoStackRef.current.length > 0);
+    iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
+    setSelectedBlock(null);
+  }, []);
   const [siteStyle, setSiteStyle] = useState<LandingStyle>(() => {
     try { const s = localStorage.getItem(LS_STYLE); return s ? JSON.parse(s) : DEFAULT_STYLE; } catch { return DEFAULT_STYLE; }
   });
@@ -1408,6 +1425,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       const data = await res.json();
       if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
       if (data.html !== undefined) {
+        pushUndo(blocks);
         if (data.html.includes("<!-- REMOVE_BLOCK -->") || data.html.trim() === "") {
           setBlocks(prev => prev.filter(b => b.id !== selectedBlock.id));
         } else {
@@ -1449,6 +1467,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       const data = await res.json();
       if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
       if (data.html) {
+        pushUndo(blocks);
         const finalHtml = blockId === "services" ? fixServicesHtml(data.html) : data.html;
         setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: finalHtml } : b));
         iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
@@ -2239,6 +2258,12 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
               <Icon name={editMode ? "PenOff" : "MousePointerClick"} size={15} />
               {editMode ? "Выйти из редактора" : "✏️ Редактировать"}
             </button>
+            {editMode && (
+              <button onClick={undoLastEdit} disabled={!canUndo} title="Отменить последнее изменение ИИ"
+                style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: canUndo ? "1.5px solid #f59e0b" : "1.5px solid #E8ECF0", background: canUndo ? "#fffbeb" : "#fff", color: canUndo ? "#d97706" : "#cbd5e1", fontSize: 13, fontWeight: 600, cursor: canUndo ? "pointer" : "default", fontFamily: "Montserrat,sans-serif" }}>
+                <Icon name="Undo2" size={15} />Отменить
+              </button>
+            )}
             <button onClick={() => setShowStyleEditor(v => !v)}
               style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: showStyleEditor ? `1.5px solid ${PURPLE}` : "1.5px solid #E8ECF0", background: showStyleEditor ? PURPLE_LIGHT : "#fff", color: showStyleEditor ? PURPLE : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
               <Icon name="Palette" size={15} />Стиль
