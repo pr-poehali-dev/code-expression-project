@@ -1526,11 +1526,14 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
       setSelectedBlock(null);
     }
-    // Кнопка привязана к разделу — закрываем панель
+    // Кнопка привязана к разделу — закрываем панель (НЕ перерисовываем iframe — изменения уже в blocks через landing-html-update)
     if (e.data?.type === "landing-btn-target-set") {
       setShowFloatScroll(false);
-      iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
       setSelectedBlock(null);
+      // Снимаем подсветку с задержкой — после того как landing-html-update уже обработан
+      setTimeout(() => {
+        iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
+      }, 100);
     }
   }, []);  
 
