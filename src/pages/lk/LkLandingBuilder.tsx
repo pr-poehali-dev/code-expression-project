@@ -1252,10 +1252,13 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
 
   // Автосохранение при изменении блоков (debounce 3s) + обновление iframe
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const justGeneratedRef = useRef(false); // флаг: блоки только что пришли из generateLanding — не дублируем сохранение
   useEffect(() => {
     if (blocks.length === 0 || phase !== "done") return;
     // Обновляем iframe только если НЕ в режиме редактирования — иначе iframe сам шлёт HTML
     if (!editMode) refreshIframe(false);
+    // Пропускаем автосохранение сразу после генерации (saveProject уже вызван в generateLanding)
+    if (justGeneratedRef.current) { justGeneratedRef.current = false; return; }
     // Дебаунс авто-сохранения
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(() => {
@@ -1633,6 +1636,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     setGenProgress({ current: "", done });
 
     if (generatedBlocks.length > 0) {
+      justGeneratedRef.current = true; // не дублировать через useEffect
       setPhase("done");
       setShowEditHint(true); // показываем онбординг после первой генерации
       // Авто-создаём проект если нет
