@@ -1623,7 +1623,8 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         }
         if (data.html) {
           const label = BLOCKS_ORDER.find(b => b.id === blockId)?.label || blockId;
-          const newBlock: LandingBlock = { id: blockId, label, html: data.html };
+          const blockHtml = blockId === "services" ? fixServicesHtml(data.html) : data.html;
+          const newBlock: LandingBlock = { id: blockId, label, html: blockHtml };
           generatedBlocks.push(newBlock);
           setBlocks([...generatedBlocks]);
         }
@@ -1647,6 +1648,47 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     }
   }
 
+  // ── ПОСТОБРАБОТКА БЛОКА УСЛУГ: заменяем <a> на <button> гарантированно ───
+  function fixServicesHtml(html: string): string {
+    // Заменяем <a ...href="#contact"...>Записаться...</a> → красивую кнопку
+    let result = html.replace(
+      /<a([^>]*?)href=["']#contact["']([^>]*?)>([\s\S]*?)<\/a>/gi,
+      (_, pre, post, inner) => {
+        const text = inner.replace(/<[^>]+>/g, "").trim() || "Записаться";
+        return `<button class="service-btn-primary" onclick="document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})" style="width:100%;padding:12px 18px;border-radius:9px;border:none;background:var(--c-accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit)">${text}</button>`;
+      }
+    );
+    // Заменяем <a ...href="#subpage-..."...>Подробнее...</a> → кнопку модалки
+    result = result.replace(
+      /<a([^>]*?)href=["']#(?:subpage-)?([a-z0-9-]+)["']([^>]*?)class=["'][^"']*(?:service-more|more)[^"']*["']([^>]*?)>([\s\S]*?)<\/a>/gi,
+      (_, _pre, slug, _post, _cls, inner) => {
+        const text = inner.replace(/<[^>]+>/g, "").trim() || "Подробнее";
+        return `<button class="service-btn-secondary" onclick="typeof openServiceModal==='function'&&openServiceModal('${slug}')" style="width:100%;padding:11px 18px;border-radius:9px;border:2px solid var(--c-accent);background:transparent;color:var(--c-accent);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit)">${text}</button>`;
+      }
+    );
+    // Fallback: любые оставшиеся .service-more / .service-link <a> теги
+    result = result.replace(
+      /<a([^>]*?)class=["']([^"']*?)service-link([^"']*?)["']([^>]*?)>([\s\S]*?)<\/a>/gi,
+      (_, _pre, cls1, cls2, _post, inner) => {
+        const text = inner.replace(/<[^>]+>/g, "").trim() || "Записаться";
+        return `<button class="service-btn-primary" onclick="document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})" style="width:100%;padding:12px 18px;border-radius:9px;border:none;background:var(--c-accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit)">${text}</button>`;
+      }
+    );
+    result = result.replace(
+      /<a([^>]*?)class=["']([^"']*?)service-more([^"']*?)["']([^>]*?)>([\s\S]*?)<\/a>/gi,
+      (_, _pre, _cls1, _cls2, _post, inner) => {
+        const text = inner.replace(/<[^>]+>/g, "").trim() || "Подробнее";
+        return `<button class="service-btn-secondary" onclick="typeof openServiceModal==='function'&&openServiceModal(this.closest('[data-service-id]')?.dataset.serviceId||'')" style="width:100%;padding:11px 18px;border-radius:9px;border:2px solid var(--c-accent);background:transparent;color:var(--c-accent);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit)">${text}</button>`;
+      }
+    );
+    // Добавляем CSS для кнопок если нет
+    if (!result.includes("service-btn-primary") || !result.includes(".service-btn-primary")) {
+      const btnCss = `<style data-block="services-btn-fix">.service-btn-primary{width:100%;padding:12px 18px;border-radius:9px;border:none;background:var(--c-accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit);transition:opacity .2s;display:block;text-align:center}.service-btn-primary:hover{opacity:.85}.service-btn-secondary{width:100%;padding:11px 18px;border-radius:9px;border:2px solid var(--c-accent);background:transparent;color:var(--c-accent);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit);transition:all .2s;display:block;text-align:center}.service-btn-secondary:hover{background:var(--c-accent);color:#fff}.service-actions{display:flex;flex-direction:column;gap:10px;margin-top:auto}</style>`;
+      result = result + btnCss;
+    }
+    return result;
+  }
+
   // ── РЕДАКТИРОВАНИЕ БЛОКА ──────────────────────────────────────────────────
   async function editBlock(blockId: string) {
     if (!blockEditInput.trim() || blockEditing) return;
@@ -1666,7 +1708,8 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       const data = await res.json();
       if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
       if (data.html) {
-        setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: data.html } : b));
+        const fixedHtml = blockId === "services" ? fixServicesHtml(data.html) : data.html;
+        setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: fixedHtml } : b));
         setEditingBlock(null);
         setBlockEditInput("");
       }
@@ -1924,7 +1967,8 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       const data = await res.json();
       if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
       if (data.html) {
-        setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: data.html, label } : b));
+        const fixedHtml = blockId === "services" ? fixServicesHtml(data.html) : data.html;
+        setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: fixedHtml, label } : b));
       }
     } catch {
       setBlocks(prev => prev.map(b => b.id === blockId && b.html === "<!-- regenerating -->" ? { ...b, html: "" } : b));
