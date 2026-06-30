@@ -1178,6 +1178,9 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const [blockEditInput, setBlockEditInput] = useState("");
   const [blockEditing, setBlockEditing] = useState(false);
 
+  // Онбординг-баннер (показываем один раз после генерации)
+  const [showEditHint, setShowEditHint] = useState(false);
+
   // ── ПЛАВАЮЩИЙ ЧАТ ─────────────────────────────────────────────────────────
   // Выбранный блок (кликнули прямо на лендинге)
   const [selectedBlock, setSelectedBlock] = useState<{ id: string; html: string; label: string } | null>(null);
@@ -1631,6 +1634,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
 
     if (generatedBlocks.length > 0) {
       setPhase("done");
+      setShowEditHint(true); // показываем онбординг после первой генерации
       // Авто-создаём проект если нет
       await saveProject(generatedBlocks, style, false);
     } else {
@@ -2155,12 +2159,38 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       {/* Готовый сайт: блоки + превью */}
       {phase === "done" && (
         <>
+          {/* Онбординг-баннер после генерации */}
+          {showEditHint && !editMode && (
+            <div style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)", borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "flex-start", gap: 14, position: "relative" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name="MousePointerClick" size={22} style={{ color: "#fff" }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 6, fontFamily: "Montserrat,sans-serif" }}>
+                  Как редактировать лендинг
+                </div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.88)", lineHeight: 1.6, fontFamily: "Montserrat,sans-serif" }}>
+                  Нажмите <b style={{ color: "#fff" }}>«✏️ Редактировать»</b> ниже → кликните на любой блок прямо на лендинге → напишите ИИ что изменить.
+                  Можно выделить текст мышью — он попадёт в чат автоматически.
+                </div>
+                <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                  {["Переделай заголовок", "Убери этот блок", "Добавь фото", "Сделай красивее"].map(tip => (
+                    <span key={tip} style={{ padding: "3px 10px", borderRadius: 20, background: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 11, fontWeight: 600, fontFamily: "Montserrat,sans-serif" }}>{tip}</span>
+                  ))}
+                </div>
+              </div>
+              <button onClick={() => setShowEditHint(false)} style={{ background: "rgba(255,255,255,0.2)", border: "none", borderRadius: 8, width: 28, height: 28, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name="X" size={14} style={{ color: "#fff" }} />
+              </button>
+            </div>
+          )}
+
           {/* Панель инструментов */}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button onClick={() => { setEditMode(v => !v); }}
-              style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: editMode ? `1.5px solid ${ACCENT}` : "1.5px solid #E8ECF0", background: editMode ? ACCENT_LIGHT : "#fff", color: editMode ? ACCENT : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
-              <Icon name={editMode ? "PenOff" : "Pencil"} size={15} />
-              {editMode ? "Выйти из редактора" : "Редактировать текст"}
+            <button onClick={() => { setEditMode(v => !v); if (!editMode) setShowEditHint(false); }}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 9, border: "none", background: editMode ? "#ef4444" : "#6366f1", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: editMode ? "none" : "0 2px 12px rgba(99,102,241,0.35)" }}>
+              <Icon name={editMode ? "PenOff" : "MousePointerClick"} size={15} />
+              {editMode ? "Выйти из редактора" : "✏️ Редактировать"}
             </button>
             <button onClick={() => setShowStyleEditor(v => !v)}
               style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: showStyleEditor ? `1.5px solid ${PURPLE}` : "1.5px solid #E8ECF0", background: showStyleEditor ? PURPLE_LIGHT : "#fff", color: showStyleEditor ? PURPLE : "#555", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
@@ -2613,11 +2643,18 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
 
             {/* Подсказка в editMode без выбранного блока */}
             {editMode && !selectedBlock && (
-              <div style={{ marginTop: 8, padding: "10px 16px", background: "#f5f3ff", borderRadius: 10, border: "1px dashed #6366f1", display: "flex", alignItems: "center", gap: 10 }}>
-                <Icon name="MousePointerClick" size={16} style={{ color: "#6366f1", flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: "#6366f1", fontWeight: 600, fontFamily: "Montserrat,sans-serif" }}>
-                  Кликните на любой блок лендинга — появится чат для его редактирования
-                </span>
+              <div style={{ marginTop: 8, padding: "14px 18px", background: "linear-gradient(135deg,#f5f3ff,#ede9fe)", borderRadius: 12, border: "1.5px dashed #6366f1", display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "#6366f1", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, animation: "pulse-btn 2s ease-in-out infinite" }}>
+                  <Icon name="MousePointerClick" size={18} style={{ color: "#fff" }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, color: "#4338ca", fontWeight: 700, fontFamily: "Montserrat,sans-serif", marginBottom: 2 }}>
+                    👆 Кликните на любой блок лендинга
+                  </div>
+                  <div style={{ fontSize: 11, color: "#6366f1", fontFamily: "Montserrat,sans-serif" }}>
+                    Напишите ИИ что сделать — изменить, убрать, добавить фото или текст
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -2712,6 +2749,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
           .lnd-preview-iframe {
             height: 360px;
           }
+        }
+        @keyframes pulse-btn {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+          50% { box-shadow: 0 0 0 8px rgba(99,102,241,0); }
         }
       `}</style>
     </div>
