@@ -908,6 +908,9 @@ HEADER/NAV:
    • Подпись внутри placeholder: "Загрузить фото" или конкретная подсказка ("Фото команды", "Фото услуги")
    • После загрузки фото — плейсхолдер скрывается, фото показывается через <img> с object-fit:cover
    • data-photo-slot значение должно быть уникальным в рамках всего лендинга (добавляй суффикс блока: "hero-bg", "about-team", "svc-massage")
+   • 🚫 СТРОГО ЗАПРЕЩЕНО вставлять <img> с внешним URL (http://, https://, unsplash, postimg, picsum, placehold, example.com и любые чужие хостинги). Такие ссылки умирают и показывают "image not found".
+   • ВСЕ изображения ТОЛЬКО через пустой photo-slot с плейсхолдером. НИКОГДА не подставляй готовый src — пользователь сам загрузит своё фото кликом по слоту.
+   • Фоновые изображения (background-image) тоже НЕ задавай через внешний URL — используй CSS-градиент или photo-slot.
 5. Якорные id: hero, about, services, pricing, gallery, reviews, contact, faq
 6. ПРОВЕРЯЙ ИНТЕРАКТИВНОСТЬ: все кнопки, ссылки, чекбоксы, фото-плашки должны работать. Ни одного декоративного/нефункционального элемента без обработчика.
 7. Верни ТОЛЬКО HTML-фрагмент. Без <!DOCTYPE>, без <html>, без <head>, без markdown ```, без пояснений."""
@@ -939,10 +942,12 @@ CSS-ПЕРЕМЕННЫЕ сайта (используй только их, не 
 Если просят убрать — удали элемент полностью. Если изменить — измени именно его.
 
 ━━━ ВСТАВКА ФОТО ━━━
+🚫 НИКОГДА не вставляй <img> с внешним URL (http/https, unsplash, postimg, picsum, placehold и т.п.) — такие ссылки мёртвые и показывают "image not found". Изображения только через photo-slot, фото подгружает пользователь.
 Если пользователь прикрепил фото (придёт как image в сообщении):
 • Найди в блоке [data-photo-slot] или .photo-slot → замени содержимое на <img src="[URL_ФОТО]" style="width:100%;height:100%;object-fit:cover;display:block;">
 • Если слотов нет — найди подходящий <img> и замени его src
 • Если в блоке вообще нет места для фото — добавь <div data-photo-slot="new-photo" style="aspect-ratio:16/9;overflow:hidden;border-radius:14px;margin:20px 0"><img src="[URL_ФОТО]" style="width:100%;height:100%;object-fit:cover;display:block;"></div> в подходящее место
+• Если пользователь просит «убрать плашку/фото» — удали photo-slot целиком, не оставляй битых картинок
 
 ━━━ УТОЧНЯЮЩИЕ ВОПРОСЫ ━━━
 Задавай уточняющий вопрос ТОЛЬКО если задание реально неоднозначное и от ответа зависит результат.
@@ -1169,6 +1174,51 @@ def safe_format(template: str, **kwargs) -> str:
     return template
 
 
+import re as _re_img
+
+# Плейсхолдер фото-слота (тот же вид, что использует фронтенд)
+_PHOTO_PLACEHOLDER = (
+    '<div class="photo-slot" data-photo-slot="auto-{i}" '
+    'style="aspect-ratio:16/9;overflow:hidden;border-radius:14px;display:flex;align-items:center;'
+    'justify-content:center;background:#f1f5f9;cursor:pointer;">'
+    '<div class="photo-placeholder" style="text-align:center;color:#94a3b8;padding:20px;">'
+    '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">'
+    '<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/>'
+    '<path d="m21 15-5-5L5 21"/></svg>'
+    '<div style="margin-top:8px;font-size:13px">Нажмите, чтобы загрузить фото</div></div></div>'
+)
+
+
+def sanitize_external_images(html: str) -> str:
+    """Заменяет <img> с внешними/битыми URL на пустой фото-слот.
+    Сохраняет data:image (base64 — это загруженные пользователем фото)."""
+    if not html:
+        return html
+    counter = [0]
+
+    def repl(m):
+        tag = m.group(0)
+        src_match = _re_img.search(r'src\s*=\s*["\']([^"\']*)["\']', tag, _re_img.IGNORECASE)
+        src = src_match.group(1) if src_match else ""
+        # Оставляем загруженные пользователем base64-картинки
+        if src.startswith("data:image"):
+            return tag
+        # Всё внешнее (http/https/протокол-относительное) — заменяем на слот
+        if src.startswith("http://") or src.startswith("https://") or src.startswith("//"):
+            counter[0] += 1
+            return _PHOTO_PLACEHOLDER.replace("{i}", str(counter[0]))
+        return tag
+
+    html = _re_img.sub(r'<img\b[^>]*>', repl, html, flags=_re_img.IGNORECASE)
+    # Убираем внешние background-image: url(http...)
+    html = _re_img.sub(
+        r'background-image\s*:\s*url\(["\']?https?:[^)]*\)\s*;?',
+        'background:linear-gradient(135deg,var(--c-primary),var(--c-dark));',
+        html, flags=_re_img.IGNORECASE,
+    )
+    return html
+
+
 def handler(event: dict, context) -> dict:
     """Генератор лендингов: чат + блочная генерация + редактирование блоков"""
     if event.get("httpMethod") == "OPTIONS":
@@ -1382,6 +1432,7 @@ def handler(event: dict, context) -> dict:
             if html_fragment.startswith("```"):
                 lines = html_fragment.split("\n")
                 html_fragment = "\n".join(lines[1:-1]) if lines[-1].strip() == "```" else "\n".join(lines[1:])
+            html_fragment = sanitize_external_images(html_fragment)
             return ok({"html": html_fragment, "blockId": block_id, "mode": "gen-block"})
 
         # ── EDIT-BLOCK: переделать один блок ─────────────────────────────────
@@ -1481,6 +1532,7 @@ def handler(event: dict, context) -> dict:
             import re as _re
             result_text = _re.sub(r'\s*data-lnd-target=["\']1["\']', "", result_text)
             result_text = _re.sub(r'\s*\blnd-(picked|hover)\b', "", result_text)
+            result_text = sanitize_external_images(result_text)
 
             return ok({"html": result_text, "blockId": block_id, "mode": "edit-block"})
 

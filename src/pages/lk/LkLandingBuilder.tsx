@@ -228,13 +228,28 @@ const EDITOR_SCRIPT = `<script>
     }, '*');
   }, true);
 
-  // Снятие выделения по команде из родителя
+  // Вставка загруженного фото в слот (base64 из родителя)
+  function applyPhoto(slot, src) {
+    if (!slot) return;
+    slot.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;" />';
+    slot.classList.add('has-photo');
+    slot.style.border = 'none'; slot.style.outline = 'none'; slot.style.overflow = 'hidden';
+  }
+
+  // Снятие выделения / вставка фото по команде из родителя
   window.addEventListener('message', function(e) {
     if (!e.data) return;
     if (e.data.type === 'landing-clear-pick') clearPicked();
     if (e.data.type === 'landing-scroll-to-block') {
       var b = document.querySelector('[data-block-id="' + e.data.blockId + '"]');
       if (b) b.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    if (e.data.type === 'landing-slot-replace' && e.data.src) {
+      // ищем нужный слот; если не нашли — берём выделенный элемент
+      var slot = document.querySelector('[data-photo-slot="' + e.data.slotId + '"]');
+      if (!slot && picked) slot = picked.closest && (picked.closest('[data-photo-slot]') || (picked.matches('[data-photo-slot]') ? picked : null));
+      applyPhoto(slot, e.data.src);
+      window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
     }
   });
 
@@ -1041,6 +1056,29 @@ function stripTargetMarker(html: string): string {
     });
 }
 
+// Плейсхолдер фото-слота (заглушка «Загрузить фото»)
+const PHOTO_SLOT_PLACEHOLDER =
+  '<div class="photo-slot" data-photo-slot="auto-fix" style="aspect-ratio:16/9;overflow:hidden;border-radius:14px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;cursor:pointer;">' +
+  '<div class="photo-placeholder" style="text-align:center;color:#94a3b8;padding:20px;">' +
+  '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>' +
+  '<div style="margin-top:8px;font-size:13px">Нажмите, чтобы загрузить фото</div></div></div>';
+
+// Заменяет битые внешние картинки (postimg, unsplash и т.п.) на пустой фото-слот.
+// Сохраняет загруженные пользователем фото (data:image base64).
+function stripDeadImages(html: string): string {
+  if (!html || !/<img|background-image\s*:\s*url\(/i.test(html)) return html;
+  let i = 0;
+  let out = html.replace(/<img\b[^>]*>/gi, (tag) => {
+    const m = tag.match(/src\s*=\s*["']([^"']*)["']/i);
+    const src = m ? m[1] : "";
+    if (src.startsWith("data:image")) return tag;       // фото пользователя — оставляем
+    if (/^(https?:)?\/\//i.test(src)) { i++; return PHOTO_SLOT_PLACEHOLDER.replace("auto-fix", "auto-fix-" + i); }
+    return tag;
+  });
+  out = out.replace(/background-image\s*:\s*url\(["']?https?:[^)]*\)\s*;?/gi, "background:#f1f5f9;");
+  return out;
+}
+
 // ── Постобработка блока услуг (глобальная — используется до инициализации) ────
 function fixServicesHtml(html: string): string {
   let result = html;
@@ -1137,7 +1175,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       const s = localStorage.getItem(LS_BLOCKS);
       if (!s) return [];
       const parsed: LandingBlock[] = JSON.parse(s);
-      return parsed.map(b => b.id === "services" ? { ...b, html: fixServicesHtml(b.html) } : b);
+      return parsed.map(b => {
+        const html = stripDeadImages(b.id === "services" ? fixServicesHtml(b.html) : b.html);
+        return { ...b, html };
+      });
     } catch { return []; }
   });
 
@@ -1847,9 +1888,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         setLandingType(proj.landing_type);
         setMessages(proj.messages || []);
         const rawBlocks: LandingBlock[] = proj.blocks || [];
-        const savedBlocks = rawBlocks.map(b =>
-          b.id === "services" ? { ...b, html: fixServicesHtml(b.html) } : b
-        );
+        const savedBlocks = rawBlocks.map(b => ({
+          ...b,
+          html: stripDeadImages(b.id === "services" ? fixServicesHtml(b.html) : b.html),
+        }));
         const savedStyle: LandingStyle = proj.style && proj.style.primary ? proj.style : DEFAULT_STYLE;
         setBlocks(savedBlocks);
         setSiteStyle(savedStyle);
