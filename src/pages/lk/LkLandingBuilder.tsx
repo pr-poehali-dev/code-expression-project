@@ -200,6 +200,59 @@ const EDITOR_SCRIPT = `<script>
     });
   });
 
+  // Клик по любому <img> на лендинге — замена/удаление фото
+  var imgClickTimeout = null;
+  document.querySelectorAll('img').forEach(function(img) {
+    if (img.closest('[data-photo-slot]')) return; // уже обработано выше
+    img.style.cursor = 'pointer';
+    img.setAttribute('title', 'Нажмите чтобы заменить фото');
+    img.addEventListener('click', function(e) {
+      e.preventDefault(); e.stopPropagation();
+      var imgEl = img;
+      showImgMenu(e.clientX + window.scrollX, e.clientY + window.scrollY,
+        function() {
+          // Замена: создаём input, читаем файл, вставляем src
+          var inp = document.createElement('input');
+          inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none';
+          document.body.appendChild(inp);
+          inp.onchange = function() {
+            var file = inp.files[0]; if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+              var raw = ev.target.result;
+              var tmpImg = new Image();
+              tmpImg.onload = function() {
+                var MAX = 1200;
+                var scale = Math.min(1, MAX / Math.max(tmpImg.width, tmpImg.height));
+                var canvas = document.createElement('canvas');
+                canvas.width = Math.round(tmpImg.width * scale);
+                canvas.height = Math.round(tmpImg.height * scale);
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(tmpImg, 0, 0, canvas.width, canvas.height);
+                imgEl.src = canvas.toDataURL('image/jpeg', 0.82);
+                sendHtml();
+              };
+              tmpImg.src = raw;
+            };
+            reader.readAsDataURL(file);
+            inp.remove();
+          };
+          inp.click();
+        },
+        function() {
+          // Удаление: скрываем или убираем img
+          var parent = imgEl.parentElement;
+          if (parent && parent.children.length === 1) {
+            parent.style.display = 'none';
+          } else {
+            imgEl.remove();
+          }
+          sendHtml();
+        }
+      );
+    });
+  });
+
   window.addEventListener('message', function(e) {
     if (e.data && e.data.type === 'landing-slot-replace') {
       var slot = document.querySelector('[data-photo-slot="' + e.data.slotId + '"]');
@@ -1108,17 +1161,20 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   useEffect(() => { localStorage.setItem(LS_SEO, JSON.stringify(seoData)); }, [seoData]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, chatLoading]);
 
+  const buildPrivBodyFromData = (pd: PrivacyData) =>
+    (pd.orgName || pd.domain || pd.inn) ? buildPrivacyBody(pd) : undefined;
+
   // Восстановить в iframe при смене editMode
   useEffect(() => {
     if (!editMode && iframeRef.current && blocks.length > 0) {
-      iframeRef.current.srcdoc = buildFullHtml(blocks, siteStyle, undefined, seoData);
+      iframeRef.current.srcdoc = buildFullHtml(blocks, siteStyle, buildPrivBodyFromData(privacyData), seoData);
     }
   }, [editMode]); // eslint-disable-line
 
   // Если блоки изменились стилем — перестраиваем iframe
   useEffect(() => {
     if (phase === "done" && iframeRef.current && !editMode) {
-      iframeRef.current.srcdoc = buildFullHtml(blocks, siteStyle, undefined, seoData);
+      iframeRef.current.srcdoc = buildFullHtml(blocks, siteStyle, buildPrivBodyFromData(privacyData), seoData);
     }
   }, [siteStyle]); // eslint-disable-line
 
@@ -1448,7 +1504,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   async function saveProject(blocksData: LandingBlock[], styleData: LandingStyle, manual = true) {
     if (manual) setSaving(true);
     try {
-      const html = buildFullHtml(blocksData, styleData);
+      const html = buildFullHtml(blocksData, styleData, buildPrivBodyFromData(privacyData), seoData);
       const title = extractTitle(html) || projectTitle;
       const res = await fetch(LANDING_API_URL, {
         method: "POST",
@@ -1472,16 +1528,40 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
 
   // ── СОХРАНИТЬ ВЕРСИЮ ──────────────────────────────────────────────────────
   async function saveVersion() {
-    if (!projectId) { await saveProject(blocks, siteStyle, true); return; }
-    const res = await fetch(LANDING_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-      body: JSON.stringify({ action: "save-version", id: projectId }),
-    });
-    const data = await res.json();
-    if (data.saved) {
-      setSavedOk(true); setTimeout(() => setSavedOk(false), 2500);
-      loadVersions();
+    // Сначала сохраняем текущее состояние в БД, потом фиксируем версию
+    setSaving(true);
+    try {
+      const html = buildFullHtml(blocks, siteStyle, buildPrivBodyFromData(privacyData), seoData);
+      const title = extractTitle(html) || projectTitle;
+      const saveRes = await fetch(LANDING_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+        body: JSON.stringify({
+          id: projectId || undefined, title, landingType,
+          html, blocks, style: siteStyle, messages,
+        }),
+      });
+      const saveData = await saveRes.json();
+      const pid = saveData.id || projectId;
+      if (saveData.id) {
+        setProjectId(saveData.id);
+        setProjectTitle(title);
+        localStorage.setItem(LS_PID, saveData.id);
+      }
+      if (!pid) return;
+      // Теперь создаём снимок версии
+      const verRes = await fetch(LANDING_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+        body: JSON.stringify({ action: "save-version", id: pid }),
+      });
+      const verData = await verRes.json();
+      if (verData.saved) {
+        setSavedOk(true); setTimeout(() => setSavedOk(false), 2500);
+        loadVersions();
+      }
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -1748,7 +1828,9 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   }
 
   const isReadyToGenerate = messages.length >= 4 && phase === "chat";
-  const fullHtml = blocks.length > 0 ? buildFullHtml(blocks, siteStyle, undefined, seoData) : "";
+  const getPrivBody = () => (privacyData.orgName || privacyData.domain || privacyData.inn)
+    ? buildPrivacyBody(privacyData) : undefined;
+  const fullHtml = blocks.length > 0 ? buildFullHtml(blocks, siteStyle, getPrivBody(), seoData) : "";
   const iframeSrc = editMode
     ? fullHtml.replace("</body>", EDITOR_SCRIPT + "</body>")
     : fullHtml;
