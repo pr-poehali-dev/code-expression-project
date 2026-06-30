@@ -342,32 +342,74 @@ CSS требования:
 
     "services": """Сгенерируй HTML-блок #services для лендинга.
 
-ВАЖНО: для каждой услуги добавь data-атрибут data-service-id со slug (транслит названия, строчные буквы, дефисы вместо пробелов).
-Пример: услуга "Стрижка и укладка" → data-service-id="strizhka-i-ukladka"
+КРИТИЧЕСКИ ВАЖНО — КНОПКИ И МОДАЛЬНЫЕ ОКНА:
+1. Каждая карточка услуги содержит РОВНО ДВЕ КНОПКИ одинакового размера в .service-actions
+2. Кнопка «Записаться» — основная (background:var(--c-accent), цвет:#fff)
+3. Кнопка «Подробнее» — вторичная (border:2px solid var(--c-accent), background:transparent, color:var(--c-accent))
+4. Обе кнопки: одинаковый padding:11px 18px; border-radius:9px; font-size:13px; font-weight:700; width:100%; text-align:center; cursor:pointer; display:block
+5. Кнопка «Подробнее» открывает МОДАЛЬНОЕ ОКНО (НЕ ссылку!) — через onclick="openServiceModal('slug')"
+6. НИКАКИХ тегов <a> для кнопок — только <button>
 
-Структура:
-<section id="services">
-  <div class="container">
-    <div class="section-header">
-      <div class="section-label">УСЛУГИ</div>
-      <h2>Заголовок секции</h2>
-      <p class="section-sub">Краткое описание — что предлагаем</p>
-    </div>
-    <div class="services-grid">
-      <!-- 4-6 карточек по количеству услуг из данных -->
-      <div class="service-card" data-service-id="slug-uslugi">
-        <div class="service-icon"><!-- SVG-иконка 36x36 по теме услуги --></div>
-        <h3>Название услуги</h3>
-        <p>Описание 2 предложения — что получает клиент</p>
-        <div class="service-price">от X ₽</div><!-- если цены есть в данных -->
-        <div class="service-actions">
-          <a href="#contact" class="service-link">Записаться →</a>
-          <a href="#subpage-slug-uslugi" class="service-more">Узнать подробнее</a>
-        </div>
+СТРУКТУРА МОДАЛЬНОГО ОКНА (одно на всю секцию, вне .container):
+<div id="svc-modal" class="svc-modal-overlay" onclick="if(event.target===this)closeSvcModal()">
+  <div class="svc-modal-box">
+    <button class="svc-modal-close" onclick="closeSvcModal()">✕</button>
+    <!-- Фото-слот: картинка услуги -->
+    <div class="svc-modal-img photo-slot" data-photo-slot="svc-modal-img" id="svc-modal-img">
+      <div class="photo-placeholder" style="height:260px;display:flex;align-items:center;justify-content:center;background:var(--c-light);border-radius:16px 16px 0 0">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--c-accent)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
       </div>
     </div>
+    <div class="svc-modal-body">
+      <h3 id="svc-modal-title">Название услуги</h3>
+      <p id="svc-modal-desc">Подробное описание: что входит, как проходит, результат, длительность, противопоказания если есть.</p>
+      <div id="svc-modal-price" class="svc-modal-price"></div>
+      <button class="svc-modal-cta" onclick="closeSvcModal();document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})">
+        Записаться на услугу →
+      </button>
+      <p class="svc-modal-hint">Без предоплаты · Ответим за 15 минут</p>
+    </div>
   </div>
-</section>
+</div>
+
+ДАННЫЕ для модалок — JS-объект в <script>:
+const SVC_DATA = {
+  "slug-uslugi": {
+    title: "Полное название услуги",
+    desc: "Подробное описание 4-6 предложений: что входит, как проходит процедура, результат, время, особенности.",
+    price: "от X ₽",
+    photo: "svc-slug-uslugi"   // data-photo-slot для фото в модалке
+  },
+  // ... по одной записи на каждую услугу
+};
+
+function openServiceModal(slug) {
+  const d = SVC_DATA[slug]; if(!d) return;
+  document.getElementById('svc-modal-title').textContent = d.title;
+  document.getElementById('svc-modal-desc').textContent = d.desc;
+  document.getElementById('svc-modal-price').textContent = d.price || '';
+  const imgSlot = document.getElementById('svc-modal-img');
+  if(imgSlot) imgSlot.setAttribute('data-photo-slot', d.photo || 'svc-modal-img');
+  document.getElementById('svc-modal').classList.add('active');
+  document.body.style.overflow='hidden';
+}
+function closeSvcModal() {
+  document.getElementById('svc-modal').classList.remove('active');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSvcModal(); });
+
+СТРУКТУРА КАРТОЧКИ:
+<div class="service-card" data-service-id="slug-uslugi">
+  <div class="service-icon"><!-- SVG-иконка 40x40 тематическая, цвет:#fff --></div>
+  <h3>Название услуги</h3>
+  <p>Короткое описание 2 предложения — выгода клиента</p>
+  <div class="service-price">от X ₽</div><!-- только если цены есть в данных -->
+  <div class="service-actions">
+    <button class="service-btn-primary" onclick="document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})">Записаться</button>
+    <button class="service-btn-secondary" onclick="openServiceModal('slug-uslugi')">Подробнее</button>
+  </div>
+</div>
 
 CSS требования:
 - section#services: padding:90px 0; background:#fff;
@@ -379,16 +421,30 @@ CSS требования:
 - .service-card: background:var(--c-light); border-radius:18px; padding:32px 28px; border:1px solid #e8edf2; transition:all 0.25s; position:relative; overflow:hidden; display:flex; flex-direction:column;
 - .service-card::before: content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--c-primary),var(--c-accent));
 - .service-card:hover: transform:translateY(-6px); box-shadow:0 20px 50px rgba(0,0,0,0.1); border-color:var(--c-accent);
-- .service-icon: width:52px; height:52px; background:linear-gradient(135deg,var(--c-primary),var(--c-accent)); border-radius:14px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; — svg внутри: color:#fff
+- .service-icon: width:52px; height:52px; background:linear-gradient(135deg,var(--c-primary),var(--c-accent)); border-radius:14px; display:flex; align-items:center; justify-content:center; margin-bottom:20px;
 - h3: font-size:18px; font-weight:700; color:var(--c-dark); margin-bottom:10px;
 - .service-card p: font-size:14px; line-height:1.65; color:#64748b; margin-bottom:16px; flex:1;
 - .service-price: font-size:15px; font-weight:700; color:var(--c-accent); margin-bottom:14px;
-- .service-actions: display:flex; flex-direction:column; gap:8px; margin-top:auto;
-- .service-link: font-size:13px; font-weight:700; color:#fff; background:var(--c-accent); text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:10px 18px; border-radius:9px; transition:opacity 0.2s; — hover: opacity:0.85
-- .service-more: font-size:12px; font-weight:600; color:var(--c-accent); text-decoration:none; display:inline-flex; align-items:center; gap:4px; transition:gap 0.2s; — hover: gap:8px; text-decoration:underline
-- MOBILE: grid-template-columns:1fr
+- .service-actions: display:flex; flex-direction:column; gap:10px; margin-top:auto;
+- .service-btn-primary: width:100%; padding:12px 18px; border-radius:9px; border:none; background:var(--c-accent); color:#fff; font-size:13px; font-weight:700; cursor:pointer; font-family:var(--font-body); transition:opacity 0.2s; — hover:opacity:0.85
+- .service-btn-secondary: width:100%; padding:11px 18px; border-radius:9px; border:2px solid var(--c-accent); background:transparent; color:var(--c-accent); font-size:13px; font-weight:700; cursor:pointer; font-family:var(--font-body); transition:all 0.2s; — hover:background:var(--c-accent);color:#fff
+- MOBILE: grid-template-columns:1fr; .service-actions кнопки width:100%
 
-Верни ТОЛЬКО HTML <section id="services"> + <style data-block="services">.""",
+CSS модального окна:
+- .svc-modal-overlay: position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity 0.3s; backdrop-filter:blur(4px);
+- .svc-modal-overlay.active: opacity:1; pointer-events:all;
+- .svc-modal-box: background:#fff; border-radius:20px; max-width:520px; width:100%; max-height:90vh; overflow-y:auto; position:relative; animation:modalIn 0.3s ease;
+- @keyframes modalIn: from{transform:scale(0.92) translateY(20px);opacity:0} to{transform:none;opacity:1}
+- .svc-modal-close: position:absolute; top:14px; right:16px; width:32px; height:32px; border-radius:50%; border:none; background:rgba(0,0,0,0.08); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; z-index:1; transition:background 0.2s; — hover:background:rgba(0,0,0,0.15)
+- .svc-modal-img: width:100%; aspect-ratio:16/9; overflow:hidden; border-radius:16px 16px 0 0; background:var(--c-light);
+- .svc-modal-body: padding:28px;
+- .svc-modal-body h3: font-size:22px; font-weight:800; color:var(--c-dark); margin-bottom:12px; font-family:var(--font-heading);
+- .svc-modal-body p: font-size:15px; line-height:1.7; color:#64748b; margin-bottom:16px;
+- .svc-modal-price: font-size:20px; font-weight:800; color:var(--c-accent); margin-bottom:20px;
+- .svc-modal-cta: width:100%; padding:15px; border-radius:12px; border:none; background:var(--c-accent); color:#fff; font-size:15px; font-weight:700; cursor:pointer; font-family:var(--font-body); transition:opacity 0.2s; — hover:opacity:0.88
+- .svc-modal-hint: text-align:center; font-size:12px; color:#94a3b8; margin-top:10px;
+
+Верни ТОЛЬКО HTML <section id="services"> + модальное окно (вне section) + <style data-block="services"> + <script data-block="services">.""",
 
     "gallery": """Сгенерируй HTML-блок #gallery для лендинга — галерея фотографий.
 
@@ -732,9 +788,16 @@ HERO (главный экран):
 • Крупный h1: clamp(2.5rem,6vw,4.5rem); цвет #fff или var(--c-light)
 • SVG-декор (волны, блобы) если нет фото
 
-УСЛУГИ / КАРТОЧКИ:
+УСЛУГИ / КАРТОЧКИ — СТРОГИЕ ПРАВИЛА КНОПОК И МОДАЛОК:
 • Grid: grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px
-• Каждая карточка: иконка SVG (тематическая, 48×48) + заголовок + описание + цена (если есть) + кнопка
+• Каждая карточка: иконка SVG (тематическая, 48×48) + заголовок + описание + цена (если есть) + РОВНО ДВЕ КНОПКИ
+• ОБЯЗАТЕЛЬНО: в .service-actions всегда ДВЕ кнопки ОДИНАКОВОГО размера (width:100%):
+  1. <button class="service-btn-primary" onclick="document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})">Записаться</button> — background:var(--c-accent); color:#fff
+  2. <button class="service-btn-secondary" onclick="openServiceModal('slug')">Подробнее</button> — border:2px solid var(--c-accent); background:transparent; color:var(--c-accent)
+• ЗАПРЕЩЕНО использовать <a> вместо <button> для этих действий — ТОЛЬКО <button>
+• «Подробнее» ВСЕГДА открывает модальное окно (НЕ ссылку, НЕ переход), через JS-функцию openServiceModal('slug')
+• Модальное окно содержит: фото-слот (aspect-ratio:16/9) + название + подробное описание (4-6 предложений) + цена + кнопка «Записаться на услугу» (скролл к #contact) + закрытие по ✕ и по клику на оверлей
+• Все данные модалок хранятся в JS-объекте SVC_DATA
 • Выделенная карточка (popular/recommended): border:2px solid var(--c-accent); position:relative + бейдж "Популярное"
 
 PRICING (ЦЕНЫ) — ОСОБЫЕ ПРАВИЛА:
