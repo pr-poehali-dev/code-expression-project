@@ -816,6 +816,14 @@ JavaScript:
 • @media(max-width:480px): padding:40px 16px, h1 font-size:clamp(1.6rem,6vw,2.4rem)
 • Кнопки на мобайле: width:100%, padding:16px
 
+🚫 ЗАЩИТА ОТ ВЫЕЗДА ЗА ЭКРАН (КРИТИЧНО — блок НЕ должен выходить за ширину):
+• Корневой элемент блока: width:100%; box-sizing:border-box; overflow-x:hidden
+• Все контейнеры: box-sizing:border-box; max-width:100%
+• Все flex/grid-элементы с текстом: min-width:0 (иначе длинный текст растягивает контейнер)
+• 🚫 НИКОГДА не используй transform:scale(>1), фиксированную ширину в px больше 100%, отрицательные margin которые выводят контент за край
+• Крупные цифры и заголовки: используй clamp() и при необходимости white-space:nowrap, но контролируй чтобы влезало
+• Картинки и видео: max-width:100%; height:auto
+
 ╔══ ЧАСТЬ 2: ПРАВИЛА ДЛЯ КОНКРЕТНЫХ БЛОКОВ ══╗
 
 HERO (главный экран):
@@ -840,15 +848,17 @@ HERO (главный экран):
 • Выделенная карточка (popular/recommended): border:2px solid var(--c-accent); position:relative + бейдж "Популярное"
 
 PRICING (ЦЕНЫ) — ОСОБЫЕ ПРАВИЛА:
-• ВСЕГДА используй CSS Grid: display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:28px
-• Каждый тариф — карточка с чёткой структурой:
-  1. Название тарифа (h3, font-size:1.3rem)
-  2. Цена (большой шрифт: font-size:clamp(2rem,4vw,3rem); color:var(--c-accent); font-weight:800)
-  3. Период ("в месяц", "за сеанс", "разово") — маленький текст под ценой
+• Контейнер цен ОБЯЗАН иметь: max-width:1200px; margin:0 auto; padding:0 20px; box-sizing:border-box
+• ВСЕГДА используй CSS Grid: display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px
+• Каждый тариф — карточка: box-sizing:border-box; overflow:hidden; min-width:0 (чтобы не вылезала за сетку)
+  1. Название тарифа (h3, font-size:1.2rem)
+  2. Цена — КОНТРОЛИРУЙ РАЗМЕР, чтобы НЕ переносилась и НЕ вылезала: font-size:clamp(1.5rem,3vw,2.2rem); line-height:1.1; white-space:nowrap; color:var(--c-accent); font-weight:800
+     ⚠️ Если цена длинная (>6 цифр, напр. "от 1 290 000 ₽") — уменьши шрифт до clamp(1.3rem,2.5vw,1.8rem). Цена ВСЕГДА в одну строку, без переноса.
+  3. Период ("за дом 6×6 м", "в месяц", "за сеанс") — маленький текст под ценой, font-size:0.85rem; color:#94a3b8
   4. Разделитель <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
   5. Список включённого: <ul> без маркеров, каждый <li> с галочкой SVG или ✓
   6. CTA-кнопка на всю ширину: width:100%; padding:14px; background:var(--c-accent)
-• Средний тариф выделяй: box-shadow:0 8px 40px rgba(0,0,0,0.15); transform:scale(1.03); border:2px solid var(--c-accent)
+• Средний тариф выделяй ТОЛЬКО рамкой и тенью: box-shadow:0 8px 40px rgba(0,0,0,0.15); border:2px solid var(--c-accent). 🚫 НЕ используй transform:scale() — он ломает вёрстку и вылезает за край.
 • НЕ делай таблицы, НЕ делай простой список — только карточки в grid
 
 ОТЗЫВЫ:

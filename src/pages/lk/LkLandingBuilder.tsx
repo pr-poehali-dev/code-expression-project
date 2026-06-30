@@ -228,12 +228,39 @@ const EDITOR_SCRIPT = `<script>
     }, '*');
   }, true);
 
-  // Вставка загруженного фото в слот (base64 из родителя)
-  function applyPhoto(slot, src) {
-    if (!slot) return;
-    slot.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;" />';
-    slot.classList.add('has-photo');
-    slot.style.border = 'none'; slot.style.outline = 'none'; slot.style.overflow = 'hidden';
+  // Вставка загруженного фото в слот/элемент (base64 из родителя)
+  function applyPhoto(target, src) {
+    if (!target) return false;
+    var img = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;" />';
+    var t = target.tagName ? target.tagName.toLowerCase() : '';
+    if (t === 'img') {
+      // меняем сам src картинки
+      target.src = src;
+      target.style.objectFit = 'cover';
+    } else {
+      // контейнер/слот — заполняем картинкой
+      target.innerHTML = img;
+      target.classList.add('has-photo');
+      target.style.border = 'none'; target.style.outline = 'none'; target.style.overflow = 'hidden';
+      if (!target.style.minHeight && target.offsetHeight < 60) target.style.minHeight = '220px';
+    }
+    return true;
+  }
+
+  // Найти куда вставить фото в выделенном элементе
+  function findPhotoTarget() {
+    if (!picked) return null;
+    // 1. сам слот
+    var slot = picked.matches('[data-photo-slot]') ? picked : picked.closest('[data-photo-slot]');
+    if (slot) return slot;
+    // 2. img внутри/сам
+    if (picked.tagName && picked.tagName.toLowerCase() === 'img') return picked;
+    var innerImg = picked.querySelector && picked.querySelector('img');
+    if (innerImg) return innerImg;
+    var innerSlot = picked.querySelector && picked.querySelector('[data-photo-slot]');
+    if (innerSlot) return innerSlot;
+    // 3. сам выделенный контейнер
+    return picked;
   }
 
   // Снятие выделения / вставка фото по команде из родителя
@@ -245,11 +272,16 @@ const EDITOR_SCRIPT = `<script>
       if (b) b.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     if (e.data.type === 'landing-slot-replace' && e.data.src) {
-      // ищем нужный слот; если не нашли — берём выделенный элемент
       var slot = document.querySelector('[data-photo-slot="' + e.data.slotId + '"]');
-      if (!slot && picked) slot = picked.closest && (picked.closest('[data-photo-slot]') || (picked.matches('[data-photo-slot]') ? picked : null));
+      if (!slot && picked) slot = findPhotoTarget();
       applyPhoto(slot, e.data.src);
       window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
+    }
+    // Прямая вставка фото в выделенный элемент (без ИИ)
+    if (e.data.type === 'landing-photo-into-picked' && e.data.src) {
+      var ok = applyPhoto(findPhotoTarget(), e.data.src);
+      window.parent.postMessage({ type: 'landing-photo-result', ok: ok }, '*');
+      if (ok) window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
     }
   });
 
@@ -269,10 +301,14 @@ function buildFullHtml(blocks: LandingBlock[], style: LandingStyle, privacyHtmlB
   const root = `<style id="root-vars">
 :root{--c-primary:${style.primary};--c-accent:${style.accent};--c-dark:${style.dark};--c-light:${style.light};--c-text:${style.text};--font-heading:${hf};--font-body:${bf};}
 *{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
-body{font-family:var(--font-body);color:var(--c-text);background:var(--c-light);}
+html{scroll-behavior:smooth;overflow-x:hidden;}
+body{font-family:var(--font-body);color:var(--c-text);background:var(--c-light);overflow-x:hidden;max-width:100vw;}
 h1,h2,h3,h4{font-family:var(--font-heading);}
 .container{max-width:1200px;margin:0 auto;padding:0 20px;}
+/* Защита от горизонтального выезда блоков за экран */
+[data-block-id]{max-width:100%;overflow-x:hidden;}
+[data-block-id] img,[data-block-id] iframe,[data-block-id] video{max-width:100%;}
+img{max-width:100%;}
 @import url('https://fonts.googleapis.com/css2?family=${gfonts}&display=swap');
 </style>`;
   const htmlParts = blocks.map(b => `<div data-block-id="${b.id}" data-block-label="${b.label}">${b.html}</div>`).join("\n");
@@ -1366,6 +1402,11 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       setFloatChatInput("");
       setFloatChatPhoto(null);
     }
+    // Результат прямой вставки фото: если не нашли куда — снимаем выделение
+    if (e.data?.type === "landing-photo-result") {
+      iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
+      setSelectedBlock(null);
+    }
   }, []);  
 
   useEffect(() => {
@@ -1445,6 +1486,19 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   async function sendFloatChat() {
     const text = floatChatInput.trim();
     if ((!text && !floatChatPhoto) || floatChatLoading || !selectedBlock) return;
+
+    // Если прикреплено фото и НЕТ текстовой команды — вставляем напрямую в выделенный элемент
+    // (мгновенно, без ИИ и без списания энергии)
+    if (floatChatPhoto && !text) {
+      pushUndo(blocks);
+      iframeRef.current?.contentWindow?.postMessage(
+        { type: "landing-photo-into-picked", src: floatChatPhoto }, "*"
+      );
+      setFloatChatInput("");
+      setFloatChatPhoto(null);
+      return;
+    }
+
     setFloatChatLoading(true);
     const taskText = text || "Вставь это фото в выделенное место";
     try {
@@ -2816,13 +2870,19 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                     ))}
                   </div>
 
-                  {/* Превью прикреплённого фото */}
+                  {/* Превью прикреплённого фото + кнопка мгновенной вставки */}
                   {floatChatPhoto && (
                     <div style={{ padding: "8px 12px 0", display: "flex", alignItems: "center", gap: 8 }}>
-                      <img src={floatChatPhoto} alt="" style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 8, border: "1px solid #e0e7ff" }} />
-                      <span style={{ fontSize: 11, color: "#6366f1", fontWeight: 600, fontFamily: "Montserrat,sans-serif" }}>Фото прикреплено</span>
-                      <button onClick={() => setFloatChatPhoto(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}>
-                        <Icon name="X" size={12} style={{ color: "#94a3b8" }} />
+                      <img src={floatChatPhoto} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 8, border: "1px solid #e0e7ff", flexShrink: 0 }} />
+                      <button onClick={sendFloatChat} disabled={floatChatLoading} style={{
+                        flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                        padding: "9px 12px", borderRadius: 9, border: "none", background: "#16a34a", color: "#fff",
+                        fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif",
+                      }}>
+                        <Icon name="ImageDown" size={14} /> Вставить фото сюда
+                      </button>
+                      <button onClick={() => setFloatChatPhoto(null)} title="Убрать фото" style={{ background: "#f1f5f9", border: "none", borderRadius: 8, width: 30, height: 30, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Icon name="X" size={13} style={{ color: "#94a3b8" }} />
                       </button>
                     </div>
                   )}
