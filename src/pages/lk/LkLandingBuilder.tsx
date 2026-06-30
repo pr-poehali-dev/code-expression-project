@@ -408,35 +408,78 @@ ym(${seo.metrikaId},"init",{clickmap:true,trackLinks:true,accurateTrackBounce:tr
 (function(){
   var UID = ${userId};
   var SUBMIT_URL = '${FORM_SUBMIT_URL}';
+
+  // Красивая модалка благодарности
+  function showThanks(clientName) {
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);animation:lndFadeIn 0.25s ease';
+    var firstName = clientName ? (', ' + clientName.split(' ')[0]) : '';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#fff;border-radius:20px;max-width:420px;width:100%;padding:40px 36px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.18);animation:lndSlideUp 0.3s ease';
+    box.innerHTML = '<div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;color:#fff;font-weight:700">✓</div>'
+      + '<h2 style="margin:0 0 10px;font-size:22px;font-weight:800;color:#0f172a">Спасибо' + firstName + '!</h2>'
+      + '<p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6">Ваша заявка принята.<br>Мы свяжемся с вами в ближайшее время.</p>';
+    var closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Хорошо';
+    closeBtn.style.cssText = 'padding:12px 32px;border-radius:10px;border:none;background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;font-size:15px;font-weight:700;cursor:pointer;';
+    closeBtn.onclick = function(){ if(overlay.parentNode) overlay.remove(); };
+    box.appendChild(closeBtn);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e){ if(e.target === overlay) overlay.remove(); });
+    setTimeout(function(){ if(overlay.parentNode) overlay.remove(); }, 8000);
+  }
+
+  // Стили анимаций
+  var st = document.createElement('style');
+  st.textContent = '@keyframes lndFadeIn{from{opacity:0}to{opacity:1}}@keyframes lndSlideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}';
+  document.head.appendChild(st);
+
   document.addEventListener('submit', function(e){
     var form = e.target;
     if(!form || form.tagName !== 'FORM') return;
     e.preventDefault();
     var btn = form.querySelector('button[type="submit"],input[type="submit"]');
     var origText = btn ? (btn.textContent || btn.value) : '';
-    if(btn) { btn.textContent = 'Отправляю...'; btn.disabled = true; }
+    var origBg = btn ? btn.style.background : '';
+    if(btn){ btn.textContent = 'Отправляю…'; btn.disabled = true; btn.style.opacity = '0.7'; }
+
+    // Собираем поля — используем label как ключ, иначе placeholder/name
     var fields = {};
+    var clientName = '';
     var els = form.elements;
-    for(var i=0;i<els.length;i++){
+    for(var i = 0; i < els.length; i++){
       var el = els[i];
-      if(el.type === 'submit' || el.type === 'button' || el.type === 'checkbox' || !el.value) continue;
-      var key = el.placeholder || el.name || el.id || ('Поле ' + (i+1));
-      fields[key] = el.value;
+      if(el.type === 'submit' || el.type === 'button' || el.type === 'checkbox' || !el.name) continue;
+      var val = (el.value || '').trim();
+      if(!val) continue;
+      // Ищем label для этого поля
+      var label = '';
+      if(el.id){ var lb = form.querySelector('label[for="'+el.id+'"]'); if(lb) label = lb.textContent.trim().replace(/\\s*\\*\\s*$/, ''); }
+      if(!label && el.id){ var lb2 = document.querySelector('label[for="'+el.id+'"]'); if(lb2) label = lb2.textContent.trim().replace(/\\s*\\*\\s*$/, ''); }
+      if(!label){ var wrap = el.closest('.form-group,.field-wrap'); if(wrap){ var lb3 = wrap.querySelector('label'); if(lb3) label = lb3.textContent.trim().replace(/\\s*\\*\\s*$/, ''); } }
+      if(!label) label = el.placeholder || el.name || ('Поле '+(i+1));
+      fields[label] = val;
+      // Запоминаем имя для модалки
+      var ll = label.toLowerCase();
+      if(!clientName && (ll.includes('имя') || ll.includes('name') || ll.includes('обращ') || ll.includes('как к вам'))) clientName = val;
     }
+
     fetch(SUBMIT_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({uid: UID, fields: fields, domain: window.location.hostname})
     }).then(function(r){ return r.json(); }).then(function(){
       form.reset();
-      if(btn){ btn.textContent = origText; btn.disabled = false; }
-      var msg = document.createElement('div');
-      msg.textContent = 'Спасибо! Ваша заявка отправлена.';
-      msg.style.cssText = 'margin-top:12px;padding:12px 16px;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:8px;color:#065f46;font-size:14px;font-weight:600;';
-      form.appendChild(msg);
-      setTimeout(function(){ msg.remove(); }, 5000);
+      if(btn){ btn.textContent = origText; btn.disabled = false; btn.style.opacity = ''; btn.style.background = origBg; }
+      showThanks(clientName);
     }).catch(function(){
-      if(btn){ btn.textContent = origText; btn.disabled = false; }
+      if(btn){ btn.textContent = origText; btn.disabled = false; btn.style.opacity = ''; }
+      var errMsg = document.createElement('div');
+      errMsg.textContent = 'Ошибка отправки. Попробуйте ещё раз или позвоните нам.';
+      errMsg.style.cssText = 'margin-top:10px;padding:10px 14px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;color:#991b1b;font-size:13px;font-weight:600;';
+      form.appendChild(errMsg);
+      setTimeout(function(){ if(errMsg.parentNode) errMsg.remove(); }, 6000);
     });
   });
 })();

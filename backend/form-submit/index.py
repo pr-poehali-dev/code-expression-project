@@ -94,35 +94,87 @@ def handler(event: dict, context) -> dict:
         conn.commit()
 
         # Формируем письмо
+        import datetime as _dt
+        now_str = _dt.datetime.now().strftime("%d.%m.%Y в %H:%M")
+
+        # Определяем имя и телефон клиента для заголовка
+        client_name = ""
+        client_phone = ""
+        for k, v in fields.items():
+            kl = k.lower()
+            if not client_name and any(w in kl for w in ["имя", "name", "обращ", "клиент", "контакт", "как к вам"]):
+                client_name = v
+            if not client_phone and any(w in kl for w in ["тел", "phone", "моб", "звон", "+7", "номер"]):
+                client_phone = v
+
+        # Строки таблицы с данными
+        field_icons = {
+            "имя": "👤", "name": "👤", "обращ": "👤", "клиент": "👤",
+            "тел": "📞", "phone": "📞", "моб": "📞", "номер": "📞",
+            "email": "✉️", "почт": "✉️", "mail": "✉️",
+            "услуг": "💼", "service": "💼",
+            "вопрос": "💬", "коммент": "💬", "пожелан": "💬", "сообщен": "💬",
+            "дат": "📅", "date": "📅", "врем": "📅",
+            "гост": "👥", "кол-во": "👥",
+        }
+
+        def get_icon(label):
+            ll = label.lower()
+            for kw, ico in field_icons.items():
+                if kw in ll:
+                    return ico
+            return "•"
+
         rows_html = "".join(
-            f'<tr>'
-            f'<td style="padding:8px 12px;color:#64748b;font-size:14px;white-space:nowrap;border-bottom:1px solid #f1f5f9">{k}</td>'
-            f'<td style="padding:8px 12px;font-size:14px;font-weight:600;color:#0f172a;border-bottom:1px solid #f1f5f9">{v}</td>'
+            f'<tr style="border-bottom:1px solid #f1f5f9">'
+            f'<td style="padding:12px 16px;color:#64748b;font-size:13px;white-space:nowrap;width:40%;vertical-align:top">'
+            f'<span style="margin-right:6px">{get_icon(k)}</span>{k}</td>'
+            f'<td style="padding:12px 16px;font-size:14px;font-weight:600;color:#0f172a;vertical-align:top">{v}</td>'
             f'</tr>'
             for k, v in fields.items() if v
         )
 
-        source_row = (
-            f'<tr><td style="padding:8px 12px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9">Страница</td>'
-            f'<td style="padding:8px 12px;font-size:13px;color:#94a3b8;border-bottom:1px solid #f1f5f9">{source_domain}</td></tr>'
-        ) if source_domain else ""
+        phone_btn = ""
+        if client_phone:
+            clean_phone = "".join(c for c in client_phone if c in "0123456789+")
+            phone_btn = f'<a href="tel:{clean_phone}" style="display:inline-block;margin-top:8px;padding:10px 22px;background:#10b981;color:#fff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:700;">📞 Позвонить {client_phone}</a>'
 
-        html_body = f"""
-<div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;background:#f8fafc;padding:24px">
-  <div style="background:#0f172a;padding:24px 28px;border-radius:12px 12px 0 0">
-    <h2 style="color:#fff;margin:0;font-size:18px;font-weight:700">Новая заявка с лендинга</h2>
-    <p style="color:rgba(255,255,255,0.5);margin:4px 0 0;font-size:13px">Лид #{lead_id}</p>
-  </div>
-  <div style="background:#fff;padding:0;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none">
-    <table cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse">
+        source_line = f'<p style="margin:4px 0 0;font-size:12px;color:rgba(255,255,255,0.45)">🌐 {source_domain}</p>' if source_domain else ""
+        client_line = f"Заявка от <b>{client_name}</b>" if client_name else "Новая заявка"
+
+        html_body = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 16px">
+<tr><td align="center">
+<table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%">
+
+  <!-- Шапка -->
+  <tr><td style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:16px 16px 0 0;padding:28px 32px">
+    <p style="margin:0 0 4px;font-size:11px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.4);text-transform:uppercase">Промт Диалог · Лид #{lead_id}</p>
+    <h1 style="margin:0 0 6px;font-size:22px;font-weight:800;color:#fff;line-height:1.2">{client_line}</h1>
+    <p style="margin:0;font-size:13px;color:rgba(255,255,255,0.5)">🕐 {now_str}{("  " + source_line) if source_domain else ""}</p>
+  </td></tr>
+
+  <!-- Данные формы -->
+  <tr><td style="background:#fff;padding:0;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0">
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
       {rows_html}
-      {source_row}
     </table>
-    <div style="padding:16px 12px;border-top:1px solid #f1f5f9">
-      <p style="margin:0;color:#94a3b8;font-size:12px">Заявка принята через Промт Диалог · С баланса списано {LEAD_COST} ⚡</p>
-    </div>
-  </div>
-</div>
+  </td></tr>
+
+  <!-- Кнопка и футер -->
+  <tr><td style="background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 16px 16px;padding:20px 32px 28px">
+    {phone_btn}
+    <p style="margin:20px 0 0;font-size:12px;color:#94a3b8;border-top:1px solid #f1f5f9;padding-top:16px">
+      Заявка получена через <b>Промт Диалог</b> · С баланса списано {LEAD_COST} ⚡<br>
+      Ответьте клиенту в течение часа — это увеличивает конверсию в 3 раза.
+    </p>
+  </td></tr>
+
+</table>
+</td></tr></table>
+</body></html>
 """
 
         smtp_password = os.environ.get("SMTP_PASSWORD", "")
