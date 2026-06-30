@@ -790,13 +790,15 @@ HERO (главный экран):
 
 УСЛУГИ / КАРТОЧКИ — СТРОГИЕ ПРАВИЛА КНОПОК И МОДАЛОК:
 • Grid: grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px
+• ВЫРАВНИВАНИЕ КАРТОЧЕК: каждая карточка ОБЯЗАНА иметь одинаковую высоту через display:flex; flex-direction:column. Контент (иконка, h3, p, цена) растягивается flex:1, а .service-actions — ВСЕГДА прибит к нижнему краю через margin-top:auto. Это гарантирует что кнопки всегда на одной высоте независимо от длины текста.
 • Каждая карточка: иконка SVG (тематическая, 48×48) + заголовок + описание + цена (если есть) + РОВНО ДВЕ КНОПКИ
 • ОБЯЗАТЕЛЬНО: в .service-actions всегда ДВЕ кнопки ОДИНАКОВОГО размера (width:100%):
   1. <button class="service-btn-primary" onclick="document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})">Записаться</button> — background:var(--c-accent); color:#fff
   2. <button class="service-btn-secondary" onclick="openServiceModal('slug')">Подробнее</button> — border:2px solid var(--c-accent); background:transparent; color:var(--c-accent)
 • ЗАПРЕЩЕНО использовать <a> вместо <button> для этих действий — ТОЛЬКО <button>
 • «Подробнее» ВСЕГДА открывает модальное окно (НЕ ссылку, НЕ переход), через JS-функцию openServiceModal('slug')
-• Модальное окно содержит: фото-слот (aspect-ratio:16/9) + название + подробное описание (4-6 предложений) + цена + кнопка «Записаться на услугу» (скролл к #contact) + закрытие по ✕ и по клику на оверлей
+• Модальное окно: ОБЯЗАТЕЛЬНО скрыто по умолчанию (display:none или opacity:0;pointer-events:none) и показывается только при вызове openServiceModal(). НЕ открывать модалку при загрузке страницы!
+• Модальное окно содержит: фото-слот (aspect-ratio:16/9) + название + подробное описание (4-6 предложений) + цена + кнопка «Записаться на услугу» (скролл к #contact) + закрытие по ✕ и по клику на оверлей + закрытие по Escape
 • Все данные модалок хранятся в JS-объекте SVC_DATA
 • Выделенная карточка (popular/recommended): border:2px solid var(--c-accent); position:relative + бейдж "Популярное"
 
@@ -824,6 +826,23 @@ PRICING (ЦЕНЫ) — ОСОБЫЕ ПРАВИЛА:
 • Валидация: проверка телефона, показ ошибки под полем
 • После отправки: скрыть форму, показать блок "Спасибо! Позвоним в течение 15 минут"
 • Если есть адрес — добавь placeholder для карты: <div data-ymap-block style="height:280px;border-radius:16px;overflow:hidden;background:#e9eef2;display:flex;align-items:center;justify-content:center">Карта загружается...</div>
+• ОБЯЗАТЕЛЬНО: перед кнопкой отправки добавляй чекбокс согласия с политикой конфиденциальности:
+  <label class="privacy-check"><input type="checkbox" id="privacy-cb" required> Я согласен с <button type="button" class="privacy-link" onclick="document.getElementById('privacy-modal').classList.add('active')">политикой конфиденциальности</button></label>
+• Кнопка отправки disabled пока чекбокс не отмечен (проверяй через JS + required атрибут)
+• Модалка политики конфиденциальности (скрытая, показывается по клику на ссылку):
+  <div id="privacy-modal" class="privacy-modal-overlay" onclick="if(event.target===this)this.classList.remove('active')">
+    <div class="privacy-modal-box">
+      <button onclick="document.getElementById('privacy-modal').classList.remove('active')" class="privacy-modal-close">✕</button>
+      <h3>Политика конфиденциальности</h3>
+      <div class="privacy-modal-text">
+        <p>Настоящая политика определяет порядок обработки персональных данных.</p>
+        <p>Собираемые данные: имя, номер телефона, сообщение. Данные используются исключительно для связи с вами.</p>
+        <p>Данные не передаются третьим лицам. Хранение — в соответствии с законодательством РФ.</p>
+        <p>Отправляя форму, вы даёте согласие на обработку персональных данных.</p>
+      </div>
+    </div>
+  </div>
+• CSS для элементов политики: .privacy-check{display:flex;align-items:center;gap:8px;font-size:13px;color:#64748b;margin-bottom:14px;cursor:pointer} .privacy-link{background:none;border:none;color:var(--c-accent);cursor:pointer;font-size:13px;text-decoration:underline;padding:0} .privacy-modal-overlay{display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)} .privacy-modal-overlay.active{display:flex} .privacy-modal-box{background:#fff;border-radius:16px;max-width:540px;width:100%;max-height:80vh;overflow-y:auto;padding:32px;position:relative} .privacy-modal-close{position:absolute;top:14px;right:16px;width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,0.08);cursor:pointer;font-size:16px} .privacy-modal-text p{font-size:14px;line-height:1.7;color:#475569;margin-bottom:12px}
 
 HEADER/NAV:
 • position:sticky; top:0; z-index:100; backdrop-filter:blur(12px); background:rgba(255,255,255,0.9)
@@ -848,8 +867,13 @@ HEADER/NAV:
 2. JS только в <script data-block="ИМЯ_БЛОКА"> — без внешних библиотек
 3. Цвета ТОЛЬКО через CSS-переменные — никаких #hex и rgb() напрямую
 4. Фото-слоты: <div class="photo-slot" data-photo-slot="уникальное-имя" style="..."> + внутри <div class="photo-placeholder">SVG + подпись</div>
+   • Каждый photo-slot ОБЯЗАН быть кликабельным — система автоматически подключает обработчик загрузки фото
+   • Подпись внутри placeholder: "Загрузить фото" или конкретная подсказка ("Фото команды", "Фото услуги")
+   • После загрузки фото — плейсхолдер скрывается, фото показывается через <img> с object-fit:cover
+   • data-photo-slot значение должно быть уникальным в рамках всего лендинга (добавляй суффикс блока: "hero-bg", "about-team", "svc-massage")
 5. Якорные id: hero, about, services, pricing, gallery, reviews, contact, faq
-6. Верни ТОЛЬКО HTML-фрагмент. Без <!DOCTYPE>, без <html>, без <head>, без markdown ```, без пояснений."""
+6. ПРОВЕРЯЙ ИНТЕРАКТИВНОСТЬ: все кнопки, ссылки, чекбоксы, фото-плашки должны работать. Ни одного декоративного/нефункционального элемента без обработчика.
+7. Верни ТОЛЬКО HTML-фрагмент. Без <!DOCTYPE>, без <html>, без <head>, без markdown ```, без пояснений."""
 
 SYSTEM_EDIT_BLOCK = """Ты — senior frontend-разработчик и профессиональный веб-копирайтер. Пользователь кликнул на блок лендинга и написал тебе простым языком что нужно сделать. Выполни задание точно и буквально.
 
