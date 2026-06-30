@@ -284,6 +284,19 @@ const EDITOR_SCRIPT = `<script>
       window.parent.postMessage({ type: 'landing-photo-result', ok: ok }, '*');
       if (ok) window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
     }
+    // Прямые CSS-операции над выделенным фото (без ИИ)
+    if (e.data.type === 'landing-style-photo' && picked) {
+      var photoTarget = findPhotoTarget();
+      if (!photoTarget) photoTarget = picked;
+      var op = e.data.op;
+      var el = photoTarget.tagName && photoTarget.tagName.toLowerCase() === 'img' ? photoTarget : photoTarget;
+      if (op === 'round')   { el.style.borderRadius = '50%'; el.style.overflow = 'hidden'; }
+      if (op === 'rounded') { el.style.borderRadius = '16px'; el.style.overflow = 'hidden'; }
+      if (op === 'square')  { el.style.borderRadius = '0'; }
+      if (op === 'cover')   { el.style.objectFit = 'cover'; if (el.tagName && el.tagName.toLowerCase() !== 'img') el.style.backgroundSize = 'cover'; }
+      if (op === 'contain') { el.style.objectFit = 'contain'; }
+      window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
+    }
     // Вставка / удаление логотипа в header (без ИИ)
     if (e.data.type === 'landing-set-logo') {
       var header = document.querySelector('[data-block-id="header"]');
@@ -3062,11 +3075,31 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                     </button>
                   </div>
 
-                  {/* Подсказки быстрых команд — только редактирование текста и элементов */}
+                  {/* Быстрые действия для фото — без ИИ, мгновенно */}
+                  {selectedBlock.kind === "photo" && (
+                    <div style={{ padding: "8px 12px 0" }}>
+                      <div style={{ fontSize: 10, color: "#94a3b8", fontFamily: "Montserrat,sans-serif", marginBottom: 5 }}>ФОРМА ФОТО (без ИИ):</div>
+                      <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                        {([
+                          { op: "round",   label: "⬤ Круглое" },
+                          { op: "rounded", label: "▢ Скруглить" },
+                          { op: "square",  label: "■ Прямоугольник" },
+                          { op: "cover",   label: "↔ По размеру" },
+                        ] as { op: string; label: string }[]).map(({ op, label }) => (
+                          <button key={op}
+                            onClick={() => iframeRef.current?.contentWindow?.postMessage({ type: "landing-style-photo", op }, "*")}
+                            style={{ padding: "4px 10px", borderRadius: 20, border: "1px solid #d1fae5", background: "#f0fdf4", color: "#065f46", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}>
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Подсказки быстрых команд для ИИ — только текст/кнопки */}
+                  {selectedBlock.kind !== "photo" && (
                   <div style={{ display: "flex", gap: 6, padding: "10px 12px 0", flexWrap: "wrap" }}>
-                    {(selectedBlock.kind === "photo"
-                      ? ["Сделай фото круглым", "Увеличь фото", "Скругли углы"]
-                      : selectedBlock.kind === "button"
+                    {(selectedBlock.kind === "button"
                       ? ["Поменяй текст кнопки", "Сделай кнопку ярче", "Другой цвет кнопки"]
                       : selectedBlock.kind === "heading" || selectedBlock.kind === "text" || selectedBlock.kind === "subheading"
                       ? ["Перепиши этот текст", "Сделай короче", "Сделай убедительнее", "Крупнее шрифт"]
@@ -3079,6 +3112,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                       }}>{tip}</button>
                     ))}
                   </div>
+                  )}
 
                   {/* Для header-блока: вставка/удаление логотипа из Документов */}
                   {selectedBlock.id === "header" && (
@@ -3141,6 +3175,9 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                   {/* Для фото-слота: выбор Фото или Видео */}
                   {selectedBlock.kind === "photo" && !floatChatPhoto && (
                     <div style={{ padding: "10px 12px 0" }}>
+                      <div style={{ fontSize: 10, color: "#94a3b8", fontFamily: "Montserrat,sans-serif", marginBottom: 6, lineHeight: 1.5 }}>
+                        Для витрины — кликайте на каждую плашку отдельно и загружайте своё фото.
+                      </div>
                       <div style={{ display: "flex", gap: 6 }}>
                         <button onClick={() => { setShowFloatVideo(false); floatPhotoInputRef.current?.click(); }} style={{
                           flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
