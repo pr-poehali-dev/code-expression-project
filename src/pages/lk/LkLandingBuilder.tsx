@@ -117,221 +117,128 @@ const DEFAULT_STYLE: LandingStyle = {
   headingFont: "Playfair Display", bodyFont: "Montserrat",
 };
 
-// Editor script: contenteditable + photo-slot click + image replace → postMessage
+// Editor script: точное выделение ЛЮБОГО элемента → плавающий ИИ-чат в родителе
 const EDITOR_SCRIPT = `<script>
 (function() {
   var style = document.createElement('style');
   style.textContent = \`
-    [contenteditable]:hover { outline: 2px dashed #0ea5e9 !important; outline-offset: 2px !important; cursor: text !important; }
-    [contenteditable]:focus { outline: 2px solid #0ea5e9 !important; outline-offset: 2px !important; background: rgba(14,165,233,0.04) !important; }
-    [data-photo-slot] { position: relative !important; cursor: pointer !important; }
-    [data-photo-slot]:hover { outline: 3px solid #f59e0b !important; outline-offset: 0 !important; }
-    [data-photo-slot]::after { content: '📷 Загрузить фото'; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.65); color: #fff; font-size: 12px; padding: 5px 12px; border-radius: 20px; pointer-events: none; white-space: nowrap; opacity: 0; transition: opacity 0.2s; z-index: 10; }
-    [data-photo-slot]:hover::after { opacity: 1 !important; }
-    [data-photo-slot].has-photo::after { content: '✏️ Изменить фото'; }
-    .lnd-img-menu { position: absolute; z-index: 999; background: #1e293b; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.35); padding: 6px; display: flex; flex-direction: column; gap: 2px; min-width: 160px; }
-    .lnd-img-menu button { background: none; border: none; color: #f1f5f9; font-size: 13px; font-weight: 500; padding: 9px 14px; border-radius: 8px; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 8px; }
-    .lnd-img-menu button:hover { background: rgba(255,255,255,0.1); }
-    .lnd-img-menu button.danger { color: #f87171; }
-    .lnd-img-menu button.danger:hover { background: rgba(248,113,113,0.12); }
-    [data-block-id] { cursor: default; transition: outline 0.15s; }
-    [data-block-id]:hover { outline: 2px solid #6366f130 !important; outline-offset: -2px; }
-    [data-block-id].lnd-selected { outline: 3px solid #6366f1 !important; outline-offset: -3px; }
-    .lnd-block-badge { position: absolute; top: 8px; left: 8px; background: #6366f1; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; pointer-events: none; z-index: 50; font-family: sans-serif; letter-spacing: 0.3px; }
+    * { scroll-margin-top: 80px; }
+    .lnd-hover { outline: 2px dashed #6366f1 !important; outline-offset: 2px !important; cursor: pointer !important; }
+    .lnd-picked { outline: 3px solid #6366f1 !important; outline-offset: 2px !important; box-shadow: 0 0 0 6px rgba(99,102,241,0.15) !important; border-radius: 4px; }
+    .lnd-tag { position: absolute; z-index: 99999; background: #6366f1; color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 0 6px 6px 0; pointer-events: none; font-family: -apple-system,sans-serif; letter-spacing: 0.2px; white-space: nowrap; box-shadow: 0 4px 14px rgba(99,102,241,0.4); transform: translateY(-100%); }
   \`;
   document.head.appendChild(style);
 
-  // contenteditable для текста
-  var tags = ['h1','h2','h3','h4','p','span','li','button','label','td'];
-  tags.forEach(function(tag) {
-    document.querySelectorAll(tag).forEach(function(el) {
-      if (!el.querySelector('img') && !el.closest('script') && !el.closest('style') && !el.closest('[data-photo-slot]')) {
-        el.setAttribute('contenteditable','true');
-        el.setAttribute('spellcheck','false');
-      }
-    });
+  var picked = null;       // выбранный DOM-элемент
+  var hovered = null;
+  var tagEl = null;
+
+  // Понятное имя для типа элемента
+  function elKind(el) {
+    var t = el.tagName ? el.tagName.toLowerCase() : '';
+    if (el.matches('[data-photo-slot]') || (t === 'img')) return 'photo';
+    if (el.closest('[data-photo-slot]')) return 'photo';
+    if (t === 'h1' || t === 'h2') return 'heading';
+    if (t === 'h3' || t === 'h4') return 'subheading';
+    if (t === 'p') return 'text';
+    if (t === 'button' || t === 'a') return 'button';
+    if (t === 'li') return 'list-item';
+    if (t === 'ul' || t === 'ol') return 'list';
+    if (t === 'form') return 'form';
+    if (t === 'input' || t === 'textarea') return 'field';
+    if (t === 'svg' || el.closest('svg')) return 'icon';
+    if (el.matches('[data-block-id]')) return 'section';
+    return 'element';
+  }
+  var KIND_LABEL = {
+    photo:'📷 Фото', heading:'📝 Заголовок', subheading:'📝 Подзаголовок',
+    text:'📄 Текст', button:'🔘 Кнопка', 'list-item':'• Пункт', list:'☰ Список',
+    form:'📋 Форма', field:'⌨️ Поле', icon:'✦ Иконка', section:'▦ Секция', element:'◻ Элемент'
+  };
+
+  // Поднимаемся до осмысленного элемента (фото-слот целиком, карточка и т.п.)
+  function resolveTarget(el) {
+    if (!el || el === document.body) return null;
+    var slot = el.closest('[data-photo-slot]');
+    if (slot) return slot;
+    // если кликнули по svg-пути — берём весь svg
+    if (el.tagName && el.tagName.toLowerCase() !== 'svg' && el.closest('svg')) return el.closest('svg');
+    return el;
+  }
+
+  function getBlock(el) { return el.closest && el.closest('[data-block-id]'); }
+
+  function showTag(el) {
+    if (!tagEl) { tagEl = document.createElement('div'); tagEl.className = 'lnd-tag'; document.body.appendChild(tagEl); }
+    tagEl.textContent = KIND_LABEL[elKind(el)] || '◻ Элемент';
+    var r = el.getBoundingClientRect();
+    tagEl.style.left = (r.left + window.scrollX) + 'px';
+    tagEl.style.top = (r.top + window.scrollY) + 'px';
+    tagEl.style.display = 'block';
+  }
+  function hideTag() { if (tagEl) tagEl.style.display = 'none'; }
+
+  function clearPicked() {
+    document.querySelectorAll('.lnd-picked').forEach(function(e){ e.classList.remove('lnd-picked'); });
+    document.querySelectorAll('[data-lnd-target]').forEach(function(e){ e.removeAttribute('data-lnd-target'); });
+    picked = null;
+    hideTag();
+    window.parent.postMessage({ type: 'landing-deselect-ack' }, '*');
+  }
+
+  // Hover-подсветка
+  document.addEventListener('mouseover', function(e) {
+    var t = resolveTarget(e.target);
+    if (!t || t === picked || !getBlock(t)) return;
+    if (hovered && hovered !== t) hovered.classList.remove('lnd-hover');
+    hovered = t; t.classList.add('lnd-hover');
+  });
+  document.addEventListener('mouseout', function(e) {
+    if (hovered) { hovered.classList.remove('lnd-hover'); hovered = null; }
   });
 
-  // Всплывающее меню для фото
-  var activeMenu = null;
-  function closeMenu() {
-    if (activeMenu) { activeMenu.remove(); activeMenu = null; }
-  }
+  // Клик — выбираем элемент
   document.addEventListener('click', function(e) {
-    if (activeMenu && !activeMenu.contains(e.target)) closeMenu();
-  });
+    var t = resolveTarget(e.target);
+    if (!t) { return; }
+    var block = getBlock(t);
+    if (!block) { return; }
+    e.preventDefault(); e.stopPropagation();
+    if (hovered) { hovered.classList.remove('lnd-hover'); hovered = null; }
+    if (picked === t) return;
+    clearPicked();
+    picked = t;
+    t.classList.add('lnd-picked');
+    t.setAttribute('data-lnd-target', '1');
+    showTag(t);
 
-  function showImgMenu(x, y, onReplace, onDelete) {
-    closeMenu();
-    var menu = document.createElement('div');
-    menu.className = 'lnd-img-menu';
-    menu.style.left = x + 'px';
-    menu.style.top = y + 'px';
-    var btnReplace = document.createElement('button');
-    btnReplace.innerHTML = '🔄 Заменить фото';
-    btnReplace.onclick = function(e) { e.stopPropagation(); closeMenu(); onReplace(); };
-    var btnDelete = document.createElement('button');
-    btnDelete.className = 'danger';
-    btnDelete.innerHTML = '🗑️ Удалить фото';
-    btnDelete.onclick = function(e) { e.stopPropagation(); closeMenu(); onDelete(); };
-    menu.appendChild(btnReplace);
-    menu.appendChild(btnDelete);
-    document.body.appendChild(menu);
-    activeMenu = menu;
-    // Поправить позицию если выходит за край
-    var rect = menu.getBoundingClientRect();
-    if (rect.right > window.innerWidth - 10) menu.style.left = (window.innerWidth - rect.width - 10) + 'px';
-    if (rect.bottom > window.innerHeight - 10) menu.style.top = (y - rect.height - 8) + 'px';
-  }
-
-  // Обработка photo-slot
-  document.querySelectorAll('[data-photo-slot]').forEach(function(slot) {
-    var slotId = slot.dataset.photoSlot;
-    slot.addEventListener('click', function(e) {
-      e.preventDefault(); e.stopPropagation();
-      var hasPhoto = slot.classList.contains('has-photo');
-      if (hasPhoto) {
-        showImgMenu(e.clientX + window.scrollX, e.clientY + window.scrollY,
-          function() { window.parent.postMessage({ type: 'landing-slot-click', slotId: slotId }, '*'); },
-          function() {
-            slot.innerHTML = slot.dataset.placeholder || '<div class="photo-placeholder" style="text-align:center;color:#94a3b8;padding:20px;"><svg width=32 height=32 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><div style="margin-top:8px;font-size:13px">Нажмите, чтобы загрузить фото</div></div>';
-            slot.classList.remove('has-photo');
-            slot.style.cssText = '';
-            sendHtml();
-          }
-        );
-      } else {
-        window.parent.postMessage({ type: 'landing-slot-click', slotId: slotId }, '*');
-      }
-    });
-  });
-
-  // Клик по любому <img> на лендинге — замена/удаление фото
-  var imgClickTimeout = null;
-  document.querySelectorAll('img').forEach(function(img) {
-    if (img.closest('[data-photo-slot]')) return; // уже обработано выше
-    img.style.cursor = 'pointer';
-    img.setAttribute('title', 'Нажмите чтобы заменить фото');
-    img.addEventListener('click', function(e) {
-      e.preventDefault(); e.stopPropagation();
-      var imgEl = img;
-      showImgMenu(e.clientX + window.scrollX, e.clientY + window.scrollY,
-        function() {
-          // Замена: создаём input, читаем файл, вставляем src
-          var inp = document.createElement('input');
-          inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none';
-          document.body.appendChild(inp);
-          inp.onchange = function() {
-            var file = inp.files[0]; if (!file) return;
-            var reader = new FileReader();
-            reader.onload = function(ev) {
-              var raw = ev.target.result;
-              var tmpImg = new Image();
-              tmpImg.onload = function() {
-                var MAX = 1200;
-                var scale = Math.min(1, MAX / Math.max(tmpImg.width, tmpImg.height));
-                var canvas = document.createElement('canvas');
-                canvas.width = Math.round(tmpImg.width * scale);
-                canvas.height = Math.round(tmpImg.height * scale);
-                var ctx = canvas.getContext('2d');
-                ctx.drawImage(tmpImg, 0, 0, canvas.width, canvas.height);
-                imgEl.src = canvas.toDataURL('image/jpeg', 0.82);
-                sendHtml();
-              };
-              tmpImg.src = raw;
-            };
-            reader.readAsDataURL(file);
-            inp.remove();
-          };
-          inp.click();
-        },
-        function() {
-          // Удаление: скрываем или убираем img
-          var parent = imgEl.parentElement;
-          if (parent && parent.children.length === 1) {
-            parent.style.display = 'none';
-          } else {
-            imgEl.remove();
-          }
-          sendHtml();
-        }
-      );
-    });
-  });
-
-  window.addEventListener('message', function(e) {
-    if (e.data && e.data.type === 'landing-slot-replace') {
-      var slot = document.querySelector('[data-photo-slot="' + e.data.slotId + '"]');
-      if (slot) {
-        slot.dataset.placeholder = slot.innerHTML;
-        slot.innerHTML = '<img src="' + e.data.src + '" style="width:100%;height:100%;object-fit:cover;display:block;" />';
-        slot.classList.add('has-photo');
-        slot.style.border = 'none';
-        slot.style.outline = 'none';
-      }
-      sendHtml();
-    }
-  });
-
-  // ── Выделение блока кликом → плавающий чат в родителе ──────────────────────
-  var selectedBlockEl = null;
-  var selectedBadge = null;
-  function deselectBlock() {
-    if (selectedBlockEl) {
-      selectedBlockEl.classList.remove('lnd-selected');
-      if (selectedBadge) { selectedBadge.remove(); selectedBadge = null; }
-      selectedBlockEl = null;
-    }
-    window.parent.postMessage({ type: 'landing-block-deselect' }, '*');
-  }
-  function selectBlock(block) {
-    if (selectedBlockEl === block) return;
-    deselectBlock();
-    selectedBlockEl = block;
-    block.classList.add('lnd-selected');
-    var badge = document.createElement('div');
-    badge.className = 'lnd-block-badge';
-    badge.textContent = '✏️ ' + (block.getAttribute('data-block-label') || block.getAttribute('data-block-id') || 'Блок');
-    block.appendChild(badge);
-    selectedBadge = badge;
+    // Короткое текстовое описание выбранного
+    var preview = (t.textContent || '').trim().slice(0, 60);
+    var kind = elKind(t);
     window.parent.postMessage({
-      type: 'landing-block-select',
+      type: 'landing-pick',
       blockId: block.getAttribute('data-block-id'),
+      blockLabel: block.getAttribute('data-block-label') || '',
       blockHtml: block.innerHTML,
-      selectedText: window.getSelection ? window.getSelection().toString() : ''
+      kind: kind,
+      kindLabel: KIND_LABEL[kind] || 'Элемент',
+      preview: preview,
+      hasPhoto: kind === 'photo'
     }, '*');
-  }
-  document.querySelectorAll('[data-block-id]').forEach(function(block) {
-    block.style.position = 'relative';
-    // mousedown — срабатывает раньше чем contenteditable получает фокус
-    block.addEventListener('mousedown', function(e) {
-      var inPhotoSlot = e.target.closest && e.target.closest('[data-photo-slot]');
-      if (inPhotoSlot) return;
-      selectBlock(block);
-    });
-    // click — дополнительно на случай тач-устройств
-    block.addEventListener('click', function(e) {
-      var inPhotoSlot = e.target.closest && e.target.closest('[data-photo-slot]');
-      if (inPhotoSlot) return;
-      selectBlock(block);
-    });
-  });
-  // Клик вне блока — снимаем выделение
-  document.addEventListener('mousedown', function(e) {
-    if (selectedBlockEl && !selectedBlockEl.contains(e.target)) deselectBlock();
-  });
-  // Снять выделение по команде
+  }, true);
+
+  // Снятие выделения по команде из родителя
   window.addEventListener('message', function(e) {
-    if (e.data && e.data.type === 'landing-deselect') deselectBlock();
+    if (!e.data) return;
+    if (e.data.type === 'landing-clear-pick') clearPicked();
+    if (e.data.type === 'landing-scroll-to-block') {
+      var b = document.querySelector('[data-block-id="' + e.data.blockId + '"]');
+      if (b) b.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   });
 
-  function sendHtml() {
-    window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
-  }
-  document.addEventListener('input', function() {
-    clearTimeout(window._t); window._t = setTimeout(sendHtml, 800);
-  });
-  sendHtml();
+  // Esc — снять выделение
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') clearPicked(); });
 })();
 </script>`;
 
@@ -1123,6 +1030,16 @@ function SeoEditor({ seo, onChange }: { seo: SeoData; onChange: (s: SeoData) => 
   );
 }
 
+// Удаляет служебные маркеры редактора из HTML перед сохранением
+function stripTargetMarker(html: string): string {
+  return html
+    .replace(/\s*data-lnd-target=["']1["']/gi, "")
+    .replace(/\s*class=["']([^"']*?)\blnd-(picked|hover)\b([^"']*?)["']/gi, (_m, b, _k, a) => {
+      const cls = (b + " " + a).replace(/\s+/g, " ").trim();
+      return cls ? ` class="${cls}"` : "";
+    });
+}
+
 // ── Постобработка блока услуг (глобальная — используется до инициализации) ────
 function fixServicesHtml(html: string): string {
   let result = html;
@@ -1264,8 +1181,11 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
   const [showEditHint, setShowEditHint] = useState(false);
 
   // ── ПЛАВАЮЩИЙ ЧАТ ─────────────────────────────────────────────────────────
-  // Выбранный блок (кликнули прямо на лендинге)
-  const [selectedBlock, setSelectedBlock] = useState<{ id: string; html: string; label: string } | null>(null);
+  // Выбранный элемент (кликнули прямо на лендинге) — точное выделение
+  const [selectedBlock, setSelectedBlock] = useState<{
+    id: string; html: string; label: string;
+    kind?: string; kindLabel?: string; preview?: string; hasPhoto?: boolean;
+  } | null>(null);
   const [floatChatInput, setFloatChatInput] = useState("");
   const [floatChatLoading, setFloatChatLoading] = useState(false);
   const [floatChatPhoto, setFloatChatPhoto] = useState<string | null>(null); // base64 фото из чата
@@ -1375,13 +1295,14 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       setPendingSlotId(e.data.slotId);
       setPhotoPickerOpen(true);
     }
-    if (e.data?.type === "landing-block-select") {
-      const { blockId, blockHtml, selectedText } = e.data;
-      setSelectedBlock({ id: blockId, html: blockHtml, label: blockId });
-      setFloatChatInput(selectedText ? `"${selectedText}" — ` : "");
+    // Точное выделение элемента
+    if (e.data?.type === "landing-pick") {
+      const { blockId, blockHtml, blockLabel, kind, kindLabel, preview, hasPhoto } = e.data;
+      setSelectedBlock({ id: blockId, html: blockHtml, label: blockLabel || blockId, kind, kindLabel, preview, hasPhoto });
+      setFloatChatInput("");
       setFloatChatPhoto(null);
     }
-    if (e.data?.type === "landing-block-deselect") {
+    if (e.data?.type === "landing-deselect-ack") {
       setSelectedBlock(null);
       setFloatChatInput("");
       setFloatChatPhoto(null);
@@ -1461,12 +1382,12 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
 
   useEffect(() => { siteChatBottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [siteMessages, siteChatLoading]);
 
-  // ── ПЛАВАЮЩИЙ ЧАТ: отправка команды по выбранному блоку ───────────────────
+  // ── ПЛАВАЮЩИЙ ЧАТ: отправка команды по выбранному элементу ────────────────
   async function sendFloatChat() {
     const text = floatChatInput.trim();
     if ((!text && !floatChatPhoto) || floatChatLoading || !selectedBlock) return;
     setFloatChatLoading(true);
-    const taskText = text || "Вставь это фото в блок";
+    const taskText = text || "Вставь это фото в выделенное место";
     try {
       const res = await fetch(AI_LANDING_URL, {
         method: "POST",
@@ -1476,6 +1397,8 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
           blockId: selectedBlock.id,
           blockHtml: selectedBlock.html,
           editTask: taskText,
+          targetKind: selectedBlock.kind,        // тип выделенного: photo/heading/text/button...
+          targetPreview: selectedBlock.preview,  // текст/описание выделенного элемента
           photoBase64: floatChatPhoto || undefined,
           style: siteStyle,
           businessContext: messages.slice(-6).map(m => m.content).join("\n"),
@@ -1486,18 +1409,50 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
       if (data.html !== undefined) {
         if (data.html.includes("<!-- REMOVE_BLOCK -->") || data.html.trim() === "") {
-          // Удалить блок
           setBlocks(prev => prev.filter(b => b.id !== selectedBlock.id));
         } else {
-          setBlocks(prev => prev.map(b => b.id === selectedBlock.id ? { ...b, html: data.html } : b));
+          const cleaned = stripTargetMarker(data.html);
+          const finalHtml = selectedBlock.id === "services" ? fixServicesHtml(cleaned) : cleaned;
+          setBlocks(prev => prev.map(b => b.id === selectedBlock.id ? { ...b, html: finalHtml } : b));
         }
         setFloatChatInput("");
         setFloatChatPhoto(null);
-        iframeRef.current?.contentWindow?.postMessage({ type: "landing-deselect" }, "*");
+        iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
         setSelectedBlock(null);
       } else if (data.clarify) {
-        // ИИ задаёт уточняющий вопрос — показываем как подсказку в поле
         setFloatChatInput(data.clarify + "\n\nМой ответ: ");
+      }
+    } catch {
+      // ignore
+    } finally {
+      setFloatChatLoading(false);
+    }
+  }
+
+  // Перегенерация выделенного блока полностью (новый дизайн)
+  async function regenerateSelectedBlock() {
+    if (!selectedBlock || floatChatLoading) return;
+    const blockId = selectedBlock.id;
+    setFloatChatLoading(true);
+    try {
+      const res = await fetch(AI_LANDING_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": session() },
+        body: JSON.stringify({
+          mode: "gen-block",
+          blockId,
+          style: siteStyle,
+          messages: messages.slice(-12),
+        }),
+        signal: AbortSignal.timeout(90_000),
+      });
+      const data = await res.json();
+      if (res.status === 402) { showEnergyGate({ message: data.error }); return; }
+      if (data.html) {
+        const finalHtml = blockId === "services" ? fixServicesHtml(data.html) : data.html;
+        setBlocks(prev => prev.map(b => b.id === blockId ? { ...b, html: finalHtml } : b));
+        iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
+        setSelectedBlock(null);
       }
     } catch {
       // ignore
@@ -2431,8 +2386,9 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
           )}
 
           {/* Блоки + превью */}
-          <div className="lnd-editor-layout">
-            {/* Боковая панель блоков */}
+          <div className={editMode ? "lnd-editor-layout lnd-editing" : "lnd-editor-layout"}>
+            {/* Боковая панель блоков — скрыта в режиме редактирования (всё через выделение) */}
+            {!editMode && (
             <div className="lnd-blocks-panel">
               {/* Переключатель вкладок */}
               <div style={{ display: "flex", gap: 4, marginBottom: 10, background: "#F1F5F9", borderRadius: 10, padding: 3 }}>
@@ -2648,6 +2604,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                 </div>
               )}
             </div>
+            )}
 
             {/* Превью */}
             <div style={{ borderRadius: 14, overflow: "hidden", border: editMode ? "2px solid #0ea5e9" : "1px solid #E8ECF0", boxShadow: "0 4px 24px rgba(0,0,0,0.06)", position: "relative" }}>
@@ -2656,7 +2613,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                   {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
                 </div>
                 <div style={{ flex: 1, background: "#fff", borderRadius: 5, padding: "3px 10px", fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {editMode ? (selectedBlock ? `✏️ Выбран блок — пишите команду в чат ниже` : "👆 Кликните на блок лендинга для редактирования") : "Предварительный просмотр"}
+                  {editMode ? (selectedBlock ? `✏️ ${selectedBlock.kindLabel || "Элемент"} выбран — опишите правку` : "👆 Кликните на фото, текст, кнопку или секцию") : "Предварительный просмотр"}
                 </div>
                 <span style={{ fontSize: 10, color: "#888", background: "#E2E8F0", padding: "2px 7px", borderRadius: 5, flexShrink: 0 }}>
                   {Math.round(fullHtml.length / 1024)} КБ
@@ -2675,23 +2632,46 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                   background: "#fff", borderRadius: 16, boxShadow: "0 8px 40px rgba(0,0,0,0.22)",
                   border: "2px solid #6366f1", overflow: "hidden",
                 }}>
-                  {/* Шапка */}
+                  {/* Шапка — что выбрано */}
                   <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: "#6366f1" }}>
-                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#a5b4fc", flexShrink: 0 }} />
-                    <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: "#fff", fontFamily: "Montserrat,sans-serif" }}>
-                      ✏️ {blocks.find(b => b.id === selectedBlock.id)?.label || selectedBlock.id}
-                    </span>
+                    <span style={{ fontSize: 13, flexShrink: 0 }}>{(selectedBlock.kindLabel || "◻ Элемент").split(" ")[0]}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", fontFamily: "Montserrat,sans-serif", lineHeight: 1.2 }}>
+                        {(selectedBlock.kindLabel || "Элемент").replace(/^\S+\s/, "")} · {blocks.find(b => b.id === selectedBlock.id)?.label || selectedBlock.id}
+                      </div>
+                      {selectedBlock.preview && (
+                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.75)", fontFamily: "Montserrat,sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          «{selectedBlock.preview}»
+                        </div>
+                      )}
+                    </div>
                     <button onClick={() => {
-                      iframeRef.current?.contentWindow?.postMessage({ type: "landing-deselect" }, "*");
+                      iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
                       setSelectedBlock(null); setFloatChatInput(""); setFloatChatPhoto(null);
                     }} style={{ background: "rgba(255,255,255,0.2)", border: "none", borderRadius: 6, width: 24, height: 24, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <Icon name="X" size={13} style={{ color: "#fff" }} />
                     </button>
                   </div>
 
-                  {/* Подсказки быстрых команд */}
+                  {/* Перегенерация всего блока */}
+                  <div style={{ display: "flex", gap: 6, padding: "8px 12px 0", alignItems: "center" }}>
+                    <button onClick={regenerateSelectedBlock} disabled={floatChatLoading} title="Создать этот блок заново в новом виде"
+                      style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 8, border: "1px solid #c7d2fe", background: "#eef2ff", color: "#4338ca", fontSize: 11, fontWeight: 700, cursor: floatChatLoading ? "default" : "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap", opacity: floatChatLoading ? 0.5 : 1 }}>
+                      <Icon name="RefreshCw" size={12} /> Сделать блок заново
+                    </button>
+                    <span style={{ fontSize: 10, color: "#94a3b8", fontFamily: "Montserrat,sans-serif" }}>или опишите правку ниже ↓</span>
+                  </div>
+
+                  {/* Подсказки быстрых команд — контекстные под тип элемента */}
                   <div style={{ display: "flex", gap: 6, padding: "8px 12px 0", flexWrap: "wrap" }}>
-                    {["Переделай этот блок", "Убери этот блок", "Сделай красивее", "Добавь фото сюда"].map(tip => (
+                    {(selectedBlock.kind === "photo"
+                      ? ["Замени это фото", "Удали эту плашку", "Сделай фото круглым", "Увеличь фото"]
+                      : selectedBlock.kind === "button"
+                      ? ["Поменяй текст кнопки", "Сделай кнопку ярче", "Убери эту кнопку"]
+                      : selectedBlock.kind === "heading" || selectedBlock.kind === "text" || selectedBlock.kind === "subheading"
+                      ? ["Перепиши этот текст", "Сделай короче", "Крупнее шрифт", "Убери это"]
+                      : ["Сделай красивее", "Убери это", "Добавь фото сюда", "Другой цвет"]
+                    ).map(tip => (
                       <button key={tip} onClick={() => setFloatChatInput(tip)} style={{
                         padding: "3px 10px", borderRadius: 20, border: "1px solid #e0e7ff", background: "#f5f3ff",
                         color: "#6366f1", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif",
@@ -2724,7 +2704,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                       value={floatChatInput}
                       onChange={e => setFloatChatInput(e.target.value)}
                       onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendFloatChat(); } }}
-                      placeholder="Что изменить? Напишите простыми словами… (Enter — отправить)"
+                      placeholder={selectedBlock.kind === "photo" ? "Что сделать с этим фото? Заменить, удалить, скруглить… (Enter)" : "Что изменить в выделенном? Напишите простыми словами… (Enter)"}
                       rows={2}
                       autoFocus
                       style={{ flex: 1, padding: "8px 10px", borderRadius: 10, border: "1.5px solid #e0e7ff", fontSize: 13, fontFamily: "Montserrat,sans-serif", outline: "none", resize: "none", lineHeight: 1.5, color: "#1a1a1a" }}
@@ -2752,10 +2732,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, color: "#4338ca", fontWeight: 700, fontFamily: "Montserrat,sans-serif", marginBottom: 2 }}>
-                    👆 Кликните на любой блок лендинга
+                    👆 Кликните на фото, текст, кнопку или секцию
                   </div>
                   <div style={{ fontSize: 11, color: "#6366f1", fontFamily: "Montserrat,sans-serif" }}>
-                    Напишите ИИ что сделать — изменить, убрать, добавить фото или текст
+                    Опишите ИИ что сделать — заменить фото, переписать текст, убрать лишнее, сделать заново
                   </div>
                 </div>
               </div>
@@ -2817,6 +2797,14 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
           grid-template-columns: 220px 1fr;
           gap: 14px;
           align-items: start;
+        }
+        .lnd-editor-layout.lnd-editing {
+          grid-template-columns: 1fr;
+          max-width: 1100px;
+          margin: 0 auto;
+        }
+        .lnd-editor-layout.lnd-editing .lnd-preview-iframe {
+          height: 78vh;
         }
         .lnd-blocks-panel {
           display: flex;

@@ -921,6 +921,18 @@ CSS-ПЕРЕМЕННЫЕ сайта (используй только их, не 
 --c-primary: {primary}; --c-accent: {accent}; --c-dark: {dark}; --c-light: {light}; --c-text: {text}
 --font-heading: '{heading_font}', serif; --font-body: '{body_font}', sans-serif
 
+━━━ ВЫДЕЛЕННЫЙ ЭЛЕМЕНТ (САМОЕ ВАЖНОЕ) ━━━
+В HTML блока ОДИН элемент помечен атрибутом data-lnd-target="1" — ЭТО ИМЕННО ТО, что пользователь выделил кликом.
+{target_hint}
+ПРАВИЛА работы с выделенным элементом:
+• Команды «это / эту / здесь / сюда / это фото / этот текст / эту кнопку / эту плашку» относятся К ЭЛЕМЕНТУ С data-lnd-target="1".
+• «удали эту плашку / убери это фото / убери это» → удали ПОЛНОСТЬЮ элемент с data-lnd-target (и его обёртку, если она пустеет).
+• «замени это фото / вставь фото сюда» → вставь фото именно в элемент с data-lnd-target (или его photo-slot).
+• «перепиши этот текст / измени заголовок» → меняй текст именно в помеченном элементе.
+• Не трогай остальные элементы блока, если пользователь явно не просил.
+• В ИТОГОВОМ HTML УДАЛИ служебный атрибут data-lnd-target="1" — его не должно остаться.
+• Если выделена вся секция (data-block-id) — работай со всем блоком.
+
 ━━━ ГЛАВНОЕ ПРАВИЛО ━━━
 Делай РОВНО то, что написал пользователь. Пользователи пишут простым языком — переводи в код буквально.
 Если задание касается нескольких мест в блоке — исправь ВСЕ такие места.
@@ -1383,6 +1395,8 @@ def handler(event: dict, context) -> dict:
             style = body.get("style", {})
             photo_base64 = body.get("photoBase64")      # base64 фото из плавающего чата
             business_context = body.get("businessContext", "")  # последние сообщения о бизнесе
+            target_kind = body.get("targetKind", "")     # тип выделенного элемента
+            target_preview = body.get("targetPreview", "")  # текст/описание выделенного
 
             # Разрешаем запрос без editTask если есть фото
             if not block_html or (not edit_task and not photo_base64):
@@ -1392,8 +1406,23 @@ def handler(event: dict, context) -> dict:
             if energy_err:
                 return energy_err
 
+            # Подсказка о выделенном элементе
+            kind_names = {
+                "photo": "фото / фото-плашку", "heading": "заголовок", "subheading": "подзаголовок",
+                "text": "абзац текста", "button": "кнопку", "list-item": "пункт списка",
+                "list": "список", "form": "форму", "field": "поле формы", "icon": "иконку",
+                "section": "всю секцию целиком", "element": "элемент",
+            }
+            if target_kind and target_kind in kind_names:
+                target_hint = f"Тип выделенного: {kind_names[target_kind]}."
+                if target_preview:
+                    target_hint += f' Содержимое: «{target_preview}».'
+            else:
+                target_hint = "Если в HTML нет элемента с data-lnd-target — применяй команду по смыслу ко всему блоку."
+
             system = safe_format(SYSTEM_EDIT_BLOCK,
                 block_html=block_html,
+                target_hint=target_hint,
                 primary=style.get("primary", "#1a3a4a"),
                 accent=style.get("accent", "#e67e22"),
                 dark=style.get("dark", "#0f2030"),
@@ -1450,6 +1479,11 @@ def handler(event: dict, context) -> dict:
             is_html = result_text.strip().startswith("<") or "<section" in result_text or "<div" in result_text or "<style" in result_text
             if not is_html and len(result_text) < 400:
                 return ok({"clarify": result_text, "blockId": block_id, "mode": "edit-block"})
+
+            # Подчищаем служебные маркеры редактора, если модель их оставила
+            import re as _re
+            result_text = _re.sub(r'\s*data-lnd-target=["\']1["\']', "", result_text)
+            result_text = _re.sub(r'\s*\blnd-(picked|hover)\b', "", result_text)
 
             return ok({"html": result_text, "blockId": block_id, "mode": "edit-block"})
 
