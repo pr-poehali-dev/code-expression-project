@@ -41,6 +41,7 @@ interface PrivacyData {
   address: string;
   email: string;
   domain: string;
+  logoUrl: string;   // base64 или CDN-ссылка логотипа
 }
 interface SeoData {
   title: string;
@@ -282,6 +283,37 @@ const EDITOR_SCRIPT = `<script>
       var ok = applyPhoto(findPhotoTarget(), e.data.src);
       window.parent.postMessage({ type: 'landing-photo-result', ok: ok }, '*');
       if (ok) window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
+    }
+    // Вставка / удаление логотипа в header (без ИИ)
+    if (e.data.type === 'landing-set-logo') {
+      var header = document.querySelector('[data-block-id="header"]');
+      if (!header) header = document.querySelector('header, [id="header"], nav');
+      if (header) {
+        // Ищем существующий логотип-img внутри header
+        var existingLogo = header.querySelector('img[data-logo="1"]');
+        if (e.data.src) {
+          if (existingLogo) {
+            existingLogo.src = e.data.src;
+          } else {
+            // Находим первый контейнер с логотипом/брендом или nav
+            var logoWrap = header.querySelector('.logo,.brand,.navbar-brand,.header-logo,.logo-wrap,.site-logo,.footer-logo');
+            if (!logoWrap) logoWrap = header.querySelector('a,div');
+            if (logoWrap) {
+              var imgEl = document.createElement('img');
+              imgEl.src = e.data.src;
+              imgEl.setAttribute('data-logo', '1');
+              imgEl.style.cssText = 'max-height:48px;max-width:160px;width:auto;object-fit:contain;display:block;';
+              // Если внутри есть текст-лого — прячем его, вставляем img перед
+              logoWrap.insertBefore(imgEl, logoWrap.firstChild);
+            }
+          }
+        } else {
+          // Удалить логотип
+          if (existingLogo) existingLogo.remove();
+        }
+        window.parent.postMessage({ type: 'landing-html-update', html: document.documentElement.outerHTML }, '*');
+        window.parent.postMessage({ type: 'landing-logo-set', ok: true }, '*');
+      }
     }
     // Установка цели кнопки/ссылки (без ИИ, мгновенно)
     if (e.data.type === 'landing-set-btn-target' && picked) {
@@ -1416,7 +1448,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     try { const s = localStorage.getItem(LS_SEO); return s ? JSON.parse(s) : { ...SEO_DEFAULTS }; } catch { return { ...SEO_DEFAULTS }; }
   });
   const [privacyData, setPrivacyData] = useState<PrivacyData>(() => {
-    try { const s = localStorage.getItem(LS_PRIVACY); return s ? JSON.parse(s) : { orgName: "", inn: "", ogrn: "", address: "", email: "", domain: "" }; } catch { return { orgName: "", inn: "", ogrn: "", address: "", email: "", domain: "" }; }
+    try { const s = localStorage.getItem(LS_PRIVACY); const d = s ? JSON.parse(s) : {}; return { orgName: "", inn: "", ogrn: "", address: "", email: "", domain: "", logoUrl: "", ...d }; } catch { return { orgName: "", inn: "", ogrn: "", address: "", email: "", domain: "", logoUrl: "" }; }
   });
 
   // Редактирование блока через ИИ (панель)
@@ -1568,6 +1600,14 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     if (e.data?.type === "landing-photo-result") {
       iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
       setSelectedBlock(null);
+    }
+    // Логотип вставлен/удалён
+    if (e.data?.type === "landing-logo-set") {
+      setTimeout(() => {
+        iframeRef.current?.contentWindow?.postMessage({ type: "landing-clear-pick" }, "*");
+      }, 100);
+      setSelectedBlock(null);
+      setShowFloatScroll(false);
     }
     // Кнопка привязана к разделу — закрываем панель (НЕ перерисовываем iframe — изменения уже в blocks через landing-html-update)
     if (e.data?.type === "landing-btn-target-set") {
@@ -2519,6 +2559,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                       address: salon ? [salon.city, salon.address].filter(Boolean).join(", ") : "",
                       email: user?.email || "",
                       domain: salon?.website_url?.replace(/^https?:\/\//, "").replace(/\/$/, "") || "",
+                      logoUrl: prev.logoUrl || "",
                     };
                   });
                 }}
@@ -2587,6 +2628,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                         address: salon ? [salon.city, salon.address].filter(Boolean).join(", ") : "",
                         email: user?.email || "",
                         domain: salon?.website_url?.replace(/^https?:\/\//, "").replace(/\/$/, "") || "",
+                        logoUrl: prev.logoUrl || "",
                       };
                     });
                   }
@@ -2664,13 +2706,67 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                   </div>
                 ))}
               </div>
+              {/* Логотип */}
+              <div style={{ marginTop: 14, padding: "14px", background: "#F8FAFC", borderRadius: 10, border: "1px solid #E8ECF0" }}>
+                <div style={{ fontSize: 11, color: "#888", fontWeight: 700, marginBottom: 8 }}>ЛОГОТИП</div>
+                {privacyData.logoUrl ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 64, height: 40, borderRadius: 8, background: "#fff", border: "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                      <img src={privacyData.logoUrl} alt="logo" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "#0F172A", marginBottom: 2 }}>Логотип загружен</div>
+                      <div style={{ fontSize: 11, color: "#94A3B8" }}>Вставьте в меню через редактор</div>
+                    </div>
+                    <button onClick={() => setPrivacyData(prev => ({ ...prev, logoUrl: "" }))}
+                      style={{ width: 28, height: 28, borderRadius: 7, border: "1px solid #fca5a5", background: "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+                      <Icon name="Trash2" size={13} style={{ color: "#ef4444" }} />
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", borderRadius: 8, border: "1.5px dashed #CBD5E1", background: "#fff", cursor: "pointer", fontSize: 12, color: "#64748B", fontWeight: 600, fontFamily: "Montserrat,sans-serif" }}>
+                      <Icon name="Upload" size={14} style={{ color: "#94A3B8" }} />
+                      Загрузить логотип
+                      <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = ev => {
+                          const src = ev.target?.result as string;
+                          if (!src) return;
+                          // Сжимаем до 400px по ширине
+                          const img = new Image();
+                          img.onload = () => {
+                            const canvas = document.createElement("canvas");
+                            const scale = Math.min(1, 400 / img.width);
+                            canvas.width = img.width * scale;
+                            canvas.height = img.height * scale;
+                            canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            setPrivacyData(prev => ({ ...prev, logoUrl: canvas.toDataURL("image/png") }));
+                          };
+                          img.src = src;
+                        };
+                        reader.readAsDataURL(file);
+                        e.target.value = "";
+                      }} />
+                    </label>
+                    <div style={{ marginTop: 8, fontSize: 11, color: "#94A3B8", lineHeight: 1.6 }}>
+                      PNG с прозрачным фоном — лучший вариант.<br/>
+                      Рекомендуемый размер: 400×120 px и выше.<br/>
+                      Форматы: PNG, SVG, WebP, JPG.
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button
                 onClick={() => {
                   const privBody = buildPrivacyBody(privacyData);
                   const url = window.URL.createObjectURL(new Blob([`<!DOCTYPE html><html><head><meta charset="UTF-8"/></head><body>${privBody}</body></html>`], { type: "text/html;charset=utf-8" }));
                   window.open(url, "_blank");
                 }}
-                style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: "1px solid #059669", background: "#fff", color: "#059669", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+                style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 9, border: "1px solid #059669", background: "#fff", color: "#059669", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
                 <Icon name="Eye" size={14} />Предпросмотр политики
               </button>
               <div style={{ marginTop: 10, padding: "10px 12px", background: "#ecfdf5", borderRadius: 8, fontSize: 12, color: "#059669", lineHeight: 1.6 }}>
@@ -2983,6 +3079,34 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
                       }}>{tip}</button>
                     ))}
                   </div>
+
+                  {/* Для header-блока: вставка/удаление логотипа из Документов */}
+                  {selectedBlock.id === "header" && (
+                    <div style={{ padding: "8px 12px 0" }}>
+                      {privacyData.logoUrl ? (
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button
+                            onClick={() => iframeRef.current?.contentWindow?.postMessage({ type: "landing-set-logo", src: privacyData.logoUrl }, "*")}
+                            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "9px 10px", borderRadius: 9, border: "1.5px solid #10b981", background: "#ecfdf5", color: "#059669", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+                          >
+                            <img src={privacyData.logoUrl} alt="" style={{ height: 18, maxWidth: 40, objectFit: "contain" }} />
+                            Вставить логотип
+                          </button>
+                          <button
+                            onClick={() => iframeRef.current?.contentWindow?.postMessage({ type: "landing-set-logo", src: "" }, "*")}
+                            style={{ width: 38, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 9, border: "1.5px solid #fca5a5", background: "#fef2f2", cursor: "pointer" }}
+                            title="Удалить логотип из меню"
+                          >
+                            <Icon name="Trash2" size={14} style={{ color: "#ef4444" }} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ padding: "9px 12px", borderRadius: 9, background: "#fffbeb", border: "1.5px solid #fbbf24", fontSize: 12, color: "#92400e", fontFamily: "Montserrat,sans-serif", lineHeight: 1.5 }}>
+                          Сначала загрузите логотип в разделе <b>Документы</b> ↑
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Для кнопки: привязка к разделу (без ИИ) */}
                   {selectedBlock.kind === "button" && (
