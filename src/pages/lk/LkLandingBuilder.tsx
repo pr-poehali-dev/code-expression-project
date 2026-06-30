@@ -1547,23 +1547,35 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     if (!url.trim()) return;
     // Кинескоп: https://kinescope.io/XXXX → iframe
     // Яндекс.Диск: https://disk.yandex.ru/i/XXXX → embed
+    const u = url.trim();
+    const wrap = (src: string) => `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;margin:20px 0;"><iframe src="${src}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen allow="autoplay;fullscreen;encrypted-media"></iframe></div>`;
     let embedHtml = "";
-    const kinescopeMatch = url.match(/kinescope\.io\/(?:embed\/)?([a-zA-Z0-9]+)/);
-    const yaDiskMatch = url.match(/disk\.yandex\.(ru|com)\/(?:i|d)\/([a-zA-Z0-9_-]+)/);
-    const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
-    const vkMatch = url.match(/vk\.com\/video(-?\d+_\d+)/);
+
+    const kinescopeMatch = u.match(/kinescope\.io\/(?:embed\/)?([a-zA-Z0-9]+)/);
+    const yaDiskMatch = u.match(/disk\.yandex\.(?:ru|com)\/(?:i|d)\/([a-zA-Z0-9_-]+)/);
+    const youtubeMatch = u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+    // ВК: vk.com/video-123_456, vkvideo.ru/video-123_456, vk.com/clip-123_456, готовый video_ext.php
+    const vkExt = u.match(/video_ext\.php\?[^"']*oid=(-?\d+)[^"']*id=(\d+)/) || u.match(/video_ext\.php\?[^"']*id=(\d+)[^"']*oid=(-?\d+)/);
+    const vkMatch = u.match(/(?:vk\.com|vkvideo\.ru)\/(?:video|clip)(-?\d+)_(\d+)/);
+    const rutubeMatch = u.match(/rutube\.ru\/(?:video|play\/embed)\/([a-zA-Z0-9]+)/);
 
     if (kinescopeMatch) {
-      embedHtml = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;margin:20px 0;"><iframe src="https://kinescope.io/embed/${kinescopeMatch[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen allow="autoplay;fullscreen"></iframe></div>`;
-    } else if (yaDiskMatch) {
-      embedHtml = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;margin:20px 0;"><iframe src="https://disk.yandex.ru/i/${yaDiskMatch[2]}/preview" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen></iframe></div>`;
+      embedHtml = wrap(`https://kinescope.io/embed/${kinescopeMatch[1]}`);
     } else if (youtubeMatch) {
-      embedHtml = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;margin:20px 0;"><iframe src="https://www.youtube.com/embed/${youtubeMatch[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen></iframe></div>`;
+      embedHtml = wrap(`https://www.youtube.com/embed/${youtubeMatch[1]}`);
+    } else if (rutubeMatch) {
+      embedHtml = wrap(`https://rutube.ru/play/embed/${rutubeMatch[1]}`);
+    } else if (vkExt) {
+      const oid = vkExt[1].startsWith("-") || /^-?\d+$/.test(vkExt[1]) ? vkExt[1] : vkExt[2];
+      const id = oid === vkExt[1] ? vkExt[2] : vkExt[1];
+      embedHtml = wrap(`https://vk.com/video_ext.php?oid=${oid}&id=${id}&hd=2`);
     } else if (vkMatch) {
-      embedHtml = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;margin:20px 0;"><iframe src="https://vk.com/video_ext.php?oid=${vkMatch[1].split('_')[0]}&id=${vkMatch[1].split('_')[1]}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen></iframe></div>`;
+      embedHtml = wrap(`https://vk.com/video_ext.php?oid=${vkMatch[1]}&id=${vkMatch[2]}&hd=2`);
+    } else if (yaDiskMatch) {
+      embedHtml = wrap(`https://disk.yandex.ru/i/${yaDiskMatch[1]}/preview`);
     } else {
-      // Пробуем как прямую ссылку
-      embedHtml = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:14px;margin:20px 0;"><iframe src="${url}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen></iframe></div>`;
+      // Пробуем как прямую ссылку (mp4 или готовый embed)
+      embedHtml = wrap(u);
     }
 
     setBlocks(prev => prev.map(block => {

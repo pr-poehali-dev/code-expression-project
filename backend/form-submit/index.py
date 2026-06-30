@@ -12,7 +12,7 @@ CORS = {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
 }
-LEAD_COST = 2
+LEAD_COST = 3
 
 
 def get_conn():
