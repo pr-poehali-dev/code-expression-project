@@ -284,36 +284,40 @@ const EDITOR_SCRIPT = `<script>
     }
     window.parent.postMessage({ type: 'landing-block-deselect' }, '*');
   }
+  function selectBlock(block) {
+    if (selectedBlockEl === block) return;
+    deselectBlock();
+    selectedBlockEl = block;
+    block.classList.add('lnd-selected');
+    var badge = document.createElement('div');
+    badge.className = 'lnd-block-badge';
+    badge.textContent = '✏️ ' + (block.getAttribute('data-block-label') || block.getAttribute('data-block-id') || 'Блок');
+    block.appendChild(badge);
+    selectedBadge = badge;
+    window.parent.postMessage({
+      type: 'landing-block-select',
+      blockId: block.getAttribute('data-block-id'),
+      blockHtml: block.innerHTML,
+      selectedText: window.getSelection ? window.getSelection().toString() : ''
+    }, '*');
+  }
   document.querySelectorAll('[data-block-id]').forEach(function(block) {
     block.style.position = 'relative';
-    block.addEventListener('click', function(e) {
-      // Не перехватываем кликли по contenteditable-элементам в режиме фокуса и по photo-slot
-      var tag = e.target.tagName ? e.target.tagName.toLowerCase() : '';
-      var inEditable = e.target.closest && e.target.closest('[contenteditable="true"]');
+    // mousedown — срабатывает раньше чем contenteditable получает фокус
+    block.addEventListener('mousedown', function(e) {
       var inPhotoSlot = e.target.closest && e.target.closest('[data-photo-slot]');
       if (inPhotoSlot) return;
-      // Если кликнули по тексту — выделяем блок но не блокируем редактирование текста
-      if (selectedBlockEl === block) { return; } // уже выбран
-      deselectBlock();
-      selectedBlockEl = block;
-      block.classList.add('lnd-selected');
-      // Бейдж с именем
-      var badge = document.createElement('div');
-      badge.className = 'lnd-block-badge';
-      badge.textContent = '✏️ ' + (block.getAttribute('data-block-label') || block.getAttribute('data-block-id') || 'Блок');
-      block.appendChild(badge);
-      selectedBadge = badge;
-      // Шлём в родитель
-      window.parent.postMessage({
-        type: 'landing-block-select',
-        blockId: block.getAttribute('data-block-id'),
-        blockHtml: block.innerHTML,
-        selectedText: window.getSelection ? window.getSelection().toString() : ''
-      }, '*');
+      selectBlock(block);
+    });
+    // click — дополнительно на случай тач-устройств
+    block.addEventListener('click', function(e) {
+      var inPhotoSlot = e.target.closest && e.target.closest('[data-photo-slot]');
+      if (inPhotoSlot) return;
+      selectBlock(block);
     });
   });
   // Клик вне блока — снимаем выделение
-  document.addEventListener('click', function(e) {
+  document.addEventListener('mousedown', function(e) {
     if (selectedBlockEl && !selectedBlockEl.contains(e.target)) deselectBlock();
   });
   // Снять выделение по команде
