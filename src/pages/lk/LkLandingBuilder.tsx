@@ -84,17 +84,17 @@ const BLOCKS_ORDER: { id: string; label: string }[] = [
 
 const TEMPLATE_BLOCKS: Record<LandingType, string[]> = {
   classic:      ["header", "hero", "about", "services", "reviews", "contact", "footer"],
-  storytelling: ["hero", "pain", "solution", "services", "team", "reviews", "contact"],
-  sales:        ["hero", "benefits", "howworks", "pricing", "faq", "reviews", "contact"],
-  portfolio:    ["hero", "about", "gallery", "services", "reviews", "contact"],
-  b2b:          ["header", "hero", "services", "cases", "team", "clients", "contact"],
-  event:        ["hero", "program", "speakers", "pricing", "faq", "contact"],
-  restaurant:   ["hero", "menu", "about", "promo", "booking"],
-  realty:       ["hero", "object", "location", "plans", "contact"],
-  product:      ["hero", "benefits", "howworks", "reviews", "order"],
-  ai:           ["hero", "about", "services", "reviews", "contact"],
+  storytelling: ["hero", "pain", "solution", "services", "team", "reviews", "contact", "footer"],
+  sales:        ["hero", "benefits", "howworks", "pricing", "faq", "reviews", "contact", "footer"],
+  portfolio:    ["hero", "about", "gallery", "services", "reviews", "contact", "footer"],
+  b2b:          ["header", "hero", "services", "cases", "team", "clients", "contact", "footer"],
+  event:        ["hero", "program", "speakers", "pricing", "faq", "contact", "footer"],
+  restaurant:   ["hero", "menu", "about", "promo", "booking", "footer"],
+  realty:       ["hero", "object", "location", "plans", "contact", "footer"],
+  product:      ["hero", "benefits", "howworks", "reviews", "order", "footer"],
+  ai:           ["hero", "about", "services", "reviews", "contact", "footer"],
   premium:      ["header", "hero", "about", "services", "gallery", "reviews", "contact", "footer"],
-  budget:       ["hero", "services", "reviews", "contact"],
+  budget:       ["hero", "services", "reviews", "contact", "footer"],
 };
 
 const BLOCK_PHOTO_SLOTS: Record<string, { id: string; label: string }[]> = {
@@ -1762,7 +1762,7 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         const res = await fetch(AI_LANDING_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-Session-Id": session() },
-          body: JSON.stringify({ mode: "gen-block", blockId, style, landingType, messages }),
+          body: JSON.stringify({ mode: "gen-block", blockId, style, landingType, messages, ...(blockId === "footer" ? { privacyData } : {}) }),
           signal: AbortSignal.timeout(60_000),
         });
         const data = await res.json();

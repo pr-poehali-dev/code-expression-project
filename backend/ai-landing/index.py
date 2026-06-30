@@ -600,24 +600,25 @@ CSS требования:
   <div class="container">
     <div class="footer-grid">
       <div class="footer-brand">
-        <div class="footer-logo">НАЗВАНИЕ</div>
-        <p>Краткое описание — 1 предложение о бизнесе</p>
-        <div class="footer-social"><!-- иконки соцсетей если есть --></div>
+        <div class="footer-logo">НАЗВАНИЕ БИЗНЕСА</div>
+        <p>Краткое описание — 1 предложение о бизнесе из диалога</p>
+        <div class="footer-social"><!-- иконки соцсетей если упоминались в диалоге --></div>
       </div>
       <div class="footer-links">
         <div class="footer-col-title">Навигация</div>
-        <nav><a href="#about">О нас</a><a href="#services">Услуги</a><a href="#gallery">Галерея</a><a href="#reviews">Отзывы</a><a href="#contact">Контакты</a></nav>
+        <nav><!-- ссылки на блоки сайта: О нас, Услуги, Контакты и т.д. --></nav>
       </div>
       <div class="footer-contacts">
         <div class="footer-col-title">Контакты</div>
-        <p>📍 <!-- адрес --></p>
-        <p>📞 <!-- телефон --></p>
-        <p>✉️ <!-- email --></p>
+        <!-- телефон, email, адрес из диалога -->
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2025 <!-- название -->. Все права защищены.</span>
-      <a href="/privacy" target="_blank" class="footer-policy">Политика конфиденциальности</a>
+      <div class="footer-bottom-left">
+        <span>© 2025 НАЗВАНИЕ. Все права защищены.</span>
+        <span class="footer-legal"><!-- РЕКВИЗИТЫ ИП/ООО: ИНН, ОГРН/ОГРНИП — если переданы --></span>
+      </div>
+      <a href="/privacy" class="footer-policy">Политика конфиденциальности</a>
     </div>
   </div>
 </footer>
@@ -628,13 +629,15 @@ CSS требования:
 - .footer-logo: font-family:var(--font-heading); font-size:22px; font-weight:700; color:#fff; margin-bottom:12px;
 - .footer-brand p: font-size:14px; line-height:1.65; opacity:0.65; max-width:260px;
 - .footer-col-title: font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:rgba(255,255,255,0.4); margin-bottom:16px;
-- .footer-links nav, .footer-contacts: display:flex; flex-direction:column; gap:10px;
+- .footer-links nav: display:flex; flex-direction:column; gap:10px;
 - .footer-links a: color:rgba(255,255,255,0.65); text-decoration:none; font-size:14px; transition:color 0.2s; — hover: color:#fff
-- .footer-contacts p: font-size:14px;
+- .footer-contacts: display:flex; flex-direction:column; gap:8px; font-size:14px;
 - .footer-social: display:flex; gap:12px; margin-top:20px;
-- .footer-bottom: border-top:1px solid rgba(255,255,255,0.08); padding:20px 0; display:flex; justify-content:space-between; align-items:center; font-size:13px;
-- .footer-policy: color:rgba(255,255,255,0.4); text-decoration:none; — hover: color:#fff
-- MOBILE: .footer-grid: grid-template-columns:1fr; gap:32px; — .footer-bottom: flex-direction:column; gap:8px; text-align:center
+- .footer-bottom: border-top:1px solid rgba(255,255,255,0.08); padding:20px 0; display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:13px; flex-wrap:wrap;
+- .footer-bottom-left: display:flex; flex-direction:column; gap:4px;
+- .footer-legal: font-size:11px; color:rgba(255,255,255,0.35); line-height:1.5;
+- .footer-policy: color:rgba(255,255,255,0.4); text-decoration:none; white-space:nowrap; — hover: color:#fff
+- MOBILE: .footer-grid: grid-template-columns:1fr; gap:32px; — .footer-bottom: flex-direction:column; align-items:flex-start; gap:8px;
 
 Верни ТОЛЬКО HTML <footer>...</footer> + <style data-block="footer">.""",
 
@@ -1421,7 +1424,39 @@ def handler(event: dict, context) -> dict:
                 body_font=style.get("bodyFont", "Montserrat"),
                 dark_rgb=dark_rgb,
             )
-            block_prompt = safe_format(BLOCK_PROMPTS[block_id], dark_rgb=dark_rgb)
+
+            # Для footer-блока добавляем данные ИП/организации из документов
+            block_prompt_base = BLOCK_PROMPTS[block_id]
+            if block_id == "footer":
+                pd = body.get("privacyData", {})
+                org_name = pd.get("orgName", "").strip()
+                inn = pd.get("inn", "").strip()
+                ogrn = pd.get("ogrn", "").strip()
+                address = pd.get("address", "").strip()
+                email_org = pd.get("email", "").strip()
+                domain = pd.get("domain", "").strip()
+                legal_parts = []
+                if org_name:
+                    legal_parts.append(org_name)
+                if inn:
+                    legal_parts.append(f"ИНН: {inn}")
+                if ogrn:
+                    label = "ОГРНИП" if inn and len(inn) == 12 else "ОГРН"
+                    legal_parts.append(f"{label}: {ogrn}")
+                if address:
+                    legal_parts.append(f"Адрес: {address}")
+                legal_line = " · ".join(legal_parts) if legal_parts else ""
+                footer_extra = ""
+                if legal_line:
+                    footer_extra += f"\n\nДАННЫЕ ДЛЯ ФУТЕРА (обязательно вставь в footer-bottom под копирайтом):\n{legal_line}"
+                if email_org:
+                    footer_extra += f"\nEmail: {email_org}"
+                if domain:
+                    footer_extra += f"\nДомен сайта: {domain}"
+                footer_extra += "\n\nВАЖНО:\n- В .footer-bottom обязательно выводи строку с реквизитами ИП/организации (ИНН, ОГРН/ОГРНИП) мелким шрифтом (11–12px, opacity:0.45)\n- Ссылка на Политику конфиденциальности: <a href=\"/privacy\" class=\"footer-policy\">Политика конфиденциальности</a>\n- Если данных нет — оставь место-заглушку для реквизитов"
+                block_prompt_base = block_prompt_base + footer_extra
+
+            block_prompt = safe_format(block_prompt_base, dark_rgb=dark_rgb)
 
             try:
                 resp = client.chat.completions.create(
