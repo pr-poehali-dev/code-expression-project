@@ -2354,6 +2354,45 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
       {phase === "done" && (
         <>
           {/* Онбординг-баннер после генерации */}
+          {/* Напоминалка заполнить данные ИП если пустые */}
+          {phase === "done" && blocks.length > 0 && !editMode && !privacyData.orgName && !privacyData.inn && !showPrivacyEditor && (
+            <div style={{ background: "linear-gradient(135deg,#fffbeb,#fef3c7)", borderRadius: 14, border: "1.5px solid #fbbf24", padding: "12px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: "#f59e0b", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name="ShieldAlert" size={17} style={{ color: "#fff" }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: "#92400e", marginBottom: 2, fontFamily: "Montserrat,sans-serif" }}>
+                  Заполните данные ИП/организации
+                </div>
+                <div style={{ fontSize: 11.5, color: "#78350f", lineHeight: 1.55, fontFamily: "Montserrat,sans-serif" }}>
+                  ИНН и ОГРН/ОГРНИП обязательны по закону — они появятся в футере и политике конфиденциальности.
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowPrivacyEditor(true);
+                  setPrivacyData(prev => {
+                    const hasAny = prev.orgName || prev.email || prev.address || prev.domain;
+                    if (hasAny) return prev;
+                    const draft = user?.id ? loadDraft(user.id) : null;
+                    const salon = draft?.form;
+                    return {
+                      orgName: salon?.name || user?.salon?.name || "",
+                      inn: prev.inn || "",
+                      ogrn: prev.ogrn || "",
+                      address: salon ? [salon.city, salon.address].filter(Boolean).join(", ") : "",
+                      email: user?.email || "",
+                      domain: salon?.website_url?.replace(/^https?:\/\//, "").replace(/\/$/, "") || "",
+                    };
+                  });
+                }}
+                style={{ padding: "7px 14px", borderRadius: 9, border: "none", background: "#f59e0b", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", flexShrink: 0, whiteSpace: "nowrap" }}
+              >
+                Заполнить →
+              </button>
+            </div>
+          )}
+
           {showEditHint && !editMode && (
             <div style={{ background: "linear-gradient(135deg,#6366f1,#8b5cf6)", borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "flex-start", gap: 14, position: "relative" }}>
               <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
