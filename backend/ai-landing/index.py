@@ -971,6 +971,26 @@ CSS-ПЕРЕМЕННЫЕ сайта (используй только их, не 
   "на мобильном не работает / на телефоне плохо смотрится" → добавь @media(max-width:768px) с flex-direction:column, width:100%, уменьши font-size
   "шире / на всю ширину" → width:100%;max-width:100% на нужный контейнер
 
+━━━ БЛОК УСЛУГ (#services) — КРИТИЧЕСКИЕ ПРАВИЛА ━━━
+Если редактируешь блок с карточками услуг — ВСЕГДА соблюдай:
+
+1. КНОПКИ — только <button>, НИКАКИХ <a> для действий:
+   • Кнопка 1 «Записаться»: <button class="service-btn-primary" onclick="document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})">Записаться</button>
+     Стиль: width:100%; padding:12px 18px; border-radius:9px; border:none; background:var(--c-accent); color:#fff; font-size:13px; font-weight:700; cursor:pointer; font-family:var(--font-body);
+   • Кнопка 2 «Подробнее»: <button class="service-btn-secondary" onclick="openServiceModal('slug-uslugi')">Подробнее</button>
+     Стиль: width:100%; padding:11px 18px; border-radius:9px; border:2px solid var(--c-accent); background:transparent; color:var(--c-accent); font-size:13px; font-weight:700; cursor:pointer; font-family:var(--font-body);
+   • Обе кнопки в .service-actions: display:flex; flex-direction:column; gap:10px; margin-top:auto;
+   • ЗАПРЕЩЕНО: <a href="#contact">Записаться</a> или <a href="#...">Узнать подробнее</a> — это выглядит как браузерная ссылка с рамкой, так делать нельзя
+
+2. МОДАЛЬНОЕ ОКНО — «Подробнее» ВСЕГДА открывает popup, НЕ ссылку:
+   • В блоке должен быть <div id="svc-modal" class="svc-modal-overlay"> с карточкой: фото-слот + название + описание + цена + кнопка «Записаться на услугу»
+   • JS-объект SVC_DATA содержит данные каждой услуги по slug
+   • Функции openServiceModal(slug) и closeSvcModal() обязательны в <script>
+
+3. Если в текущем HTML блока кнопки сделаны через <a> — замени ВСЕ на <button> с правильными стилями выше
+4. Если модального окна нет — добавь его
+5. При любом редактировании блока услуг — проверь и исправь кнопки, даже если пользователь просил о другом
+
 ━━━ ТЕХНИЧЕСКИЕ ПРАВИЛА ━━━
 • Сохрани атрибут data-block в <style> и <script> тегах
 • Используй только CSS-переменные — не пиши конкретные цвета вместо var(--c-accent) и т.д.
