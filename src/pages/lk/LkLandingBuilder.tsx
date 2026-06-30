@@ -1119,6 +1119,79 @@ function SeoEditor({ seo, onChange }: { seo: SeoData; onChange: (s: SeoData) => 
   );
 }
 
+// ── Постобработка блока услуг (глобальная — используется до инициализации) ────
+function fixServicesHtml(html: string): string {
+  let result = html;
+  // 1. Скрываем модалку если открыта по умолчанию
+  result = result.replace(
+    /(<div[^>]*id=["']svc-modal["'][^>]*?)style=["']([^"']*?)["']/gi,
+    (_, tag, style) => {
+      const cleaned = style.replace(/display\s*:\s*(flex|block|grid)[^;]*;?/gi, "").trim();
+      return `${tag}style="${cleaned}"`;
+    }
+  );
+  result = result.replace(
+    /(<div[^>]*id=["']svc-modal["'][^>]*?)class=["']([^"']*?)\bactive\b([^"']*?)["']/gi,
+    (_, tag, before, after) => `${tag}class="${(before + after).trim()}"`
+  );
+  // 2. <a class="service-link"> → кнопка Записаться
+  result = result.replace(
+    /<a([^>]*?)class=["']([^"']*?)service-link([^"']*?)["']([^>]*?)>([\s\S]*?)<\/a>/gi,
+    (_, _a, _b, _c, _d, inner) => {
+      const text = inner.replace(/<[^>]+>/g, "").trim() || "Записаться";
+      return `<button class="service-btn-primary" onclick="document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})">${text}</button>`;
+    }
+  );
+  // 3. <a class="service-more"> → кнопка Подробнее
+  result = result.replace(
+    /<a([^>]*?)class=["']([^"']*?)service-more([^"']*?)["']([^>]*?)>([\s\S]*?)<\/a>/gi,
+    (_, _a, _b, _c, _d, inner) => {
+      const text = inner.replace(/<[^>]+>/g, "").trim() || "Подробнее";
+      return `<button class="service-btn-secondary" onclick="typeof openServiceModal==='function'&&openServiceModal(this.closest('[data-service-id]')?.dataset.serviceId||'')">${text}</button>`;
+    }
+  );
+  // 4. <a href="#contact"> → кнопка Записаться
+  result = result.replace(
+    /<a([^>]*?)href=["']#contact["']([^>]*?)>([\s\S]*?)<\/a>/gi,
+    (_, _a, _b, inner) => {
+      const text = inner.replace(/<[^>]+>/g, "").trim() || "Записаться";
+      return `<button class="service-btn-primary" onclick="document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})">${text}</button>`;
+    }
+  );
+  // 5. <a href="#subpage-..."> → кнопка Подробнее
+  result = result.replace(
+    /<a([^>]*?)href=["']#(?:subpage-)?([a-zA-Z0-9-]+)["']([^>]*?)>([\s\S]*?)<\/a>/gi,
+    (_, _a, slug, _b, inner) => {
+      const text = inner.replace(/<[^>]+>/g, "").trim();
+      if (!text || text.toLowerCase().includes("записаться")) {
+        return `<button class="service-btn-primary" onclick="document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})">${text || "Записаться"}</button>`;
+      }
+      return `<button class="service-btn-secondary" onclick="typeof openServiceModal==='function'&&openServiceModal('${slug}')">${text}</button>`;
+    }
+  );
+  // 6. Добавляем CSS (убираем старый если есть)
+  result = result.replace(/<style data-block="services-fix">[\s\S]*?<\/style>/gi, "");
+  result = result.replace(/<style data-block="services-btn-fix">[\s\S]*?<\/style>/gi, "");
+  result += `<style data-block="services-fix">
+.service-btn-primary{width:100%;padding:12px 18px;border-radius:9px;border:none;background:var(--c-accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit);transition:opacity .2s;display:block;text-align:center;box-sizing:border-box}
+.service-btn-primary:hover{opacity:.85}
+.service-btn-secondary{width:100%;padding:11px 18px;border-radius:9px;border:2px solid var(--c-accent);background:transparent;color:var(--c-accent);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit);transition:all .2s;display:block;text-align:center;box-sizing:border-box}
+.service-btn-secondary:hover{background:var(--c-accent);color:#fff}
+.service-actions{display:flex;flex-direction:column;gap:10px;margin-top:auto}
+.svc-modal-overlay{display:none!important;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.svc-modal-overlay.active{display:flex!important}
+.svc-modal-box{background:#fff;border-radius:20px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;position:relative}
+.svc-modal-close{position:absolute;top:14px;right:16px;width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,.08);cursor:pointer;font-size:16px;z-index:1}
+.svc-modal-img{width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:16px 16px 0 0;background:var(--c-light,#f8f9fa)}
+.svc-modal-body{padding:28px}
+.svc-modal-body h3{font-size:20px;font-weight:800;color:var(--c-dark,#1a1a1a);margin-bottom:10px}
+.svc-modal-price{font-size:18px;font-weight:800;color:var(--c-accent);margin-bottom:18px}
+.svc-modal-cta{width:100%;padding:14px;border-radius:12px;border:none;background:var(--c-accent);color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+.svc-modal-hint{text-align:center;font-size:12px;color:#94a3b8;margin-top:8px}
+</style>`;
+  return result;
+}
+
 // ── Главный компонент ─────────────────────────────────────────────────────────
 export default function LkLandingBuilder({ forceList = false }: { forceList?: boolean }) {
   const { user } = useLkAuth();
@@ -1138,7 +1211,12 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
 
   // Блоки и стиль
   const [blocks, setBlocks] = useState<LandingBlock[]>(() => {
-    try { const s = localStorage.getItem(LS_BLOCKS); return s ? JSON.parse(s) : []; } catch { return []; }
+    try {
+      const s = localStorage.getItem(LS_BLOCKS);
+      if (!s) return [];
+      const parsed: LandingBlock[] = JSON.parse(s);
+      return parsed.map(b => b.id === "services" ? { ...b, html: fixServicesHtml(b.html) } : b);
+    } catch { return []; }
   });
   const [siteStyle, setSiteStyle] = useState<LandingStyle>(() => {
     try { const s = localStorage.getItem(LS_STYLE); return s ? JSON.parse(s) : DEFAULT_STYLE; } catch { return DEFAULT_STYLE; }
@@ -1648,47 +1726,6 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
     }
   }
 
-  // ── ПОСТОБРАБОТКА БЛОКА УСЛУГ: заменяем <a> на <button> гарантированно ───
-  function fixServicesHtml(html: string): string {
-    // Заменяем <a ...href="#contact"...>Записаться...</a> → красивую кнопку
-    let result = html.replace(
-      /<a([^>]*?)href=["']#contact["']([^>]*?)>([\s\S]*?)<\/a>/gi,
-      (_, pre, post, inner) => {
-        const text = inner.replace(/<[^>]+>/g, "").trim() || "Записаться";
-        return `<button class="service-btn-primary" onclick="document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})" style="width:100%;padding:12px 18px;border-radius:9px;border:none;background:var(--c-accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit)">${text}</button>`;
-      }
-    );
-    // Заменяем <a ...href="#subpage-..."...>Подробнее...</a> → кнопку модалки
-    result = result.replace(
-      /<a([^>]*?)href=["']#(?:subpage-)?([a-z0-9-]+)["']([^>]*?)class=["'][^"']*(?:service-more|more)[^"']*["']([^>]*?)>([\s\S]*?)<\/a>/gi,
-      (_, _pre, slug, _post, _cls, inner) => {
-        const text = inner.replace(/<[^>]+>/g, "").trim() || "Подробнее";
-        return `<button class="service-btn-secondary" onclick="typeof openServiceModal==='function'&&openServiceModal('${slug}')" style="width:100%;padding:11px 18px;border-radius:9px;border:2px solid var(--c-accent);background:transparent;color:var(--c-accent);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit)">${text}</button>`;
-      }
-    );
-    // Fallback: любые оставшиеся .service-more / .service-link <a> теги
-    result = result.replace(
-      /<a([^>]*?)class=["']([^"']*?)service-link([^"']*?)["']([^>]*?)>([\s\S]*?)<\/a>/gi,
-      (_, _pre, cls1, cls2, _post, inner) => {
-        const text = inner.replace(/<[^>]+>/g, "").trim() || "Записаться";
-        return `<button class="service-btn-primary" onclick="document.getElementById('contact')?.scrollIntoView({behavior:'smooth'})" style="width:100%;padding:12px 18px;border-radius:9px;border:none;background:var(--c-accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit)">${text}</button>`;
-      }
-    );
-    result = result.replace(
-      /<a([^>]*?)class=["']([^"']*?)service-more([^"']*?)["']([^>]*?)>([\s\S]*?)<\/a>/gi,
-      (_, _pre, _cls1, _cls2, _post, inner) => {
-        const text = inner.replace(/<[^>]+>/g, "").trim() || "Подробнее";
-        return `<button class="service-btn-secondary" onclick="typeof openServiceModal==='function'&&openServiceModal(this.closest('[data-service-id]')?.dataset.serviceId||'')" style="width:100%;padding:11px 18px;border-radius:9px;border:2px solid var(--c-accent);background:transparent;color:var(--c-accent);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit)">${text}</button>`;
-      }
-    );
-    // Добавляем CSS для кнопок если нет
-    if (!result.includes("service-btn-primary") || !result.includes(".service-btn-primary")) {
-      const btnCss = `<style data-block="services-btn-fix">.service-btn-primary{width:100%;padding:12px 18px;border-radius:9px;border:none;background:var(--c-accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit);transition:opacity .2s;display:block;text-align:center}.service-btn-primary:hover{opacity:.85}.service-btn-secondary{width:100%;padding:11px 18px;border-radius:9px;border:2px solid var(--c-accent);background:transparent;color:var(--c-accent);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body,inherit);transition:all .2s;display:block;text-align:center}.service-btn-secondary:hover{background:var(--c-accent);color:#fff}.service-actions{display:flex;flex-direction:column;gap:10px;margin-top:auto}</style>`;
-      result = result + btnCss;
-    }
-    return result;
-  }
-
   // ── РЕДАКТИРОВАНИЕ БЛОКА ──────────────────────────────────────────────────
   async function editBlock(blockId: string) {
     if (!blockEditInput.trim() || blockEditing) return;
@@ -1817,7 +1854,10 @@ export default function LkLandingBuilder({ forceList = false }: { forceList?: bo
         setProjectTitle(proj.title);
         setLandingType(proj.landing_type);
         setMessages(proj.messages || []);
-        const savedBlocks: LandingBlock[] = proj.blocks || [];
+        const rawBlocks: LandingBlock[] = proj.blocks || [];
+        const savedBlocks = rawBlocks.map(b =>
+          b.id === "services" ? { ...b, html: fixServicesHtml(b.html) } : b
+        );
         const savedStyle: LandingStyle = proj.style && proj.style.primary ? proj.style : DEFAULT_STYLE;
         setBlocks(savedBlocks);
         setSiteStyle(savedStyle);
