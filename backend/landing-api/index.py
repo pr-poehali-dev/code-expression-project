@@ -143,15 +143,15 @@ def handler(event: dict, context) -> dict:
                     plan_info = {"plan": 1, "plan_name": "Старт", "max_landings": 3}
                     if salon_id:
                         cur.execute(
-                            f"SELECT s.subscription_plan, l.plan_name, l.max_landings "
+                            f"SELECT s.subscription_plan AS plan, l.plan_name, l.max_landings "
                             f"FROM {SCHEMA}.salons s "
-                            f"JOIN {SCHEMA}.landing_plan_limits l ON l.plan = s.subscription_plan "
+                            f"LEFT JOIN {SCHEMA}.landing_plan_limits l ON l.plan = s.subscription_plan "
                             f"WHERE s.id = %s",
                             (salon_id,)
                         )
                         pr = cur.fetchone()
-                        if pr:
-                            plan_info = {"plan": pr["plan"], "plan_name": pr["plan_name"], "max_landings": pr["max_landings"]}
+                        if pr and pr.get("max_landings") is not None:
+                            plan_info = {"plan": pr["plan"], "plan_name": pr["plan_name"] or "Старт", "max_landings": pr["max_landings"]}
 
                     return ok({"projects": rows, "plan": plan_info, "used": len(rows)})
 
@@ -295,12 +295,12 @@ def handler(event: dict, context) -> dict:
                         lim_cur.execute(
                             f"SELECT s.subscription_plan, l.max_landings "
                             f"FROM {SCHEMA}.salons s "
-                            f"JOIN {SCHEMA}.landing_plan_limits l ON l.plan = s.subscription_plan "
+                            f"LEFT JOIN {SCHEMA}.landing_plan_limits l ON l.plan = s.subscription_plan "
                             f"WHERE s.id = %s",
                             (salon_id,)
                         )
                         plan_row = lim_cur.fetchone()
-                        max_landings = plan_row[1] if plan_row else 3
+                        max_landings = (plan_row[1] if plan_row and plan_row[1] is not None else 3)
 
                         lim_cur.execute(
                             f"SELECT COUNT(*) FROM {SCHEMA}.landing_projects WHERE user_id = %s",
