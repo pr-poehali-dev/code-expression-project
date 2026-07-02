@@ -1,9 +1,107 @@
 import { useState, useEffect } from "react";
 import {
   adminGet, adminPost,
-  Btn, Field, Card,
+  Btn, Card,
   Work,
 } from "./LkAdminChampionshipShared";
+
+// ── Карточка работы ───────────────────────────────────────────────────────────
+
+function WorkCard({ w, statusLabel, note, saving, onNote, onModerate }: {
+  w: Work; statusLabel: string; note: string; saving: boolean;
+  onNote: (v: string) => void;
+  onModerate: (action: "approve" | "reject" | "request_changes") => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const photo = w.photos?.[0]?.url;
+  const statusColor = w.status === "approved" ? "#059669" : w.status === "rejected" ? "#ef4444" : "#f59e0b";
+
+  return (
+    <Card>
+      {/* Шапка карточки */}
+      <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+        {photo ? (
+          <img src={photo} alt="" style={{ width: 80, height: 80, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
+        ) : (
+          <div style={{ width: 80, height: 80, borderRadius: 10, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 24 }}>🖼</div>
+        )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
+            <span style={{ fontWeight: 700, color: "#0f172a", fontSize: 14 }}>{w.title || "Без названия"}</span>
+            <span style={{ background: `${statusColor}18`, color: statusColor, borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 700 }}>
+              {statusLabel}
+            </span>
+          </div>
+          <div style={{ fontSize: 13, color: "#64748b", marginBottom: 4 }}>{w.salon_name} · {w.city}</div>
+          {w.master_name && <div style={{ fontSize: 12, color: "#64748b" }}>Мастер: {w.master_name}</div>}
+          <button onClick={() => setExpanded(p => !p)} style={{ marginTop: 6, padding: "4px 10px", borderRadius: 7, border: "1px solid #e2e8f0", background: "transparent", fontSize: 12, color: "#6366f1", fontWeight: 600, cursor: "pointer" }}>
+            {expanded ? "Свернуть ▲" : "Подробнее ▼"}
+          </button>
+        </div>
+      </div>
+
+      {/* Раскрытые детали */}
+      {expanded && (
+        <div style={{ marginTop: 16, borderTop: "1px solid #f1f5f9", paddingTop: 14, display: "flex", flexDirection: "column", gap: 12 }}>
+          {/* Все фото */}
+          {w.photos && w.photos.length > 0 && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", marginBottom: 6 }}>ФОТОГРАФИИ ({w.photos.length})</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {w.photos.map((p, i) => (
+                  <a key={i} href={p.url} target="_blank" rel="noreferrer">
+                    <img src={p.url} alt="" style={{ width: 100, height: 100, borderRadius: 8, objectFit: "cover" }} />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+          {w.description && <DetailRow label="Описание" value={w.description} />}
+          {w.story && <DetailRow label="История / концепция" value={w.story} />}
+          {w.services_done && <DetailRow label="Выполненные услуги" value={w.services_done} />}
+          {w.tools_used && <DetailRow label="Использованные средства" value={w.tools_used} />}
+          {w.video_url && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", marginBottom: 4 }}>ВИДЕО</div>
+              <a href={w.video_url} target="_blank" rel="noreferrer" style={{ fontSize: 13, color: "#6366f1" }}>{w.video_url}</a>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Модерация */}
+      <div style={{ marginTop: 14, borderTop: "1px solid #f1f5f9", paddingTop: 12 }}>
+        <textarea
+          value={note}
+          onChange={e => onNote(e.target.value)}
+          placeholder="Комментарий для салона (при отклонении или исправлениях)…"
+          style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, resize: "vertical", minHeight: 50, boxSizing: "border-box" }}
+          rows={2}
+        />
+        <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+          <Btn small onClick={() => onModerate("approve")} color="#059669" disabled={saving}>
+            {saving ? "…" : "✓ Одобрить"}
+          </Btn>
+          <Btn small onClick={() => onModerate("request_changes")} color="#f59e0b" disabled={saving}>
+            Исправить
+          </Btn>
+          <Btn small onClick={() => onModerate("reject")} color="#ef4444" disabled={saving}>
+            Отклонить
+          </Btn>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", marginBottom: 4 }}>{label.toUpperCase()}</div>
+      <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{value}</div>
+    </div>
+  );
+}
 
 // ── Раздел: Модерация работ ────────────────────────────────────────────────────
 
@@ -70,55 +168,12 @@ export function ModerationSection() {
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        {works.map(w => {
-          const photo = w.photos?.[0]?.url;
-          const statusColor = w.status === "approved" ? "#059669" : w.status === "rejected" ? "#ef4444" : "#f59e0b";
-          return (
-            <Card key={w.id}>
-              <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                {photo ? (
-                  <img src={photo} alt="" style={{ width: 80, height: 80, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
-                ) : (
-                  <div style={{ width: 80, height: 80, borderRadius: 10, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 24 }}>🖼</div>
-                )}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
-                    <span style={{ fontWeight: 700, color: "#0f172a", fontSize: 14 }}>{w.title || "Без названия"}</span>
-                    <span style={{ background: `${statusColor}18`, color: statusColor, borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 700 }}>
-                      {STATUS_WORK[w.status] || w.status}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 13, color: "#64748b", marginBottom: 4 }}>{w.salon_name} · {w.city}</div>
-                  {w.description && <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>{w.description.slice(0, 150)}{w.description.length > 150 ? "…" : ""}</div>}
-                  {w.master_name && <div style={{ fontSize: 12, color: "#64748b" }}>Мастер: {w.master_name}</div>}
-
-                  {/* Модерационная заметка */}
-                  <div style={{ marginTop: 10 }}>
-                    <textarea
-                      value={note[w.id] || ""}
-                      onChange={e => setNote(p => ({ ...p, [w.id]: e.target.value }))}
-                      placeholder="Комментарий для салона (при отклонении или исправлениях)…"
-                      style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 12, resize: "vertical", minHeight: 50 }}
-                      rows={2}
-                    />
-                  </div>
-
-                  <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                    <Btn small onClick={() => moderate(w.id, "approve")} color="#059669" disabled={saving === w.id}>
-                      {saving === w.id ? "…" : "✓ Одобрить"}
-                    </Btn>
-                    <Btn small onClick={() => moderate(w.id, "request_changes")} color="#f59e0b" disabled={saving === w.id}>
-                      Исправить
-                    </Btn>
-                    <Btn small onClick={() => moderate(w.id, "reject")} color="#ef4444" disabled={saving === w.id}>
-                      Отклонить
-                    </Btn>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
+        {works.map(w => (
+          <WorkCard key={w.id} w={w} statusLabel={STATUS_WORK[w.status] || w.status}
+            note={note[w.id] || ""} saving={saving === w.id}
+            onNote={v => setNote(p => ({ ...p, [w.id]: v }))}
+            onModerate={action => moderate(w.id, action)} />
+        ))}
       </div>
     </div>
   );

@@ -93,6 +93,7 @@ export interface Work {
   id: number; title: string; status: string; salon_name: string; city: string;
   votes_count: number; moderation_note: string; photos: { url: string }[];
   description: string; story: string; services_done: string; master_name: string;
+  tools_used: string; video_url: string;
 }
 
 export interface Application {
