@@ -129,8 +129,9 @@ export default function ChampionshipPage() {
         }
 
         /* ── «Как работает» ── */
-        .champ-steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
-        @media (max-width: 480px) { .champ-steps { grid-template-columns: 1fr 1fr; } }
+        .champ-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        @media (max-width: 900px) { .champ-steps { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 480px) { .champ-steps { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
 
         /* ── Уровни ── */
         .champ-levels { margin-top: 56px; background: #0f172a; border-radius: 20px; padding: 36px 20px; }
@@ -295,13 +296,13 @@ export default function ChampionshipPage() {
               { n: "03", icon: "Heart",    title: "Голосование",  desc: "Соберите голоса клиентов, друзей и подписчиков" },
               { n: "04", icon: "Trophy",   title: "Победа",       desc: "Получите приз, достижение и место в Зале славы" },
             ].map(s => (
-              <div key={s.n} style={{ background: "#fff", borderRadius: 16, padding: "20px 16px", border: "1.5px solid #e2e8f0" }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
-                  <Icon name={s.icon} size={20} style={{ color: "#14B8A6" }} />
+              <div key={s.n} style={{ background: "#fff", borderRadius: 20, padding: "28px 22px", border: "1.5px solid #e2e8f0", display: "flex", flexDirection: "column" }}>
+                <div style={{ width: 48, height: 48, borderRadius: 14, background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18, flexShrink: 0 }}>
+                  <Icon name={s.icon} size={22} style={{ color: "#14B8A6" }} />
                 </div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#14B8A6", marginBottom: 4, letterSpacing: 1 }}>ШАГ {s.n}</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>{s.title}</div>
-                <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>{s.desc}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "#14B8A6", marginBottom: 6, letterSpacing: 1.5 }}>ШАГ {s.n}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", marginBottom: 8, lineHeight: 1.2 }}>{s.title}</div>
+                <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.7, flex: 1 }}>{s.desc}</div>
               </div>
             ))}
           </div>
