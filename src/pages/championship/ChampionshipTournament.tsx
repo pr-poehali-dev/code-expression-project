@@ -315,10 +315,10 @@ export default function ChampionshipTournament() {
               </div>
             ) : (
               <div className="ct-works-grid">
-                {works.map(w => (
+                {works.map((w, i) => (
                   <WorkCard key={w.id} work={w} isVoting={isVoting} isFinished={isFinished}
                     voted={votedIds.includes(w.id)} loading={voteLoading === w.id}
-                    onVote={() => handleVote(w.id)} />
+                    onVote={() => handleVote(w.id)} index={i} />
                 ))}
               </div>
             )}
@@ -329,9 +329,11 @@ export default function ChampionshipTournament() {
   );
 }
 
-function WorkCard({ work: w, isVoting, isFinished, voted, loading, onVote }:
-  { work: Work; isVoting: boolean; isFinished: boolean; voted: boolean; loading: boolean; onVote: () => void }) {
+function WorkCard({ work: w, isVoting, isFinished, voted, loading, onVote, index }:
+  { work: Work; isVoting: boolean; isFinished: boolean; voted: boolean; loading: boolean; onVote: () => void; index: number }) {
   const photo = w.photos?.[0]?.url;
+  // Во время голосования скрываем название и данные салона — показываем только номер
+  const displayTitle = isVoting ? `Работа #${index + 1}` : w.title;
   return (
     <div className="ct-work-card">
       <div className="ct-work-photo" style={{ background: photo ? `url(${photo}) center/cover` : "#f1f5f9" }}>
@@ -345,8 +347,8 @@ function WorkCard({ work: w, isVoting, isFinished, voted, loading, onVote }:
         )}
       </div>
       <div className="ct-work-body">
-        {w.title && <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", marginBottom: 5 }}>{w.title}</div>}
-        {w.description && (
+        {displayTitle && <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", marginBottom: 5 }}>{displayTitle}</div>}
+        {w.description && !isVoting && (
           <p style={{ margin: "0 0 8px", fontSize: 12, color: "#64748b", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
             {w.description}
           </p>
