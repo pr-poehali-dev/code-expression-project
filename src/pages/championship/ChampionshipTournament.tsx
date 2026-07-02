@@ -19,10 +19,65 @@ interface Tournament {
 }
 interface Prize { id: number; place: number; title: string; description: string; photo_url: string; value: string; partner_name: string; partner_logo: string; }
 interface Work {
-  id: number; title: string; description: string; photos: {url:string;caption?:string}[];
+  id: number; title: string; description: string; photos: { url: string; caption?: string }[];
   votes_count: number; final_place: number | null; created_at: string;
   salon_name: string | null; salon_logo: string | null; salon_city: string | null; salon_url: string | null;
 }
+
+const CSS = `
+  @keyframes ct-spin { to { transform: rotate(360deg); } }
+
+  .ct-wrap { min-height: 100vh; background: #f8fafc; font-family: Inter, sans-serif; }
+
+  /* Шапка */
+  .ct-header { background: linear-gradient(135deg,#0f172a,#1e3a5f); padding: 20px 16px; }
+  .ct-header-inner { max-width: 960px; margin: 0 auto; }
+  .ct-back { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 13px; }
+  .ct-title-row { display: flex; align-items: flex-start; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+  .ct-emoji { font-size: 40px; flex-shrink: 0; }
+  .ct-title-info { flex: 1; min-width: 0; }
+  .ct-season { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600; letter-spacing: 1px; margin-bottom: 4px; }
+  .ct-h1 { margin: 0 0 8px; font-size: clamp(18px,4vw,30px); font-weight: 900; color: #fff; line-height: 1.2; }
+  .ct-badges { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .ct-apply-btn { padding: 12px 22px; border-radius: 12px; border: none; background: #14B8A6; color: #fff; font-size: 14px; font-weight: 800; cursor: pointer; flex-shrink: 0; align-self: flex-start; }
+  .ct-apply-btn:disabled { opacity: 0.7; cursor: wait; }
+  .ct-applied-badge { padding: 12px 16px; border-radius: 12px; background: rgba(20,184,166,0.15); border: 1.5px solid rgba(20,184,166,0.4); color: #14B8A6; font-size: 13px; font-weight: 700; flex-shrink: 0; align-self: flex-start; }
+  .ct-login-btn { padding: 12px 20px; border-radius: 12px; background: #fff; color: #0f172a; font-size: 13px; font-weight: 700; text-decoration: none; flex-shrink: 0; align-self: flex-start; }
+
+  /* Postponed */
+  .ct-postponed { background: #fffbeb; border-bottom: 1px solid #fde68a; padding: 10px 16px; text-align: center; font-size: 13px; color: #92400e; }
+
+  /* Контент */
+  .ct-content { max-width: 960px; margin: 0 auto; padding: 20px 16px 64px; }
+
+  /* Табы */
+  .ct-tabs { display: flex; gap: 4px; background: #f1f5f9; border-radius: 12px; padding: 4px; width: fit-content; max-width: 100%; overflow-x: auto; margin-bottom: 24px; }
+  .ct-tab { padding: 9px 16px; border-radius: 9px; border: none; background: transparent; color: #64748b; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .ct-tab-active { background: #fff; color: #0f172a; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+
+  /* Вкладка «О турнире» — двух-колоночная на десктопе */
+  .ct-info-grid { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+  @media (max-width: 700px) { .ct-info-grid { grid-template-columns: 1fr; } }
+
+  .ct-section { margin-bottom: 22px; }
+  .ct-section-title { margin: 0 0 10px; font-size: 15px; font-weight: 700; color: #0f172a; }
+  .ct-sidebar-card { background: #fff; border-radius: 14px; border: 1.5px solid #e2e8f0; padding: 18px; margin-bottom: 14px; }
+  .ct-sidebar-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+  .ct-sidebar-label { color: #64748b; }
+  .ct-sidebar-val { font-weight: 700; color: #0f172a; }
+
+  /* Сетка работ */
+  .ct-works-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  @media (max-width: 560px) { .ct-works-grid { grid-template-columns: 1fr; } }
+
+  /* Карточка работы */
+  .ct-work-card { background: #fff; border-radius: 14px; border: 1.5px solid #e2e8f0; overflow: hidden; }
+  .ct-work-photo { height: 180px; background: #f1f5f9; position: relative; }
+  .ct-work-body { padding: 14px; }
+  .ct-vote-btn { padding: 8px 14px; border-radius: 8px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .ct-vote-btn-active { background: #14B8A6; color: #fff; }
+  .ct-vote-btn-voted { background: #f0fdf4; color: #059669; cursor: default; }
+`;
 
 export default function ChampionshipTournament() {
   const { slug } = useParams<{ slug: string }>();
@@ -40,7 +95,7 @@ export default function ChampionshipTournament() {
     if (!slug) return;
     champGet("tournament", { slug }).then(d => {
       setTournament(d.tournament);
-      if (d.tournament && ["voting","finished"].includes(d.tournament.status)) {
+      if (d.tournament && ["voting", "finished"].includes(d.tournament.status)) {
         setTab("works");
         champGet("works", { tournament_id: String(d.tournament.id) }).then(w => setWorks(w.works || []));
       }
@@ -48,7 +103,7 @@ export default function ChampionshipTournament() {
   }, [slug]);
 
   useEffect(() => {
-    if (!tournament || !["voting","finished"].includes(tournament.status)) return;
+    if (!tournament || !["voting", "finished"].includes(tournament.status)) return;
     voteGet("my_votes", { tournament_id: String(tournament.id) }, getSessionId() || undefined)
       .then(d => setVotedIds(d.voted_work_ids || []));
   }, [tournament]);
@@ -74,9 +129,15 @@ export default function ChampionshipTournament() {
     }
   };
 
-  if (loading) return <PageLoader />;
+  if (loading) return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc" }}>
+      <style>{`@keyframes ct-spin{to{transform:rotate(360deg)}}`}</style>
+      <div style={{ width: 36, height: 36, border: "3px solid #e2e8f0", borderTopColor: "#14B8A6", borderRadius: "50%", animation: "ct-spin 0.7s linear infinite" }} />
+    </div>
+  );
+
   if (!tournament) return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter,sans-serif" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter,sans-serif", padding: 24 }}>
       <div style={{ textAlign: "center" }}>
         <div style={{ fontSize: 48 }}>🔍</div>
         <div style={{ fontSize: 18, fontWeight: 700, marginTop: 12 }}>Турнир не найден</div>
@@ -88,147 +149,144 @@ export default function ChampionshipTournament() {
   const t = tournament;
   const statusColor = STATUS_COLORS[t.status] || "#64748b";
   const statusLabel = STATUS_LABELS[t.status] || t.status;
-  const canApply = ["announced","registration"].includes(t.status) && !!user && !applied;
+  const canApply = ["announced", "registration"].includes(t.status) && !!user && !applied;
   const isVoting = t.status === "voting";
   const isFinished = t.status === "finished";
 
+  const tabItems = [
+    { id: "info" as const,  label: "О турнире" },
+    ...(works.length > 0 || isVoting || isFinished
+      ? [{ id: "works" as const, label: `Работы${works.length > 0 ? ` (${works.length})` : ""}` }]
+      : []),
+  ];
+
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "Inter,sans-serif" }}>
+    <div className="ct-wrap">
+      <style>{CSS}</style>
+
       {/* Шапка */}
-      <div style={{ background: "linear-gradient(135deg,#0f172a,#1e3a5f)", padding: "24px" }}>
-        <div style={{ maxWidth: 960, margin: "0 auto" }}>
-          <Link to="/championship" style={{ color: "rgba(255,255,255,0.5)", textDecoration: "none", fontSize: 13 }}>← Чемпионат</Link>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginTop: 16, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 48 }}>{t.emoji}</div>
-            <div style={{ flex: 1 }}>
-              {t.season_name && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 4, fontWeight: 600, letterSpacing: 1 }}>{t.season_name.toUpperCase()}</div>}
-              <h1 style={{ margin: "0 0 8px", fontSize: "clamp(20px,4vw,32px)", fontWeight: 900, color: "#fff" }}>{t.name}</h1>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                <span style={{ background: `${statusColor}25`, color: statusColor, borderRadius: 20, padding: "4px 14px", fontSize: 13, fontWeight: 700 }}>{statusLabel}</span>
-                {t.applications_count > 0 && <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>{t.applications_count} участников</span>}
-                {t.prize_energy > 0 && <span style={{ color: "#14B8A6", fontSize: 13, fontWeight: 700 }}>{t.prize_energy} ⚡ победителю</span>}
+      <div className="ct-header">
+        <div className="ct-header-inner">
+          <Link to="/championship" className="ct-back">← Чемпионат</Link>
+          <div className="ct-title-row">
+            <div className="ct-emoji">{t.emoji}</div>
+            <div className="ct-title-info">
+              {t.season_name && <div className="ct-season">{t.season_name.toUpperCase()}</div>}
+              <h1 className="ct-h1">{t.name}</h1>
+              <div className="ct-badges">
+                <span style={{ background: `${statusColor}25`, color: statusColor, borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700 }}>{statusLabel}</span>
+                {t.applications_count > 0 && <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 12 }}>{t.applications_count} участников</span>}
+                {t.prize_energy > 0 && <span style={{ color: "#14B8A6", fontSize: 12, fontWeight: 700 }}>{t.prize_energy} ⚡ победителю</span>}
               </div>
             </div>
-            {/* Кнопка участия */}
             {canApply && (
-              <button onClick={handleApply} disabled={applying}
-                style={{ padding: "14px 28px", borderRadius: 12, border: "none", background: "#14B8A6", color: "#fff", fontSize: 15, fontWeight: 800, cursor: applying ? "wait" : "pointer", opacity: applying ? 0.7 : 1, flexShrink: 0 }}>
-                {applying ? "Подаём заявку…" : "Участвовать"}
+              <button className="ct-apply-btn" onClick={handleApply} disabled={applying}>
+                {applying ? "Подаём…" : "Участвовать"}
               </button>
             )}
-            {applied && (
-              <div style={{ padding: "14px 20px", borderRadius: 12, background: "rgba(20,184,166,0.15)", border: "1.5px solid rgba(20,184,166,0.4)", color: "#14B8A6", fontSize: 14, fontWeight: 700 }}>
-                ✓ Заявка подана
-              </div>
-            )}
-            {!user && ["announced","registration"].includes(t.status) && (
-              <Link to="/cabinet" style={{ padding: "14px 24px", borderRadius: 12, background: "#fff", color: "#0f172a", fontSize: 14, fontWeight: 700, textDecoration: "none" }}>
-                Войти и участвовать
-              </Link>
+            {applied && <div className="ct-applied-badge">✓ Заявка подана</div>}
+            {!user && ["announced", "registration"].includes(t.status) && (
+              <Link to="/cabinet" className="ct-login-btn">Войти →</Link>
             )}
           </div>
         </div>
       </div>
 
-      {/* Перенос */}
       {t.postponed && (
-        <div style={{ background: "#fffbeb", borderBottom: "1px solid #fde68a", padding: "12px 24px", textAlign: "center" }}>
-          <span style={{ fontSize: 14, color: "#92400e" }}>⏰ {t.postpone_reason}</span>
-        </div>
+        <div className="ct-postponed">⏰ {t.postpone_reason}</div>
       )}
 
-      {/* Табы */}
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "24px 24px 0" }}>
-        <div style={{ display: "flex", gap: 4, background: "#f1f5f9", borderRadius: 12, padding: 4, width: "fit-content", marginBottom: 28 }}>
-          {([
-            { id: "info",  label: "О турнире" },
-            ...(works.length > 0 || isVoting || isFinished ? [{ id: "works", label: `Работы ${works.length > 0 ? `(${works.length})` : ""}` }] : []),
-          ] as {id:"info"|"works"; label:string}[]).map(tb => (
+      <div className="ct-content">
+        {/* Табы */}
+        <div className="ct-tabs">
+          {tabItems.map(tb => (
             <button key={tb.id} onClick={() => setTab(tb.id)}
-              style={{ padding: "9px 18px", borderRadius: 9, border: "none", background: tab === tb.id ? "#fff" : "transparent", color: tab === tb.id ? "#0f172a" : "#64748b", fontSize: 14, fontWeight: 600, cursor: "pointer", boxShadow: tab === tb.id ? "0 1px 4px rgba(0,0,0,0.08)" : "none" }}>
+              className={`ct-tab${tab === tb.id ? " ct-tab-active" : ""}`}>
               {tb.label}
             </button>
           ))}
         </div>
 
-        {/* Вкладка: О турнире */}
+        {/* О турнире */}
         {tab === "info" && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr minmax(260px,320px)", gap: 24, alignItems: "start" }}>
+          <div className="ct-info-grid">
             <div>
               {t.description && (
-                <Section title="Описание">
+                <div className="ct-section">
+                  <h3 className="ct-section-title">Описание</h3>
                   <p style={{ margin: 0, fontSize: 15, color: "#374151", lineHeight: 1.7 }}>{t.description}</p>
-                </Section>
+                </div>
               )}
               {t.task_text && (
-                <Section title="🎯 Задание">
-                  <div style={{ background: "#eef2ff", borderRadius: 10, padding: "16px 20px", border: "1.5px solid #c7d2fe" }}>
-                    <p style={{ margin: 0, fontSize: 15, color: "#3730a3", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{t.task_text}</p>
+                <div className="ct-section">
+                  <h3 className="ct-section-title">🎯 Задание</h3>
+                  <div style={{ background: "#eef2ff", borderRadius: 10, padding: "16px", border: "1.5px solid #c7d2fe" }}>
+                    <p style={{ margin: 0, fontSize: 14, color: "#3730a3", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{t.task_text}</p>
                   </div>
-                </Section>
+                </div>
               )}
-              {!t.task_text && ["announced","registration"].includes(t.status) && (
-                <Section title="🎯 Задание">
-                  <div style={{ background: "#f8fafc", borderRadius: 10, padding: "16px 20px", border: "1.5px dashed #cbd5e1", textAlign: "center" }}>
-                    <div style={{ fontSize: 32, marginBottom: 8 }}>🔒</div>
-                    <div style={{ fontSize: 14, color: "#64748b" }}>Задание откроется в момент старта турнира</div>
+              {!t.task_text && ["announced", "registration"].includes(t.status) && (
+                <div className="ct-section">
+                  <h3 className="ct-section-title">🎯 Задание</h3>
+                  <div style={{ background: "#f8fafc", borderRadius: 10, padding: "20px", border: "1.5px dashed #cbd5e1", textAlign: "center" }}>
+                    <div style={{ fontSize: 28, marginBottom: 8 }}>🔒</div>
+                    <div style={{ fontSize: 13, color: "#64748b" }}>Задание откроется в момент старта турнира</div>
                   </div>
-                </Section>
+                </div>
               )}
               {t.rules && (
-                <Section title="Правила">
+                <div className="ct-section">
+                  <h3 className="ct-section-title">Правила</h3>
                   <p style={{ margin: 0, fontSize: 14, color: "#374151", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{t.rules}</p>
-                </Section>
+                </div>
               )}
             </div>
 
-            {/* Боковая панель */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {/* Сроки */}
-              <div style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0", padding: "20px" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 14 }}>📅 Сроки</div>
+            {/* Сайдбар */}
+            <div>
+              <div className="ct-sidebar-card">
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 12 }}>📅 Сроки</div>
                 {[
                   { label: "Регистрация до", date: t.registration_ends },
                   { label: "Старт турнира",  date: t.task_opens_at },
                   { label: "Дедлайн работ",  date: t.work_deadline },
                   { label: "Голосование до", date: t.voting_ends },
                 ].filter(r => r.date).map(r => (
-                  <div key={r.label} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
-                    <span style={{ color: "#64748b" }}>{r.label}</span>
-                    <span style={{ fontWeight: 700, color: "#0f172a" }}>{new Date(r.date!).toLocaleDateString("ru", { day: "numeric", month: "short", year: "numeric" })}</span>
+                  <div key={r.label} className="ct-sidebar-row">
+                    <span className="ct-sidebar-label">{r.label}</span>
+                    <span className="ct-sidebar-val">{new Date(r.date!).toLocaleDateString("ru", { day: "numeric", month: "short" })}</span>
                   </div>
                 ))}
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, paddingTop: 8, borderTop: "1px solid #f1f5f9", fontSize: 13 }}>
-                  <span style={{ color: "#64748b" }}>Мин. участников</span>
-                  <span style={{ fontWeight: 700, color: "#0f172a" }}>{t.min_participants}</span>
+                <div className="ct-sidebar-row" style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #f1f5f9", marginBottom: 0 }}>
+                  <span className="ct-sidebar-label">Мин. участников</span>
+                  <span className="ct-sidebar-val">{t.min_participants}</span>
                 </div>
               </div>
 
-              {/* Призы */}
               {(t.prize_energy > 0 || t.prizes?.length > 0) && (
-                <div style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0", padding: "20px" }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 14 }}>🏅 Призы</div>
+                <div className="ct-sidebar-card">
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 12 }}>🏅 Призы</div>
                   {t.prize_energy > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
+                    <div className="ct-sidebar-row">
                       <span>🥇 1 место</span>
                       <span style={{ fontWeight: 700, color: "#14B8A6" }}>{t.prize_energy} ⚡</span>
                     </div>
                   )}
                   {t.prize_2nd > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
+                    <div className="ct-sidebar-row">
                       <span>🥈 2 место</span>
                       <span style={{ fontWeight: 700, color: "#14B8A6" }}>{t.prize_2nd} ⚡</span>
                     </div>
                   )}
                   {t.prize_3rd > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 13 }}>
+                    <div className="ct-sidebar-row">
                       <span>🥉 3 место</span>
                       <span style={{ fontWeight: 700, color: "#14B8A6" }}>{t.prize_3rd} ⚡</span>
                     </div>
                   )}
                   {t.prizes?.map(p => (
-                    <div key={p.id} style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #f1f5f9" }}>
-                      <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 4 }}>
+                    <div key={p.id} style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #f1f5f9" }}>
+                      <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 3 }}>
                         {["🥇","🥈","🥉","4️⃣","5️⃣"][p.place - 1] || `${p.place} место`} от {p.partner_name}
                       </div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{p.title}</div>
@@ -241,22 +299,22 @@ export default function ChampionshipTournament() {
           </div>
         )}
 
-        {/* Вкладка: Работы */}
+        {/* Работы */}
         {tab === "works" && (
           <div>
             {!isFinished && isVoting && (
-              <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: "14px 20px", marginBottom: 24, fontSize: 14, color: "#92400e" }}>
-                💡 Названия салонов скрыты до окончания голосования. Поделитесь ссылкой с клиентами — голосуйте за лучших!
+              <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#92400e" }}>
+                💡 Названия салонов скрыты до окончания голосования. Поделитесь ссылкой с клиентами!
               </div>
             )}
             {works.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "60px 0" }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>🖼</div>
+              <div style={{ textAlign: "center", padding: "56px 0" }}>
+                <div style={{ fontSize: 36, marginBottom: 10 }}>🖼</div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a" }}>Работы пока не загружены</div>
-                <div style={{ fontSize: 14, color: "#94a3b8", marginTop: 4 }}>Появятся после модерации</div>
+                <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 4 }}>Появятся после модерации</div>
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+              <div className="ct-works-grid">
                 {works.map(w => (
                   <WorkCard key={w.id} work={w} isVoting={isVoting} isFinished={isFinished}
                     voted={votedIds.includes(w.id)} loading={voteLoading === w.id}
@@ -266,18 +324,7 @@ export default function ChampionshipTournament() {
             )}
           </div>
         )}
-
-        <div style={{ height: 64 }} />
       </div>
-    </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginBottom: 24 }}>
-      <h3 style={{ margin: "0 0 12px", fontSize: 16, fontWeight: 700, color: "#0f172a" }}>{title}</h3>
-      {children}
     </div>
   );
 }
@@ -286,55 +333,50 @@ function WorkCard({ work: w, isVoting, isFinished, voted, loading, onVote }:
   { work: Work; isVoting: boolean; isFinished: boolean; voted: boolean; loading: boolean; onVote: () => void }) {
   const photo = w.photos?.[0]?.url;
   return (
-    <div style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
-      <div style={{ height: 200, background: photo ? `url(${photo}) center/cover` : "#f1f5f9", position: "relative" }}>
-        {!photo && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40 }}>🖼</div>}
+    <div className="ct-work-card">
+      <div className="ct-work-photo" style={{ background: photo ? `url(${photo}) center/cover` : "#f1f5f9" }}>
+        {!photo && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>🖼</div>
+        )}
         {w.final_place && w.final_place <= 3 && (
-          <div style={{ position: "absolute", top: 10, left: 10, background: "#fff", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>
+          <div style={{ position: "absolute", top: 10, left: 10, background: "#fff", borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 700 }}>
             {["🥇","🥈","🥉"][w.final_place - 1]} {w.final_place} место
           </div>
         )}
       </div>
-      <div style={{ padding: "16px" }}>
-        {w.title && <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", marginBottom: 6 }}>{w.title}</div>}
-        {w.description && <p style={{ margin: "0 0 10px", fontSize: 13, color: "#64748b", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{w.description}</p>}
-
-        {/* Салон (только после финала) */}
+      <div className="ct-work-body">
+        {w.title && <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", marginBottom: 5 }}>{w.title}</div>}
+        {w.description && (
+          <p style={{ margin: "0 0 8px", fontSize: 12, color: "#64748b", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+            {w.description}
+          </p>
+        )}
         {isFinished && w.salon_name && (
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, paddingTop: 8, borderTop: "1px solid #f1f5f9" }}>
-            {w.salon_logo && <img src={w.salon_logo} alt="" style={{ width: 28, height: 28, borderRadius: 6, objectFit: "cover" }} />}
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{w.salon_name}</div>
+            {w.salon_logo && <img src={w.salon_logo} alt="" style={{ width: 26, height: 26, borderRadius: 6, objectFit: "cover" }} />}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>{w.salon_name}</div>
               {w.salon_city && <div style={{ fontSize: 11, color: "#94a3b8" }}>{w.salon_city}</div>}
             </div>
             {w.salon_url && (
               <a href={w.salon_url} target="_blank" rel="noreferrer"
-                style={{ marginLeft: "auto", fontSize: 12, color: "#14B8A6", fontWeight: 600, textDecoration: "none" }}>сайт →</a>
+                style={{ fontSize: 11, color: "#14B8A6", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>сайт →</a>
             )}
           </div>
         )}
-
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
-          <div style={{ fontSize: 13, color: "#64748b" }}>
-            ❤️ <span style={{ fontWeight: 700, color: "#0f172a" }}>{w.votes_count.toLocaleString("ru")}</span> голосов
+          <div style={{ fontSize: 12, color: "#64748b" }}>
+            ❤️ <b style={{ color: "#0f172a" }}>{w.votes_count.toLocaleString("ru")}</b>
           </div>
           {isVoting && (
             <button onClick={onVote} disabled={voted || loading}
-              style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: voted ? "#f0fdf4" : "#14B8A6", color: voted ? "#059669" : "#fff", fontSize: 13, fontWeight: 700, cursor: voted || loading ? "default" : "pointer", opacity: loading ? 0.7 : 1 }}>
+              className={`ct-vote-btn ${voted ? "ct-vote-btn-voted" : "ct-vote-btn-active"}`}
+              style={{ opacity: loading ? 0.7 : 1 }}>
               {loading ? "…" : voted ? "✓ Голос отдан" : "Голосовать"}
             </button>
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function PageLoader() {
-  return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc" }}>
-      <div style={{ width: 36, height: 36, border: "3px solid #e2e8f0", borderTopColor: "#14B8A6", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }

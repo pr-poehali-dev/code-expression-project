@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import { champGet } from "./championshipApi";
-import { STATUS_LABELS, STATUS_COLORS } from "./championshipApi";
+import { champGet, STATUS_LABELS, STATUS_COLORS } from "./championshipApi";
 
 interface Season {
   id: number; name: string; is_active: boolean;
@@ -28,10 +27,7 @@ export default function ChampionshipPage() {
   const [activeTab, setActiveTab] = useState<"current" | "upcoming" | "archive">("current");
 
   useEffect(() => {
-    Promise.all([
-      champGet("stats"),
-      champGet("tournaments"),
-    ]).then(([s, t]) => {
+    Promise.all([champGet("stats"), champGet("tournaments")]).then(([s, t]) => {
       setStats(s);
       setTournaments(t.tournaments || []);
     }).finally(() => setLoading(false));
@@ -42,116 +38,181 @@ export default function ChampionshipPage() {
   const archive  = tournaments.filter(t => t.status === "finished");
 
   const tabList = [
-    { id: "current",  label: "Текущие",      icon: "Flame",    count: current.length },
-    { id: "upcoming", label: "Предстоящие",  icon: "Calendar", count: upcoming.length },
-    { id: "archive",  label: "Архив",        icon: "Archive",  count: archive.length },
+    { id: "current",  label: "Текущие",     icon: "Flame",    count: current.length },
+    { id: "upcoming", label: "Предстоящие", icon: "Calendar", count: upcoming.length },
+    { id: "archive",  label: "Архив",       icon: "Archive",  count: archive.length },
   ] as const;
 
   const shown = activeTab === "current" ? current : activeTab === "upcoming" ? upcoming : archive;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "Inter, sans-serif" }}>
+    <div className="champ-page">
+      <style>{`
+        .champ-page { min-height: 100vh; background: #f8fafc; font-family: Inter, sans-serif; }
 
-      {/* Шапка страницы */}
-      <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f172a 100%)", padding: "0 0 0" }}>
-        {/* Навбар */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-          <Link to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ color: "#14B8A6", fontWeight: 800, fontSize: 18 }}>Промт Диалог</span>
-          </Link>
-          <div style={{ display: "flex", gap: 8 }}>
-            <Link to="/championship/rating" style={{ padding: "7px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)", color: "#fff", textDecoration: "none", fontSize: 13, fontWeight: 600 }}>
-              Рейтинг
-            </Link>
-            <Link to="/championship/hall-of-fame" style={{ padding: "7px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)", color: "#fff", textDecoration: "none", fontSize: 13, fontWeight: 600 }}>
-              Зал славы
-            </Link>
-            <Link to="/cabinet" style={{ padding: "7px 14px", borderRadius: 8, background: "#14B8A6", color: "#fff", textDecoration: "none", fontSize: 13, fontWeight: 700 }}>
-              Кабинет
-            </Link>
+        /* ── Навбар ── */
+        .champ-nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .champ-nav-logo { color: #14B8A6; font-weight: 800; font-size: 17px; text-decoration: none; }
+        .champ-nav-links { display: flex; gap: 6px; }
+        .champ-nav-link { padding: 7px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); color: #fff; text-decoration: none; font-size: 13px; font-weight: 600; white-space: nowrap; }
+        .champ-nav-link-accent { background: #14B8A6; border-color: #14B8A6; }
+        @media (max-width: 480px) {
+          .champ-nav-link-hide { display: none; }
+          .champ-nav-link { padding: 6px 10px; font-size: 12px; }
+        }
+
+        /* ── Hero ── */
+        .champ-hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f172a 100%); }
+        .champ-hero-inner { max-width: 1100px; margin: 0 auto; padding: 56px 20px 64px; text-align: center; }
+        .champ-hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(20,184,166,0.15); border: 1px solid rgba(20,184,166,0.3); border-radius: 20px; padding: 6px 16px; margin-bottom: 20px; }
+        .champ-hero-h1 { margin: 0 0 12px; font-size: clamp(26px,5vw,52px); font-weight: 900; color: #fff; line-height: 1.15; }
+        .champ-hero-sub { margin: 0 0 36px; font-size: clamp(14px,2vw,18px); color: rgba(255,255,255,0.65); line-height: 1.6; }
+        .champ-stats { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .champ-stat { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 20px; min-width: 90px; }
+        .champ-stat-accent { background: rgba(20,184,166,0.15); border-color: rgba(20,184,166,0.3); }
+        .champ-stat-num { font-size: clamp(20px,3vw,28px); font-weight: 900; color: #fff; }
+        .champ-stat-num-accent { color: #14B8A6; }
+        .champ-stat-label { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+        .champ-stat-label-accent { color: rgba(20,184,166,0.7); }
+
+        /* ── Контент ── */
+        .champ-content { max-width: 1100px; margin: 0 auto; padding: 32px 16px 80px; }
+
+        /* ── Быстрые ссылки ── */
+        .champ-quicklinks { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 28px; }
+        .champ-quicklink { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 10px; background: #fff; border: 1.5px solid #e2e8f0; color: #0f172a; text-decoration: none; font-size: 14px; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.04); white-space: nowrap; }
+        @media (max-width: 480px) { .champ-quicklink { font-size: 13px; padding: 8px 12px; } }
+
+        /* ── Табы ── */
+        .champ-tabs { display: flex; gap: 4px; background: #f1f5f9; border-radius: 12px; padding: 4px; margin-bottom: 24px; width: fit-content; max-width: 100%; overflow-x: auto; }
+        .champ-tab { display: flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 9px; border: none; background: transparent; color: #64748b; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
+        .champ-tab-active { background: #fff; color: #0f172a; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .champ-tab-badge { border-radius: 10px; padding: 1px 7px; font-size: 11px; font-weight: 700; color: #fff; background: #cbd5e1; }
+        .champ-tab-badge-active { background: #0f172a; }
+        @media (max-width: 480px) {
+          .champ-tab { padding: 8px 12px; font-size: 13px; gap: 4px; }
+          .champ-tab-icon { display: none; }
+        }
+
+        /* ── Сетка турниров ── */
+        .champ-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+        @media (max-width: 640px) { .champ-grid { grid-template-columns: 1fr; } }
+
+        /* ── Карточка турнира ── */
+        .champ-card { background: #fff; border-radius: 16px; border: 1.5px solid #e2e8f0; padding: 20px; cursor: pointer; transition: box-shadow 0.15s, transform 0.15s; }
+        .champ-card:active { transform: scale(0.99); }
+        @media (hover: hover) {
+          .champ-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        }
+
+        /* ── «Как работает» ── */
+        .champ-steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+        @media (max-width: 480px) { .champ-steps { grid-template-columns: 1fr 1fr; } }
+
+        /* ── Уровни ── */
+        .champ-levels { margin-top: 56px; background: #0f172a; border-radius: 20px; padding: 36px 20px; }
+        .champ-levels-grid { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .champ-level { background: rgba(255,255,255,0.06); border-radius: 12px; padding: 14px 16px; text-align: center; min-width: 90px; }
+
+        /* ── CTA ── */
+        .champ-cta { margin-top: 40px; }
+        .champ-cta-inner { background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 20px; padding: 36px 24px; text-align: center; }
+
+        /* ── Скелетон ── */
+        @keyframes champ-pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+        .champ-skeleton { border-radius: 16px; background: #e2e8f0; animation: champ-pulse 1.5s ease infinite; }
+      `}</style>
+
+      {/* Шапка */}
+      <div className="champ-hero">
+        <nav className="champ-nav">
+          <Link to="/" className="champ-nav-logo">Промт Диалог</Link>
+          <div className="champ-nav-links">
+            <Link to="/championship/rating" className="champ-nav-link champ-nav-link-hide">Рейтинг</Link>
+            <Link to="/championship/hall-of-fame" className="champ-nav-link champ-nav-link-hide">Зал славы</Link>
+            <Link to="/cabinet" className="champ-nav-link champ-nav-link-accent">Кабинет</Link>
           </div>
-        </div>
+        </nav>
 
-        {/* Hero */}
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "64px 24px 72px", textAlign: "center" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(20,184,166,0.15)", border: "1px solid rgba(20,184,166,0.3)", borderRadius: 20, padding: "6px 16px", marginBottom: 24 }}>
+        <div className="champ-hero-inner">
+          <div className="champ-hero-badge">
             <span style={{ fontSize: 14 }}>🏆</span>
             <span style={{ fontSize: 13, color: "#14B8A6", fontWeight: 700, letterSpacing: 1 }}>ЧЕМПИОНАТ КРАСОТЫ</span>
           </div>
 
           {stats?.active_season ? (
             <>
-              <h1 style={{ margin: "0 0 12px", fontSize: "clamp(28px,5vw,52px)", fontWeight: 900, color: "#fff", lineHeight: 1.15 }}>
+              <h1 className="champ-hero-h1">
                 Идёт сезон<br />
                 <span style={{ color: "#14B8A6" }}>{stats.active_season.name}</span>
               </h1>
-              <p style={{ margin: "0 0 40px", fontSize: 18, color: "rgba(255,255,255,0.65)", lineHeight: 1.6 }}>
-                Докажи, что твой салон лучший. Победи и войди в историю.
-              </p>
+              <p className="champ-hero-sub">Докажи, что твой салон лучший. Победи и войди в историю.</p>
             </>
           ) : (
             <>
-              <h1 style={{ margin: "0 0 12px", fontSize: "clamp(28px,5vw,52px)", fontWeight: 900, color: "#fff", lineHeight: 1.15 }}>
+              <h1 className="champ-hero-h1">
                 Площадка<br />
                 <span style={{ color: "#14B8A6" }}>профессионального признания</span>
               </h1>
-              <p style={{ margin: "0 0 40px", fontSize: 18, color: "rgba(255,255,255,0.65)", lineHeight: 1.6 }}>
+              <p className="champ-hero-sub">
                 Участвуй в турнирах, побеждай, строй репутацию.<br />
                 Каждая победа остаётся в истории навсегда.
               </p>
             </>
           )}
 
-          {/* Счётчики */}
           {stats && (
-            <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+            <div className="champ-stats">
               {[
                 { v: stats.participants, label: "участников" },
-                { v: stats.works,       label: "работ" },
-                { v: stats.votes,       label: "голосов" },
-                { v: stats.tournaments, label: "турниров" },
+                { v: stats.works,        label: "работ" },
+                { v: stats.votes,        label: "голосов" },
+                { v: stats.tournaments,  label: "турниров" },
               ].map(({ v, label }) => (
-                <div key={label} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 14, padding: "18px 28px", minWidth: 110 }}>
-                  <div style={{ fontSize: 28, fontWeight: 900, color: "#fff" }}>{v.toLocaleString("ru")}</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>{label}</div>
+                <div key={label} className="champ-stat">
+                  <div className="champ-stat-num">{v.toLocaleString("ru")}</div>
+                  <div className="champ-stat-label">{label}</div>
                 </div>
               ))}
-              {stats.active_season?.total_prize && (
-                <div style={{ background: "rgba(20,184,166,0.15)", border: "1px solid rgba(20,184,166,0.3)", borderRadius: 14, padding: "18px 28px", minWidth: 110 }}>
-                  <div style={{ fontSize: 28, fontWeight: 900, color: "#14B8A6" }}>{stats.active_season.total_prize.toLocaleString("ru")} ⚡</div>
-                  <div style={{ fontSize: 13, color: "rgba(20,184,166,0.7)", marginTop: 2 }}>призовой фонд</div>
+              {stats.active_season?.total_prize ? (
+                <div className="champ-stat champ-stat-accent">
+                  <div className="champ-stat-num champ-stat-num-accent">{stats.active_season.total_prize.toLocaleString("ru")} ⚡</div>
+                  <div className="champ-stat-label champ-stat-label-accent">призовой фонд</div>
                 </div>
-              )}
+              ) : null}
             </div>
           )}
         </div>
       </div>
 
       {/* Контент */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 24px 80px" }}>
+      <div className="champ-content">
 
         {/* Быстрые ссылки */}
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 36 }}>
+        <div className="champ-quicklinks">
           {[
-            { to: "/championship/rating",      icon: "BarChart3",  label: "Рейтинг салонов" },
-            { to: "/championship/hall-of-fame", icon: "Trophy",    label: "Зал славы" },
+            { to: "/championship/rating",       icon: "BarChart3", label: "Рейтинг салонов" },
+            { to: "/championship/hall-of-fame",  icon: "Trophy",    label: "Зал славы" },
           ].map(({ to, icon, label }) => (
-            <Link key={to} to={to} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", borderRadius: 10, background: "#fff", border: "1.5px solid #e2e8f0", color: "#0f172a", textDecoration: "none", fontSize: 14, fontWeight: 600, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
-              <Icon name={icon} size={16} style={{ color: "#14B8A6" }} />
+            <Link key={to} to={to} className="champ-quicklink">
+              <Icon name={icon} size={16} style={{ color: "#14B8A6", flexShrink: 0 }} />
               {label}
             </Link>
           ))}
         </div>
 
         {/* Табы */}
-        <div style={{ display: "flex", gap: 4, background: "#f1f5f9", borderRadius: 12, padding: 4, marginBottom: 28, width: "fit-content" }}>
+        <div className="champ-tabs">
           {tabList.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 9, border: "none", background: activeTab === tab.id ? "#fff" : "transparent", color: activeTab === tab.id ? "#0f172a" : "#64748b", fontSize: 14, fontWeight: 600, cursor: "pointer", boxShadow: activeTab === tab.id ? "0 1px 4px rgba(0,0,0,0.08)" : "none", transition: "all 0.15s" }}>
-              <Icon name={tab.icon} size={14} />
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`champ-tab${activeTab === tab.id ? " champ-tab-active" : ""}`}
+            >
+              <span className="champ-tab-icon"><Icon name={tab.icon} size={14} /></span>
               {tab.label}
               {tab.count > 0 && (
-                <span style={{ background: activeTab === tab.id ? "#0f172a" : "#cbd5e1", color: "#fff", borderRadius: 10, padding: "1px 7px", fontSize: 11, fontWeight: 700 }}>
+                <span className={`champ-tab-badge${activeTab === tab.id ? " champ-tab-badge-active" : ""}`}>
                   {tab.count}
                 </span>
               )}
@@ -159,55 +220,55 @@ export default function ChampionshipPage() {
           ))}
         </div>
 
-        {/* Список турниров */}
+        {/* Турниры */}
         {loading ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
-            {[1,2,3].map(i => <div key={i} style={{ height: 220, borderRadius: 16, background: "#e2e8f0", animation: "pulse 1.5s ease infinite" }} />)}
+          <div className="champ-grid">
+            {[1, 2, 3].map(i => <div key={i} className="champ-skeleton" style={{ height: 220 }} />)}
           </div>
         ) : shown.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "60px 0", color: "#64748b" }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🏁</div>
+          <div style={{ textAlign: "center", padding: "56px 0", color: "#64748b" }}>
+            <div style={{ fontSize: 44, marginBottom: 12 }}>🏁</div>
             <div style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", marginBottom: 6 }}>
               {activeTab === "current" ? "Нет активных турниров" : activeTab === "upcoming" ? "Нет предстоящих турниров" : "Архив пока пуст"}
             </div>
             <div style={{ fontSize: 14, color: "#94a3b8" }}>Следите за анонсами — скоро появятся новые соревнования</div>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20 }}>
+          <div className="champ-grid">
             {shown.map(t => (
               <TournamentCard key={t.id} t={t} onClick={() => navigate(`/championship/tournament/${t.slug}`)} />
             ))}
           </div>
         )}
 
-        {/* Как это работает */}
-        <div style={{ marginTop: 64 }}>
-          <h2 style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", marginBottom: 8, textAlign: "center" }}>Как это работает</h2>
-          <p style={{ textAlign: "center", color: "#64748b", fontSize: 15, marginBottom: 40 }}>Четыре простых шага от регистрации до победы</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
+        {/* Как работает */}
+        <div style={{ marginTop: 56 }}>
+          <h2 style={{ fontSize: "clamp(20px,4vw,28px)", fontWeight: 800, color: "#0f172a", marginBottom: 8, textAlign: "center" }}>Как это работает</h2>
+          <p style={{ textAlign: "center", color: "#64748b", fontSize: 15, marginBottom: 32 }}>Четыре простых шага от регистрации до победы</p>
+          <div className="champ-steps">
             {[
-              { n: "01", icon: "UserPlus",   title: "Регистрация",   desc: "Зарегистрируйте салон и подайте заявку на турнир" },
-              { n: "02", icon: "Image",      title: "Работа",        desc: "Выполните задание и загрузите результат до дедлайна" },
-              { n: "03", icon: "Heart",      title: "Голосование",   desc: "Соберите голоса клиентов, друзей и подписчиков" },
-              { n: "04", icon: "Trophy",     title: "Победа",        desc: "Получите приз, достижение и место в Зале славы" },
+              { n: "01", icon: "UserPlus", title: "Регистрация",  desc: "Зарегистрируйте салон и подайте заявку на турнир" },
+              { n: "02", icon: "Image",    title: "Работа",       desc: "Выполните задание и загрузите результат до дедлайна" },
+              { n: "03", icon: "Heart",    title: "Голосование",  desc: "Соберите голоса клиентов, друзей и подписчиков" },
+              { n: "04", icon: "Trophy",   title: "Победа",       desc: "Получите приз, достижение и место в Зале славы" },
             ].map(s => (
-              <div key={s.n} style={{ background: "#fff", borderRadius: 16, padding: "24px 20px", border: "1.5px solid #e2e8f0" }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-                  <Icon name={s.icon} size={22} style={{ color: "#14B8A6" }} />
+              <div key={s.n} style={{ background: "#fff", borderRadius: 16, padding: "20px 16px", border: "1.5px solid #e2e8f0" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+                  <Icon name={s.icon} size={20} style={{ color: "#14B8A6" }} />
                 </div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: "#14B8A6", marginBottom: 4, letterSpacing: 1 }}>ШАГ {s.n}</div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", marginBottom: 6 }}>{s.title}</div>
-                <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>{s.desc}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>{s.title}</div>
+                <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.6 }}>{s.desc}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Уровни */}
-        <div style={{ marginTop: 64, background: "#0f172a", borderRadius: 20, padding: "40px 32px", color: "#fff" }}>
-          <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8, textAlign: "center" }}>Уровни салона</h2>
-          <p style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: 14, marginBottom: 32 }}>Каждый турнир приносит очки. Очки повышают статус.</p>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+        <div className="champ-levels">
+          <h2 style={{ fontSize: "clamp(18px,3vw,24px)", fontWeight: 800, marginBottom: 8, textAlign: "center", color: "#fff" }}>Уровни салона</h2>
+          <p style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: 13, marginBottom: 28 }}>Каждый турнир приносит очки. Очки повышают статус.</p>
+          <div className="champ-levels-grid">
             {[
               { level: "Новичок",      pts: "0+",    color: "#94a3b8" },
               { level: "Участник",     pts: "100+",  color: "#3b82f6" },
@@ -216,23 +277,23 @@ export default function ChampionshipPage() {
               { level: "Премиум",      pts: "3000+", color: "#ec4899" },
               { level: "Легенда",      pts: "6000+", color: "#f97316" },
             ].map(l => (
-              <div key={l.level} style={{ background: "rgba(255,255,255,0.06)", border: `1.5px solid ${l.color}40`, borderRadius: 12, padding: "14px 20px", textAlign: "center", minWidth: 110 }}>
+              <div key={l.level} className="champ-level" style={{ border: `1.5px solid ${l.color}40` }}>
                 <div style={{ width: 10, height: 10, borderRadius: "50%", background: l.color, margin: "0 auto 8px" }} />
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 2 }}>{l.level}</div>
-                <div style={{ fontSize: 12, color: l.color, fontWeight: 600 }}>{l.pts} очков</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 2 }}>{l.level}</div>
+                <div style={{ fontSize: 11, color: l.color, fontWeight: 600 }}>{l.pts} очков</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* CTA */}
-        <div style={{ marginTop: 48, textAlign: "center" }}>
-          <div style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", borderRadius: 20, padding: "40px 32px", display: "inline-block", width: "100%", maxWidth: 600 }}>
-            <h2 style={{ margin: "0 0 10px", fontSize: 24, fontWeight: 800, color: "#fff" }}>Готовы участвовать?</h2>
-            <p style={{ margin: "0 0 24px", fontSize: 15, color: "rgba(255,255,255,0.8)" }}>
+        <div className="champ-cta">
+          <div className="champ-cta-inner">
+            <h2 style={{ margin: "0 0 10px", fontSize: "clamp(18px,3vw,24px)", fontWeight: 800, color: "#fff" }}>Готовы участвовать?</h2>
+            <p style={{ margin: "0 0 22px", fontSize: 15, color: "rgba(255,255,255,0.8)" }}>
               Зарегистрируйте салон и получите 100 ⚡ энергии в подарок
             </p>
-            <Link to="/cabinet" style={{ display: "inline-block", padding: "14px 36px", background: "#fff", color: "#6366f1", borderRadius: 12, textDecoration: "none", fontSize: 16, fontWeight: 800 }}>
+            <Link to="/cabinet" style={{ display: "inline-block", padding: "13px 32px", background: "#fff", color: "#6366f1", borderRadius: 12, textDecoration: "none", fontSize: 15, fontWeight: 800 }}>
               Войти в кабинет →
             </Link>
           </div>
@@ -248,50 +309,44 @@ function TournamentCard({ t, onClick }: { t: Tournament; onClick: () => void }) 
   const statusLabel = STATUS_LABELS[t.status] || t.status;
 
   return (
-    <div onClick={onClick} style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0", padding: "24px", cursor: "pointer", transition: "box-shadow 0.15s, transform 0.15s", position: "relative", overflow: "hidden" }}
-      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 32px rgba(0,0,0,0.1)"; (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)"; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; (e.currentTarget as HTMLDivElement).style.transform = "none"; }}>
-
-      {/* Статус */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-        <span style={{ fontSize: 28 }}>{t.emoji}</span>
-        <span style={{ background: `${statusColor}18`, color: statusColor, borderRadius: 20, padding: "4px 12px", fontSize: 12, fontWeight: 700 }}>
+    <div onClick={onClick} className="champ-card">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        <span style={{ fontSize: 26 }}>{t.emoji}</span>
+        <span style={{ background: `${statusColor}18`, color: statusColor, borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700 }}>
           {statusLabel}
         </span>
       </div>
 
       {t.postponed && (
-        <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "6px 10px", fontSize: 11, color: "#92400e", marginBottom: 10 }}>
+        <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "5px 10px", fontSize: 11, color: "#92400e", marginBottom: 10 }}>
           ⏰ Перенесён — мало участников
         </div>
       )}
 
-      <h3 style={{ margin: "0 0 8px", fontSize: 17, fontWeight: 800, color: "#0f172a", lineHeight: 1.3 }}>{t.name}</h3>
-      <p style={{ margin: "0 0 16px", fontSize: 13, color: "#64748b", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+      <h3 style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 800, color: "#0f172a", lineHeight: 1.3 }}>{t.name}</h3>
+      <p style={{ margin: "0 0 14px", fontSize: 13, color: "#64748b", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
         {t.description}
       </p>
 
-      <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
         {t.applications_count > 0 && (
-          <div style={{ fontSize: 12, color: "#64748b" }}>
-            <span style={{ fontWeight: 700, color: "#0f172a" }}>{t.applications_count}</span> участников
-          </div>
+          <span style={{ fontSize: 12, color: "#64748b" }}>
+            <b style={{ color: "#0f172a" }}>{t.applications_count}</b> участников
+          </span>
         )}
         {t.works_count > 0 && (
-          <div style={{ fontSize: 12, color: "#64748b" }}>
-            <span style={{ fontWeight: 700, color: "#0f172a" }}>{t.works_count}</span> работ
-          </div>
+          <span style={{ fontSize: 12, color: "#64748b" }}>
+            <b style={{ color: "#0f172a" }}>{t.works_count}</b> работ
+          </span>
         )}
         {t.prize_energy > 0 && (
-          <div style={{ fontSize: 12, color: "#14B8A6", fontWeight: 700 }}>
-            {t.prize_energy} ⚡ победителю
-          </div>
+          <span style={{ fontSize: 12, color: "#14B8A6", fontWeight: 700 }}>{t.prize_energy} ⚡ победителю</span>
         )}
       </div>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ fontSize: 12, color: "#94a3b8" }}>
-          {t.registration_ends && ["announced","registration"].includes(t.status) && (
+          {t.registration_ends && ["announced", "registration"].includes(t.status) && (
             <>Регистрация до {new Date(t.registration_ends).toLocaleDateString("ru")}</>
           )}
           {t.voting_ends && t.status === "voting" && (
