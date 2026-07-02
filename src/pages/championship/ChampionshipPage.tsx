@@ -176,14 +176,32 @@ export default function ChampionshipPage() {
           ) : (
             <>
               <h1 className="champ-hero-h1">
-                Площадка<br />
-                <span style={{ color: "#14B8A6" }}>профессионального признания</span>
+                Победа строит<br />
+                <span style={{ color: "#14B8A6" }}>репутацию</span>
               </h1>
               <p className="champ-hero-sub">
-                Участвуй в турнирах, побеждай, строй репутацию.<br />
-                Каждая победа остаётся в истории навсегда.
+                Участвуй в турнирах — каждая победа повышает статус салона,<br />
+                привлекает новых клиентов и остаётся в истории навсегда.
               </p>
             </>
+          )}
+
+          {/* Репутационные преимущества */}
+          {!stats?.active_season && (
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 36 }}>
+              {[
+                { icon: "⭐", title: "Репутация и доверие", desc: "Статус эксперта индустрии" },
+                { icon: "👥", title: "Новые клиенты", desc: "Победители привлекают больше" },
+                { icon: "💎", title: "Бренд и известность", desc: "Узнаваемость на всю страну" },
+                { icon: "🏛", title: "История навсегда", desc: "Зал славы чемпионата" },
+              ].map(item => (
+                <div key={item.title} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "14px 16px", textAlign: "center", minWidth: 140, maxWidth: 160 }}>
+                  <div style={{ fontSize: 22, marginBottom: 6 }}>{item.icon}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", marginBottom: 3 }}>{item.title}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>{item.desc}</div>
+                </div>
+              ))}
+            </div>
           )}
 
           {stats && (
