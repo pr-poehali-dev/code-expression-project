@@ -177,6 +177,19 @@ def handle_tournament(event):
         (d["id"],)
     )
     d["prizes"] = [dict(r) for r in cur.fetchall()]
+
+    # Проверяем есть ли заявка от текущего пользователя
+    d["my_application_status"] = None
+    user = get_session_user(event, conn)
+    if user and user.get("salon_id"):
+        cur.execute(
+            f"SELECT status FROM {tbl('ch_applications')} WHERE tournament_id = %s AND salon_id = %s LIMIT 1",
+            (d["id"], user["salon_id"])
+        )
+        app_row = cur.fetchone()
+        if app_row:
+            d["my_application_status"] = app_row["status"]
+
     return ok({"tournament": d})
 
 

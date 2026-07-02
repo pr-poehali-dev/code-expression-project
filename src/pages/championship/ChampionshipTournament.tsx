@@ -16,6 +16,7 @@ interface Tournament {
   applications_count: number; works_count: number;
   postponed: boolean; postpone_reason: string;
   prizes: Prize[]; season_name: string;
+  my_application_status: string | null;
 }
 interface Prize { id: number; place: number; title: string; description: string; photo_url: string; value: string; partner_name: string; partner_logo: string; }
 interface Work {
@@ -95,6 +96,7 @@ export default function ChampionshipTournament() {
     if (!slug) return;
     champGet("tournament", { slug }).then(d => {
       setTournament(d.tournament);
+      if (d.tournament?.my_application_status) setApplied(true);
       if (d.tournament && ["voting", "finished"].includes(d.tournament.status)) {
         setTab("works");
         champGet("works", { tournament_id: String(d.tournament.id) }).then(w => setWorks(w.works || []));
