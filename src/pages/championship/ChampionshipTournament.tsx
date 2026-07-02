@@ -362,7 +362,7 @@ function ShareBanner({ url, tournamentName }: { url: string; tournamentName: str
             Поделиться
           </button>
         )}
-        <button onClick={() => copy(shareText)} style={{ padding: "9px 16px", borderRadius: 9, border: "none", background: copied ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.1)", color: copied ? "#86efac" : "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", border: "1px solid rgba(255,255,255,0.15)" as never }}>
+        <button onClick={() => copy(shareText)} style={{ padding: "9px 16px", borderRadius: 9, border: "1px solid rgba(255,255,255,0.15)", background: copied ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.1)", color: copied ? "#86efac" : "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
           {copied ? "✓ Скопировано" : "Скопировать ссылку"}
         </button>
       </div>
