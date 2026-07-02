@@ -40,7 +40,7 @@ def get_session_user(event, conn):
         return None
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"SELECT u.*, s.salon_id as s_salon_id FROM {tbl('lk_sessions')} s "
+        f"SELECT u.* FROM {tbl('lk_sessions')} s "
         f"JOIN {tbl('lk_users')} u ON u.id = s.user_id "
         f"WHERE s.id = %s AND s.expires_at > NOW() AND u.is_active = TRUE",
         (sid,)
