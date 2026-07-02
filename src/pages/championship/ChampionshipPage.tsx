@@ -71,7 +71,7 @@ export default function ChampionshipPage() {
         }
         .champ-hero-bg {
           position: absolute; inset: 0;
-          background-image: url('https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/1cb5ff9b-766a-4049-9f6e-983c74f3fe74.png');
+          background-image: url('https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/9eb80255-4dbc-405c-9f1d-f485fd4e3a65.png');
           background-size: cover;
           background-position: center 20%;
           opacity: 0.28;
