@@ -126,7 +126,7 @@ export default function LkChampionship() {
           tournament={selectedTournament}
           my={activeMy}
           onBack={() => { setView("my"); load(); }}
-          onSaved={() => { setView("share"); load(); }}
+          onSaved={() => { load(); setView(selectedTournament?.status === "voting" ? "share" : "my"); }}
         />
       ) : view === "share" && selectedTournament && activeMy ? (
         <ShareView
