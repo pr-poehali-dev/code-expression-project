@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {"name": "OPTIONS preflight",    "method": "OPTIONS", "path": "/",                    "expectedStatus": 200},
+    {"name": "GET run all checks",   "method": "GET",     "path": "/?action=run",         "expectedStatus": 200},
+    {"name": "GET check_min",        "method": "GET",     "path": "/?action=check_min",   "expectedStatus": 200},
+    {"name": "GET open_tasks",       "method": "GET",     "path": "/?action=open_tasks",  "expectedStatus": 200},
+    {"name": "GET notify",           "method": "GET",     "path": "/?action=notify",      "expectedStatus": 200}
+  ]
+}

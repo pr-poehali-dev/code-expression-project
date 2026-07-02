@@ -1,0 +1,8 @@
+{
+  "tests": [
+    {"name": "OPTIONS preflight",          "method": "OPTIONS", "path": "/",                                   "expectedStatus": 200},
+    {"name": "POST vote requires work_id", "method": "POST",    "path": "/?action=vote",                       "expectedStatus": 400},
+    {"name": "GET my_votes",               "method": "GET",     "path": "/?action=my_votes&tournament_id=0",   "expectedStatus": 200},
+    {"name": "POST expert_score no auth",  "method": "POST",    "path": "/?action=expert_score", "body": "{}", "expectedStatus": 401}
+  ]
+}

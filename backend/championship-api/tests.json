@@ -1,0 +1,13 @@
+{
+  "tests": [
+    {"name": "OPTIONS preflight",              "method": "OPTIONS", "path": "/",                          "expectedStatus": 200},
+    {"name": "GET seasons",                    "method": "GET",     "path": "/?action=seasons",           "expectedStatus": 200},
+    {"name": "GET tournaments",                "method": "GET",     "path": "/?action=tournaments",       "expectedStatus": 200},
+    {"name": "GET stats",                      "method": "GET",     "path": "/?action=stats",             "expectedStatus": 200},
+    {"name": "GET rating",                     "method": "GET",     "path": "/?action=rating",            "expectedStatus": 200},
+    {"name": "GET hall_of_fame",               "method": "GET",     "path": "/?action=hall_of_fame",      "expectedStatus": 200},
+    {"name": "GET works requires tournament_id","method": "GET",    "path": "/?action=works",             "expectedStatus": 400},
+    {"name": "GET work requires id",           "method": "GET",     "path": "/?action=work",              "expectedStatus": 400},
+    {"name": "POST apply requires auth",       "method": "POST",    "path": "/?action=apply", "body": "{}", "expectedStatus": 401}
+  ]
+}

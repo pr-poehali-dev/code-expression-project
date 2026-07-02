@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET tournaments requires admin",
+      "method": "GET",
+      "path": "/?action=tournaments",
+      "expectedStatus": 403
+    },
+    {
+      "name": "POST create_tournament requires admin",
+      "method": "POST",
+      "path": "/?action=create_tournament",
+      "body": "{}",
+      "expectedStatus": 403
+    }
+  ]
+}

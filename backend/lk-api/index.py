@@ -3985,6 +3985,174 @@ def handle_post_text(event: dict) -> dict:
         conn.close()
 
 
+# ── Quiz (перенесён из отдельной функции) ────────────────────────────────────
+
+QUIZ_PROMO_CODE = "BROSS55"
+QUIZ_SCHEMA = os.environ.get("MAIN_DB_SCHEMA", SCHEMA)
+
+
+def _quiz_compute_category(answers: dict) -> tuple:
+    scores = {"A": 0, "B": 0, "C": 0, "D": 0}
+    exp = answers.get("q2", "")
+    if exp == "no_exp":       scores["A"] += 3; scores["D"] += 2
+    elif exp == "little_exp": scores["A"] += 2; scores["D"] += 2
+    elif exp == "masseur":    scores["B"] += 5
+    elif exp == "trainer":    scores["C"] += 5
+    elif exp == "other_specialist": scores["B"] += 2; scores["C"] += 2; scores["D"] += 2
+    goals = answers.get("q3", [])
+    if "for_self" in goals:       scores["A"] += 4
+    if "pain_relief" in goals:    scores["A"] += 3
+    if "new_career" in goals:     scores["D"] += 5
+    if "upgrade" in goals:        scores["B"] += 4; scores["C"] += 2
+    if "earn_more" in goals:      scores["D"] += 4; scores["B"] += 2
+    if "work_deeper" in goals:    scores["B"] += 5
+    if "new_techniques" in goals: scores["B"] += 3; scores["C"] += 3
+    earn = answers.get("q4", "")
+    if earn == "no_earn":        scores["A"] += 3
+    elif earn == "maybe_earn":   scores["D"] += 1
+    elif earn == "extra_income": scores["D"] += 3; scores["B"] += 1
+    elif earn == "new_profession": scores["D"] += 5
+    interests = answers.get("q5", [])
+    if "simple_techniques" in interests: scores["A"] += 3
+    if "body_restoration" in interests:  scores["B"] += 3; scores["C"] += 2
+    if "diagnostics" in interests:       scores["B"] += 4; scores["C"] += 3
+    if "deep_muscles" in interests:      scores["B"] += 4
+    if "client_practice" in interests:   scores["B"] += 3; scores["D"] += 2
+    if answers.get("q7") == "live_moscow": scores["B"] += 2; scores["D"] += 2
+    cat = max(scores, key=lambda k: scores[k])
+    explanations = {
+        "A": "Вам подойдут эти программы — простые восстановительные техники для себя и близких.",
+        "B": "Вы уже работаете с клиентами и хотите выйти на новый уровень профессионализма.",
+        "C": "Как тренер вы хотите добавить восстановительные техники и давать результат нового уровня.",
+        "D": "Готовы освоить востребованную профессию с нуля или значительно увеличить доход.",
+    }
+    return cat, explanations[cat]
+
+
+def handle_quiz_submit(event: dict) -> dict:
+    body = json.loads(event.get("body") or "{}")
+    name = body.get("name", "").strip()
+    email = body.get("email", "").strip()
+    answers = body.get("answers", {})
+    if not name or not email:
+        return err("Имя и email обязательны")
+    category, explanation = _quiz_compute_category(answers)
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        f"INSERT INTO {tbl('quiz_submissions')} (name, email, answers, category) VALUES (%s, %s, %s, %s)",
+        (name, email, json.dumps(answers, ensure_ascii=False), category)
+    )
+    cur.execute(
+        f"SELECT id, title, description, url, buy_url, price, category, format "
+        f"FROM {tbl('quiz_courses')} WHERE is_active = TRUE AND category = %s ORDER BY sort_order LIMIT 5",
+        (category,)
+    )
+    courses = [{"id": r[0], "title": r[1], "description": r[2], "url": r[3],
+                "buy_url": r[4], "price": r[5], "category": r[6], "format": r[7]}
+               for r in cur.fetchall()]
+    conn.commit()
+    return ok({"ok": True, "category": category, "explanation": explanation,
+               "courses": courses, "promo": QUIZ_PROMO_CODE})
+
+
+def handle_quiz_courses(event: dict) -> dict:
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT * FROM {tbl('quiz_courses')} WHERE is_active = TRUE ORDER BY sort_order")
+    return ok({"courses": [dict(r) for r in cur.fetchall()]})
+
+
+def handle_quiz_admin_submissions(event: dict) -> dict:
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT * FROM {tbl('quiz_submissions')} ORDER BY created_at DESC LIMIT 200")
+    return ok({"submissions": [dict(r) for r in cur.fetchall()]})
+
+
+def handle_quiz_admin_courses(event: dict) -> dict:
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT * FROM {tbl('quiz_courses')} ORDER BY sort_order")
+    return ok({"courses": [dict(r) for r in cur.fetchall()]})
+
+
+def handle_quiz_admin_create_course(event: dict) -> dict:
+    body = json.loads(event.get("body") or "{}")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        f"INSERT INTO {tbl('quiz_courses')} (title, description, url, buy_url, price, category, format, sort_order, is_active) "
+        f"VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id",
+        (body.get("title",""), body.get("description",""), body.get("url",""),
+         body.get("buy_url",""), body.get("price",""), body.get("category","A"),
+         body.get("format","online"), body.get("sort_order",0), body.get("is_active",True))
+    )
+    new_id = cur.fetchone()[0]
+    conn.commit()
+    return ok({"ok": True, "id": new_id})
+
+
+def handle_quiz_admin_update_course(event: dict) -> dict:
+    qs = event.get("queryStringParameters") or {}
+    course_id = qs.get("id", "")
+    body = json.loads(event.get("body") or "{}")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(
+        f"UPDATE {tbl('quiz_courses')} SET title=%s, description=%s, url=%s, buy_url=%s, "
+        f"price=%s, category=%s, format=%s, sort_order=%s, is_active=%s WHERE id=%s",
+        (body.get("title",""), body.get("description",""), body.get("url",""),
+         body.get("buy_url",""), body.get("price",""), body.get("category","A"),
+         body.get("format","online"), body.get("sort_order",0), body.get("is_active",True), course_id)
+    )
+    conn.commit()
+    return ok({"ok": True})
+
+
+def handle_quiz_admin_delete_course(event: dict) -> dict:
+    qs = event.get("queryStringParameters") or {}
+    course_id = qs.get("id", "")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute(f"UPDATE {tbl('quiz_courses')} SET is_active = FALSE WHERE id = %s", (course_id,))
+    conn.commit()
+    return ok({"ok": True})
+
+
+# ── Send Inquiry (перенесён из отдельной функции) ─────────────────────────────
+
+def handle_send_inquiry(event: dict) -> dict:
+    body = json.loads(event.get("body") or "{}")
+    name = body.get("name", "").strip()
+    contact = body.get("contact", "").strip()
+    message = body.get("message", "").strip()
+    if not name or not contact:
+        return err("Имя и контакт обязательны")
+    from_email = "massopro@mail.ru"
+    smtp_password = os.environ.get("SMTP_PASSWORD", "")
+    is_b2b = "B2B" in message or "салон" in message.lower()
+    subject = f"{'[Салон] ' if is_b2b else ''}Новая заявка: {name}"
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart as _MMP
+    rows = f"<tr><td><b>Имя:</b></td><td>{name}</td></tr><tr><td><b>Контакт:</b></td><td>{contact}</td></tr>"
+    if message:
+        rows += f'<tr><td><b>Сообщение:</b></td><td style="white-space:pre-wrap">{message}</td></tr>'
+    html = f'<h2>{"🏢 B2B-заявка" if is_b2b else "Новая заявка с сайта"}</h2><table cellpadding="8">{rows}</table>'
+    msg = _MMP("alternative")
+    msg["Subject"] = subject
+    msg["From"] = from_email
+    msg["To"] = from_email
+    msg.attach(MIMEText(html, "html"))
+    with smtplib.SMTP_SSL("smtp.mail.ru", 465) as server:
+        server.login(from_email, smtp_password)
+        server.sendmail(from_email, from_email, msg.as_string())
+    return ok({"ok": True})
+
+
+# ── Таблица маршрутов ─────────────────────────────────────────────────────────
+
 ROUTES = {
     ("POST", "login"): handle_login,
     ("POST", "register"): handle_register,
@@ -4082,6 +4250,16 @@ ROUTES = {
     ("POST", "course_request"): handle_course_request,
     ("GET",  "course_requests_list"): handle_course_requests_list,
     ("POST", "course_request_resolve"): handle_course_request_resolve,
+    # Квиз подбора курсов (перенесён из quiz)
+    ("POST", "quiz_submit"): handle_quiz_submit,
+    ("GET",  "quiz_courses"): handle_quiz_courses,
+    ("GET",  "quiz_admin_submissions"): handle_quiz_admin_submissions,
+    ("GET",  "quiz_admin_courses"): handle_quiz_admin_courses,
+    ("POST", "quiz_admin_create_course"): handle_quiz_admin_create_course,
+    ("PUT",  "quiz_admin_update_course"): handle_quiz_admin_update_course,
+    ("DELETE", "quiz_admin_delete_course"): handle_quiz_admin_delete_course,
+    # Универсальная отправка заявок с сайта (перенесена из send-inquiry)
+    ("POST", "send_inquiry"): handle_send_inquiry,
 }
 
 
