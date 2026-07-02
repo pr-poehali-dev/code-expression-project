@@ -82,6 +82,7 @@ export interface Tournament {
   prize_energy: number; prize_2nd: number; prize_3rd: number;
   min_participants: number; applications_count: number; works_count: number;
   description: string; rules: string; task_text: string;
+  cover_image_url: string;
   registration_starts: string; registration_ends: string;
   task_opens_at: string; work_deadline: string;
   voting_starts: string; voting_ends: string; next_date: string;
@@ -102,6 +103,7 @@ export interface Application {
 export const EMPTY_TOURNAMENT = {
   name: "", slug: "", emoji: "🏆", status: "draft", description: "", rules: "", task_text: "",
   prize_energy: 0, prize_2nd: 0, prize_3rd: 0, min_participants: 5,
+  cover_image_url: "",
   registration_starts: "", registration_ends: "", task_opens_at: "",
   work_deadline: "", voting_starts: "", voting_ends: "", next_date: "",
   season_id: "",

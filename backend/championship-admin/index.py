@@ -29,11 +29,14 @@ GET  ?action=experts            — список экспертов
 POST ?action=add_expert         — добавить эксперта
 POST ?action=remove_expert      — удалить эксперта
 """
+import base64
 import json
 import os
+import uuid
 import psycopg2
 import psycopg2.extras
 import urllib.request
+import boto3
 
 S = "t_p84565078_code_expression_proj"
 CORS = {
@@ -105,6 +108,7 @@ def handler(event: dict, context) -> dict:
         ("GET",  "experts"):            handle_list_experts,
         ("POST", "add_expert"):         handle_add_expert,
         ("POST", "remove_expert"):      handle_remove_expert,
+        ("POST", "upload_cover"):       handle_upload_cover,
     }
     fn = routes.get((method, action))
     if fn:
@@ -188,6 +192,26 @@ def _str_or_none(val):
     return val if val not in (None, "") else None
 
 
+def handle_upload_cover(event, conn):
+    b = json.loads(event.get("body") or "{}")
+    image_data = b.get("image_base64", "")
+    content_type = b.get("content_type", "image/jpeg")
+    if not image_data:
+        return err("image_base64 required")
+    raw = base64.b64decode(image_data)
+    ext = "jpg" if "jpeg" in content_type else content_type.split("/")[-1]
+    key = f"championship/covers/{uuid.uuid4()}.{ext}"
+    s3 = boto3.client(
+        "s3",
+        endpoint_url="https://bucket.poehali.dev",
+        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+    )
+    s3.put_object(Bucket="files", Key=key, Body=raw, ContentType=content_type)
+    url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+    return ok({"url": url})
+
+
 def handle_create_tournament(event, conn):
     b = json.loads(event.get("body") or "{}")
     cur = conn.cursor()
@@ -195,14 +219,16 @@ def handle_create_tournament(event, conn):
         f"""INSERT INTO {tbl('ch_tournaments')}
                (season_id, name, slug, category, emoji, description, rules, task_text,
                 prize_energy, prize_2nd, prize_3rd, min_participants, status,
+                cover_image_url,
                 registration_starts, registration_ends, task_opens_at,
                 work_deadline, voting_starts, voting_ends, next_date)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             RETURNING id""",
         (_int(b.get("season_id"), None), b["name"], b["slug"], b.get("category","general"),
          b.get("emoji","🏆"), b.get("description",""), b.get("rules",""), b.get("task_text",""),
          _int(b.get("prize_energy"),0), _int(b.get("prize_2nd"),0), _int(b.get("prize_3rd"),0),
          _int(b.get("min_participants"),5), b.get("status","draft"),
+         _str_or_none(b.get("cover_image_url")),
          _str_or_none(b.get("registration_starts")), _str_or_none(b.get("registration_ends")),
          _str_or_none(b.get("task_opens_at")), _str_or_none(b.get("work_deadline")),
          _str_or_none(b.get("voting_starts")), _str_or_none(b.get("voting_ends")),
@@ -221,7 +247,8 @@ def handle_update_tournament(event, conn):
         f"""UPDATE {tbl('ch_tournaments')} SET
                name=%s, slug=%s, category=%s, emoji=%s, description=%s, rules=%s,
                task_text=%s, prize_energy=%s, prize_2nd=%s, prize_3rd=%s,
-               min_participants=%s, status=%s, registration_starts=%s, registration_ends=%s,
+               min_participants=%s, status=%s, cover_image_url=%s,
+               registration_starts=%s, registration_ends=%s,
                task_opens_at=%s, work_deadline=%s, voting_starts=%s, voting_ends=%s,
                next_date=%s, postponed=%s, postpone_reason=%s, updated_at=NOW()
             WHERE id=%s""",
@@ -229,6 +256,7 @@ def handle_update_tournament(event, conn):
          b.get("description",""), b.get("rules",""), b.get("task_text",""),
          _int(b.get("prize_energy"),0), _int(b.get("prize_2nd"),0), _int(b.get("prize_3rd"),0),
          _int(b.get("min_participants"),5), b.get("status","draft"),
+         _str_or_none(b.get("cover_image_url")),
          _str_or_none(b.get("registration_starts")), _str_or_none(b.get("registration_ends")),
          _str_or_none(b.get("task_opens_at")), _str_or_none(b.get("work_deadline")),
          _str_or_none(b.get("voting_starts")), _str_or_none(b.get("voting_ends")),

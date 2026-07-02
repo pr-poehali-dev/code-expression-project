@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ACCENT } from "./LkAdminShared";
 import {
-  adminGet, adminPost,
+  adminGet, adminPost, ADMIN_URL, SESSION,
   Btn, Field, Card,
   STATUS_LABELS, STATUS_COLORS,
   Tournament, EMPTY_TOURNAMENT, activeWorksRef,
@@ -112,6 +112,67 @@ function EmojiPicker({ label, value, onChange }: { label: string; value: string;
   );
 }
 
+function CoverUpload({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (file: File) => {
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const b64 = (reader.result as string).split(",")[1];
+      const res = await fetch(`${ADMIN_URL}?action=upload_cover`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": SESSION() },
+        body: JSON.stringify({ image_base64: b64, content_type: file.type }),
+      });
+      const data = await res.json();
+      if (data.url) onChange(data.url);
+      setUploading(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", marginBottom: 6 }}>ОБЛОЖКА ТУРНИРА</div>
+      <div
+        onClick={() => inputRef.current?.click()}
+        style={{
+          width: "100%", height: value ? "auto" : 120, borderRadius: 10,
+          border: `2px dashed ${value ? ACCENT : "#e2e8f0"}`,
+          cursor: "pointer", overflow: "hidden", position: "relative",
+          background: value ? "transparent" : "#f8fafc",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "border-color 0.2s",
+        }}
+      >
+        {value ? (
+          <img src={value} alt="cover" style={{ width: "100%", maxHeight: 200, objectFit: "cover", display: "block" }} />
+        ) : (
+          <div style={{ textAlign: "center", color: "#94a3b8", padding: 16 }}>
+            <div style={{ fontSize: 28, marginBottom: 6 }}>🖼</div>
+            <div style={{ fontSize: 12 }}>Нажмите, чтобы загрузить фото</div>
+            <div style={{ fontSize: 11, color: "#cbd5e1", marginTop: 2 }}>JPG, PNG · до 5 МБ</div>
+          </div>
+        )}
+        {uploading && (
+          <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.8)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, color: ACCENT, fontWeight: 700 }}>
+            Загружаю…
+          </div>
+        )}
+      </div>
+      {value && (
+        <button onClick={() => onChange("")} type="button" style={{ marginTop: 6, fontSize: 11, color: "#ef4444", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+          ✕ Удалить фото
+        </button>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" style={{ display: "none" }}
+        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+    </div>
+  );
+}
+
 export function TournamentsSection() {
   const [list, setList] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
@@ -135,6 +196,7 @@ export function TournamentsSection() {
       description: t.description || "", rules: t.rules || "", task_text: t.task_text || "",
       prize_energy: t.prize_energy, prize_2nd: t.prize_2nd, prize_3rd: t.prize_3rd,
       min_participants: t.min_participants,
+      cover_image_url: t.cover_image_url || "",
       registration_starts: t.registration_starts?.slice(0, 16) || "",
       registration_ends: t.registration_ends?.slice(0, 16) || "",
       task_opens_at: t.task_opens_at?.slice(0, 16) || "",
@@ -198,6 +260,7 @@ export function TournamentsSection() {
               </select>
             </div>
           </div>
+          <CoverUpload value={form.cover_image_url} onChange={v => setForm(p => ({ ...p, cover_image_url: v }))} />
           <Field label="Описание" value={form.description} onChange={f("description")} textarea />
           <Field label="Правила" value={form.rules} onChange={f("rules")} textarea />
           <Field label="Задание (скрыто до старта)" value={form.task_text} onChange={f("task_text")} textarea />

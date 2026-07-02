@@ -11,9 +11,12 @@ interface Season {
 }
 interface Tournament {
   id: number; name: string; slug: string; category: string; emoji: string;
-  description: string; status: string; prize_energy: number;
+  description: string; status: string; prize_energy: number; prize_2nd: number; prize_3rd: number;
   registration_starts: string; registration_ends: string;
-  voting_ends: string; applications_count: number; works_count: number;
+  task_opens_at: string; work_deadline: string;
+  voting_starts: string; voting_ends: string;
+  applications_count: number; works_count: number;
+  cover_image_url: string;
   postponed: boolean; postpone_reason: string;
 }
 interface Stats {
@@ -353,53 +356,95 @@ function TournamentCard({ t, onClick }: { t: Tournament; onClick: () => void }) 
   const statusColor = STATUS_COLORS[t.status] || "#64748b";
   const statusLabel = STATUS_LABELS[t.status] || t.status;
 
+  const fmt = (d: string) => d ? new Date(d).toLocaleDateString("ru", { day: "numeric", month: "short" }) : "";
+
+  const dateInfo = (() => {
+    if (["announced", "registration"].includes(t.status) && t.registration_ends)
+      return { label: "Регистрация до", value: fmt(t.registration_ends), icon: "CalendarClock" };
+    if (t.status === "active" && t.work_deadline)
+      return { label: "Дедлайн работ", value: fmt(t.work_deadline), icon: "Clock" };
+    if (t.status === "voting" && t.voting_ends)
+      return { label: "Голосование до", value: fmt(t.voting_ends), icon: "Vote" };
+    if (t.registration_starts)
+      return { label: "Старт регистрации", value: fmt(t.registration_starts), icon: "CalendarClock" };
+    return null;
+  })();
+
   return (
-    <div onClick={onClick} className="champ-card">
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-        <span style={{ fontSize: 26 }}>{t.emoji}</span>
-        <span style={{ background: `${statusColor}18`, color: statusColor, borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700 }}>
+    <div onClick={onClick} className="champ-card" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+
+      {/* Фото обложки */}
+      <div style={{ position: "relative", height: 180, background: t.cover_image_url ? "transparent" : "linear-gradient(135deg,#0f172a,#1e293b)", flexShrink: 0 }}>
+        {t.cover_image_url ? (
+          <img src={t.cover_image_url} alt={t.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+        ) : (
+          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 52 }}>
+            {t.emoji}
+          </div>
+        )}
+        {/* Оверлей с градиентом */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)" }} />
+        {/* Статус бейдж */}
+        <span style={{ position: "absolute", top: 12, right: 12, background: `${statusColor}dd`, color: "#fff", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, backdropFilter: "blur(4px)" }}>
           {statusLabel}
         </span>
-      </div>
-
-      {t.postponed && (
-        <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 8, padding: "5px 10px", fontSize: 11, color: "#92400e", marginBottom: 10 }}>
-          ⏰ Перенесён — мало участников
-        </div>
-      )}
-
-      <h3 style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 800, color: "#0f172a", lineHeight: 1.3 }}>{t.name}</h3>
-      <p style={{ margin: "0 0 14px", fontSize: 13, color: "#64748b", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-        {t.description}
-      </p>
-
-      <div style={{ display: "flex", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
-        {t.applications_count > 0 && (
-          <span style={{ fontSize: 12, color: "#64748b" }}>
-            <b style={{ color: "#0f172a" }}>{t.applications_count}</b> участников
-          </span>
+        {/* Эмодзи поверх фото */}
+        {t.cover_image_url && (
+          <span style={{ position: "absolute", bottom: 10, left: 14, fontSize: 22 }}>{t.emoji}</span>
         )}
-        {t.works_count > 0 && (
-          <span style={{ fontSize: 12, color: "#64748b" }}>
-            <b style={{ color: "#0f172a" }}>{t.works_count}</b> работ
+        {t.postponed && (
+          <span style={{ position: "absolute", top: 12, left: 12, background: "#fbbf24dd", color: "#78350f", borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 700 }}>
+            ⏰ Перенесён
           </span>
-        )}
-        {t.prize_energy > 0 && (
-          <span style={{ fontSize: 12, color: "#14B8A6", fontWeight: 700 }}>{t.prize_energy} ⚡ победителю</span>
         )}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontSize: 12, color: "#94a3b8" }}>
-          {t.registration_ends && ["announced", "registration"].includes(t.status) && (
-            <>Регистрация до {new Date(t.registration_ends).toLocaleDateString("ru")}</>
-          )}
-          {t.voting_ends && t.status === "voting" && (
-            <>Голосование до {new Date(t.voting_ends).toLocaleDateString("ru")}</>
-          )}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, fontWeight: 700, color: "#6366f1" }}>
-          Подробнее <Icon name="ArrowRight" size={14} />
+      {/* Контент */}
+      <div style={{ padding: "16px 18px 18px", display: "flex", flexDirection: "column", flex: 1 }}>
+        <h3 style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 800, color: "#0f172a", lineHeight: 1.3 }}>{t.name}</h3>
+        <p style={{ margin: "0 0 14px", fontSize: 13, color: "#64748b", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", flex: 1 }}>
+          {t.description}
+        </p>
+
+        {/* Призы */}
+        {(t.prize_energy > 0 || t.prize_2nd > 0 || t.prize_3rd > 0) && (
+          <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
+            {t.prize_energy > 0 && (
+              <span style={{ background: "linear-gradient(135deg,#fbbf24,#f59e0b)", color: "#fff", borderRadius: 8, padding: "4px 10px", fontSize: 12, fontWeight: 700 }}>
+                🥇 {t.prize_energy}⚡
+              </span>
+            )}
+            {t.prize_2nd > 0 && (
+              <span style={{ background: "#f1f5f9", color: "#475569", borderRadius: 8, padding: "4px 10px", fontSize: 12, fontWeight: 700 }}>
+                🥈 {t.prize_2nd}⚡
+              </span>
+            )}
+            {t.prize_3rd > 0 && (
+              <span style={{ background: "#f1f5f9", color: "#475569", borderRadius: 8, padding: "4px 10px", fontSize: 12, fontWeight: 700 }}>
+                🥉 {t.prize_3rd}⚡
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Дата и участники */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            {dateInfo && (
+              <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#64748b" }}>
+                <Icon name={dateInfo.icon} size={13} style={{ color: "#14B8A6" }} />
+                <span>{dateInfo.label}: <b style={{ color: "#0f172a" }}>{dateInfo.value}</b></span>
+              </div>
+            )}
+            {t.applications_count > 0 && (
+              <div style={{ fontSize: 12, color: "#94a3b8" }}>
+                <b style={{ color: "#0f172a" }}>{t.applications_count}</b> участников
+              </div>
+            )}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#14B8A6", color: "#fff", borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 700, flexShrink: 0, cursor: "pointer" }}>
+            Подать заявку <Icon name="ArrowRight" size={14} />
+          </div>
         </div>
       </div>
     </div>
