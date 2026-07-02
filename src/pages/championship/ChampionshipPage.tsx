@@ -53,7 +53,7 @@ export default function ChampionshipPage() {
         .champ-page { min-height: 100vh; background: #f8fafc; font-family: Inter, sans-serif; }
 
         /* ── Навбар ── */
-        .champ-nav { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .champ-nav { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
         .champ-nav-logo { color: #14B8A6; font-weight: 800; font-size: 17px; text-decoration: none; }
         .champ-nav-links { display: flex; gap: 6px; }
         .champ-nav-link { padding: 7px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); color: #fff; text-decoration: none; font-size: 13px; font-weight: 600; white-space: nowrap; }
@@ -64,8 +64,29 @@ export default function ChampionshipPage() {
         }
 
         /* ── Hero ── */
-        .champ-hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f172a 100%); }
-        .champ-hero-inner { max-width: 1100px; margin: 0 auto; padding: 56px 20px 64px; text-align: center; }
+        .champ-hero {
+          position: relative;
+          background: #0f172a;
+          overflow: hidden;
+        }
+        .champ-hero-bg {
+          position: absolute; inset: 0;
+          background-image: url('https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/1cb5ff9b-766a-4049-9f6e-983c74f3fe74.png');
+          background-size: cover;
+          background-position: center 20%;
+          opacity: 0.28;
+          filter: saturate(0.7);
+        }
+        .champ-hero-overlay {
+          position: absolute; inset: 0;
+          background: linear-gradient(
+            to bottom,
+            rgba(15,23,42,0.45) 0%,
+            rgba(15,23,42,0.25) 40%,
+            rgba(15,23,42,0.75) 100%
+          );
+        }
+        .champ-hero-inner { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 56px 20px 64px; text-align: center; }
         .champ-hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(20,184,166,0.15); border: 1px solid rgba(20,184,166,0.3); border-radius: 20px; padding: 6px 16px; margin-bottom: 20px; }
         .champ-hero-h1 { margin: 0 0 12px; font-size: clamp(26px,5vw,52px); font-weight: 900; color: #fff; line-height: 1.15; }
         .champ-hero-sub { margin: 0 0 36px; font-size: clamp(14px,2vw,18px); color: rgba(255,255,255,0.65); line-height: 1.6; }
@@ -127,6 +148,8 @@ export default function ChampionshipPage() {
 
       {/* Шапка */}
       <div className="champ-hero">
+        <div className="champ-hero-bg" />
+        <div className="champ-hero-overlay" />
         <nav className="champ-nav">
           <Link to="/"><BrandLogo variant="light" size="sm" /></Link>
           <div className="champ-nav-links">
