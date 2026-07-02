@@ -300,24 +300,22 @@ def do_close_voting() -> dict:
 
 def do_notify_salons() -> dict:
     """
-    Рассылает email о новых анонсированных турнирах салонам, которые дали согласие.
-    Не рассылает дважды — отмечает разосланные.
+    Рассылает email о новых анонсированных турнирах всем активным салонам.
+    Не рассылает дважды — использует флаг announced_notified.
     """
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    # Турниры в статусе 'announced' без уведомления (используем поле description как флаг — добавим колонку или используем settings)
     cur.execute(
         f"""SELECT * FROM {tbl('ch_tournaments')}
             WHERE status = 'announced'
-              AND (postpone_reason IS NULL OR postpone_reason NOT LIKE 'notified:%')
+              AND announced_notified = FALSE
             ORDER BY created_at DESC LIMIT 5"""
     )
     tournaments = cur.fetchall()
     if not tournaments:
         return {"notified": 0}
 
-    # Салоны, согласившиеся на рассылку
     cur.execute(
         f"""SELECT DISTINCT u.email, sl.name as salon_name
             FROM {tbl('lk_users')} u
@@ -337,9 +335,8 @@ def do_notify_salons() -> dict:
             except Exception as e:
                 print(f"[cron] announce email error {recipient['email']}: {e}")
 
-        # Помечаем как разосланный
         cur.execute(
-            f"UPDATE {tbl('ch_tournaments')} SET postpone_reason='notified:' || NOW()::text WHERE id=%s",
+            f"UPDATE {tbl('ch_tournaments')} SET announced_notified=TRUE WHERE id=%s",
             (t["id"],)
         )
 
