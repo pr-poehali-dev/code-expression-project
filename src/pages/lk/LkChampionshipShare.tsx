@@ -5,7 +5,7 @@ import { Tournament, MyTournament, ACCENT } from "./LkChampionshipShared";
 export function ShareView({ tournament: t, my, onBack }:
   { tournament: Tournament; my: MyTournament; onBack: () => void }) {
 
-  const publicUrl = `${window.location.origin}/championship/tournament/${t.slug}`;
+  const publicUrl = `https://promtdialog.ru/championship/tournament/${t.slug}`;
   const [copied, setCopied] = useState(false);
   const copyText = useRef<HTMLTextAreaElement>(null);
 

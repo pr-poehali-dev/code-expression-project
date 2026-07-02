@@ -306,7 +306,7 @@ export default function ChampionshipTournament() {
         {tab === "works" && (
           <div>
             {!isFinished && isVoting && (
-              <ShareBanner url={window.location.href} tournamentName={t.name} />
+              <ShareBanner url={`https://promtdialog.ru/championship/tournament/${t.slug}`} tournamentName={t.name} />
             )}
             {works.length === 0 ? (
               <div style={{ textAlign: "center", padding: "56px 0" }}>
