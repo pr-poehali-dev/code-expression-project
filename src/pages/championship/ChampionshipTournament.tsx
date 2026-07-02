@@ -306,9 +306,7 @@ export default function ChampionshipTournament() {
         {tab === "works" && (
           <div>
             {!isFinished && isVoting && (
-              <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "#92400e" }}>
-                💡 Названия салонов скрыты до окончания голосования. Поделитесь ссылкой с клиентами!
-              </div>
+              <ShareBanner url={window.location.href} tournamentName={t.name} />
             )}
             {works.length === 0 ? (
               <div style={{ textAlign: "center", padding: "56px 0" }}>
@@ -327,6 +325,46 @@ export default function ChampionshipTournament() {
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ShareBanner({ url, tournamentName }: { url: string; tournamentName: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const shareText = `🏆 Голосование за лучшую работу — «${tournamentName}»!\n\nПоддержите своих мастеров красоты — один голос решает многое!\n\n👉 ${url}`;
+
+  const copy = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const canNativeShare = typeof navigator.share === "function";
+
+  const nativeShare = () => {
+    navigator.share({ title: `Голосование — ${tournamentName}`, text: shareText, url });
+  };
+
+  return (
+    <div style={{ background: "linear-gradient(135deg,#1e1b4b,#312e81)", borderRadius: 14, padding: "18px 20px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+      <div style={{ flex: 1, minWidth: 200 }}>
+        <div style={{ fontSize: 14, fontWeight: 800, color: "#fff", marginBottom: 3 }}>🗳 Помогите выбрать победителя!</div>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.5 }}>
+          Поделитесь страницей — друзья и клиенты тоже могут проголосовать
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+        {canNativeShare && (
+          <button onClick={nativeShare} style={{ padding: "9px 16px", borderRadius: 9, border: "none", background: "#14B8A6", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+            Поделиться
+          </button>
+        )}
+        <button onClick={() => copy(shareText)} style={{ padding: "9px 16px", borderRadius: 9, border: "none", background: copied ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.1)", color: copied ? "#86efac" : "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", border: "1px solid rgba(255,255,255,0.15)" as never }}>
+          {copied ? "✓ Скопировано" : "Скопировать ссылку"}
+        </button>
       </div>
     </div>
   );
