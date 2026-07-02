@@ -131,7 +131,7 @@ export default function ChampionshipPage() {
         /* ── «Как работает» ── */
         .champ-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
         @media (max-width: 900px) { .champ-steps { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 480px) { .champ-steps { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
+        @media (max-width: 480px) { .champ-steps { grid-template-columns: 1fr; gap: 12px; } }
 
         /* ── Уровни ── */
         .champ-levels { margin-top: 56px; background: #0f172a; border-radius: 20px; padding: 36px 20px; }
