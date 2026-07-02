@@ -204,10 +204,17 @@ def handle_works(event):
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    # Проверяем статус турнира — скрываем названия до reveal_at
-    cur.execute(f"SELECT status, voting_ends FROM {tbl('ch_tournaments')} WHERE id = %s", (tournament_id,))
+    # Работы видны только когда голосование открыто или турнир завершён
+    cur.execute(f"SELECT status, voting_starts, voting_ends FROM {tbl('ch_tournaments')} WHERE id = %s", (tournament_id,))
     t = cur.fetchone()
-    reveal = t and t["status"] == "finished"
+    if not t:
+        return err("Турнир не найден", 404)
+
+    voting_open = t["status"] in ("voting", "finished_pending", "finished")
+    reveal = t["status"] == "finished"
+
+    if not voting_open:
+        return ok({"works": [], "revealed": False, "hidden_until_voting": True})
 
     cur.execute(
         f"""SELECT w.id, w.title, w.description, w.photos, w.votes_count,
@@ -422,7 +429,7 @@ def handle_my_tournaments(event):
     cur.execute(
         f"""SELECT a.id as application_id, a.status as application_status, a.created_at as applied_at,
                t.id, t.name, t.slug, t.status, t.category, t.emoji,
-               t.task_opens_at, t.work_deadline, t.voting_starts, t.voting_ends,
+               t.task_text, t.task_opens_at, t.work_deadline, t.voting_starts, t.voting_ends,
                w.id as work_id, w.status as work_status, w.votes_count,
                w.expert_score, w.total_score, w.final_place,
                (SELECT COUNT(*) FROM {tbl('ch_votes')} v WHERE v.work_id = w.id) as real_votes
@@ -437,7 +444,6 @@ def handle_my_tournaments(event):
     result = []
     for r in rows:
         d = dict(r)
-        # Задание показываем только если турнир активен или завершён
         result.append(d)
 
     # Рейтинг салона
@@ -506,7 +512,7 @@ def handle_apply(event):
 
     cur.execute(
         f"INSERT INTO {tbl('ch_applications')} (tournament_id, salon_id, user_id, status, notify_email) "
-        f"VALUES (%s, %s, %s, 'pending', %s) ON CONFLICT (tournament_id, salon_id) DO NOTHING RETURNING id",
+        f"VALUES (%s, %s, %s, 'approved', %s) ON CONFLICT (tournament_id, salon_id) DO NOTHING RETURNING id",
         (tournament_id, salon_id, user["id"], body.get("notify_email", user.get("email", "")))
     )
     row = cur.fetchone()
@@ -566,10 +572,10 @@ def handle_submit_work(event):
     if not app:
         return err("Нет одобренной заявки на этот турнир")
 
-    # Проверяем статус турнира
+    # Проверяем статус турнира — принимаем работы с момента регистрации до конца активной фазы
     cur.execute(f"SELECT status, work_deadline FROM {tbl('ch_tournaments')} WHERE id=%s", (tournament_id,))
     t = cur.fetchone()
-    if not t or t["status"] != "active":
+    if not t or t["status"] not in ("registration", "active"):
         return err("Приём работ закрыт")
 
     photos = body.get("photos", [])

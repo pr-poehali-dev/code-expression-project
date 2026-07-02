@@ -38,7 +38,8 @@ export interface MyTournament {
   application_id: number; application_status: string;
   work_id: number | null; work_status: string | null;
   real_votes: number; final_place: number | null; total_score: number;
-  task_opens_at: string; work_deadline: string; voting_ends: string;
+  task_text: string | null;
+  task_opens_at: string; work_deadline: string; voting_ends: string; voting_starts: string;
 }
 export interface SalonRating {
   total_points: number; participations: number; wins: number; top3_count: number; level: string;

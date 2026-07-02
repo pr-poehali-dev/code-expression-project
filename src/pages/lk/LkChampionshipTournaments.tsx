@@ -157,11 +157,13 @@ export function MyTournamentsView({ myTournaments, tournaments, onOpenWork, onSh
       {myTournaments.map(my => {
         const t = tournaments.find(t => t.id === my.id);
         const statusColor = STATUS_COLORS[my.status] || "#64748b";
-        const isActive = my.status === "active";
+        const canUploadWork = ["registration", "active"].includes(my.status);
         const isVoting = my.status === "voting";
+        const isFinished = ["finished_pending", "finished"].includes(my.status);
 
         return (
           <div key={my.id} style={{ background: "#fff", borderRadius: 14, border: "1.5px solid #e2e8f0", padding: "16px 18px" }}>
+            {/* Заголовок */}
             <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 12 }}>
               <span style={{ fontSize: 24, flexShrink: 0 }}>{my.emoji}</span>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -175,10 +177,21 @@ export function MyTournamentsView({ myTournaments, tournaments, onOpenWork, onSh
               </div>
             </div>
 
+            {/* Задание — видно сразу после подачи заявки */}
+            {my.task_text && (
+              <div style={{ background: "#eef2ff", borderRadius: 10, padding: "12px 14px", marginBottom: 14, border: "1px solid #c7d2fe" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#6366f1", marginBottom: 4 }}>🎯 ЗАДАНИЕ ТУРНИРА</div>
+                <div style={{ fontSize: 13, color: "#3730a3", lineHeight: 1.6 }}>{my.task_text}</div>
+                {my.work_deadline && (
+                  <div style={{ fontSize: 12, color: "#6366f1", marginTop: 8, fontWeight: 600 }}>
+                    ⏰ Дедлайн: {new Date(my.work_deadline).toLocaleDateString("ru", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Факты */}
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 8 }}>
-              {my.work_deadline && isActive && (
-                <Fact icon="⏰" text={`Дедлайн: ${new Date(my.work_deadline).toLocaleDateString("ru", { day: "numeric", month: "long" })}`} warn />
-              )}
               {my.voting_ends && isVoting && (
                 <Fact icon="🗳" text={`Голосование до: ${new Date(my.voting_ends).toLocaleDateString("ru", { day: "numeric", month: "long" })}`} />
               )}
@@ -192,7 +205,7 @@ export function MyTournamentsView({ myTournaments, tournaments, onOpenWork, onSh
 
             {/* Действия */}
             <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-              {isActive && t && (
+              {canUploadWork && t && (
                 <ActionBtn onClick={() => onOpenWork(t, my)} icon="Upload" color="#6366f1">
                   {my.work_id ? "Редактировать работу" : "Загрузить работу"}
                 </ActionBtn>
@@ -201,6 +214,11 @@ export function MyTournamentsView({ myTournaments, tournaments, onOpenWork, onSh
                 <ActionBtn onClick={() => onShare(t, my)} icon="Share2" color="#f59e0b">
                   Поделиться для голосования
                 </ActionBtn>
+              )}
+              {isFinished && my.final_place && (
+                <div style={{ padding: "9px 14px", borderRadius: 9, background: "#f0fdf4", color: "#059669", fontSize: 13, fontWeight: 700 }}>
+                  {["🥇","🥈","🥉"][my.final_place - 1] || "🎖"} {my.final_place} место — турнир завершён
+                </div>
               )}
             </div>
           </div>

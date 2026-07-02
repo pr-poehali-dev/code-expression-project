@@ -1,16 +1,18 @@
 """
 Автоматика чемпионата — вызывается по расписанию (cron) или вручную из админки.
-GET  ?action=run              — запускает все проверки (cron trigger)
+GET  ?action=run               — запускает все проверки (cron trigger)
 GET  ?action=open_registration — переводит announced → registration когда наступает registration_starts
-GET  ?action=check_min        — проверка минимума участников за 3 дня до старта
-GET  ?action=open_tasks       — открывает задание когда наступает task_opens_at
-GET  ?action=start_voting     — переводит в статус voting когда наступает voting_starts
-GET  ?action=close_voting     — переводит в статус finished_pending когда voting_ends
-GET  ?action=notify           — рассылает уведомления о новых турнирах
+GET  ?action=check_min         — проверка минимума участников за 3 дня до старта
+GET  ?action=open_tasks        — открывает задание когда наступает task_opens_at
+GET  ?action=start_voting      — переводит в статус voting когда наступает voting_starts
+GET  ?action=close_voting      — переводит в статус finished_pending когда voting_ends
+GET  ?action=auto_finalize     — авто-итоги: расставляет места по голосам, начисляет энергию, письма
+GET  ?action=notify            — рассылает уведомления о новых турнирах
 """
 import json
 import os
 import smtplib
+import urllib.request
 import psycopg2
 import psycopg2.extras
 from email.mime.text import MIMEText
@@ -18,6 +20,7 @@ from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timezone, timedelta
 
 S = "t_p84565078_code_expression_proj"
+LK_API_URL = "https://functions.poehali.dev/1c0ad024-179b-4644-9621-377174bbeba3"
 CORS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -68,6 +71,8 @@ def handler(event: dict, context) -> dict:
         results["start_voting"] = do_start_voting()
     if action in ("run", "close_voting"):
         results["close_voting"] = do_close_voting()
+    if action in ("run", "auto_finalize"):
+        results["auto_finalize"] = do_auto_finalize()
 
     return ok({"ok": True, "results": results, "ran_at": now().isoformat()})
 
@@ -324,6 +329,163 @@ def do_close_voting() -> dict:
         closed.append({"tournament_id": t["id"], "name": t["name"]})
     conn.commit()
     return {"closed_voting": closed}
+
+
+# ── Авто-финализация турниров ─────────────────────────────────────────────────
+
+def do_auto_finalize() -> dict:
+    """
+    Для турниров в статусе finished_pending:
+    - расставляет места по количеству голосов
+    - публикует итоговые места в ch_works
+    - начисляет энергию победителям через lk-api
+    - отправляет письма с поздравлением
+    - переводит турнир в finished
+    """
+
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    cur.execute(
+        f"""SELECT * FROM {tbl('ch_tournaments')}
+            WHERE status = 'finished_pending'
+              AND voting_ends IS NOT NULL
+              AND voting_ends <= NOW()"""
+    )
+    tournaments = cur.fetchall()
+    finalized = []
+
+    for t in tournaments:
+        tid = t["id"]
+
+        # Работы, одобренные к голосованию — сортируем по голосам
+        cur.execute(
+            f"""SELECT w.id, w.salon_id,
+                   (SELECT COUNT(*) FROM {tbl('ch_votes')} v WHERE v.work_id = w.id) as votes
+                FROM {tbl('ch_works')} w
+                WHERE w.tournament_id = %s AND w.is_public = TRUE
+                ORDER BY votes DESC, w.created_at ASC""",
+            (tid,)
+        )
+        works = cur.fetchall()
+
+        for place, w in enumerate(works, start=1):
+            cur.execute(
+                f"UPDATE {tbl('ch_works')} SET final_place=%s, updated_at=NOW() WHERE id=%s",
+                (place, w["id"])
+            )
+
+            # Энергия за место
+            if place == 1:
+                energy = t["prize_energy"]
+            elif place == 2:
+                energy = t.get("prize_2nd") or 0
+            elif place == 3:
+                energy = t.get("prize_3rd") or 0
+            else:
+                energy = 0
+
+            if energy > 0 and LK_API_URL:
+                cur.execute(
+                    f"SELECT id, email FROM {tbl('lk_users')} WHERE salon_id=%s AND is_active=TRUE LIMIT 1",
+                    (w["salon_id"],)
+                )
+                u = cur.fetchone()
+                if u:
+                    try:
+                        payload = json.dumps({
+                            "user_id": u["id"], "amount": energy,
+                            "type": "credit",
+                            "description": f"Приз за {place} место в турнире «{t['name']}»"
+                        }).encode()
+                        req = urllib.request.Request(
+                            f"{LK_API_URL}?action=energy_topup",
+                            data=payload,
+                            headers={"Content-Type": "application/json"},
+                            method="POST"
+                        )
+                        urllib.request.urlopen(req, timeout=5)
+                    except Exception as e:
+                        print(f"[cron] energy charge error salon {w['salon_id']}: {e}")
+
+                    # Письмо победителю
+                    if u.get("email"):
+                        cur.execute(
+                            f"SELECT name FROM {tbl('salons')} WHERE id=%s", (w["salon_id"],)
+                        )
+                        salon_row = cur.fetchone()
+                        salon_name = salon_row["name"] if salon_row else "Ваш салон"
+                        try:
+                            _send_winner_email(u["email"], salon_name, t, place, energy)
+                        except Exception as e:
+                            print(f"[cron] winner email error {u['email']}: {e}")
+
+        # Очки рейтинга всем участникам
+        pts_participation = 20
+        cur.execute(
+            f"SELECT DISTINCT salon_id FROM {tbl('ch_applications')} WHERE tournament_id=%s AND status='approved'",
+            (tid,)
+        )
+        for row in cur.fetchall():
+            cur.execute(
+                f"""INSERT INTO {tbl('ch_ratings')} (salon_id, total_points, season_points, participations)
+                    VALUES (%s,%s,%s,1)
+                    ON CONFLICT (salon_id) DO UPDATE SET
+                    total_points = {tbl('ch_ratings')}.total_points + {pts_participation},
+                    season_points = {tbl('ch_ratings')}.season_points + {pts_participation},
+                    participations = {tbl('ch_ratings')}.participations + 1,
+                    updated_at = NOW()""",
+                (row["salon_id"], pts_participation, pts_participation)
+            )
+
+        cur.execute(
+            f"UPDATE {tbl('ch_tournaments')} SET status='finished', updated_at=NOW() WHERE id=%s",
+            (tid,)
+        )
+        finalized.append({"tournament_id": tid, "name": t["name"], "works_ranked": len(works)})
+
+    conn.commit()
+    return {"finalized": finalized}
+
+
+def _send_winner_email(to_email: str, salon_name: str, tournament: dict, place: int, energy: int):
+    place_emoji = {1: "🥇", 2: "🥈", 3: "🥉"}.get(place, "🏅")
+    place_label = {1: "1-е место", 2: "2-е место", 3: "3-е место"}.get(place, f"{place}-е место")
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px">
+<tr><td align="center">
+<table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:16px;overflow:hidden">
+  <tr><td style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:32px">
+    <div style="font-size:48px;text-align:center;margin-bottom:12px">{place_emoji}</div>
+    <h1 style="margin:0;color:#fff;font-size:24px;font-weight:900;text-align:center">Поздравляем!</h1>
+    <p style="margin:8px 0 0;color:rgba(255,255,255,0.7);font-size:14px;text-align:center">
+      {tournament['name']}
+    </p>
+  </td></tr>
+  <tr><td style="padding:28px 32px">
+    <p style="margin:0 0 16px;font-size:15px;color:#374151">Здравствуйте, <b>{salon_name}</b>!</p>
+    <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7">
+      Вы заняли <b>{place_label}</b> в турнире «{tournament['name']}».<br>
+      Спасибо всем, кто голосовал за вашу работу!
+    </p>
+    <div style="background:linear-gradient(135deg,#ecfdf5,#d1fae5);border-radius:12px;padding:20px;margin-bottom:24px;text-align:center">
+      <div style="font-size:13px;color:#065f46;font-weight:700;margin-bottom:6px">ПРИЗ НАЧИСЛЕН НА БАЛАНС</div>
+      <div style="font-size:32px;font-weight:900;color:#059669">{energy} ⚡</div>
+      <div style="font-size:13px;color:#064e3b;margin-top:4px">энергии</div>
+    </div>
+    <a href="{SITE_URL}/cabinet" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;text-decoration:none;border-radius:10px;font-size:15px;font-weight:700">
+      Открыть личный кабинет →
+    </a>
+  </td></tr>
+  <tr><td style="padding:16px 32px;border-top:1px solid #f1f5f9">
+    <p style="margin:0;font-size:12px;color:#9ca3af">Промт Диалог · Чемпионат красоты</p>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>"""
+    send_email_html(to_email, f"{place_emoji} Вы заняли {place_label} в турнире «{tournament['name']}»!", html)
 
 
 # ── Уведомления о новых турнирах ──────────────────────────────────────────────

@@ -101,12 +101,13 @@ export function ChampSettingsSection() {
       const data = await res.json();
       const r = data.results || {};
       const parts: string[] = [];
-      if (r.notify)             parts.push(`📧 Уведомлений отправлено: ${r.notify.notified ?? 0}`);
-      if (r.open_registration)  parts.push(`📋 Открыто регистраций: ${(r.open_registration.opened_registration || []).length}`);
-      if (r.check_min)          parts.push(`⚠️ Перенесено турниров: ${(r.check_min.postponed || []).length}`);
-      if (r.open_tasks)         parts.push(`🎯 Открыто заданий: ${(r.open_tasks.opened || []).length}`);
-      if (r.start_voting)       parts.push(`🗳 Запущено голосований: ${(r.start_voting.started_voting || []).length}`);
-      if (r.close_voting)       parts.push(`🏁 Закрыто голосований: ${(r.close_voting.closed_voting || []).length}`);
+      if (r.notify)             parts.push(`📧 Уведомлений: ${r.notify.notified ?? 0}`);
+      if (r.open_registration)  parts.push(`📋 Регистраций открыто: ${(r.open_registration.opened_registration || []).length}`);
+      if (r.check_min)          parts.push(`⚠️ Перенесено: ${(r.check_min.postponed || []).length}`);
+      if (r.open_tasks)         parts.push(`🎯 Заданий открыто: ${(r.open_tasks.opened || []).length}`);
+      if (r.start_voting)       parts.push(`🗳 Голосований запущено: ${(r.start_voting.started_voting || []).length}`);
+      if (r.close_voting)       parts.push(`🏁 Голосований закрыто: ${(r.close_voting.closed_voting || []).length}`);
+      if (r.auto_finalize)      parts.push(`🏆 Финализировано: ${(r.auto_finalize.finalized || []).length}`);
       setCronResult(parts.length > 0 ? parts.join(" · ") : "✓ Всё актуально, изменений нет");
     } catch {
       setCronResult("Ошибка при запуске");
