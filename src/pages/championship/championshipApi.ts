@@ -3,9 +3,11 @@ import func2url from "../../../backend/func2url.json";
 export const CHAMP_API_URL  = (func2url as Record<string, string>)["championship-api"]  || "";
 export const CHAMP_VOTE_URL = (func2url as Record<string, string>)["championship-vote"] || "";
 
-export async function champGet(action: string, params: Record<string, string> = {}) {
+export async function champGet(action: string, params: Record<string, string> = {}, sessionId?: string) {
   const qs = new URLSearchParams({ action, ...params }).toString();
-  const res = await fetch(`${CHAMP_API_URL}?${qs}`);
+  const headers: Record<string, string> = {};
+  if (sessionId) headers["X-Session-Id"] = sessionId;
+  const res = await fetch(`${CHAMP_API_URL}?${qs}`, { headers });
   const text = await res.text();
   return JSON.parse(text);
 }

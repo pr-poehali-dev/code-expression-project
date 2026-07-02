@@ -94,7 +94,8 @@ export default function ChampionshipTournament() {
 
   useEffect(() => {
     if (!slug) return;
-    champGet("tournament", { slug }).then(d => {
+    const sid = getSessionId();
+    champGet("tournament", { slug }, sid || undefined).then(d => {
       setTournament(d.tournament);
       if (d.tournament?.my_application_status) setApplied(true);
       if (d.tournament && ["voting", "finished"].includes(d.tournament.status)) {
