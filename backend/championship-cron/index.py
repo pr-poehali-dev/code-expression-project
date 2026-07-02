@@ -1,11 +1,12 @@
 """
 Автоматика чемпионата — вызывается по расписанию (cron) или вручную из админки.
-GET  ?action=run           — запускает все проверки (cron trigger)
-GET  ?action=check_min     — проверка минимума участников за 3 дня до старта
-GET  ?action=open_tasks    — открывает задание когда наступает task_opens_at
-GET  ?action=start_voting  — переводит в статус voting когда наступает voting_starts
-GET  ?action=close_voting  — переводит в статус finished_pending когда voting_ends
-GET  ?action=notify        — рассылает уведомления о новых турнирах
+GET  ?action=run              — запускает все проверки (cron trigger)
+GET  ?action=open_registration — переводит announced → registration когда наступает registration_starts
+GET  ?action=check_min        — проверка минимума участников за 3 дня до старта
+GET  ?action=open_tasks       — открывает задание когда наступает task_opens_at
+GET  ?action=start_voting     — переводит в статус voting когда наступает voting_starts
+GET  ?action=close_voting     — переводит в статус finished_pending когда voting_ends
+GET  ?action=notify           — рассылает уведомления о новых турнирах
 """
 import json
 import os
@@ -55,6 +56,10 @@ def handler(event: dict, context) -> dict:
 
     results = {}
 
+    if action in ("run", "notify"):
+        results["notify"] = do_notify_salons()
+    if action in ("run", "open_registration"):
+        results["open_registration"] = do_open_registration()
     if action in ("run", "check_min"):
         results["check_min"] = do_check_min_participants()
     if action in ("run", "open_tasks"):
@@ -63,10 +68,32 @@ def handler(event: dict, context) -> dict:
         results["start_voting"] = do_start_voting()
     if action in ("run", "close_voting"):
         results["close_voting"] = do_close_voting()
-    if action in ("run", "notify"):
-        results["notify"] = do_notify_salons()
 
     return ok({"ok": True, "results": results, "ran_at": now().isoformat()})
+
+
+# ── Открытие регистрации ──────────────────────────────────────────────────────
+
+def do_open_registration() -> dict:
+    """Переводит турниры announced → registration когда наступает registration_starts."""
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT * FROM {tbl('ch_tournaments')}
+            WHERE status = 'announced'
+              AND registration_starts IS NOT NULL
+              AND registration_starts <= NOW()""",
+    )
+    tournaments = cur.fetchall()
+    opened = []
+    for t in tournaments:
+        cur.execute(
+            f"UPDATE {tbl('ch_tournaments')} SET status='registration', updated_at=NOW() WHERE id=%s",
+            (t["id"],)
+        )
+        opened.append({"tournament_id": t["id"], "name": t["name"]})
+    conn.commit()
+    return {"opened_registration": opened}
 
 
 # ── Проверка минимума участников ─────────────────────────────────────────────

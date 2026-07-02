@@ -4,6 +4,9 @@ import {
   Btn, Field, Card,
   Application,
 } from "./LkAdminChampionshipShared";
+import func2url from "../../../backend/func2url.json";
+
+const CRON_URL = (func2url as Record<string, string>)["championship-cron"] || "";
 
 // ── Раздел: Заявки ────────────────────────────────────────────────────────────
 
@@ -77,6 +80,8 @@ export function ChampSettingsSection() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [cronRunning, setCronRunning] = useState(false);
+  const [cronResult, setCronResult] = useState<string | null>(null);
 
   useEffect(() => {
     adminGet("settings").then(d => setSettings(d.settings || {})).finally(() => setLoading(false));
@@ -86,6 +91,28 @@ export function ChampSettingsSection() {
     setSaving(key);
     await adminPost("settings_update", { key, value });
     setSaving(null);
+  };
+
+  const runCron = async () => {
+    setCronRunning(true);
+    setCronResult(null);
+    try {
+      const res = await fetch(`${CRON_URL}?action=run`);
+      const data = await res.json();
+      const r = data.results || {};
+      const parts: string[] = [];
+      if (r.notify)             parts.push(`📧 Уведомлений отправлено: ${r.notify.notified ?? 0}`);
+      if (r.open_registration)  parts.push(`📋 Открыто регистраций: ${(r.open_registration.opened_registration || []).length}`);
+      if (r.check_min)          parts.push(`⚠️ Перенесено турниров: ${(r.check_min.postponed || []).length}`);
+      if (r.open_tasks)         parts.push(`🎯 Открыто заданий: ${(r.open_tasks.opened || []).length}`);
+      if (r.start_voting)       parts.push(`🗳 Запущено голосований: ${(r.start_voting.started_voting || []).length}`);
+      if (r.close_voting)       parts.push(`🏁 Закрыто голосований: ${(r.close_voting.closed_voting || []).length}`);
+      setCronResult(parts.length > 0 ? parts.join(" · ") : "✓ Всё актуально, изменений нет");
+    } catch {
+      setCronResult("Ошибка при запуске");
+    } finally {
+      setCronRunning(false);
+    }
   };
 
   const SETTING_LABELS: Record<string, string> = {
@@ -104,6 +131,22 @@ export function ChampSettingsSection() {
 
   return (
     <div>
+      {/* Запуск крона */}
+      <Card style={{ marginBottom: 20, background: "#f8fafc" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 4 }}>🤖 Автоматика турниров</div>
+        <div style={{ fontSize: 12, color: "#64748b", marginBottom: 12, lineHeight: 1.5 }}>
+          Запускает все автопереходы: анонс→регистрация, регистрация→активный, открытие голосования, закрытие, рассылка писем салонам.
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <Btn onClick={runCron} disabled={cronRunning}>
+            {cronRunning ? "Запускаю…" : "▶ Запустить сейчас"}
+          </Btn>
+          {cronResult && (
+            <div style={{ fontSize: 13, color: "#059669", fontWeight: 600 }}>{cronResult}</div>
+          )}
+        </div>
+      </Card>
+
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {Object.entries(settings).map(([key, value]) => (
           <Card key={key} style={{ marginBottom: 0 }}>
