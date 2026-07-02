@@ -93,13 +93,17 @@ export default function ChampionshipPage() {
         .champ-hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(20,184,166,0.15); border: 1px solid rgba(20,184,166,0.3); border-radius: 20px; padding: 6px 16px; margin-bottom: 20px; }
         .champ-hero-h1 { margin: 0 0 12px; font-size: clamp(26px,5vw,52px); font-weight: 900; color: #fff; line-height: 1.15; }
         .champ-hero-sub { margin: 0 0 36px; font-size: clamp(14px,2vw,18px); color: rgba(255,255,255,0.65); line-height: 1.6; }
-        .champ-stats { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-        .champ-stat { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 20px; min-width: 90px; }
+        .champ-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; justify-content: center; max-width: 540px; margin: 0 auto; }
+        .champ-stat { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 14px 10px; text-align: center; }
         .champ-stat-accent { background: rgba(20,184,166,0.15); border-color: rgba(20,184,166,0.3); }
-        .champ-stat-num { font-size: clamp(20px,3vw,28px); font-weight: 900; color: #fff; }
+        .champ-stat-num { font-size: clamp(18px,3vw,28px); font-weight: 900; color: #fff; }
         .champ-stat-num-accent { color: #14B8A6; }
-        .champ-stat-label { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+        .champ-stat-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
         .champ-stat-label-accent { color: rgba(20,184,166,0.7); }
+        @media (max-width: 480px) {
+          .champ-stats { grid-template-columns: repeat(2, 1fr); max-width: 320px; gap: 8px; }
+          .champ-stat { padding: 12px 8px; border-radius: 12px; }
+        }
 
         /* ── Контент ── */
         .champ-content { max-width: 1100px; margin: 0 auto; padding: 32px 16px 80px; }
