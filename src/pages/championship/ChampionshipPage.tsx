@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
+import BrandLogo from "@/components/BrandLogo";
+import BizFooter from "@/components/BizFooter";
 import { champGet, STATUS_LABELS, STATUS_COLORS } from "./championshipApi";
 
 interface Season {
@@ -126,7 +128,7 @@ export default function ChampionshipPage() {
       {/* Шапка */}
       <div className="champ-hero">
         <nav className="champ-nav">
-          <Link to="/" className="champ-nav-logo">Промт Диалог</Link>
+          <Link to="/"><BrandLogo variant="light" size="sm" /></Link>
           <div className="champ-nav-links">
             <Link to="/championship/rating" className="champ-nav-link champ-nav-link-hide">Рейтинг</Link>
             <Link to="/championship/hall-of-fame" className="champ-nav-link champ-nav-link-hide">Зал славы</Link>
@@ -300,6 +302,7 @@ export default function ChampionshipPage() {
         </div>
 
       </div>
+      <BizFooter />
     </div>
   );
 }
