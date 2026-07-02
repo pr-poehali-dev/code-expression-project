@@ -286,7 +286,7 @@ def _send_task_open_email(to_email: str, salon_name: str, tournament: dict):
 # ── Старт голосования ─────────────────────────────────────────────────────────
 
 def do_start_voting() -> dict:
-    """Переводит турнир в статус 'voting' когда наступает voting_starts."""
+    """Переводит турнир в статус 'voting' когда наступает voting_starts и рассылает письма участникам."""
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
@@ -302,9 +302,87 @@ def do_start_voting() -> dict:
             f"UPDATE {tbl('ch_tournaments')} SET status='voting', updated_at=NOW() WHERE id=%s",
             (t["id"],)
         )
-        started.append({"tournament_id": t["id"], "name": t["name"]})
+        # Рассылаем письма всем одобренным участникам с работами
+        cur.execute(
+            f"""SELECT u.email, sl.name as salon_name, w.id as work_id
+                FROM {tbl('ch_applications')} a
+                JOIN {tbl('lk_users')} u ON u.salon_id = a.salon_id AND u.is_active = TRUE
+                JOIN {tbl('salons')} sl ON sl.id = a.salon_id
+                LEFT JOIN {tbl('ch_works')} w ON w.tournament_id = a.tournament_id AND w.salon_id = a.salon_id AND w.is_public = TRUE
+                WHERE a.tournament_id = %s AND a.status = 'approved'
+                  AND u.email IS NOT NULL AND u.email != ''""",
+            (t["id"],)
+        )
+        recipients = cur.fetchall()
+        sent = 0
+        for r in recipients:
+            try:
+                _send_voting_started_email(r["email"], r["salon_name"], t)
+                sent += 1
+            except Exception as e:
+                print(f"[cron] voting_started email error {r['email']}: {e}")
+        started.append({"tournament_id": t["id"], "name": t["name"], "emails_sent": sent})
     conn.commit()
     return {"started_voting": started}
+
+
+def _send_voting_started_email(to_email: str, salon_name: str, tournament: dict):
+    slug = tournament.get("slug", "")
+    vote_url = f"{SITE_URL}/championship/tournament/{slug}"
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 16px">
+<tr><td align="center">
+<table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:16px;overflow:hidden">
+  <tr><td style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:28px 32px">
+    <div style="font-size:40px;margin-bottom:10px">🗳</div>
+    <h2 style="margin:0;color:#fff;font-size:22px;font-weight:900">Голосование началось!</h2>
+    <p style="margin:6px 0 0;color:rgba(255,255,255,0.75);font-size:15px">{tournament['name']}</p>
+  </td></tr>
+  <tr><td style="padding:28px 32px">
+    <p style="margin:0 0 16px;font-size:15px;color:#374151">Здравствуйте, <b>{salon_name}</b>!</p>
+    <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.7">
+      Ваша работа участвует в голосовании турнира <b>«{tournament['name']}»</b>.<br>
+      Сейчас самое важное — собрать как можно больше голосов!
+    </p>
+
+    <div style="background:#f0f9ff;border-radius:12px;padding:18px 20px;margin-bottom:20px;border-left:4px solid #0ea5e9">
+      <div style="font-size:13px;font-weight:800;color:#0369a1;margin-bottom:10px">💡 КАК ПОЛУЧИТЬ БОЛЬШЕ ГОЛОСОВ</div>
+      <div style="font-size:13px;color:#374151;line-height:2">
+        ✅ Разошлите ссылку клиентам в WhatsApp и Telegram<br>
+        ✅ Опубликуйте в соцсетях — ВКонтакте, сторис<br>
+        ✅ Попросите коллег и друзей поддержать<br>
+        ✅ Добавьте ссылку в bio профиля<br>
+        ✅ Напомните клиентам при следующем визите
+      </div>
+    </div>
+
+    <div style="background:#fafafa;border-radius:10px;padding:14px 16px;margin-bottom:22px;font-size:13px;color:#64748b;line-height:1.6">
+      <b style="color:#0f172a">Почему это важно?</b><br>
+      Голосование — это отличный повод напомнить о себе клиентам, показать своё мастерство
+      и создать «сарафанное радио»: ваши клиенты попросят проголосовать своих знакомых,
+      а те узнают о вашем салоне.
+    </div>
+
+    <a href="{vote_url}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;text-decoration:none;border-radius:10px;font-size:15px;font-weight:700;margin-bottom:12px">
+      Открыть страницу голосования →
+    </a>
+    <br>
+    <a href="{SITE_URL}/cabinet" style="display:inline-block;padding:11px 24px;background:transparent;color:#6366f1;text-decoration:none;border-radius:10px;font-size:14px;font-weight:600;border:1.5px solid #c7d2fe">
+      Скопировать ссылку в ЛК →
+    </a>
+  </td></tr>
+  <tr><td style="padding:16px 32px;border-top:1px solid #f1f5f9">
+    <p style="margin:0;font-size:12px;color:#9ca3af">
+      Голосование до: {tournament.get('voting_ends','').strftime('%d.%m.%Y %H:%M') if tournament.get('voting_ends') else 'см. сайт'} (МСК)<br>
+      Промт Диалог · Чемпионат красоты
+    </p>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>"""
+    send_email_html(to_email, f"🗳 Голосование началось — поделитесь ссылкой! «{tournament['name']}»", html)
 
 
 # ── Закрытие голосования ──────────────────────────────────────────────────────

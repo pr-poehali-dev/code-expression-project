@@ -203,6 +203,16 @@ export function MyTournamentsView({ myTournaments, tournaments, onOpenWork, onSh
               )}
             </div>
 
+            {/* Подсказка: голосование скоро */}
+            {my.work_id && canUploadWork && my.voting_starts && (
+              <div style={{ background: "#f0f9ff", borderRadius: 10, padding: "10px 14px", marginTop: 8, border: "1px solid #bae6fd" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#0369a1", marginBottom: 2 }}>⏳ Голосование начнётся {new Date(my.voting_starts).toLocaleDateString("ru", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}</div>
+                <div style={{ fontSize: 12, color: "#0284c7", lineHeight: 1.5 }}>
+                  Подготовьте текст для рассылки клиентам — в начале голосования придёт письмо со ссылкой
+                </div>
+              </div>
+            )}
+
             {/* Действия */}
             <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
               {canUploadWork && t && (
@@ -212,7 +222,7 @@ export function MyTournamentsView({ myTournaments, tournaments, onOpenWork, onSh
               )}
               {isVoting && t && (
                 <ActionBtn onClick={() => onShare(t, my)} icon="Share2" color="#f59e0b">
-                  Поделиться для голосования
+                  Собрать голоса
                 </ActionBtn>
               )}
               {isFinished && my.final_place && (
