@@ -102,26 +102,29 @@ def do_check_min_participants() -> dict:
     """
     За 3 дня до task_opens_at проверяет набран ли минимум участников.
     Если нет — переводит в postponed, ставит next_date и рассылает уведомление.
+    Проверяет только турниры у которых task_opens_at ещё не наступил.
     """
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    check_from = now()
     check_until = now() + timedelta(days=3)
 
     cur.execute(
         f"""SELECT t.* FROM {tbl('ch_tournaments')} t
             WHERE t.status IN ('announced','registration')
               AND t.task_opens_at IS NOT NULL
+              AND t.task_opens_at > %s
               AND t.task_opens_at <= %s
               AND t.postponed = FALSE""",
-        (check_until,)
+        (check_from, check_until)
     )
     tournaments = cur.fetchall()
     postponed = []
 
     for t in tournaments:
-        # Считаем одобренные заявки
+        # Считаем одобренные и ожидающие заявки
         cur.execute(
-            f"SELECT COUNT(*) as cnt FROM {tbl('ch_applications')} WHERE tournament_id=%s AND status='approved'",
+            f"SELECT COUNT(*) as cnt FROM {tbl('ch_applications')} WHERE tournament_id=%s AND status IN ('approved','pending')",
             (t["id"],)
         )
         count = cur.fetchone()["cnt"]
