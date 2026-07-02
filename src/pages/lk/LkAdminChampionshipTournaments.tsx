@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ACCENT } from "./LkAdminShared";
 import {
   adminGet, adminPost,
@@ -6,6 +6,98 @@ import {
   STATUS_LABELS, STATUS_COLORS,
   Tournament, EMPTY_TOURNAMENT, activeWorksRef,
 } from "./LkAdminChampionshipShared";
+
+const EMOJI_OPTIONS = [
+  "🏆","🥇","🏅","🎖️","🌟","⭐","✨","💫",
+  "👑","💎","🔥","⚡","🌸","🌺","💅","💄",
+  "✂️","🪄","🎨","🖌️","💡","🚀","🎯","🎪",
+  "🌈","🦋","🌙","🌊","🍀","🌿","🦚","🦋",
+];
+
+function EmojiPicker({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div style={{ marginBottom: 10, position: "relative" }} ref={ref}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", marginBottom: 4 }}>{label.toUpperCase()}</div>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: "100%", padding: "7px 10px", borderRadius: 8,
+          border: `1.5px solid ${open ? ACCENT : "#e2e8f0"}`,
+          background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
+          fontSize: 13, fontFamily: "Montserrat, sans-serif",
+          transition: "border-color 0.15s",
+        }}
+      >
+        <span style={{ fontSize: 22, lineHeight: 1 }}>{value || "🏆"}</span>
+        <span style={{ color: "#64748b", flex: 1, textAlign: "left" }}>Выбрать эмодзи</span>
+        <span style={{ color: "#94a3b8", fontSize: 11 }}>{open ? "▲" : "▼"}</span>
+      </button>
+
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 100,
+          background: "#fff", borderRadius: 12,
+          border: "1.5px solid #e2e8f0",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+          padding: 10, width: 240,
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", letterSpacing: 1, marginBottom: 8, paddingLeft: 2 }}>
+            ВЫБЕРИТЕ ЭМОДЗИ
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 2 }}>
+            {EMOJI_OPTIONS.map(e => (
+              <button
+                key={e}
+                type="button"
+                onClick={() => { onChange(e); setOpen(false); }}
+                style={{
+                  width: 28, height: 28, borderRadius: 6, border: "none",
+                  background: value === e ? `${ACCENT}18` : "transparent",
+                  cursor: "pointer", fontSize: 17, lineHeight: 1,
+                  outline: value === e ? `1.5px solid ${ACCENT}` : "none",
+                  transition: "background 0.1s",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+                onMouseEnter={el => (el.currentTarget.style.background = "#f1f5f9")}
+                onMouseLeave={el => (el.currentTarget.style.background = value === e ? `${ACCENT}18` : "transparent")}
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+          <div style={{ marginTop: 10, borderTop: "1px solid #f1f5f9", paddingTop: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", letterSpacing: 1, marginBottom: 6 }}>
+              ИЛИ ВВЕДИТЕ СВОЙ
+            </div>
+            <input
+              value={value}
+              onChange={e => onChange(e.target.value)}
+              maxLength={4}
+              placeholder="🏆"
+              style={{
+                width: "100%", padding: "6px 10px", borderRadius: 8,
+                border: "1px solid #e2e8f0", fontSize: 20, textAlign: "center",
+                fontFamily: "sans-serif", outline: "none",
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function TournamentsSection() {
   const [list, setList] = useState<Tournament[]>([]);
@@ -84,7 +176,7 @@ export function TournamentsSection() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
             <Field label="Название" value={form.name} onChange={f("name")} placeholder="Лучшее преображение" />
             <Field label="Slug (URL)" value={form.slug} onChange={f("slug")} placeholder="luchshee-preobrazhenie" />
-            <Field label="Эмодзи" value={form.emoji} onChange={f("emoji")} placeholder="🏆" />
+            <EmojiPicker label="Эмодзи" value={form.emoji} onChange={f("emoji")} />
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", marginBottom: 4 }}>СТАТУС</div>
               <select value={form.status} onChange={e => f("status")(e.target.value)}
