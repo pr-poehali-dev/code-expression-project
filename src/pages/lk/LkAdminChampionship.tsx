@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { ACCENT } from "./LkAdminShared";
-import { setActiveWorksTournament } from "./LkAdminChampionshipShared";
+import { activeWorksRef } from "./LkAdminChampionshipShared";
 import { TournamentsSection } from "./LkAdminChampionshipTournaments";
 import { ModerationSection, FinalizeSection } from "./LkAdminChampionshipWorks";
 import { ApplicationsSection, ChampSettingsSection } from "./LkAdminChampionshipMeta";
@@ -11,8 +11,8 @@ type ChampSection = "tournaments" | "applications" | "moderation" | "finalize" |
 export function ChampionshipSection() {
   const [section, setSection] = useState<ChampSection>("tournaments");
 
-  // Позволяем TournamentsSection открывать модерацию по ID
-  setActiveWorksTournament = () => {};
+  // Сбрасываем обработчик при монтировании (не используется в текущей реализации)
+  activeWorksRef.setTournament = () => {};
 
   const tabs: { id: ChampSection; icon: string; label: string }[] = [
     { id: "tournaments",  icon: "Trophy",       label: "Турниры"    },

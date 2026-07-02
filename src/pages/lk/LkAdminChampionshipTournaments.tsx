@@ -4,7 +4,7 @@ import {
   adminGet, adminPost,
   Btn, Field, Card,
   STATUS_LABELS, STATUS_COLORS,
-  Tournament, EMPTY_TOURNAMENT, setActiveWorksTournament,
+  Tournament, EMPTY_TOURNAMENT, activeWorksRef,
 } from "./LkAdminChampionshipShared";
 
 export function TournamentsSection() {
@@ -138,7 +138,7 @@ export function TournamentsSection() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                <Btn small onClick={() => setActiveWorksTournament(t.id)}>Работы</Btn>
+                <Btn small onClick={() => activeWorksRef.setTournament(t.id)}>Работы</Btn>
                 <Btn small onClick={() => startEdit(t)}>✏️</Btn>
                 <Btn small onClick={() => archive(t.id)} color="#94a3b8">🗑</Btn>
               </div>

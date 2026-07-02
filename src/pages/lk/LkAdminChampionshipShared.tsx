@@ -108,5 +108,7 @@ export const EMPTY_TOURNAMENT = {
 };
 
 // Глобальная ссылка — позволяет TournamentsSection переключать таб Модерации
-// eslint-disable-next-line prefer-const
-export let setActiveWorksTournament: (id: number) => void = () => {};
+// Используем объект чтобы обойти ограничение ES-модулей на переприсвоение экспортов
+export const activeWorksRef = {
+  setTournament: (_id: number) => {},
+};
