@@ -9,10 +9,21 @@ import {
 
 export function ModerationSection() {
   const [tournamentId, setTournamentId] = useState("");
+  const [tournaments, setTournaments] = useState<{ id: number; name: string; status: string }[]>([]);
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(false);
   const [note, setNote] = useState<Record<number, string>>({});
   const [saving, setSaving] = useState<number | null>(null);
+
+  useEffect(() => {
+    adminGet("tournaments").then(d => {
+      const list = (d.tournaments || []).filter((t: { status: string }) =>
+        ["registration", "active", "voting", "finished_pending"].includes(t.status)
+      );
+      setTournaments(list);
+      if (list.length > 0) setTournamentId(String(list[0].id));
+    });
+  }, []);
 
   const load = () => {
     if (!tournamentId) return;
@@ -38,9 +49,18 @@ export function ModerationSection() {
     <div>
       <div style={{ display: "flex", gap: 10, alignItems: "flex-end", marginBottom: 20 }}>
         <div style={{ flex: 1 }}>
-          <Field label="ID турнира" value={tournamentId} onChange={setTournamentId} placeholder="Введите ID турнира" />
+          <div style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>Турнир</div>
+          <select
+            value={tournamentId}
+            onChange={e => setTournamentId(e.target.value)}
+            style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1.5px solid #e2e8f0", fontSize: 14, background: "#fff", color: "#0f172a" }}
+          >
+            {tournaments.map(t => (
+              <option key={t.id} value={String(t.id)}>{t.name} (#{t.id})</option>
+            ))}
+          </select>
         </div>
-        <Btn onClick={load}>Загрузить работы</Btn>
+        <Btn onClick={load}>Обновить</Btn>
       </div>
 
       {loading && <div style={{ color: "#94a3b8" }}>Загрузка…</div>}
