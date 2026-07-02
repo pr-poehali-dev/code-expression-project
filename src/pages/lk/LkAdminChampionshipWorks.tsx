@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   adminGet, adminPost,
-  Btn, Card,
+  Btn, Field, Card,
   Work,
 } from "./LkAdminChampionshipShared";
 
