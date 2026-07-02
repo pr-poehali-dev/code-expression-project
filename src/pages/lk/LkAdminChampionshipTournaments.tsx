@@ -8,10 +8,14 @@ import {
 } from "./LkAdminChampionshipShared";
 
 const EMOJI_OPTIONS = [
-  "🏆","🥇","🏅","🎖️","🌟","⭐","✨","💫",
-  "👑","💎","🔥","⚡","🌸","🌺","💅","💄",
-  "✂️","🪄","🎨","🖌️","💡","🚀","🎯","🎪",
-  "🌈","🦋","🌙","🌊","🍀","🌿","🦚","🦋",
+  // Награды
+  "🏆","🥇","🥈","🥉","🏅","🎖️","👑","🎗️",
+  // Блеск
+  "💎","✨","⭐","🌟","💫","🔮","💠","🪩",
+  // Красота & уход
+  "💅","💄","👄","🪞","💋","🌸","🌺","🌹",
+  // Стиль
+  "✂️","🪄","🎨","🪮","💇","🧖","💆","🛁",
 ];
 
 function EmojiPicker({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
@@ -51,34 +55,43 @@ function EmojiPicker({ label, value, onChange }: { label: string; value: string;
           background: "#fff", borderRadius: 12,
           border: "1.5px solid #e2e8f0",
           boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-          padding: 10, width: 240,
+          padding: 12, width: 260,
         }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", letterSpacing: 1, marginBottom: 8, paddingLeft: 2 }}>
-            ВЫБЕРИТЕ ЭМОДЗИ
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 2 }}>
-            {EMOJI_OPTIONS.map(e => (
-              <button
-                key={e}
-                type="button"
-                onClick={() => { onChange(e); setOpen(false); }}
-                style={{
-                  width: 28, height: 28, borderRadius: 6, border: "none",
-                  background: value === e ? `${ACCENT}18` : "transparent",
-                  cursor: "pointer", fontSize: 17, lineHeight: 1,
-                  outline: value === e ? `1.5px solid ${ACCENT}` : "none",
-                  transition: "background 0.1s",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
-                onMouseEnter={el => (el.currentTarget.style.background = "#f1f5f9")}
-                onMouseLeave={el => (el.currentTarget.style.background = value === e ? `${ACCENT}18` : "transparent")}
-              >
-                {e}
-              </button>
-            ))}
-          </div>
-          <div style={{ marginTop: 10, borderTop: "1px solid #f1f5f9", paddingTop: 8 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", letterSpacing: 1, marginBottom: 6 }}>
+          {[
+            { label: "Награды",    items: ["🏆","🥇","🥈","🥉","🏅","🎖️","👑","🎗️"] },
+            { label: "Блеск",      items: ["💎","✨","⭐","🌟","💫","🔮","💠","🪩"] },
+            { label: "Красота",    items: ["💅","💄","👄","🪞","💋","🌸","🌺","🌹"] },
+            { label: "Мастерство", items: ["✂️","🪄","🎨","🪮","💇","🧖","💆","🛁"] },
+          ].map(group => (
+            <div key={group.label} style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "#cbd5e1", letterSpacing: 1.5, marginBottom: 5 }}>
+                {group.label.toUpperCase()}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: 2 }}>
+                {group.items.map(e => (
+                  <button
+                    key={e}
+                    type="button"
+                    onClick={() => { onChange(e); setOpen(false); }}
+                    style={{
+                      width: 28, height: 28, borderRadius: 6, border: "none",
+                      background: value === e ? `${ACCENT}18` : "transparent",
+                      cursor: "pointer", fontSize: 17, lineHeight: 1,
+                      outline: value === e ? `1.5px solid ${ACCENT}` : "none",
+                      transition: "background 0.1s",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                    onMouseEnter={el => (el.currentTarget.style.background = "#f1f5f9")}
+                    onMouseLeave={el => (el.currentTarget.style.background = value === e ? `${ACCENT}18` : "transparent")}
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div style={{ marginTop: 4, borderTop: "1px solid #f1f5f9", paddingTop: 10 }}>
+            <div style={{ fontSize: 9, fontWeight: 700, color: "#cbd5e1", letterSpacing: 1.5, marginBottom: 6 }}>
               ИЛИ ВВЕДИТЕ СВОЙ
             </div>
             <input
