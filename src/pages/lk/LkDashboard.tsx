@@ -15,6 +15,7 @@ import LkClientMsg from "./LkClientMsg";
 import LkMarketing from "./LkMarketing";
 import SalonAIAgent from "./SalonAIAgent";
 import { HomeTab } from "./LkDashboardHomeTab";
+import LkChampionship from "./LkChampionship";
 import { LkSidebar, LkMobileHeader, LkBottomBar } from "./LkDashboardSidebar";
 import {
   Tab, BG, NAV_ITEMS, MOBILE_PRIMARY, SALON_REQUIRED,
@@ -110,6 +111,7 @@ export default function LkDashboard() {
         {tab === "profile"   && <LkProfile />}
         {tab === "support"   && <LkSupport />}
         {tab === "body"      && <LkBodyMap />}
+        {tab === "championship" && <LkChampionship />}
         {user?.is_admin && tab === "admin" && <LkAdmin />}
       </main>
 

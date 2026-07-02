@@ -6,11 +6,12 @@ export const BG = "#F4F6F8";
 export type Tab =
   | "home" | "tools" | "academy" | "ai" | "shop"
   | "employees" | "purchases" | "profile" | "salon"
-  | "admin" | "support" | "more" | "clientmsg" | "marketing" | "agent";
+  | "admin" | "support" | "more" | "clientmsg" | "marketing" | "agent"
+  | "championship";
 
 export const ROLE_TABS: Record<string, Tab[]> = {
-  owner:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "agent", "shop", "employees", "purchases", "salon", "profile", "support"],
-  admin:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "agent", "profile", "support"],
+  owner:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "agent", "shop", "employees", "purchases", "salon", "championship", "profile", "support"],
+  admin:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "agent", "championship", "profile", "support"],
   master:         ["home", "tools", "academy", "ai", "profile", "support"],
   body_specialist:["home", "tools", "academy", "ai", "profile", "support"],
 };
@@ -38,8 +39,9 @@ export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string }
   { id: "employees", icon: "Users",          label: "Сотрудники"          },
   { id: "academy",   icon: "GraduationCap",  label: "Академия"            },
   { id: "tools",     icon: "Wrench",         label: "Развитие персонала"  },
-  { id: "salon",     icon: "Building2",      label: "Мой салон"           },
-  { id: "purchases", icon: "Receipt",        label: "Покупки"             },
+  { id: "salon",         icon: "Building2",      label: "Мой салон"           },
+  { id: "championship",  icon: "Trophy",         label: "Чемпионат",   badge: "new" },
+  { id: "purchases",     icon: "Receipt",        label: "Покупки"             },
   { id: "shop",      icon: "Zap",            label: "Энергия"             },
   { id: "profile",   icon: "UserCircle",     label: "Профиль"             },
   { id: "support",   icon: "Headphones",     label: "Тех. поддержка"      },
