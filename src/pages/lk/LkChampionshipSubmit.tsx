@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
-import { Tournament, MyTournament, apiPost, ACCENT, Block, F } from "./LkChampionshipShared";
+import { Tournament, MyTournament, apiGet, apiPost, ACCENT, Block, F } from "./LkChampionshipShared";
 
 export function SubmitWorkView({ tournament: t, my, onBack, onSaved }:
   { tournament: Tournament; my: MyTournament; onBack: () => void; onSaved: () => void }) {
@@ -14,7 +14,30 @@ export function SubmitWorkView({ tournament: t, my, onBack, onSaved }:
   const [videoUrl, setVideoUrl] = useState("");
   const [photos, setPhotos] = useState<{ url: string; caption: string }[]>([{ url: "", caption: "" }]);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(!!my.work_id);
   const [err, setErr] = useState("");
+
+  const votingStarted = t.voting_starts ? new Date(t.voting_starts) <= new Date() : t.status === "voting";
+  const canEdit = !votingStarted;
+
+  // Загружаем существующую работу
+  useEffect(() => {
+    if (!my.work_id) return;
+    setLoading(true);
+    apiGet("my_work", { tournament_id: String(t.id) }).then(d => {
+      const w = d.work;
+      if (!w) return;
+      setTitle(w.title || "");
+      setDescription(w.description || "");
+      setStory(w.story || "");
+      setServicesDone(w.services_done || "");
+      setMasterName(w.master_name || "");
+      setToolsUsed(w.tools_used || "");
+      setVideoUrl(w.video_url || "");
+      const p = typeof w.photos === "string" ? JSON.parse(w.photos) : (w.photos || []);
+      setPhotos(p.length > 0 ? p : [{ url: "", caption: "" }]);
+    }).finally(() => setLoading(false));
+  }, [my.work_id, t.id]);
 
   const addPhoto = () => setPhotos(p => [...p, { url: "", caption: "" }]);
   const removePhoto = (i: number) => setPhotos(p => p.filter((_, j) => j !== i));
@@ -22,6 +45,7 @@ export function SubmitWorkView({ tournament: t, my, onBack, onSaved }:
     setPhotos(p => p.map((ph, j) => j === i ? { ...ph, [field]: val } : ph));
 
   const save = async () => {
+    if (!canEdit) return;
     const validPhotos = photos.filter(p => p.url.trim());
     if (!title.trim()) { setErr("Укажите название работы"); return; }
     if (validPhotos.length === 0) { setErr("Добавьте хотя бы одну ссылку на фото"); return; }
@@ -36,8 +60,9 @@ export function SubmitWorkView({ tournament: t, my, onBack, onSaved }:
     else setErr(r.error || "Ошибка при сохранении");
   };
 
-  // suppress unused warning — my is passed for context (work_id check etc.)
-  void my;
+  if (loading) return (
+    <div style={{ padding: "40px 0", textAlign: "center", color: "#94a3b8" }}>Загрузка работы…</div>
+  );
 
   return (
     <div>
@@ -45,12 +70,20 @@ export function SubmitWorkView({ tournament: t, my, onBack, onSaved }:
         <Icon name="ArrowLeft" size={14} /> Назад
       </button>
 
+      {/* Блокировка если голосование началось */}
+      {!canEdit && (
+        <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 12, padding: "14px 16px", marginBottom: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#c2410c" }}>🔒 Редактирование недоступно</div>
+          <div style={{ fontSize: 12, color: "#92400e", marginTop: 4 }}>Голосование уже началось — работа зафиксирована.</div>
+        </div>
+      )}
+
       <div style={{ background: "#eef2ff", borderRadius: 12, padding: "14px 16px", marginBottom: 20, border: "1px solid #c7d2fe" }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: "#6366f1", marginBottom: 4 }}>🎯 ЗАДАНИЕ: {t.name}</div>
         <div style={{ fontSize: 13, color: "#3730a3" }}>{t.task_text}</div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14, opacity: canEdit ? 1 : 0.6, pointerEvents: canEdit ? "auto" : "none" }}>
         <Block title="Основное">
           <F label="Название работы *" value={title} onChange={setTitle} placeholder="Летнее преображение клиентки" />
           <F label="Краткое описание (виден в галерее)" value={description} onChange={setDescription} placeholder="Что сделали, какой результат..." textarea />
@@ -102,18 +135,20 @@ export function SubmitWorkView({ tournament: t, my, onBack, onSaved }:
 
       {err && <div style={{ color: "#ef4444", fontSize: 13, marginTop: 12 }}>{err}</div>}
 
-      <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
-        <button onClick={save} disabled={saving} style={{
-          padding: "13px 28px", borderRadius: 10, border: "none",
-          background: saving ? "#e2e8f0" : ACCENT, color: saving ? "#94a3b8" : "#fff",
-          fontSize: 15, fontWeight: 700, cursor: saving ? "default" : "pointer",
-        }}>
-          {saving ? "Сохраняю…" : "Отправить работу на проверку"}
-        </button>
-        <button onClick={onBack} style={{ padding: "13px 20px", borderRadius: 10, border: "1.5px solid #e2e8f0", background: "#fff", color: "#64748b", fontSize: 14, cursor: "pointer" }}>
-          Отмена
-        </button>
-      </div>
+      {canEdit && (
+        <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
+          <button onClick={save} disabled={saving} style={{
+            padding: "13px 28px", borderRadius: 10, border: "none",
+            background: saving ? "#e2e8f0" : ACCENT, color: saving ? "#94a3b8" : "#fff",
+            fontSize: 15, fontWeight: 700, cursor: saving ? "default" : "pointer",
+          }}>
+            {saving ? "Сохраняю…" : my.work_id ? "Сохранить изменения" : "Отправить работу на проверку"}
+          </button>
+          <button onClick={onBack} style={{ padding: "13px 20px", borderRadius: 10, border: "1.5px solid #e2e8f0", background: "#fff", color: "#64748b", fontSize: 14, cursor: "pointer" }}>
+            Отмена
+          </button>
+        </div>
+      )}
     </div>
   );
 }

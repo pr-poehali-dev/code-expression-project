@@ -10,6 +10,7 @@ GET  ?action=rating           — рейтинг салонов (фильтры:
 GET  ?action=hall_of_fame     — зал славы: победители по годам/категориям
 GET  ?action=achievements     — достижения салона
 GET  ?action=my_tournaments   — мои турниры (требует X-Session-Id)
+GET  ?action=my_work          — моя работа в турнире (tournament_id, требует X-Session-Id)
 GET  ?action=stats            — общая статистика (счётчики)
 POST ?action=apply            — подать заявку на турнир (требует X-Session-Id)
 POST ?action=withdraw         — отозвать заявку
@@ -68,6 +69,7 @@ def handler(event: dict, context) -> dict:
         ("GET",  "hall_of_fame"):   handle_hall_of_fame,
         ("GET",  "achievements"):   handle_achievements,
         ("GET",  "my_tournaments"): handle_my_tournaments,
+        ("GET",  "my_work"):        handle_my_work,
         ("GET",  "stats"):          handle_stats,
         ("POST", "apply"):          handle_apply,
         ("POST", "withdraw"):       handle_withdraw,
@@ -411,6 +413,29 @@ def handle_achievements(event):
         (salon_id,)
     )
     return ok({"achievements": [dict(r) for r in cur.fetchall()]})
+
+
+# ── Моя работа ────────────────────────────────────────────────────────────────
+
+def handle_my_work(event):
+    conn = get_db()
+    user = get_session_user(event, conn)
+    if not user:
+        return err("Требуется авторизация", 401)
+    salon_id = user.get("salon_id")
+    if not salon_id:
+        return err("Нет привязанного салона", 400)
+    qs = event.get("queryStringParameters") or {}
+    tournament_id = qs.get("tournament_id")
+    if not tournament_id:
+        return err("tournament_id обязателен")
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT * FROM {tbl('ch_works')} WHERE tournament_id=%s AND salon_id=%s",
+        (tournament_id, salon_id)
+    )
+    work = cur.fetchone()
+    return ok({"work": dict(work) if work else None})
 
 
 # ── Мои турниры ───────────────────────────────────────────────────────────────
