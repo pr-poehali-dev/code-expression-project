@@ -178,6 +178,16 @@ def handle_get_tournament(event, conn):
     return ok({"tournament": d})
 
 
+def _int(val, default=0):
+    try:
+        return int(val) if val not in (None, "") else default
+    except (ValueError, TypeError):
+        return default
+
+def _str_or_none(val):
+    return val if val not in (None, "") else None
+
+
 def handle_create_tournament(event, conn):
     b = json.loads(event.get("body") or "{}")
     cur = conn.cursor()
@@ -189,13 +199,14 @@ def handle_create_tournament(event, conn):
                 work_deadline, voting_starts, voting_ends, next_date)
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             RETURNING id""",
-        (b.get("season_id"), b["name"], b["slug"], b.get("category","general"),
+        (_int(b.get("season_id"), None), b["name"], b["slug"], b.get("category","general"),
          b.get("emoji","🏆"), b.get("description",""), b.get("rules",""), b.get("task_text",""),
-         b.get("prize_energy",0), b.get("prize_2nd",0), b.get("prize_3rd",0),
-         b.get("min_participants",5), b.get("status","draft"),
-         b.get("registration_starts"), b.get("registration_ends"),
-         b.get("task_opens_at"), b.get("work_deadline"),
-         b.get("voting_starts"), b.get("voting_ends"), b.get("next_date"))
+         _int(b.get("prize_energy"),0), _int(b.get("prize_2nd"),0), _int(b.get("prize_3rd"),0),
+         _int(b.get("min_participants"),5), b.get("status","draft"),
+         _str_or_none(b.get("registration_starts")), _str_or_none(b.get("registration_ends")),
+         _str_or_none(b.get("task_opens_at")), _str_or_none(b.get("work_deadline")),
+         _str_or_none(b.get("voting_starts")), _str_or_none(b.get("voting_ends")),
+         _str_or_none(b.get("next_date")))
     )
     new_id = cur.fetchone()[0]
     conn.commit()
@@ -216,11 +227,12 @@ def handle_update_tournament(event, conn):
             WHERE id=%s""",
         (b.get("name"), b.get("slug"), b.get("category","general"), b.get("emoji","🏆"),
          b.get("description",""), b.get("rules",""), b.get("task_text",""),
-         b.get("prize_energy",0), b.get("prize_2nd",0), b.get("prize_3rd",0),
-         b.get("min_participants",5), b.get("status","draft"),
-         b.get("registration_starts"), b.get("registration_ends"),
-         b.get("task_opens_at"), b.get("work_deadline"),
-         b.get("voting_starts"), b.get("voting_ends"), b.get("next_date"),
+         _int(b.get("prize_energy"),0), _int(b.get("prize_2nd"),0), _int(b.get("prize_3rd"),0),
+         _int(b.get("min_participants"),5), b.get("status","draft"),
+         _str_or_none(b.get("registration_starts")), _str_or_none(b.get("registration_ends")),
+         _str_or_none(b.get("task_opens_at")), _str_or_none(b.get("work_deadline")),
+         _str_or_none(b.get("voting_starts")), _str_or_none(b.get("voting_ends")),
+         _str_or_none(b.get("next_date")),
          b.get("postponed",False), b.get("postpone_reason",""), tid)
     )
     conn.commit()
