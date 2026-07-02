@@ -24,8 +24,8 @@ export function getAllowedTabs(role: string, isAdmin: boolean): Tab[] {
 }
 
 export const MOBILE_PRIMARY: Record<string, Tab[]> = {
-  owner:          ["home", "agent", "ai", "employees"],
-  admin:          ["home", "agent", "ai", "profile"],
+  owner:          ["home", "agent", "championship", "employees"],
+  admin:          ["home", "agent", "championship", "profile"],
   master:         ["home", "tools", "ai", "profile"],
   body_specialist:["home", "tools", "ai", "profile"],
 };

@@ -39,6 +39,9 @@ export function HomeTab({ onNav, role, hasSalon }: HomeTabProps) {
       { tab: "agent" as Tab,     icon: "BotMessageSquare", color: "hsl(200,70%,38%)", bg: "hsl(200,70%,94%)", title: "ИИ-Агент",  desc: "Бизнес, сервис, маркетинг, скрипты" },
       { tab: "marketing" as Tab, icon: "BarChart3",        color: "hsl(220,80%,50%)", bg: "hsl(220,80%,95%)", title: "Маркетинг", desc: "ЦА, офферы, реклама в Яндекс.Директ" },
     ] : []),
+    ...((role === "owner" || role === "admin") ? [
+      { tab: "championship" as Tab, icon: "Trophy", color: "hsl(40,90%,45%)", bg: "hsl(40,90%,95%)", title: "Чемпионат", desc: "Участвуй в турнирах, побеждай, строй репутацию" },
+    ] : []),
     ...(role === "owner" ? [
       { tab: "salon" as Tab,     icon: "Building2", color: "hsl(145,60%,40%)", bg: "hsl(145,60%,95%)", title: "Мой салон", desc: hasSalon ? "Профиль заполнен" : "Заполните профиль салона" },
       { tab: "employees" as Tab, icon: "Users",     color: "hsl(185,85%,32%)", bg: "hsl(185,85%,95%)", title: "Команда",   desc: "Пригласить и управлять сотрудниками" },
