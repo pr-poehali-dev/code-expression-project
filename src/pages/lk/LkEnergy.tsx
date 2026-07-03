@@ -7,7 +7,7 @@ const ACCENT = "hsl(185,85%,32%)";
 const LK_URL = "https://functions.poehali.dev/1c0ad024-179b-4644-9621-377174bbeba3";
 function sid() { return localStorage.getItem("lk_session") || ""; }
 
-interface Package { code: string; name: string; price_rub: number; energy_amount: number; }
+interface Package { code: string; name: string; price_rub: number; energy_amount: number; original_price_rub?: number; discount_pct?: number; }
 interface Transaction { id: number; type: string; action: string; amount: number; tool_key: string | null; created_at: string; full_name: string | null; }
 interface AutopaySettings { is_enabled: boolean; package_code: string; threshold: number; has_payment_method: boolean; last_triggered_at: string | null; }
 
@@ -32,6 +32,7 @@ export default function LkEnergy() {
   const [autopay, setAutopay]         = useState<AutopaySettings | null>(null);
   const [autopaySelected, setAutopaySelected] = useState<string | null>(null);
   const [disabling, setDisabling]     = useState(false);
+  const [championDiscount, setChampionDiscount] = useState(0);
   const PAGE_SIZE = 20;
 
   const handleBuy = async (code: string, withAutopay = false) => {
@@ -79,7 +80,10 @@ export default function LkEnergy() {
 
   useEffect(() => {
     fetch(`${LK_URL}?action=energy_balance`, { headers: { "X-Session-Id": sid() } })
-      .then(r => r.json()).then(d => { if (d.packages) setPackages(d.packages); })
+      .then(r => r.json()).then(d => {
+        if (d.packages) setPackages(d.packages);
+        if (d.champion_discount_pct) setChampionDiscount(d.champion_discount_pct);
+      })
       .catch(() => {}).finally(() => setLoading(false));
 
     if (isOwner) {
@@ -207,6 +211,15 @@ export default function LkEnergy() {
                 </div>
               )}
 
+              {championDiscount > 0 && (
+                <div style={{ display: "flex", alignItems: "center", gap: 10, background: "linear-gradient(135deg,#fff7ed,#fdf2f8)", border: "1.5px solid #fbcfe8", borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>
+                  <span style={{ fontSize: 22 }}>🏆</span>
+                  <div style={{ fontSize: 13, color: "#831843", lineHeight: 1.5 }}>
+                    <b>Скидка {championDiscount}%</b> на всю энергию — бонус за уровень в чемпионате красоты
+                  </div>
+                </div>
+              )}
+
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 12 }}>
                 {packages.map((pkg, idx) => {
                   const c = PKG_COLORS[pkg.code] || PKG_COLORS.start;
@@ -239,8 +252,15 @@ export default function LkEnergy() {
                       <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 10, marginTop: isPopular ? 10 : 0 }}>
                         {pkg.name}
                       </div>
-                      <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(32px,5vw,42px)", fontWeight: 700, color: "#0F172A", lineHeight: 1, marginBottom: 2 }}>
-                        {pkg.price_rub.toLocaleString()} <span style={{ fontSize: "0.5em", fontWeight: 400, color: "#64748B" }}>₽</span>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(32px,5vw,42px)", fontWeight: 700, color: "#0F172A", lineHeight: 1, marginBottom: 2 }}>
+                          {pkg.price_rub.toLocaleString()} <span style={{ fontSize: "0.5em", fontWeight: 400, color: "#64748B" }}>₽</span>
+                        </div>
+                        {pkg.original_price_rub && pkg.original_price_rub > pkg.price_rub && (
+                          <div style={{ fontSize: 14, color: "#cbd5e1", textDecoration: "line-through" }}>
+                            {pkg.original_price_rub.toLocaleString()} ₽
+                          </div>
+                        )}
                       </div>
                       <div style={{ fontSize: 12, color: "#94A3B8", marginBottom: 16 }}>
                         {Math.round(pkg.price_rub / pkg.energy_amount * 10) / 10} ₽ за единицу

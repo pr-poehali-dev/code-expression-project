@@ -90,21 +90,32 @@ export default function ChampionshipRating() {
             {rating.map((r, i) => {
               const levelColor = LEVEL_COLORS[r.level] || "#94a3b8";
               const levelLabel = LEVEL_LABELS[r.level] || r.level;
-              const borderColor = i < 3 ? `${PLACE_BORDER[i]}40` : "#e2e8f0";
+              const isLegend = r.level === "legend";
+              const isPremium = r.level === "premium";
+              const borderColor = isLegend ? "#f97316" : isPremium ? "#ec4899" : i < 3 ? `${PLACE_BORDER[i]}40` : "#e2e8f0";
               const placeBg = i === 0 ? "#fef3c7" : i === 1 ? "#f1f5f9" : i === 2 ? "#fdf4e7" : "#f8fafc";
               const placeColor = i === 0 ? "#d97706" : i === 1 ? "#64748b" : i === 2 ? "#b45309" : "#94a3b8";
               return (
                 <Link key={r.salon_id} to={`/championship/salon/${r.salon_id}`}
-                  className="cr-row" style={{ borderColor }}>
+                  className="cr-row" style={{
+                    borderColor,
+                    borderWidth: (isLegend || isPremium) ? 2 : 1.5,
+                    background: isLegend ? "linear-gradient(135deg,#fff7ed,#fff)" : isPremium ? "linear-gradient(135deg,#fdf2f8,#fff)" : "#fff",
+                    boxShadow: isLegend ? "0 0 0 1px #f9731630, 0 4px 16px rgba(249,115,22,0.12)" : isPremium ? "0 0 0 1px #ec489930, 0 4px 16px rgba(236,72,153,0.1)" : undefined,
+                  }}>
                   <div className="cr-place" style={{ background: placeBg, color: placeColor }}>
                     {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : i + 1}
                   </div>
                   {r.logo_url
-                    ? <img src={r.logo_url} alt={r.salon_name} className="cr-logo" />
+                    ? <img src={r.logo_url} alt={r.salon_name} className="cr-logo" style={(isLegend || isPremium) ? { border: `2px solid ${levelColor}` } : undefined} />
                     : <div className="cr-logo-placeholder"><Icon name="Store" size={16} style={{ color: "#94a3b8" }} /></div>
                   }
                   <div className="cr-info">
-                    <div className="cr-name">{r.salon_name}</div>
+                    <div className="cr-name" style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      {r.salon_name}
+                      {isLegend && <span title="Легенда">🔥</span>}
+                      {isPremium && <span title="Премиум">💎</span>}
+                    </div>
                     <div className="cr-city">{r.city}</div>
                   </div>
                   <div className="cr-pts">

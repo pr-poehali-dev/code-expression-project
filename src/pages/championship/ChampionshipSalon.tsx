@@ -92,13 +92,17 @@ export default function ChampionshipSalon() {
           <Link to="/championship/rating" style={{ color: "rgba(255,255,255,0.5)", textDecoration: "none", fontSize: 13 }}>← Рейтинг</Link>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 14, flexWrap: "wrap" }}>
             {salon.logo_url
-              ? <img src={salon.logo_url} alt={salon.name} style={{ width: 64, height: 64, borderRadius: 14, objectFit: "cover", flexShrink: 0 }} />
+              ? <img src={salon.logo_url} alt={salon.name} style={{ width: 64, height: 64, borderRadius: 14, objectFit: "cover", flexShrink: 0, border: rating && (rating.level === "legend" || rating.level === "premium") ? `3px solid ${levelColor}` : "none", boxShadow: rating?.level === "legend" ? "0 0 16px #f9731660" : rating?.level === "premium" ? "0 0 16px #ec489960" : "none" }} />
               : <div style={{ width: 64, height: 64, borderRadius: 14, background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <Icon name="Store" size={28} style={{ color: "rgba(255,255,255,0.5)" }} />
                 </div>
             }
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ margin: "0 0 4px", fontSize: "clamp(18px,4vw,26px)", fontWeight: 900, color: "#fff" }}>{salon.name}</h1>
+              <h1 style={{ margin: "0 0 4px", fontSize: "clamp(18px,4vw,26px)", fontWeight: 900, color: "#fff", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                {salon.name}
+                {rating?.level === "legend" && <span title="Легенда">🔥</span>}
+                {rating?.level === "premium" && <span title="Премиум">💎</span>}
+              </h1>
               {salon.city && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>{salon.city}</div>}
             </div>
             {salon.website_url && (

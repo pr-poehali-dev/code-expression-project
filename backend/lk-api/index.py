@@ -3209,6 +3209,13 @@ def handle_energy_balance(event: dict) -> dict:
         )
         packages = [dict(r) for r in cur.fetchall()]
 
+        discount_pct = _get_champion_discount_pct(conn, user["salon_id"])
+        if discount_pct > 0:
+            for p in packages:
+                p["original_price_rub"] = p["price_rub"]
+                p["price_rub"] = int(round(p["price_rub"] * (100 - discount_pct) / 100))
+                p["discount_pct"] = discount_pct
+
         cur.execute(
             f"SELECT COUNT(*) AS cnt FROM {tbl('payments')} "
             f"WHERE salon_id=%s AND status='succeeded'",
@@ -3216,7 +3223,7 @@ def handle_energy_balance(event: dict) -> dict:
         )
         has_paid = (cur.fetchone()["cnt"] or 0) > 0
 
-        return ok({"balance": balance, "monthly_spent": monthly_spent, "packages": packages, "has_paid": has_paid})
+        return ok({"balance": balance, "monthly_spent": monthly_spent, "packages": packages, "has_paid": has_paid, "champion_discount_pct": discount_pct})
     finally:
         conn.close()
 
@@ -3305,6 +3312,27 @@ def _yookassa_request(method: str, path: str, body: dict = None) -> dict:
         raise
 
 
+CHAMPIONSHIP_LEVEL_DISCOUNTS = {
+    "newcomer": 0, "participant": 0, "professional": 0,
+    "expert": 5, "premium": 10, "legend": 15,
+}
+
+
+def _get_champion_discount_pct(conn, salon_id: int) -> int:
+    """Скидка на энергию по уровню чемпионата салона (ch_ratings.level)."""
+    if not salon_id:
+        return 0
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(f"SELECT level FROM {tbl('ch_ratings')} WHERE salon_id=%s", (salon_id,))
+        row = cur.fetchone()
+        if not row:
+            return 0
+        return CHAMPIONSHIP_LEVEL_DISCOUNTS.get(row["level"], 0)
+    except Exception:
+        return 0
+
+
 def handle_payment_create(event: dict) -> dict:
     """Создать платёж в ЮКассе для покупки пакета энергии. Поддерживает save_payment_method для автоплатежа."""
     import uuid as uuid_mod
@@ -3327,9 +3355,14 @@ def handle_payment_create(event: dict) -> dict:
             f"SELECT * FROM {tbl('energy_packages')} WHERE code=%s AND is_active=TRUE",
             (package_code,)
         )
-        pkg = cur.fetchone()
+        pkg = dict(cur.fetchone() or {})
         if not pkg:
             return err("Пакет не найден")
+
+        # Скидка за уровень в чемпионате красоты
+        discount_pct = _get_champion_discount_pct(conn, user["salon_id"])
+        if discount_pct > 0:
+            pkg["price_rub"] = int(round(pkg["price_rub"] * (100 - discount_pct) / 100))
 
         shop_id = os.environ.get("YOOKASSA_SHOP_ID", "")
         secret_key = os.environ.get("YOOKASSA_SECRET_KEY", "")

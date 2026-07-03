@@ -364,12 +364,17 @@ def handle_rating(event):
         where.append("sl.city ILIKE %s"); params.append(f"%{qs['city']}%")
 
     params.append(limit)
+    # При равенстве очков выше показывается салон с более высоким уровнем
     cur.execute(
-        f"""SELECT r.*, sl.name as salon_name, sl.logo_url, sl.city, sl.website_url
+        f"""SELECT r.*, sl.name as salon_name, sl.logo_url, sl.city, sl.website_url,
+               CASE r.level
+                 WHEN 'legend' THEN 6 WHEN 'premium' THEN 5 WHEN 'expert' THEN 4
+                 WHEN 'professional' THEN 3 WHEN 'participant' THEN 2 ELSE 1
+               END as level_rank
             FROM {tbl('ch_ratings')} r
             JOIN {tbl('salons')} sl ON sl.id = r.salon_id
             WHERE {' AND '.join(where)}
-            ORDER BY r.total_points DESC
+            ORDER BY r.total_points DESC, level_rank DESC, r.wins DESC
             LIMIT %s""",
         params
     )
