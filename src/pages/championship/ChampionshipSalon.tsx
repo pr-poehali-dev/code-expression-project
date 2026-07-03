@@ -5,7 +5,11 @@ import { champGet, LEVEL_LABELS, LEVEL_COLORS } from "./championshipApi";
 
 interface Salon {
   id: number; name: string; logo_url: string | null; city: string; address: string;
-  phone: string; website_url: string | null; description: string | null;
+  website_url: string | null; description: string | null; avg_check: number | null;
+  social_instagram: string | null; social_vk: string | null; social_telegram: string | null;
+}
+interface Service {
+  name: string; price_min: number | null; price_max: number | null; duration_min: number | null;
 }
 interface Rating {
   total_points: number; participations: number; wins: number; top3_count: number; level: string;
@@ -35,6 +39,7 @@ export default function ChampionshipSalon() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [works, setWorks] = useState<Work[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,6 +51,7 @@ export default function ChampionshipSalon() {
       setAchievements(d.achievements || []);
       setWorks(d.works || []);
       setHistory(d.history || []);
+      setServices(d.services || []);
     }).finally(() => setLoading(false));
   }, [id]);
 
@@ -125,8 +131,70 @@ export default function ChampionshipSalon() {
         )}
 
         {salon.description && (
-          <div style={{ background: "#fff", borderRadius: 14, border: "1.5px solid #e2e8f0", padding: "16px 18px", marginBottom: 24, fontSize: 14, color: "#374151", lineHeight: 1.7 }}>
+          <div style={{ background: "#fff", borderRadius: 14, border: "1.5px solid #e2e8f0", padding: "16px 18px", marginBottom: 16, fontSize: 14, color: "#374151", lineHeight: 1.7 }}>
             {salon.description}
+          </div>
+        )}
+
+        {/* Контакты / адрес / соцсети */}
+        {(salon.address || salon.avg_check || salon.social_instagram || salon.social_vk || salon.social_telegram) && (
+          <div style={{ background: "#fff", borderRadius: 14, border: "1.5px solid #e2e8f0", padding: "16px 18px", marginBottom: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+            {salon.address && (
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 13, color: "#374151" }}>
+                <Icon name="MapPin" size={16} style={{ color: "#14B8A6", flexShrink: 0, marginTop: 1 }} />
+                {salon.address}
+              </div>
+            )}
+            {salon.avg_check && (
+              <div style={{ display: "flex", gap: 10, alignItems: "center", fontSize: 13, color: "#374151" }}>
+                <Icon name="Wallet" size={16} style={{ color: "#14B8A6", flexShrink: 0 }} />
+                Средний чек от <b style={{ color: "#0f172a" }}>{Number(salon.avg_check).toLocaleString("ru")} ₽</b>
+              </div>
+            )}
+            {(salon.social_instagram || salon.social_vk || salon.social_telegram) && (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 2 }}>
+                {salon.social_vk && (
+                  <a href={salon.social_vk} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#0f172a", background: "#f1f5f9", borderRadius: 8, padding: "6px 12px", textDecoration: "none" }}>
+                    <Icon name="Link" size={13} /> ВКонтакте
+                  </a>
+                )}
+                {salon.social_telegram && (
+                  <a href={salon.social_telegram} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#0f172a", background: "#f1f5f9", borderRadius: 8, padding: "6px 12px", textDecoration: "none" }}>
+                    <Icon name="Send" size={13} /> Telegram
+                  </a>
+                )}
+                {salon.social_instagram && (
+                  <a href={salon.social_instagram} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#0f172a", background: "#f1f5f9", borderRadius: 8, padding: "6px 12px", textDecoration: "none" }}>
+                    <Icon name="Instagram" size={13} /> Instagram
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Услуги */}
+        {services.length > 0 && (
+          <div style={{ marginBottom: 28 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: "#0f172a", margin: "0 0 12px" }}>💅 Услуги и цены</h3>
+            <div style={{ background: "#fff", borderRadius: 14, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
+              {services.map((s, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 16px", borderTop: i > 0 ? "1px solid #f1f5f9" : "none" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#0f172a" }}>{s.name}</div>
+                    {s.duration_min && <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{s.duration_min} мин</div>}
+                  </div>
+                  {s.price_min != null && (
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#14B8A6", flexShrink: 0, whiteSpace: "nowrap" }}>
+                      от {Number(s.price_min).toLocaleString("ru")} ₽
+                      {s.price_max != null && s.price_max !== s.price_min && (
+                        <span style={{ color: "#94a3b8", fontWeight: 600 }}> – {Number(s.price_max).toLocaleString("ru")} ₽</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

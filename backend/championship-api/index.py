@@ -282,7 +282,9 @@ def handle_salon_profile(event):
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     cur.execute(
-        f"SELECT id, name, logo_url, city, address, phone, website_url, description FROM {tbl('salons')} WHERE id = %s",
+        f"""SELECT id, name, logo_url, city, address, website_url, description,
+                   avg_check, social_instagram, social_vk, social_telegram
+            FROM {tbl('salons')} WHERE id = %s""",
         (salon_id,)
     )
     salon = cur.fetchone()
@@ -329,12 +331,22 @@ def handle_salon_profile(event):
     )
     history = [dict(r) for r in cur.fetchall()]
 
+    # Услуги салона (для карточки — минимальная цена и т.д.)
+    cur.execute(
+        f"""SELECT name, price_min, price_max, duration_min
+            FROM {tbl('salon_services')} WHERE salon_id = %s
+            ORDER BY sort_order ASC, id ASC""",
+        (salon_id,)
+    )
+    services = [dict(r) for r in cur.fetchall()]
+
     return ok({
         "salon": dict(salon),
         "rating": dict(rating) if rating else None,
         "achievements": achievements,
         "works": works,
         "history": history,
+        "services": services,
     })
 
 
