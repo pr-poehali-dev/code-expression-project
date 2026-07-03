@@ -380,6 +380,7 @@ def handle_hall_of_fame(event):
 
     cur.execute(
         f"""SELECT w.id, w.title, w.photos, w.votes_count, w.final_place, w.total_score,
+               w.description, w.story, w.services_done, w.master_name, w.tools_used, w.video_url,
                sl.id as salon_id, sl.name as salon_name, sl.logo_url, sl.city, sl.website_url,
                t.id as tournament_id, t.name as tournament_name, t.slug as tournament_slug,
                t.category, t.emoji,

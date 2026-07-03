@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import Icon from "@/components/ui/icon";
 import { champGet } from "./championshipApi";
 
 interface HofEntry {
-  id: number; title: string; photos: {url:string}[]; votes_count: number; final_place: number;
+  id: number; title: string; photos: {url:string; caption?:string}[]; votes_count: number; final_place: number;
   salon_id: number; salon_name: string; logo_url: string; city: string; website_url: string;
   tournament_name: string; tournament_slug: string; category: string; emoji: string; year: number;
+  description: string; story: string; services_done: string; master_name: string; tools_used: string; video_url: string;
 }
 
 const PLACE_STYLE = [
@@ -64,48 +66,100 @@ export default function ChampionshipHallOfFame() {
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
-            {entries.map(e => {
-              const ps = PLACE_STYLE[e.final_place - 1] || { bg: "#f8fafc", color: "#94a3b8", icon: `#${e.final_place}` };
-              const photo = e.photos?.[0]?.url;
-              return (
-                <div key={e.id} style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
-                  {/* Фото */}
-                  <div style={{ height: 160, background: photo ? `url(${photo}) center/cover` : "#f1f5f9", position: "relative" }}>
-                    {!photo && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40 }}>🖼</div>}
-                    <div style={{ position: "absolute", top: 12, left: 12, background: ps.bg, color: ps.color, borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>
-                      {ps.icon} {e.final_place} место
-                    </div>
-                    <div style={{ position: "absolute", top: 12, right: 12, background: "rgba(0,0,0,0.5)", color: "#fff", borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 600 }}>
-                      {e.emoji} {e.tournament_name}
-                    </div>
-                  </div>
-                  {/* Инфо */}
-                  <div style={{ padding: "16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                      {e.logo_url ? (
-                        <img src={e.logo_url} alt={e.salon_name} style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
-                      ) : (
-                        <div style={{ width: 36, height: 36, borderRadius: 8, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 16 }}>💅</div>
-                      )}
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>{e.salon_name}</div>
-                        <div style={{ fontSize: 12, color: "#94a3b8" }}>{e.city} · {e.year}</div>
-                      </div>
-                    </div>
-                    {e.votes_count > 0 && (
-                      <div style={{ fontSize: 12, color: "#64748b" }}>❤️ {e.votes_count.toLocaleString("ru")} голосов</div>
-                    )}
-                    {e.website_url && (
-                      <a href={e.website_url} target="_blank" rel="noreferrer" onClick={ev => ev.stopPropagation()}
-                        style={{ display: "inline-block", marginTop: 10, fontSize: 12, color: "#14B8A6", fontWeight: 600, textDecoration: "none" }}>
-                        Сайт салона →
-                      </a>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {entries.map(e => <HofCard key={e.id} e={e} />)}
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HofCard({ e }: { e: HofEntry }) {
+  const [open, setOpen] = useState(false);
+  const ps = PLACE_STYLE[e.final_place - 1] || { bg: "#f8fafc", color: "#94a3b8", icon: `#${e.final_place}` };
+  const photo = e.photos?.[0]?.url;
+  const hasDetails = !!(e.description || e.story || e.services_done || e.master_name || e.tools_used || e.video_url || (e.photos && e.photos.length > 1));
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
+      {/* Фото */}
+      <div style={{ height: 160, background: photo ? `url(${photo}) center/cover` : "#f1f5f9", position: "relative", cursor: hasDetails ? "pointer" : "default" }}
+        onClick={() => hasDetails && setOpen(o => !o)}>
+        {!photo && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40 }}>🖼</div>}
+        <div style={{ position: "absolute", top: 12, left: 12, background: ps.bg, color: ps.color, borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>
+          {ps.icon} {e.final_place} место
+        </div>
+        <div style={{ position: "absolute", top: 12, right: 12, background: "rgba(0,0,0,0.5)", color: "#fff", borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 600 }}>
+          {e.emoji} {e.tournament_name}
+        </div>
+      </div>
+      {/* Инфо */}
+      <div style={{ padding: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+          {e.logo_url ? (
+            <img src={e.logo_url} alt={e.salon_name} style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+          ) : (
+            <div style={{ width: 36, height: 36, borderRadius: 8, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 16 }}>💅</div>
+          )}
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>{e.salon_name}</div>
+            <div style={{ fontSize: 12, color: "#94a3b8" }}>{e.city} · {e.year}</div>
+          </div>
+        </div>
+
+        {e.title && <div style={{ fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 4 }}>{e.title}</div>}
+        {e.description && (
+          <p style={{ margin: "0 0 6px", fontSize: 12, color: "#64748b", lineHeight: 1.6, display: open ? "block" : "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: open ? "visible" : "hidden" }}>
+            {e.description}
+          </p>
+        )}
+
+        {e.votes_count > 0 && (
+          <div style={{ fontSize: 12, color: "#64748b", marginBottom: 8 }}>❤️ {e.votes_count.toLocaleString("ru")} голосов</div>
+        )}
+
+        {hasDetails && (
+          <button onClick={() => setOpen(o => !o)} style={{ background: "none", border: "none", padding: 0, marginBottom: 8, color: "#14B8A6", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+            {open ? "Свернуть" : "Подробнее о работе"} <Icon name={open ? "ChevronUp" : "ChevronDown"} size={13} />
+          </button>
+        )}
+
+        {open && (
+          <div style={{ background: "#f8fafc", borderRadius: 10, padding: "12px 14px", marginBottom: 10, display: "flex", flexDirection: "column", gap: 10 }}>
+            {e.photos && e.photos.length > 1 && (
+              <div style={{ display: "flex", gap: 6, overflowX: "auto" }}>
+                {e.photos.map((p, i) => (
+                  <img key={i} src={p.url} alt={p.caption || ""} title={p.caption || ""}
+                    style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />
+                ))}
+              </div>
+            )}
+            {e.master_name && (
+              <div style={{ fontSize: 12, color: "#374151" }}><b style={{ color: "#0f172a" }}>Мастер:</b> {e.master_name}</div>
+            )}
+            {e.services_done && (
+              <div style={{ fontSize: 12, color: "#374151" }}><b style={{ color: "#0f172a" }}>Услуги:</b> {e.services_done}</div>
+            )}
+            {e.tools_used && (
+              <div style={{ fontSize: 12, color: "#374151" }}><b style={{ color: "#0f172a" }}>Инструменты и техники:</b> {e.tools_used}</div>
+            )}
+            {e.story && (
+              <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}><b style={{ color: "#0f172a" }}>История клиента:</b><br />{e.story}</div>
+            )}
+            {e.video_url && (
+              <a href={e.video_url} target="_blank" rel="noreferrer" onClick={ev => ev.stopPropagation()}
+                style={{ fontSize: 12, color: "#14B8A6", fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
+                <Icon name="Play" size={13} /> Смотреть видео
+              </a>
+            )}
+          </div>
+        )}
+
+        {e.website_url && (
+          <a href={e.website_url} target="_blank" rel="noreferrer" onClick={ev => ev.stopPropagation()}
+            style={{ display: "inline-block", marginTop: 4, fontSize: 12, color: "#14B8A6", fontWeight: 600, textDecoration: "none" }}>
+            Сайт салона →
+          </a>
         )}
       </div>
     </div>
