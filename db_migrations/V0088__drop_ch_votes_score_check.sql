@@ -1,0 +1,1 @@
+ALTER TABLE t_p84565078_code_expression_proj.ch_votes DROP CONSTRAINT IF EXISTS ch_votes_score_check;
