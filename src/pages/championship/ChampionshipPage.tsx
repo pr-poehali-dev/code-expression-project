@@ -446,9 +446,19 @@ function TournamentCard({ t, onClick }: { t: Tournament; onClick: () => void }) 
               </div>
             )}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#14B8A6", color: "#fff", borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 700, flexShrink: 0, cursor: "pointer" }}>
-            Подать заявку <Icon name="ArrowRight" size={14} />
-          </div>
+          {t.status === "voting" ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f59e0b", color: "#fff", borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 700, flexShrink: 0, cursor: "pointer" }}>
+              <Icon name="Vote" size={14} /> Идёт голосование
+            </div>
+          ) : t.status === "finished" ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f1f5f9", color: "#64748b", borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 700, flexShrink: 0, cursor: "pointer" }}>
+              Итоги <Icon name="ArrowRight" size={14} />
+            </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#14B8A6", color: "#fff", borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 700, flexShrink: 0, cursor: "pointer" }}>
+              Подать заявку <Icon name="ArrowRight" size={14} />
+            </div>
+          )}
         </div>
       </div>
     </div>
