@@ -21,6 +21,7 @@ interface Tournament {
 interface Prize { id: number; place: number; title: string; description: string; photo_url: string; value: string; partner_name: string; partner_logo: string; }
 interface Work {
   id: number; title: string; description: string; photos: { url: string; caption?: string }[];
+  story: string; services_done: string; master_name: string; tools_used: string; video_url: string;
   votes_count: number; final_place: number | null; created_at: string;
   salon_name: string | null; salon_logo: string | null; salon_city: string | null; salon_url: string | null;
 }
@@ -373,12 +374,16 @@ function ShareBanner({ url, tournamentName }: { url: string; tournamentName: str
 
 function WorkCard({ work: w, isVoting, isFinished, voted, loading, onVote, index }:
   { work: Work; isVoting: boolean; isFinished: boolean; voted: boolean; loading: boolean; onVote: () => void; index: number }) {
+  const [open, setOpen] = useState(false);
   const photo = w.photos?.[0]?.url;
   // Во время голосования скрываем название и данные салона — показываем только номер
   const displayTitle = isVoting ? `Работа #${index + 1}` : w.title;
+  const hasDetails = !!(w.description || w.story || w.services_done || w.master_name || w.tools_used || w.video_url || (w.photos && w.photos.length > 1));
+
   return (
     <div className="ct-work-card">
-      <div className="ct-work-photo" style={{ background: photo ? `url(${photo}) center/cover` : "#f1f5f9" }}>
+      <div className="ct-work-photo" style={{ background: photo ? `url(${photo}) center/cover` : "#f1f5f9", cursor: hasDetails ? "pointer" : "default" }}
+        onClick={() => hasDetails && setOpen(o => !o)}>
         {!photo && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>🖼</div>
         )}
@@ -390,11 +395,48 @@ function WorkCard({ work: w, isVoting, isFinished, voted, loading, onVote, index
       </div>
       <div className="ct-work-body">
         {displayTitle && <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", marginBottom: 5 }}>{displayTitle}</div>}
-        {w.description && !isVoting && (
-          <p style={{ margin: "0 0 8px", fontSize: 12, color: "#64748b", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+        {w.description && (
+          <p style={{ margin: "0 0 8px", fontSize: 12, color: "#64748b", lineHeight: 1.6, display: open ? "block" : "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: open ? "visible" : "hidden" }}>
             {w.description}
           </p>
         )}
+
+        {hasDetails && (
+          <button onClick={() => setOpen(o => !o)} style={{ background: "none", border: "none", padding: 0, marginBottom: 8, color: "#14B8A6", fontSize: 12, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+            {open ? "Свернуть" : "Подробнее о работе"} <Icon name={open ? "ChevronUp" : "ChevronDown"} size={13} />
+          </button>
+        )}
+
+        {open && (
+          <div style={{ background: "#f8fafc", borderRadius: 10, padding: "12px 14px", marginBottom: 10, display: "flex", flexDirection: "column", gap: 10 }}>
+            {w.photos && w.photos.length > 1 && (
+              <div style={{ display: "flex", gap: 6, overflowX: "auto" }}>
+                {w.photos.map((p, i) => (
+                  <img key={i} src={p.url} alt={p.caption || ""} title={p.caption || ""}
+                    style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />
+                ))}
+              </div>
+            )}
+            {w.master_name && (
+              <div style={{ fontSize: 12, color: "#374151" }}><b style={{ color: "#0f172a" }}>Мастер:</b> {w.master_name}</div>
+            )}
+            {w.services_done && (
+              <div style={{ fontSize: 12, color: "#374151" }}><b style={{ color: "#0f172a" }}>Услуги:</b> {w.services_done}</div>
+            )}
+            {w.tools_used && (
+              <div style={{ fontSize: 12, color: "#374151" }}><b style={{ color: "#0f172a" }}>Инструменты и техники:</b> {w.tools_used}</div>
+            )}
+            {w.story && (
+              <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}><b style={{ color: "#0f172a" }}>История клиента:</b><br />{w.story}</div>
+            )}
+            {w.video_url && (
+              <a href={w.video_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#14B8A6", fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
+                <Icon name="Play" size={13} /> Смотреть видео
+              </a>
+            )}
+          </div>
+        )}
+
         {isFinished && w.salon_name && (
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, paddingTop: 8, borderTop: "1px solid #f1f5f9" }}>
             {w.salon_logo && <img src={w.salon_logo} alt="" style={{ width: 26, height: 26, borderRadius: 6, objectFit: "cover" }} />}

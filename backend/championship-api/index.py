@@ -219,7 +219,9 @@ def handle_works(event):
         return ok({"works": [], "revealed": False, "hidden_until_voting": True})
 
     cur.execute(
-        f"""SELECT w.id, w.title, w.description, w.photos, w.votes_count,
+        f"""SELECT w.id, w.title, w.description, w.story, w.services_done,
+               w.master_name, w.tools_used, w.video_url,
+               w.photos, w.votes_count,
                w.total_score, w.final_place, w.created_at,
                CASE WHEN %s THEN sl.name ELSE NULL END as salon_name,
                CASE WHEN %s THEN sl.logo_url ELSE NULL END as salon_logo,
