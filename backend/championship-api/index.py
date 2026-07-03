@@ -358,7 +358,7 @@ def handle_rating(event):
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    where = ["1=1"]
+    where = ["r.participations > 0"]
     params = []
     if qs.get("city"):
         where.append("sl.city ILIKE %s"); params.append(f"%{qs['city']}%")
