@@ -97,7 +97,7 @@ def handle_tournaments(event):
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    where = ["1=1"]
+    where = ["t.is_hidden = FALSE"]
     params = []
     if qs.get("season_id"):
         where.append("t.season_id = %s"); params.append(qs["season_id"])
@@ -147,7 +147,7 @@ def handle_tournament(event):
                 LEFT JOIN {tbl('ch_seasons')} s ON s.id = t.season_id
                 LEFT JOIN {tbl('ch_applications')} a ON a.tournament_id = t.id AND a.status = 'approved'
                 LEFT JOIN {tbl('ch_works')} w ON w.tournament_id = t.id AND w.status = 'approved'
-                WHERE t.slug = %s GROUP BY t.id, s.name""",
+                WHERE t.slug = %s AND t.is_hidden = FALSE GROUP BY t.id, s.name""",
             (qs["slug"],)
         )
     else:
@@ -159,7 +159,7 @@ def handle_tournament(event):
                 LEFT JOIN {tbl('ch_seasons')} s ON s.id = t.season_id
                 LEFT JOIN {tbl('ch_applications')} a ON a.tournament_id = t.id AND a.status = 'approved'
                 LEFT JOIN {tbl('ch_works')} w ON w.tournament_id = t.id AND w.status = 'approved'
-                WHERE t.id = %s GROUP BY t.id, s.name""",
+                WHERE t.id = %s AND t.is_hidden = FALSE GROUP BY t.id, s.name""",
             (qs.get("id", 0),)
         )
     row = cur.fetchone()
@@ -311,7 +311,7 @@ def handle_salon_profile(event):
                t.name as tournament_name, t.slug as tournament_slug
             FROM {tbl('ch_works')} w
             JOIN {tbl('ch_tournaments')} t ON t.id = w.tournament_id
-            WHERE w.salon_id = %s AND w.is_public = TRUE AND t.status = 'finished'
+            WHERE w.salon_id = %s AND w.is_public = TRUE AND t.status = 'finished' AND t.is_hidden = FALSE
             ORDER BY w.final_place ASC NULLS LAST, w.votes_count DESC LIMIT 12""",
         (salon_id,)
     )
@@ -325,7 +325,7 @@ def handle_salon_profile(event):
             FROM {tbl('ch_applications')} a
             JOIN {tbl('ch_tournaments')} t ON t.id = a.tournament_id
             LEFT JOIN {tbl('ch_works')} w ON w.tournament_id = t.id AND w.salon_id = a.salon_id
-            WHERE a.salon_id = %s
+            WHERE a.salon_id = %s AND t.is_hidden = FALSE
             ORDER BY t.registration_starts DESC NULLS LAST LIMIT 50""",
         (salon_id,)
     )
@@ -388,7 +388,7 @@ def handle_hall_of_fame(event):
     conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    where = ["w.final_place IS NOT NULL AND w.final_place <= 3 AND t.status = 'finished'"]
+    where = ["w.final_place IS NOT NULL AND w.final_place <= 3 AND t.status = 'finished' AND t.is_hidden = FALSE"]
     params = []
     if qs.get("year"):
         where.append("EXTRACT(YEAR FROM t.voting_ends) = %s"); params.append(int(qs["year"]))
@@ -481,7 +481,7 @@ def handle_my_tournaments(event):
             FROM {tbl('ch_applications')} a
             JOIN {tbl('ch_tournaments')} t ON t.id = a.tournament_id
             LEFT JOIN {tbl('ch_works')} w ON w.tournament_id = t.id AND w.salon_id = a.salon_id
-            WHERE a.salon_id = %s
+            WHERE a.salon_id = %s AND t.is_hidden = FALSE
             ORDER BY a.created_at DESC""",
         (salon_id,)
     )
@@ -509,7 +509,7 @@ def handle_stats(event):
     works = cur.fetchone()["cnt"]
     cur.execute(f"SELECT COUNT(*) as cnt FROM {tbl('ch_votes')}")
     votes = cur.fetchone()["cnt"]
-    cur.execute(f"SELECT COUNT(*) as cnt FROM {tbl('ch_tournaments')} WHERE status NOT IN ('draft','cancelled')")
+    cur.execute(f"SELECT COUNT(*) as cnt FROM {tbl('ch_tournaments')} WHERE status NOT IN ('draft','cancelled') AND is_hidden = FALSE")
     tournaments = cur.fetchone()["cnt"]
 
     # Активный сезон

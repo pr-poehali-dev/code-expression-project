@@ -149,7 +149,10 @@ def handle_update_season(event, conn):
 # ── Турниры ───────────────────────────────────────────────────────────────────
 
 def handle_list_tournaments(event, conn):
+    qs = event.get("queryStringParameters") or {}
+    show_hidden = qs.get("show_hidden") == "1"
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    where = "" if show_hidden else "WHERE t.is_hidden = FALSE"
     cur.execute(
         f"""SELECT t.*, s.name as season_name,
                COUNT(DISTINCT a.id) as applications_count,
@@ -158,6 +161,7 @@ def handle_list_tournaments(event, conn):
             LEFT JOIN {tbl('ch_seasons')} s ON s.id = t.season_id
             LEFT JOIN {tbl('ch_applications')} a ON a.tournament_id = t.id
             LEFT JOIN {tbl('ch_works')} w ON w.tournament_id = t.id
+            {where}
             GROUP BY t.id, s.name
             ORDER BY t.created_at DESC"""
     )
