@@ -303,14 +303,18 @@ def do_start_voting() -> dict:
             (t["id"],)
         )
         # Рассылаем письма всем одобренным участникам с работами
+        # (игнорируем служебные @invited.local адреса приглашённых мастеров)
         cur.execute(
-            f"""SELECT u.email, sl.name as salon_name, w.id as work_id
+            f"""SELECT DISTINCT ON (a.salon_id)
+                   COALESCE(NULLIF(u.notification_email,''), u.email) as email,
+                   sl.name as salon_name, w.id as work_id
                 FROM {tbl('ch_applications')} a
                 JOIN {tbl('lk_users')} u ON u.salon_id = a.salon_id AND u.is_active = TRUE
                 JOIN {tbl('salons')} sl ON sl.id = a.salon_id
                 LEFT JOIN {tbl('ch_works')} w ON w.tournament_id = a.tournament_id AND w.salon_id = a.salon_id AND w.is_public = TRUE
                 WHERE a.tournament_id = %s AND a.status = 'approved'
-                  AND u.email IS NOT NULL AND u.email != ''""",
+                  AND COALESCE(NULLIF(u.notification_email,''), u.email) NOT LIKE '%%@invited.local'
+                ORDER BY a.salon_id, u.is_admin DESC, u.id ASC""",
             (t["id"],)
         )
         recipients = cur.fetchall()
@@ -464,8 +468,14 @@ def do_auto_finalize() -> dict:
                 energy = 0
 
             if energy > 0:
+                # Выбираем получателя с реальным email: сначала админ/владелец салона
+                # с нормальной почтой, игнорируя служебные @invited.local адреса
                 cur.execute(
-                    f"SELECT id, email FROM {tbl('lk_users')} WHERE salon_id=%s AND is_active=TRUE LIMIT 1",
+                    f"""SELECT id, COALESCE(NULLIF(notification_email,''), email) as email
+                        FROM {tbl('lk_users')}
+                        WHERE salon_id=%s AND is_active=TRUE
+                          AND COALESCE(NULLIF(notification_email,''), email) NOT LIKE '%%@invited.local'
+                        ORDER BY is_admin DESC, id ASC LIMIT 1""",
                     (w["salon_id"],)
                 )
                 u = cur.fetchone()
