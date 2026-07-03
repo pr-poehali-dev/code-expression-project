@@ -506,6 +506,20 @@ def do_auto_finalize() -> dict:
                         except Exception as e:
                             print(f"[cron] winner email error {u['email']}: {e}")
 
+            # Обновляем счётчики побед / топ-3 для рейтинга
+            is_win = 1 if place == 1 else 0
+            is_top3 = 1 if place <= 3 else 0
+            if is_win or is_top3:
+                cur.execute(
+                    f"""INSERT INTO {tbl('ch_ratings')} (salon_id, wins, top3_count, participations)
+                        VALUES (%s,%s,%s,0)
+                        ON CONFLICT (salon_id) DO UPDATE SET
+                        wins = {tbl('ch_ratings')}.wins + %s,
+                        top3_count = {tbl('ch_ratings')}.top3_count + %s,
+                        updated_at = NOW()""",
+                    (w["salon_id"], is_win, is_top3, is_win, is_top3)
+                )
+
         # Очки рейтинга всем участникам
         pts_participation = 20
         cur.execute(
