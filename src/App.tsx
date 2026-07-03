@@ -43,6 +43,7 @@ const ChampionshipPage = lazy(() => import("./pages/championship/ChampionshipPag
 const ChampionshipTournament = lazy(() => import("./pages/championship/ChampionshipTournament"));
 const ChampionshipRating = lazy(() => import("./pages/championship/ChampionshipRating"));
 const ChampionshipHallOfFame = lazy(() => import("./pages/championship/ChampionshipHallOfFame"));
+const ChampionshipSalon = lazy(() => import("./pages/championship/ChampionshipSalon"));
 
 // Кабинет и rep — отдельные чанки
 const LkPage = lazy(() => import("./pages/lk/LkPage"));
@@ -126,6 +127,7 @@ const App = () => (
             <Route path="/championship/tournament/:slug" element={<ChampionshipTournament />} />
             <Route path="/championship/rating" element={<ChampionshipRating />} />
             <Route path="/championship/hall-of-fame" element={<ChampionshipHallOfFame />} />
+            <Route path="/championship/salon/:id" element={<ChampionshipSalon />} />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFoundPage />} />
