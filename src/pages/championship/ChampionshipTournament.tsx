@@ -430,7 +430,7 @@ function WorkCard({ work: w, isVoting, isFinished, voted, loading, onVote, index
               <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}><b style={{ color: "#0f172a" }}>История клиента:</b><br />{w.story}</div>
             )}
             {w.video_url && (
-              <a href={w.video_url} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#14B8A6", fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
+              <a href={w.video_url} target="_blank" rel="nofollow noopener noreferrer" style={{ fontSize: 12, color: "#14B8A6", fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
                 <Icon name="Play" size={13} /> Смотреть видео
               </a>
             )}
@@ -445,7 +445,7 @@ function WorkCard({ work: w, isVoting, isFinished, voted, loading, onVote, index
               {w.salon_city && <div style={{ fontSize: 11, color: "#94a3b8" }}>{w.salon_city}</div>}
             </div>
             {w.salon_url && (
-              <a href={w.salon_url} target="_blank" rel="noreferrer"
+              <a href={w.salon_url} target="_blank" rel="nofollow noopener noreferrer"
                 style={{ fontSize: 11, color: "#14B8A6", fontWeight: 600, textDecoration: "none", flexShrink: 0 }}>сайт →</a>
             )}
           </div>

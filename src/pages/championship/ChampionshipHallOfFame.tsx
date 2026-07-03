@@ -147,7 +147,7 @@ function HofCard({ e }: { e: HofEntry }) {
               <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}><b style={{ color: "#0f172a" }}>История клиента:</b><br />{e.story}</div>
             )}
             {e.video_url && (
-              <a href={e.video_url} target="_blank" rel="noreferrer" onClick={ev => ev.stopPropagation()}
+              <a href={e.video_url} target="_blank" rel="nofollow noopener noreferrer" onClick={ev => ev.stopPropagation()}
                 style={{ fontSize: 12, color: "#14B8A6", fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", gap: 4 }}>
                 <Icon name="Play" size={13} /> Смотреть видео
               </a>
@@ -156,7 +156,7 @@ function HofCard({ e }: { e: HofEntry }) {
         )}
 
         {e.website_url && (
-          <a href={e.website_url} target="_blank" rel="noreferrer" onClick={ev => ev.stopPropagation()}
+          <a href={e.website_url} target="_blank" rel="nofollow noopener noreferrer" onClick={ev => ev.stopPropagation()}
             style={{ display: "inline-block", marginTop: 4, fontSize: 12, color: "#14B8A6", fontWeight: 600, textDecoration: "none" }}>
             Сайт салона →
           </a>

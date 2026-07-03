@@ -106,7 +106,7 @@ export default function ChampionshipSalon() {
               {salon.city && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>{salon.city}</div>}
             </div>
             {salon.website_url && (
-              <a href={salon.website_url} target="_blank" rel="noreferrer"
+              <a href={salon.website_url} target="_blank" rel="nofollow noopener noreferrer"
                 style={{ padding: "10px 18px", background: "#fff", color: "#0f172a", borderRadius: 10, textDecoration: "none", fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
                 Сайт салона →
               </a>
@@ -158,17 +158,17 @@ export default function ChampionshipSalon() {
             {(salon.social_instagram || salon.social_vk || salon.social_telegram) && (
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 2 }}>
                 {salon.social_vk && (
-                  <a href={salon.social_vk} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#0f172a", background: "#f1f5f9", borderRadius: 8, padding: "6px 12px", textDecoration: "none" }}>
+                  <a href={salon.social_vk} target="_blank" rel="nofollow noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#0f172a", background: "#f1f5f9", borderRadius: 8, padding: "6px 12px", textDecoration: "none" }}>
                     <Icon name="Link" size={13} /> ВКонтакте
                   </a>
                 )}
                 {salon.social_telegram && (
-                  <a href={salon.social_telegram} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#0f172a", background: "#f1f5f9", borderRadius: 8, padding: "6px 12px", textDecoration: "none" }}>
+                  <a href={salon.social_telegram} target="_blank" rel="nofollow noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#0f172a", background: "#f1f5f9", borderRadius: 8, padding: "6px 12px", textDecoration: "none" }}>
                     <Icon name="Send" size={13} /> Telegram
                   </a>
                 )}
                 {salon.social_instagram && (
-                  <a href={salon.social_instagram} target="_blank" rel="noreferrer" style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#0f172a", background: "#f1f5f9", borderRadius: 8, padding: "6px 12px", textDecoration: "none" }}>
+                  <a href={salon.social_instagram} target="_blank" rel="nofollow noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600, color: "#0f172a", background: "#f1f5f9", borderRadius: 8, padding: "6px 12px", textDecoration: "none" }}>
                     <Icon name="Instagram" size={13} /> Instagram
                   </a>
                 )}
