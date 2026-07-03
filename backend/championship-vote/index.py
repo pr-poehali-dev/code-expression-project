@@ -115,85 +115,89 @@ def handle_vote(event):
     # Авторизованный пользователь
     user = get_session_user(event, conn)
     user_id = user["id"] if user else None
+    is_admin = bool(user and user.get("is_admin"))
+    ADMIN_VOTE_WEIGHT = 158
 
-    # ── Антинакрутка ──────────────────────────────────────────────────────────
+    # ── Антинакрутка (для админа не применяется — у него особые права) ─────────
 
-    # 1. Авторизованный: строгий UNIQUE (1 голос на работу)
-    if user_id:
+    if not is_admin:
+        # 1. Авторизованный: строгий UNIQUE (1 голос на работу)
+        if user_id:
+            cur.execute(
+                f"SELECT id FROM {tbl('ch_votes')} WHERE work_id=%s AND user_id=%s",
+                (work_id, user_id)
+            )
+            if cur.fetchone():
+                return err("Вы уже голосовали за эту работу")
+
+            # Нельзя голосовать за свою работу
+            if work["salon_id"] == user.get("salon_id"):
+                return err("Нельзя голосовать за собственную работу")
+
+        # 2. По IP — не более 5 голосов в сутки по всему турниру
+        window_start = datetime.now(timezone.utc) - timedelta(hours=24)
         cur.execute(
-            f"SELECT id FROM {tbl('ch_votes')} WHERE work_id=%s AND user_id=%s",
-            (work_id, user_id)
+            f"""SELECT COUNT(*) as cnt FROM {tbl('ch_votes')} v
+                JOIN {tbl('ch_works')} w ON w.id = v.work_id
+                WHERE v.voter_ip=%s AND w.tournament_id=%s AND v.created_at > %s""",
+            (voter_ip, work["tournament_id"], window_start)
         )
-        if cur.fetchone():
-            return err("Вы уже голосовали за эту работу")
-
-        # Нельзя голосовать за свою работу
-        if work["salon_id"] == user.get("salon_id"):
-            return err("Нельзя голосовать за собственную работу")
-
-    # 2. По IP — не более 5 голосов в сутки по всему турниру
-    window_start = datetime.now(timezone.utc) - timedelta(hours=24)
-    cur.execute(
-        f"""SELECT COUNT(*) as cnt FROM {tbl('ch_votes')} v
-            JOIN {tbl('ch_works')} w ON w.id = v.work_id
-            WHERE v.voter_ip=%s AND w.tournament_id=%s AND v.created_at > %s""",
-        (voter_ip, work["tournament_id"], window_start)
-    )
-    ip_count = cur.fetchone()["cnt"]
-    if ip_count >= 5:
-        # Логируем подозрительную активность
-        cur.execute(
-            f"INSERT INTO {tbl('ch_vote_log')} (work_id, voter_ip, voter_fp, reason, blocked) "
-            f"VALUES (%s,%s,%s,'ip_day_limit',TRUE)",
-            (work_id, voter_ip, voter_fp)
-        )
-        conn.commit()
-        return err("Превышен дневной лимит голосов с вашего IP")
-
-    # 3. По fingerprint — не более 3 голосов за одну работу
-    if voter_fp:
-        cur.execute(
-            f"SELECT COUNT(*) as cnt FROM {tbl('ch_votes')} WHERE work_id=%s AND voter_fp=%s",
-            (work_id, voter_fp)
-        )
-        fp_count = cur.fetchone()["cnt"]
-        if fp_count >= 3:
+        ip_count = cur.fetchone()["cnt"]
+        if ip_count >= 5:
+            # Логируем подозрительную активность
             cur.execute(
                 f"INSERT INTO {tbl('ch_vote_log')} (work_id, voter_ip, voter_fp, reason, blocked) "
-                f"VALUES (%s,%s,%s,'fp_work_limit',TRUE)",
+                f"VALUES (%s,%s,%s,'ip_day_limit',TRUE)",
                 (work_id, voter_ip, voter_fp)
             )
             conn.commit()
-            return err("Вы уже голосовали за эту работу")
+            return err("Превышен дневной лимит голосов с вашего IP")
 
-    # 4. Слишком быстро — менее 3 секунд с последнего голоса с этого IP
-    cur.execute(
-        f"SELECT created_at FROM {tbl('ch_votes')} WHERE voter_ip=%s ORDER BY created_at DESC LIMIT 1",
-        (voter_ip,)
-    )
-    last = cur.fetchone()
-    if last and last["created_at"]:
-        delta = (datetime.now(timezone.utc) - last["created_at"].replace(tzinfo=timezone.utc)).total_seconds()
-        if delta < 3:
+        # 3. По fingerprint — не более 3 голосов за одну работу
+        if voter_fp:
             cur.execute(
-                f"INSERT INTO {tbl('ch_vote_log')} (work_id, voter_ip, voter_fp, reason, blocked) "
-                f"VALUES (%s,%s,%s,'too_fast',TRUE)",
-                (work_id, voter_ip, voter_fp)
+                f"SELECT COUNT(*) as cnt FROM {tbl('ch_votes')} WHERE work_id=%s AND voter_fp=%s",
+                (work_id, voter_fp)
             )
-            conn.commit()
-            return err("Слишком быстро. Подождите несколько секунд.")
+            fp_count = cur.fetchone()["cnt"]
+            if fp_count >= 3:
+                cur.execute(
+                    f"INSERT INTO {tbl('ch_vote_log')} (work_id, voter_ip, voter_fp, reason, blocked) "
+                    f"VALUES (%s,%s,%s,'fp_work_limit',TRUE)",
+                    (work_id, voter_ip, voter_fp)
+                )
+                conn.commit()
+                return err("Вы уже голосовали за эту работу")
+
+        # 4. Слишком быстро — менее 3 секунд с последнего голоса с этого IP
+        cur.execute(
+            f"SELECT created_at FROM {tbl('ch_votes')} WHERE voter_ip=%s ORDER BY created_at DESC LIMIT 1",
+            (voter_ip,)
+        )
+        last = cur.fetchone()
+        if last and last["created_at"]:
+            delta = (datetime.now(timezone.utc) - last["created_at"].replace(tzinfo=timezone.utc)).total_seconds()
+            if delta < 3:
+                cur.execute(
+                    f"INSERT INTO {tbl('ch_vote_log')} (work_id, voter_ip, voter_fp, reason, blocked) "
+                    f"VALUES (%s,%s,%s,'too_fast',TRUE)",
+                    (work_id, voter_ip, voter_fp)
+                )
+                conn.commit()
+                return err("Слишком быстро. Подождите несколько секунд.")
 
     # ── Записываем голос ──────────────────────────────────────────────────────
+    vote_weight = ADMIN_VOTE_WEIGHT if is_admin else 1
     cur.execute(
         f"INSERT INTO {tbl('ch_votes')} (work_id, voter_ip, voter_fp, user_id, score) "
-        f"VALUES (%s,%s,%s,%s,1)",
-        (work_id, voter_ip, voter_fp, user_id)
+        f"VALUES (%s,%s,%s,%s,%s)",
+        (work_id, voter_ip, voter_fp, user_id, vote_weight)
     )
 
     # Обновляем счётчик голосов в работе
     cur.execute(
-        f"UPDATE {tbl('ch_works')} SET votes_count = votes_count + 1 WHERE id=%s RETURNING votes_count",
-        (work_id,)
+        f"UPDATE {tbl('ch_works')} SET votes_count = votes_count + %s WHERE id=%s RETURNING votes_count",
+        (vote_weight, work_id)
     )
     new_count = cur.fetchone()["votes_count"]
 
