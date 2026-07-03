@@ -107,7 +107,8 @@ export default function ChampionshipTournament() {
 
   useEffect(() => {
     if (!tournament || !["voting", "finished"].includes(tournament.status)) return;
-    voteGet("my_votes", { tournament_id: String(tournament.id) }, getSessionId() || undefined)
+    const fp = navigator.userAgent + screen.width + screen.height;
+    voteGet("my_votes", { tournament_id: String(tournament.id) }, getSessionId() || undefined, fp)
       .then(d => setVotedIds(d.voted_work_ids || []));
   }, [tournament]);
 

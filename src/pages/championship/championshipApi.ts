@@ -33,10 +33,11 @@ export async function votePost(action: string, body: object, sessionId?: string,
   return JSON.parse(text);
 }
 
-export async function voteGet(action: string, params: Record<string, string> = {}, sessionId?: string) {
+export async function voteGet(action: string, params: Record<string, string> = {}, sessionId?: string, fp?: string) {
   const qs = new URLSearchParams({ action, ...params }).toString();
   const headers: Record<string, string> = {};
   if (sessionId) headers["X-Session-Id"] = sessionId;
+  if (fp) headers["X-Voter-Fp"] = fp;
   const res = await fetch(`${CHAMP_VOTE_URL}?${qs}`, { headers });
   const text = await res.text();
   return JSON.parse(text);

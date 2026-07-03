@@ -235,7 +235,8 @@ def handle_my_votes(event):
     qs = event.get("queryStringParameters") or {}
     tournament_id = qs.get("tournament_id")
 
-    voter_ip = get_ip(event)
+    raw_fp = (event.get("headers") or {}).get("X-Voter-Fp", "")
+    voter_fp = fp_hash(raw_fp)
     conn = get_db()
     user = get_session_user(event, conn)
     user_id = user["id"] if user else None
@@ -243,18 +244,21 @@ def handle_my_votes(event):
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     if user_id and tournament_id:
+        # Авторизован — считаем голоса привязанными к его аккаунту
         cur.execute(
             f"""SELECT v.work_id FROM {tbl('ch_votes')} v
                 JOIN {tbl('ch_works')} w ON w.id = v.work_id
                 WHERE v.user_id=%s AND w.tournament_id=%s""",
             (user_id, tournament_id)
         )
-    elif tournament_id:
+    elif tournament_id and voter_fp:
+        # Не авторизован — определяем по отпечатку устройства (НЕ по IP,
+        # иначе все пользователи одной сети будут видеть чужие голоса как свои)
         cur.execute(
             f"""SELECT v.work_id FROM {tbl('ch_votes')} v
                 JOIN {tbl('ch_works')} w ON w.id = v.work_id
-                WHERE v.voter_ip=%s AND w.tournament_id=%s""",
-            (voter_ip, tournament_id)
+                WHERE v.voter_fp=%s AND w.tournament_id=%s AND v.user_id IS NULL""",
+            (voter_fp, tournament_id)
         )
     else:
         return ok({"voted_work_ids": []})
