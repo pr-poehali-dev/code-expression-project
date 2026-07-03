@@ -436,10 +436,10 @@ def do_auto_finalize() -> dict:
     for t in tournaments:
         tid = t["id"]
 
-        # Работы, одобренные к голосованию — сортируем по голосам
+        # Работы, одобренные к голосованию — сортируем по сумме голосов (score учитывает вес голоса)
         cur.execute(
             f"""SELECT w.id, w.salon_id,
-                   (SELECT COUNT(*) FROM {tbl('ch_votes')} v WHERE v.work_id = w.id) as votes
+                   (SELECT COALESCE(SUM(v.score),0) FROM {tbl('ch_votes')} v WHERE v.work_id = w.id) as votes
                 FROM {tbl('ch_works')} w
                 WHERE w.tournament_id = %s AND w.is_public = TRUE
                 ORDER BY votes DESC, w.created_at ASC""",
@@ -463,7 +463,7 @@ def do_auto_finalize() -> dict:
             else:
                 energy = 0
 
-            if energy > 0 and LK_API_URL:
+            if energy > 0:
                 cur.execute(
                     f"SELECT id, email FROM {tbl('lk_users')} WHERE salon_id=%s AND is_active=TRUE LIMIT 1",
                     (w["salon_id"],)
@@ -471,18 +471,16 @@ def do_auto_finalize() -> dict:
                 u = cur.fetchone()
                 if u:
                     try:
-                        payload = json.dumps({
-                            "user_id": u["id"], "amount": energy,
-                            "type": "credit",
-                            "description": f"Приз за {place} место в турнире «{t['name']}»"
-                        }).encode()
-                        req = urllib.request.Request(
-                            f"{LK_API_URL}?action=energy_topup",
-                            data=payload,
-                            headers={"Content-Type": "application/json"},
-                            method="POST"
+                        # Начисляем энергию напрямую в БД (у cron есть прямой доступ)
+                        cur.execute(
+                            f"UPDATE {tbl('salons')} SET credits_balance = credits_balance + %s WHERE id=%s",
+                            (energy, w["salon_id"])
                         )
-                        urllib.request.urlopen(req, timeout=5)
+                        cur.execute(
+                            f"""INSERT INTO {tbl('credit_transactions')} (salon_id, user_id, action, amount, tool_key, type)
+                                VALUES (%s,%s,%s,%s,NULL,'credit')""",
+                            (w["salon_id"], u["id"], f"Приз за {place} место в турнире «{t['name']}»", energy)
+                        )
                     except Exception as e:
                         print(f"[cron] energy charge error salon {w['salon_id']}: {e}")
 

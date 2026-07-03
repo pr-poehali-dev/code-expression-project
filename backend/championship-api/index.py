@@ -459,7 +459,7 @@ def handle_my_tournaments(event):
                t.task_text, t.task_opens_at, t.work_deadline, t.voting_starts, t.voting_ends,
                w.id as work_id, w.status as work_status, w.votes_count,
                w.expert_score, w.total_score, w.final_place,
-               (SELECT COUNT(*) FROM {tbl('ch_votes')} v WHERE v.work_id = w.id) as real_votes
+               (SELECT COALESCE(SUM(v.score),0) FROM {tbl('ch_votes')} v WHERE v.work_id = w.id) as real_votes
             FROM {tbl('ch_applications')} a
             JOIN {tbl('ch_tournaments')} t ON t.id = a.tournament_id
             LEFT JOIN {tbl('ch_works')} w ON w.tournament_id = t.id AND w.salon_id = a.salon_id
