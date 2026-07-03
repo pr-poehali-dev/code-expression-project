@@ -153,14 +153,14 @@ def handle_vote(event):
             conn.commit()
             return err("Превышен дневной лимит голосов с вашего IP")
 
-        # 3. По fingerprint — не более 3 голосов за одну работу
+        # 3. По fingerprint — не более 1 голоса за одну работу (для гостей без входа)
         if voter_fp:
             cur.execute(
                 f"SELECT COUNT(*) as cnt FROM {tbl('ch_votes')} WHERE work_id=%s AND voter_fp=%s",
                 (work_id, voter_fp)
             )
             fp_count = cur.fetchone()["cnt"]
-            if fp_count >= 3:
+            if fp_count >= 1:
                 cur.execute(
                     f"INSERT INTO {tbl('ch_vote_log')} (work_id, voter_ip, voter_fp, reason, blocked) "
                     f"VALUES (%s,%s,%s,'fp_work_limit',TRUE)",
