@@ -34,6 +34,8 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
   const [subject, setSubject] = useState("");
   const [bodyText, setBodyText] = useState("");
   const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
+  const [ctaUrl, setCtaUrl] = useState<string | undefined>(undefined);
+  const [ctaLabel, setCtaLabel] = useState<string | undefined>(undefined);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [sentTo, setSentTo] = useState("");
@@ -105,6 +107,8 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
     setSubject(tpl.subject);
     setBodyText(tpl.body);
     setActiveTemplate(tpl.id);
+    setCtaUrl("ctaUrl" in tpl ? (tpl as typeof tpl & { ctaUrl?: string }).ctaUrl : undefined);
+    setCtaLabel("ctaLabel" in tpl ? (tpl as typeof tpl & { ctaLabel?: string }).ctaLabel : undefined);
   }
 
   function textToHtml(text: string): string {
@@ -141,6 +145,7 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
           to_email: toEmail, to_name: toName,
           subject, body_html: textToHtml(bodyText),
           template_label: tplLabel,
+          cta_url: ctaUrl, cta_label: ctaLabel,
         }),
       });
       const data = await res.json();
@@ -149,6 +154,7 @@ export default function RepMailTab({ senderName }: { senderName: string }) {
       setSent(true);
       const sentEmail = toEmail;
       setToEmail(""); setToName(""); setSubject(""); setBodyText(""); setActiveTemplate(null);
+      setCtaUrl(undefined); setCtaLabel(undefined);
       await fetch(REP_CONTACTS_URL, {
         method: "DELETE",
         headers: { "Content-Type": "application/json", "X-Session-Id": session() },

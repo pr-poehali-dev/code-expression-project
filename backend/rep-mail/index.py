@@ -48,7 +48,7 @@ def get_session_user(event: dict):
         conn.close()
 
 
-def build_html_email(to_name: str, subject: str, body_html: str, sender_name: str) -> str:
+def build_html_email(to_name: str, subject: str, body_html: str, sender_name: str, cta_url: str = "", cta_label: str = "") -> str:
     """Формирует красивое брендовое HTML-письмо Промт Диалог."""
     return f"""<!DOCTYPE html>
 <html lang="ru">
@@ -91,11 +91,11 @@ def build_html_email(to_name: str, subject: str, body_html: str, sender_name: st
         <!-- Кнопка CTA -->
         <tr>
           <td style="background:#ffffff;padding:0 40px 40px;text-align:center;">
-            <a href="{SITE_URL}"
+            <a href="{cta_url or SITE_URL}"
                style="display:inline-block;background:#1a7a74;color:#ffffff;text-decoration:none;
                       padding:14px 36px;border-radius:10px;font-size:15px;font-weight:600;
                       letter-spacing:0.3px;">
-              Узнать подробнее
+              {cta_label or "Узнать подробнее"}
             </a>
           </td>
         </tr>
@@ -155,13 +155,15 @@ def handler(event: dict, context) -> dict:
     subject = (body.get("subject") or "").strip()
     body_html = (body.get("body_html") or "").strip()
     template_label = (body.get("template_label") or "").strip()
+    cta_url = (body.get("cta_url") or "").strip()
+    cta_label = (body.get("cta_label") or "").strip()
 
     if not to_email or not subject or not body_html:
         return err("Укажите email получателя, тему и текст письма")
 
     sender_name = user.get("full_name") or user.get("username") or "Администратор"
 
-    html_content = build_html_email(to_name, subject, body_html, sender_name)
+    html_content = build_html_email(to_name, subject, body_html, sender_name, cta_url, cta_label)
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = Header(subject, "utf-8")
