@@ -15,3 +15,20 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("/sw.js").catch(() => {});
   });
 }
+
+// Автоматически перезагружаем страницу, если после деплоя браузер
+// пытается подгрузить устаревший (уже удалённый) чанк кода
+window.addEventListener("vite:preloadError", () => {
+  window.location.reload();
+});
+window.addEventListener("error", (e) => {
+  if (e.message && e.message.includes("Failed to fetch dynamically imported module")) {
+    window.location.reload();
+  }
+});
+window.addEventListener("unhandledrejection", (e) => {
+  const msg = String(e?.reason?.message || e?.reason || "");
+  if (msg.includes("Failed to fetch dynamically imported module") || msg.includes("Importing a module script failed")) {
+    window.location.reload();
+  }
+});

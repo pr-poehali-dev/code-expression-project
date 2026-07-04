@@ -1,4 +1,4 @@
-const CACHE = "prodialog-v1";
+const CACHE = "prodialog-v2";
 const STATIC = ["/", "/cabinet"];
 
 self.addEventListener("install", e => {
