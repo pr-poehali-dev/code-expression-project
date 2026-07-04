@@ -150,7 +150,7 @@ export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVid
           <div style={{ display: "flex", alignItems: "flex-start", gap: 7, marginTop: 10, padding: "8px 12px", background: "hsl(40,90%,97%)", border: "1px solid hsl(40,90%,88%)", borderRadius: 10 }}>
             <Icon name="Info" size={13} style={{ color: "hsl(40,80%,45%)", flexShrink: 0, marginTop: 1 }} />
             <div style={{ fontSize: 11, color: "#78716C", lineHeight: 1.5 }}>
-              Не описывайте текст, надписи или вывески на экране — ИИ не умеет рисовать русские буквы, вместо них получится нечитаемая «каша».
+              Не описывайте текст, надписи или вывески на экране — ИИ не умеет рисовать русские буквы, вместо них получится нечитаемая «каша». Также не пишите про речь и диалоги людей — ИИ не говорит по-русски, в видео добавится только фоновая музыка.
             </div>
           </div>
         </div>
