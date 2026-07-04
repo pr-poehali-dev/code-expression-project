@@ -354,12 +354,12 @@ interface MobileHeaderProps {
 export function LkMobileHeader({ hasSalonId, onNav, onLogout }: MobileHeaderProps) {
   return (
     <header className="lk-mobile-header">
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <a href="https://promtdialog.ru/" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
         <div style={{ width: 30, height: 30, borderRadius: 8, background: `linear-gradient(135deg,${TEAL_BRIGHT},#14B8A6)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Icon name="MessageSquare" size={15} style={{ color: "#0F172A" }} />
         </div>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Промт Диалог</div>
-      </div>
+      </a>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {hasSalonId && <EnergyBadge onNav={onNav} />}
         <InstallButtonMobile />
