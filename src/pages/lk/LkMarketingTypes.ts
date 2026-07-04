@@ -9,6 +9,7 @@ export interface Tool {
   description: string;
   badge: "new" | "soon" | "cost" | "cost3" | "cost15";
   ready: boolean;
+  requiresPaid?: boolean;
 }
 
 export const BADGE_STYLES: Record<string, { bg: string; color: string; label: string }> = {
@@ -122,6 +123,7 @@ export const TOOLS_CONTENT: Tool[] = [
     description: "ИИ генерирует короткий видеоролик по описанию — для сторис, рилс и рекламы. Доступно после пополнения баланса.",
     badge: "cost15",
     ready: true,
+    requiresPaid: true,
   },
 ];
 

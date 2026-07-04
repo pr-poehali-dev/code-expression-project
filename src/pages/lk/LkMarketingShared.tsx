@@ -40,6 +40,12 @@ export function ToolCard({ tool, onOpen }: { tool: Tool; onOpen: (id: string) =>
       <div>
         <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 6, paddingRight: 52 }}>{tool.title}</div>
         <div style={{ fontSize: 13, color: "#64748B", lineHeight: 1.6 }}>{tool.description}</div>
+        {tool.requiresPaid && (
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 5, marginTop: 8, fontSize: 11, fontWeight: 600, color: "hsl(40,70%,40%)", background: "hsl(40,90%,94%)", borderRadius: 20, padding: "3px 10px" }}>
+            <Icon name="Lock" size={11} />
+            Только на платных тарифах
+          </div>
+        )}
       </div>
 
       <div style={{ marginTop: "auto" }}>
