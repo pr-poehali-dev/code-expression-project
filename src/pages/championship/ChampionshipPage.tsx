@@ -342,7 +342,8 @@ export default function ChampionshipPage() {
         {/* Уровни */}
         <div className="champ-levels">
           <h2 style={{ fontSize: "clamp(18px,3vw,24px)", fontWeight: 800, marginBottom: 8, textAlign: "center", color: "#fff" }}>Уровни салона</h2>
-          <p style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: 13, marginBottom: 28 }}>Каждый турнир приносит очки. Очки повышают статус.</p>
+          <p style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: 13, marginBottom: 6 }}>Каждый турнир приносит очки. Очки повышают статус.</p>
+          <p style={{ textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: 12, marginBottom: 28 }}>Статус виден всем в общем рейтинге — это узнаваемость вашего салона</p>
           <div className="champ-levels-grid">
             {[
               { level: "Новичок",      pts: "0+",    color: "#94a3b8" },
