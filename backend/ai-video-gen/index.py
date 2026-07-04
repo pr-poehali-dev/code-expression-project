@@ -257,6 +257,25 @@ def handler(event: dict, context) -> dict:
                 return err("Видео генерируется дольше обычного — проверьте раздел «Мои видео» через минуту.", 504)
             return err(f"Ошибка соединения: {msg}", 502)
 
+        # Провайдер может ответить HTTP 200, но с status='failed' внутри тела
+        # (например модерация контента отклонила промпт)
+        if result.get("status") == "failed":
+            provider_msg = (result.get("error") or {}).get("message", "")
+            print(f"[polza.ai video] generation failed: {provider_msg}")
+            try:
+                conn_r = get_db()
+                refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
+                conn_r.close()
+            except Exception:
+                pass
+            if "sensitive" in provider_msg.lower() or "audio" in provider_msg.lower():
+                return err(
+                    "Сервис отклонил генерацию: описание могло привести к недопустимому контенту (например, звуку/голосу). "
+                    "Энергия возвращена. Попробуйте переформулировать описание без упоминания голоса, музыки или конкретных людей.",
+                    422
+                )
+            return err(f"Сервис отклонил генерацию: {provider_msg or 'без описания причины'}. Энергия возвращена.", 422)
+
         video_url = None
         for item in (result.get("data") or result.get("videos") or []):
             if isinstance(item, dict):
