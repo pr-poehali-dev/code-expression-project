@@ -147,7 +147,7 @@ export default function ChampionshipPage() {
 
         /* ── CTA ── */
         .champ-cta { margin-top: 40px; }
-        .champ-cta-inner { background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 20px; padding: 36px 24px; text-align: center; }
+        .champ-cta-inner { background: linear-gradient(135deg, #0f172a, #14B8A6); border-radius: 20px; padding: 36px 24px; text-align: center; }
 
         /* ── Скелетон ── */
         @keyframes champ-pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
@@ -369,7 +369,7 @@ export default function ChampionshipPage() {
             <p style={{ margin: "0 0 22px", fontSize: 15, color: "rgba(255,255,255,0.8)" }}>
               Зарегистрируйте салон и получите 100 ⚡ энергии в подарок
             </p>
-            <Link to="/cabinet" style={{ display: "inline-block", padding: "13px 32px", background: "#fff", color: "#6366f1", borderRadius: 12, textDecoration: "none", fontSize: 15, fontWeight: 800 }}>
+            <Link to="/cabinet" style={{ display: "inline-block", padding: "13px 32px", background: "#fff", color: "#14B8A6", borderRadius: 12, textDecoration: "none", fontSize: 15, fontWeight: 800 }}>
               Войти в кабинет →
             </Link>
           </div>
