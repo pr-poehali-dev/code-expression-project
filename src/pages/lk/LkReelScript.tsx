@@ -24,19 +24,25 @@ const inp: React.CSSProperties = {
   boxSizing: "border-box", color: "#0F172A", outline: "none",
 };
 
-export default function LkReelScript() {
+interface LkReelScriptProps {
+  onGoToVideoGen?: (videoPrompt: string) => void;
+}
+
+export default function LkReelScript({ onGoToVideoGen }: LkReelScriptProps = {}) {
   const { user } = useLkAuth();
   const hasSalon = !!user?.salon_id;
 
   const [service, setService] = useState("");
   const [goal, setGoal] = useState("");
   const [tone, setTone] = useState("");
+  const [useSalonCtx, setUseSalonCtx] = useState(hasSalon);
 
   const [ideas, setIdeas] = useState<string[]>([]);
   const [selectedIdea, setSelectedIdea] = useState("");
 
   const [script, setScript] = useState("");
   const [imagePrompt, setImagePrompt] = useState("");
+  const [videoPrompt, setVideoPrompt] = useState("");
   const [aspect, setAspect] = useState("1024x1792");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
@@ -52,7 +58,7 @@ export default function LkReelScript() {
       const res = await fetch(`${LK_URL}?action=reel_ideas`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
-        body: JSON.stringify({ service, goal, tone }),
+        body: JSON.stringify({ service, goal, tone, use_salon_context: useSalonCtx }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Ошибка генерации"); return; }
@@ -69,12 +75,13 @@ export default function LkReelScript() {
       const res = await fetch(`${LK_URL}?action=reel_script`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
-        body: JSON.stringify({ idea, service, goal, tone }),
+        body: JSON.stringify({ idea, service, goal, tone, use_salon_context: useSalonCtx }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Ошибка генерации сценария"); setStep("ideas"); return; }
       setScript(data.script || "");
       setImagePrompt(data.image_prompt || "");
+      setVideoPrompt(data.video_prompt || "");
       setStep("script");
     } catch { setError("Ошибка соединения."); setStep("ideas"); }
     finally { setLoading(false); }
@@ -198,9 +205,17 @@ export default function LkReelScript() {
           </div>
 
           {hasSalon && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: `hsla(185,85%,32%,0.05)`, borderRadius: 10, marginBottom: 18, border: `1px solid hsla(185,85%,32%,0.12)` }}>
-              <Icon name="Info" size={13} style={{ color: ACCENT, flexShrink: 0 }} />
-              <div style={{ fontSize: 12, color: "#666" }}>Данные вашего салона будут учтены автоматически</div>
+            <div
+              onClick={() => !loading && setUseSalonCtx(p => !p)}
+              style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 10, background: useSalonCtx ? `hsla(335,80%,50%,0.05)` : "#fff", border: `1.5px solid ${useSalonCtx ? "hsl(335,80%,50%)" : "#E2E8F0"}`, marginBottom: 18, cursor: loading ? "default" : "pointer", userSelect: "none" }}
+            >
+              <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${useSalonCtx ? "hsl(335,80%,50%)" : "#ccc"}`, background: useSalonCtx ? "hsl(335,80%,50%)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                {useSalonCtx && <Icon name="Check" size={11} style={{ color: "#fff" }} />}
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A" }}>Учитывать анкету салона</div>
+                <div style={{ fontSize: 11, color: "#aaa" }}>ИИ добавит данные вашего салона к идеям и сценарию</div>
+              </div>
             </div>
           )}
 
@@ -298,6 +313,23 @@ export default function LkReelScript() {
               </div>
             )}
           </div>
+
+          {/* Переход к видео по сценарию */}
+          {onGoToVideoGen && (
+            <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 22px", marginBottom: 14, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>Хотите не только обложку, а целое видео?</div>
+              <div style={{ fontSize: 12, color: "#64748B", marginBottom: 14, lineHeight: 1.6 }}>
+                Сгенерируйте короткий видеоролик (5 или 10 сек) по мотивам этого сценария с помощью ИИ — прямо в разделе «Создание видео-ролика».
+              </div>
+              <button
+                onClick={() => onGoToVideoGen(videoPrompt || imagePrompt)}
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: `linear-gradient(135deg,hsl(335,80%,50%),hsl(320,85%,50%))`, color: "#fff", border: "none", borderRadius: 12, padding: "13px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+              >
+                <Icon name="Clapperboard" size={16} />
+                Создать видео по сценарию
+              </button>
+            </div>
+          )}
 
           <div style={{ display: "flex", gap: 10 }}>
             <button onClick={() => setStep("ideas")} style={{ display: "flex", alignItems: "center", gap: 7, background: "#f5f5f2", color: "#666", border: "none", borderRadius: 10, padding: "11px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>

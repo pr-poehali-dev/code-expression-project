@@ -18,12 +18,16 @@ interface HistoryItem {
   id: number; url: string; prompt: string; resolution: string; duration: string; created_at: string;
 }
 
-export default function LkAiVideoGen() {
+interface LkAiVideoGenProps {
+  initialPrompt?: string;
+}
+
+export default function LkAiVideoGen({ initialPrompt }: LkAiVideoGenProps = {}) {
   const { user } = useLkAuth();
   const { refresh: refreshBalance } = useEnergy();
   void user;
 
-  const [prompt, setPrompt]     = useState("");
+  const [prompt, setPrompt]     = useState(initialPrompt || "");
   const [duration, setDuration] = useState("5s");
   const [loading, setLoading]   = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);

@@ -3830,6 +3830,7 @@ def handle_reel_ideas(event: dict) -> dict:
     service = (body.get("service") or "").strip()
     goal    = (body.get("goal")    or "").strip()
     tone    = (body.get("tone")    or "").strip()
+    use_salon_context = body.get("use_salon_context", True)
     if not service:
         return err("Укажите услугу или тему")
     conn = get_db()
@@ -3837,7 +3838,7 @@ def handle_reel_ideas(event: dict) -> dict:
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
-        salon = _get_salon_ctx(user, conn, ("name", "target_audience", "description"))
+        salon = _get_salon_ctx(user, conn, ("name", "target_audience", "description")) if use_salon_context else None
         salon_ctx = ""
         if salon:
             parts = [p for p in [
@@ -3880,6 +3881,7 @@ def handle_reel_script(event: dict) -> dict:
     service = (body.get("service") or "").strip()
     goal    = (body.get("goal")    or "").strip()
     tone    = (body.get("tone")    or "").strip()
+    use_salon_context = body.get("use_salon_context", True)
     if not idea:
         return err("Идея не передана")
     conn = get_db()
@@ -3889,7 +3891,7 @@ def handle_reel_script(event: dict) -> dict:
             return err("Не авторизован", 401)
         energy_err = check_and_spend_energy(event, conn, "reel_script")
         if energy_err: return energy_err
-        salon = _get_salon_ctx(user, conn, ("name", "target_audience", "tone_of_voice"))
+        salon = _get_salon_ctx(user, conn, ("name", "target_audience", "tone_of_voice")) if use_salon_context else None
         salon_ctx = ""
         if salon:
             parts = [p for p in [
@@ -3941,7 +3943,7 @@ def handle_reel_script(event: dict) -> dict:
             {"role": "system", "content": "Ты режиссёр коротких вертикальных видео для бьюти-бизнеса. Пишешь конкретные покадровые сценарии."},
             {"role": "user", "content": prompt}
         ], max_tokens=1200)
-        # Промпт для превью
+        # Промпт для превью (обложка)
         salon_name = salon["name"] if salon and salon.get("name") else ""
         image_prompt = (
             f"Обложка для рилса салона красоты. Тема: {idea}."
@@ -3949,7 +3951,14 @@ def handle_reel_script(event: dict) -> dict:
             " Стиль: яркий, привлекательный, вертикальный формат 9:16."
             " Профессиональная фотография, красивое освещение, бьюти-эстетика."
         )
-        return ok({"script": content, "image_prompt": image_prompt})
+        # Короткое описание сцены для ИИ-генерации видео (5-10 сек ролик по мотивам сценария)
+        video_prompt = (
+            f"Короткое видео для салона красоты, тема: {idea}. "
+            f"{('Услуга: ' + service + '. ') if service else ''}"
+            "Динамичная сцена по мотивам сценария рилса, плавное движение камеры, "
+            "естественный свет, реалистичная съёмка, вертикальный формат."
+        )
+        return ok({"script": content, "image_prompt": image_prompt, "video_prompt": video_prompt})
     finally:
         conn.close()
 
