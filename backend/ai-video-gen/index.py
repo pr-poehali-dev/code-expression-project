@@ -277,12 +277,18 @@ def handler(event: dict, context) -> dict:
             return err(f"Сервис отклонил генерацию: {provider_msg or 'без описания причины'}. Энергия возвращена.", 422)
 
         video_url = None
-        for item in (result.get("data") or result.get("videos") or []):
-            if isinstance(item, dict):
-                url = item.get("url", "")
-                if url:
-                    video_url = url
-                    break
+        data_field = result.get("data") or result.get("videos")
+        if isinstance(data_field, dict):
+            # Формат: {"data": {"url": "..."}}
+            video_url = data_field.get("url", "") or None
+        elif isinstance(data_field, list):
+            # Формат: {"data": [{"url": "..."}, ...]}
+            for item in data_field:
+                if isinstance(item, dict):
+                    url = item.get("url", "")
+                    if url:
+                        video_url = url
+                        break
 
         if not video_url:
             try:
