@@ -25,7 +25,17 @@ const inp: React.CSSProperties = {
 };
 
 interface LkReelScriptProps {
-  onGoToVideoGen?: (videoPrompt: string) => void;
+  onGoToVideoGen?: (videoPrompt: string, recommendedDuration: string) => void;
+}
+
+// Считает количество кадров в сценарии (КРЮЧОК/КАДР N/ФИНАЛ) — чем их больше, тем длиннее ролик.
+function recommendDuration(scriptText: string): { value: string; label: string; reason: string } {
+  const frameMatches = scriptText.match(/(КРЮЧОК|КАДР\s*\d+|ФИНАЛ)/gi) || [];
+  const frameCount = frameMatches.length || 1;
+  if (frameCount >= 4) {
+    return { value: "10s", label: "10 секунд", reason: `в сценарии ${frameCount} кадра — нужно больше времени` };
+  }
+  return { value: "5s", label: "5 секунд", reason: `в сценарии ${frameCount} кадра — уложитесь в короткий ролик` };
 }
 
 export default function LkReelScript({ onGoToVideoGen }: LkReelScriptProps = {}) {
@@ -315,21 +325,30 @@ export default function LkReelScript({ onGoToVideoGen }: LkReelScriptProps = {})
           </div>
 
           {/* Переход к видео по сценарию */}
-          {onGoToVideoGen && (
-            <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 22px", marginBottom: 14, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>Хотите не только обложку, а целое видео?</div>
-              <div style={{ fontSize: 12, color: "#64748B", marginBottom: 14, lineHeight: 1.6 }}>
-                Сгенерируйте короткий видеоролик (5 или 10 сек) по мотивам этого сценария с помощью ИИ — прямо в разделе «Создание видео-ролика».
+          {onGoToVideoGen && (() => {
+            const rec = recommendDuration(script);
+            return (
+              <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 22px", marginBottom: 14, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>Хотите не только обложку, а целое видео?</div>
+                <div style={{ fontSize: 12, color: "#64748B", marginBottom: 12, lineHeight: 1.6 }}>
+                  Сгенерируйте короткий видеоролик по мотивам этого сценария с помощью ИИ — прямо в разделе «Создание видео-ролика».
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: "hsl(335,80%,97%)", border: "1px solid hsl(335,80%,90%)", borderRadius: 10, padding: "8px 12px", marginBottom: 14 }}>
+                  <Icon name="Sparkles" size={13} style={{ color: "hsl(335,80%,50%)", flexShrink: 0 }} />
+                  <div style={{ fontSize: 12, color: "#475569" }}>
+                    Рекомендуем <b style={{ color: "hsl(335,80%,50%)" }}>{rec.label}</b> — {rec.reason}
+                  </div>
+                </div>
+                <button
+                  onClick={() => onGoToVideoGen(videoPrompt || imagePrompt, rec.value)}
+                  style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: `linear-gradient(135deg,hsl(335,80%,50%),hsl(320,85%,50%))`, color: "#fff", border: "none", borderRadius: 12, padding: "13px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+                >
+                  <Icon name="Clapperboard" size={16} />
+                  Создать видео по сценарию
+                </button>
               </div>
-              <button
-                onClick={() => onGoToVideoGen(videoPrompt || imagePrompt)}
-                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: `linear-gradient(135deg,hsl(335,80%,50%),hsl(320,85%,50%))`, color: "#fff", border: "none", borderRadius: 12, padding: "13px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-              >
-                <Icon name="Clapperboard" size={16} />
-                Создать видео по сценарию
-              </button>
-            </div>
-          )}
+            );
+          })()}
 
           <div style={{ display: "flex", gap: 10 }}>
             <button onClick={() => setStep("ideas")} style={{ display: "flex", alignItems: "center", gap: 7, background: "#f5f5f2", color: "#666", border: "none", borderRadius: 10, padding: "11px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>

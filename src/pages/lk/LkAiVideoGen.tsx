@@ -20,15 +20,16 @@ interface HistoryItem {
 
 interface LkAiVideoGenProps {
   initialPrompt?: string;
+  initialDuration?: string;
 }
 
-export default function LkAiVideoGen({ initialPrompt }: LkAiVideoGenProps = {}) {
+export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVideoGenProps = {}) {
   const { user } = useLkAuth();
   const { refresh: refreshBalance } = useEnergy();
   void user;
 
   const [prompt, setPrompt]     = useState(initialPrompt || "");
-  const [duration, setDuration] = useState("5s");
+  const [duration, setDuration] = useState(initialDuration || "5s");
   const [loading, setLoading]   = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError]       = useState("");
@@ -149,7 +150,14 @@ export default function LkAiVideoGen({ initialPrompt }: LkAiVideoGenProps = {}) 
         </div>
 
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 8 }}>Длительность</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#555" }}>Длительность</div>
+            {initialDuration && (
+              <div style={{ fontSize: 10, fontWeight: 700, color: "hsl(335,80%,50%)", background: "hsl(335,80%,96%)", borderRadius: 20, padding: "2px 8px" }}>
+                Рекомендовано по сценарию
+              </div>
+            )}
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 8 }}>
             {DURATION_OPTIONS.map(opt => (
               <button key={opt.value} onClick={() => !loading && setDuration(opt.value)} style={{ padding: "10px 8px", borderRadius: 10, border: `1.5px solid ${duration === opt.value ? ACCENT : "#E2E8F0"}`, background: duration === opt.value ? `hsla(185,85%,32%,0.07)` : "#fff", cursor: loading ? "default" : "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "center" }}>

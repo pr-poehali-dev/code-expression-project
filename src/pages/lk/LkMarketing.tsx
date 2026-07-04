@@ -22,6 +22,7 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
   const [audienceData, setAudienceData] = useState<AudienceData | null>(null);
   const [semanticData, setSemanticData] = useState<SemanticGroups | null>(null);
   const [videoInitialPrompt, setVideoInitialPrompt] = useState<string>("");
+  const [videoInitialDuration, setVideoInitialDuration] = useState<string>("");
   const { hasPaid } = useEnergy();
   const { user } = useLkAuth();
   const salonId = user?.salon_id ?? "";
@@ -132,8 +133,9 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
           <Icon name="ArrowLeft" size={15} /> Назад к маркетингу
         </button>
         <LkReelScript
-          onGoToVideoGen={(videoPrompt) => {
+          onGoToVideoGen={(videoPrompt, recommendedDuration) => {
             setVideoInitialPrompt(videoPrompt);
+            setVideoInitialDuration(recommendedDuration);
             setActive("video-gen");
             window.scrollTo({ top: 0, behavior: "instant" });
           }}
@@ -148,7 +150,7 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
         <button onClick={closeTool} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>
           <Icon name="ArrowLeft" size={15} /> Назад к маркетингу
         </button>
-        <LkAiVideoGen initialPrompt={videoInitialPrompt} />
+        <LkAiVideoGen initialPrompt={videoInitialPrompt} initialDuration={videoInitialDuration} />
       </div>
     );
   }
