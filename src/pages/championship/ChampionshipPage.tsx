@@ -277,12 +277,36 @@ export default function ChampionshipPage() {
             {[1, 2, 3].map(i => <div key={i} className="champ-skeleton" style={{ height: 220 }} />)}
           </div>
         ) : shown.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "56px 0", color: "#64748b" }}>
-            <div style={{ fontSize: 44, marginBottom: 12 }}>🏁</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", marginBottom: 6 }}>
-              {activeTab === "current" ? "Нет активных турниров" : activeTab === "upcoming" ? "Нет предстоящих турниров" : "Архив пока пуст"}
+          <div>
+            {activeTab === "current" && (
+              <div
+                onClick={() => navigate("/cabinet?tab=championship")}
+                style={{
+                  position: "relative",
+                  borderRadius: 20,
+                  overflow: "hidden",
+                  cursor: "pointer",
+                  marginBottom: 32,
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+                  transition: "transform 0.15s",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-2px)")}
+                onMouseLeave={e => (e.currentTarget.style.transform = "translateY(0)")}
+              >
+                <img
+                  src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/31acfb17-63d3-41f9-aff7-bd83f16618f2.png"
+                  alt="Скоро стартует турнир салонов красоты"
+                  style={{ width: "100%", display: "block" }}
+                />
+              </div>
+            )}
+            <div style={{ textAlign: "center", padding: "24px 0 32px", color: "#64748b" }}>
+              <div style={{ fontSize: 44, marginBottom: 12 }}>🏁</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", marginBottom: 6 }}>
+                {activeTab === "current" ? "Нет активных турниров" : activeTab === "upcoming" ? "Нет предстоящих турниров" : "Архив пока пуст"}
+              </div>
+              <div style={{ fontSize: 14, color: "#94a3b8" }}>Следите за анонсами — скоро появятся новые соревнования</div>
             </div>
-            <div style={{ fontSize: 14, color: "#94a3b8" }}>Следите за анонсами — скоро появятся новые соревнования</div>
           </div>
         ) : (
           <div className="champ-grid">
