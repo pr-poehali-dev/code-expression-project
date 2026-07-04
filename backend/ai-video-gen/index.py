@@ -19,7 +19,6 @@ CORS = {
 
 ALLOWED_DURATIONS = {"5s", "10s"}
 ALLOWED_RESOLUTIONS = {"720p"}
-TOOL_KEY = "video_gen"
 
 
 def get_db():
@@ -47,14 +46,24 @@ def get_session_user(event, conn):
     return cur.fetchone()
 
 
-def get_tool_cost(conn) -> int:
+def get_tool_cost(conn, duration: str) -> int:
+    tool_key = "video_gen_10s" if duration == "10s" else "video_gen_5s"
     cur = conn.cursor()
-    cur.execute(f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key = %s", (TOOL_KEY,))
+    cur.execute(f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key = %s", (tool_key,))
     row = cur.fetchone()
-    return row[0] if row else 15
+    if row:
+        return row[0]
+    return 180 if duration == "10s" else 105
 
 
-def check_and_deduct_energy(salon_id, user_id, amount, conn) -> tuple[bool, int]:
+def has_paid_at_least_once(salon_id, conn) -> bool:
+    cur = conn.cursor()
+    cur.execute(f"SELECT COUNT(*) FROM {SCHEMA}.payments WHERE salon_id = %s AND status = 'succeeded'", (salon_id,))
+    row = cur.fetchone()
+    return (row[0] or 0) > 0
+
+
+def check_and_deduct_energy(salon_id, user_id, amount, tool_key, conn) -> tuple[bool, int]:
     """Атомарная проверка баланса и списание с блокировкой строки (FOR UPDATE)."""
     cur = conn.cursor()
     cur.execute(f"SELECT credits_balance FROM {SCHEMA}.salons WHERE id = %s FOR UPDATE", (salon_id,))
@@ -68,19 +77,19 @@ def check_and_deduct_energy(salon_id, user_id, amount, conn) -> tuple[bool, int]
     cur.execute(
         f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
         f"VALUES (%s, %s, %s, %s, %s, 'debit')",
-        (salon_id, user_id, "Создание видео", amount, TOOL_KEY)
+        (salon_id, user_id, "Создание видео", amount, tool_key)
     )
     conn.commit()
     return True, balance
 
 
-def refund_energy(salon_id, user_id, cost, conn):
+def refund_energy(salon_id, user_id, cost, tool_key, conn):
     cur = conn.cursor()
     cur.execute(f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance + %s WHERE id = %s", (cost, salon_id))
     cur.execute(
         f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
         f"VALUES (%s, %s, %s, %s, %s, 'credit')",
-        (salon_id, user_id, "Возврат: ИИ-сервис недоступен", cost, TOOL_KEY)
+        (salon_id, user_id, "Возврат: ИИ-сервис недоступен", cost, tool_key)
     )
     conn.commit()
 
@@ -164,6 +173,9 @@ def handler(event: dict, context) -> dict:
         if not salon_id:
             return err("Салон не найден", 400)
 
+        if not has_paid_at_least_once(salon_id, conn):
+            return err("Инструмент доступен только после пополнения баланса. Бонусные 100 энергий сюда не распространяются.", 403)
+
         body = json.loads(event.get("body") or "{}")
         prompt = (body.get("prompt") or "").strip()
         if not prompt:
@@ -178,8 +190,9 @@ def handler(event: dict, context) -> dict:
         if resolution not in ALLOWED_RESOLUTIONS:
             resolution = "720p"
 
-        cost = get_tool_cost(conn)
-        ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, conn)
+        tool_key = "video_gen_10s" if duration == "10s" else "video_gen_5s"
+        cost = get_tool_cost(conn, duration)
+        ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, tool_key, conn)
         if not ok_deduct:
             return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
 
@@ -217,14 +230,14 @@ def handler(event: dict, context) -> dict:
             if e.code in (502, 503):
                 try:
                     conn_r = get_db()
-                    refund_energy(salon_id, user["id"], cost, conn_r)
+                    refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
                     conn_r.close()
                 except Exception:
                     pass
                 return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
             try:
                 conn_r = get_db()
-                refund_energy(salon_id, user["id"], cost, conn_r)
+                refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
                 conn_r.close()
             except Exception:
                 pass
@@ -235,7 +248,7 @@ def handler(event: dict, context) -> dict:
             if is_provider_error(e):
                 try:
                     conn_r = get_db()
-                    refund_energy(salon_id, user["id"], cost, conn_r)
+                    refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
                     conn_r.close()
                 except Exception:
                     pass
@@ -253,7 +266,13 @@ def handler(event: dict, context) -> dict:
                     break
 
         if not video_url:
-            return err("Сервис не вернул видео. Попробуйте ещё раз.", 502)
+            try:
+                conn_r = get_db()
+                refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
+                conn_r.close()
+            except Exception:
+                pass
+            return err("Сервис не вернул видео. Энергия возвращена. Попробуйте ещё раз.", 502)
 
         try:
             conn3 = get_db()

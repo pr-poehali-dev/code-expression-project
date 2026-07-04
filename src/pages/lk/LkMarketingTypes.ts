@@ -16,7 +16,7 @@ export const BADGE_STYLES: Record<string, { bg: string; color: string; label: st
   soon:   { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "Скоро" },
   cost:   { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "1 ⚡" },
   cost3:  { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "3 ⚡" },
-  cost15: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "15 ⚡" },
+  cost15: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "от 105 ⚡" },
 };
 
 export const TOOLS_DIRECT: Tool[] = [
@@ -119,7 +119,7 @@ export const TOOLS_CONTENT: Tool[] = [
     iconColor: "hsl(320,85%,50%)",
     iconBg: "hsl(320,85%,97%)",
     title: "Создание видео-ролика",
-    description: "ИИ генерирует короткий видеоролик по описанию — для сторис, рилс и рекламы. Пробный формат.",
+    description: "ИИ генерирует короткий видеоролик по описанию — для сторис, рилс и рекламы. Доступно после пополнения баланса.",
     badge: "cost15",
     ready: true,
   },

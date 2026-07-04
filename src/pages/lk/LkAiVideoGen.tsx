@@ -8,8 +8,8 @@ const ACCENT_DARK = "hsl(185,85%,24%)";
 const AI_VIDEO_URL = "https://functions.poehali.dev/bee8e5b9-0c2e-4194-967a-540e0178fac7";
 
 const DURATION_OPTIONS = [
-  { value: "5s",  label: "5 секунд" },
-  { value: "10s", label: "10 секунд" },
+  { value: "5s",  label: "5 секунд",  cost: 105 },
+  { value: "10s", label: "10 секунд", cost: 180 },
 ];
 
 function sid() { return localStorage.getItem("lk_session") || ""; }
@@ -59,7 +59,15 @@ export default function LkAiVideoGen() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error || "Ошибка генерации"); loadHistory(); return; }
+      if (!res.ok) {
+        if (res.status === 403) {
+          setError(data.error || "Инструмент доступен только после пополнения баланса.");
+        } else {
+          setError(data.error || "Ошибка генерации");
+        }
+        loadHistory();
+        return;
+      }
       const url = data.video?.url;
       if (url) {
         setVideoUrl(url);
@@ -143,6 +151,7 @@ export default function LkAiVideoGen() {
               <button key={opt.value} onClick={() => !loading && setDuration(opt.value)} style={{ padding: "10px 8px", borderRadius: 10, border: `1.5px solid ${duration === opt.value ? ACCENT : "#E2E8F0"}`, background: duration === opt.value ? `hsla(185,85%,32%,0.07)` : "#fff", cursor: loading ? "default" : "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "center" }}>
                 <Icon name="Clock" size={16} style={{ color: duration === opt.value ? ACCENT : "#bbb", marginBottom: 4 }} />
                 <div style={{ fontSize: 12, fontWeight: 700, color: duration === opt.value ? ACCENT : "#333" }}>{opt.label}</div>
+                <div style={{ fontSize: 10, color: "#aaa" }}>{opt.cost} ⚡</div>
               </button>
             ))}
           </div>
