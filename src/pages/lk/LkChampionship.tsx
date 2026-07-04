@@ -68,13 +68,18 @@ export default function LkChampionship() {
 
       {/* Рейтинг салона */}
       {rating && (
-        <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap" }}>
-          <RatingBadge label="Очки" value={rating.total_points.toLocaleString("ru")} />
-          <RatingBadge label="Уровень" value={LEVEL_LABELS[rating.level] || rating.level} color={LEVEL_COLORS[rating.level]} />
-          <RatingBadge label="Участий" value={String(rating.participations)} />
-          <RatingBadge label="Побед" value={String(rating.wins)} icon="🏆" />
-          <RatingBadge label="Топ-3" value={String(rating.top3_count)} icon="🥉" />
-        </div>
+        <>
+          <div style={{ display: "flex", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
+            <RatingBadge label="Очки" value={rating.total_points.toLocaleString("ru")} />
+            <RatingBadge label="Уровень" value={LEVEL_LABELS[rating.level] || rating.level} color={LEVEL_COLORS[rating.level]} />
+            <RatingBadge label="Участий" value={String(rating.participations)} />
+            <RatingBadge label="Побед" value={String(rating.wins)} icon="🏆" />
+            <RatingBadge label="Топ-3" value={String(rating.top3_count)} icon="🥉" />
+          </div>
+          <p style={{ margin: "0 0 24px", fontSize: 12.5, color: "#94a3b8" }}>
+            Статус виден всем в рейтинге салонов и на вашей публичной странице — так клиенты видят вашу узнаваемость
+          </p>
+        </>
       )}
 
       {/* Табы */}
