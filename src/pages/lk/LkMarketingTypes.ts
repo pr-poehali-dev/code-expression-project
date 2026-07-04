@@ -7,15 +7,16 @@ export interface Tool {
   iconBg: string;
   title: string;
   description: string;
-  badge: "new" | "soon" | "cost" | "cost3";
+  badge: "new" | "soon" | "cost" | "cost3" | "cost15";
   ready: boolean;
 }
 
 export const BADGE_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-  new:   { bg: "hsl(145,60%,92%)", color: "hsl(145,60%,30%)", label: "Новое" },
-  soon:  { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "Скоро" },
-  cost:  { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "1 ⚡" },
-  cost3: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "3 ⚡" },
+  new:    { bg: "hsl(145,60%,92%)", color: "hsl(145,60%,30%)", label: "Новое" },
+  soon:   { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "Скоро" },
+  cost:   { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "1 ⚡" },
+  cost3:  { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "3 ⚡" },
+  cost15: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "15 ⚡" },
 };
 
 export const TOOLS_DIRECT: Tool[] = [
@@ -110,6 +111,16 @@ export const TOOLS_CONTENT: Tool[] = [
     title: "Сценарий для рилса",
     description: "Идея → покадровый сценарий + обложка. Снимаете сами по готовой инструкции.",
     badge: "new",
+    ready: true,
+  },
+  {
+    id: "video-gen",
+    icon: "Clapperboard",
+    iconColor: "hsl(320,85%,50%)",
+    iconBg: "hsl(320,85%,97%)",
+    title: "Создание видео-ролика",
+    description: "ИИ генерирует короткий видеоролик по описанию — для сторис, рилс и рекламы. Пробный формат.",
+    badge: "cost15",
     ready: true,
   },
 ];
