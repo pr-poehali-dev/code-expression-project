@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
+import { showEnergyGate } from "@/components/EnergyGate";
 import Icon from "@/components/ui/icon";
 
 const ACCENT = "hsl(185,85%,32%)";
@@ -79,7 +80,15 @@ export default function LkPostGen() {
         body: JSON.stringify({ title, topic, goal, tone }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error || "Ошибка генерации текста"); setStep("titles"); return; }
+      if (!res.ok) {
+        if (res.status === 403) {
+          showEnergyGate({ message: data.error || "Бесплатный лимит исчерпан. Пополните баланс, чтобы продолжить." });
+        } else {
+          setError(data.error || "Ошибка генерации текста");
+        }
+        setStep("titles");
+        return;
+      }
       setPostText(data.text || "");
       setImagePrompt(data.image_prompt || "");
       setImageUrl(null);

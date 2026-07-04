@@ -74,6 +74,31 @@ def get_tool_cost(conn) -> int:
     return row[0] if row else 5
 
 
+FREE_LIMIT = 3
+
+
+def check_free_limit(salon_id, conn) -> tuple[bool, int]:
+    """
+    Если у салона не было ни одного успешного платежа — бонусными 100 энергий
+    можно пользоваться максимум FREE_LIMIT раз для этого инструмента.
+    Возвращает (allowed, used_count).
+    """
+    cur = conn.cursor()
+    cur.execute(f"SELECT COUNT(*) FROM {SCHEMA}.payments WHERE salon_id = %s AND status = 'succeeded'", (salon_id,))
+    has_paid = (cur.fetchone()[0] or 0) > 0
+    if has_paid:
+        return True, 0
+    cur.execute(
+        f"SELECT "
+        f"  COUNT(*) FILTER (WHERE type = 'debit') - "
+        f"  COUNT(*) FILTER (WHERE type = 'credit' AND action LIKE 'Возврат%') "
+        f"FROM {SCHEMA}.credit_transactions WHERE salon_id = %s AND tool_key = %s",
+        (salon_id, TOOL_KEY)
+    )
+    used = cur.fetchone()[0] or 0
+    return used < FREE_LIMIT, used
+
+
 def check_and_deduct_energy(salon_id, user_id, amount, conn) -> tuple[bool, int]:
     """
     Атомарная проверка баланса и списание с блокировкой строки (FOR UPDATE).
@@ -231,6 +256,14 @@ def handler(event: dict, context) -> dict:
         salon_id = user.get("salon_id")
         if not salon_id:
             return err("Салон не найден", 400)
+
+        allowed, used = check_free_limit(salon_id, conn)
+        if not allowed:
+            return err(
+                f"Бесплатный лимит исчерпан ({FREE_LIMIT} генерации на бонусных энергиях). "
+                f"Пополните баланс любым тарифом, чтобы продолжить пользоваться инструментом.",
+                403
+            )
 
         body = json.loads(event.get("body") or "{}")
         prompt = (body.get("prompt") or "").strip()

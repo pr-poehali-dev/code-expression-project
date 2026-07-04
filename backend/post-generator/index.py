@@ -50,6 +50,31 @@ def get_tool_cost(conn) -> int:
     return row[0] if row else 1
 
 
+FREE_LIMIT = 3
+
+
+def check_free_limit(salon_id, conn) -> tuple[bool, int]:
+    """
+    Если у салона не было ни одного успешного платежа — бонусными 100 энергий
+    можно пользоваться максимум FREE_LIMIT раз для генерации текста поста.
+    Возвращает (allowed, used_count).
+    """
+    cur = conn.cursor()
+    cur.execute(f"SELECT COUNT(*) FROM {SCHEMA}.payments WHERE salon_id = %s AND status = 'succeeded'", (salon_id,))
+    has_paid = (cur.fetchone()[0] or 0) > 0
+    if has_paid:
+        return True, 0
+    cur.execute(
+        f"SELECT "
+        f"  COUNT(*) FILTER (WHERE type = 'debit') - "
+        f"  COUNT(*) FILTER (WHERE type = 'credit' AND action LIKE 'Возврат%') "
+        f"FROM {SCHEMA}.credit_transactions WHERE salon_id = %s AND tool_key = %s",
+        (salon_id, TOOL_KEY)
+    )
+    used = cur.fetchone()[0] or 0
+    return used < FREE_LIMIT, used
+
+
 def get_salon_balance(salon_id, conn) -> int:
     cur = conn.cursor()
     cur.execute(
@@ -128,12 +153,13 @@ def handle_titles(event, user, conn):
         if parts:
             salon_ctx = "\n".join(parts)
 
+    salon_ctx_block = f"Контекст салона:\n{salon_ctx}" if salon_ctx else ""
     prompt = f"""Ты — копирайтер для салона красоты. Придумай 5 цепляющих заголовков для поста.
 
 Тема: {topic}
 {f"Цель поста: {goal}" if goal else ""}
 {f"Тон: {tone}" if tone else ""}
-{f"Контекст салона:\n{salon_ctx}" if salon_ctx else ""}
+{salon_ctx_block}
 
 Требования к заголовкам:
 - Короткие (до 10 слов)
@@ -174,6 +200,14 @@ def handle_text(event, user, conn):
     if not salon_id:
         return err("Салон не найден", 400)
 
+    allowed, used = check_free_limit(salon_id, conn)
+    if not allowed:
+        return err(
+            f"Бесплатный лимит исчерпан ({FREE_LIMIT} генерации на бонусных энергиях). "
+            f"Пополните баланс любым тарифом, чтобы продолжить пользоваться инструментом.",
+            403
+        )
+
     cost = get_tool_cost(conn)
     balance = get_salon_balance(salon_id, conn)
     if balance < cost:
@@ -205,13 +239,14 @@ def handle_text(event, user, conn):
         if parts:
             salon_ctx = "\n".join(parts)
 
+    salon_ctx_block2 = f"Контекст салона:\n{salon_ctx}" if salon_ctx else ""
     prompt = f"""Напиши текст поста для социальной сети салона красоты.
 
 Заголовок: {title}
 {f"Тема: {topic}" if topic else ""}
 {f"Цель поста: {goal}" if goal else ""}
 {f"Тон: {tone}" if tone else ""}
-{f"Контекст салона:\n{salon_ctx}" if salon_ctx else ""}
+{salon_ctx_block2}
 
 Структура поста:
 1. Первая строка = заголовок (уже дан, используй его)

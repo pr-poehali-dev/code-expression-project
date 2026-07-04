@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { useEnergy } from "@/contexts/EnergyContext";
+import { showEnergyGate } from "@/components/EnergyGate";
 import Icon from "@/components/ui/icon";
 
 const ACCENT = "hsl(185,85%,32%)";
@@ -62,7 +63,15 @@ export default function LkAiImageGen() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error || "Ошибка генерации"); loadHistory(); return; }
+      if (!res.ok) {
+        if (res.status === 403) {
+          showEnergyGate({ message: data.error || "Бесплатный лимит исчерпан. Пополните баланс, чтобы продолжить." });
+        } else {
+          setError(data.error || "Ошибка генерации");
+        }
+        loadHistory();
+        return;
+      }
       const url = data.images?.[0]?.url;
       if (url) {
         setImageUrl(url);

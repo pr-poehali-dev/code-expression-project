@@ -3122,6 +3122,28 @@ def _get_member_monthly_spent(conn, salon_id: int, user_id: int) -> int:
     return cur.fetchone()[0]
 
 
+def _check_free_limit(conn, salon_id: int, tool_key: str, free_limit: int) -> tuple[bool, int]:
+    """
+    Если у салона не было ни одного успешного платежа — бонусными 100 энергий
+    можно пользоваться максимум free_limit раз для данного инструмента.
+    Возвращает (allowed, used_count).
+    """
+    cur = conn.cursor()
+    cur.execute(f"SELECT COUNT(*) FROM {tbl('payments')} WHERE salon_id=%s AND status='succeeded'", (salon_id,))
+    has_paid = (cur.fetchone()[0] or 0) > 0
+    if has_paid:
+        return True, 0
+    cur.execute(
+        f"SELECT "
+        f"  COUNT(*) FILTER (WHERE type='debit') - "
+        f"  COUNT(*) FILTER (WHERE type='credit' AND action LIKE 'Возврат%') "
+        f"FROM {tbl('credit_transactions')} WHERE salon_id=%s AND tool_key=%s",
+        (salon_id, tool_key)
+    )
+    used = cur.fetchone()[0] or 0
+    return used < free_limit, used
+
+
 def _spend_energy(conn, salon_id: int, user_id: int, tool_key: str, amount: int, action: str):
     """Списывает энергию с баланса салона и записывает транзакцию."""
     cur = conn.cursor()
@@ -3134,6 +3156,10 @@ def _spend_energy(conn, salon_id: int, user_id: int, tool_key: str, amount: int,
         f"VALUES (%s,%s,%s,%s,%s,'debit')",
         (salon_id, user_id, action, amount, tool_key)
     )
+
+
+# Инструменты, для которых бонусные (не купленные) энергии ограничены по числу использований
+FREE_LIMIT_TOOLS = {"post_gen": 3, "image_gen": 3}
 
 
 def check_and_spend_energy(event: dict, conn, tool_key: str) -> dict | None:
@@ -3153,6 +3179,16 @@ def check_and_spend_energy(event: dict, conn, tool_key: str) -> dict | None:
     tool = _get_tool_cost(conn, tool_key)
     if not tool or tool["is_free"] or tool["energy_cost"] == 0:
         return None  # Бесплатный инструмент
+
+    free_limit = FREE_LIMIT_TOOLS.get(tool_key)
+    if free_limit is not None:
+        allowed, used = _check_free_limit(conn, salon_id, tool_key, free_limit)
+        if not allowed:
+            return err(
+                f"Бесплатный лимит исчерпан ({free_limit} генерации на бонусных энергиях). "
+                f"Пополните баланс любым тарифом, чтобы продолжить пользоваться инструментом.",
+                403
+            )
 
     cost = tool["energy_cost"]
     balance = _get_salon_energy(conn, salon_id)
