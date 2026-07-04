@@ -248,7 +248,7 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
     <aside className="lk-sidebar">
       {/* Логотип */}
       <div style={{ padding: "0 24px 20px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <a href="https://promtdialog.ru/" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
           <div style={{ width: 38, height: 38, borderRadius: 10, background: `linear-gradient(135deg,${TEAL_BRIGHT},#14B8A6)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 4px 16px rgba(45,212,191,0.3)" }}>
             <Icon name="MessageSquare" size={18} style={{ color: "#0F172A" }} />
           </div>
@@ -256,7 +256,7 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
             <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", lineHeight: 1.2 }}>Про Диалог</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 0.5 }}>Личный кабинет</div>
           </div>
-        </div>
+        </a>
       </div>
 
       {/* Профиль салона */}
