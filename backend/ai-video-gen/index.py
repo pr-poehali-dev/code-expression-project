@@ -202,10 +202,14 @@ def handler(event: dict, context) -> dict:
         if not api_key:
             return err("API ключ не настроен.", 500)
 
+        # Модель не умеет корректно рисовать русский (да и любой) текст на экране —
+        # вместо букв получаются нечитаемые символы. Явно просим обойтись без текста/надписей.
+        final_prompt = prompt + ". Без текста на экране, без надписей, без субтитров, без вывесок с читаемыми словами."
+
         payload = json.dumps({
             "model": "bytedance/seedance-2-mini",
             "input": {
-                "prompt": prompt,
+                "prompt": final_prompt,
                 "resolution": resolution,
                 "duration": duration,
                 "multi_shots": False,
