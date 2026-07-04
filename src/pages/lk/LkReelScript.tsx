@@ -15,6 +15,10 @@ const ASPECT_OPTIONS = [
   { value: "1024x1792", label: "Рилс", sub: "9:16 вертикальный", icon: "Smartphone" },
   { value: "1024x1024", label: "Пост", sub: "1:1 квадрат", icon: "Square" },
 ];
+const DURATION_OPTIONS = [
+  { value: "5s",  label: "5 секунд",  cost: 105 },
+  { value: "10s", label: "10 секунд", cost: 180 },
+];
 
 type Step = "input" | "ideas" | "script";
 
@@ -28,16 +32,6 @@ interface LkReelScriptProps {
   onGoToVideoGen?: (videoPrompt: string, recommendedDuration: string) => void;
 }
 
-// Считает количество кадров в сценарии (КРЮЧОК/КАДР N/ФИНАЛ) — чем их больше, тем длиннее ролик.
-function recommendDuration(scriptText: string): { value: string; label: string; reason: string } {
-  const frameMatches = scriptText.match(/(КРЮЧОК|КАДР\s*\d+|ФИНАЛ)/gi) || [];
-  const frameCount = frameMatches.length || 1;
-  if (frameCount >= 4) {
-    return { value: "10s", label: "10 секунд", reason: `в сценарии ${frameCount} кадра — нужно больше времени` };
-  }
-  return { value: "5s", label: "5 секунд", reason: `в сценарии ${frameCount} кадра — уложитесь в короткий ролик` };
-}
-
 export default function LkReelScript({ onGoToVideoGen }: LkReelScriptProps = {}) {
   const { user } = useLkAuth();
   const hasSalon = !!user?.salon_id;
@@ -46,6 +40,7 @@ export default function LkReelScript({ onGoToVideoGen }: LkReelScriptProps = {})
   const [goal, setGoal] = useState("");
   const [tone, setTone] = useState("");
   const [useSalonCtx, setUseSalonCtx] = useState(hasSalon);
+  const [duration, setDuration] = useState("5s");
 
   const [ideas, setIdeas] = useState<string[]>([]);
   const [selectedIdea, setSelectedIdea] = useState("");
@@ -68,7 +63,7 @@ export default function LkReelScript({ onGoToVideoGen }: LkReelScriptProps = {})
       const res = await fetch(`${LK_URL}?action=reel_ideas`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
-        body: JSON.stringify({ service, goal, tone, use_salon_context: useSalonCtx }),
+        body: JSON.stringify({ service, goal, tone, use_salon_context: useSalonCtx, duration }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Ошибка генерации"); return; }
@@ -85,7 +80,7 @@ export default function LkReelScript({ onGoToVideoGen }: LkReelScriptProps = {})
       const res = await fetch(`${LK_URL}?action=reel_script`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
-        body: JSON.stringify({ idea, service, goal, tone, use_salon_context: useSalonCtx }),
+        body: JSON.stringify({ idea, service, goal, tone, use_salon_context: useSalonCtx, duration }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Ошибка генерации сценария"); setStep("ideas"); return; }
@@ -214,6 +209,20 @@ export default function LkReelScript({ onGoToVideoGen }: LkReelScriptProps = {})
             </div>
           </div>
 
+          <div style={{ marginBottom: 18 }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#555", marginBottom: 8 }}>Длительность будущего видео</label>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 8, marginBottom: 8 }}>
+              {DURATION_OPTIONS.map(opt => (
+                <button key={opt.value} onClick={() => setDuration(opt.value)} style={{ padding: "10px 8px", borderRadius: 10, border: `1.5px solid ${duration === opt.value ? "hsl(335,80%,50%)" : "#E2E8F0"}`, background: duration === opt.value ? `hsla(335,80%,50%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "center" }}>
+                  <Icon name="Clock" size={16} style={{ color: duration === opt.value ? "hsl(335,80%,50%)" : "#bbb", marginBottom: 4 }} />
+                  <div style={{ fontSize: 12, fontWeight: 700, color: duration === opt.value ? "hsl(335,80%,50%)" : "#333" }}>{opt.label}</div>
+                  <div style={{ fontSize: 10, color: "#aaa" }}>{opt.cost} ⚡ за видео</div>
+                </button>
+              ))}
+            </div>
+            <div style={{ fontSize: 11, color: "#aaa", lineHeight: 1.5 }}>Сценарий будет написан строго под выбранную длительность, чтобы точно совпасть с готовым видео.</div>
+          </div>
+
           {hasSalon && (
             <div
               onClick={() => !loading && setUseSalonCtx(p => !p)}
@@ -325,30 +334,27 @@ export default function LkReelScript({ onGoToVideoGen }: LkReelScriptProps = {})
           </div>
 
           {/* Переход к видео по сценарию */}
-          {onGoToVideoGen && (() => {
-            const rec = recommendDuration(script);
-            return (
-              <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 22px", marginBottom: 14, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>Хотите не только обложку, а целое видео?</div>
-                <div style={{ fontSize: 12, color: "#64748B", marginBottom: 12, lineHeight: 1.6 }}>
-                  Сгенерируйте короткий видеоролик по мотивам этого сценария с помощью ИИ — прямо в разделе «Создание видео-ролика».
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, background: "hsl(335,80%,97%)", border: "1px solid hsl(335,80%,90%)", borderRadius: 10, padding: "8px 12px", marginBottom: 14 }}>
-                  <Icon name="Sparkles" size={13} style={{ color: "hsl(335,80%,50%)", flexShrink: 0 }} />
-                  <div style={{ fontSize: 12, color: "#475569" }}>
-                    Рекомендуем <b style={{ color: "hsl(335,80%,50%)" }}>{rec.label}</b> — {rec.reason}
-                  </div>
-                </div>
-                <button
-                  onClick={() => onGoToVideoGen(videoPrompt || imagePrompt, rec.value)}
-                  style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: `linear-gradient(135deg,hsl(335,80%,50%),hsl(320,85%,50%))`, color: "#fff", border: "none", borderRadius: 12, padding: "13px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-                >
-                  <Icon name="Clapperboard" size={16} />
-                  Создать видео по сценарию
-                </button>
+          {onGoToVideoGen && (
+            <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 22px", marginBottom: 14, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>Хотите не только обложку, а целое видео?</div>
+              <div style={{ fontSize: 12, color: "#64748B", marginBottom: 12, lineHeight: 1.6 }}>
+                Сгенерируйте короткий видеоролик по мотивам этого сценария с помощью ИИ — прямо в разделе «Создание видео-ролика».
               </div>
-            );
-          })()}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "hsl(335,80%,97%)", border: "1px solid hsl(335,80%,90%)", borderRadius: 10, padding: "8px 12px", marginBottom: 14 }}>
+                <Icon name="Sparkles" size={13} style={{ color: "hsl(335,80%,50%)", flexShrink: 0 }} />
+                <div style={{ fontSize: 12, color: "#475569" }}>
+                  Сценарий написан строго под <b style={{ color: "hsl(335,80%,50%)" }}>{duration === "10s" ? "10 секунд" : "5 секунд"}</b> — так видео точно совпадёт со сценарием
+                </div>
+              </div>
+              <button
+                onClick={() => onGoToVideoGen(videoPrompt || imagePrompt, duration)}
+                style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: `linear-gradient(135deg,hsl(335,80%,50%),hsl(320,85%,50%))`, color: "#fff", border: "none", borderRadius: 12, padding: "13px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+              >
+                <Icon name="Clapperboard" size={16} />
+                Создать видео по сценарию
+              </button>
+            </div>
+          )}
 
           <div style={{ display: "flex", gap: 10 }}>
             <button onClick={() => setStep("ideas")} style={{ display: "flex", alignItems: "center", gap: 7, background: "#f5f5f2", color: "#666", border: "none", borderRadius: 10, padding: "11px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
