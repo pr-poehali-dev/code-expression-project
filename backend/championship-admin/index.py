@@ -196,6 +196,41 @@ def _str_or_none(val):
     return val if val not in (None, "") else None
 
 
+def _slugify(text: str) -> str:
+    translit = {
+        'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'e','ж':'zh','з':'z','и':'i','й':'y',
+        'к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f',
+        'х':'h','ц':'ts','ч':'ch','ш':'sh','щ':'sch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya',
+    }
+    result = []
+    for ch in text.lower():
+        if ch in translit:
+            result.append(translit[ch])
+        elif ch.isalnum():
+            result.append(ch)
+        elif ch in (' ', '-', '_'):
+            result.append('-')
+    slug = ''.join(result)
+    while '--' in slug:
+        slug = slug.replace('--', '-')
+    return slug.strip('-') or 'turnir'
+
+
+def _unique_slug(conn, base_slug: str, exclude_id=None) -> str:
+    cur = conn.cursor()
+    slug = base_slug
+    i = 1
+    while True:
+        if exclude_id is not None:
+            cur.execute(f"SELECT 1 FROM {tbl('ch_tournaments')} WHERE slug=%s AND id != %s", (slug, exclude_id))
+        else:
+            cur.execute(f"SELECT 1 FROM {tbl('ch_tournaments')} WHERE slug=%s", (slug,))
+        if not cur.fetchone():
+            return slug
+        i += 1
+        slug = f"{base_slug}-{i}"
+
+
 def handle_upload_cover(event, conn):
     b = json.loads(event.get("body") or "{}")
     image_data = b.get("image_base64", "")
@@ -219,6 +254,8 @@ def handle_upload_cover(event, conn):
 def handle_create_tournament(event, conn):
     b = json.loads(event.get("body") or "{}")
     cur = conn.cursor()
+    raw_slug = (b.get("slug") or "").strip() or b["name"]
+    slug = _unique_slug(conn, _slugify(raw_slug))
     cur.execute(
         f"""INSERT INTO {tbl('ch_tournaments')}
                (season_id, name, slug, category, emoji, description, rules, task_text,
@@ -228,7 +265,7 @@ def handle_create_tournament(event, conn):
                 work_deadline, voting_starts, voting_ends, next_date)
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             RETURNING id""",
-        (_int(b.get("season_id"), None), b["name"], b["slug"], b.get("category","general"),
+        (_int(b.get("season_id"), None), b["name"], slug, b.get("category","general"),
          b.get("emoji","🏆"), b.get("description",""), b.get("rules",""), b.get("task_text",""),
          _int(b.get("prize_energy"),0), _int(b.get("prize_2nd"),0), _int(b.get("prize_3rd"),0),
          _int(b.get("min_participants"),5), b.get("status","draft"),
@@ -247,6 +284,8 @@ def handle_update_tournament(event, conn):
     b = json.loads(event.get("body") or "{}")
     tid = b.get("id")
     cur = conn.cursor()
+    raw_slug = (b.get("slug") or "").strip() or b.get("name") or "turnir"
+    slug = _unique_slug(conn, _slugify(raw_slug), exclude_id=tid)
     cur.execute(
         f"""UPDATE {tbl('ch_tournaments')} SET
                name=%s, slug=%s, category=%s, emoji=%s, description=%s, rules=%s,
@@ -256,7 +295,7 @@ def handle_update_tournament(event, conn):
                task_opens_at=%s, work_deadline=%s, voting_starts=%s, voting_ends=%s,
                next_date=%s, postponed=%s, postpone_reason=%s, updated_at=NOW()
             WHERE id=%s""",
-        (b.get("name"), b.get("slug"), b.get("category","general"), b.get("emoji","🏆"),
+        (b.get("name"), slug, b.get("category","general"), b.get("emoji","🏆"),
          b.get("description",""), b.get("rules",""), b.get("task_text",""),
          _int(b.get("prize_energy"),0), _int(b.get("prize_2nd"),0), _int(b.get("prize_3rd"),0),
          _int(b.get("min_participants"),5), b.get("status","draft"),
