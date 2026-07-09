@@ -5,6 +5,7 @@ import {
   Btn, Field, Card,
   STATUS_LABELS, STATUS_COLORS,
   Tournament, EMPTY_TOURNAMENT, activeWorksRef,
+  mskLocalToUtcIso, utcIsoToMskLocal,
 } from "./LkAdminChampionshipShared";
 
 const EMOJI_OPTIONS = [
@@ -197,13 +198,13 @@ export function TournamentsSection() {
       prize_energy: t.prize_energy, prize_2nd: t.prize_2nd, prize_3rd: t.prize_3rd,
       min_participants: t.min_participants,
       cover_image_url: t.cover_image_url || "",
-      registration_starts: t.registration_starts?.slice(0, 16) || "",
-      registration_ends: t.registration_ends?.slice(0, 16) || "",
-      task_opens_at: t.task_opens_at?.slice(0, 16) || "",
-      work_deadline: t.work_deadline?.slice(0, 16) || "",
-      voting_starts: t.voting_starts?.slice(0, 16) || "",
-      voting_ends: t.voting_ends?.slice(0, 16) || "",
-      next_date: t.next_date?.slice(0, 16) || "",
+      registration_starts: utcIsoToMskLocal(t.registration_starts),
+      registration_ends: utcIsoToMskLocal(t.registration_ends),
+      task_opens_at: utcIsoToMskLocal(t.task_opens_at),
+      work_deadline: utcIsoToMskLocal(t.work_deadline),
+      voting_starts: utcIsoToMskLocal(t.voting_starts),
+      voting_ends: utcIsoToMskLocal(t.voting_ends),
+      next_date: utcIsoToMskLocal(t.next_date),
       season_id: "",
     });
     setEditing(t.id);
@@ -217,6 +218,13 @@ export function TournamentsSection() {
       prize_2nd: Number(form.prize_2nd),
       prize_3rd: Number(form.prize_3rd),
       min_participants: Number(form.min_participants),
+      registration_starts: mskLocalToUtcIso(form.registration_starts),
+      registration_ends: mskLocalToUtcIso(form.registration_ends),
+      task_opens_at: mskLocalToUtcIso(form.task_opens_at),
+      work_deadline: mskLocalToUtcIso(form.work_deadline),
+      voting_starts: mskLocalToUtcIso(form.voting_starts),
+      voting_ends: mskLocalToUtcIso(form.voting_ends),
+      next_date: mskLocalToUtcIso(form.next_date),
       ...(editing !== -1 ? { id: editing } : {}),
     };
     const r = editing === -1

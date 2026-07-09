@@ -101,6 +101,29 @@ export interface Application {
   status: string; created_at: string; notify_email: string;
 }
 
+// ── Работа с московским временем (UTC+3, без перехода на летнее/зимнее) ────────
+
+const MSK_OFFSET_MIN = 3 * 60;
+
+/** "YYYY-MM-DDTHH:mm" (введено как МСК) → ISO-строка в UTC для отправки на backend */
+export function mskLocalToUtcIso(local: string): string {
+  if (!local) return "";
+  const [datePart, timePart] = local.split("T");
+  const [y, m, d] = datePart.split("-").map(Number);
+  const [hh, mm] = (timePart || "00:00").split(":").map(Number);
+  const utcMs = Date.UTC(y, m - 1, d, hh, mm) - MSK_OFFSET_MIN * 60 * 1000;
+  return new Date(utcMs).toISOString();
+}
+
+/** ISO-строка из backend (UTC) → "YYYY-MM-DDTHH:mm" в МСК для поля datetime-local */
+export function utcIsoToMskLocal(iso: string): string {
+  if (!iso) return "";
+  const utcMs = new Date(iso).getTime() + MSK_OFFSET_MIN * 60 * 1000;
+  const d = new Date(utcMs);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+}
+
 export const EMPTY_TOURNAMENT = {
   name: "", slug: "", emoji: "🏆", status: "draft", description: "", rules: "", task_text: "",
   prize_energy: 0, prize_2nd: 0, prize_3rd: 0, min_participants: 5,
