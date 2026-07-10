@@ -185,7 +185,7 @@ def handler(event: dict, context) -> dict:
                 cost = get_tool_cost(conn, "landing_download", 5)
                 balance = get_balance(conn, salon_id)
                 if balance < cost:
-                    return err(f"Недостаточно энергии. Нужно {cost} ⚡, доступно {balance} ⚡.", 402)
+                    return err(f"Недостаточно энергии. Доступно {balance} ⚡. Пополните баланс, чтобы продолжить.", 402)
                 deduct(conn, salon_id, user_id, "landing_download", cost, "Скачивание лендинга")
                 return ok({"ok": True, "spent": cost, "user_id": user_id, "notification_email": user.get("notification_email")})
 

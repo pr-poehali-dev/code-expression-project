@@ -444,7 +444,7 @@ def handle_course_access(event, conn):
             return err("Нет привязанного аккаунта")
         balance = get_salon_balance(salon_id, conn)
         if balance < cost:
-            return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}", 402)
+            return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить", 402)
         deduct_energy(salon_id, user["id"], cost, f"Доступ к курсу «{course['title']}»", conn)
 
     cur.execute(
@@ -490,7 +490,7 @@ def handle_offline_training_buy(event, conn):
             return err("Нет привязанного аккаунта для списания энергии")
         balance = get_salon_balance(salon_id, conn)
         if balance < cost:
-            return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}", 402)
+            return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить", 402)
         deduct_energy(salon_id, user["id"], cost, f"Тренинг «{course['title']}»", conn)
 
     cur.execute(
@@ -581,7 +581,7 @@ def handle_lesson_open(event, conn):
                 return err("Нет привязанного аккаунта")
             balance = get_salon_balance(salon_id, conn)
             if balance < cost:
-                return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}", 402)
+                return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить", 402)
             deduct_energy(salon_id, user["id"], cost, f"Урок «{lesson['title']}»", conn)
 
         cur.execute(
@@ -662,7 +662,7 @@ def handle_lesson_ask_ai(event, conn):
             return err("Нет привязанного аккаунта")
         balance = get_salon_balance(salon_id, conn)
         if balance < LESSON_AI_COST:
-            return err(f"Недостаточно энергии. Нужно {LESSON_AI_COST}, доступно {balance}", 402)
+            return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить", 402)
     else:
         salon_id = None
 
@@ -758,7 +758,7 @@ def handle_lesson_homework_ai(event, conn):
             return err("Нет привязанного аккаунта")
         balance = get_salon_balance(salon_id, conn)
         if balance < LESSON_AI_COST:
-            return err(f"Недостаточно энергии. Нужно {LESSON_AI_COST}, доступно {balance}", 402)
+            return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить", 402)
 
     homework_text = lesson.get("homework") or ""
     lesson_title = lesson.get("title") or ""

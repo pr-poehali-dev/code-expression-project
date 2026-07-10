@@ -301,7 +301,7 @@ def handle_fitting(event, conn):
         tool_key=FITTING_TOOL_KEY, action="Виртуальная примерка"
     )
     if not ok_deduct:
-        return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
+        return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
 
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
@@ -556,7 +556,7 @@ def handler(event: dict, context) -> dict:
         cost = get_tool_cost(conn)
         ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, conn)
         if not ok_deduct:
-            return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
+            return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
 
         use_salon_context = body.get("use_salon_context", False)
         include_logo_text = body.get("include_logo_text", False)

@@ -1,5 +1,6 @@
 import Icon from "@/components/ui/icon";
-import { ACCENT, ACCENT_BG, ACCENT_BORDER, ENERGY_MAIN, ENERGY_PAGE, ENERGY_REPEAT, AnalysisListItem, cardStyle, labelStyle } from "./SeoTypes";
+import { ACCENT, ACCENT_BG, ACCENT_BORDER, AnalysisListItem, cardStyle, labelStyle } from "./SeoTypes";
+import { EnergyComplexityNote } from "./LkMarketingShared";
 
 interface Props {
   onBack: () => void;
@@ -49,20 +50,7 @@ export default function SeoAnalyzeForm({
         Вставьте адрес страницы — ИИ проверит мета-теги, заголовки и текст, выдаст конкретные правки с готовыми вариантами для копирования.
       </p>
 
-      {/* Стоимость */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {[
-          { label: "Главная страница", cost: ENERGY_MAIN, active: isMain && !isRepeat },
-          { label: "Подстраница",      cost: ENERGY_PAGE, active: !isMain && !isRepeat },
-          { label: "Повторный анализ", cost: ENERGY_REPEAT, active: isRepeat },
-        ].map(item => (
-          <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: item.active ? ACCENT_BG : "#F8FAFC", border: `1.5px solid ${item.active ? ACCENT_BORDER : "#E8ECF0"}`, borderRadius: 8, transition: "all 0.2s" }}>
-            <Icon name="Zap" size={12} style={{ color: item.active ? ACCENT : "#94A3B8" }} />
-            <span style={{ fontSize: 12, color: item.active ? "#0c4a6e" : "#64748B" }}>{item.label}:</span>
-            <span style={{ fontSize: 12, fontWeight: 800, color: item.active ? ACCENT : "#0F172A" }}>{item.cost} ⚡</span>
-          </div>
-        ))}
-      </div>
+      <EnergyComplexityNote />
 
       {/* Форма */}
       <div style={{ ...cardStyle, padding: "20px 22px" }}>
@@ -87,7 +75,7 @@ export default function SeoAnalyzeForm({
           >
             {loading
               ? <><Icon name="Loader2" size={15} style={{ animation: "spin 1s linear infinite" }} /> Анализирую...</>
-              : <><Icon name="Search" size={15} /> Запустить · {cost} ⚡</>
+              : <><Icon name="Search" size={15} /> Запустить анализ</>
             }
           </button>
         </div>

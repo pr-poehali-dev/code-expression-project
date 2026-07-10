@@ -2750,7 +2750,7 @@ def handle_course_request_resolve(event: dict) -> dict:
         if energy_cost > 0:
             balance = get_salon_balance(salon["id"], conn)
             if balance < energy_cost:
-                return err(f"Недостаточно энергии. Бесплатный лимит ({FREE_MEMBER_LIMIT} сотрудника) исчерпан. Нужно {energy_cost} ⚡, доступно {balance} ⚡", 402)
+                return err(f"Недостаточно энергии. Бесплатный лимит ({FREE_MEMBER_LIMIT} сотрудника) исчерпан. Доступно {balance} ⚡. Пополните баланс, чтобы продолжить.", 402)
 
         # Выдаём доступ
         cur.execute(
@@ -3199,7 +3199,7 @@ def check_and_spend_energy(event: dict, conn, tool_key: str) -> dict | None:
         )
     if balance < cost:
         return err(
-            f"Недостаточно энергии. Нужно {cost} ⚡, доступно {balance} ⚡. Пополните баланс.",
+            f"Недостаточно энергии. Доступно {balance} ⚡. Пополните баланс, чтобы продолжить.",
             402
         )
 

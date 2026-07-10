@@ -196,7 +196,7 @@ def handler(event: dict, context) -> dict:
                 balance = get_balance(salon_id, conn)
                 if balance < cost:
                     return {"statusCode": 402, "headers": CORS,
-                            "body": json.dumps({"error": f"Недостаточно энергии. Нужно {cost}, доступно {balance}."})}
+                            "body": json.dumps({"error": f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить."})}
                 deduct(salon_id, user["id"], cost, conn)
     finally:
         conn.close()

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import Icon from "@/components/ui/icon";
-import { AgentConfig, Message, AttachedFile, ENERGY_PER_MSG, FREE_LIMIT } from "./SalonAgentTypes";
+import { AgentConfig, Message, AttachedFile, FREE_LIMIT } from "./SalonAgentTypes";
 import { MessageBubble } from "./SalonAgentWidgets";
 
 interface SalonAgentChatProps {
@@ -122,7 +122,7 @@ export default function SalonAgentChat({
             <Icon name="Zap" size={18} style={{ color: "#f59e0b", flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>Недостаточно энергии</div>
-              <div style={{ fontSize: 12, color: "#94A3B8" }}>Нужно {ENERGY_PER_MSG} ⚡, доступно {energyBalance} ⚡</div>
+              <div style={{ fontSize: 12, color: "#94A3B8" }}>Доступно {energyBalance} ⚡ — пополните баланс, чтобы продолжить</div>
             </div>
             <button onClick={onOpenPaywall} style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: "#f59e0b", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat, sans-serif", whiteSpace: "nowrap" }}>Пополнить</button>
           </div>
@@ -176,7 +176,7 @@ export default function SalonAgentChat({
           </div>
         )}
         <div style={{ marginTop: 5, fontSize: 10, color: "#CBD5E1", textAlign: "center" }}>
-          {canSend ? (isPaid ? `${ENERGY_PER_MSG} ⚡ / сообщение · 📎 файлы · Enter — отправить` : `Осталось ${FREE_LIMIT - freeUsed} бесплатных · Enter — отправить`) : ""}
+          {canSend ? (isPaid ? `Стоимость зависит от сложности запроса · 📎 файлы · Enter — отправить` : `Осталось ${FREE_LIMIT - freeUsed} бесплатных · Enter — отправить`) : ""}
         </div>
       </div>
     </div>

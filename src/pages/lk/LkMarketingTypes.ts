@@ -7,18 +7,19 @@ export interface Tool {
   iconBg: string;
   title: string;
   description: string;
-  badge: "new" | "soon" | "cost" | "cost3" | "cost15" | "cost45";
+  badge: "new" | "soon" | "simple" | "medium" | "complex";
   ready: boolean;
   requiresPaid?: boolean;
 }
 
+// Точная стоимость в энергии на карточках не показывается — только общий уровень сложности.
+// Итоговая сумма списывается автоматически внутри инструмента и зависит от объёма работы ИИ.
 export const BADGE_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-  new:    { bg: "hsl(145,60%,92%)", color: "hsl(145,60%,30%)", label: "Новое" },
-  soon:   { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "Скоро" },
-  cost:   { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "1 ⚡" },
-  cost3:  { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "3 ⚡" },
-  cost15: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "от 105 ⚡" },
-  cost45: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "45 ⚡" },
+  new:     { bg: "hsl(145,60%,92%)", color: "hsl(145,60%,30%)", label: "Новое" },
+  soon:    { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "Скоро" },
+  simple:  { bg: "hsl(145,60%,93%)", color: "hsl(145,60%,32%)", label: "Простая задача" },
+  medium:  { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "Средняя сложность" },
+  complex: { bg: "hsl(0,75%,95%)",   color: "hsl(0,70%,45%)",   label: "Высокая сложность" },
 };
 
 export const TOOLS_DIRECT: Tool[] = [
@@ -29,7 +30,7 @@ export const TOOLS_DIRECT: Tool[] = [
     iconBg: "hsl(220,80%,95%)",
     title: "Портрет целевой аудитории",
     description: "ИИ анализирует ваши услуги и создаёт детальные портреты ЦА с болями, мотивацией и каналами охвата.",
-    badge: "cost",
+    badge: "simple",
     ready: true,
   },
   {
@@ -39,7 +40,7 @@ export const TOOLS_DIRECT: Tool[] = [
     iconBg: "hsl(280,60%,95%)",
     title: "Офферы под ЦА",
     description: "Генерирует убедительные предложения и акции под каждый сегмент вашей аудитории.",
-    badge: "cost",
+    badge: "simple",
     ready: true,
   },
   {
@@ -49,7 +50,7 @@ export const TOOLS_DIRECT: Tool[] = [
     iconBg: "hsl(145,60%,93%)",
     title: "Семантическое ядро",
     description: "Список поисковых запросов для Яндекс.Директ под ваши услуги — высокочастотные, средние, низкочастотные.",
-    badge: "cost",
+    badge: "simple",
     ready: true,
   },
   {
@@ -59,7 +60,7 @@ export const TOOLS_DIRECT: Tool[] = [
     iconBg: "hsl(25,90%,94%)",
     title: "Объявления для Яндекс.Директ",
     description: "Готовые тексты по требованиям Яндекса: заголовок 1 (≤35), заголовок 2 (≤30), текст (≤81 симв.).",
-    badge: "cost",
+    badge: "simple",
     ready: true,
   },
   {
@@ -69,7 +70,7 @@ export const TOOLS_DIRECT: Tool[] = [
     iconBg: "hsl(185,85%,93%)",
     title: "Медиаплан для Директа",
     description: "ДРР, сравнение стратегий CPC/CPA/ДРР, прогноз клиентов и распределение бюджета — на основе данных вашего салона.",
-    badge: "cost3",
+    badge: "medium",
     ready: true,
   },
 ];
@@ -122,7 +123,7 @@ export const TOOLS_CONTENT: Tool[] = [
     iconBg: "hsl(320,85%,97%)",
     title: "Создание видео-ролика",
     description: "ИИ генерирует короткий видеоролик по описанию — для сторис, рилс и рекламы. Доступно после пополнения баланса.",
-    badge: "cost15",
+    badge: "complex",
     ready: true,
     requiresPaid: true,
   },
@@ -133,7 +134,7 @@ export const TOOLS_CONTENT: Tool[] = [
     iconBg: "hsl(280,70%,96%)",
     title: "Примерочная",
     description: "Клиент загружает фото — ИИ показывает результат стрижки, макияжа, маникюра или коррекции фигуры и подсказывает, как этого добиться у мастера.",
-    badge: "cost45",
+    badge: "complex",
     ready: true,
   },
 ];

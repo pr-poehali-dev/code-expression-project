@@ -16,8 +16,8 @@ const ASPECT_OPTIONS = [
   { value: "1024x1024", label: "Пост", sub: "1:1 квадрат", icon: "Square" },
 ];
 const DURATION_OPTIONS = [
-  { value: "5s",  label: "5 секунд",  cost: 105 },
-  { value: "10s", label: "10 секунд", cost: 180 },
+  { value: "5s",  label: "5 секунд",  complexity: "Проще и быстрее" },
+  { value: "10s", label: "10 секунд", complexity: "Больше деталей" },
 ];
 
 type Step = "input" | "ideas" | "script";
@@ -216,7 +216,7 @@ export default function LkReelScript({ onGoToVideoGen }: LkReelScriptProps = {})
                 <button key={opt.value} onClick={() => setDuration(opt.value)} style={{ padding: "10px 8px", borderRadius: 10, border: `1.5px solid ${duration === opt.value ? "hsl(335,80%,50%)" : "#E2E8F0"}`, background: duration === opt.value ? `hsla(335,80%,50%,0.07)` : "#fff", cursor: "pointer", fontFamily: "Montserrat,sans-serif", textAlign: "center" }}>
                   <Icon name="Clock" size={16} style={{ color: duration === opt.value ? "hsl(335,80%,50%)" : "#bbb", marginBottom: 4 }} />
                   <div style={{ fontSize: 12, fontWeight: 700, color: duration === opt.value ? "hsl(335,80%,50%)" : "#333" }}>{opt.label}</div>
-                  <div style={{ fontSize: 10, color: "#aaa" }}>{opt.cost} ⚡ за видео</div>
+                  <div style={{ fontSize: 10, color: "#aaa" }}>{opt.complexity}</div>
                 </button>
               ))}
             </div>

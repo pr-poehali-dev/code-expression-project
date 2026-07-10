@@ -141,6 +141,12 @@ export default function LkPhotoFitting() {
             Загрузите фото клиента, выберите, что примерить, опишите пожелания — и покажите результат прямо на консультации. Это помогает клиенту принять решение и убедиться в результате заранее.
           </div>
         </div>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "hsl(40,90%,97%)", border: "1px solid hsl(40,90%,85%)", borderRadius: 10, padding: "10px 14px", marginTop: 8 }}>
+          <Icon name="Zap" size={14} style={{ color: "hsl(40,70%,40%)", flexShrink: 0, marginTop: 1 }} />
+          <span style={{ fontSize: 12.5, color: "hsl(40,60%,30%)", lineHeight: 1.6 }}>
+            Стоимость зависит от сложности задачи: чем больше работы выполняет ИИ, тем больше энергии тратится на результат. Сумма списывается автоматически с баланса салона.
+          </span>
+        </div>
       </div>
 
       {/* Форма */}

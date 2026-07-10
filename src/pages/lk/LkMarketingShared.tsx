@@ -5,6 +5,17 @@ export function hasCachedResult(key: string): boolean {
   try { return !!localStorage.getItem(key); } catch { return false; }
 }
 
+export function EnergyComplexityNote() {
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "hsl(40,90%,97%)", border: "1px solid hsl(40,90%,85%)", borderRadius: 10, padding: "10px 14px", marginBottom: 16 }}>
+      <Icon name="Zap" size={14} style={{ color: "hsl(40,70%,40%)", flexShrink: 0, marginTop: 1 }} />
+      <span style={{ fontSize: 12.5, color: "hsl(40,60%,30%)", lineHeight: 1.6 }}>
+        Стоимость зависит от сложности задачи: чем больше работы выполняет ИИ, тем больше энергии тратится на результат. Сумма списывается автоматически с баланса салона.
+      </span>
+    </div>
+  );
+}
+
 export function ToolCard({ tool, onOpen }: { tool: Tool; onOpen: (id: string) => void }) {
   const badge = BADGE_STYLES[tool.badge] || BADGE_STYLES.new;
   const disabled = !tool.ready;

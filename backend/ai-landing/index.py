@@ -1136,7 +1136,7 @@ def check_and_spend(conn, user, tool_key, default_cost, action_name):
         row = cur.fetchone()
         balance = row[0] if row else 0
         if balance < cost:
-            return err(f"Недостаточно энергии. Нужно {cost} ⚡, доступно {balance} ⚡. Пополните баланс.", 402)
+            return err(f"Недостаточно энергии. Доступно {balance} ⚡. Пополните баланс, чтобы продолжить.", 402)
         cur.execute(f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s", (cost, salon_id))
         cur.execute(
             f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "

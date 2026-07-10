@@ -99,7 +99,7 @@ def handler(event: dict, context) -> dict:
         balance = int(salon_row[0])
         if balance < cost:
             conn.rollback()
-            return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
+            return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
 
         # Списываем энергию
         cur2.execute(

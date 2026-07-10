@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { ACCENT, DIRECT_COLOR, API_URL, CACHE_VERSION, AdGroup, KeywordGroup } from "./LkMarketingDirect.types";
 import { AdGroupCard, CampaignMinusBlock } from "./LkMarketingDirectGroupCard";
+import { EnergyComplexityNote } from "./LkMarketingShared";
 
 interface Props {
   onBack: () => void;
@@ -71,7 +72,7 @@ export default function LkMarketingDirect({ onBack, initialGroups }: Props) {
 
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-          Маркетинг · Директ · 1 ⚡
+          Маркетинг · Директ
         </div>
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
           Объявления для Яндекс.Директ
@@ -86,6 +87,7 @@ export default function LkMarketingDirect({ onBack, initialGroups }: Props) {
             Копирайтер или агентство берут за это деньги и время. Здесь вы получаете профессиональные тексты объявлений за минуту и можете сразу загружать их в рекламный кабинет.
           </div>
         </div>
+        <EnergyComplexityNote />
       </div>
 
       {/* Загрузка */}

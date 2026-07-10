@@ -192,7 +192,7 @@ def handler(event: dict, context) -> dict:
 
         ok_deduct, val = deduct_energy(salon_id, user["id"], conn)
         if not ok_deduct:
-            return err(f"Недостаточно энергии. Нужно 1, доступно {val}.", 402)
+            return err(f"Недостаточно энергии. Доступно {val}. Пополните баланс, чтобы продолжить.", 402)
     finally:
         conn.close()
 

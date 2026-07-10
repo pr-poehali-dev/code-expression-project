@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
+import { EnergyComplexityNote } from "./LkMarketingShared";
 
 const ACCENT = "hsl(185,85%,32%)";
 const API_URL = "https://functions.poehali.dev/d0fa3230-e537-441c-b7eb-ef239f7377e4";
@@ -195,7 +196,7 @@ export default function LkMarketingAudience({ onBack, onPortraitsReady, onGoToOf
       {/* Заголовок */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-          Маркетинг · ЦА · 1 ⚡
+          Маркетинг · ЦА
         </div>
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
           Портрет целевой аудитории
@@ -210,6 +211,7 @@ export default function LkMarketingAudience({ onBack, onPortraitsReady, onGoToOf
             Без понимания аудитории реклама тратится вхолостую. Готовые портреты ЦА используются во всех остальных инструментах — для офферов, объявлений, контента — и помогают попадать точно в цель.
           </div>
         </div>
+        <EnergyComplexityNote />
       </div>
 
       {/* Кнопка генерации */}

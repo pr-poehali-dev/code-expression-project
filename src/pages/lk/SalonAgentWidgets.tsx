@@ -79,7 +79,7 @@ export function PaywallModal({ onClose, energyBalance, onNavigateShop }: { onClo
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", letterSpacing: -0.5 }}>Бесплатные сообщения закончились</div>
-            <div style={{ fontSize: 13, color: "#94A3B8", marginTop: 4 }}>1 сообщение = {ENERGY_PER_MSG} ⚡ · Баланс: {energyBalance} ⚡</div>
+            <div style={{ fontSize: 13, color: "#94A3B8", marginTop: 4 }}>Баланс: {energyBalance} ⚡ · стоимость зависит от сложности запроса</div>
           </div>
           <button onClick={onClose} style={{ border: "none", background: "none", cursor: "pointer", color: "#94A3B8", padding: 4 }}><Icon name="X" size={20} /></button>
         </div>
@@ -118,7 +118,7 @@ export function FreeUsageBar({ used, limit, energyBalance, onPaywall }: { used: 
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", background: "#fff", border: "1.5px solid #E8ECF0", borderRadius: 12 }}>
         <Icon name="Zap" size={14} style={{ color: "#f59e0b" }} />
         <span style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{energyBalance} ⚡</span>
-        <span style={{ fontSize: 12, color: "#94A3B8" }}>баланс · {ENERGY_PER_MSG} ⚡ / сообщение</span>
+        <span style={{ fontSize: 12, color: "#94A3B8" }}>баланс · стоимость зависит от сложности запроса</span>
         {energyBalance < ENERGY_PER_MSG && (
           <button onClick={onPaywall} style={{ marginLeft: "auto", padding: "6px 14px", borderRadius: 8, border: "none", background: "#f59e0b", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat, sans-serif", whiteSpace: "nowrap" }}>
             Пополнить ⚡

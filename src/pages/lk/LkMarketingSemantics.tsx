@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
+import { EnergyComplexityNote } from "./LkMarketingShared";
 
 const ACCENT = "hsl(185,85%,32%)";
 const API_URL = "https://functions.poehali.dev/00357dca-9825-4cc7-9c1c-eb32b635afc4";
@@ -276,7 +277,7 @@ export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
       {/* Заголовок */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-          Маркетинг · Семантика · 1 ⚡
+          Маркетинг · Семантика
         </div>
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
           Семантическое ядро
@@ -291,6 +292,7 @@ export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
             Подбор ключевых слов вручную занимает часы и требует опыта. Готовое семантическое ядро можно сразу загрузить в Яндекс.Директ — реклама начнёт показываться именно тем, кто ищет ваши услуги.
           </div>
         </div>
+        <EnergyComplexityNote />
       </div>
 
       {/* Загрузка */}

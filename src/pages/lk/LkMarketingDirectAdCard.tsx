@@ -164,7 +164,7 @@ export function ImageGenButton({ groupName, keywords, ads }: { groupName: string
         <button onClick={generate}
           style={{ display: "flex", alignItems: "center", gap: 8, background: "hsl(280,60%,97%)", border: "1.5px dashed hsl(280,60%,75%)", borderRadius: 10, padding: "11px 18px", fontSize: 13, fontWeight: 700, color: "hsl(280,60%,45%)", cursor: "pointer", fontFamily: "Montserrat,sans-serif", width: "100%" }}>
           <Icon name="ImagePlus" size={16} />
-          Сгенерировать рекламное изображение 1024×1024 — 5 ⚡
+          Сгенерировать рекламное изображение 1024×1024
         </button>
       )}
       {state === "error" && (

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
+import { EnergyComplexityNote } from "./LkMarketingShared";
 
 const ACCENT = "hsl(185,85%,32%)";
 const API_URL = "https://functions.poehali.dev/b11b2ac2-de43-4758-b3c1-f512fe449a65";
@@ -261,7 +262,7 @@ export default function LkMarketingBudget({ onBack }: Props) {
       {/* Заголовок */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-          Маркетинг · Медиаплан · 3 ⚡
+          Маркетинг · Медиаплан
         </div>
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
           Медиаплан для Яндекс.Директ
@@ -269,6 +270,7 @@ export default function LkMarketingBudget({ onBack }: Props) {
         <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6, maxWidth: 540 }}>
           Введите три параметра — ИИ рассчитает ДРР, сравнит стратегии рекламы, даст рекомендацию и прогноз по бюджету на основе реальных показателей beauty-ниши.
         </p>
+        <EnergyComplexityNote />
       </div>
 
       {/* Форма ввода */}
@@ -333,7 +335,7 @@ export default function LkMarketingBudget({ onBack }: Props) {
         >
           {loading
             ? <><Icon name="Loader2" size={16} style={{ animation: "spin 1s linear infinite" }} /> Считаю медиаплан...</>
-            : <><Icon name="Calculator" size={16} /> Рассчитать медиаплан — 3 ⚡</>
+            : <><Icon name="Calculator" size={16} /> Рассчитать медиаплан</>
           }
         </button>
       </div>

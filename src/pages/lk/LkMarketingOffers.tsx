@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import LkMarketingAudience from "./LkMarketingAudience";
 import { useLkAuth } from "@/contexts/LkAuthContext";
+import { EnergyComplexityNote } from "./LkMarketingShared";
 
 const ACCENT = "hsl(185,85%,32%)";
 const API_URL = "https://functions.poehali.dev/62a82e41-522d-46c2-902b-4caeb0e47880";
@@ -244,7 +245,7 @@ export default function LkMarketingOffers({ onBack, initialPortraits, initialSal
       {/* Заголовок */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-          Маркетинг · Офферы · 1 ⚡
+          Маркетинг · Офферы
         </div>
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
           Офферы под целевую аудиторию
@@ -259,6 +260,7 @@ export default function LkMarketingOffers({ onBack, initialPortraits, initialSal
             Слабый оффер — главная причина, почему реклама не конвертирует. Готовые офферы под каждый сегмент ЦА сразу повышают отклик на рекламу и увеличивают запись на услуги.
           </div>
         </div>
+        <EnergyComplexityNote />
       </div>
 
       {/* Шаг выбора ЦА */}

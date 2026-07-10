@@ -256,7 +256,7 @@ def handler(event: dict, context) -> dict:
         cost = get_tool_cost(conn)
         balance = get_salon_balance(salon_id, conn)
         if balance < cost:
-            return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
+            return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
 
         body = json.loads(event.get("body") or "{}")
         answers = body.get("answers", {})

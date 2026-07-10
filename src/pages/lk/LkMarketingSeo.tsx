@@ -44,7 +44,7 @@ export default function LkMarketingSeo({ onBack, initialUrl }: { onBack: () => v
         body: JSON.stringify({ url: trimmed, is_main_page: isMain }),
       });
       const data = await res.json();
-      if (data.error === "no_energy") { setError(`Недостаточно энергии. Нужно ${cost} ⚡`); return; }
+      if (data.error === "no_energy") { setError("Недостаточно энергии на балансе. Пополните баланс, чтобы продолжить."); return; }
       if (data.error === "fetch_error") { setError("Не удалось открыть страницу. Проверьте URL и доступность сайта."); return; }
       if (!res.ok) throw new Error(data.error || "Ошибка анализа");
       setResult(data as AnalysisResult);
