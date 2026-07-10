@@ -6,7 +6,7 @@ export function hasCachedResult(key: string): boolean {
 }
 
 export function ToolCard({ tool, onOpen }: { tool: Tool; onOpen: (id: string) => void }) {
-  const badge = BADGE_STYLES[tool.badge];
+  const badge = BADGE_STYLES[tool.badge] || BADGE_STYLES.new;
   const disabled = !tool.ready;
 
   return (
