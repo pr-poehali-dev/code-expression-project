@@ -222,11 +222,11 @@ export default function ReelsVideoLanding() {
               От темы до готового ролика
             </h2>
           </div>
-          <div className="flow-steps" style={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "nowrap", gap: 0 }}>
+          <div className="flow-steps" style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", flexWrap: "nowrap", gap: 0 }}>
             {FLOW.map((step, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center" }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-                  <div style={{
+              <div key={i} className="flow-step-pair" style={{ display: "flex", alignItems: "center" }}>
+                <div className="flow-step-col" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, width: 100 }}>
+                  <div className="flow-step-icon" style={{
                     width: 72, height: 72, borderRadius: 2,
                     background: "rgba(45,212,191,0.08)",
                     border: "1px solid rgba(45,212,191,0.22)",
@@ -235,10 +235,10 @@ export default function ReelsVideoLanding() {
                   }}>
                     <Icon name={step.icon} size={26} style={{ color: TEAL }} />
                   </div>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.6)", textAlign: "center", maxWidth: 100, lineHeight: 1.4, letterSpacing: "0.3px" }}>{step.label}</div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.6)", textAlign: "center", lineHeight: 1.4, letterSpacing: "0.3px", minHeight: "2.8em", display: "flex", alignItems: "flex-start", justifyContent: "center" }}>{step.label}</div>
                 </div>
                 {i < FLOW.length - 1 && (
-                  <div style={{ display: "flex", alignItems: "center", padding: "0 12px", marginBottom: 30 }}>
+                  <div className="flow-arrow" style={{ display: "flex", alignItems: "center", padding: "0 12px", height: 72 }}>
                     <div style={{ width: 24, height: 1, background: "rgba(45,212,191,0.25)" }} />
                     <Icon name="ChevronRight" size={14} style={{ color: "rgba(45,212,191,0.4)", marginLeft: -5 }} />
                   </div>
@@ -247,7 +247,21 @@ export default function ReelsVideoLanding() {
             ))}
           </div>
         </div>
-        <style>{`@media(max-width:700px){.flow-steps{flex-wrap:wrap!important;justify-content:center!important;}}`}</style>
+        <style>{`
+          @media(max-width:700px){
+            .flow-steps{flex-wrap:wrap!important;justify-content:center!important;row-gap:24px!important;column-gap:8px!important;}
+            .flow-step-pair{flex:0 0 auto;}
+            .flow-arrow{display:none!important;}
+          }
+          @media(max-width:480px){
+            .flow-step-col{width:84px!important;}
+            .flow-step-icon{width:60px!important;height:60px!important;}
+          }
+          @media(max-width:360px){
+            .flow-step-col{width:72px!important;}
+            .flow-step-icon{width:52px!important;height:52px!important;}
+          }
+        `}</style>
       </section>
 
       {/* ── СЦЕНАРИЙ → ВИДЕО (уникальная фича) ───────────────────────────── */}
