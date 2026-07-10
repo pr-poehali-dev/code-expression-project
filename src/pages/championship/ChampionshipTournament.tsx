@@ -74,11 +74,28 @@ const CSS = `
 
   /* Карточка работы */
   .ct-work-card { background: #fff; border-radius: 14px; border: 1.5px solid #e2e8f0; overflow: hidden; }
-  .ct-work-photo { height: 180px; background: #f1f5f9; position: relative; }
+  .ct-work-photo { height: 180px; background: #f1f5f9; position: relative; cursor: pointer; }
+  .ct-work-photo:hover .ct-photo-zoom { opacity: 1; }
+  .ct-photo-zoom { position: absolute; bottom: 8px; right: 8px; width: 28px; height: 28px; border-radius: 8px; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; opacity: 0.85; transition: opacity 0.2s; }
   .ct-work-body { padding: 14px; }
   .ct-vote-btn { padding: 8px 14px; border-radius: 8px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; }
   .ct-vote-btn-active { background: #14B8A6; color: #fff; }
   .ct-vote-btn-voted { background: #f0fdf4; color: #059669; cursor: default; }
+
+  /* Мини-фото в раскрытых деталях — кликабельные */
+  .ct-thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; flex-shrink: 0; cursor: pointer; transition: transform 0.15s; }
+  .ct-thumb:hover { transform: scale(1.05); }
+
+  /* Лайтбокс */
+  .ct-lightbox { position: fixed; inset: 0; z-index: 200; background: rgba(10,14,22,0.94); display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .ct-lightbox-img { max-width: 100%; max-height: 82vh; border-radius: 8px; object-fit: contain; }
+  .ct-lightbox-close { position: absolute; top: 18px; right: 18px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.12); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .ct-lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.12); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .ct-lightbox-prev { left: 12px; }
+  .ct-lightbox-next { right: 12px; }
+  .ct-lightbox-caption { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 13px; text-align: center; max-width: 80%; }
+  .ct-lightbox-counter { position: absolute; top: 22px; left: 24px; color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 600; }
+  @media (max-width: 600px) { .ct-lightbox-nav { width: 38px; height: 38px; } }
 `;
 
 export default function ChampionshipTournament() {
@@ -376,21 +393,32 @@ function ShareBanner({ url, tournamentName }: { url: string; tournamentName: str
 function WorkCard({ work: w, isVoting, isFinished, voted, loading, onVote, index }:
   { work: Work; isVoting: boolean; isFinished: boolean; voted: boolean; loading: boolean; onVote: () => void; index: number }) {
   const [open, setOpen] = useState(false);
-  const photo = w.photos?.[0]?.url;
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const photos = w.photos || [];
+  const photo = photos[0]?.url;
   // Во время голосования скрываем название и данные салона — показываем только номер
   const displayTitle = isVoting ? `Работа #${index + 1}` : w.title;
-  const hasDetails = !!(w.description || w.story || w.services_done || w.master_name || w.tools_used || w.video_url || (w.photos && w.photos.length > 1));
+  const hasText = !!(w.description || w.story || w.services_done || w.master_name || w.tools_used || w.video_url);
+  const hasDetails = hasText || photos.length > 0;
 
   return (
     <div className="ct-work-card">
-      <div className="ct-work-photo" style={{ background: photo ? `url(${photo}) center/cover` : "#f1f5f9", cursor: hasDetails ? "pointer" : "default" }}
-        onClick={() => hasDetails && setOpen(o => !o)}>
+      <div className="ct-work-photo" style={{ background: photo ? `url(${photo}) center/cover` : "#f1f5f9" }}
+        onClick={() => photo && setLightboxIndex(0)}>
         {!photo && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>🖼</div>
+        )}
+        {photo && (
+          <div className="ct-photo-zoom"><Icon name="ZoomIn" size={15} style={{ color: "#fff" }} /></div>
         )}
         {w.final_place && w.final_place <= 3 && (
           <div style={{ position: "absolute", top: 10, left: 10, background: "#fff", borderRadius: 20, padding: "3px 10px", fontSize: 12, fontWeight: 700 }}>
             {["🥇","🥈","🥉"][w.final_place - 1]} {w.final_place} место
+          </div>
+        )}
+        {photos.length > 1 && (
+          <div style={{ position: "absolute", bottom: 8, left: 8, background: "rgba(0,0,0,0.55)", borderRadius: 20, padding: "3px 9px", fontSize: 11, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", gap: 4 }}>
+            <Icon name="Images" size={12} /> {photos.length}
           </div>
         )}
       </div>
@@ -410,13 +438,16 @@ function WorkCard({ work: w, isVoting, isFinished, voted, loading, onVote, index
 
         {open && (
           <div style={{ background: "#f8fafc", borderRadius: 10, padding: "12px 14px", marginBottom: 10, display: "flex", flexDirection: "column", gap: 10 }}>
-            {w.photos && w.photos.length > 1 && (
+            {photos.length > 1 && (
               <div style={{ display: "flex", gap: 6, overflowX: "auto" }}>
-                {w.photos.map((p, i) => (
+                {photos.map((p, i) => (
                   <img key={i} src={p.url} alt={p.caption || ""} title={p.caption || ""}
-                    style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />
+                    className="ct-thumb" onClick={() => setLightboxIndex(i)} />
                 ))}
               </div>
+            )}
+            {!hasText && photos.length <= 1 && (
+              <div style={{ fontSize: 12, color: "#94a3b8" }}>Мастер не добавил описание к этой работе</div>
             )}
             {w.master_name && (
               <div style={{ fontSize: 12, color: "#374151" }}><b style={{ color: "#0f172a" }}>Мастер:</b> {w.master_name}</div>
@@ -464,6 +495,47 @@ function WorkCard({ work: w, isVoting, isFinished, voted, loading, onVote, index
           )}
         </div>
       </div>
+
+      {lightboxIndex !== null && photos.length > 0 && (
+        <PhotoLightbox photos={photos} index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onPrev={() => setLightboxIndex(i => i === null ? 0 : (i - 1 + photos.length) % photos.length)}
+          onNext={() => setLightboxIndex(i => i === null ? 0 : (i + 1) % photos.length)} />
+      )}
+    </div>
+  );
+}
+
+function PhotoLightbox({ photos, index, onClose, onPrev, onNext }:
+  { photos: { url: string; caption?: string }[]; index: number; onClose: () => void; onPrev: () => void; onNext: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") onPrev();
+      if (e.key === "ArrowRight") onNext();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, onPrev, onNext]);
+
+  const p = photos[index];
+
+  return (
+    <div className="ct-lightbox" onClick={onClose}>
+      <div className="ct-lightbox-counter">{index + 1} / {photos.length}</div>
+      <button className="ct-lightbox-close" onClick={onClose}><Icon name="X" size={20} /></button>
+      {photos.length > 1 && (
+        <button className="ct-lightbox-nav ct-lightbox-prev" onClick={e => { e.stopPropagation(); onPrev(); }}>
+          <Icon name="ChevronLeft" size={22} />
+        </button>
+      )}
+      <img src={p.url} alt={p.caption || ""} className="ct-lightbox-img" onClick={e => e.stopPropagation()} />
+      {photos.length > 1 && (
+        <button className="ct-lightbox-nav ct-lightbox-next" onClick={e => { e.stopPropagation(); onNext(); }}>
+          <Icon name="ChevronRight" size={22} />
+        </button>
+      )}
+      {p.caption && <div className="ct-lightbox-caption">{p.caption}</div>}
     </div>
   );
 }
