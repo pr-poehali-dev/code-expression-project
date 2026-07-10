@@ -125,9 +125,13 @@ export default function LkMarketingDashboard({ salonId, onOpenTool }: Props) {
             <div key={tool.id} style={{ position: "relative" }}>
               {stepNum <= 4 && (
                 <div style={{ position: "absolute", top: -8, left: 16, zIndex: 2, display: "flex", alignItems: "center", gap: 5, background: isDone ? "hsl(145,60%,38%)" : isLocked ? "#94A3B8" : ACCENT, color: "#fff", fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "2px 10px", letterSpacing: 0.5 }}>
-                  {isDone ? <Icon name="Check" size={9} /> : <span>Шаг {stepNum}</span>}
-                  {isDone && "Выполнено"}
-                  {isLocked && !isDone && `Шаг ${stepNum} · нужен шаг ${stepNum - 1}`}
+                  {isDone ? (
+                    <><Icon name="Check" size={9} /> Выполнено</>
+                  ) : isLocked ? (
+                    <span>Шаг {stepNum} · нужен шаг {stepNum - 1}</span>
+                  ) : (
+                    <span>Шаг {stepNum}</span>
+                  )}
                 </div>
               )}
               <ToolCard tool={tool} onOpen={onOpenTool} />
