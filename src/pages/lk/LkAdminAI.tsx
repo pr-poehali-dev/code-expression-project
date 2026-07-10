@@ -14,6 +14,18 @@ interface Message {
 }
 
 type RoleId = "marketer" | "blogger" | "financier" | "philosopher" | "programmer" | "businessman" | "psychologist" | "screenwriter" | "politician" | "lawyer";
+type ModelId = "gpt-4.1" | "terra";
+
+interface ModelOption {
+  id: ModelId;
+  label: string;
+  hint: string;
+}
+
+const MODELS: ModelOption[] = [
+  { id: "gpt-4.1", label: "GPT-4.1", hint: "Стабильная модель по умолчанию" },
+  { id: "terra",   label: "Terra",   hint: "Альтернативная модель Polza AI" },
+];
 
 interface Role {
   id: RoleId;
@@ -226,6 +238,7 @@ function RoleSelector({ active, onChange }: { active: RoleId; onChange: (id: Rol
 
 export function AISection() {
   const [role, setRole] = useState<RoleId>("marketer");
+  const [model, setModel] = useState<ModelId>("gpt-4.1");
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -267,7 +280,7 @@ export function AISection() {
       const res = await fetch(AI_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: ADMIN_TOKEN, role, messages: apiMessages }),
+        body: JSON.stringify({ token: ADMIN_TOKEN, role, model, messages: apiMessages }),
       });
 
       const data = await res.json();
@@ -312,7 +325,32 @@ export function AISection() {
           </div>
           <div>
             <div style={{ fontWeight: 700, fontSize: 15, color: "#0F172A" }}>ИИ-ассистент PRO</div>
-            <div style={{ fontSize: 11, color: "#94A3B8" }}>GPT-4.1 · История сохраняется · {messages.length} сообщений</div>
+            <div style={{ fontSize: 11, color: "#94A3B8" }}>{MODELS.find(m => m.id === model)?.label} · История сохраняется · {messages.length} сообщений</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", padding: 3, borderRadius: 9, background: "#F1F5F9", border: "1px solid #E8ECF0" }}>
+            {MODELS.map(m => {
+              const isActive = m.id === model;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setModel(m.id)}
+                  title={m.hint}
+                  style={{
+                    padding: "6px 13px", borderRadius: 7, border: "none",
+                    background: isActive ? "#fff" : "transparent",
+                    color: isActive ? "#0F172A" : "#94A3B8",
+                    fontSize: 12, fontWeight: isActive ? 700 : 500,
+                    cursor: "pointer", fontFamily: "Montserrat, sans-serif",
+                    boxShadow: isActive ? "0 1px 3px rgba(15,23,42,0.1)" : "none",
+                    transition: "all 0.18s",
+                  }}
+                >
+                  {m.label}
+                </button>
+              );
+            })}
           </div>
         </div>
         {messages.length > 0 && (

@@ -75,10 +75,17 @@ ROLE_NAMES = {
 }
 
 
-def call_ai(system_prompt: str, messages: list) -> str:
+MODELS = {
+    "gpt-4.1": "openai/gpt-4.1",
+    "terra": "openai/gpt-5.6-terra",
+}
+
+
+def call_ai(system_prompt: str, messages: list, model_key: str) -> str:
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
+    model = MODELS.get(model_key, MODELS["gpt-4.1"])
     payload = json.dumps({
-        "model": "openai/gpt-4.1",
+        "model": model,
         "messages": [{"role": "system", "content": system_prompt}] + messages[-8:],
         "temperature": 0.8,
         "max_tokens": 1200,
@@ -115,6 +122,7 @@ def handler(event: dict, context) -> dict:
         return {"statusCode": 403, "headers": CORS, "body": json.dumps({"error": "Forbidden"})}
 
     role = body.get("role", "marketer")
+    model_key = body.get("model", "gpt-4.1")
     messages = body.get("messages", [])
 
     if not messages:
@@ -122,10 +130,10 @@ def handler(event: dict, context) -> dict:
 
     role_prompt = ROLE_PROMPTS.get(role, ROLE_PROMPTS["marketer"])
     system_prompt = PROJECT_KNOWLEDGE + "\n\n" + role_prompt
-    reply = call_ai(system_prompt, messages)
+    reply = call_ai(system_prompt, messages, model_key)
 
     return {
         "statusCode": 200,
         "headers": CORS,
-        "body": json.dumps({"reply": reply, "role": role}, ensure_ascii=False),
+        "body": json.dumps({"reply": reply, "role": role, "model": model_key}, ensure_ascii=False),
     }
