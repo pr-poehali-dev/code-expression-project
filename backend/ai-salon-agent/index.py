@@ -381,12 +381,8 @@ def is_document_request(user_message: str) -> bool:
 def call_ai(system_prompt: str, messages: list) -> str:
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     last_user_message = messages[-1].get("content", "") if messages else ""
-    if is_document_request(last_user_message):
-        model = "anthropic/claude-sonnet-5"
-        max_tokens = 4000
-    else:
-        model = "openai/gpt-4.1"
-        max_tokens = 1200
+    model = "openai/gpt-5.6-terra"
+    max_tokens = 4000 if is_document_request(last_user_message) else 1200
     payload = json.dumps({
         "model": model,
         "messages": [{"role": "system", "content": system_prompt}] + messages[-AI_CONTEXT_MESSAGES:],
