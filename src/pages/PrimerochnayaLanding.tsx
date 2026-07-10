@@ -116,24 +116,18 @@ export default function PrimerochnayaLanding() {
               </div>
             </div>
 
-            {/* Место под фото до/после — временная рамка-заглушка */}
+            {/* Фото: мастер показывает клиентке новый образ на телефоне прямо в кресле */}
             <div style={{ position: "relative" }}>
-              <div style={{
-                position: "relative", borderRadius: 16, overflow: "hidden",
-                border: "1.5px dashed rgba(45,212,191,0.35)",
-                background: "rgba(255,255,255,0.03)",
-                aspectRatio: "4/5",
-                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                gap: 16, padding: 32, textAlign: "center",
-              }}>
-                <div style={{ width: 64, height: 64, borderRadius: 16, background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Icon name="ImagePlus" size={28} style={{ color: TEAL }} />
-                </div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, maxWidth: 260 }}>
-                  Здесь появится фото «до / после» — пример работы Примерочной
-                </div>
+              <div style={{ position: "absolute", inset: -1, borderRadius: 18, background: `linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))`, pointerEvents: "none", zIndex: 2 }} />
+              <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", boxShadow: "0 32px 80px rgba(0,0,0,0.5)" }}>
+                <img
+                  src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/cbca49b9-e625-4c09-83a0-ce45e3566b2b.png"
+                  alt="Клиентка в кресле салона смотрит на экран телефона со своим новым образом, сгенерированным ИИ — Примерочная"
+                  decoding="async"
+                  style={{ width: "100%", height: "auto", display: "block", position: "relative", zIndex: 1 }}
+                />
               </div>
-              <div style={{ position: "absolute", top: -16, right: -16, background: TEAL, borderRadius: 12, padding: "10px 16px", boxShadow: "0 8px 24px rgba(45,212,191,0.4)", display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ position: "absolute", top: -16, right: -16, background: TEAL, borderRadius: 12, padding: "10px 16px", boxShadow: "0 8px 24px rgba(45,212,191,0.4)", display: "flex", alignItems: "center", gap: 8, zIndex: 3 }}>
                 <Icon name="Sparkles" size={16} style={{ color: DARK }} />
                 <span style={{ fontSize: 13, fontWeight: 700, color: DARK }}>Готово за секунды</span>
               </div>
