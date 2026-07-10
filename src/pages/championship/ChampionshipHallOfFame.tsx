@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { champGet } from "./championshipApi";
@@ -76,22 +76,35 @@ export default function ChampionshipHallOfFame() {
 
 function HofCard({ e }: { e: HofEntry }) {
   const [open, setOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const ps = PLACE_STYLE[e.final_place - 1] || { bg: "#f8fafc", color: "#94a3b8", icon: `#${e.final_place}` };
-  const photo = e.photos?.[0]?.url;
-  const hasDetails = !!(e.description || e.story || e.services_done || e.master_name || e.tools_used || e.video_url || (e.photos && e.photos.length > 1));
+  const photos = e.photos || [];
+  const photo = photos[0]?.url;
+  const hasText = !!(e.description || e.story || e.services_done || e.master_name || e.tools_used || e.video_url);
+  const hasDetails = hasText || photos.length > 0;
 
   return (
     <div style={{ background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0", overflow: "hidden" }}>
       {/* Фото */}
-      <div style={{ height: 160, background: photo ? `url(${photo}) center/cover` : "#f1f5f9", position: "relative", cursor: hasDetails ? "pointer" : "default" }}
-        onClick={() => hasDetails && setOpen(o => !o)}>
+      <div style={{ height: 160, background: photo ? `url(${photo}) center/cover` : "#f1f5f9", position: "relative", cursor: photo ? "pointer" : "default" }}
+        onClick={() => photo && setLightboxIndex(0)}>
         {!photo && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 40 }}>🖼</div>}
+        {photo && (
+          <div style={{ position: "absolute", bottom: 8, right: 8, width: 28, height: 28, borderRadius: 8, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Icon name="ZoomIn" size={15} style={{ color: "#fff" }} />
+          </div>
+        )}
         <div style={{ position: "absolute", top: 12, left: 12, background: ps.bg, color: ps.color, borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 700 }}>
           {ps.icon} {e.final_place} место
         </div>
         <div style={{ position: "absolute", top: 12, right: 12, background: "rgba(0,0,0,0.5)", color: "#fff", borderRadius: 20, padding: "4px 10px", fontSize: 11, fontWeight: 600 }}>
           {e.emoji} {e.tournament_name}
         </div>
+        {photos.length > 1 && (
+          <div style={{ position: "absolute", bottom: 8, left: 12, background: "rgba(0,0,0,0.55)", borderRadius: 20, padding: "3px 9px", fontSize: 11, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", gap: 4 }}>
+            <Icon name="Images" size={12} /> {photos.length}
+          </div>
+        )}
       </div>
       {/* Инфо */}
       <div style={{ padding: "16px" }}>
@@ -126,13 +139,17 @@ function HofCard({ e }: { e: HofEntry }) {
 
         {open && (
           <div style={{ background: "#f8fafc", borderRadius: 10, padding: "12px 14px", marginBottom: 10, display: "flex", flexDirection: "column", gap: 10 }}>
-            {e.photos && e.photos.length > 1 && (
+            {photos.length > 1 && (
               <div style={{ display: "flex", gap: 6, overflowX: "auto" }}>
-                {e.photos.map((p, i) => (
+                {photos.map((p, i) => (
                   <img key={i} src={p.url} alt={p.caption || ""} title={p.caption || ""}
-                    style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 8, flexShrink: 0 }} />
+                    style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 8, flexShrink: 0, cursor: "pointer" }}
+                    onClick={() => setLightboxIndex(i)} />
                 ))}
               </div>
+            )}
+            {!hasText && photos.length <= 1 && (
+              <div style={{ fontSize: 12, color: "#94a3b8" }}>Мастер не добавил описание к этой работе</div>
             )}
             {e.master_name && (
               <div style={{ fontSize: 12, color: "#374151" }}><b style={{ color: "#0f172a" }}>Мастер:</b> {e.master_name}</div>
@@ -162,6 +179,51 @@ function HofCard({ e }: { e: HofEntry }) {
           </a>
         )}
       </div>
+
+      {lightboxIndex !== null && photos.length > 0 && (
+        <PhotoLightbox photos={photos} index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onPrev={() => setLightboxIndex(i => i === null ? 0 : (i - 1 + photos.length) % photos.length)}
+          onNext={() => setLightboxIndex(i => i === null ? 0 : (i + 1) % photos.length)} />
+      )}
+    </div>
+  );
+}
+
+function PhotoLightbox({ photos, index, onClose, onPrev, onNext }:
+  { photos: { url: string; caption?: string }[]; index: number; onClose: () => void; onPrev: () => void; onNext: () => void }) {
+  useEffect(() => {
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key === "Escape") onClose();
+      if (ev.key === "ArrowLeft") onPrev();
+      if (ev.key === "ArrowRight") onNext();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, onPrev, onNext]);
+
+  const p = photos[index];
+  const navBtn: CSSProperties = { position: "absolute", top: "50%", transform: "translateY(-50%)", width: 44, height: 44, borderRadius: "50%", background: "rgba(255,255,255,0.12)", border: "none", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(10,14,22,0.94)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+      onClick={onClose}>
+      <div style={{ position: "absolute", top: 22, left: 24, color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: 600 }}>{index + 1} / {photos.length}</div>
+      <button style={{ position: "absolute", top: 18, right: 18, width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.12)", border: "none", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={onClose}>
+        <Icon name="X" size={20} />
+      </button>
+      {photos.length > 1 && (
+        <button style={{ ...navBtn, left: 12 }} onClick={ev => { ev.stopPropagation(); onPrev(); }}>
+          <Icon name="ChevronLeft" size={22} />
+        </button>
+      )}
+      <img src={p.url} alt={p.caption || ""} style={{ maxWidth: "100%", maxHeight: "82vh", borderRadius: 8, objectFit: "contain" }} onClick={ev => ev.stopPropagation()} />
+      {photos.length > 1 && (
+        <button style={{ ...navBtn, right: 12 }} onClick={ev => { ev.stopPropagation(); onNext(); }}>
+          <Icon name="ChevronRight" size={22} />
+        </button>
+      )}
+      {p.caption && <div style={{ position: "absolute", bottom: 24, left: "50%", transform: "translateX(-50%)", color: "rgba(255,255,255,0.7)", fontSize: 13, textAlign: "center", maxWidth: "80%" }}>{p.caption}</div>}
     </div>
   );
 }
