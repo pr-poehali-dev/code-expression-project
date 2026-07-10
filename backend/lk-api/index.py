@@ -3265,7 +3265,9 @@ def handle_energy_balance(event: dict) -> dict:
 
 
 def handle_energy_history(event: dict) -> dict:
-    """История транзакций энергии по салону (для владельца)."""
+    """История пополнений энергии по салону (для владельца). Списания за использование инструментов
+    намеренно не показываем — точную стоимость операций пользователю не раскрываем. Возвраты энергии
+    (при недоступности ИИ-сервиса) относятся к типу 'credit' и отображаются как приход."""
     conn = get_db()
     try:
         user = get_session_user(event, conn)
@@ -3281,7 +3283,7 @@ def handle_energy_history(event: dict) -> dict:
             f"u.full_name "
             f"FROM {tbl('credit_transactions')} ct "
             f"LEFT JOIN {tbl('lk_users')} u ON u.id = ct.user_id "
-            f"WHERE ct.salon_id=%s ORDER BY ct.created_at DESC LIMIT 100",
+            f"WHERE ct.salon_id=%s AND ct.type='credit' ORDER BY ct.created_at DESC LIMIT 100",
             (salon["id"],)
         )
         rows = [dict(r) for r in cur.fetchall()]

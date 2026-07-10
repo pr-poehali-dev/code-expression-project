@@ -363,7 +363,7 @@ def handle_fitting(event, conn):
         conn_r.close()
         if e.code in (502, 503):
             return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
-        return err(f"Ошибка сервиса генерации: {body_text[:150]}", 502)
+        return err(f"Ошибка сервиса генерации, энергия возвращена: {body_text[:150]}", 502)
     except Exception as e:
         msg = str(e)
         print(f"[polza.ai fitting] err: {msg}")
@@ -373,11 +373,15 @@ def handle_fitting(event, conn):
             update_fitting_record(fitting_id, conn_r, status="failed")
             conn_r.close()
             return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+        if "timed out" in msg.lower() or "timeout" in msg.lower():
+            refund_energy(salon_id, user["id"], cost, conn_r, tool_key=FITTING_TOOL_KEY)
+            update_fitting_record(fitting_id, conn_r, status="failed")
+            conn_r.close()
+            return err("Обработка фото заняла слишком много времени, энергия возвращена. Попробуйте ещё раз.", 504)
+        refund_energy(salon_id, user["id"], cost, conn_r, tool_key=FITTING_TOOL_KEY)
         update_fitting_record(fitting_id, conn_r, status="failed")
         conn_r.close()
-        if "timed out" in msg.lower() or "timeout" in msg.lower():
-            return err("Обработка фото занимает дольше обычного — проверьте раздел «Мои примерки» через минуту.", 504)
-        return err(f"Ошибка соединения: {msg}", 502)
+        return err(f"Ошибка соединения, энергия возвращена: {msg}", 502)
 
     result_url = None
     b64_data = None
@@ -394,9 +398,10 @@ def handle_fitting(event, conn):
 
     if not result_url and not b64_data:
         conn_r = get_db()
+        refund_energy(salon_id, user["id"], cost, conn_r, tool_key=FITTING_TOOL_KEY)
         update_fitting_record(fitting_id, conn_r, status="failed")
         conn_r.close()
-        return err("Сервис не вернул изображение. Попробуйте ещё раз.", 502)
+        return err("Сервис не вернул изображение, энергия возвращена. Попробуйте ещё раз.", 502)
 
     if b64_data:
         result_url = upload_to_s3(b64_data, "png", user["id"])
@@ -650,7 +655,13 @@ def handler(event: dict, context) -> dict:
                     break
 
         if not image_url and not b64_data:
-            return err("Сервис не вернул изображение. Попробуйте ещё раз.", 502)
+            try:
+                conn_r = get_db()
+                refund_energy(salon_id, user["id"], cost, conn_r)
+                conn_r.close()
+            except Exception:
+                pass
+            return err("Сервис не вернул изображение, энергия возвращена. Попробуйте ещё раз.", 502)
 
         if b64_data:
             image_url = upload_to_s3(b64_data, "png", user["id"])
