@@ -36,6 +36,8 @@ export function ToolCard({ tool, onOpen }: { tool: Tool; onOpen: (id: string) =>
         gap: 14,
         position: "relative",
         overflow: "hidden",
+        height: "100%",
+        boxSizing: "border-box",
       }}
       onMouseEnter={e => { if (!disabled) { const el = e.currentTarget; el.style.boxShadow = "0 12px 32px rgba(15,23,42,0.1)"; el.style.transform = "translateY(-3px)"; el.style.borderColor = "hsl(185,85%,65%)"; }}}
       onMouseLeave={e => { if (!disabled) { const el = e.currentTarget; el.style.boxShadow = "none"; el.style.transform = "translateY(0)"; el.style.borderColor = "#E0EEF0"; }}}

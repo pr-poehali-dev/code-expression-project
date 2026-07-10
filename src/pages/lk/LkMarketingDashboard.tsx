@@ -122,7 +122,7 @@ export default function LkMarketingDashboard({ salonId, onOpenTool }: Props) {
           const isLocked = prereq && !hasCachedResult(prereq.key + salonId);
           const stepNum = idx + 1;
           return (
-            <div key={tool.id} style={{ position: "relative" }}>
+            <div key={tool.id} style={{ position: "relative", height: "100%" }}>
               {stepNum <= 4 && (
                 <div style={{ position: "absolute", top: -8, left: 16, zIndex: 2, display: "flex", alignItems: "center", gap: 5, background: isDone ? "hsl(145,60%,38%)" : isLocked ? "#94A3B8" : ACCENT, color: "#fff", fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "2px 10px", letterSpacing: 0.5 }}>
                   {isDone ? (
