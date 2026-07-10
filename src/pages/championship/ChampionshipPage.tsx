@@ -38,7 +38,7 @@ export default function ChampionshipPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  const current  = tournaments.filter(t => ["registration", "active", "voting", "finished_pending"].includes(t.status));
+  const current  = tournaments.filter(t => ["registration", "registration_closed", "active", "voting", "finished_pending"].includes(t.status));
   const upcoming = tournaments.filter(t => ["announced", "draft"].includes(t.status));
   const archive  = tournaments.filter(t => t.status === "finished");
 
@@ -391,6 +391,8 @@ function TournamentCard({ t, onClick }: { t: Tournament; onClick: () => void }) 
   const dateInfo = (() => {
     if (["announced", "registration"].includes(t.status) && t.registration_ends)
       return { label: "Регистрация до", value: fmt(t.registration_ends), icon: "CalendarClock" };
+    if (t.status === "registration_closed" && t.task_opens_at)
+      return { label: "Старт турнира", value: fmt(t.task_opens_at), icon: "Clock" };
     if (t.status === "active" && t.work_deadline)
       return { label: "Дедлайн работ", value: fmt(t.work_deadline), icon: "Clock" };
     if (t.status === "voting" && t.voting_ends)
@@ -480,7 +482,7 @@ function TournamentCard({ t, onClick }: { t: Tournament; onClick: () => void }) 
             <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f1f5f9", color: "#64748b", borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 700, flexShrink: 0, cursor: "pointer" }}>
               Итоги <Icon name="ArrowRight" size={14} />
             </div>
-          ) : ["announced", "registration"].includes(t.status) && !registrationOpen ? (
+          ) : t.status === "registration_closed" || (["announced", "registration"].includes(t.status) && !registrationOpen) ? (
             <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f1f5f9", color: "#64748b", borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 700, flexShrink: 0, cursor: "pointer" }}>
               Регистрация закрыта
             </div>

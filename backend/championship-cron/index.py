@@ -3,6 +3,7 @@
 GET  ?action=run               — запускает все проверки (cron trigger)
 GET  ?action=open_registration — переводит announced → registration когда наступает registration_starts
 GET  ?action=check_min         — проверка минимума участников за 3 дня до старта
+GET  ?action=close_registration — закрывает регистрацию (registration → registration_closed) когда наступает registration_ends
 GET  ?action=open_tasks        — открывает задание когда наступает task_opens_at
 GET  ?action=start_voting      — переводит в статус voting когда наступает voting_starts
 GET  ?action=close_voting      — переводит в статус finished_pending когда voting_ends
@@ -65,6 +66,8 @@ def handler(event: dict, context) -> dict:
         results["open_registration"] = do_open_registration()
     if action in ("run", "check_min"):
         results["check_min"] = do_check_min_participants()
+    if action in ("run", "close_registration"):
+        results["close_registration"] = do_close_registration()
     if action in ("run", "open_tasks"):
         results["open_tasks"] = do_open_tasks()
     if action in ("run", "start_voting"):
@@ -114,7 +117,7 @@ def do_check_min_participants() -> dict:
 
     cur.execute(
         f"""SELECT t.* FROM {tbl('ch_tournaments')} t
-            WHERE t.status IN ('announced','registration')
+            WHERE t.status IN ('announced','registration','registration_closed')
               AND t.task_opens_at IS NOT NULL
               AND t.task_opens_at > NOW()
               AND t.registration_ends IS NOT NULL
@@ -205,6 +208,30 @@ def _send_postpone_email(to_email: str, tournament: dict, count: int, next_dt):
     send_email_html(to_email, f"Турнир «{tournament['name']}» перенесён", html)
 
 
+# ── Закрытие регистрации ──────────────────────────────────────────────────────
+
+def do_close_registration() -> dict:
+    """Переводит турниры registration → registration_closed когда наступает registration_ends."""
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT * FROM {tbl('ch_tournaments')}
+            WHERE status = 'registration'
+              AND registration_ends IS NOT NULL
+              AND registration_ends <= NOW()""",
+    )
+    tournaments = cur.fetchall()
+    closed = []
+    for t in tournaments:
+        cur.execute(
+            f"UPDATE {tbl('ch_tournaments')} SET status='registration_closed', updated_at=NOW() WHERE id=%s",
+            (t["id"],)
+        )
+        closed.append({"tournament_id": t["id"], "name": t["name"]})
+    conn.commit()
+    return {"closed_registration": closed}
+
+
 # ── Открытие задания ──────────────────────────────────────────────────────────
 
 def do_open_tasks() -> dict:
@@ -213,7 +240,7 @@ def do_open_tasks() -> dict:
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         f"""SELECT * FROM {tbl('ch_tournaments')}
-            WHERE status = 'registration'
+            WHERE status IN ('registration', 'registration_closed')
               AND task_opens_at IS NOT NULL
               AND task_opens_at <= NOW()
               AND postponed = FALSE""",

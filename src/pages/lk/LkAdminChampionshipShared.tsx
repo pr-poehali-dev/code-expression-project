@@ -65,12 +65,14 @@ export function Card({ children, style = {} }: { children: React.ReactNode; styl
 
 export const STATUS_LABELS: Record<string, string> = {
   draft: "Черновик", announced: "Анонс", registration: "Регистрация",
+  registration_closed: "Регистрация закрыта",
   active: "Приём работ", voting: "Голосование",
   finished_pending: "Итоги", finished: "Завершён", cancelled: "Отменён",
 };
 
 export const STATUS_COLORS: Record<string, string> = {
   draft: "#94a3b8", announced: "#3b82f6", registration: "#10b981",
+  registration_closed: "#f59e0b",
   active: "#6366f1", voting: "#f59e0b", finished_pending: "#f97316",
   finished: "#64748b", cancelled: "#ef4444",
 };

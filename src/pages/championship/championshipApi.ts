@@ -62,22 +62,24 @@ export const LEVEL_COLORS: Record<string, string> = {
 };
 
 export const STATUS_LABELS: Record<string, string> = {
-  draft:            "Черновик",
-  announced:        "Анонс",
-  registration:     "Регистрация",
-  active:           "Идёт приём работ",
-  voting:           "Голосование",
-  finished_pending: "Подводятся итоги",
-  finished:         "Завершён",
-  cancelled:        "Отменён",
+  draft:              "Черновик",
+  announced:          "Анонс",
+  registration:       "Регистрация",
+  registration_closed:"Регистрация закрыта",
+  active:             "Идёт приём работ",
+  voting:             "Голосование",
+  finished_pending:   "Подводятся итоги",
+  finished:           "Завершён",
+  cancelled:          "Отменён",
 };
 
 export const STATUS_COLORS: Record<string, string> = {
-  announced:        "#3b82f6",
-  registration:     "#10b981",
-  active:           "#6366f1",
-  voting:           "#f59e0b",
-  finished_pending: "#f97316",
-  finished:         "#64748b",
-  cancelled:        "#ef4444",
+  announced:          "#3b82f6",
+  registration:       "#10b981",
+  registration_closed:"#f59e0b",
+  active:             "#6366f1",
+  voting:             "#f59e0b",
+  finished_pending:   "#f97316",
+  finished:           "#64748b",
+  cancelled:          "#ef4444",
 };

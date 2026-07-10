@@ -231,7 +231,7 @@ export default function ChampionshipTournament() {
                   </div>
                 </div>
               )}
-              {!t.task_text && ["announced", "registration"].includes(t.status) && (
+              {!t.task_text && ["announced", "registration", "registration_closed"].includes(t.status) && (
                 <div className="ct-section">
                   <h3 className="ct-section-title">🎯 Задание</h3>
                   <div style={{ background: "#f8fafc", borderRadius: 10, padding: "20px", border: "1.5px dashed #cbd5e1", textAlign: "center" }}>
