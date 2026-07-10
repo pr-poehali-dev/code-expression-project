@@ -18,6 +18,19 @@
       "method": "GET",
       "path": "/",
       "expectedStatus": 401
+    },
+    {
+      "name": "POST fitting без сессии — 401",
+      "method": "POST",
+      "path": "/?action=fitting",
+      "body": {"scenario": "haircut"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET fitting_history без сессии — 401",
+      "method": "GET",
+      "path": "/?action=fitting_history",
+      "expectedStatus": 401
     }
   ]
 }

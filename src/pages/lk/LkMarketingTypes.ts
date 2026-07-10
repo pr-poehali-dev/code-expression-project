@@ -7,7 +7,7 @@ export interface Tool {
   iconBg: string;
   title: string;
   description: string;
-  badge: "new" | "soon" | "cost" | "cost3" | "cost15";
+  badge: "new" | "soon" | "cost" | "cost3" | "cost15" | "cost45";
   ready: boolean;
   requiresPaid?: boolean;
 }
@@ -18,6 +18,7 @@ export const BADGE_STYLES: Record<string, { bg: string; color: string; label: st
   cost:   { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "1 ⚡" },
   cost3:  { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "3 ⚡" },
   cost15: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "от 105 ⚡" },
+  cost45: { bg: "hsl(40,90%,93%)",  color: "hsl(40,70%,35%)",  label: "45 ⚡" },
 };
 
 export const TOOLS_DIRECT: Tool[] = [
@@ -124,6 +125,16 @@ export const TOOLS_CONTENT: Tool[] = [
     badge: "cost15",
     ready: true,
     requiresPaid: true,
+  },
+  {
+    id: "photo-fitting",
+    icon: "Wand2",
+    iconColor: "hsl(280,70%,50%)",
+    iconBg: "hsl(280,70%,96%)",
+    title: "Примерочная",
+    description: "Клиент загружает фото — ИИ показывает результат стрижки, макияжа, маникюра или коррекции фигуры и подсказывает, как этого добиться у мастера.",
+    badge: "cost45",
+    ready: true,
   },
 ];
 

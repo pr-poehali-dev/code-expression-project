@@ -2,7 +2,10 @@
 Генерация изображений через polza.ai (модель openai/gpt-image-1.5). ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ 300с.
 Результат временно сохраняется в S3 и возвращается URL для скачивания.
 После скачивания пользователем файлы не удаляются автоматически — хранятся 24ч (для MVP).
-Маршруты: POST / — генерация
+Маршруты:
+  POST /                      — генерация изображения с нуля
+  POST /?action=fitting       — «Примерочная»: редактирование фото клиента (стрижка/макияж/ногти/фигура) + текстовая рекомендация
+  GET  /?action=fitting_history — история примерок пользователя
 """
 import json
 import os
@@ -37,6 +40,14 @@ ASPECT_MAP_DALLE = {
 }
 
 TOOL_KEY = "image_gen"
+FITTING_TOOL_KEY = "photo_fitting"
+
+FITTING_SCENARIOS = {
+    "haircut":  "стрижку и укладку волос",
+    "makeup":   "макияж лица",
+    "manicure": "маникюр и дизайн ногтей на руках",
+    "figure":   "коррекцию силуэта фигуры (визуальная демонстрация возможного результата, не медицинская процедура)",
+}
 
 
 def get_db():
@@ -64,14 +75,14 @@ def get_session_user(event, conn):
     return cur.fetchone()
 
 
-def get_tool_cost(conn) -> int:
+def get_tool_cost(conn, tool_key=TOOL_KEY, default=5) -> int:
     cur = conn.cursor()
     cur.execute(
         f"SELECT energy_cost FROM {SCHEMA}.tool_costs WHERE tool_key = %s",
-        (TOOL_KEY,)
+        (tool_key,)
     )
     row = cur.fetchone()
-    return row[0] if row else 5
+    return row[0] if row else default
 
 
 FREE_LIMIT = 3
@@ -99,7 +110,7 @@ def check_free_limit(salon_id, conn) -> tuple[bool, int]:
     return used < FREE_LIMIT, used
 
 
-def check_and_deduct_energy(salon_id, user_id, amount, conn) -> tuple[bool, int]:
+def check_and_deduct_energy(salon_id, user_id, amount, conn, tool_key=TOOL_KEY, action="Создание изображения") -> tuple[bool, int]:
     """
     Атомарная проверка баланса и списание с блокировкой строки (FOR UPDATE).
     Защищает от двойного списания при параллельных запросах.
@@ -124,13 +135,13 @@ def check_and_deduct_energy(salon_id, user_id, amount, conn) -> tuple[bool, int]
     cur.execute(
         f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
         f"VALUES (%s, %s, %s, %s, %s, 'debit')",
-        (salon_id, user_id, "Создание изображения", amount, TOOL_KEY)
+        (salon_id, user_id, action, amount, tool_key)
     )
     conn.commit()
     return True, balance
 
 
-def refund_energy(salon_id, user_id, cost, conn):
+def refund_energy(salon_id, user_id, cost, conn, tool_key=TOOL_KEY):
     cur = conn.cursor()
     cur.execute(
         f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance + %s WHERE id = %s",
@@ -139,7 +150,7 @@ def refund_energy(salon_id, user_id, cost, conn):
     cur.execute(
         f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
         f"VALUES (%s, %s, %s, %s, %s, 'credit')",
-        (salon_id, user_id, "Возврат: ИИ-сервис недоступен", cost, TOOL_KEY)
+        (salon_id, user_id, "Возврат: ИИ-сервис недоступен", cost, tool_key)
     )
     conn.commit()
 
@@ -188,6 +199,226 @@ def upload_to_s3(image_b64: str, ext: str, user_id: int) -> str:
     return cdn_url
 
 
+def save_fitting_record(user_id, scenario, source_url, conn) -> int:
+    cur = conn.cursor()
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.photo_fittings (user_id, scenario, source_url, status) "
+        f"VALUES (%s, %s, %s, 'pending') RETURNING id",
+        (user_id, scenario, source_url)
+    )
+    fitting_id = cur.fetchone()[0]
+    conn.commit()
+    return fitting_id
+
+
+def update_fitting_record(fitting_id, conn, **fields):
+    if not fields:
+        return
+    cur = conn.cursor()
+    set_clause = ", ".join(f"{k} = %s" for k in fields)
+    cur.execute(
+        f"UPDATE {SCHEMA}.photo_fittings SET {set_clause} WHERE id = %s",
+        (*fields.values(), fitting_id)
+    )
+    conn.commit()
+
+
+def call_text_ai(messages, api_key, max_tokens=600) -> str:
+    payload = json.dumps({
+        "model": "openai/gpt-4.1-mini",
+        "messages": messages,
+        "temperature": 0.7,
+        "max_tokens": max_tokens,
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        "https://polza.ai/api/v1/chat/completions",
+        data=payload,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+    return data["choices"][0]["message"]["content"].strip()
+
+
+def handle_fitting_history(event, conn):
+    user = get_session_user(event, conn)
+    if not user:
+        return err("Не авторизован", 401)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"DELETE FROM {SCHEMA}.photo_fittings WHERE created_at < NOW() - INTERVAL '6 days'"
+    )
+    conn.commit()
+    cur.execute(
+        f"SELECT id, scenario, source_url, result_url, recommendation, status, created_at "
+        f"FROM {SCHEMA}.photo_fittings WHERE user_id=%s AND status='done' ORDER BY created_at DESC LIMIT 30",
+        (user["id"],)
+    )
+    return ok([dict(r) for r in cur.fetchall()])
+
+
+def handle_fitting(event, conn):
+    """Примерочная: редактирует фото клиента по сценарию (стрижка/макияж/маникюр/фигура) + даёт текстовую рекомендацию."""
+    user = get_session_user(event, conn)
+    if not user:
+        return err("Не авторизован", 401)
+
+    salon_id = user.get("salon_id")
+    if not salon_id:
+        return err("Салон не найден", 400)
+
+    body = json.loads(event.get("body") or "{}")
+    scenario = body.get("scenario", "")
+    if scenario not in FITTING_SCENARIOS:
+        return err("Некорректный сценарий примерки")
+
+    photo_b64 = (body.get("photo_base64") or "").strip()
+    if not photo_b64:
+        return err("Загрузите фото")
+    if photo_b64.startswith("data:"):
+        photo_b64 = photo_b64.split(",", 1)[-1]
+
+    wishes = (body.get("wishes") or "").strip()
+    if len(wishes) > 1000:
+        return err("Описание слишком длинное (максимум 1000 символов)")
+
+    cost = get_tool_cost(conn, FITTING_TOOL_KEY, default=45)
+    ok_deduct, balance = check_and_deduct_energy(
+        salon_id, user["id"], cost, conn,
+        tool_key=FITTING_TOOL_KEY, action="Виртуальная примерка"
+    )
+    if not ok_deduct:
+        return err(f"Недостаточно энергии. Нужно {cost}, доступно {balance}.", 402)
+
+    api_key = os.environ.get("POLZA_AI_API_KEY", "")
+    if not api_key:
+        refund_energy(salon_id, user["id"], cost, conn, tool_key=FITTING_TOOL_KEY)
+        return err("API ключ не настроен.", 500)
+
+    # Сохраняем исходное фото в S3, чтобы иметь стабильный URL для модели и истории
+    try:
+        source_url = upload_to_s3(photo_b64, "jpg", user["id"])
+    except Exception as e:
+        refund_energy(salon_id, user["id"], cost, conn, tool_key=FITTING_TOOL_KEY)
+        return err(f"Не удалось загрузить фото: {e}", 400)
+
+    fitting_id = save_fitting_record(user["id"], scenario, source_url, conn)
+    conn.close()
+
+    scenario_desc = FITTING_SCENARIOS[scenario]
+    edit_prompt = (
+        f"Отредактируй фото человека: примени {scenario_desc}. "
+        f"Сохрани лицо, черты, освещение, ракурс и фон максимально реалистично, "
+        f"измени только запрошенную область. "
+        + (f"Пожелания клиента: {wishes}." if wishes else "Сделай аккуратный, стильный, актуальный результат.")
+    )
+
+    payload = json.dumps({
+        "model": "google/gemini-3-pro-image-preview",
+        "input": {
+            "prompt": edit_prompt,
+            "images": [source_url],
+        }
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://polza.ai/api/v1/media",
+        data=payload,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=285) as resp:
+            raw = resp.read().decode("utf-8")
+            print(f"[polza.ai fitting] {raw[:300]}")
+            result = json.loads(raw)
+    except urllib.error.HTTPError as e:
+        body_text = e.read().decode("utf-8", errors="ignore")
+        print(f"[polza.ai fitting] HTTP {e.code}: {body_text[:300]}")
+        conn_r = get_db()
+        refund_energy(salon_id, user["id"], cost, conn_r, tool_key=FITTING_TOOL_KEY)
+        update_fitting_record(fitting_id, conn_r, status="failed")
+        conn_r.close()
+        if e.code in (502, 503):
+            return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+        return err(f"Ошибка сервиса генерации: {body_text[:150]}", 502)
+    except Exception as e:
+        msg = str(e)
+        print(f"[polza.ai fitting] err: {msg}")
+        conn_r = get_db()
+        if is_provider_error(e):
+            refund_energy(salon_id, user["id"], cost, conn_r, tool_key=FITTING_TOOL_KEY)
+            update_fitting_record(fitting_id, conn_r, status="failed")
+            conn_r.close()
+            return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+        update_fitting_record(fitting_id, conn_r, status="failed")
+        conn_r.close()
+        if "timed out" in msg.lower() or "timeout" in msg.lower():
+            return err("Обработка фото занимает дольше обычного — проверьте раздел «Мои примерки» через минуту.", 504)
+        return err(f"Ошибка соединения: {msg}", 502)
+
+    result_url = None
+    b64_data = None
+    for item in (result.get("data") or result.get("images") or []):
+        if isinstance(item, dict):
+            url = item.get("url", "")
+            b64 = item.get("b64_json") or item.get("base64") or ""
+            if url:
+                result_url = url
+                break
+            if b64:
+                b64_data = b64
+                break
+
+    if not result_url and not b64_data:
+        conn_r = get_db()
+        update_fitting_record(fitting_id, conn_r, status="failed")
+        conn_r.close()
+        return err("Сервис не вернул изображение. Попробуйте ещё раз.", 502)
+
+    if b64_data:
+        result_url = upload_to_s3(b64_data, "png", user["id"])
+
+    # Текстовая рекомендация: что использовать, чтобы добиться такого результата
+    recommendation = ""
+    try:
+        rec_messages = [
+            {"role": "system", "content": (
+                "Ты профессиональный бьюти-консультант салона красоты. Клиенту показали визуализацию "
+                "желаемого результата (сгенерированную ИИ). Дай краткую практическую рекомендацию: "
+                "какие процедуры, техники, средства или продукты использовать мастеру салона, чтобы "
+                "добиться похожего результата в реальности. Пиши по делу, 3-5 пунктов списком, без "
+                "медицинских обещаний и гарантий 100% результата."
+            )},
+            {"role": "user", "content": (
+                f"Сценарий примерки: {scenario_desc}. "
+                + (f"Пожелания клиента: {wishes}." if wishes else "")
+            )},
+        ]
+        recommendation = call_text_ai(rec_messages, api_key, max_tokens=500)
+    except Exception as e:
+        print(f"[fitting] recommendation error: {e}")
+        recommendation = "Обсудите желаемый результат с мастером салона на консультации — он подберёт технику и средства индивидуально."
+
+    conn3 = get_db()
+    update_fitting_record(
+        fitting_id, conn3,
+        result_url=result_url, prompt=edit_prompt,
+        recommendation=recommendation, status="done"
+    )
+    conn3.close()
+
+    return ok({
+        "id": fitting_id,
+        "result_url": result_url,
+        "source_url": source_url,
+        "recommendation": recommendation,
+        "energy_spent": cost,
+    })
+
+
 def handle_history(event, conn):
     user = get_session_user(event, conn)
     if not user:
@@ -224,9 +455,20 @@ def handle_delete_image(event, conn):
 
 
 def handler(event: dict, context) -> dict:
-    """Генерация изображений для салона через polza.ai / gpt-image-1.5."""
+    """Генерация изображений для салона через polza.ai / gpt-image-1.5, и «Примерочная» (редактирование фото)."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
+
+    qs = event.get("queryStringParameters") or {}
+    action = qs.get("action", "")
+
+    # История примерок
+    if event.get("httpMethod") == "GET" and action == "fitting_history":
+        conn = get_db()
+        try:
+            return handle_fitting_history(event, conn)
+        finally:
+            conn.close()
 
     # История изображений
     if event.get("httpMethod") == "GET":
@@ -246,6 +488,17 @@ def handler(event: dict, context) -> dict:
 
     if event.get("httpMethod") != "POST":
         return err("Method not allowed", 405)
+
+    # Примерочная (редактирование фото)
+    if action == "fitting":
+        conn = get_db()
+        try:
+            return handle_fitting(event, conn)
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
     conn = get_db()
     try:
