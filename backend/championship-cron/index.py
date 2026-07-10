@@ -545,10 +545,18 @@ def do_auto_finalize() -> dict:
                     (w["salon_id"], is_win, is_top3, is_win, is_top3)
                 )
 
-        # Очки рейтинга всем участникам
+        # Очки рейтинга — только участникам, которые реально сдали работу (is_public=TRUE)
         pts_participation = 20
         cur.execute(
-            f"SELECT DISTINCT salon_id FROM {tbl('ch_applications')} WHERE tournament_id=%s AND status='approved'",
+            f"""SELECT DISTINCT a.salon_id
+                FROM {tbl('ch_applications')} a
+                WHERE a.tournament_id=%s AND a.status='approved'
+                  AND EXISTS (
+                      SELECT 1 FROM {tbl('ch_works')} w
+                      WHERE w.tournament_id = a.tournament_id
+                        AND w.salon_id = a.salon_id
+                        AND w.is_public = TRUE
+                  )""",
             (tid,)
         )
         for row in cur.fetchall():

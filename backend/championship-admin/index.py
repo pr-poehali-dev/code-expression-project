@@ -494,9 +494,17 @@ def handle_finalize(event, conn):
             if u:
                 _charge_energy(u["user_id"], energy, f"Приз за {place} место в турнире «{tournament['name']}»")
 
-    # Всем участникам — очки за участие и достижение
+    # Очки за участие и достижение — только тем, кто реально сдал работу (is_public=TRUE)
     cur.execute(
-        f"SELECT DISTINCT salon_id FROM {tbl('ch_applications')} WHERE tournament_id=%s AND status='approved'",
+        f"""SELECT DISTINCT a.salon_id
+            FROM {tbl('ch_applications')} a
+            WHERE a.tournament_id=%s AND a.status='approved'
+              AND EXISTS (
+                  SELECT 1 FROM {tbl('ch_works')} w
+                  WHERE w.tournament_id = a.tournament_id
+                    AND w.salon_id = a.salon_id
+                    AND w.is_public = TRUE
+              )""",
         (tid,)
     )
     for row in cur.fetchall():
