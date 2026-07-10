@@ -9,11 +9,13 @@ const ACCENT_DARK = "hsl(185,85%,24%)";
 const AI_IMAGE_URL = "https://functions.poehali.dev/4b0ee2e5-a98e-40b8-bb9a-8a11d39d6e5a";
 
 const SCENARIOS = [
-  { value: "haircut",  label: "Стрижка",   sub: "и укладка волос",     icon: "Scissors" },
-  { value: "makeup",   label: "Макияж",    sub: "лица",                icon: "Sparkles" },
-  { value: "manicure", label: "Ногти",     sub: "маникюр и дизайн",    icon: "Hand" },
-  { value: "figure",   label: "Фигура",    sub: "коррекция силуэта",   icon: "PersonStanding" },
+  { value: "haircut",  label: "Стрижка",        sub: "и укладка волос",      icon: "Scissors" },
+  { value: "makeup",   label: "Макияж",         sub: "лица",                 icon: "Sparkles" },
+  { value: "manicure", label: "Ногти",          sub: "маникюр и дизайн",     icon: "Hand" },
+  { value: "figure",   label: "Фигура и стиль", sub: "образ и одежда",       icon: "PersonStanding" },
 ];
+
+const NO_RECOMMENDATION_SCENARIOS = ["figure"];
 
 function sid() { return localStorage.getItem("lk_session") || ""; }
 
@@ -131,7 +133,7 @@ export default function LkPhotoFitting() {
           <h2 style={{ fontSize: "clamp(18px,2.5vw,24px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>Примерочная</h2>
         </div>
         <p style={{ fontSize: 13, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6 }}>
-          Клиент загружает фото — ИИ показывает результат стрижки, макияжа, маникюра или коррекции фигуры, а также даёт рекомендацию, как этого добиться у мастера.
+          Клиент загружает фото — ИИ показывает результат стрижки, макияжа, маникюра или новой фигуры и стиля одежды. Для стрижки, макияжа и маникюра дополнительно даётся рекомендация, как этого добиться у мастера.
         </p>
         <div style={{ padding: "12px 16px", background: "hsl(185,85%,97%)", borderRadius: 12, border: "1px solid hsl(185,85%,85%)", marginBottom: 4 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>Как пользоваться</div>
@@ -194,7 +196,9 @@ export default function LkPhotoFitting() {
         {/* Пожелания */}
         <div style={{ marginBottom: 18 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-            <label style={{ fontSize: 12, fontWeight: 700, color: "#555" }}>Пожелания клиента (необязательно)</label>
+            <label style={{ fontSize: 12, fontWeight: 700, color: "#555" }}>
+              {scenario === "figure" ? "Опишите себя и одежду, которую хотите примерить" : "Пожелания клиента (необязательно)"}
+            </label>
             <span style={{ fontSize: 11, color: wishes.length > 900 ? "#e55" : "#bbb" }}>{wishes.length} / 1000</span>
           </div>
           <textarea
@@ -203,7 +207,9 @@ export default function LkPhotoFitting() {
             disabled={loading}
             maxLength={1000}
             rows={3}
-            placeholder="Например: короткое каре с чёлкой, тёплый русый оттенок"
+            placeholder={scenario === "figure"
+              ? "Например: стройная фигура, спортивное телосложение, чёрное вечернее платье в пол"
+              : "Например: короткое каре с чёлкой, тёплый русый оттенок"}
             style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid #E2E8F0", fontSize: 13, fontFamily: "Montserrat,sans-serif", resize: "vertical", outline: "none", background: loading ? "#f8f8f6" : "#fff", boxSizing: "border-box", color: "#0F172A", lineHeight: 1.6 }}
           />
         </div>
@@ -248,7 +254,7 @@ export default function LkPhotoFitting() {
             <img src={resultUrl} alt="Результат примерки" style={{ width: "100%", display: "block" }} />
           </div>
 
-          {recommendation && (
+          {recommendation && !NO_RECOMMENDATION_SCENARIOS.includes(scenario) && (
             <div style={{ background: "hsl(185,85%,97%)", border: "1px solid hsl(185,85%,88%)", borderRadius: 12, padding: "14px 16px", marginBottom: 14 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
                 <Icon name="ListChecks" size={14} style={{ color: ACCENT }} /> Как добиться такого результата
