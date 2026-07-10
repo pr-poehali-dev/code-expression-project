@@ -15,6 +15,7 @@ import ChatWidget from "./components/ChatWidget";
 // Публичные страницы — lazy
 const Index = lazy(() => import("./pages/Index"));
 const Vozmozhnosti = lazy(() => import("./pages/Vozmozhnosti"));
+const ToolLanding = lazy(() => import("./pages/ToolLanding"));
 const DlyaKogo = lazy(() => import("./pages/DlyaKogo"));
 const Preimushchestva = lazy(() => import("./pages/Preimushchestva"));
 const Akademiya = lazy(() => import("./pages/Akademiya"));
@@ -91,6 +92,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/vozmozhnosti" element={<Vozmozhnosti />} />
+            <Route path="/instrumenty/:slug" element={<ToolLanding />} />
             <Route path="/dlya-kogo" element={<DlyaKogo />} />
             <Route path="/preimushchestva" element={<Preimushchestva />} />
             <Route path="/akademiya" element={<Akademiya />} />
