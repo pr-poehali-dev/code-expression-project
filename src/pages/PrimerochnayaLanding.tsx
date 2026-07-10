@@ -39,6 +39,13 @@ const STEPS = [
   { num: "04", title: "Подсказка мастеру",    desc: "Вместе с картинкой приходит рекомендация: какая техника и средства дадут такой результат.", icon: "ListChecks" },
 ];
 
+const REVIEWS = [
+  { name: "Алина Р.",     role: "владелица салона, Екатеринбург", text: "Клиентка хотела «что-то освежающее», а по факту в голове держала конкретный образ из Pinterest. Показали три варианта на её фото — выбрала за минуту, мастер сделал ровно то, что она видела на экране.", rating: 5 },
+  { name: "Марат С.",     role: "барбер, Казань", text: "У мужчин та же история: «покороче, но не слишком». Теперь показываю на фото три длины сразу — выбирают глазами, а не словами. Переделок стало в разы меньше.", rating: 5 },
+  { name: "Виктория Л.",  role: "мастер по маникюру, Санкт-Петербург", text: "Раньше клиентка листала картинки в телефоне и говорила «примерно вот так». Теперь я показываю дизайн прямо на её руке — согласование занимает секунды, а не пол-консультации.", rating: 5 },
+  { name: "Юлия Н.",      role: "администратор сети салонов, Краснодар", text: "Мы стали закрывать сомневающихся клиентов прямо на консультации. Человек видит себя с новым цветом волос — и записывается сразу, а не «я подумаю».", rating: 5 },
+];
+
 export default function PrimerochnayaLanding() {
   return (
     <>
@@ -269,6 +276,42 @@ export default function PrimerochnayaLanding() {
           </div>
         </div>
         <style>{`@media(max-width:800px){.hint-block{flex-direction:column!important;padding:32px 24px!important;}}`}</style>
+      </section>
+
+      {/* ── ОТЗЫВЫ ─────────────────────────────────────────────────────────── */}
+      <section style={{ background: "#fff", padding: "100px 32px" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <div style={{ marginBottom: 56 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 16 }}>Отзывы мастеров и салонов</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,52px)", fontWeight: 500, color: DARK, margin: 0, lineHeight: 1.1 }}>
+              Что говорят те, кто уже примеряет
+            </h2>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0", borderRadius: 4, overflow: "hidden" }} className="reviews-grid">
+            {REVIEWS.map(({ name, role, text, rating }, i) => (
+              <div key={i} style={{ background: "#F8FAFC", padding: "32px 28px", display: "flex", flexDirection: "column" }}>
+                <div style={{ display: "flex", gap: 3, marginBottom: 16 }}>
+                  {Array.from({ length: rating }).map((_, si) => (
+                    <Icon key={si} name="Star" size={14} style={{ color: "#F59E0B", fill: "#F59E0B" }} />
+                  ))}
+                </div>
+                <p style={{ fontFamily: SERIF, fontSize: 17, color: DARK, lineHeight: 1.6, margin: "0 0 20px", fontStyle: "italic", flex: 1 }}>
+                  «{text}»
+                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: `linear-gradient(135deg,${TEAL},${TEAL2})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: DARK }}>{name.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: DARK }}>{name}</div>
+                    <div style={{ fontSize: 12, color: "#64748B" }}>{role}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <style>{`@media(max-width:700px){.reviews-grid{grid-template-columns:1fr!important;}}`}</style>
       </section>
 
       {/* ── ФИНАЛЬНЫЙ CTA ─────────────────────────────────────────────────── */}
