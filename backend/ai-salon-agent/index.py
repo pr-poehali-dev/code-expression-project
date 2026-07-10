@@ -365,13 +365,33 @@ AGENT_NAMES = {
 MAX_HISTORY = 30
 AI_CONTEXT_MESSAGES = 8  # сколько сообщений из истории отправляем в ИИ
 
+DOCUMENT_KEYWORDS = (
+    "кп", "коммерческое предложение", "договор", "письмо", "оферт",
+    "презентац", "аудит", "полный анализ", "разбор", "смету", "смета", "акт", "план развития",
+)
+
+
+def is_document_request(user_message: str) -> bool:
+    """Определяет, что владелец/админ просит развёрнутый документ (договор, полный анализ, КП и т.п.),
+    а не быструю реплику в диалоге — для таких запросов используем более мощную модель и больший лимит токенов."""
+    text = user_message.lower()
+    return any(kw in text for kw in DOCUMENT_KEYWORDS)
+
+
 def call_ai(system_prompt: str, messages: list) -> str:
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
+    last_user_message = messages[-1].get("content", "") if messages else ""
+    if is_document_request(last_user_message):
+        model = "anthropic/claude-sonnet-5"
+        max_tokens = 4000
+    else:
+        model = "openai/gpt-4.1"
+        max_tokens = 1200
     payload = json.dumps({
-        "model": "openai/gpt-4.1",
+        "model": model,
         "messages": [{"role": "system", "content": system_prompt}] + messages[-AI_CONTEXT_MESSAGES:],
         "temperature": 0.75,
-        "max_tokens": 1200,
+        "max_tokens": max_tokens,
     }).encode("utf-8")
     req = urllib.request.Request(
         "https://polza.ai/api/v1/chat/completions",
@@ -379,13 +399,14 @@ def call_ai(system_prompt: str, messages: list) -> str:
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=25) as resp:
+    with urllib.request.urlopen(req, timeout=90) as resp:
         data = json.loads(resp.read().decode("utf-8"))
     return data["choices"][0]["message"]["content"].strip()
 
 
 def handler(event: dict, context) -> dict:
-    """ИИ-агент для салонов. 10 бесплатных сообщений на пользователя, далее 10 энергии/сообщение. Контекст салона (название, услуги, цены, геолокация) подтягивается автоматически."""
+    """ИИ-агент для салонов. 10 бесплатных сообщений на пользователя, далее 10 энергии/сообщение. Контекст салона (название, услуги, цены, геолокация) подтягивается автоматически.
+    Для запросов документов (КП, договор, полный анализ) используется Claude Sonnet 5 с увеличенным лимитом токенов — ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 100с."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 

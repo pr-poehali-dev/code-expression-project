@@ -164,8 +164,22 @@ SYSTEM_PROMPT = """Ты — персональный ИИ-ассистент п�
 7. Отвечай только на русском языке. Будь конкретным, деловым, без воды"""
 
 
+DOCUMENT_KEYWORDS = (
+    "кп", "коммерческое предложение", "договор", "письмо", "оферт",
+    "презентац", "аудит", "анализ", "разбор", "смету", "смета", "акт",
+)
+
+
+def is_document_request(user_message: str) -> bool:
+    """Определяет, что пользователь просит развёрнутый документ (КП, договор, анализ и т.п.),
+    а не короткий быстрый ответ — для таких запросов используем более мощную модель и больший лимит токенов."""
+    text = user_message.lower()
+    return any(kw in text for kw in DOCUMENT_KEYWORDS)
+
+
 def handler(event: dict, context) -> dict:
-    """ИИ-ассистент представителя Промт Диалог по работе с салонами"""
+    """ИИ-ассистент представителя Промт Диалог по работе с салонами.
+    Для запросов документов (КП, договор, аудит, анализ) используется Claude Sonnet 5 с увеличенным лимитом токенов — ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 100с."""
     cors = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -215,10 +229,18 @@ def handler(event: dict, context) -> dict:
 
     full_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages[-8:]
 
+    last_user_message = messages[-1].get("content", "") if messages else ""
+    if is_document_request(last_user_message):
+        model = "anthropic/claude-sonnet-5"
+        max_tokens = 4000
+    else:
+        model = "openai/gpt-4.1-mini"
+        max_tokens = 1500
+
     completion = client.chat.completions.create(
-        model="openai/gpt-4.1-mini",
+        model=model,
         messages=full_messages,
-        max_tokens=1500,
+        max_tokens=max_tokens,
     )
 
     reply = completion.choices[0].message.content
