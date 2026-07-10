@@ -70,7 +70,6 @@ export default function ReelsVideoLanding() {
           position: "absolute", inset: 0, zIndex: 1,
           background: `radial-gradient(120% 100% at 80% 0%, rgba(17,43,60,0.93) 0%, rgba(15,23,42,0.94) 55%, rgba(6,11,22,0.97) 100%)`,
         }} />
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px)", backgroundSize: "52px 52px", pointerEvents: "none", zIndex: 1 }} />
         <div style={{ position: "absolute", top: "18%", right: "6%", width: 560, height: 560, borderRadius: "50%", background: "radial-gradient(circle,rgba(45,212,191,0.10) 0%,transparent 65%)", pointerEvents: "none", zIndex: 1 }} />
 
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "100px 32px", width: "100%", position: "relative", zIndex: 2 }}>
