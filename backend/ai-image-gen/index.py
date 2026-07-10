@@ -41,6 +41,7 @@ ASPECT_MAP_DALLE = {
 
 TOOL_KEY = "image_gen"
 FITTING_TOOL_KEY = "photo_fitting"
+FITTING_FREE_LIMIT = 1
 
 FITTING_SCENARIOS = {
     "haircut":  "стрижку и укладку волос",
@@ -91,10 +92,10 @@ def get_tool_cost(conn, tool_key=TOOL_KEY, default=5) -> int:
 FREE_LIMIT = 3
 
 
-def check_free_limit(salon_id, conn) -> tuple[bool, int]:
+def check_free_limit(salon_id, conn, tool_key=TOOL_KEY, limit=FREE_LIMIT) -> tuple[bool, int]:
     """
     Если у салона не было ни одного успешного платежа — бонусными 100 энергий
-    можно пользоваться максимум FREE_LIMIT раз для этого инструмента.
+    можно пользоваться максимум `limit` раз для данного инструмента (tool_key).
     Возвращает (allowed, used_count).
     """
     cur = conn.cursor()
@@ -107,10 +108,10 @@ def check_free_limit(salon_id, conn) -> tuple[bool, int]:
         f"  COUNT(*) FILTER (WHERE type = 'debit') - "
         f"  COUNT(*) FILTER (WHERE type = 'credit' AND action LIKE 'Возврат%') "
         f"FROM {SCHEMA}.credit_transactions WHERE salon_id = %s AND tool_key = %s",
-        (salon_id, TOOL_KEY)
+        (salon_id, tool_key)
     )
     used = cur.fetchone()[0] or 0
-    return used < FREE_LIMIT, used
+    return used < limit, used
 
 
 def check_and_deduct_energy(salon_id, user_id, amount, conn, tool_key=TOOL_KEY, action="Создание изображения") -> tuple[bool, int]:
@@ -285,6 +286,14 @@ def handle_fitting(event, conn):
     wishes = (body.get("wishes") or "").strip()
     if len(wishes) > 1000:
         return err("Описание слишком длинное (максимум 1000 символов)")
+
+    allowed, used = check_free_limit(salon_id, conn, tool_key=FITTING_TOOL_KEY, limit=FITTING_FREE_LIMIT)
+    if not allowed:
+        return err(
+            f"Бесплатная примерка на бонусных энергиях уже использована ({FITTING_FREE_LIMIT} раз). "
+            f"Пополните баланс любым тарифом, чтобы продолжить пользоваться инструментом.",
+            403
+        )
 
     cost = get_tool_cost(conn, FITTING_TOOL_KEY, default=45)
     ok_deduct, balance = check_and_deduct_energy(
