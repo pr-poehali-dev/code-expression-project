@@ -58,7 +58,6 @@ export default function Diagnostika() {
         minHeight: "100vh", display: "flex", alignItems: "center",
         paddingTop: 76, position: "relative", overflow: "hidden",
       }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px)", backgroundSize: "52px 52px", pointerEvents: "none" }} />
         <div style={{ position: "absolute", top: "20%", right: "8%", width: 520, height: 520, borderRadius: "50%", background: `radial-gradient(circle,rgba(45,212,191,0.10) 0%,transparent 65%)`, pointerEvents: "none" }} />
 
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "100px 32px", width: "100%" }}>
@@ -332,7 +331,6 @@ export default function Diagnostika() {
 
       {/* ── ФИНАЛЬНЫЙ CTA ──────────────────────────────────────────────────── */}
       <section style={{ background: DARK, padding: "120px 32px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px)", backgroundSize: "52px 52px", pointerEvents: "none" }} />
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 600, height: 350, background: `radial-gradient(ellipse,rgba(45,212,191,0.08) 0%,transparent 65%)`, pointerEvents: "none" }} />
         <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative" }}>
           <div style={{ maxWidth: 680 }}>

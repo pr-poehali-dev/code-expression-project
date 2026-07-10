@@ -201,7 +201,6 @@ export default function Masters() {
         position: "relative", overflow: "hidden",
         background: `radial-gradient(120% 100% at 75% 20%, #0D2B3E 0%, ${DARK2} 55%, #060912 100%)`,
       }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px)", backgroundSize: "64px 64px", pointerEvents: "none", maskImage: "radial-gradient(100% 80% at 50% 30%,black,transparent)" }} />
         <div style={{ position: "absolute", top: "10%", right: "-5%", width: "min(700px,80vw)", height: "min(700px,80vw)", borderRadius: "50%", background: "radial-gradient(circle,rgba(45,212,191,0.08) 0%,transparent 65%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", bottom: "5%", left: "-10%", width: "min(500px,60vw)", height: "min(500px,60vw)", borderRadius: "50%", background: "radial-gradient(circle,rgba(201,169,110,0.06) 0%,transparent 65%)", pointerEvents: "none" }} />
 

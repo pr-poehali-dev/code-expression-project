@@ -64,7 +64,6 @@ export default function LkEmailVerify({ email, verifyToken, onVerified }: Props)
       fontFamily: "Inter, sans-serif", padding: "24px", position: "relative", overflow: "hidden",
     }}>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}} @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}`}</style>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)", backgroundSize: "48px 48px", pointerEvents: "none" }} />
 
       <div style={{ width: "100%", maxWidth: 440, position: "relative", animation: "fadeIn 0.4s ease" }}>
 

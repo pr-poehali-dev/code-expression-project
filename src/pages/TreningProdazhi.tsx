@@ -149,7 +149,6 @@ export default function TreningProdazhi() {
         background: `radial-gradient(120% 100% at 80% 0%, #1a0a3c 0%, ${DARK} 55%, #060B16 100%)`,
         paddingTop: 140, paddingBottom: 80, position: "relative", overflow: "hidden",
       }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "48px 48px", pointerEvents: "none" }} />
         <div style={{ position: "absolute", top: "30%", right: "10%", width: 500, height: 500, borderRadius: "50%", background: `radial-gradient(circle, hsla(270,65%,52%,0.12) 0%, transparent 65%)`, pointerEvents: "none" }} />
 
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 32px" }}>
@@ -410,7 +409,6 @@ export default function TreningProdazhi() {
 
       {/* ── CTA ─────────────────────────────────────────────────────────────────── */}
       <section style={{ background: `linear-gradient(135deg, hsl(270,65%,15%), ${DARK})`, padding: "80px 32px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)", backgroundSize: "48px 48px", pointerEvents: "none" }} />
         <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "center", position: "relative" }}>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 600, color: "#fff", margin: "0 0 16px", lineHeight: 1.15 }}>
             Готовы начать диалог с клиентами по-новому?
