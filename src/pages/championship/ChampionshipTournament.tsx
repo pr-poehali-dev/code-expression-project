@@ -154,7 +154,8 @@ export default function ChampionshipTournament() {
   const t = tournament;
   const statusColor = STATUS_COLORS[t.status] || "#64748b";
   const statusLabel = STATUS_LABELS[t.status] || t.status;
-  const canApply = ["announced", "registration"].includes(t.status) && !!user && !applied;
+  const registrationOpen = !t.registration_ends || new Date(t.registration_ends).getTime() > Date.now();
+  const canApply = ["announced", "registration"].includes(t.status) && registrationOpen && !!user && !applied;
   const isVoting = t.status === "voting";
   const isFinished = t.status === "finished";
 
@@ -190,7 +191,7 @@ export default function ChampionshipTournament() {
               </button>
             )}
             {applied && <div className="ct-applied-badge">✓ Заявка подана</div>}
-            {!user && ["announced", "registration"].includes(t.status) && (
+            {!user && ["announced", "registration"].includes(t.status) && registrationOpen && (
               <Link to="/cabinet" className="ct-login-btn">Войти →</Link>
             )}
           </div>

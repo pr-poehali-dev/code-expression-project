@@ -384,6 +384,7 @@ export default function ChampionshipPage() {
 function TournamentCard({ t, onClick }: { t: Tournament; onClick: () => void }) {
   const statusColor = STATUS_COLORS[t.status] || "#64748b";
   const statusLabel = STATUS_LABELS[t.status] || t.status;
+  const registrationOpen = !t.registration_ends || new Date(t.registration_ends).getTime() > Date.now();
 
   const fmt = (d: string) => d ? new Date(d).toLocaleDateString("ru", { day: "numeric", month: "short" }) : "";
 
@@ -478,6 +479,10 @@ function TournamentCard({ t, onClick }: { t: Tournament; onClick: () => void }) 
           ) : t.status === "finished" ? (
             <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f1f5f9", color: "#64748b", borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 700, flexShrink: 0, cursor: "pointer" }}>
               Итоги <Icon name="ArrowRight" size={14} />
+            </div>
+          ) : ["announced", "registration"].includes(t.status) && !registrationOpen ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#f1f5f9", color: "#64748b", borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 700, flexShrink: 0, cursor: "pointer" }}>
+              Регистрация закрыта
             </div>
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#14B8A6", color: "#fff", borderRadius: 10, padding: "8px 14px", fontSize: 13, fontWeight: 700, flexShrink: 0, cursor: "pointer" }}>

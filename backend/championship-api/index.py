@@ -18,6 +18,7 @@ POST ?action=submit_work      — отправить / обновить рабо
 """
 import json
 import os
+from datetime import datetime, timezone
 import psycopg2
 import psycopg2.extras
 
@@ -554,6 +555,8 @@ def handle_apply(event):
         return err("Турнир не найден", 404)
     if t["status"] not in ("announced", "registration"):
         return err("Регистрация на этот турнир закрыта")
+    if t["registration_ends"] and t["registration_ends"] <= datetime.now(timezone.utc):
+        return err("Регистрация на этот турнир уже завершена")
 
     cur.execute(
         f"INSERT INTO {tbl('ch_applications')} (tournament_id, salon_id, user_id, status, notify_email) "
