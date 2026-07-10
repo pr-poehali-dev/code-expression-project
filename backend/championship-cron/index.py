@@ -327,7 +327,7 @@ def do_start_voting() -> dict:
             f"UPDATE {tbl('ch_tournaments')} SET status='voting', updated_at=NOW() WHERE id=%s",
             (t["id"],)
         )
-        # Рассылаем письма всем одобренным участникам с работами
+        # Рассылаем письма только тем участникам, у кого реально есть опубликованная работа
         # (игнорируем служебные @invited.local адреса приглашённых мастеров)
         cur.execute(
             f"""SELECT DISTINCT ON (a.salon_id)
@@ -336,7 +336,7 @@ def do_start_voting() -> dict:
                 FROM {tbl('ch_applications')} a
                 JOIN {tbl('lk_users')} u ON u.salon_id = a.salon_id AND u.is_active = TRUE
                 JOIN {tbl('salons')} sl ON sl.id = a.salon_id
-                LEFT JOIN {tbl('ch_works')} w ON w.tournament_id = a.tournament_id AND w.salon_id = a.salon_id AND w.is_public = TRUE
+                JOIN {tbl('ch_works')} w ON w.tournament_id = a.tournament_id AND w.salon_id = a.salon_id AND w.is_public = TRUE
                 WHERE a.tournament_id = %s AND a.status = 'approved'
                   AND COALESCE(NULLIF(u.notification_email,''), u.email) NOT LIKE '%%@invited.local'
                 ORDER BY a.salon_id, u.is_admin DESC, u.id ASC""",
