@@ -5,6 +5,15 @@ export const ENERGY_PER_MSG = 10;
 
 export type AgentRole = "business" | "service" | "admin" | "marketer";
 
+export type ChatMode = "salon" | "free";
+
+export interface ChatModeConfig { id: ChatMode; label: string; icon: string; hint: string; }
+
+export const CHAT_MODES: ChatModeConfig[] = [
+  { id: "salon", label: "По салону",         icon: "Building2",    hint: "Ответы с учётом данных вашего салона" },
+  { id: "free",  label: "Свободное общение",  icon: "MessageCircle", hint: "Общение на любые темы по профилю агента" },
+];
+
 export interface AgentConfig {
   id: AgentRole;
   label: string;

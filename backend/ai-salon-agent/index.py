@@ -378,14 +378,27 @@ def is_document_request(user_message: str) -> bool:
     return any(kw in text for kw in DOCUMENT_KEYWORDS)
 
 
+DEEP_CHAR_LIMIT = 4000
+SIMPLE_CHAR_LIMIT = 1500
+
+
 def call_ai(system_prompt: str, messages: list) -> str:
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     last_user_message = messages[-1].get("content", "") if messages else ""
     model = "openai/gpt-5.6-terra"
-    max_tokens = 4000 if is_document_request(last_user_message) else 1200
+    is_deep = is_document_request(last_user_message)
+    char_limit = DEEP_CHAR_LIMIT if is_deep else SIMPLE_CHAR_LIMIT
+    max_tokens = 2200 if is_deep else 750
+
+    length_rule = (
+        f"\n\nОГРАНИЧЕНИЕ ДЛИНЫ ОТВЕТА: это развёрнутый разбор/документ — уложись строго в {char_limit} знаков. "
+        f"Пиши по существу, без воды, без повторов."
+        if is_deep else
+        f"\n\nОГРАНИЧЕНИЕ ДЛИНЫ ОТВЕТА: это обычный вопрос — ответь кратко и по делу, строго в пределах {char_limit} знаков."
+    )
     payload = json.dumps({
         "model": model,
-        "messages": [{"role": "system", "content": system_prompt}] + messages[-AI_CONTEXT_MESSAGES:],
+        "messages": [{"role": "system", "content": system_prompt + length_rule}] + messages[-AI_CONTEXT_MESSAGES:],
         "temperature": 0.75,
         "max_tokens": max_tokens,
     }).encode("utf-8")
@@ -397,12 +410,18 @@ def call_ai(system_prompt: str, messages: list) -> str:
     )
     with urllib.request.urlopen(req, timeout=90) as resp:
         data = json.loads(resp.read().decode("utf-8"))
-    return data["choices"][0]["message"]["content"].strip()
+    reply = data["choices"][0]["message"]["content"].strip()
+    if len(reply) > char_limit:
+        reply = reply[:char_limit].rstrip() + "…"
+    return reply
 
 
 def handler(event: dict, context) -> dict:
-    """ИИ-агент для салонов. 10 бесплатных сообщений на пользователя, далее 10 энергии/сообщение. Контекст салона (название, услуги, цены, геолокация) подтягивается автоматически.
-    Для запросов документов (КП, договор, полный анализ) используется Claude Sonnet 5 с увеличенным лимитом токенов — ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 100с."""
+    """ИИ-агент для салонов. 10 бесплатных сообщений на пользователя, далее 10 энергии/сообщение.
+    Режим «По салону» (chat_mode=salon) — контекст салона (название, услуги, цены, геолокация) подтягивается автоматически.
+    Режим «Свободное общение» (chat_mode=free) — без данных салона, общение на любые темы в рамках роли агента.
+    Ответы ограничены по длине: 1500 знаков для обычных вопросов, 4000 знаков для развёрнутых документов/анализов.
+    Модель: openai/gpt-5.6-terra. ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 100с для развёрнутых ответов."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -425,12 +444,16 @@ def handler(event: dict, context) -> dict:
 
         # GET — история + баланс
         if method == "GET":
-            agent_role = (event.get("queryStringParameters") or {}).get("agent_role", "business")
+            qs = event.get("queryStringParameters") or {}
+            agent_role = qs.get("agent_role", "business")
+            chat_mode = qs.get("chat_mode", "salon")
+            if chat_mode not in ("salon", "free"):
+                chat_mode = "salon"
             cur.execute(
                 f"SELECT role, content, created_at FROM {tbl('salon_agent_chats')} "
-                f"WHERE user_id = %s AND agent_role = %s AND content != '[удалено]' "
+                f"WHERE user_id = %s AND agent_role = %s AND chat_mode = %s AND content != '[удалено]' "
                 f"ORDER BY created_at DESC LIMIT %s",
-                (user_id, agent_role, MAX_HISTORY)
+                (user_id, agent_role, chat_mode, MAX_HISTORY)
             )
             rows = cur.fetchall()
             messages = [{"role": r["role"], "content": r["content"]} for r in reversed(rows)]
@@ -441,6 +464,7 @@ def handler(event: dict, context) -> dict:
             return ok({
                 "messages": messages,
                 "agent_role": agent_role,
+                "chat_mode": chat_mode,
                 "free_used": free_used,
                 "free_limit": FREE_MESSAGES,
                 "energy_balance": balance,
@@ -452,6 +476,9 @@ def handler(event: dict, context) -> dict:
             body = json.loads(event.get("body") or "{}")
             agent_role = body.get("agent_role", "business")
             user_message = (body.get("message") or "").strip()
+            chat_mode = body.get("chat_mode", "salon")
+            if chat_mode not in ("salon", "free"):
+                chat_mode = "salon"
 
             if not user_message:
                 return err("Сообщение не может быть пустым")
@@ -475,25 +502,36 @@ def handler(event: dict, context) -> dict:
                         "free_limit": FREE_MESSAGES,
                     })
 
-            # Загружаем историю
+            # Загружаем историю (отдельно по режиму общения)
             cur.execute(
                 f"SELECT role, content FROM {tbl('salon_agent_chats')} "
-                f"WHERE user_id = %s AND agent_role = %s AND content != '[удалено]' "
+                f"WHERE user_id = %s AND agent_role = %s AND chat_mode = %s AND content != '[удалено]' "
                 f"ORDER BY created_at DESC LIMIT %s",
-                (user_id, agent_role, MAX_HISTORY)
+                (user_id, agent_role, chat_mode, MAX_HISTORY)
             )
             rows = cur.fetchall()
             history = [{"role": r["role"], "content": r["content"]} for r in reversed(rows)]
             history.append({"role": "user", "content": user_message})
 
-            # Контекст салона
-            salon_context = get_salon_context(conn, salon_id) if salon_id else ""
-            system_prompt = AGENT_PROMPTS[agent_role].format(salon_context=salon_context)
+            if chat_mode == "salon":
+                # Контекст салона подставляется в промт
+                salon_context = get_salon_context(conn, salon_id) if salon_id else ""
+                system_prompt = AGENT_PROMPTS[agent_role].format(salon_context=salon_context)
 
-            # Динамический каталог Академии из БД
-            academy_catalog = get_academy_catalog(conn)
-            if academy_catalog:
-                system_prompt += "\n\n" + academy_catalog
+                # Динамический каталог Академии из БД
+                academy_catalog = get_academy_catalog(conn)
+                if academy_catalog:
+                    system_prompt += "\n\n" + academy_catalog
+            else:
+                # Свободное общение — без привязки к данным салона, любые темы по профилю роли
+                system_prompt = AGENT_PROMPTS[agent_role].format(salon_context="") + (
+                    "\n\n════════════════════════════════════════════════\n"
+                    "РЕЖИМ «СВОБОДНОЕ ОБЩЕНИЕ»\n"
+                    "════════════════════════════════════════════════\n"
+                    "Данные салона сейчас НЕ используются. Общайся с пользователем на любые темы в рамках своей роли и экспертизы, "
+                    "даже если вопрос не связан напрямую с конкретным салоном. Не упоминай, что у тебя нет данных салона — "
+                    "просто отвечай по существу вопроса."
+                )
 
             reply = call_ai(system_prompt, history)
 
@@ -506,13 +544,13 @@ def handler(event: dict, context) -> dict:
 
             cur.execute(
                 f"INSERT INTO {tbl('salon_agent_chats')} "
-                f"(user_id, salon_id, agent_role, role, content, is_free) VALUES (%s,%s,%s,'user',%s,%s)",
-                (user_id, salon_id, agent_role, user_message, is_free)
+                f"(user_id, salon_id, agent_role, chat_mode, role, content, is_free) VALUES (%s,%s,%s,%s,'user',%s,%s)",
+                (user_id, salon_id, agent_role, chat_mode, user_message, is_free)
             )
             cur.execute(
                 f"INSERT INTO {tbl('salon_agent_chats')} "
-                f"(user_id, salon_id, agent_role, role, content, is_free) VALUES (%s,%s,%s,'assistant',%s,%s)",
-                (user_id, salon_id, agent_role, reply, is_free)
+                f"(user_id, salon_id, agent_role, chat_mode, role, content, is_free) VALUES (%s,%s,%s,%s,'assistant',%s,%s)",
+                (user_id, salon_id, agent_role, chat_mode, reply, is_free)
             )
             conn.commit()
 
@@ -522,6 +560,7 @@ def handler(event: dict, context) -> dict:
             return ok({
                 "reply": reply,
                 "agent_role": agent_role,
+                "chat_mode": chat_mode,
                 "agent_name": AGENT_NAMES[agent_role],
                 "is_free": is_free,
                 "free_used": new_free_used,
@@ -532,11 +571,15 @@ def handler(event: dict, context) -> dict:
 
         # DELETE — очистка истории
         if method == "DELETE":
-            agent_role = (event.get("queryStringParameters") or {}).get("agent_role", "business")
+            qs = event.get("queryStringParameters") or {}
+            agent_role = qs.get("agent_role", "business")
+            chat_mode = qs.get("chat_mode", "salon")
+            if chat_mode not in ("salon", "free"):
+                chat_mode = "salon"
             cur.execute(
                 f"UPDATE {tbl('salon_agent_chats')} SET content = '[удалено]' "
-                f"WHERE user_id = %s AND agent_role = %s",
-                (user_id, agent_role)
+                f"WHERE user_id = %s AND agent_role = %s AND chat_mode = %s",
+                (user_id, agent_role, chat_mode)
             )
             conn.commit()
             return ok({"cleared": True})

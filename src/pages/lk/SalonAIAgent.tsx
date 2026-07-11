@@ -5,6 +5,7 @@ import { useLkAuth } from "@/contexts/LkAuthContext";
 import {
   AGENT_URL, FREE_LIMIT, ENERGY_PER_MSG,
   AgentRole, AGENTS, Message, AttachedFile,
+  ChatMode, CHAT_MODES,
 } from "./SalonAgentTypes";
 import { FreeUsageBar, PaywallModal } from "./SalonAgentWidgets";
 import SalonAgentChat from "./SalonAgentChat";
@@ -14,6 +15,7 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
   const sessionId = localStorage.getItem("lk_session") || "";
 
   const [activeAgent, setActiveAgent] = useState<AgentRole>("business");
+  const [chatMode, setChatMode] = useState<ChatMode>("salon");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -79,11 +81,11 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
     });
   }
 
-  const loadHistory = useCallback(async (role: AgentRole) => {
+  const loadHistory = useCallback(async (role: AgentRole, mode: ChatMode) => {
     setHistoryLoading(true);
     setError("");
     try {
-      const res = await fetch(`${AGENT_URL}?agent_role=${role}`, { headers: { "X-Session-Id": sessionId } });
+      const res = await fetch(`${AGENT_URL}?agent_role=${role}&chat_mode=${mode}`, { headers: { "X-Session-Id": sessionId } });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Ошибка загрузки");
       setMessages(data.messages || []);
@@ -94,14 +96,14 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
     } finally { setHistoryLoading(false); }
   }, [sessionId]);
 
-  useEffect(() => { loadHistory(activeAgent); }, [activeAgent, loadHistory]);
+  useEffect(() => { loadHistory(activeAgent, chatMode); }, [activeAgent, chatMode, loadHistory]);
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
   async function sendOneBatch(message: string): Promise<{ reply: string; free_used?: number; energy_balance?: number; error?: string; ok: boolean }> {
     const res = await fetch(AGENT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
-      body: JSON.stringify({ agent_role: activeAgent, message }),
+      body: JSON.stringify({ agent_role: activeAgent, message, chat_mode: chatMode }),
     });
     const data = await res.json();
     return { ...data, ok: res.ok };
@@ -199,7 +201,7 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
   async function clearHistory() {
     if (!confirmClear) { setConfirmClear(true); setTimeout(() => setConfirmClear(false), 3000); return; }
     setConfirmClear(false);
-    await fetch(`${AGENT_URL}?agent_role=${activeAgent}`, { method: "DELETE", headers: { "X-Session-Id": sessionId } });
+    await fetch(`${AGENT_URL}?agent_role=${activeAgent}&chat_mode=${chatMode}`, { method: "DELETE", headers: { "X-Session-Id": sessionId } });
     setMessages([]);
     setError("");
   }
@@ -235,6 +237,24 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
 
       {/* Счётчик бесплатных / баланс */}
       <FreeUsageBar used={freeUsed} limit={FREE_LIMIT} energyBalance={energyBalance} onPaywall={() => setShowPaywall(true)} />
+
+      {/* Режим общения */}
+      <div style={{ display: "flex", gap: 8, padding: 4, background: "#F1F5F9", borderRadius: 12, width: "fit-content" }}>
+        {CHAT_MODES.map(m => {
+          const isActive = m.id === chatMode;
+          return (
+            <button
+              key={m.id}
+              onClick={() => { if (m.id !== chatMode) { setChatMode(m.id); setError(""); } }}
+              title={m.hint}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 14px", borderRadius: 9, border: "none", background: isActive ? "#fff" : "transparent", boxShadow: isActive ? "0 1px 4px rgba(0,0,0,0.08)" : "none", color: isActive ? "#0F172A" : "#94A3B8", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat, sans-serif", transition: "all 0.18s" }}
+            >
+              <Icon name={m.icon} size={14} style={{ color: isActive ? agent.color : "#94A3B8" }} />
+              {m.label}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Выбор агента */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
