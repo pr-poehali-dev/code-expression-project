@@ -197,6 +197,10 @@ export default function LkAiTools() {
           <h1 style={{ fontSize: "clamp(20px,2.5vw,28px)", fontWeight: 700, color: "#0F172A", margin: 0 }}>
             Развитие салона
           </h1>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 20, background: "linear-gradient(135deg, #6d28d9, #2563eb)", boxShadow: "0 2px 8px rgba(109,40,217,0.25)" }}>
+            <Icon name="Sparkles" size={11} style={{ color: "#fff" }} />
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: "#fff", letterSpacing: 0.2 }}>Современные и мощные AI-модели</span>
+          </div>
         </div>
         <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 14px", lineHeight: 1.6, maxWidth: 580 }}>
           Инструменты, которые помогают расти без найма дополнительного персонала. Проведите аудит бизнеса, выявите точки потерь, выстройте работу команды и выйдите на стабильный рост выручки — с опорой на данные, а не на интуицию.
