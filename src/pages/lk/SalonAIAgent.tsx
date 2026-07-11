@@ -224,8 +224,14 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
       {/* Шапка */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", letterSpacing: -0.5 }}>ИИ-Агент салона</div>
-          <div style={{ fontSize: 13, color: "#94A3B8", marginTop: 2 }}>Персональный ассистент для вас и команды</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", letterSpacing: -0.5 }}>ИИ-Агент салона</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 20, background: "linear-gradient(135deg, #6d28d9, #2563eb)", boxShadow: "0 2px 8px rgba(109,40,217,0.25)" }}>
+              <Icon name="Sparkles" size={11} style={{ color: "#fff" }} />
+              <span style={{ fontSize: 10.5, fontWeight: 700, color: "#fff", letterSpacing: 0.2 }}>Только новейшие и самые мощные модели ИИ</span>
+            </div>
+          </div>
+          <div style={{ fontSize: 13, color: "#94A3B8", marginTop: 4 }}>Персональный ассистент для вас и команды · качественные ответы на любые вопросы</div>
         </div>
         {messages.length > 0 && (
           <button onClick={clearHistory} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, border: confirmClear ? "1.5px solid #ef4444" : "1.5px solid #E2E8F0", background: confirmClear ? "#fef2f2" : "#fff", color: confirmClear ? "#ef4444" : "#94A3B8", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat, sans-serif", transition: "all 0.2s" }}>
