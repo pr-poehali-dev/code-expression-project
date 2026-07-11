@@ -433,7 +433,7 @@ def handler(event: dict, context) -> dict:
         if not user:
             return err("Не авторизован", 401)
 
-        allowed_roles = {"owner", "admin"}
+        allowed_roles = {"owner", "admin", "solo_master"}
         user_role = user.get("role", "body_specialist")
         if user_role not in allowed_roles and not user.get("is_admin"):
             return err("Доступ только для владельцев, управляющих и администраторов", 403)

@@ -49,7 +49,10 @@ const CATEGORIES: Category[] = [
   },
 ];
 
-export default function LkAcademy({ onNavigate }: { onNavigate?: (tab: string) => void }) {
+export default function LkAcademy({ onNavigate, excludeCategories }: { onNavigate?: (tab: string) => void; excludeCategories?: string[] }) {
+  const visibleCategories = excludeCategories?.length
+    ? CATEGORIES.filter(c => !excludeCategories.includes(c.id))
+    : CATEGORIES;
   const [dbCourses, setDbCourses] = useState<DbCourse[]>([]);
   const [activeCourseId, setActiveCourseId] = useState<number | null>(() => {
     const saved = sessionStorage.getItem("lk_open_course_id");
@@ -86,7 +89,7 @@ export default function LkAcademy({ onNavigate }: { onNavigate?: (tab: string) =
 
       {/* Категории: лендинги + курсы из БД */}
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-        {CATEGORIES.map(cat => {
+        {visibleCategories.map(cat => {
           const catDbCourses = dbCourses.filter(c => (c.categories?.length ? c.categories : [c.category]).includes(cat.id));
           const hasContent = cat.landings.length > 0 || catDbCourses.length > 0;
           return (

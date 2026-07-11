@@ -14,7 +14,7 @@ export const ROLE_TABS: Record<string, Tab[]> = {
   admin:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "agent", "championship", "profile", "support"],
   master:         ["home", "tools", "academy", "ai", "profile", "support"],
   body_specialist:["home", "tools", "academy", "ai", "profile", "support"],
-  solo_master:    ["home", "tools", "academy", "ai", "clientmsg", "marketing", "agent", "shop", "purchases", "championship", "profile", "support"],
+  solo_master:    ["home", "tools", "academy", "clientmsg", "marketing", "agent", "shop", "purchases", "championship", "profile", "support"],
 };
 
 export function getAllowedTabs(role: string, isAdmin: boolean): Tab[] {

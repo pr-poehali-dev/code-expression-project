@@ -130,7 +130,7 @@ def handler(event: dict, context) -> dict:
         if not user:
             return err("Unauthorized", 401)
 
-        if user["role"] not in ("owner", "admin") and not user.get("is_admin"):
+        if user["role"] not in ("owner", "admin", "solo_master") and not user.get("is_admin"):
             return err("Forbidden", 403)
 
         free_used = get_free_used(conn, user["id"])

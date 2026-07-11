@@ -100,7 +100,11 @@ export default function LkDashboard() {
       <main className="lk-main">
         {tab === "home"      && <HomeTab onNav={handleTabChange} role={role} hasSalon={hasSalon} />}
         {tab === "tools"     && <LkTests onNavigate={handleTabChange} />}
-        {tab === "academy"   && (role === "owner" ? <LkAcademy onNavigate={handleTabChange} /> : <LkMemberAcademy onNavigate={handleTabChange} />)}
+        {tab === "academy"   && (
+          role === "owner" ? <LkAcademy onNavigate={handleTabChange} />
+          : role === "solo_master" ? <LkAcademy onNavigate={handleTabChange} excludeCategories={["owner", "admin"]} />
+          : <LkMemberAcademy onNavigate={handleTabChange} />
+        )}
         {tab === "ai"        && <LkAiTools />}
         {tab === "agent"      && <SalonAIAgent onNavigateShop={() => handleTabChange("shop")} />}
         {tab === "clientmsg"  && <LkClientMsg />}
