@@ -200,6 +200,30 @@ def handle_register(event: dict) -> dict:
         )
         user_id = cur.fetchone()["id"]
 
+        salon_id = None
+        salon_data = None
+        if user_type == "solo_master":
+            # Независимому мастеру создаём личный "салон" — это внутренний контейнер
+            # для баланса энергии, платежей и покупок, устройство не отличается от салона.
+            WELCOME_BONUS = 100
+            cur.execute(
+                f"INSERT INTO {tbl('salons')} (owner_id, name, credits_balance) "
+                f"VALUES (%s,%s,%s) RETURNING id",
+                (user_id, full_name, WELCOME_BONUS)
+            )
+            salon_id = cur.fetchone()["id"]
+            cur.execute(
+                f"UPDATE {tbl('lk_users')} SET salon_id=%s, welcome_bonus_given=TRUE WHERE id=%s",
+                (salon_id, user_id)
+            )
+            cur.execute(
+                f"INSERT INTO {tbl('credit_transactions')} "
+                f"(salon_id, user_id, action, amount, tool_key, type) "
+                f"VALUES (%s,%s,'Приветственный подарок 🎁',%s,NULL,'credit')",
+                (salon_id, user_id, WELCOME_BONUS)
+            )
+            salon_data = {"id": salon_id, "name": full_name, "logo_url": None}
+
         session_id = secrets.token_hex(32)
         ua = (event.get("headers") or {}).get("User-Agent", "")
         cur.execute(
@@ -225,8 +249,8 @@ def handle_register(event: dict) -> dict:
                 "access_expires_at": None,
                 "segment": segment,
                 "role": role,
-                "salon_id": None,
-                "salon": None,
+                "salon_id": salon_id,
+                "salon": salon_data,
                 "email_verified": False,
             }
         })
@@ -1881,8 +1905,8 @@ ROLE_LABELS = {
 
 
 def _require_owner(user: dict, conn) -> dict | None:
-    """Возвращает salon если пользователь — владелец, иначе None."""
-    if user.get("role") != "owner" or not user.get("salon_id"):
+    """Возвращает salon если пользователь — владелец (в т.ч. независимый мастер — владелец своего личного салона), иначе None."""
+    if user.get("role") not in ("owner", "solo_master") or not user.get("salon_id"):
         return None
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(f"SELECT * FROM {tbl('salons')} WHERE id=%s AND owner_id=%s", (user["salon_id"], user["id"]))

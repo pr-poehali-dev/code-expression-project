@@ -35,11 +35,11 @@ export function HomeTab({ onNav, role, hasSalon }: HomeTabProps) {
     { tab: "tools" as Tab,  icon: "Wrench",        color: "hsl(210,85%,45%)", bg: "hsl(210,85%,96%)", title: "Инструменты",    desc: "Диагностики, тесты, шпаргалка" },
     { tab: "academy" as Tab,icon: "GraduationCap", color: "hsl(280,60%,55%)", bg: "hsl(280,60%,96%)", title: "Академия",        desc: "Тренинги для команды" },
     { tab: "ai" as Tab,     icon: "Sparkles",      color: "hsl(40,90%,50%)",  bg: "hsl(40,90%,96%)",  title: "ИИ-инструменты", desc: "Генерация контента — скоро" },
-    ...((role === "owner" || role === "admin") && hasSalon ? [
+    ...((role === "owner" || role === "admin" || role === "solo_master") && hasSalon ? [
       { tab: "agent" as Tab,     icon: "BotMessageSquare", color: "hsl(200,70%,38%)", bg: "hsl(200,70%,94%)", title: "ИИ-Агент",  desc: "Бизнес, сервис, маркетинг, скрипты" },
       { tab: "marketing" as Tab, icon: "BarChart3",        color: "hsl(220,80%,50%)", bg: "hsl(220,80%,95%)", title: "Маркетинг", desc: "ЦА, офферы, реклама в Яндекс.Директ" },
     ] : []),
-    ...((role === "owner" || role === "admin") ? [
+    ...((role === "owner" || role === "admin" || role === "solo_master") ? [
       { tab: "championship" as Tab, icon: "Trophy", color: "hsl(40,90%,45%)", bg: "hsl(40,90%,95%)", title: "Чемпионат", desc: "Участвуй в турнирах, побеждай, строй репутацию" },
     ] : []),
     ...(role === "owner" ? [
@@ -103,7 +103,7 @@ export function HomeTab({ onNav, role, hasSalon }: HomeTabProps) {
       </div>
 
       {/* Плашка — Сообщения клиентам */}
-      {hasSalon && (role === "owner" || role === "admin") && (
+      {hasSalon && (role === "owner" || role === "admin" || role === "solo_master") && (
         <div style={{ marginTop: 20, background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", overflow: "hidden", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
           <div style={{ padding: "16px 20px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

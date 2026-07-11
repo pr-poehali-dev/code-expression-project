@@ -21,7 +21,7 @@ const PKG_COLORS: Record<string, { color: string; bg: string; border: string }> 
 export default function LkEnergy() {
   const { user } = useLkAuth();
   const { balance, refresh } = useEnergy();
-  const isOwner = user?.role === "owner" || user?.is_admin;
+  const isOwner = user?.role === "owner" || user?.role === "solo_master" || user?.is_admin;
 
   const [packages, setPackages]       = useState<Package[]>([]);
   const [transactions, setTx]         = useState<Transaction[]>([]);
