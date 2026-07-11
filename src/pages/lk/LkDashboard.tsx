@@ -31,13 +31,14 @@ export default function LkDashboard() {
   const getInitialTab = (): Tab => {
     if (role === "owner" && !hasSalon) return "salon";
     const saved = sessionStorage.getItem("lk_tab") as Tab | null;
-    const needsSalon: Tab[] = ["ai", "shop", "employees", "agent"];
+    const needsSalon: Tab[] = role === "solo_master" ? [] : ["ai", "shop", "employees", "agent"];
     if (saved && allowedTabs.includes(saved)) {
       if (needsSalon.includes(saved) && !hasSalon) return "salon";
       return saved;
     }
     // Для владельца и администратора открываем ИИ-Агента первым
     if ((role === "owner" || role === "admin") && hasSalon) return "agent";
+    if (role === "solo_master") return "agent";
     return "home";
   };
 
@@ -59,7 +60,7 @@ export default function LkDashboard() {
     // Поддержка составных команд вида "marketing:seo"
     const [base, tool] = t.split(":") as [Tab, string?];
     if (!allowedTabs.includes(base)) return;
-    if (!hasSalon && SALON_REQUIRED.includes(base)) {
+    if (!hasSalon && role !== "solo_master" && SALON_REQUIRED.includes(base)) {
       setMoreOpen(false);
       sessionStorage.setItem("lk_tab", "salon");
       setTab("salon");
@@ -71,7 +72,7 @@ export default function LkDashboard() {
     sessionStorage.setItem("lk_tab", base);
     setTab(base);
     window.scrollTo({ top: 0, behavior: "instant" });
-  }, [allowedTabs, hasSalon]);
+  }, [allowedTabs, hasSalon, role]);
 
   const visibleNav    = NAV_ITEMS.filter(n => allowedTabs.includes(n.id));
   const mobilePrimary = (MOBILE_PRIMARY[role] || MOBILE_PRIMARY["body_specialist"])

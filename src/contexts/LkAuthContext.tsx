@@ -17,7 +17,7 @@ export interface LkUser {
   rep_permissions: string[] | null;
   access_expires_at: string | null;
   segment: "specialist" | "salon";
-  role: "owner" | "admin" | "master" | "body_specialist";
+  role: "owner" | "admin" | "master" | "body_specialist" | "solo_master";
   salon_id: number | null;
   salon: LkSalon | null;
   course_ids: number[];
@@ -29,7 +29,7 @@ interface LkAuthCtx {
   needsEmailVerify: boolean;
   pendingEmail: string;
   login: (username: string, password: string) => Promise<void>;
-  register: (full_name: string, email: string, password: string) => Promise<void>;
+  register: (full_name: string, email: string, password: string, userType?: "salon" | "solo_master") => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   markEmailVerified: () => void;
@@ -95,9 +95,9 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   };
 
-  const register = async (full_name: string, email: string, password: string) => {
+  const register = async (full_name: string, email: string, password: string, userType: "salon" | "solo_master" = "salon") => {
     sessionStorage.removeItem("lk_tab");
-    const data = await lkApi.register(full_name, email, password);
+    const data = await lkApi.register(full_name, email, password, userType);
     saveSession(data.session_id);
     // После регистрации показываем экран подтверждения email, не пускаем в кабинет
     setPendingEmail(email);

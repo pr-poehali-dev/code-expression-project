@@ -281,7 +281,7 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
       {/* Навигация */}
       <nav style={{ flex: 1, padding: "10px 12px", overflowY: "auto" }}>
         {allowedNav.map(item => {
-          const locked = !hasSalon && SALON_REQUIRED.includes(item.id);
+          const locked = !hasSalon && role !== "solo_master" && SALON_REQUIRED.includes(item.id);
           const active = tab === item.id;
           return (
             <button key={item.id} onClick={() => onNav(item.id)} style={{
@@ -392,7 +392,7 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
     <>
       <nav className="lk-bottombar">
         {mobileNav.map(item => {
-          const locked = !hasSalon && SALON_REQUIRED.includes(item.id);
+          const locked = !hasSalon && role !== "solo_master" && SALON_REQUIRED.includes(item.id);
           const showBadge = item.id === "employees" && requestsCount > 0;
           return (
             <button key={item.id} onClick={() => onNav(item.id)} style={{
@@ -437,7 +437,7 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
           <div onClick={e => e.stopPropagation()} style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "#fff", borderRadius: "20px 20px 0 0", padding: "8px 0 calc(72px + env(safe-area-inset-bottom,0px))", boxShadow: "0 -4px 24px rgba(0,0,0,0.12)" }}>
             <div style={{ width: 36, height: 4, borderRadius: 2, background: "#e0e0e0", margin: "0 auto 16px" }} />
             {moreItems.map(item => {
-              const locked = !hasSalon && SALON_REQUIRED.includes(item.id);
+              const locked = !hasSalon && role !== "solo_master" && SALON_REQUIRED.includes(item.id);
               const showBadge = item.id === "employees" && requestsCount > 0;
               return (
                 <button key={item.id} onClick={() => onNav(item.id)} style={{

@@ -14,6 +14,7 @@ export const ROLE_TABS: Record<string, Tab[]> = {
   admin:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "agent", "championship", "profile", "support"],
   master:         ["home", "tools", "academy", "ai", "profile", "support"],
   body_specialist:["home", "tools", "academy", "ai", "profile", "support"],
+  solo_master:    ["home", "tools", "academy", "ai", "clientmsg", "marketing", "agent", "shop", "purchases", "championship", "profile", "support"],
 };
 
 export function getAllowedTabs(role: string, isAdmin: boolean): Tab[] {
@@ -28,6 +29,7 @@ export const MOBILE_PRIMARY: Record<string, Tab[]> = {
   admin:          ["home", "agent", "championship", "profile"],
   master:         ["home", "tools", "ai", "profile"],
   body_specialist:["home", "tools", "ai", "profile"],
+  solo_master:    ["home", "agent", "championship", "profile"],
 };
 
 export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string }[] = [
@@ -55,4 +57,5 @@ export const ROLE_LABELS: Record<string, string> = {
   admin: "Администратор",
   master: "Мастер красоты",
   body_specialist: "Специалист по телу",
+  solo_master: "Мастер",
 };

@@ -50,8 +50,8 @@ export const lkApi = {
   login: (username: string, password: string) =>
     request("POST", "login", { username, password }),
 
-  register: (full_name: string, email: string, password: string) =>
-    request("POST", "register", { full_name, email, password }),
+  register: (full_name: string, email: string, password: string, user_type: "salon" | "solo_master" = "salon") =>
+    request("POST", "register", { full_name, email, password, user_type }),
 
   logout: () => request("POST", "logout"),
 

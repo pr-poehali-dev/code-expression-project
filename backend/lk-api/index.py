@@ -152,11 +152,12 @@ def handle_login(event: dict) -> dict:
 
 
 def handle_register(event: dict) -> dict:
-    """Самостоятельная регистрация нового владельца салона."""
+    """Самостоятельная регистрация нового пользователя: владелец салона или независимый мастер."""
     body = json.loads(event.get("body") or "{}")
     full_name = (body.get("full_name") or "").strip()
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
+    user_type = body.get("user_type") or "salon"  # "salon" (владелец) или "solo_master" (независимый мастер)
 
     if not full_name:
         return err("Укажите ваше имя")
@@ -164,6 +165,11 @@ def handle_register(event: dict) -> dict:
         return err("Укажите корректный email")
     if len(password) < 6:
         return err("Пароль должен содержать минимум 6 символов")
+    if user_type not in ("salon", "solo_master"):
+        return err("Некорректный тип аккаунта")
+
+    segment = "salon" if user_type == "salon" else "specialist"
+    role = "owner" if user_type == "salon" else "solo_master"
 
     # username = email до @
     username = email.split("@")[0]
@@ -189,8 +195,8 @@ def handle_register(event: dict) -> dict:
         verify_token = secrets.token_urlsafe(40)
         cur.execute(
             f"INSERT INTO {tbl('lk_users')} (username, email, password_hash, full_name, is_active, segment, role, welcome_bonus_given, email_verified, email_verify_token, email_verify_sent_at) "
-            f"VALUES (%s,%s,%s,%s,TRUE,'salon','owner',FALSE,FALSE,%s,NOW()) RETURNING id",
-            (username, email, pw_hash, full_name, verify_token)
+            f"VALUES (%s,%s,%s,%s,TRUE,%s,%s,FALSE,FALSE,%s,NOW()) RETURNING id",
+            (username, email, pw_hash, full_name, segment, role, verify_token)
         )
         user_id = cur.fetchone()["id"]
 
@@ -217,8 +223,8 @@ def handle_register(event: dict) -> dict:
                 "is_representative": False,
                 "rep_permissions": None,
                 "access_expires_at": None,
-                "segment": "salon",
-                "role": "owner",
+                "segment": segment,
+                "role": role,
                 "salon_id": None,
                 "salon": None,
                 "email_verified": False,
