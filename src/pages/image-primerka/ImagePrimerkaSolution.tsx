@@ -15,7 +15,7 @@ const SCENARIOS = [
   { value: "haircut",  label: "Стрижка",        sub: "и укладка волос",  icon: "Scissors", image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/d83c075d-34dc-4cb8-bf2c-1272168732fc.png" },
   { value: "makeup",   label: "Макияж",         sub: "лица",             icon: "Sparkles", image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/cc2e758c-3cbf-491d-8881-74cd3bcf6d88.png" },
   { value: "manicure", label: "Ногти",          sub: "маникюр и дизайн", icon: "Hand", image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/fd3d1028-9f3d-4f47-b3bb-8ca63ff375c7.png" },
-  { value: "figure",   label: "Фигура и стиль", sub: "образ и одежда",   icon: "PersonStanding" },
+  { value: "figure",   label: "Фигура и стиль", sub: "образ и одежда",   icon: "PersonStanding", image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/eae833c8-5db3-46c0-9a47-48fa4438a55c.png" },
 ];
 
 const STEPS = [
