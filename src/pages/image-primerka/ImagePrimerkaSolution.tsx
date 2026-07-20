@@ -127,9 +127,7 @@ export default function ImagePrimerkaSolution() {
             {SCENARIOS.map(({ icon, label, image }, i) => (
               <div key={i} style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
                 {image ? (
-                  <div style={{ aspectRatio: "3/4", overflow: "hidden" }}>
-                    <img src={image} alt={`Фото-пример «до/после» — ${label.toLowerCase()}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                  </div>
+                  <img src={image} alt={`Фото-пример «до/после» — ${label.toLowerCase()}`} style={{ width: "100%", height: "auto", objectFit: "contain", display: "block" }} />
                 ) : (
                   <div style={{ aspectRatio: "3/4", background: "linear-gradient(160deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 10 }}>
                     {/* [ФОТО-ПРИМЕР "ДО/ПОСЛЕ" — ${label.toUpperCase()}] */}
