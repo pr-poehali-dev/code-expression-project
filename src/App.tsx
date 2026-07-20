@@ -17,6 +17,7 @@ const Index = lazy(() => import("./pages/Index"));
 const Vozmozhnosti = lazy(() => import("./pages/Vozmozhnosti"));
 const ToolLanding = lazy(() => import("./pages/ToolLanding"));
 const PrimerochnayaLanding = lazy(() => import("./pages/PrimerochnayaLanding"));
+const ImagePrimerkaLanding = lazy(() => import("./pages/ImagePrimerkaLanding"));
 const ReelsVideoLanding = lazy(() => import("./pages/ReelsVideoLanding"));
 const DlyaKogo = lazy(() => import("./pages/DlyaKogo"));
 const Preimushchestva = lazy(() => import("./pages/Preimushchestva"));
@@ -95,6 +96,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/vozmozhnosti" element={<Vozmozhnosti />} />
             <Route path="/instrumenty/fitting-room" element={<PrimerochnayaLanding />} />
+            <Route path="/ii-primerka-obraza" element={<ImagePrimerkaLanding />} />
             <Route path="/instrumenty/reels-video" element={<ReelsVideoLanding />} />
             <Route path="/instrumenty/:slug" element={<ToolLanding />} />
             <Route path="/dlya-kogo" element={<DlyaKogo />} />

@@ -17,6 +17,7 @@ import LkMarketingSeo from "./LkMarketingSeo";
 import { AudienceData, SemanticGroups, CHAIN_PREREQ, TOOLS_DIRECT, TOOLS_CONTENT } from "./LkMarketingTypes";
 import { ComingSoonPlaceholder, StepBlocker, hasCachedResult } from "./LkMarketingShared";
 import LkMarketingDashboard from "./LkMarketingDashboard";
+import { isFittingTrial } from "@/lib/fittingTrial";
 
 export default function LkMarketing({ initialTool }: { initialTool?: string } = {}) {
   const [active, setActive] = useState<string | null>(initialTool || null);
@@ -30,9 +31,13 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
   const websiteUrl = (user as unknown as Record<string, unknown>)?.website_url as string | undefined;
   const ALL_TOOLS = [...TOOLS_DIRECT, ...TOOLS_CONTENT];
   const activeTool = ALL_TOOLS.find(t => t.id === active);
+  // Пользователь, пришедший с лендинга "Примерочная" — пропускаем в photo-fitting один раз
+  // без требования предыдущей оплаты (бэкенд всё равно ограничивает 1 бесплатной попыткой).
+  const fittingTrialOpen = isFittingTrial() && active === "photo-fitting";
+  const canOpen = hasPaid || fittingTrialOpen;
 
   const openTool = (id: string) => {
-    if (!hasPaid) {
+    if (!hasPaid && !(isFittingTrial() && id === "photo-fitting")) {
       showEnergyGate({ message: "Пополните баланс, чтобы открыть инструменты маркетинга" });
       return;
     }
@@ -127,7 +132,7 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
     );
   }
 
-  if (hasPaid && active === "photo-fitting") {
+  if (canOpen && active === "photo-fitting") {
     return (
       <div>
         <button onClick={closeTool} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", padding: 0, marginBottom: 24, fontFamily: "Montserrat,sans-serif" }}>

@@ -17,6 +17,7 @@ import SalonAIAgent from "./SalonAIAgent";
 import { HomeTab } from "./LkDashboardHomeTab";
 import LkChampionship from "./LkChampionship";
 import { LkSidebar, LkMobileHeader, LkBottomBar } from "./LkDashboardSidebar";
+import { isFittingTrial } from "@/lib/fittingTrial";
 import {
   Tab, BG, NAV_ITEMS, MOBILE_PRIMARY, SALON_REQUIRED,
   getAllowedTabs,
@@ -27,9 +28,11 @@ export default function LkDashboard() {
   const role       = user?.is_admin ? "owner" : (user?.role || "body_specialist");
   const hasSalon   = !!user?.salon_id;
   const allowedTabs = getAllowedTabs(role, !!user?.is_admin);
+  const fittingTrial = isFittingTrial();
 
   const getInitialTab = (): Tab => {
     if (role === "owner" && !hasSalon) return "salon";
+    if (fittingTrial && allowedTabs.includes("marketing")) return "marketing";
     const saved = sessionStorage.getItem("lk_tab") as Tab | null;
     const needsSalon: Tab[] = role === "solo_master" ? [] : ["ai", "shop", "employees", "agent"];
     if (saved && allowedTabs.includes(saved)) {
@@ -44,7 +47,7 @@ export default function LkDashboard() {
 
   const [tab, setTab]           = useState<Tab>(getInitialTab);
   const [moreOpen, setMoreOpen] = useState(false);
-  const [marketingTool, setMarketingTool] = useState<string | undefined>(undefined);
+  const [marketingTool, setMarketingTool] = useState<string | undefined>(fittingTrial ? "photo-fitting" : undefined);
 
   // Фикс для Chrome/Android: браузерная строка занимает место и скрывает bottom nav
   useEffect(() => {

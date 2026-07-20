@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
 import BrandLogo from "@/components/BrandLogo";
+import { isFittingTrial } from "@/lib/fittingTrial";
 
 const TEAL = "#2DD4BF";
 const DARK = "#0F172A";
@@ -25,7 +26,8 @@ const inputStyle = (focused: boolean): React.CSSProperties => ({
 
 export default function LkLogin() {
   const { login, register } = useLkAuth();
-  const [tab, setTab] = useState<"login" | "register">("login");
+  const fittingTrial = isFittingTrial();
+  const [tab, setTab] = useState<"login" | "register">(fittingTrial ? "register" : "login");
 
   // Login fields
   const [username, setUsername] = useState("");
@@ -36,7 +38,7 @@ export default function LkLogin() {
   const [email, setEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
-  const [userType, setUserType] = useState<"salon" | "solo_master">("salon");
+  const [userType, setUserType] = useState<"salon" | "solo_master">(fittingTrial ? "solo_master" : "salon");
 
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -183,40 +185,44 @@ export default function LkLogin() {
             {tab === "register" && (
               <form onSubmit={handleRegister}>
                 <div style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 600, color: DARK, marginBottom: 6 }}>
-                  Создать аккаунт
+                  {fittingTrial ? "Ещё один шаг — и результат готов" : "Создать аккаунт"}
                 </div>
                 <p style={{ fontSize: 13, color: GRAY, margin: "0 0 20px", fontWeight: 300 }}>
-                  Зарегистрируйтесь и получите 100 энергий в подарок
+                  {fittingTrial
+                    ? "Зарегистрируйтесь — фото и выбранная примерка уже ждут внутри, останется нажать «Примерить»"
+                    : "Зарегистрируйтесь и получите 100 энергий в подарок"}
                 </p>
 
-                <div style={{ marginBottom: 22 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.8px" }}>
-                    Я регистрируюсь как
-                  </label>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                    {([
-                      { key: "salon", icon: "Building2", title: "Салон", desc: "Владелец салона" },
-                      { key: "solo_master", icon: "User", title: "Мастер", desc: "Работаю сам" },
-                    ] as const).map(opt => (
-                      <button
-                        key={opt.key}
-                        type="button"
-                        onClick={() => setUserType(opt.key)}
-                        style={{
-                          display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                          padding: "14px 10px", borderRadius: 6, cursor: "pointer",
-                          border: `1.5px solid ${userType === opt.key ? TEAL : "#E2E8F0"}`,
-                          background: userType === opt.key ? "rgba(45,212,191,0.08)" : "#fff",
-                          transition: "all 0.2s",
-                        }}
-                      >
-                        <Icon name={opt.icon} size={18} style={{ color: userType === opt.key ? TEAL : GRAY }} />
-                        <span style={{ fontSize: 13, fontWeight: 600, color: DARK }}>{opt.title}</span>
-                        <span style={{ fontSize: 11, color: GRAY, fontWeight: 300 }}>{opt.desc}</span>
-                      </button>
-                    ))}
+                {!fittingTrial && (
+                  <div style={{ marginBottom: 22 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                      Я регистрируюсь как
+                    </label>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                      {([
+                        { key: "salon", icon: "Building2", title: "Салон", desc: "Владелец салона" },
+                        { key: "solo_master", icon: "User", title: "Мастер", desc: "Работаю сам" },
+                      ] as const).map(opt => (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => setUserType(opt.key)}
+                          style={{
+                            display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                            padding: "14px 10px", borderRadius: 6, cursor: "pointer",
+                            border: `1.5px solid ${userType === opt.key ? TEAL : "#E2E8F0"}`,
+                            background: userType === opt.key ? "rgba(45,212,191,0.08)" : "#fff",
+                            transition: "all 0.2s",
+                          }}
+                        >
+                          <Icon name={opt.icon} size={18} style={{ color: userType === opt.key ? TEAL : GRAY }} />
+                          <span style={{ fontSize: 13, fontWeight: 600, color: DARK }}>{opt.title}</span>
+                          <span style={{ fontSize: 11, color: GRAY, fontWeight: 300 }}>{opt.desc}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div style={{ marginBottom: 18 }}>
                   <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.8px" }}>

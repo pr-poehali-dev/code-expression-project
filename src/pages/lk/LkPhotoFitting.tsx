@@ -3,6 +3,7 @@ import { useLkAuth } from "@/contexts/LkAuthContext";
 import { useEnergy } from "@/contexts/EnergyContext";
 import { showEnergyGate } from "@/components/EnergyGate";
 import Icon from "@/components/ui/icon";
+import { getFittingTrialData, clearFittingTrialPhoto, isFittingTrial } from "@/lib/fittingTrial";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -33,10 +34,12 @@ export default function LkPhotoFitting() {
   const { refresh: refreshBalance } = useEnergy();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const [scenario, setScenario]       = useState("haircut");
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [photoBase64, setPhotoBase64] = useState<string | null>(null);
-  const [wishes, setWishes]           = useState("");
+  const trialData = isFittingTrial() ? getFittingTrialData() : null;
+
+  const [scenario, setScenario]       = useState(trialData?.scenario || "haircut");
+  const [photoPreview, setPhotoPreview] = useState<string | null>(trialData?.photo || null);
+  const [photoBase64, setPhotoBase64] = useState<string | null>(trialData?.photo || null);
+  const [wishes, setWishes]           = useState(trialData?.wishes || "");
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
 
@@ -47,7 +50,12 @@ export default function LkPhotoFitting() {
   const [historyOpen, setHistoryOpen]       = useState(true);
   const [historyLoading, setHistoryLoading] = useState(false);
 
-  useEffect(() => { loadHistory(); }, []);
+  useEffect(() => {
+    loadHistory();
+    // Данные с лендинга подхвачены в форму — очищаем их, чтобы при повторном визите не подставлялись снова.
+    if (trialData?.photo) clearFittingTrialPhoto();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadHistory = () => {
     setHistoryLoading(true);
