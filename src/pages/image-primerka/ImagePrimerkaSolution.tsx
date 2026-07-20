@@ -12,7 +12,7 @@ const GAINS = [
 ];
 
 const SCENARIOS = [
-  { value: "haircut",  label: "Стрижка",        sub: "и укладка волос",  icon: "Scissors" },
+  { value: "haircut",  label: "Стрижка",        sub: "и укладка волос",  icon: "Scissors", image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/d83c075d-34dc-4cb8-bf2c-1272168732fc.png" },
   { value: "makeup",   label: "Макияж",         sub: "лица",             icon: "Sparkles" },
   { value: "manicure", label: "Ногти",          sub: "маникюр и дизайн", icon: "Hand" },
   { value: "figure",   label: "Фигура и стиль", sub: "образ и одежда",   icon: "PersonStanding" },
@@ -124,13 +124,19 @@ export default function ImagePrimerkaSolution() {
               Формат: исходное фото клиента слева, сгенерированный результат справа, в едином кадре или парой карточек.
               Изображения должны выглядеть реалистично и аккуратно — без ярких неоновых эффектов, в спокойной цветовой гамме салона. */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16 }} className="examples-grid">
-            {SCENARIOS.map(({ icon, label }, i) => (
+            {SCENARIOS.map(({ icon, label, image }, i) => (
               <div key={i} style={{ borderRadius: 14, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
-                <div style={{ aspectRatio: "3/4", background: "linear-gradient(160deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 10 }}>
-                  {/* [ФОТО-ПРИМЕР "ДО/ПОСЛЕ" — ${label.toUpperCase()}] */}
-                  <Icon name={icon} size={28} style={{ color: "rgba(45,212,191,0.4)" }} />
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", textAlign: "center", padding: "0 12px" }}>Фото-пример «до/после» — {label.toLowerCase()}</span>
-                </div>
+                {image ? (
+                  <div style={{ aspectRatio: "3/4", overflow: "hidden" }}>
+                    <img src={image} alt={`Фото-пример «до/после» — ${label.toLowerCase()}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  </div>
+                ) : (
+                  <div style={{ aspectRatio: "3/4", background: "linear-gradient(160deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 10 }}>
+                    {/* [ФОТО-ПРИМЕР "ДО/ПОСЛЕ" — ${label.toUpperCase()}] */}
+                    <Icon name={icon} size={28} style={{ color: "rgba(45,212,191,0.4)" }} />
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", textAlign: "center", padding: "0 12px" }}>Фото-пример «до/после» — {label.toLowerCase()}</span>
+                  </div>
+                )}
                 <div style={{ padding: "12px 14px", textAlign: "center" }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{label}</div>
                 </div>
