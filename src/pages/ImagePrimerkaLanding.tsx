@@ -12,15 +12,17 @@ const DARK = "#0F172A";
 const SERIF = "'Cormorant Garamond', serif";
 
 const PAINS = [
-  { icon: "MessageCircleQuestion", title: "«Не то, что я представляла»", desc: "Клиент описывает желаемый образ словами, мастер понимает по-своему — и в зеркале не та картинка, которую ждали." },
-  { icon: "Clock3", title: "«Я подумаю» вместо записи", desc: "Клиент сомневается, боится радикальной перемены — и уходит взвешивать решение. Часто не возвращается." },
-  { icon: "RefreshCcw", title: "Время и материалы на переделку", desc: "Неудачный результат — это повторный визит и часы работы, которые никто не оплатит дважды." },
+  { icon: "MessageCircleQuestion", title: "«Я представляла совсем иначе»", desc: "Даже если работа выполнена качественно, клиент оценивает её через свою внутреннюю картинку. Если эта картинка не была проговорена — мастер может оказаться виноватым в чужом ожидании." },
+  { icon: "AlertTriangle", title: "Сложный разговор уже после услуги", desc: "Вместо спокойного согласования до начала работы — объяснения у зеркала, скидка, переделка или неприятный отзыв." },
+  { icon: "ShieldAlert", title: "Вы осторожничаете там, где могли бы предложить больше", desc: "Когда нет ясности, проще сделать «как обычно». Так безопаснее — но сложнее показать экспертность и предложить более сложный образ." },
+  { icon: "CalendarX", title: "Клиент не записывается на изменения", desc: "Он хочет перемен, но боится не узнать себя в зеркале. И выбирает привычное: «Давайте пока ничего радикального»." },
+  { icon: "Clock3", title: "Ваше время уходит на исправление недопонимания", desc: "Переделка — это не только материалы и часы. Это эмоциональная нагрузка, потерянное окно в записи и удар по уверенности в своей работе." },
 ];
 
 const GAINS = [
-  { icon: "Eye", title: "Клиент видит идею заранее", desc: "Ещё на консультации — визуальный вариант нового образа. Не описание, а картинка для разговора." },
-  { icon: "MessagesSquare", title: "Общий язык с мастером", desc: "Пожелание «покороче» и «покороче на 5 см» — разные вещи. Изображение снимает недопонимание." },
-  { icon: "ShieldCheck", title: "Больше уверенности в решении", desc: "Клиент записывается, уже представляя результат — меньше сомнений и отмен записи." },
+  { icon: "Eye", title: "Меньше сюрпризов у зеркала", desc: "Мастер и клиент видят одно и то же направление образа ещё до начала работы — не два разных представления." },
+  { icon: "MessagesSquare", title: "Предметный разговор вместо общих слов", desc: "Не «хочу что-нибудь стильное, но не слишком», а «вот такая длина нравится, но чёлку не хочу»." },
+  { icon: "ShieldCheck", title: "Меньше поводов для спора после услуги", desc: "Если направление было показано и обсуждено заранее — сложнее сказать «я представляла по-другому»." },
 ];
 
 const SCENARIOS = [
@@ -30,16 +32,25 @@ const SCENARIOS = [
   { value: "figure",   label: "Фигура и стиль", sub: "образ и одежда",   icon: "PersonStanding" },
 ];
 
+const WHEN_NEEDED = [
+  { icon: "UserPlus", text: "Новый клиент, которого мастер ещё не знает" },
+  { icon: "HelpCircle", text: "Запрос «хочу что-то поменять, но не понимаю что»" },
+  { icon: "Wand2", text: "Сложное окрашивание, новая стрижка, макияж на событие" },
+  { icon: "Images", text: "Клиент показывает несколько референсов: «Ну, примерно вот так»" },
+  { icon: "EyeOff", text: "Мастер видит, что идея может не подойти, но не хочет обесценить желание клиента" },
+  { icon: "Gem", text: "Дорогая услуга, где ошибка особенно заметна и болезненна" },
+];
+
 const STEPS = [
   { num: "01", title: "Загрузите фото", desc: "Своё или клиента — прямо здесь на странице или в личном кабинете.", icon: "Camera" },
-  { num: "02", title: "Выберите цель", desc: "Стрижка, макияж, маникюр или образ целиком — и опишите пожелание в двух словах.", icon: "MessageSquareText" },
-  { num: "03", title: "Получите результат", desc: "ИИ покажет визуальный вариант нового образа — обсуждайте его вместе с клиентом.", icon: "Wand2" },
+  { num: "02", title: "Выберите направление", desc: "Стрижка, макияж, маникюр или образ целиком — и опишите пожелание в двух словах.", icon: "MessageSquareText" },
+  { num: "03", title: "Обсудите результат вместе", desc: "ИИ покажет возможное направление — спросите: «Что нравится? Что точно не ваше? Что оставляем?»", icon: "MessagesSquare" },
 ];
 
 const REVIEWS = [
-  { name: "Алина Р.", role: "владелица салона, Екатеринбург", text: "Клиентка держала в голове образ из Pinterest, а описать не могла. Показали вариант на её фото — выбрала за минуту, мастер сделал ровно то, что она увидела на экране.", rating: 5 },
-  { name: "Марат С.", role: "барбер, Казань", text: "«Покороче, но не слишком» теперь превращается в конкретную картинку. Сомневающихся клиентов стало заметно меньше.", rating: 5 },
-  { name: "Виктория Л.", role: "мастер по маникюру, Санкт-Петербург", text: "Раньше клиентка листала картинки в телефоне. Теперь показываю дизайн прямо на её фото — согласование занимает секунды.", rating: 5 },
+  { name: "Алина Р.", role: "владелица салона, Екатеринбург", text: "Раньше на новых клиентах чувствовала себя как сапёр — угадала или нет. Теперь сначала показываю направление и слышу «да, точно не это» ещё до начала работы.", rating: 5 },
+  { name: "Марат С.", role: "барбер, Казань", text: "На сложных стрижках теперь сначала согласовываю направление. Если клиенту не нравится — узнаю об этом сразу, а не после уже сделанной работы.", rating: 5 },
+  { name: "Виктория Л.", role: "мастер по маникюру, Санкт-Петербург", text: "На дорогом дизайне ошибка обходится дорого — и себе, и клиенту. Теперь сверяем направление заранее, и обеим сторонам спокойнее.", rating: 5 },
 ];
 
 export default function ImagePrimerkaLanding() {
@@ -76,9 +87,9 @@ export default function ImagePrimerkaLanding() {
   return (
     <>
       <Helmet>
-        <title>ИИ-примерка образа — покажите клиенту идею до записи | Промт Диалог</title>
-        <meta name="description" content="Загрузите фото — ИИ покажет визуальный вариант новой стрижки, макияжа, маникюра или образа. Помогите клиенту увидеть идею заранее и увереннее принять решение о записи." />
-        <meta name="keywords" content="ии примерка образа, виртуальная примерка для салона красоты, примерка стрижки онлайн, инструменты для мастера бьюти" />
+        <title>ИИ-примерка образа — согласуйте ожидания до услуги | Промт Диалог</title>
+        <meta name="description" content="Не угадывайте, какой результат клиент назвал «красиво». Покажите направление образа до записи или до начала работы и обсудите ожидания на одном языке — ИИ-примерка для бьюти-мастеров и салонов." />
+        <meta name="keywords" content="ии примерка образа, согласование ожиданий с клиентом, виртуальная примерка для салона красоты, примерка стрижки онлайн, инструменты для мастера бьюти" />
       </Helmet>
 
       <BizNavbar />
@@ -101,18 +112,20 @@ export default function ImagePrimerkaLanding() {
                 <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Попробуйте прямо сейчас</span>
               </div>
 
-              <h1 style={{ fontFamily: SERIF, fontSize: "clamp(36px,5vw,60px)", fontWeight: 500, color: "#fff", lineHeight: 1.1, margin: "0 0 24px", letterSpacing: "-0.5px" }}>
-                Клиент сомневается<br />в новом образе?<br />
-                <span style={{ color: TEAL }}>Помогите ему увидеть</span><br />
-                идею до записи
+              <h1 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.6vw,56px)", fontWeight: 500, color: "#fff", lineHeight: 1.15, margin: "0 0 24px", letterSpacing: "-0.5px" }}>
+                Не угадывайте, какой результат<br />клиент назвал <span style={{ color: TEAL }}>«красиво»</span>
               </h1>
 
-              <p style={{ fontSize: "clamp(15px,1.5vw,17px)", color: "rgba(255,255,255,0.6)", lineHeight: 1.75, margin: "0 0 32px", fontWeight: 300, maxWidth: 480 }}>
-                ИИ-примерка в «Промт Диалоге» помогает салонам и бьюти-мастерам показать клиенту визуальный вариант стрижки, окрашивания, укладки или макияжа — <strong style={{ color: "#fff", fontWeight: 600 }}>ещё до того, как он сядет в кресло</strong>.
+              <p style={{ fontSize: "clamp(15px,1.5vw,17px)", color: "rgba(255,255,255,0.6)", lineHeight: 1.75, margin: "0 0 20px", fontWeight: 300, maxWidth: 500 }}>
+                Покажите направление образа до записи или до начала работы — и обсудите ожидания на одном языке.
+              </p>
+
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.75, margin: "0 0 32px", fontWeight: 300, maxWidth: 500 }}>
+                ИИ-примерка в «Промт Диалоге» помогает бьюти-мастеру и салону визуализировать идеи стрижки, окрашивания, укладки, макияжа, ногтей и стиля по фото клиента. Не чтобы обещать невозможное — а чтобы заранее понять: «Да, именно этого я хочу», или скорректировать ожидания до того, как клиент сядет в кресло.
               </p>
 
               <div style={{ display: "flex", gap: 32, paddingTop: 28, borderTop: "1px solid rgba(255,255,255,0.07)", flexWrap: "wrap" }}>
-                {[["4 сценария","стрижка, макияж, ногти, стиль"],["1 раз","бесплатно на старте"],["Без опыта","достаточно одного фото"]].map(([v, l], i) => (
+                {[["4 сценария","волосы, макияж, ногти, стиль"],["1 раз","бесплатно на старте"],["Без опыта","достаточно одного фото"]].map(([v, l], i) => (
                   <div key={i}>
                     <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: "#fff", lineHeight: 1 }}>{v}</div>
                     <div style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", marginTop: 5 }}>{l}</div>
@@ -216,17 +229,30 @@ export default function ImagePrimerkaLanding() {
         <style>{`@media(max-width:960px){.hero-fit-grid{grid-template-columns:1fr!important;}}`}</style>
       </section>
 
-      {/* ── БОЛИ ──────────────────────────────────────────────────────────── */}
-      <section style={{ background: "#fff", padding: "100px 32px" }}>
+      {/* ── УЗНАВАНИЕ СИТУАЦИИ ────────────────────────────────────────────── */}
+      <section style={{ background: "#fff", padding: "90px 32px 60px" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(26px,3.4vw,38px)", fontWeight: 500, color: DARK, margin: "0 0 20px", lineHeight: 1.25 }}>
+            Хороший мастер отвечает за технику.<br />
+            Но репутация часто зависит от того,<br />о чём не договорились заранее.
+          </h2>
+          <p style={{ fontSize: 15, color: "#64748B", lineHeight: 1.8, margin: "0 0 16px", fontWeight: 300 }}>
+            Клиент может говорить: «Хочу освежить образ», «Сделайте современно», «Как на этой фотографии». Вы слышите одно, он представляет другое — и разница обнаруживается только в зеркале.
+          </p>
+          <p style={{ fontSize: 15, color: "#64748B", lineHeight: 1.8, margin: 0, fontWeight: 300 }}>
+            Это не всегда ошибка мастера. Часто это обычная проблема: человеку сложно словами описать образ, который он сам ещё не до конца сформулировал.
+          </p>
+        </div>
+      </section>
+
+      {/* ── БОЛИ — ЧЕРЕЗ МАСТЕРА ──────────────────────────────────────────── */}
+      <section style={{ background: "#fff", padding: "40px 32px 100px" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ marginBottom: 56 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#EF4444", textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 16 }}>Знакомая ситуация?</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#EF4444", textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 16 }}>Когда ожидания не совпали</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,4vw,46px)", fontWeight: 500, color: DARK, margin: "0 0 16px", lineHeight: 1.1 }}>
-              Клиент сомневается —<br />и уходит думать
+              Последствия остаются у мастера
             </h2>
-            <p style={{ fontSize: 15, color: "#64748B", lineHeight: 1.75, margin: 0, maxWidth: 600, fontWeight: 300 }}>
-              Перемены во внешности пугают. Без наглядного примера убедить словами получается не всегда.
-            </p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0", borderRadius: 4, overflow: "hidden" }} className="pains-grid">
             {PAINS.map(({ icon, title, desc }, i) => (
@@ -234,7 +260,7 @@ export default function ImagePrimerkaLanding() {
                 <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(239,68,68,0.08)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
                   <Icon name={icon} size={18} style={{ color: "#EF4444" }} />
                 </div>
-                <div style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 600, color: DARK, marginBottom: 8, lineHeight: 1.25 }}>{title}</div>
+                <div style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 600, color: DARK, marginBottom: 8, lineHeight: 1.3 }}>{title}</div>
                 <div style={{ fontSize: 13, color: "#64748B", lineHeight: 1.7 }}>{desc}</div>
               </div>
             ))}
@@ -243,13 +269,98 @@ export default function ImagePrimerkaLanding() {
         <style>{`@media(max-width:900px){.pains-grid{grid-template-columns:1fr!important;}}`}</style>
       </section>
 
-      {/* ── ЧТО ДАЁТ ИНСТРУМЕНТ ──────────────────────────────────────────── */}
+      {/* ── КОГДА НУЖНА ПРИМЕРКА ──────────────────────────────────────────── */}
       <section style={{ background: "#F8FAFC", padding: "100px 32px" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <div style={{ marginBottom: 48, maxWidth: 720 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 16 }}>Не для каждой услуги</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.6vw,42px)", fontWeight: 500, color: DARK, margin: "0 0 16px", lineHeight: 1.15 }}>
+              Клиент не всегда приходит экспериментировать
+            </h2>
+            <p style={{ fontSize: 15, color: "#64748B", lineHeight: 1.8, margin: 0, fontWeight: 300 }}>
+              Чаще он приходит за привычной услугой — и там примерка не нужна. Инструмент нужен именно в точках, где есть неопределённость:
+            </p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }} className="when-grid">
+            {WHEN_NEEDED.map(({ icon, text }, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 14, background: "#fff", borderRadius: 14, border: "1px solid #E2E8F0", padding: "18px 20px" }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(45,212,191,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon name={icon} size={16} style={{ color: TEAL2 }} />
+                </div>
+                <div style={{ fontSize: 14, color: DARK, lineHeight: 1.6, paddingTop: 6 }}>{text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <style>{`@media(max-width:700px){.when-grid{grid-template-columns:1fr!important;}}`}</style>
+      </section>
+
+      {/* ── ГЛАВНАЯ МЫСЛЬ ─────────────────────────────────────────────────── */}
+      <section style={{ background: DARK, padding: "90px 32px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 700, height: 380, background: "radial-gradient(ellipse,rgba(45,212,191,0.07) 0%,transparent 65%)", pointerEvents: "none" }} />
+        <div style={{ maxWidth: 820, margin: "0 auto", position: "relative", textAlign: "center" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Главная мысль</div>
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(26px,3.4vw,40px)", fontWeight: 500, color: "#fff", margin: "0 0 24px", lineHeight: 1.35 }}>
+            ИИ-примерка — не инструмент, чтобы уговорить клиента на перемены.
+          </h2>
+          <p style={{ fontSize: "clamp(16px,1.8vw,20px)", color: "rgba(255,255,255,0.75)", lineHeight: 1.7, margin: 0, fontWeight: 300 }}>
+            Это способ согласовать ожидания до услуги, чтобы мастер не работал вслепую, а клиент понимал, на что соглашается.
+          </p>
+        </div>
+      </section>
+
+      {/* ── ЧЕСТНОСТЬ О РЕЗУЛЬТАТЕ ────────────────────────────────────────── */}
+      <section style={{ background: "#fff", padding: "90px 32px" }}>
+        <div style={{ maxWidth: 780, margin: "0 auto" }}>
+          <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 18, padding: "36px 36px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: "rgba(45,212,191,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name="Info" size={18} style={{ color: TEAL2 }} />
+              </div>
+              <div style={{ fontFamily: SERIF, fontSize: 19, fontWeight: 600, color: DARK }}>Важно: это не гарантия результата</div>
+            </div>
+            <p style={{ fontSize: 14.5, color: "#64748B", lineHeight: 1.8, margin: "0 0 16px", fontWeight: 300 }}>
+              Сгенерированное изображение — не гарантия точного результата: реальный образ зависит от типа волос, состояния кожи, техники, освещения и других факторов.
+            </p>
+            <p style={{ fontSize: 14.5, color: DARK, lineHeight: 1.8, margin: 0, fontWeight: 400 }}>
+              Но это сильная точка для диалога: «Вот направление. Что вам здесь нравится? Что точно не ваше? Что оставляем?» Именно так снижается риск недопонимания.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── ПЕРЕХОД: ПРИМЕРКА НЕ ЗАМЕНЯЕТ КОНСУЛЬТАЦИЮ ────────────────────── */}
+      <section style={{ background: "#F8FAFC", padding: "90px 32px" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.6vw,42px)", fontWeight: 500, color: DARK, margin: "0 0 16px", lineHeight: 1.2 }}>
+              Примерка не заменяет консультацию.<br />Она делает её понятнее.
+            </h2>
+            <p style={{ fontSize: 15, color: "#64748B", lineHeight: 1.8, margin: "0 auto", maxWidth: 600, fontWeight: 300 }}>
+              Когда клиент видит возможное направление образа, разговор становится предметным.
+            </p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, maxWidth: 900, margin: "0 auto" }} className="before-after-grid">
+            <div style={{ background: "#fff", border: "1.5px solid #FCA5A5", borderRadius: 16, padding: "26px 24px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#EF4444", textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>Было</div>
+              <div style={{ fontSize: 15, color: "#64748B", lineHeight: 1.7, fontStyle: "italic" }}>«Я хочу что-нибудь стильное, но не слишком».</div>
+            </div>
+            <div style={{ background: "#fff", border: "1.5px solid #99F6E4", borderRadius: 16, padding: "26px 24px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: TEAL2, textTransform: "uppercase", letterSpacing: 1, marginBottom: 14 }}>Стало</div>
+              <div style={{ fontSize: 15, color: DARK, lineHeight: 1.7, fontStyle: "italic" }}>«Вот такая длина мне нравится, но чёлку не хочу». «Этот оттенок красиво, но для меня слишком ярко».</div>
+            </div>
+          </div>
+        </div>
+        <style>{`@media(max-width:700px){.before-after-grid{grid-template-columns:1fr!important;}}`}</style>
+      </section>
+
+      {/* ── ЧТО ДАЁТ ИНСТРУМЕНТ ──────────────────────────────────────────── */}
+      <section style={{ background: "#fff", padding: "100px 32px" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ marginBottom: 56 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 16 }}>С примеркой заранее</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 16 }}>С согласованием заранее</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,4vw,46px)", fontWeight: 500, color: DARK, margin: 0, lineHeight: 1.1 }}>
-              Уверенность вместо сомнений
+              Меньше риска — больше доверия
             </h2>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0", borderRadius: 4, overflow: "hidden" }} className="gains-grid">
@@ -272,9 +383,9 @@ export default function ImagePrimerkaLanding() {
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 800, height: 400, background: "radial-gradient(ellipse,rgba(45,212,191,0.06) 0%,transparent 65%)", pointerEvents: "none" }} />
         <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative" }}>
           <div style={{ marginBottom: 48 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 16 }}>Примеры результата</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 16 }}>Примеры направления</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,4vw,46px)", fontWeight: 500, color: "#fff", margin: 0, lineHeight: 1.1 }}>
-              Как выглядит примерка
+              Как выглядит согласование образа
             </h2>
           </div>
           {/* Место под 4 фото-примера "до/после" — по одному на каждый сценарий: стрижка, макияж, маникюр, образ/стиль.
@@ -304,7 +415,7 @@ export default function ImagePrimerkaLanding() {
           <div style={{ marginBottom: 64 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 16 }}>Три шага</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,4vw,46px)", fontWeight: 500, color: DARK, margin: 0, lineHeight: 1.1 }}>
-              От фото до готовой идеи
+              От фото до согласованного направления
             </h2>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 32 }} className="steps-grid">
@@ -368,7 +479,7 @@ export default function ImagePrimerkaLanding() {
             <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Бесплатно на первый раз</span>
           </div>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4.5vw,54px)", fontWeight: 500, color: "#fff", margin: "0 auto 20px", lineHeight: 1.1, maxWidth: 680 }}>
-            Не убеждайте словами — покажите идею
+            Согласуйте ожидания — не угадывайте их
           </h2>
           <p style={{ fontSize: "clamp(14px,1.4vw,16px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.75, margin: "0 auto 40px", fontWeight: 300, maxWidth: 560 }}>
             Прокрутите наверх, загрузите фото и попробуйте примерку прямо сейчас — первый результат бесплатно.
