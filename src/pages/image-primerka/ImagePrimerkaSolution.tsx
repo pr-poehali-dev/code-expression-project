@@ -13,7 +13,7 @@ const GAINS = [
 
 const SCENARIOS = [
   { value: "haircut",  label: "Стрижка",        sub: "и укладка волос",  icon: "Scissors", image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/d83c075d-34dc-4cb8-bf2c-1272168732fc.png" },
-  { value: "makeup",   label: "Макияж",         sub: "лица",             icon: "Sparkles" },
+  { value: "makeup",   label: "Макияж",         sub: "лица",             icon: "Sparkles", image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/cc2e758c-3cbf-491d-8881-74cd3bcf6d88.png" },
   { value: "manicure", label: "Ногти",          sub: "маникюр и дизайн", icon: "Hand" },
   { value: "figure",   label: "Фигура и стиль", sub: "образ и одежда",   icon: "PersonStanding" },
 ];
