@@ -54,9 +54,19 @@ export default function ImagePrimerkaHero() {
         minHeight: "100vh", display: "flex", alignItems: "center",
         paddingTop: 76, position: "relative", overflow: "hidden",
       }}>
+        <div style={{
+          position: "absolute", inset: 0,
+          backgroundImage: "url('https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/3eed3747-5b14-4c3f-b6a9-bf5338eb2a12.png')",
+          backgroundSize: "cover", backgroundPosition: "center 30%",
+          opacity: 0.28, filter: "saturate(0.7)",
+        }} />
+        <div style={{
+          position: "absolute", inset: 0,
+          background: `linear-gradient(to bottom, rgba(15,23,42,0.45) 0%, rgba(15,23,42,0.25) 40%, ${DARK} 100%)`,
+        }} />
         <div style={{ position: "absolute", top: "15%", right: "6%", width: 520, height: 520, borderRadius: "50%", background: "radial-gradient(circle,rgba(45,212,191,0.10) 0%,transparent 65%)", pointerEvents: "none" }} />
 
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "100px 32px", width: "100%" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "100px 32px", width: "100%", position: "relative", zIndex: 1 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 0.95fr", gap: 56, alignItems: "center" }} className="hero-fit-grid">
 
             {/* Левая часть: текст */}
