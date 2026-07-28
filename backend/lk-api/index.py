@@ -596,17 +596,17 @@ def handle_admin_delete_user(event: dict) -> dict:
         # 1. Салоны, которыми пользователь владеет — удаляем вместе со всеми их данными
         cur.execute(f"SELECT id FROM {tbl('salons')} WHERE owner_id=%s", (user_id,))
         salon_ids = [r["id"] for r in cur.fetchall()]
-        if salon_ids:
-            cur.execute(f"UPDATE {tbl('lk_users')} SET salon_id=NULL WHERE salon_id=ANY(%s)", (salon_ids,))
-            salon_child_tables = [
-                "ch_applications", "ch_ratings", "ch_salon_achievements", "ch_works",
-                "course_access_requests", "credit_transactions", "salon_agent_chats",
-                "salon_audits", "salon_invites", "salon_members", "salon_msg_services",
-                "salon_services", "salon_staff", "seo_analyses", "staff_audits",
-            ]
+        salon_child_tables = [
+            "ch_applications", "ch_ratings", "ch_salon_achievements", "ch_works",
+            "course_access_requests", "credit_transactions", "salon_agent_chats",
+            "salon_audits", "salon_invites", "salon_members", "salon_msg_services",
+            "salon_services", "salon_staff", "seo_analyses", "staff_audits",
+        ]
+        for salon_id in salon_ids:
+            cur.execute(f"UPDATE {tbl('lk_users')} SET salon_id=NULL WHERE salon_id=%s", (salon_id,))
             for t in salon_child_tables:
-                cur.execute(f"DELETE FROM {tbl(t)} WHERE salon_id=ANY(%s)", (salon_ids,))
-            cur.execute(f"DELETE FROM {tbl('salons')} WHERE id=ANY(%s)", (salon_ids,))
+                cur.execute(f"DELETE FROM {tbl(t)} WHERE salon_id=%s", (salon_id,))
+            cur.execute(f"DELETE FROM {tbl('salons')} WHERE id=%s", (salon_id,))
 
         # 2. Обнуляем необязательные ссылки на пользователя в чужих записях
         cur.execute(f"UPDATE {tbl('course_access_requests')} SET resolved_by=NULL WHERE resolved_by=%s", (user_id,))
