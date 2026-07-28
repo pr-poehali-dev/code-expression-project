@@ -576,7 +576,7 @@ def handle_admin_set_password(event: dict) -> dict:
 
 
 def handle_admin_delete_user(event: dict) -> dict:
-    """Полное удаление пользователя и всех его данных из БД."""
+    """Полное удаление пользователя и всех связанных с ним данных из БД (каскадно вручную)."""
     body = json.loads(event.get("body") or "{}")
     user_id = body.get("user_id")
     if not user_id:
@@ -586,28 +586,59 @@ def handle_admin_delete_user(event: dict) -> dict:
         admin = require_admin(event, conn)
         if not admin:
             return err("Нет доступа", 403)
-        # Запрещаем удалять самого себя
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute(f"SELECT id FROM {tbl('lk_users')} WHERE id=%s", (user_id,))
         if not cur.fetchone():
             return err("Пользователь не найден", 404)
         if admin["id"] == user_id:
             return err("Нельзя удалить самого себя")
-        # Удаляем сессии
-        cur.execute(f"DELETE FROM {tbl('lk_sessions')} WHERE user_id=%s", (user_id,))
-        # Удаляем транзакции и данные салона если пользователь — владелец
-        cur.execute(f"SELECT salon_id, role FROM {tbl('lk_users')} WHERE id=%s", (user_id,))
-        u = cur.fetchone()
-        if u and u["salon_id"] and u["role"] == "owner":
-            salon_id = u["salon_id"]
-            cur.execute(f"DELETE FROM {tbl('credit_transactions')} WHERE salon_id=%s", (salon_id,))
-            cur.execute(f"DELETE FROM {tbl('salon_services')} WHERE salon_id=%s", (salon_id,))
-            cur.execute(f"DELETE FROM {tbl('salon_members')} WHERE salon_id=%s", (salon_id,))
-            cur.execute(f"DELETE FROM {tbl('salons')} WHERE id=%s", (salon_id,))
-        # Удаляем самого пользователя
+
+        # 1. Салоны, которыми пользователь владеет — удаляем вместе со всеми их данными
+        cur.execute(f"SELECT id FROM {tbl('salons')} WHERE owner_id=%s", (user_id,))
+        salon_ids = [r["id"] for r in cur.fetchall()]
+        if salon_ids:
+            cur.execute(f"UPDATE {tbl('lk_users')} SET salon_id=NULL WHERE salon_id=ANY(%s)", (salon_ids,))
+            salon_child_tables = [
+                "ch_applications", "ch_ratings", "ch_salon_achievements", "ch_works",
+                "course_access_requests", "credit_transactions", "salon_agent_chats",
+                "salon_audits", "salon_invites", "salon_members", "salon_msg_services",
+                "salon_services", "salon_staff", "seo_analyses", "staff_audits",
+            ]
+            for t in salon_child_tables:
+                cur.execute(f"DELETE FROM {tbl(t)} WHERE salon_id=ANY(%s)", (salon_ids,))
+            cur.execute(f"DELETE FROM {tbl('salons')} WHERE id=ANY(%s)", (salon_ids,))
+
+        # 2. Обнуляем необязательные ссылки на пользователя в чужих записях
+        cur.execute(f"UPDATE {tbl('course_access_requests')} SET resolved_by=NULL WHERE resolved_by=%s", (user_id,))
+        cur.execute(f"UPDATE {tbl('member_course_access')} SET granted_by=NULL WHERE granted_by=%s", (user_id,))
+        cur.execute(f"UPDATE {tbl('salon_invites')} SET used_by=NULL WHERE used_by=%s", (user_id,))
+        cur.execute(f"UPDATE {tbl('salon_members')} SET invited_by=NULL WHERE invited_by=%s", (user_id,))
+
+        # 3. Удаляем все собственные данные пользователя
+        own_tables_by_user_id = [
+            "ai_generated_images", "ch_applications", "ch_votes", "client_scripts",
+            "course_access", "course_access_requests", "credit_transactions", "image_jobs",
+            "landing_leads", "landing_projects", "lesson_access", "lk_barriers_results",
+            "lk_finance_results", "lk_mindset_results", "lk_profile_results",
+            "lk_salon_results", "lk_sessions", "lk_user_test_results", "photo_fittings",
+            "review_replies", "salon_agent_chats", "salon_agent_free_usage",
+            "salon_audits", "salon_invites", "salon_members", "staff_audits", "video_jobs",
+        ]
+        for t in own_tables_by_user_id:
+            cur.execute(f"DELETE FROM {tbl(t)} WHERE user_id=%s", (user_id,))
+        cur.execute(f"DELETE FROM {tbl('ch_expert_scores')} WHERE expert_id=%s", (user_id,))
+        cur.execute(f"DELETE FROM {tbl('ch_experts')} WHERE user_id=%s", (user_id,))
+        cur.execute(f"DELETE FROM {tbl('rep_mail_log')} WHERE sender_id=%s", (user_id,))
+        cur.execute(f"DELETE FROM {tbl('salon_invites')} WHERE invited_by=%s", (user_id,))
+        cur.execute(f"DELETE FROM {tbl('salon_staff')} WHERE owner_id=%s", (user_id,))
+
+        # 4. Удаляем самого пользователя
         cur.execute(f"DELETE FROM {tbl('lk_users')} WHERE id=%s", (user_id,))
         conn.commit()
         return ok({"ok": True})
+    except Exception as e:
+        conn.rollback()
+        return err(f"Не удалось удалить пользователя: {e}", 500)
     finally:
         conn.close()
 

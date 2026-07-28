@@ -68,6 +68,8 @@ export function UsersSection() {
       setDeleteConfirm(null);
       load();
       setMsg("Пользователь удалён");
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : "Не удалось удалить пользователя");
     } finally { setSaving(false); }
   };
 
