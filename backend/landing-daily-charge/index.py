@@ -1,15 +1,24 @@
 """
-Cron-задача: ежедневное списание энергии за хранение каждого лендинга на нашем сервере.
+Cron-задача: ежедневное списание энергии за хранение каждого лендинга на нашем сервере,
+а также рассылка письма-напоминания пользователям, зарегистрированным 10 дней назад.
 Запускается в 00:00 по московскому времени (UTC+3 = 21:00 UTC).
 Списывает 2 ⚡ с баланса салона за каждый лендинг пользователя (плата за сервер/хостинг).
 """
 import json
 import os
+import smtplib
+import ssl
 import psycopg2
 import psycopg2.extras
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
+from email.utils import formataddr
 
 SCHEMA = "t_p84565078_code_expression_proj"
 COST_PER_LANDING = 2
+FROM_EMAIL = "massopro@mail.ru"
+SITE_URL = "https://promtdialog.ru"
 
 CORS = {
     "Access-Control-Allow-Origin": "*",
@@ -22,8 +31,95 @@ def get_conn():
     return psycopg2.connect(os.environ["DATABASE_URL"])
 
 
+def _send_followup_email(to_email: str, full_name: str) -> None:
+    """Письмо-напоминание о платформе через 10 дней после регистрации."""
+    smtp_password = os.environ.get("SMTP_PASSWORD", "")
+    if not smtp_password:
+        return
+
+    name = full_name or "Здравствуйте"
+    html = f"""<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f4f4f0;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <div style="max-width:560px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background:linear-gradient(135deg,#1a9fae,#136e7a);padding:28px 32px;">
+      <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Промт Диалог</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">Платформа для бьюти-бизнеса</div>
+    </div>
+    <div style="padding:32px 32px 24px;">
+      <p style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 14px;">
+        {name}, как вам первые дни на платформе?
+      </p>
+      <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 18px;">
+        Прошло 10 дней с момента регистрации — и мы хотим убедиться, что вы уже нашли для себя пользу
+        в «Промт Диалог». Напоминаем, что в личном кабинете доступны:
+      </p>
+      <ul style="font-size:14px;color:#555;line-height:1.9;margin:0 0 20px;padding-left:20px;">
+        <li>«Диагностика роста салона PRO» — бесплатный разбор, где вы теряете деньги;</li>
+        <li>ИИ-инструменты для контента: посты, сторис, ответы на отзывы;</li>
+        <li>ИИ-примерка образа — покажите клиенту результат ещё до начала работы;</li>
+        <li>обучение и курсы для вас и вашей команды.</li>
+      </ul>
+      <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 28px;">
+        Если что-то не получилось разобраться, остались вопросы по инструментам или есть идея,
+        чего не хватает — просто ответьте на это письмо, мы обязательно поможем.
+      </p>
+      <a href="{SITE_URL}/cabinet"
+         style="display:inline-block;background:linear-gradient(135deg,#1a9fae,#136e7a);color:#fff;text-decoration:none;
+                font-size:15px;font-weight:700;padding:16px 32px;border-radius:12px;letter-spacing:0.2px;">
+        Перейти в кабинет
+      </a>
+    </div>
+    <div style="padding:16px 32px;background:#f8f8f5;border-top:1px solid #eee;">
+      <p style="font-size:11px;color:#bbb;margin:0;">Промт Диалог — платформа для бьюти-бизнеса. Вопросы: {FROM_EMAIL}</p>
+    </div>
+  </div>
+</body>
+</html>"""
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = str(Header("Как вам инструменты Промт Диалог? Мы на связи", "utf-8"))
+    msg["From"] = formataddr((str(Header("Промт Диалог", "utf-8")), FROM_EMAIL))
+    msg["To"] = to_email
+    msg["MIME-Version"] = "1.0"
+    msg.attach(MIMEText(html, "html", "utf-8"))
+
+    ctx = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.mail.ru", 465, context=ctx, timeout=15) as srv:
+        srv.login(FROM_EMAIL, smtp_password)
+        srv.sendmail(FROM_EMAIL, [to_email], msg.as_string())
+
+
+def do_followup_emails(conn) -> dict:
+    """Находит пользователей, зарегистрированных 10 дней назад, и отправляет им письмо-напоминание."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT id, email, full_name, username FROM {SCHEMA}.lk_users
+            WHERE is_active = TRUE
+              AND followup_email_sent_at IS NULL
+              AND created_at <= NOW() - INTERVAL '10 days'
+              AND created_at >  NOW() - INTERVAL '11 days'"""
+    )
+    users = cur.fetchall()
+    sent = []
+    failed = []
+    for u in users:
+        try:
+            _send_followup_email(u["email"], u["full_name"] or u["username"])
+            cur.execute(
+                f"UPDATE {SCHEMA}.lk_users SET followup_email_sent_at=NOW() WHERE id=%s",
+                (u["id"],)
+            )
+            conn.commit()
+            sent.append(u["id"])
+        except Exception as e:
+            conn.rollback()
+            failed.append({"user_id": u["id"], "error": str(e)})
+    return {"sent": sent, "failed": failed, "total_found": len(users)}
+
+
 def handler(event: dict, context) -> dict:
-    """Ежедневное списание 1 энергии за каждый лендинг пользователя (cron 00:00 МСК)"""
+    """Ежедневное списание энергии за лендинги + рассылка письма-напоминания через 10 дней после регистрации (cron 00:00 МСК)"""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -92,11 +188,14 @@ def handler(event: dict, context) -> dict:
 
         conn.commit()
 
+        followup_result = do_followup_emails(conn)
+
         result = {
             "ok": True,
             "charged_salons": charged,
             "skipped_salons": skipped,
-            "total_processed": len(rows)
+            "total_processed": len(rows),
+            "followup_emails": followup_result
         }
         print(f"[landing-daily-charge] {result}")
 

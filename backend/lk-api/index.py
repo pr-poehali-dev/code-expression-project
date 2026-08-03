@@ -1964,7 +1964,7 @@ def _send_verify_email(to_email: str, full_name: str, token: str) -> None:
 <body style="margin:0;padding:0;background:#f4f4f0;font-family:'Helvetica Neue',Arial,sans-serif;">
   <div style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
     <div style="background:linear-gradient(135deg,#1a9fae,#136e7a);padding:28px 32px;">
-      <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Pro Dialog</div>
+      <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Промт Диалог</div>
       <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">Platforma dlya byuti-biznesa</div>
     </div>
     <div style="padding:32px 32px 24px;">
@@ -1972,7 +1972,7 @@ def _send_verify_email(to_email: str, full_name: str, token: str) -> None:
         {full_name}, podtverdite email
       </p>
       <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 28px;">
-        Vy uspeshno zaregistrirovalis v Pro Dialog. Nazhite knopku nizhe, chtoby podtverdit adres elektronnoy pochty i aktivirovat akkaunt.
+        Vy uspeshno zaregistrirovalis v Promt Dialog. Nazhite knopku nizhe, chtoby podtverdit adres elektronnoy pochty i aktivirovat akkaunt.
       </p>
       <a href="{verify_url}"
          style="display:inline-block;background:linear-gradient(135deg,#1a9fae,#136e7a);color:#fff;text-decoration:none;
@@ -1993,8 +1993,8 @@ def _send_verify_email(to_email: str, full_name: str, token: str) -> None:
 </html>"""
 
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = str(Header("Podtverzhdenie email — Pro Dialog", "utf-8"))
-    msg["From"]    = f"Pro Dialog <{sender}>"
+    msg["Subject"] = str(Header("Подтверждение email — Промт Диалог", "utf-8"))
+    msg["From"]    = formataddr((str(Header("Промт Диалог", "utf-8")), sender))
     msg["To"]      = to_email
     msg["MIME-Version"] = "1.0"
     msg.attach(MIMEText(html, "html", "utf-8"))
@@ -2079,14 +2079,14 @@ def _send_invite_email(to_email: str, full_name: str, salon_name: str, role_labe
         return
 
     sender = "massopro@mail.ru"
-    subject = f"Priglashenie v komandu - Pro Dialog"
+    subject = str(Header("Приглашение в команду — Промт Диалог", "utf-8"))
 
     html = f"""<!DOCTYPE html>
 <html>
 <body style="margin:0;padding:0;background:#f4f4f0;font-family:'Helvetica Neue',Arial,sans-serif;">
   <div style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
     <div style="background:linear-gradient(135deg,#1a9fae,#136e7a);padding:28px 32px;">
-      <div style="font-size:22px;font-weight:800;color:#fff;">Pro Dialog</div>
+      <div style="font-size:22px;font-weight:800;color:#fff;">Промт Диалог</div>
     </div>
     <div style="padding:32px 32px 24px;">
       <p style="font-size:16px;font-weight:700;color:#1a1a1a;margin:0 0 8px;">
@@ -2110,7 +2110,7 @@ def _send_invite_email(to_email: str, full_name: str, salon_name: str, role_labe
       </p>
     </div>
     <div style="padding:16px 32px;background:#f8f8f5;border-top:1px solid #eee;">
-      <p style="font-size:11px;color:#bbb;margin:0;">Pro Dialog — platforma dlya byuti-biznesa</p>
+      <p style="font-size:11px;color:#bbb;margin:0;">Промт Диалог — platforma dlya byuti-biznesa</p>
     </div>
   </div>
 </body>
@@ -2118,7 +2118,7 @@ def _send_invite_email(to_email: str, full_name: str, salon_name: str, role_labe
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"]    = f"Pro Dialog <{sender}>"
+    msg["From"]    = formataddr((str(Header("Промт Диалог", "utf-8")), sender))
     msg["To"]      = to_email
     msg["MIME-Version"] = "1.0"
     msg.attach(MIMEText(html, "html", "utf-8"))
