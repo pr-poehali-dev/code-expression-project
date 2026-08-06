@@ -232,8 +232,9 @@ def handle_register(event: dict) -> dict:
         )
         conn.commit()
 
-        # Отправляем письмо подтверждения
+        # Отправляем письмо подтверждения и приветственное письмо с объяснением, как начать работу с «ПоДелам»
         _send_verify_email(email, full_name, verify_token)
+        _send_welcome_email(email, full_name)
 
         return ok({
             "session_id": session_id,
@@ -2003,6 +2004,81 @@ def _send_verify_email(to_email: str, full_name: str, token: str) -> None:
     with smtplib.SMTP_SSL("smtp.mail.ru", 465, context=ctx) as srv:
         srv.login(sender, smtp_password)
         srv.sendmail(sender, [to_email], msg.as_string())
+
+
+def _send_welcome_email(to_email: str, full_name: str) -> None:
+    """Приветственное письмо новому пользователю с коротким объяснением, как начать работу с «ПоДелам»."""
+    import smtplib
+    import ssl
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    from email.header import Header
+
+    smtp_password = os.environ.get("SMTP_PASSWORD", "")
+    if not smtp_password:
+        return
+
+    sender = "massopro@mail.ru"
+    name = full_name or "Уважаемый пользователь"
+    cabinet_url = f"{SITE_URL}/cabinet"
+
+    html = f"""<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f4f4f0;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <div style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background:linear-gradient(135deg,#1a9fae,#136e7a);padding:28px 32px;">
+      <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Промт Диалог</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">ИИ-навигатор дохода «ПоДелам»</div>
+    </div>
+    <div style="padding:32px 32px 24px;">
+      <p style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;">
+        {name}, добро пожаловать!
+      </p>
+      <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 24px;">
+        Вы зарегистрированы. В личном кабинете вас уже ждёт раздел «ПоДелам» — он покажет, откуда взять деньги на цель по доходу, и составит план дел на сегодня.
+      </p>
+      <div style="background:#f8fafc;border-radius:12px;padding:20px 22px;margin:0 0 24px;">
+        <p style="font-size:13px;font-weight:700;color:#1a1a1a;margin:0 0 12px;">Как начать за 3 шага:</p>
+        <p style="font-size:13.5px;color:#444;line-height:1.8;margin:0 0 6px;">
+          <strong>1.</strong> Откройте «ПоДелам» — это первый раздел в кабинете
+        </p>
+        <p style="font-size:13.5px;color:#444;line-height:1.8;margin:0 0 6px;">
+          <strong>2.</strong> Ответьте на несколько вопросов о доходе, чеке и клиентах — 10–15 минут
+        </p>
+        <p style="font-size:13.5px;color:#444;line-height:1.8;margin:0;">
+          <strong>3.</strong> Получите план роста и главное дело на сегодня
+        </p>
+      </div>
+      <a href="{cabinet_url}"
+         style="display:inline-block;background:linear-gradient(135deg,#1a9fae,#136e7a);color:#fff;text-decoration:none;
+                font-size:15px;font-weight:700;padding:16px 32px;border-radius:12px;letter-spacing:0.2px;">
+        Открыть «ПоДелам»
+      </a>
+      <p style="font-size:12px;color:#aaa;margin:24px 0 0;line-height:1.6;">
+        100 энергий уже начислены на баланс — можно сразу пробовать инструменты платформы.
+      </p>
+    </div>
+    <div style="padding:16px 32px;background:#f8f8f5;border-top:1px solid #eee;">
+      <p style="font-size:11px;color:#bbb;margin:0;">Промт Диалог — платформа для бьюти-бизнеса</p>
+    </div>
+  </div>
+</body>
+</html>"""
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = str(Header("Добро пожаловать в Промт Диалог", "utf-8"))
+    msg["From"]    = formataddr((str(Header("Промт Диалог", "utf-8")), sender))
+    msg["To"]      = to_email
+    msg["MIME-Version"] = "1.0"
+    msg.attach(MIMEText(html, "html", "utf-8"))
+
+    try:
+        ctx = ssl.create_default_context()
+        with smtplib.SMTP_SSL("smtp.mail.ru", 465, context=ctx) as srv:
+            srv.login(sender, smtp_password)
+            srv.sendmail(sender, [to_email], msg.as_string())
+    except Exception as e:
+        print(f"[Email Error] welcome email: {e}")
 
 
 def handle_email_verify(event: dict) -> dict:
