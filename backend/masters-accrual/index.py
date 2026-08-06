@@ -3,7 +3,7 @@
 Начисление мастерам ТОЛЬКО при реальной покупке энергии через ЮКассу.
 Ручное пополнение и бонусы — не считаются.
 Формула: 10% от количества энергий = рубли (100 энергий → 10 ₽).
-GET  ?action=podelam_get           — профиль дохода + план на сегодня (X-Session-Id)
+GET  ?action=podelam_get           — профиль дохода + план на сегодня, план строит ИИ (модель terra через polza.ai) (X-Session-Id)
 POST ?action=podelam_save_profile  — сохранить диагностику дохода (X-Session-Id)
 POST ?action=podelam_task_done     — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
 GET  ?action=podelam_stats         — статистика выполненных дел за неделю/месяц (X-Session-Id)
@@ -12,6 +12,8 @@ GET  / (без action) — история начислений мастера (X
 """
 import json
 import os
+import urllib.request
+import urllib.error
 import psycopg2
 import psycopg2.extras
 from datetime import datetime, timedelta, timezone, date
@@ -147,6 +149,117 @@ def build_today_tasks(points: list) -> list:
     return tasks
 
 
+# ── Генерация плана «ПоДелам» через ИИ (модель terra, polza.ai) ────────────
+
+PODELAM_MODEL = "openai/gpt-5.6-terra"
+PODELAM_AI_URL = "https://polza.ai/api/v1/chat/completions"
+
+# Разделы ЛК, куда ИИ может направить пользователя для выполнения дела
+PODELAM_NAV_CATALOG = """
+- clientmsg — генератор сообщений клиентам (напоминания, возврат ушедших, акции, поздравления, просьба отзыва)
+- marketing:audience — портрет целевой аудитории
+- marketing:offers — офферы/спецпредложения под сегменты клиентов
+- marketing:semantics — семантическое ядро (ключевые слова) для Яндекс.Директ
+- marketing:direct — готовые тексты объявлений для Яндекс.Директ
+- marketing:budget — расчёт медиабюджета для Директа
+- marketing:post-gen — генератор постов для соцсетей
+- marketing:image-gen — генерация визуалов/картинок для контента
+- marketing:reel-script — сценарий для Reels/видео-контента
+- marketing:video-gen — генерация видео-ролика
+- marketing:photo-fitting — примерочная (ИИ показывает результат услуги на фото клиента)
+- marketing:seo — SEO-анализ сайта и рекомендации
+- agent — ИИ-агент: скрипты продаж, допродаж, работы с возражениями
+"""
+
+PODELAM_SYSTEM_PROMPT = f"""Ты — экспертный бизнес-консультант и маркетолог-стратег, встроенный в сервис «ПоДелам» \
+внутри платформы «Промт Диалог» для мастеров и владельцев салонов красоты (парикмахеры, мастера маникюра, массажисты и т.п.).
+
+Твоя задача — на основе диагностики конкретного мастера/салона построить ЧЁТКИЙ, ПРИЧИННО-СЛЕДСТВЕННЫЙ план роста дохода:
+1. Учти АБСОЛЮТНО ВСЕ данные из диагностики (ниша, средний чек, текущий и целевой доход, клиентов в месяц, \
+размер базы, % повторных визитов, свободные окна, есть ли допуслуги, откуда приходят записи).
+2. Посчитай разрыв между текущим и целевым доходом и реалистично разложи его на 3-4 точки роста — откуда именно \
+возьмутся деньги (возврат клиентов, заполнение окон, допродажи, привлечение новых через конкретный канал lead_source).
+3. Для каждой точки роста подбери КОНКРЕТНОЕ маркетинговое или операционное действие на сегодня, которое можно \
+выполнить с помощью инструментов личного кабинета. Обязательно указывай nav — раздел ЛК, который реально решает эту \
+задачу, выбирай СТРОГО из списка ниже, ничего не выдумывай:
+{PODELAM_NAV_CATALOG}
+4. Если lead_source указывает на конкретный канал (Instagram, Директ, сарафанное радио и т.д.) — учитывай это при \
+выборе маркетинговых действий (например, если реклама не настроена, а доход не дотягивает до цели — предложи \
+семантику/объявления/бюджет для Директа; если упор на контент — Reels/посты/визуалы).
+5. Одно из дел сделай "главным делом дня" — тем, что даст наибольший или самый быстрый эффект.
+6. Придумай короткий, тёплый, мотивирующий анонс на завтра (2-3 предложения, обращение на "вы"), который объясняет, \
+что план не статичен: завтра появится новый набор дел с учётом того, что было сделано сегодня, и почему это важно \
+(регулярность даёт результат). НЕ повторяй сегодняшние формулировки дословно.
+
+Отвечай СТРОГО в формате JSON, без markdown-обёртки, без пояснений вне JSON:
+{{
+  "growth_points": [
+    {{"key": "верхнеуровневый_слаг_латиницей", "title": "Короткое название точки роста", "action": "Конкретное действие с цифрами", "potential": число_рублей}}
+  ],
+  "tasks": [
+    {{"key": "тот_же_слаг_что_в_growth_points_или_content", "title": "Название дела (2-4 слова)", "action_text": "Развёрнутое пояснение что и как сделать, с цифрами из диагностики", "button": "Текст кнопки перехода (2-4 слова)", "nav": "раздел_из_списка", "minutes": число_минут_на_выполнение, "potential": число_рублей_или_0}}
+  ],
+  "main_task_key": "key дела с наибольшим приоритетом на сегодня",
+  "tomorrow_preview": "Тёплый анонс на завтра, 2-3 предложения"
+}}
+
+Правила по числам: potential — целые рубли, реалистичные исходя из среднего чека и базы клиентов, никогда не превышай \
+величину разрыва между текущим и целевым доходом суммарно по всем tasks. Дел должно быть 3-4, каждое выполнимо за 10-30 минут."""
+
+
+def call_podelam_ai(profile: dict, gap: float) -> dict | None:
+    """Запрашивает у модели terra (polza.ai) персональный план роста дохода. Возвращает None при ошибке."""
+    api_key = os.environ.get("POLZA_AI_API_KEY", "")
+    if not api_key:
+        return None
+
+    user_payload = {
+        "niche": profile.get("niche") or "не указана",
+        "avg_check": float(profile["avg_check"]),
+        "current_revenue": float(profile["current_revenue"]),
+        "target_revenue": float(profile["target_revenue"]),
+        "gap_amount": round(gap),
+        "clients_per_month": int(profile.get("clients_per_month") or 0),
+        "base_size": int(profile.get("base_size") or 0),
+        "repeat_rate": int(profile.get("repeat_rate") or 0),
+        "free_slots_per_week": int(profile.get("free_slots_per_week") or 0),
+        "has_addon_services": bool(profile.get("has_addon_services")),
+        "lead_source": profile.get("lead_source") or "не указан",
+    }
+
+    payload = json.dumps({
+        "model": PODELAM_MODEL,
+        "messages": [
+            {"role": "system", "content": PODELAM_SYSTEM_PROMPT},
+            {"role": "user", "content": f"Диагностика мастера/салона:\n{json.dumps(user_payload, ensure_ascii=False, indent=2)}"},
+        ],
+        "temperature": 0.6,
+        "max_tokens": 2000,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        PODELAM_AI_URL,
+        data=payload,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        content = data["choices"][0]["message"]["content"].strip()
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            content = content.strip()
+        parsed = json.loads(content)
+        if not parsed.get("tasks") or not parsed.get("growth_points"):
+            return None
+        return parsed
+    except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError):
+        return None
+
+
 def handle_podelam_get(event: dict, conn) -> dict:
     """Возвращает сохранённый профиль дохода, финансовую карту и план на сегодня."""
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
@@ -165,30 +278,55 @@ def handle_podelam_get(event: dict, conn) -> dict:
     if not profile:
         return ok({"has_profile": False})
 
-    points = build_growth_points(profile)
     gap = float(profile["target_revenue"]) - float(profile["current_revenue"])
+    fallback_points = build_growth_points(profile)
+    default_preview = (
+        "Завтра здесь появится новый набор дел — ИИ пересчитает план с учётом того, что вы выполните сегодня. "
+        "Регулярные небольшие шаги дают самый устойчивый рост дохода."
+    )
 
     today = date.today()
     cur.execute(
         f"SELECT * FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s AND plan_date = %s",
         (user["id"], today)
     )
-    plan = cur.fetchone()
-    if not plan:
-        tasks = build_today_tasks(points)
+    plan_row = cur.fetchone()
+    if not plan_row:
+        ai_result = call_podelam_ai(dict(profile), gap)
+        if ai_result:
+            points = ai_result["growth_points"]
+            tasks = ai_result["tasks"]
+            main_key = ai_result.get("main_task_key") or (tasks[0]["key"] if tasks else None)
+            tomorrow_preview = ai_result.get("tomorrow_preview") or default_preview
+            source = "ai"
+        else:
+            points = fallback_points
+            tasks = build_today_tasks(points)
+            main_key = tasks[0]["key"] if tasks else None
+            tomorrow_preview = default_preview
+            source = "rules"
+
         cur2 = conn.cursor()
         cur2.execute(
-            f"""INSERT INTO {SCHEMA}.podelam_daily_plans (user_id, plan_date, main_task_key, gap_amount, tasks)
-                VALUES (%s, %s, %s, %s, %s)
+            f"""INSERT INTO {SCHEMA}.podelam_daily_plans
+                (user_id, plan_date, main_task_key, gap_amount, tasks, tomorrow_preview, source, growth_points)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (user_id, plan_date) DO NOTHING
                 RETURNING *""",
-            (user["id"], today, tasks[0]["key"] if tasks else None, gap, json.dumps(tasks, ensure_ascii=False))
+            (user["id"], today, main_key, gap, json.dumps(tasks, ensure_ascii=False),
+             tomorrow_preview, source, json.dumps(points, ensure_ascii=False))
         )
-        row = cur2.fetchone()
+        cur2.fetchone()
         conn.commit()
-        plan = {"tasks": tasks, "main_task_key": tasks[0]["key"] if tasks else None, "gap_amount": gap, "plan_date": str(today)}
+        plan = {
+            "tasks": tasks, "main_task_key": main_key, "gap_amount": gap,
+            "plan_date": str(today), "tomorrow_preview": tomorrow_preview, "source": source,
+        }
+        growth_points = points
     else:
-        plan = dict(plan)
+        plan = dict(plan_row)
+        saved_points = plan.get("growth_points")
+        growth_points = saved_points if saved_points else fallback_points
 
     cur.execute(
         f"SELECT task_key, done, actual_amount FROM {SCHEMA}.podelam_task_log WHERE user_id = %s AND plan_date = %s",
@@ -199,7 +337,7 @@ def handle_podelam_get(event: dict, conn) -> dict:
     return ok({
         "has_profile": True,
         "profile": dict(profile),
-        "growth_points": points,
+        "growth_points": growth_points,
         "gap_amount": gap,
         "plan": plan,
         "task_log": log,

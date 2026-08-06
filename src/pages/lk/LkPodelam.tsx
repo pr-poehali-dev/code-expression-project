@@ -45,7 +45,7 @@ interface PodelamData {
   profile?: Profile;
   growth_points?: GrowthPoint[];
   gap_amount?: number;
-  plan?: { tasks: Task[]; main_task_key: string | null; gap_amount: number };
+  plan?: { tasks: Task[]; main_task_key: string | null; gap_amount: number; tomorrow_preview?: string; source?: string };
   task_log?: Record<string, { done: boolean; actual_amount: number | null }>;
 }
 
@@ -529,6 +529,17 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
           </div>
           <div style={{ fontSize: 11, color: "#B0B8C1", marginTop: 12, lineHeight: 1.5 }}>
             Расчёт ориентировочный и основан на ваших данных. Реальный результат зависит от спроса, цены, качества услуг и выполнения действий.
+          </div>
+        </div>
+      )}
+
+      {/* Анонс на завтра */}
+      {plan?.tomorrow_preview && (
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 12, background: "hsl(185,85%,96%)", borderRadius: 14, padding: "16px 20px", marginTop: 20 }}>
+          <Icon name="Sunrise" size={18} style={{ color: ACCENT, flexShrink: 0, marginTop: 2 }} />
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Завтра новые шаги</div>
+            <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.6 }}>{plan.tomorrow_preview}</div>
           </div>
         </div>
       )}
