@@ -46,6 +46,13 @@
       "method": "GET",
       "path": "/?action=podelam_stats",
       "expectedStatus": 401
+    },
+    {
+      "name": "POST podelam_set_income without session — 401",
+      "method": "POST",
+      "path": "/?action=podelam_set_income",
+      "body": {"amount": 5000},
+      "expectedStatus": 401
     }
   ]
 }

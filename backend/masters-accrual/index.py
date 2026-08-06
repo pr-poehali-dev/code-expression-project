@@ -7,6 +7,7 @@ GET  ?action=podelam_get           — профиль дохода + план н
 POST ?action=podelam_save_profile  — сохранить диагностику дохода (X-Session-Id)
 POST ?action=podelam_task_done     — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
 GET  ?action=podelam_stats         — статистика выполненных дел за неделю/месяц (X-Session-Id)
+POST ?action=podelam_set_income    — сохранить фактический доход за день (amount, опционально date) (X-Session-Id)
 POST / (без action или action=withdraw) — начисления мастерам (X-Master-Session)
 GET  / (без action) — история начислений мастера (X-Master-Session)
 """
@@ -342,6 +343,13 @@ def handle_podelam_get(event: dict, conn) -> dict:
     )
     log = {r["task_key"]: {"done": r["done"], "actual_amount": float(r["actual_amount"]) if r["actual_amount"] else None} for r in cur.fetchall()}
 
+    cur.execute(
+        f"SELECT amount FROM {SCHEMA}.podelam_daily_income WHERE user_id = %s AND income_date = %s",
+        (user["id"], today)
+    )
+    income_row = cur.fetchone()
+    today_income = float(income_row["amount"]) if income_row else None
+
     return ok({
         "has_profile": True,
         "profile": dict(profile),
@@ -349,6 +357,7 @@ def handle_podelam_get(event: dict, conn) -> dict:
         "gap_amount": gap,
         "plan": plan,
         "task_log": log,
+        "today_income": today_income,
     })
 
 
@@ -425,6 +434,39 @@ def handle_podelam_task_done(event: dict, conn) -> dict:
     return ok({"ok": True})
 
 
+def handle_podelam_set_income(event: dict, conn) -> dict:
+    """Сохраняет фактический доход мастера за конкретный день (по умолчанию — сегодня)."""
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+    if not session_id:
+        return err("Не авторизован", 401)
+    user = get_lk_user_by_session(session_id, conn)
+    if not user:
+        return err("Сессия истекла", 401)
+
+    body = json.loads(event.get("body") or "{}")
+    if body.get("amount") in (None, ""):
+        return err("Укажите сумму")
+    try:
+        amount = float(body["amount"])
+    except (TypeError, ValueError):
+        return err("Некорректная сумма")
+    if amount < 0:
+        return err("Сумма не может быть отрицательной")
+
+    income_date = body.get("date") or str(date.today())
+
+    cur = conn.cursor()
+    cur.execute(
+        f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, updated_at)
+            VALUES (%s, %s, %s, NOW())
+            ON CONFLICT (user_id, income_date) DO UPDATE SET
+                amount=EXCLUDED.amount, updated_at=NOW()""",
+        (user["id"], income_date, amount)
+    )
+    conn.commit()
+    return ok({"ok": True, "amount": amount})
+
+
 def _compute_period_stats(conn, user_id: int, days: int) -> dict:
     """Считает статистику по выполненным делам и потенциалу/факту за последние N дней."""
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -445,15 +487,23 @@ def _compute_period_stats(conn, user_id: int, days: int) -> dict:
         total_tasks += len(tasks)
         potential_total += sum(float(t.get("potential") or 0) for t in tasks)
 
-    # Выполненные дела и фактические суммы из лога
+    # Выполненные дела за период (для счётчика "дел выполнено")
     cur.execute(
-        f"""SELECT done, actual_amount FROM {SCHEMA}.podelam_task_log
+        f"""SELECT done FROM {SCHEMA}.podelam_task_log
             WHERE user_id = %s AND plan_date >= %s AND plan_date <= %s""",
         (user_id, since, date.today())
     )
     logs = cur.fetchall()
     done_count = sum(1 for r in logs if r["done"])
-    actual_total = sum(float(r["actual_amount"]) for r in logs if r["actual_amount"] is not None)
+
+    # Фактический доход, указанный мастером по дням
+    cur.execute(
+        f"""SELECT amount FROM {SCHEMA}.podelam_daily_income
+            WHERE user_id = %s AND income_date >= %s AND income_date <= %s""",
+        (user_id, since, date.today())
+    )
+    income_rows = cur.fetchall()
+    actual_total = sum(float(r["amount"]) for r in income_rows)
 
     return {
         "days": days,
@@ -527,6 +577,8 @@ def handler(event: dict, context) -> dict:
             return handle_podelam_task_done(event, conn)
         if route_action == "podelam_stats":
             return handle_podelam_stats(event, conn)
+        if route_action == "podelam_set_income":
+            return handle_podelam_set_income(event, conn)
 
         headers = event.get("headers") or {}
         session_id = headers.get("X-Master-Session", "")

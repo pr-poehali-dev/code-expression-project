@@ -49,6 +49,7 @@ interface PodelamData {
   gap_amount?: number;
   plan?: { tasks: Task[]; main_task_key: string | null; gap_amount: number; tomorrow_preview?: string; source?: string };
   task_log?: Record<string, { done: boolean; actual_amount: number | null }>;
+  today_income?: number | null;
 }
 
 interface PeriodStats {
@@ -231,6 +232,11 @@ function InfoModal({ onClose }: { onClose: () => void }) {
       text: "У каждого дела есть кнопка, которая сразу открывает нужный инструмент (сообщения клиентам, офферы, скрипты, Reels) с уже подготовленным контекстом. Сделали — отметьте кружок галочкой, чтобы дело ушло в выполненные и не мешало на завтра.",
     },
     {
+      icon: "Wallet",
+      title: "Как указать доход за день",
+      text: "В блоке «Доход за сегодня» впишите сумму, которую фактически заработали, и нажмите «Сохранить». Эти данные попадают в статистику и показывают, насколько факт совпадает с потенциалом плана.",
+    },
+    {
       icon: "Info",
       title: "Важно",
       text: "Суммы потенциала — это ориентир, а не гарантия. Реальный результат зависит от спроса, цены, качества услуг и того, выполните ли вы предложенные действия.",
@@ -269,6 +275,69 @@ function InfoModal({ onClose }: { onClose: () => void }) {
             Понятно
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Карточка «Доход за сегодня» ──────────────────────────────────────────────
+function DailyIncomeCard({ savedAmount, onSave }: { savedAmount: number | null | undefined; onSave: (amount: number) => Promise<void> }) {
+  const [value, setValue] = useState(savedAmount != null ? String(savedAmount) : "");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setValue(savedAmount != null ? String(savedAmount) : "");
+  }, [savedAmount]);
+
+  const submit = async () => {
+    const amount = Number(value);
+    if (value.trim() === "" || Number.isNaN(amount) || amount < 0) return;
+    setSaving(true);
+    try {
+      await onSave(amount);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <Icon name="Wallet" size={16} style={{ color: ACCENT }} />
+        <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>Доход за сегодня</span>
+      </div>
+      <div style={{ fontSize: 13, color: "#64748B", marginBottom: 14, lineHeight: 1.6 }}>
+        Укажите, сколько фактически заработали сегодня — эти суммы учитываются в статистике ниже (факт vs потенциал).
+      </div>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ position: "relative", flex: "1 1 180px" }}>
+          <input
+            type="number"
+            min={0}
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") submit(); }}
+            placeholder="0"
+            style={{ width: "100%", padding: "11px 40px 11px 14px", borderRadius: 10, border: "1.5px solid #E2E8F0", fontSize: 15, fontWeight: 600, fontFamily: "Montserrat,sans-serif", color: "#0F172A", outline: "none", boxSizing: "border-box" }}
+          />
+          <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#94A3B8", fontWeight: 600 }}>₽</span>
+        </div>
+        <button
+          onClick={submit}
+          disabled={saving || value.trim() === ""}
+          style={{
+            padding: "11px 22px", borderRadius: 10, border: "none",
+            background: saved ? "hsl(145,60%,40%)" : `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`,
+            color: "#fff", fontSize: 13, fontWeight: 700, cursor: saving || value.trim() === "" ? "default" : "pointer",
+            fontFamily: "Montserrat,sans-serif", opacity: saving ? 0.7 : 1, whiteSpace: "nowrap",
+            display: "flex", alignItems: "center", gap: 6,
+          }}
+        >
+          {saved ? <><Icon name="Check" size={15} /> Сохранено</> : saving ? "Сохраняю…" : "Сохранить"}
+        </button>
       </div>
     </div>
   );
@@ -330,7 +399,7 @@ function StatsSection({ stats }: { stats: StatsData | null }) {
       <div style={{ fontSize: 11, color: "#94A3B8" }}>
         {s.actual_total > 0
           ? `Факт составляет ${factPct}% от потенциала за этот период`
-          : "Фактические суммы появятся, когда вы укажете их при выполнении дел"}
+          : "Фактические суммы появятся, когда вы укажете доход за сегодня в блоке выше"}
       </div>
     </div>
   );
@@ -376,17 +445,24 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   const markDone = async (taskKey: string) => {
     setMarking(taskKey);
     try {
-      const amountStr = window.prompt("Сколько фактически удалось получить по этому делу, ₽? (можно оставить пустым)", "");
-      const actual_amount = amountStr && !Number.isNaN(Number(amountStr)) ? Number(amountStr) : null;
       await fetch(`${PODELAM_URL}?action=podelam_task_done`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
-        body: JSON.stringify({ task_key: taskKey, done: true, actual_amount }),
+        body: JSON.stringify({ task_key: taskKey, done: true }),
       });
       load();
     } finally {
       setMarking(null);
     }
+  };
+
+  const saveIncome = async (amount: number) => {
+    await fetch(`${PODELAM_URL}?action=podelam_set_income`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
+      body: JSON.stringify({ amount }),
+    });
+    load();
   };
 
   if (loading) {
@@ -473,6 +549,9 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>{progress}% от цели</div>
         </div>
       )}
+
+      {/* Доход за сегодня */}
+      <DailyIncomeCard savedAmount={data.today_income} onSave={saveIncome} />
 
       {/* Экран 2: Главное дело дня */}
       {mainTask && (
