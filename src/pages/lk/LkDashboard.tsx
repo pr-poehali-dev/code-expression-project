@@ -13,7 +13,6 @@ import LkAcademy from "./LkAcademy";
 import LkMemberAcademy from "./LkMemberAcademy";
 import LkClientMsg from "./LkClientMsg";
 import LkMarketing from "./LkMarketing";
-import SalonAIAgent from "./SalonAIAgent";
 import { PodelamTab } from "./LkPodelam";
 import LkChampionship from "./LkChampionship";
 import { LkSidebar, LkMobileHeader, LkBottomBar, PodelamReminderBanner } from "./LkDashboardSidebar";
@@ -34,7 +33,7 @@ export default function LkDashboard() {
     if (role === "owner" && !hasSalon) return "salon";
     if (fittingTrial && allowedTabs.includes("marketing")) return "marketing";
     const saved = sessionStorage.getItem("lk_tab") as Tab | null;
-    const needsSalon: Tab[] = role === "solo_master" ? [] : ["ai", "shop", "employees", "agent"];
+    const needsSalon: Tab[] = role === "solo_master" ? [] : ["ai", "shop", "employees"];
     if (saved && allowedTabs.includes(saved)) {
       if (needsSalon.includes(saved) && !hasSalon) return "salon";
       return saved;
@@ -109,7 +108,6 @@ export default function LkDashboard() {
           : <LkMemberAcademy onNavigate={handleTabChange} />
         )}
         {tab === "ai"        && <LkAiTools />}
-        {tab === "agent"      && <SalonAIAgent onNavigateShop={() => handleTabChange("shop")} />}
         {tab === "clientmsg"  && <LkClientMsg />}
         {tab === "marketing"  && <LkMarketing initialTool={marketingTool} />}
         {tab === "shop"       && <LkEnergy />}

@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import func2url from "../../../backend/func2url.json";
 import { markPodelamSeen } from "./podelamNotice";
+import SalonAIAgent from "./SalonAIAgent";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -344,6 +345,15 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   const [editing, setEditing] = useState(false);
   const [marking, setMarking] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const agentRef = useRef<HTMLDivElement>(null);
+
+  const goTo = useCallback((target: string) => {
+    if (target === "agent") {
+      agentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    onNav(target);
+  }, [onNav]);
 
   const loadStats = useCallback(() => {
     fetch(`${PODELAM_URL}?action=podelam_stats`, { headers: { "X-Session-Id": sid() } })
@@ -465,7 +475,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
             </div>
           )}
           <button
-            onClick={() => onNav(mainTask.nav)}
+            onClick={() => goTo(mainTask.nav)}
             style={{ padding: "11px 22px", borderRadius: 10, border: "none", background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
           >
             {mainTask.button}
@@ -498,7 +508,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
                 </div>
                 {!done && (
                   <button
-                    onClick={() => onNav(t.nav)}
+                    onClick={() => goTo(t.nav)}
                     style={{ fontSize: 12, fontWeight: 600, color: ACCENT, background: "hsl(185,85%,95%)", border: "none", borderRadius: 8, padding: "7px 12px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}
                   >
                     {t.button}
@@ -508,6 +518,11 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
             );
           })}
         </div>
+      </div>
+
+      {/* ИИ-Агент — общение по развитию бизнеса */}
+      <div ref={agentRef} style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)", scrollMarginTop: 20 }}>
+        <SalonAIAgent onNavigateShop={() => onNav("shop")} />
       </div>
 
       {/* Статистика за неделю/месяц */}
