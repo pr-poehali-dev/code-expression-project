@@ -64,7 +64,7 @@ export default function IndexHero() {
             </div>
 
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(38px,5vw,64px)", fontWeight: 500, color: "#fff", lineHeight: 1.08, margin: "0 0 24px", letterSpacing: "-0.5px" }}>
-              Не просто ИИ. Понятный план роста дохода
+              Рост дохода салона и мастеров
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 28px", fontWeight: 300, maxWidth: 520 }}>
               «ПоДелам» анализирует ваш доход, чек, базу клиентов и загрузку — и показывает, какие действия дадут результат именно вам. Не «ведите соцсети», а конкретно:
