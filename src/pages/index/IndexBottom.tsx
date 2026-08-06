@@ -126,10 +126,10 @@ export default function IndexBottom() {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }} className="tarif-cards-grid">
               {[
-                { name: "Старт", price: "990 ₽", energy: "150 энергий", landings: "3 лендинга", color: "#64748B", bg: "#F8FAFC", border: "#E2E8F0" },
-                { name: "Бизнес", price: "2 990 ₽", energy: "550 энергий", landings: "5 лендингов", color: TEAL, bg: "rgba(45,212,191,0.04)", border: TEAL, popular: true },
-                { name: "Рост", price: "4 990 ₽", energy: "1 200 энергий", landings: "10 лендингов", color: "#7c3aed", bg: "#faf5ff", border: "#e9d5ff" },
-                { name: "Премиум", price: "9 990 ₽", energy: "3 000 энергий", landings: "50 лендингов", color: "#059669", bg: "#f0fdf4", border: "#bbf7d0" },
+                { name: "Старт", price: "990 ₽", energy: "150 энергий", discount: null, color: "#64748B", bg: "#F8FAFC", border: "#E2E8F0" },
+                { name: "Бизнес", price: "2 990 ₽", energy: "550 энергий", discount: "Выгода 18%", color: TEAL, bg: "rgba(45,212,191,0.04)", border: TEAL, popular: true },
+                { name: "Рост", price: "4 990 ₽", energy: "1 200 энергий", discount: "Выгода 37%", color: "#7c3aed", bg: "#faf5ff", border: "#e9d5ff" },
+                { name: "Премиум", price: "9 990 ₽", energy: "3 000 энергий", discount: "Выгода 50%", color: "#059669", bg: "#f0fdf4", border: "#bbf7d0" },
               ].map((pkg, i) => (
                 <div key={i} style={{ border: `1.5px solid ${pkg.border}`, borderRadius: 14, padding: "22px 18px", background: pkg.bg, position: "relative" }}>
                   {pkg.popular && (
@@ -142,10 +142,12 @@ export default function IndexBottom() {
                       <Icon name="Zap" size={12} style={{ color: pkg.color }} />
                       <span style={{ fontSize: 12, color: GRAY }}>{pkg.energy}</span>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <Icon name="Globe" size={12} style={{ color: pkg.color }} />
-                      <span style={{ fontSize: 12, color: GRAY }}>{pkg.landings}</span>
-                    </div>
+                    {pkg.discount && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <Icon name="TrendingDown" size={12} style={{ color: pkg.color }} />
+                        <span style={{ fontSize: 12, fontWeight: 700, color: pkg.color }}>{pkg.discount}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
