@@ -1,23 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { ACCENT, ACCENT_DARK, StatsData, fmt } from "./podelamShared";
 
 // ── Карточка «Доход за сегодня» ──────────────────────────────────────────────
 export function DailyIncomeCard({ savedAmount, onSave }: { savedAmount: number | null | undefined; onSave: (amount: number) => Promise<void> }) {
-  const [value, setValue] = useState(savedAmount != null ? String(savedAmount) : "");
+  const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    setValue(savedAmount != null ? String(savedAmount) : "");
-  }, [savedAmount]);
-
   const submit = async () => {
     const amount = Number(value);
-    if (value.trim() === "" || Number.isNaN(amount) || amount < 0) return;
+    if (value.trim() === "" || Number.isNaN(amount) || amount <= 0) return;
     setSaving(true);
     try {
       await onSave(amount);
+      setValue("");
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } finally {
@@ -27,12 +24,17 @@ export function DailyIncomeCard({ savedAmount, onSave }: { savedAmount: number |
 
   return (
     <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <Icon name="Wallet" size={16} style={{ color: ACCENT }} />
-        <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>Доход за сегодня</span>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Icon name="Wallet" size={16} style={{ color: ACCENT }} />
+          <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>Доход за сегодня</span>
+        </div>
+        {savedAmount != null && savedAmount > 0 && (
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>Уже указано: {fmt(savedAmount)} ₽</div>
+        )}
       </div>
       <div style={{ fontSize: 13, color: "#64748B", marginBottom: 14, lineHeight: 1.6 }}>
-        Укажите, сколько фактически заработали сегодня — эти суммы учитываются в статистике ниже (факт vs потенциал).
+        Добавляйте суммы по мере поступления оплат — они прибавляются к уже указанным за сегодня и учитываются в статистике ниже (факт vs потенциал).
       </div>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <div style={{ position: "relative", flex: "1 1 180px" }}>
@@ -58,7 +60,7 @@ export function DailyIncomeCard({ savedAmount, onSave }: { savedAmount: number |
             display: "flex", alignItems: "center", gap: 6,
           }}
         >
-          {saved ? <><Icon name="Check" size={15} /> Сохранено</> : saving ? "Сохраняю…" : "Сохранить"}
+          {saved ? <><Icon name="Check" size={15} /> Добавлено</> : saving ? "Сохраняю…" : "Добавить"}
         </button>
       </div>
     </div>

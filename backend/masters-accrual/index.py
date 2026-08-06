@@ -7,7 +7,7 @@ GET  ?action=podelam_get           — профиль дохода + план н
 POST ?action=podelam_save_profile  — сохранить диагностику дохода (X-Session-Id)
 POST ?action=podelam_task_done     — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
 GET  ?action=podelam_stats         — статистика выполненных дел за неделю/месяц (X-Session-Id)
-POST ?action=podelam_set_income    — сохранить фактический доход за день (amount, опционально date) (X-Session-Id)
+POST ?action=podelam_set_income    — прибавить фактический доход за день (amount, опц. date, mode="add"|"replace") (X-Session-Id)
 POST / (без action или action=withdraw) — начисления мастерам (X-Master-Session)
 GET  / (без action) — история начислений мастера (X-Master-Session)
 """
@@ -435,7 +435,8 @@ def handle_podelam_task_done(event: dict, conn) -> dict:
 
 
 def handle_podelam_set_income(event: dict, conn) -> dict:
-    """Сохраняет фактический доход мастера за конкретный день (по умолчанию — сегодня)."""
+    """Прибавляет фактический доход мастера за конкретный день (по умолчанию — сегодня) к уже накопленной сумме.
+    Если передан mode="replace" — заменяет сумму целиком (используется при исправлении ошибочного ввода)."""
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
     if not session_id:
         return err("Не авторизован", 401)
@@ -454,17 +455,30 @@ def handle_podelam_set_income(event: dict, conn) -> dict:
         return err("Сумма не может быть отрицательной")
 
     income_date = body.get("date") or str(date.today())
+    mode = body.get("mode") or "add"
 
-    cur = conn.cursor()
-    cur.execute(
-        f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, updated_at)
-            VALUES (%s, %s, %s, NOW())
-            ON CONFLICT (user_id, income_date) DO UPDATE SET
-                amount=EXCLUDED.amount, updated_at=NOW()""",
-        (user["id"], income_date, amount)
-    )
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    if mode == "replace":
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, updated_at)
+                VALUES (%s, %s, %s, NOW())
+                ON CONFLICT (user_id, income_date) DO UPDATE SET
+                    amount=EXCLUDED.amount, updated_at=NOW()
+                RETURNING amount""",
+            (user["id"], income_date, amount)
+        )
+    else:
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, updated_at)
+                VALUES (%s, %s, %s, NOW())
+                ON CONFLICT (user_id, income_date) DO UPDATE SET
+                    amount=podelam_daily_income.amount + EXCLUDED.amount, updated_at=NOW()
+                RETURNING amount""",
+            (user["id"], income_date, amount)
+        )
+    total_amount = float(cur.fetchone()["amount"])
     conn.commit()
-    return ok({"ok": True, "amount": amount})
+    return ok({"ok": True, "amount": total_amount})
 
 
 def _compute_period_stats(conn, user_id: int, days: int) -> dict:
