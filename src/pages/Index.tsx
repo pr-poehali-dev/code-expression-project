@@ -40,6 +40,9 @@ export default function Index() {
           .dir-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
           .tarif-grid { grid-template-columns: 1fr !important; }
         }
+        @media (max-width: 520px) {
+          .tarif-cards-grid { grid-template-columns: 1fr !important; }
+        }
       `}</style>
     </div>
   );

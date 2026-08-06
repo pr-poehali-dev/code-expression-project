@@ -124,7 +124,7 @@ export default function IndexBottom() {
                 Смотреть тарифы <Icon name="ArrowRight" size={16} />
               </Link>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }} className="tarif-cards-grid">
               {[
                 { name: "Старт", price: "990 ₽", energy: "150 энергий", landings: "3 лендинга", color: "#64748B", bg: "#F8FAFC", border: "#E2E8F0" },
                 { name: "Бизнес", price: "2 990 ₽", energy: "550 энергий", landings: "5 лендингов", color: TEAL, bg: "rgba(45,212,191,0.04)", border: TEAL, popular: true },
