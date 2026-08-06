@@ -140,7 +140,7 @@ export default function IndexHero() {
           <div style={{ maxWidth: 560, marginBottom: 48 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Проблема</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,4vw,46px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.15 }}>
-              Деньги часто уже рядом — не хватает плана
+              Прибыль рядом — не настроен маркетинг
             </h2>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="value-grid">
