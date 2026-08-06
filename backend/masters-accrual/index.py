@@ -327,6 +327,14 @@ def handle_podelam_get(event: dict, conn) -> dict:
         plan = dict(plan_row)
         saved_points = plan.get("growth_points")
         growth_points = saved_points if saved_points else fallback_points
+        if not plan.get("tomorrow_preview"):
+            plan["tomorrow_preview"] = default_preview
+            cur_fix = conn.cursor()
+            cur_fix.execute(
+                f"UPDATE {SCHEMA}.podelam_daily_plans SET tomorrow_preview = %s WHERE user_id = %s AND plan_date = %s",
+                (default_preview, user["id"], today)
+            )
+            conn.commit()
 
     cur.execute(
         f"SELECT task_key, done, actual_amount FROM {SCHEMA}.podelam_task_log WHERE user_id = %s AND plan_date = %s",
