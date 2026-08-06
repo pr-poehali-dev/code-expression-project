@@ -7,11 +7,25 @@ const DARK = "#0F172A";
 const GRAY = "#64748B";
 const SERIF = "'Cormorant Garamond', serif";
 
-const HOW_IT_WORKS = [
-  { num: "01", icon: "Gift", title: "Регистрируетесь и получаете 100 энергий на старт — бесплатно", color: TEAL },
-  { num: "02", icon: "ListChecks", title: "Выбираете задачи: диагностика, обучение, маркетинг", color: "#7c3aed" },
-  { num: "03", icon: "Bot", title: "ИИ-агенты подстраиваются под ваш салон, дают персональные решения", color: "#0369a1" },
-  { num: "04", icon: "Rocket", title: "Используете инструменты, получаете быстрые результаты", color: "#059669" },
+const SITUATIONS = [
+  {
+    icon: "UserX",
+    color: "#7c3aed",
+    bg: "#faf5ff",
+    border: "#e9d5ff",
+    title: "Мало записей",
+    desc: "«ПоДелам» проверит, что сработает быстрее рекламы: старую базу, свободные окна, сезонные поводы, рекомендации.",
+    result: "Готовые сообщения, оффер, пост или страница записи",
+  },
+  {
+    icon: "UserMinus",
+    color: "#0369a1",
+    bg: "#f0f9ff",
+    border: "#bae6fd",
+    title: "Клиенты приходят один раз и исчезают",
+    desc: "Найдём, где теряется повторный визит: нет повода вернуться, не предложена следующая запись, нет коммуникации после процедуры.",
+    result: "Сценарии сопровождения и идеи комплексов услуг",
+  },
 ];
 
 const REVIEWS = [
@@ -21,9 +35,9 @@ const REVIEWS = [
 ];
 
 const FAQ = [
-  { q: "Чем вы отличаетесь от курсов и тренингов?", a: "Курсы дают общие знания. Мы даём конкретные инструменты и решения под ваш салон — с учётом ваших данных, команды и клиентов. ИИ-агенты анализируют именно ваш бизнес, а не абстрактный пример." },
-  { q: "Как быстро увидим результат?", a: "Первые выводы и рекомендации вы получаете сразу после заполнения диагностики — это 15–30 минут. Практические результаты (рост чека, снижение оттока) клиенты отмечают уже в первый месяц." },
-  { q: "Что делать, если у меня маленький салон или один мастер?", a: "Платформа работает для любого масштаба. Для мастера — инструменты личного роста, маркетинга и поиска клиентов. Для небольшого салона — диагностика, скрипты и обучение команды." },
+  { q: "Чем «ПоДелам» отличается от обычного чата с ИИ?", a: "Чат отвечает на вопросы в моменте. «ПоДелам» анализирует ваши данные — доход, чек, базу, загрузку — и строит план на день, неделю и месяц с расчётом вклада каждого действия в выручку." },
+  { q: "Как быстро появится план действий?", a: "Сразу после диагностики — это 10–15 минут. Вы получаете карту точек роста и первое главное дело на сегодня." },
+  { q: "Подойдёт, если я работаю один, без салона?", a: "Да. «ПоДелам» одинаково работает и для частного мастера, и для салона с командой — просто набор рекомендаций и инструментов будет разным." },
 ];
 
 export default function IndexBottom() {
@@ -31,31 +45,27 @@ export default function IndexBottom() {
 
   return (
     <>
-      {/* ── 6. КАК ЭТО РАБОТАЕТ ── */}
+      {/* ── 7. РЕШЕНИЯ ПОД СИТУАЦИЮ ── */}
       <section style={{ padding: "120px 32px", background: "#fff" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 72 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Просто</div>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ maxWidth: 560, marginBottom: 56 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Ваша ситуация</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-              Как это работает?
+              Решения под вашу ситуацию
             </h2>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            {HOW_IT_WORKS.map((step, i, arr) => (
-              <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <div style={{ width: "100%", display: "flex", alignItems: "center", gap: 24, padding: "28px 32px", border: "1.5px solid #E8ECF0", borderRadius: 16, background: "#fff" }}>
-                  <div style={{ fontFamily: SERIF, fontSize: 42, fontWeight: 600, color: "#E2E8F0", lineHeight: 1, flexShrink: 0, width: 52 }}>{step.num}</div>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: `${step.color}15`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <Icon name={step.icon} size={20} style={{ color: step.color }} />
-                  </div>
-                  <p style={{ margin: 0, fontSize: 16, color: DARK, lineHeight: 1.5, fontWeight: 500 }}>{step.title}</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }} className="value-grid">
+            {SITUATIONS.map((s, i) => (
+              <div key={i} style={{ border: `1.5px solid ${s.border}`, borderRadius: 20, padding: "32px 28px" }}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: s.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+                  <Icon name={s.icon} size={22} style={{ color: s.color }} />
                 </div>
-                {i < arr.length - 1 && (
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "4px 0" }}>
-                    <div style={{ width: 2, height: 10, background: "#CBD5E1" }} />
-                    <Icon name="ChevronDown" size={16} style={{ color: "#94A3B8", marginTop: -4 }} />
-                  </div>
-                )}
+                <div style={{ fontSize: 18, fontWeight: 700, color: DARK, marginBottom: 12, lineHeight: 1.3 }}>{s.title}</div>
+                <p style={{ margin: "0 0 18px", fontSize: 14, color: GRAY, lineHeight: 1.7, fontWeight: 300 }}>{s.desc}</p>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: s.bg, borderRadius: 8, padding: "9px 14px" }}>
+                  <Icon name="ArrowRight" size={14} style={{ color: s.color }} />
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: s.color }}>{s.result}</span>
+                </div>
               </div>
             ))}
           </div>
@@ -69,14 +79,14 @@ export default function IndexBottom() {
               onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 16px 40px rgba(45,212,191,0.3)"; }}
               onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
             >
-              <Icon name="Zap" size={16} />
-              Попробовать бесплатно
+              <Icon name="Compass" size={16} />
+              Получить план роста
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── 7. ТАРИФЫ ── */}
+      {/* ── 8. ТАРИФЫ ── */}
       <section style={{ padding: "120px 32px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "center" }} className="tarif-grid">
@@ -144,7 +154,7 @@ export default function IndexBottom() {
         </div>
       </section>
 
-      {/* ── 8. ОТЗЫВЫ ── */}
+      {/* ── 9. ОТЗЫВЫ ── */}
       <section style={{ padding: "120px 32px", background: "#fff" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ maxWidth: 560, marginBottom: 72 }}>
@@ -176,7 +186,7 @@ export default function IndexBottom() {
         </div>
       </section>
 
-      {/* ── 9. FAQ ── */}
+      {/* ── 10. FAQ ── */}
       <section style={{ padding: "120px 32px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 800, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 72 }}>
@@ -213,10 +223,10 @@ export default function IndexBottom() {
         <div style={{ position: "absolute", top: "10%", left: "-5%", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.08) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center", position: "relative" }}>
           <div style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", lineHeight: 1.1, marginBottom: 24 }}>
-            Начните рост вашего салона сегодня
+            Начните с диагностики — получите первый план
           </div>
           <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", marginBottom: 40, fontWeight: 300, lineHeight: 1.7 }}>
-            100 энергий бесплатно при регистрации — без карты, без обязательств.
+            100 энергий бесплатно при регистрации — без оплаты, без обязательств.
           </p>
           <Link to="/cabinet" style={{
             display: "inline-flex", alignItems: "center", gap: 10,
@@ -227,8 +237,8 @@ export default function IndexBottom() {
             onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 16px 40px rgba(45,212,191,0.3)"; }}
             onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
           >
-            <Icon name="Zap" size={16} />
-            Попробовать бесплатно
+            <Icon name="Compass" size={16} />
+            Получить план роста
           </Link>
         </div>
       </section>

@@ -9,12 +9,12 @@ export default function Index() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
-        <title>Промт Диалог — Платформа ИИ-инструментов для роста салонов красоты</title>
-        <meta name="description" content="Диагностика, развитие команды, обучение и маркетинг — всё для роста салона красоты. Индивидуальные ИИ-агенты под задачи вашего бизнеса. 100 энергий бесплатно при регистрации." />
-        <meta name="keywords" content="платформа для салона красоты, ИИ для салона, управление салоном, обучение мастеров, маркетинг для салона" />
+        <title>Промт Диалог — ИИ-навигатор дохода «ПоДелам» для салонов и мастеров</title>
+        <meta name="description" content="«ПоДелам» — ИИ-навигатор дохода: анализирует ваш чек, базу клиентов и загрузку, показывает конкретный план роста на день, неделю и месяц. 100 энергий бесплатно." />
+        <meta name="keywords" content="навигатор дохода, план роста салона, ИИ для салона красоты, увеличение выручки мастера, маркетинг для салона" />
         <link rel="canonical" href="https://promtdialog.ru/" />
-        <meta property="og:title" content="Промт Диалог — ИИ-платформа роста салона красоты" />
-        <meta property="og:description" content="Диагностика, обучение, маркетинг и ИИ-агенты — всё для роста вашего салона. Попробуйте бесплатно." />
+        <meta property="og:title" content="Промт Диалог — ИИ-навигатор дохода «ПоДелам»" />
+        <meta property="og:description" content="Понятный план, как увеличить записи и доход — на основе ваших реальных данных. Попробуйте бесплатно." />
         <meta property="og:url" content="https://promtdialog.ru/" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -23,7 +23,7 @@ export default function Index() {
           "@type": "Organization",
           "name": "Промт Диалог",
           "url": "https://promtdialog.ru",
-          "description": "Платформа ИИ-инструментов для роста салонов красоты — диагностика, обучение, маркетинг.",
+          "description": "ИИ-навигатор дохода «ПоДелам» для мастеров и салонов — план роста на основе реальных данных.",
           "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB", "description": "100 энергий бесплатно при регистрации" }
         })}</script>
       </Helmet>
