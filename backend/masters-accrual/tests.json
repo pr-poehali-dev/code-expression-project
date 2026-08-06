@@ -40,6 +40,12 @@
       "path": "/?action=podelam_task_done",
       "body": {"task_key": "return_clients"},
       "expectedStatus": 401
+    },
+    {
+      "name": "GET podelam_stats without session — 401",
+      "method": "GET",
+      "path": "/?action=podelam_stats",
+      "expectedStatus": 401
     }
   ]
 }

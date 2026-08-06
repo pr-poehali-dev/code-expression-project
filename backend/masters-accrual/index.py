@@ -5,7 +5,8 @@
 Формула: 10% от количества энергий = рубли (100 энергий → 10 ₽).
 GET  ?action=podelam_get           — профиль дохода + план на сегодня (X-Session-Id)
 POST ?action=podelam_save_profile  — сохранить диагностику дохода (X-Session-Id)
-POST ?action=podelam_task_done     — отметить дело выполненным (X-Session-Id)
+POST ?action=podelam_task_done     — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
+GET  ?action=podelam_stats         — статистика выполненных дел за неделю/месяц (X-Session-Id)
 POST / (без action или action=withdraw) — начисления мастерам (X-Master-Session)
 GET  / (без action) — история начислений мастера (X-Master-Session)
 """
@@ -278,6 +279,61 @@ def handle_podelam_task_done(event: dict, conn) -> dict:
     return ok({"ok": True})
 
 
+def _compute_period_stats(conn, user_id: int, days: int) -> dict:
+    """Считает статистику по выполненным делам и потенциалу/факту за последние N дней."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    since = date.today() - timedelta(days=days - 1)
+
+    # Все задачи из планов за период (для подсчёта общего количества и потенциала)
+    cur.execute(
+        f"""SELECT plan_date, tasks FROM {SCHEMA}.podelam_daily_plans
+            WHERE user_id = %s AND plan_date >= %s AND plan_date <= %s""",
+        (user_id, since, date.today())
+    )
+    plans = cur.fetchall()
+
+    total_tasks = 0
+    potential_total = 0.0
+    for p in plans:
+        tasks = p["tasks"] if isinstance(p["tasks"], list) else json.loads(p["tasks"])
+        total_tasks += len(tasks)
+        potential_total += sum(float(t.get("potential") or 0) for t in tasks)
+
+    # Выполненные дела и фактические суммы из лога
+    cur.execute(
+        f"""SELECT done, actual_amount FROM {SCHEMA}.podelam_task_log
+            WHERE user_id = %s AND plan_date >= %s AND plan_date <= %s""",
+        (user_id, since, date.today())
+    )
+    logs = cur.fetchall()
+    done_count = sum(1 for r in logs if r["done"])
+    actual_total = sum(float(r["actual_amount"]) for r in logs if r["actual_amount"] is not None)
+
+    return {
+        "days": days,
+        "total_tasks": total_tasks,
+        "done_tasks": done_count,
+        "completion_rate": round(done_count / total_tasks * 100) if total_tasks > 0 else 0,
+        "potential_total": round(potential_total),
+        "actual_total": round(actual_total),
+    }
+
+
+def handle_podelam_stats(event: dict, conn) -> dict:
+    """Возвращает статистику выполненных дел и денег (потенциал/факт) за неделю и месяц."""
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+    if not session_id:
+        return err("Не авторизован", 401)
+    user = get_lk_user_by_session(session_id, conn)
+    if not user:
+        return err("Сессия истекла", 401)
+
+    week = _compute_period_stats(conn, user["id"], 7)
+    month = _compute_period_stats(conn, user["id"], 30)
+
+    return ok({"week": week, "month": month})
+
+
 def process_accruals(conn):
     """Переводит pending-начисления в available после 30 дней ожидания."""
     cur = conn.cursor()
@@ -323,6 +379,8 @@ def handler(event: dict, context) -> dict:
             return handle_podelam_save_profile(event, conn)
         if route_action == "podelam_task_done":
             return handle_podelam_task_done(event, conn)
+        if route_action == "podelam_stats":
+            return handle_podelam_stats(event, conn)
 
         headers = event.get("headers") or {}
         session_id = headers.get("X-Master-Session", "")

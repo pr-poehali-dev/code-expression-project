@@ -49,6 +49,20 @@ interface PodelamData {
   task_log?: Record<string, { done: boolean; actual_amount: number | null }>;
 }
 
+interface PeriodStats {
+  days: number;
+  total_tasks: number;
+  done_tasks: number;
+  completion_rate: number;
+  potential_total: number;
+  actual_total: number;
+}
+
+interface StatsData {
+  week: PeriodStats;
+  month: PeriodStats;
+}
+
 function fmt(n: number) {
   return Math.round(n).toLocaleString("ru-RU");
 }
@@ -258,14 +272,84 @@ function InfoModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ── Раздел статистики за неделю/месяц ───────────────────────────────────────────
+function StatsSection({ stats }: { stats: StatsData | null }) {
+  const [period, setPeriod] = useState<"week" | "month">("week");
+
+  if (!stats) return null;
+  const s = stats[period];
+  const factPct = s.potential_total > 0 ? Math.min(100, Math.round((s.actual_total / s.potential_total) * 100)) : 0;
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", letterSpacing: 1.5, textTransform: "uppercase" }}>Статистика</div>
+        <div style={{ display: "flex", gap: 4, background: "#F1F5F9", borderRadius: 10, padding: 3 }}>
+          {(["week", "month"] as const).map(p => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              style={{
+                fontSize: 12, fontWeight: 600, padding: "6px 14px", borderRadius: 8, border: "none", cursor: "pointer",
+                fontFamily: "Montserrat,sans-serif",
+                background: period === p ? "#fff" : "transparent",
+                color: period === p ? ACCENT : "#64748B",
+                boxShadow: period === p ? "0 1px 3px rgba(15,23,42,0.08)" : "none",
+              }}
+            >
+              {p === "week" ? "Неделя" : "Месяц"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 16, marginBottom: 18 }}>
+        <div>
+          <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>Дел выполнено</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: "#0F172A" }}>{s.done_tasks} <span style={{ fontSize: 14, fontWeight: 500, color: "#94A3B8" }}>из {s.total_tasks}</span></div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>Выполнено</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: ACCENT }}>{s.completion_rate}%</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>Потенциал</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: "#0F172A" }}>{fmt(s.potential_total)} ₽</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>Получено факт.</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: "hsl(145,60%,35%)" }}>{fmt(s.actual_total)} ₽</div>
+        </div>
+      </div>
+
+      <div style={{ height: 8, borderRadius: 4, background: "#F1F5F9", overflow: "hidden", marginBottom: 6 }}>
+        <div style={{ height: "100%", width: `${factPct}%`, borderRadius: 4, background: "linear-gradient(90deg,hsl(145,60%,45%),hsl(145,60%,38%))" }} />
+      </div>
+      <div style={{ fontSize: 11, color: "#94A3B8" }}>
+        {s.actual_total > 0
+          ? `Факт составляет ${factPct}% от потенциала за этот период`
+          : "Фактические суммы появятся, когда вы укажете их при выполнении дел"}
+      </div>
+    </div>
+  );
+}
+
 // ── Главный экран ПоДелам ──────────────────────────────────────────────────────
 export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   const { user } = useLkAuth();
   const [data, setData] = useState<PodelamData | null>(null);
+  const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [marking, setMarking] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+
+  const loadStats = useCallback(() => {
+    fetch(`${PODELAM_URL}?action=podelam_stats`, { headers: { "X-Session-Id": sid() } })
+      .then(r => r.json())
+      .then(d => { if (d.week && d.month) setStats(d); })
+      .catch(() => {});
+  }, []);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -273,17 +357,20 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
       .then(r => r.json())
       .then(d => setData(d))
       .finally(() => setLoading(false));
-  }, []);
+    loadStats();
+  }, [loadStats]);
 
   useEffect(() => { load(); }, [load]);
 
   const markDone = async (taskKey: string) => {
     setMarking(taskKey);
     try {
+      const amountStr = window.prompt("Сколько фактически удалось получить по этому делу, ₽? (можно оставить пустым)", "");
+      const actual_amount = amountStr && !Number.isNaN(Number(amountStr)) ? Number(amountStr) : null;
       await fetch(`${PODELAM_URL}?action=podelam_task_done`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
-        body: JSON.stringify({ task_key: taskKey, done: true }),
+        body: JSON.stringify({ task_key: taskKey, done: true, actual_amount }),
       });
       load();
     } finally {
@@ -421,6 +508,9 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
           })}
         </div>
       </div>
+
+      {/* Статистика за неделю/месяц */}
+      <StatsSection stats={stats} />
 
       {/* Экран 4: Точки роста / потери */}
       {growth_points.length > 0 && (
