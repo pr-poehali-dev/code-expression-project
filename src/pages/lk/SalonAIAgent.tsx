@@ -103,7 +103,14 @@ export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGr
   }, [sessionId]);
 
   useEffect(() => { loadHistory(activeAgent, chatMode); }, [activeAgent, chatMode, loadHistory]);
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
+
+  const skipNextScroll = useRef(true);
+  useEffect(() => {
+    // Не скроллим страницу при первом рендере / загрузке истории — только при новых сообщениях в диалоге
+    if (skipNextScroll.current) { skipNextScroll.current = false; return; }
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [messages, loading]);
+  useEffect(() => { skipNextScroll.current = true; }, [activeAgent, chatMode]);
 
   async function sendOneBatch(message: string): Promise<{ reply: string; free_used?: number; energy_balance?: number; error?: string; ok: boolean }> {
     const res = await fetch(AGENT_URL, {
