@@ -20,6 +20,26 @@
       "expectedStatus": 200,
       "expectedBody": {"skipped": true},
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET podelam_get without session — 401",
+      "method": "GET",
+      "path": "/?action=podelam_get",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST podelam_save_profile without session — 401",
+      "method": "POST",
+      "path": "/?action=podelam_save_profile",
+      "body": {"avg_check": 2000, "current_revenue": 100000, "target_revenue": 150000},
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST podelam_task_done without session — 401",
+      "method": "POST",
+      "path": "/?action=podelam_task_done",
+      "body": {"task_key": "return_clients"},
+      "expectedStatus": 401
     }
   ]
 }

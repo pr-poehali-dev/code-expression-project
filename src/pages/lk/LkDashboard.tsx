@@ -14,7 +14,7 @@ import LkMemberAcademy from "./LkMemberAcademy";
 import LkClientMsg from "./LkClientMsg";
 import LkMarketing from "./LkMarketing";
 import SalonAIAgent from "./SalonAIAgent";
-import { HomeTab } from "./LkDashboardHomeTab";
+import { PodelamTab } from "./LkPodelam";
 import LkChampionship from "./LkChampionship";
 import { LkSidebar, LkMobileHeader, LkBottomBar } from "./LkDashboardSidebar";
 import { isFittingTrial } from "@/lib/fittingTrial";
@@ -39,9 +39,7 @@ export default function LkDashboard() {
       if (needsSalon.includes(saved) && !hasSalon) return "salon";
       return saved;
     }
-    // Для владельца и администратора открываем ИИ-Агента первым
-    if ((role === "owner" || role === "admin") && hasSalon) return "agent";
-    if (role === "solo_master") return "agent";
+    // «ПоДелам» — навигатор дохода, стартовая точка для всех ролей
     return "home";
   };
 
@@ -101,7 +99,7 @@ export default function LkDashboard() {
       />
 
       <main className="lk-main">
-        {tab === "home"      && <HomeTab onNav={handleTabChange} role={role} hasSalon={hasSalon} />}
+        {tab === "home"      && <PodelamTab onNav={handleTabChange} />}
         {tab === "tools"     && <LkTests onNavigate={handleTabChange} />}
         {tab === "academy"   && (
           role === "owner" ? <LkAcademy onNavigate={handleTabChange} />

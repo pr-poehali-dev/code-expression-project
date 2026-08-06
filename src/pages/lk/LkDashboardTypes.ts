@@ -33,7 +33,7 @@ export const MOBILE_PRIMARY: Record<string, Tab[]> = {
 };
 
 export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string }[] = [
-  { id: "home",      icon: "Home",           label: "Главная"             },
+  { id: "home",      icon: "Compass",        label: "ПоДелам"             },
   { id: "agent",     icon: "BotMessageSquare", label: "ИИ-Агент",         badge: "new" },
   { id: "marketing", icon: "BarChart3",      label: "Маркетинг",          badge: "new" },
   { id: "ai",        icon: "Sparkles",       label: "Развитие салона",    badge: "new" },
