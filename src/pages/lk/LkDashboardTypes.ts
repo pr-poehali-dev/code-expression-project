@@ -32,17 +32,17 @@ export const MOBILE_PRIMARY: Record<string, Tab[]> = {
   solo_master:    ["home", "agent", "championship", "profile"],
 };
 
-export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string }[] = [
-  { id: "home",      icon: "Compass",        label: "ПоДелам"             },
-  { id: "agent",     icon: "BotMessageSquare", label: "ИИ-Агент",         badge: "new" },
-  { id: "marketing", icon: "BarChart3",      label: "Маркетинг",          badge: "new" },
-  { id: "ai",        icon: "Sparkles",       label: "Развитие салона",    badge: "new" },
-  { id: "clientmsg", icon: "MessageSquare",  label: "Сообщения клиентам", badge: "new" },
+export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string; highlight?: boolean }[] = [
+  { id: "home",      icon: "Compass",        label: "ПоДелам",            highlight: true },
+  { id: "agent",     icon: "BotMessageSquare", label: "ИИ-Агент"          },
+  { id: "marketing", icon: "BarChart3",      label: "Маркетинг"           },
+  { id: "ai",        icon: "Sparkles",       label: "Развитие салона"     },
+  { id: "clientmsg", icon: "MessageSquare",  label: "Сообщения клиентам"  },
   { id: "employees", icon: "Users",          label: "Сотрудники"          },
   { id: "academy",   icon: "GraduationCap",  label: "Академия"            },
   { id: "tools",     icon: "Wrench",         label: "Развитие персонала"  },
   { id: "salon",         icon: "Building2",      label: "Мой салон"           },
-  { id: "championship",  icon: "Trophy",         label: "Чемпионат",   badge: "new" },
+  { id: "championship",  icon: "Trophy",         label: "Чемпионат"           },
   { id: "purchases",     icon: "Receipt",        label: "Покупки"             },
   { id: "shop",      icon: "Zap",            label: "Энергия"             },
   { id: "profile",   icon: "UserCircle",     label: "Профиль"             },

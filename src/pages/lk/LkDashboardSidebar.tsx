@@ -283,20 +283,21 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
         {allowedNav.map(item => {
           const locked = !hasSalon && role !== "solo_master" && SALON_REQUIRED.includes(item.id);
           const active = tab === item.id;
+          const highlight = !!item.highlight && !active;
           return (
             <button key={item.id} onClick={() => onNav(item.id)} style={{
               width: "100%", display: "flex", alignItems: "center", gap: 11,
               padding: "10px 12px", borderRadius: 10,
-              border: active ? "1px solid rgba(45,212,191,0.25)" : "1px solid transparent",
-              background: active ? "rgba(45,212,191,0.12)" : "transparent",
-              color: locked ? "rgba(255,255,255,0.25)" : active ? TEAL_BRIGHT : "rgba(255,255,255,0.6)",
-              fontSize: 13, fontWeight: active ? 700 : 500,
+              border: active ? "1px solid rgba(45,212,191,0.25)" : highlight ? "1px solid rgba(45,212,191,0.2)" : "1px solid transparent",
+              background: active ? "rgba(45,212,191,0.12)" : highlight ? "rgba(45,212,191,0.06)" : "transparent",
+              color: locked ? "rgba(255,255,255,0.25)" : active || highlight ? TEAL_BRIGHT : "rgba(255,255,255,0.6)",
+              fontSize: 13, fontWeight: active || highlight ? 700 : 500,
               cursor: "pointer", fontFamily: "Montserrat, sans-serif",
               marginBottom: 2, transition: "all 0.15s", textAlign: "left",
               opacity: locked ? 0.7 : 1,
             }}
             onMouseEnter={e => { if (!active && !locked) (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; }}
-            onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+            onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = highlight ? "rgba(45,212,191,0.06)" : "transparent"; }}
             >
               <Icon name={item.icon} size={17} />
               <span style={{ flex: 1 }}>{item.label}</span>
@@ -304,11 +305,7 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
                 ? <Icon name="Lock" size={12} style={{ color: "rgba(255,255,255,0.25)" }} />
                 : item.id === "employees" && requestsCount > 0
                   ? <span style={{ fontSize: 10, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 10, padding: "1px 7px", minWidth: 18, textAlign: "center" }}>{requestsCount}</span>
-                  : item.badge && (
-                    <span style={{ fontSize: 9, fontWeight: 700, background: "hsl(40,90%,50%)", color: "#0F172A", borderRadius: 4, padding: "2px 5px", letterSpacing: 0.5, textTransform: "uppercase" }}>
-                      {item.badge}
-                    </span>
-                  )
+                  : null
               }
             </button>
           );
@@ -451,7 +448,6 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
                     {showBadge && <span style={{ position: "absolute", top: -4, right: -4, fontSize: 9, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 8, padding: "1px 5px", minWidth: 14, textAlign: "center", lineHeight: "14px" }}>{requestsCount}</span>}
                   </div>
                   <span style={{ fontSize: 14, fontWeight: tab === item.id ? 700 : 500, color: tab === item.id ? ACCENT : "#1a1a1a" }}>{item.label}</span>
-                  {!locked && !showBadge && item.badge && <span style={{ fontSize: 9, fontWeight: 700, background: ACCENT, color: "#fff", borderRadius: 4, padding: "2px 6px", marginLeft: "auto" }}>{item.badge.toUpperCase()}</span>}
                   {!locked && showBadge && <span style={{ fontSize: 11, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 6, padding: "2px 8px", marginLeft: "auto" }}>{requestsCount} запроса</span>}
                   {locked && <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto" }}>Нужен салон</span>}
                 </button>
