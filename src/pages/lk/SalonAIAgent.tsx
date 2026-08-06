@@ -10,7 +10,13 @@ import {
 import { FreeUsageBar, PaywallModal } from "./SalonAgentWidgets";
 import SalonAgentChat from "./SalonAgentChat";
 
-export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () => void }) {
+interface SalonAIAgentProps {
+  onNavigateShop?: () => void;
+  podelamContext?: string;
+  podelamGreeting?: string;
+}
+
+export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGreeting }: SalonAIAgentProps) {
   const { user } = useLkAuth();
   const sessionId = localStorage.getItem("lk_session") || "";
 
@@ -103,7 +109,10 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
     const res = await fetch(AGENT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
-      body: JSON.stringify({ agent_role: activeAgent, message, chat_mode: chatMode }),
+      body: JSON.stringify({
+        agent_role: activeAgent, message, chat_mode: chatMode,
+        ...(chatMode === "salon" && podelamContext ? { podelam_context: podelamContext } : {}),
+      }),
     });
     const data = await res.json();
     return { ...data, ok: res.ok };
@@ -302,6 +311,7 @@ export default function SalonAIAgent({ onNavigateShop }: { onNavigateShop?: () =
         onSend={send}
         onFileAttach={handleFileAttach}
         onOpenPaywall={() => setShowPaywall(true)}
+        welcomeOverride={chatMode === "salon" ? podelamGreeting : undefined}
       />
 
       <style>{`@keyframes dot-pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.1); } }`}</style>

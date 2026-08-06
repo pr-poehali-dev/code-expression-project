@@ -23,13 +23,14 @@ interface SalonAgentChatProps {
   onSend: () => void;
   onFileAttach: (file: File) => void;
   onOpenPaywall: () => void;
+  welcomeOverride?: string;
 }
 
 export default function SalonAgentChat({
   agent, messages, loading, historyLoading, error,
   input, setInput, attachedFile, setAttachedFile,
   batchProgress, canSend, isPaid, freeUsed, energyBalance,
-  userName, bottomRef, onSend, onFileAttach, onOpenPaywall,
+  userName, bottomRef, onSend, onFileAttach, onOpenPaywall, welcomeOverride,
 }: SalonAgentChatProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -67,7 +68,7 @@ export default function SalonAgentChat({
             </div>
             <div style={{ maxWidth: "80%" }}>
               <div style={{ background: "#fff", border: "1px solid #E8ECF0", borderRadius: "4px 16px 16px 16px", padding: "12px 16px", fontSize: 14, lineHeight: 1.75, whiteSpace: "pre-wrap", color: "#0F172A", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-                {agent.welcome.replace("вас", userName)}
+                {(welcomeOverride || agent.welcome).replace("вас", userName)}
               </div>
             </div>
           </div>

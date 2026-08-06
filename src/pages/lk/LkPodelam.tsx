@@ -402,6 +402,20 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   const tasks = plan?.tasks || [];
   const mainTask = tasks[0];
 
+  const podelamContext = profile ? [
+    `Ниша: ${profile.niche || "не указана"}`,
+    `Цель месяца: ${fmt(profile.target_revenue)} ₽`,
+    `Доход сейчас: ${fmt(profile.current_revenue)} ₽`,
+    `Не хватает до цели: ${fmt(Math.max(0, gap_amount))} ₽ (${progress}% от цели уже выполнено)`,
+    growth_points.length ? `Где лежат деньги: ${growth_points.map(p => `${p.title} — до ${fmt(p.potential)} ₽ (${p.action})`).join("; ")}` : "",
+    tasks.length ? `План на сегодня: ${tasks.map(t => `${t.title}${task_log[t.key]?.done ? " [выполнено]" : ""} — ${t.action_text}`).join("; ")}` : "",
+    mainTask ? `Главное дело дня: ${mainTask.title} — ${mainTask.action_text}` : "",
+  ].filter(Boolean).join("\n") : "";
+
+  const podelamGreeting = profile
+    ? `Здравствуйте${user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}! Вижу вашу цель — ${fmt(profile.target_revenue)} ₽ в месяц, сейчас у вас ${fmt(profile.current_revenue)} ₽, не хватает ${fmt(Math.max(0, gap_amount))} ₽.${mainTask ? ` Сегодня главное — «${mainTask.title.toLowerCase()}».` : ""}\n\nСпрашивайте, как быстрее закрыть разрыв в доходе — отвечу с учётом ваших цифр и плана на сегодня.`
+    : undefined;
+
   return (
     <div>
       {/* Заголовок */}
@@ -522,7 +536,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
 
       {/* ИИ-Агент — общение по развитию бизнеса */}
       <div ref={agentRef} style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)", scrollMarginTop: 20 }}>
-        <SalonAIAgent onNavigateShop={() => onNav("shop")} />
+        <SalonAIAgent onNavigateShop={() => onNav("shop")} podelamContext={podelamContext} podelamGreeting={podelamGreeting} />
       </div>
 
       {/* Статистика за неделю/месяц */}
