@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import func2url from "../../../backend/func2url.json";
+import { markPodelamSeen } from "./podelamNotice";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -355,7 +356,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
     setLoading(true);
     fetch(`${PODELAM_URL}?action=podelam_get`, { headers: { "X-Session-Id": sid() } })
       .then(r => r.json())
-      .then(d => setData(d))
+      .then(d => { setData(d); if (d?.has_profile) markPodelamSeen(); })
       .finally(() => setLoading(false));
     loadStats();
   }, [loadStats]);

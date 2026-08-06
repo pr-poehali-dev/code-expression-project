@@ -3,8 +3,28 @@ import { useLkAuth } from "@/contexts/LkAuthContext";
 import { useEnergy } from "@/contexts/EnergyContext";
 import Icon from "@/components/ui/icon";
 import {
-  Tab, NAV_ITEMS, ROLE_TABS, SALON_REQUIRED, ROLE_LABELS, TEAL_BRIGHT, ACCENT,
+  Tab, NAV_ITEMS, ROLE_TABS, SALON_REQUIRED, ROLE_LABELS, TEAL_BRIGHT, ACCENT, ACCENT_DARK,
 } from "./LkDashboardTypes";
+import { isPodelamSeenToday, PODELAM_SEEN_EVENT } from "./podelamNotice";
+
+// ── Хук: не открыт ли сегодня план «ПоДелам» ───────────────────────────────────
+function usePodelamUnseen() {
+  const [unseen, setUnseen] = useState(() => !isPodelamSeenToday());
+
+  useEffect(() => {
+    const recheck = () => setUnseen(!isPodelamSeenToday());
+    window.addEventListener(PODELAM_SEEN_EVENT, recheck);
+    window.addEventListener("storage", recheck);
+    document.addEventListener("visibilitychange", recheck);
+    return () => {
+      window.removeEventListener(PODELAM_SEEN_EVENT, recheck);
+      window.removeEventListener("storage", recheck);
+      document.removeEventListener("visibilitychange", recheck);
+    };
+  }, []);
+
+  return unseen;
+}
 
 // ── PWA helpers ───────────────────────────────────────────────────────────────
 function isStandalone() {
@@ -199,6 +219,39 @@ function useRequestsCount(role: string) {
   return count;
 }
 
+// ── Баннер-напоминание при входе: новый план «ПоДелам» ещё не открыт ──────────
+export function PodelamReminderBanner({ onNav }: { onNav: (t: string) => void }) {
+  const podelamUnseen = usePodelamUnseen();
+  const [dismissed, setDismissed] = useState(false);
+
+  if (!podelamUnseen || dismissed) return null;
+
+  const close = () => setDismissed(true);
+  const go = () => { close(); onNav("home"); };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.5)", zIndex: 1500, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={close}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: 20, maxWidth: 400, width: "100%", padding: 28, textAlign: "center", boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
+        <div style={{ width: 56, height: 56, borderRadius: 16, background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+          <Icon name="Compass" size={26} style={{ color: "#fff" }} />
+        </div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A", marginBottom: 8 }}>Новый план на сегодня готов</div>
+        <div style={{ fontSize: 13, color: "#64748B", lineHeight: 1.6, marginBottom: 22 }}>
+          В разделе «ПоДелам» вас ждут свежие дела на день — ИИ пересчитал их с учётом вчерашних результатов.
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={close} style={{ flex: 1, padding: "11px 0", borderRadius: 12, border: "1.5px solid #E2E8F0", background: "#fff", color: "#64748B", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+            Позже
+          </button>
+          <button onClick={go} style={{ flex: 1.4, padding: "11px 0", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+            Смотреть план
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Виджет баланса энергии ─────────────────────────────────────────────────────
 export function EnergyBadge({ onNav, sidebar }: { onNav: (t: string) => void; sidebar?: boolean }) {
   const { balance } = useEnergy();
@@ -237,6 +290,7 @@ interface SidebarProps {
 export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps) {
   const { user } = useLkAuth();
   const requestsCount = useRequestsCount(role);
+  const podelamUnseen = usePodelamUnseen();
   const allowedNav = NAV_ITEMS.filter(n => {
     const allowed: Tab[] = user?.is_admin
       ? [...(ROLE_TABS["owner"] as Tab[]), "admin" as Tab]
@@ -299,13 +353,20 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
             onMouseEnter={e => { if (!active && !locked) (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; }}
             onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = highlight ? "rgba(45,212,191,0.06)" : "transparent"; }}
             >
-              <Icon name={item.icon} size={17} />
+              <span style={{ position: "relative", display: "inline-flex" }}>
+                <Icon name={item.icon} size={17} />
+                {item.id === "home" && podelamUnseen && !locked && (
+                  <span style={{ position: "absolute", top: -2, right: -2, width: 8, height: 8, borderRadius: "50%", background: "hsl(0,80%,60%)", border: "1.5px solid #0F172A" }} />
+                )}
+              </span>
               <span style={{ flex: 1 }}>{item.label}</span>
               {locked
                 ? <Icon name="Lock" size={12} style={{ color: "rgba(255,255,255,0.25)" }} />
                 : item.id === "employees" && requestsCount > 0
                   ? <span style={{ fontSize: 10, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 10, padding: "1px 7px", minWidth: 18, textAlign: "center" }}>{requestsCount}</span>
-                  : null
+                  : item.id === "home" && podelamUnseen
+                    ? <span style={{ fontSize: 9, fontWeight: 700, color: "hsl(0,80%,65%)" }}>Новое</span>
+                    : null
               }
             </button>
           );
@@ -384,6 +445,7 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
   const { user } = useLkAuth();
   const role = user?.is_admin ? "owner" : (user?.role || "body_specialist");
   const requestsCount = useRequestsCount(role);
+  const podelamUnseen = usePodelamUnseen();
 
   return (
     <>
@@ -391,6 +453,7 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
         {mobileNav.map(item => {
           const locked = !hasSalon && role !== "solo_master" && SALON_REQUIRED.includes(item.id);
           const showBadge = item.id === "employees" && requestsCount > 0;
+          const showPodelamDot = item.id === "home" && podelamUnseen && !locked;
           return (
             <button key={item.id} onClick={() => onNav(item.id)} style={{
               flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
@@ -406,6 +469,9 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
                   <span style={{ position: "absolute", top: -4, right: -6, fontSize: 9, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 8, padding: "1px 5px", minWidth: 14, textAlign: "center", lineHeight: "14px" }}>
                     {requestsCount}
                   </span>
+                )}
+                {showPodelamDot && (
+                  <span style={{ position: "absolute", top: -2, right: -3, width: 7, height: 7, borderRadius: "50%", background: "hsl(0,80%,60%)", border: "1.5px solid #0F172A" }} />
                 )}
               </div>
               {locked && <Icon name="Lock" size={9} style={{ position: "absolute", top: 5, right: "calc(50% - 14px)", color: "rgba(255,255,255,0.3)" }} />}

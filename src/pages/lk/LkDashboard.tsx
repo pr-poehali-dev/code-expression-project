@@ -16,7 +16,7 @@ import LkMarketing from "./LkMarketing";
 import SalonAIAgent from "./SalonAIAgent";
 import { PodelamTab } from "./LkPodelam";
 import LkChampionship from "./LkChampionship";
-import { LkSidebar, LkMobileHeader, LkBottomBar } from "./LkDashboardSidebar";
+import { LkSidebar, LkMobileHeader, LkBottomBar, PodelamReminderBanner } from "./LkDashboardSidebar";
 import { isFittingTrial } from "@/lib/fittingTrial";
 import {
   Tab, BG, NAV_ITEMS, MOBILE_PRIMARY, SALON_REQUIRED,
@@ -97,6 +97,8 @@ export default function LkDashboard() {
         onNav={handleTabChange}
         onLogout={logout}
       />
+
+      {tab !== "home" && <PodelamReminderBanner onNav={handleTabChange} />}
 
       <main className="lk-main">
         {tab === "home"      && <PodelamTab onNav={handleTabChange} />}
