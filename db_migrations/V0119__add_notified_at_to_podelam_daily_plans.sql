@@ -1,0 +1,2 @@
+ALTER TABLE t_p84565078_code_expression_proj.podelam_daily_plans
+    ADD COLUMN notified_at TIMESTAMPTZ NULL;

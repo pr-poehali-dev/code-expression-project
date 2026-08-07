@@ -9,20 +9,30 @@ POST ?action=podelam_save_profile  — сохранить диагностику
 POST ?action=podelam_task_done     — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
 GET  ?action=podelam_stats         — статистика выполненных дел за неделю/месяц (X-Session-Id)
 POST ?action=podelam_set_income    — прибавить фактический доход за день (amount, опц. date, mode="add"|"replace") (X-Session-Id)
+GET/POST ?action=podelam_notify    — cron: письмо пользователям с новым планом на сегодня, у кого ещё не отправлено (X-Internal-Key = ADMIN_TOKEN).
+                                       ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с при большом числе пользователей.
 POST / (без action или action=withdraw) — начисления мастерам (X-Master-Session)
 GET  / (без action) — история начислений мастера (X-Master-Session)
 """
 import json
 import os
+import smtplib
+import ssl
 import urllib.request
 import urllib.error
 import psycopg2
 import psycopg2.extras
 from datetime import datetime, timedelta, timezone, date
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.header import Header
+from email.utils import formataddr
 
 SCHEMA = "t_p84565078_code_expression_proj"
 REFERRAL_PERCENT = 10
 DAYS_HOLD = 30
+FROM_EMAIL = "massopro@mail.ru"
+SITE_URL = "https://promtdialog.ru"
 
 # ТОЛЬКО реальная оплата через ЮКассу даёт начисление
 PAID_ACTIONS = {"Покупка пакета энергии"}
@@ -540,6 +550,105 @@ def _compute_period_stats(conn, user_id: int, days: int) -> dict:
     }
 
 
+def _send_podelam_notify_email(to_email: str, full_name: str, main_task: dict | None, gap_amount: float) -> None:
+    """Письмо о новых шагах ПоДелам на сегодня."""
+    smtp_password = os.environ.get("SMTP_PASSWORD", "")
+    if not smtp_password:
+        return
+
+    name = (full_name or "Здравствуйте").split(" ")[0]
+    task_html = ""
+    if main_task:
+        task_html = f"""
+      <div style="background:#f8f8f5;border-radius:12px;padding:18px 20px;margin:0 0 24px;">
+        <div style="font-size:11px;color:#1a9fae;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Сегодня главное</div>
+        <div style="font-size:16px;font-weight:700;color:#1a1a1a;margin-bottom:6px;">{main_task.get('title','')}</div>
+        <div style="font-size:13px;color:#555;line-height:1.6;">{main_task.get('action_text','')}</div>
+      </div>"""
+
+    gap_line = f"Чтобы дойти до цели месяца, не хватает {round(max(0, gap_amount)):,} ₽.".replace(",", " ") if gap_amount else ""
+
+    html = f"""<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f4f4f0;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <div style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background:linear-gradient(135deg,#1a9fae,#136e7a);padding:28px 32px;">
+      <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;">ПоДелам</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">Навигатор дохода — Промт Диалог</div>
+    </div>
+    <div style="padding:32px 32px 24px;">
+      <p style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;">
+        {name}, на сегодня готов новый план
+      </p>
+      <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 20px;">
+        {gap_line} Загляните в кабинет — там уже ждут конкретные шаги на сегодня.
+      </p>
+      {task_html}
+      <a href="{SITE_URL}/cabinet"
+         style="display:inline-block;background:linear-gradient(135deg,#1a9fae,#136e7a);color:#fff;text-decoration:none;
+                font-size:15px;font-weight:700;padding:16px 32px;border-radius:12px;letter-spacing:0.2px;">
+        Посмотреть план
+      </a>
+    </div>
+    <div style="padding:16px 32px;background:#f8f8f5;border-top:1px solid #eee;">
+      <p style="font-size:11px;color:#bbb;margin:0;">Промт Диалог — платформа для бьюти-бизнеса.</p>
+    </div>
+  </div>
+</body>
+</html>"""
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = str(Header(f"{name}, новые шаги в ПоДелам на сегодня", "utf-8"))
+    msg["From"]    = formataddr((str(Header("Промт Диалог", "utf-8")), FROM_EMAIL))
+    msg["To"]      = to_email
+    msg["MIME-Version"] = "1.0"
+    msg.attach(MIMEText(html, "html", "utf-8"))
+
+    ctx = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.mail.ru", 465, context=ctx, timeout=15) as srv:
+        srv.login(FROM_EMAIL, smtp_password)
+        srv.sendmail(FROM_EMAIL, [to_email], msg.as_string())
+
+
+def handle_podelam_notify(event: dict, conn) -> dict:
+    """Cron: рассылает письмо всем пользователям, у которых сегодня уже есть план, но письмо ещё не отправлено."""
+    admin_token = os.environ.get("ADMIN_TOKEN", "")
+    internal_key = (event.get("headers") or {}).get("X-Internal-Key", "")
+    if not admin_token or internal_key != admin_token:
+        return err("Доступ запрещён", 403)
+
+    today = date.today()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT p.id AS plan_id, p.user_id, p.main_task_key, p.gap_amount, p.tasks,
+                   u.email, u.full_name
+            FROM {SCHEMA}.podelam_daily_plans p
+            JOIN {SCHEMA}.lk_users u ON u.id = p.user_id
+            WHERE p.plan_date = %s AND p.notified_at IS NULL AND u.is_active = TRUE""",
+        (today,)
+    )
+    rows = cur.fetchall()
+
+    sent, failed = [], []
+    for row in rows:
+        tasks = row["tasks"] if isinstance(row["tasks"], list) else json.loads(row["tasks"])
+        main_task = next((t for t in tasks if t.get("key") == row["main_task_key"]), tasks[0] if tasks else None)
+        try:
+            _send_podelam_notify_email(row["email"], row["full_name"], main_task, float(row["gap_amount"] or 0))
+            cur2 = conn.cursor()
+            cur2.execute(
+                f"UPDATE {SCHEMA}.podelam_daily_plans SET notified_at = NOW() WHERE id = %s",
+                (row["plan_id"],)
+            )
+            conn.commit()
+            sent.append(row["user_id"])
+        except Exception as e:
+            conn.rollback()
+            failed.append({"user_id": row["user_id"], "error": str(e)})
+
+    return ok({"ok": True, "sent": sent, "failed": failed, "total_found": len(rows)})
+
+
 def handle_podelam_stats(event: dict, conn) -> dict:
     """Возвращает статистику выполненных дел и денег (потенциал/факт) за неделю и месяц."""
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
@@ -604,6 +713,8 @@ def handler(event: dict, context) -> dict:
             return handle_podelam_stats(event, conn)
         if route_action == "podelam_set_income":
             return handle_podelam_set_income(event, conn)
+        if route_action == "podelam_notify":
+            return handle_podelam_notify(event, conn)
 
         headers = event.get("headers") or {}
         session_id = headers.get("X-Master-Session", "")
