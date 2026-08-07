@@ -602,6 +602,7 @@ def handle_admin_delete_user(event: dict) -> dict:
             "course_access_requests", "credit_transactions", "salon_agent_chats",
             "salon_audits", "salon_invites", "salon_members", "salon_msg_services",
             "salon_services", "salon_staff", "seo_analyses", "staff_audits",
+            "podelam_profiles",
         ]
         for salon_id in salon_ids:
             cur.execute(f"UPDATE {tbl('lk_users')} SET salon_id=NULL WHERE salon_id=%s", (salon_id,))
