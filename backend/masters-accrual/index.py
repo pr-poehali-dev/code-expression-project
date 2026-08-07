@@ -696,22 +696,28 @@ def call_content_ai(topic: str) -> dict | None:
     if not api_key:
         return None
 
-    system_prompt = f"""Ты — экспертный автор блога сервиса «Промт Диалог» (платформа для салонов красоты и мастеров: \
-маркетинг, обучение, ИИ-инструменты, навигатор дохода «ПоДелам»).
+    system_prompt = f"""Ты — практикующий эксперт по бизнесу в бьюти-индустрии, ведёшь блог «Промт Диалог» (платформа \
+для салонов красоты и мастеров: маркетинг, обучение, ИИ-инструменты, навигатор дохода «ПоДелам»).
 
-Напиши короткую полезную статью для владельцев салонов и мастеров красоты на тему: {topic}.
+Напиши короткий полезный пост для владельцев салонов и мастеров красоты на тему: {topic}.
 
-Требования:
-- Конкретика и практические советы, без воды, без общих фраз.
-- Тон — дружелюбный эксперт, на "вы", без канцелярита.
-- В конце статьи органично, без давления, можно упомянуть, что похожие задачи в один клик решает навигатор \
-дохода «ПоДелам» в личном кабинете «Промт Диалог» — но только если это уместно по теме, не в каждом посте.
+Требования к тексту:
+- Пиши как живой человек, который сам через это прошёл — без воды, без вступлений типа "в наше время" или \
+"многие сталкиваются", без канцелярита и штампов.
+- Каждое предложение — по делу: конкретный совет, цифра, пример или чёткий шаг. Никаких общих фраз "нужно улучшать \
+сервис" — только конкретика типа "что именно сделать".
+- Тон — дружелюбный эксперт, на "вы", простыми словами, будто объясняешь коллеге за чашкой кофе.
+- В конце можно органично, без давления, упомянуть, что похожие задачи в один клик решает навигатор дохода \
+«ПоДелам» в личном кабинете «Промт Диалог» — но только если это уместно по теме, не в каждом посте.
+- В самом конце добавь 4-6 релевантных хэштегов на русском по теме поста и ниши (например #салонкрасоты #мастермаников \
+#маркетингдлясалона) — без хэштегов на отвлечённые темы.
 
 Отвечай СТРОГО в формате JSON, без markdown-обёртки:
 {{
   "title": "Короткий цепляющий заголовок, до 60 знаков",
   "excerpt": "Превью-анонс на 1-2 предложения, до 150 знаков, без спойлера сути",
-  "body": "Полный текст статьи, 800-1200 знаков, можно с переносами строк \\n"
+  "body": "Полный текст статьи, 800-1200 знаков, без хэштегов, можно с переносами строк \\n",
+  "hashtags": ["хэштег1", "хэштег2"]
 }}"""
 
     payload = json.dumps({
@@ -743,7 +749,7 @@ def call_content_ai(topic: str) -> dict | None:
         return None
 
 
-def send_content_to_telegram(title: str, body: str) -> int | None:
+def send_content_to_telegram(title: str, body: str, hashtags: str = "") -> int | None:
     """Публикует пост в Telegram-канал. Возвращает message_id или None при ошибке/отсутствии настроек."""
     bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
     channel_id = os.environ.get("TELEGRAM_CHANNEL_ID", "")
@@ -753,7 +759,8 @@ def send_content_to_telegram(title: str, body: str) -> int | None:
     def esc(text: str) -> str:
         return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-    text = f"<b>{esc(title)}</b>\n\n{esc(body)}\n\n🔗 {SITE_URL}"
+    tags_line = f"\n\n{esc(hashtags)}" if hashtags else ""
+    text = f"<b>{esc(title)}</b>\n\n{esc(body)}{tags_line}\n\n🔗 {SITE_URL}"
     payload = json.dumps({
         "chat_id": channel_id,
         "text": text,
@@ -800,13 +807,20 @@ def handle_content_daily_post(event: dict, conn) -> dict:
     if not ai_result:
         return err("Не удалось сгенерировать пост", 502)
 
+    raw_tags = ai_result.get("hashtags") or []
+    hashtags_str = " ".join(
+        t if t.startswith("#") else f"#{t}"
+        for t in (raw_tags if isinstance(raw_tags, list) else [raw_tags])
+        if t
+    )
+
     cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur2.execute(
-        f"""INSERT INTO {SCHEMA}.content_posts (post_date, title, excerpt, body, source)
-            VALUES (%s, %s, %s, %s, 'ai')
+        f"""INSERT INTO {SCHEMA}.content_posts (post_date, title, excerpt, body, hashtags, source)
+            VALUES (%s, %s, %s, %s, %s, 'ai')
             ON CONFLICT (post_date) DO NOTHING
             RETURNING *""",
-        (today, ai_result["title"], ai_result.get("excerpt") or "", ai_result["body"])
+        (today, ai_result["title"], ai_result.get("excerpt") or "", ai_result["body"], hashtags_str)
     )
     row = cur2.fetchone()
     conn.commit()
@@ -815,7 +829,7 @@ def handle_content_daily_post(event: dict, conn) -> dict:
         row = cur.fetchone()
         return ok({"post": dict(row), "created": False})
 
-    message_id = send_content_to_telegram(row["title"], row["body"])
+    message_id = send_content_to_telegram(row["title"], row["body"], row.get("hashtags") or "")
     if message_id:
         cur3 = conn.cursor()
         cur3.execute(
@@ -837,7 +851,7 @@ def handle_content_list(event: dict, conn) -> dict:
         limit = 20
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"""SELECT id, post_date, title, excerpt, created_at
+        f"""SELECT id, post_date, title, excerpt, hashtags, created_at
             FROM {SCHEMA}.content_posts
             ORDER BY post_date DESC
             LIMIT %s""",
