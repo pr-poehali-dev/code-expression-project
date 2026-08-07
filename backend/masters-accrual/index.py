@@ -848,21 +848,28 @@ def handle_content_daily_post(event: dict, conn) -> dict:
 
 
 def handle_content_list(event: dict, conn) -> dict:
-    """Список последних постов (для будущей ленты на сайте)."""
+    """Список последних опубликованных постов для ленты на сайте, со ссылкой на полный текст в Telegram."""
     qs = event.get("queryStringParameters") or {}
     try:
         limit = min(int(qs.get("limit", 20)), 50)
     except ValueError:
         limit = 20
+
+    channel = os.environ.get("TELEGRAM_CHANNEL_ID", "").lstrip("@")
+
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"""SELECT id, post_date, title, excerpt, hashtags, created_at
+        f"""SELECT id, post_date, title, excerpt, hashtags, telegram_message_id, created_at
             FROM {SCHEMA}.content_posts
+            WHERE telegram_message_id IS NOT NULL
             ORDER BY post_date DESC
             LIMIT %s""",
         (limit,)
     )
     rows = [dict(r) for r in cur.fetchall()]
+    for r in rows:
+        msg_id = r.get("telegram_message_id")
+        r["telegram_url"] = f"https://t.me/{channel}/{msg_id}" if channel and not channel.lstrip("-").isdigit() and msg_id else None
     return ok({"posts": rows})
 
 

@@ -10,6 +10,7 @@ const COLS = [
       { label: "Тарифы", href: "/tseny" },
       { label: "Академия", href: "/akademiya" },
       { label: "Аудит салона", href: "/diagnostika" },
+      { label: "Блог", href: "/blog" },
     ],
   },
   {
