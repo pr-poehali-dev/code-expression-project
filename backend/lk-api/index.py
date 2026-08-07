@@ -624,6 +624,7 @@ def handle_admin_delete_user(event: dict) -> dict:
             "lk_salon_results", "lk_sessions", "lk_user_test_results", "photo_fittings",
             "review_replies", "salon_agent_chats", "salon_agent_free_usage",
             "salon_audits", "salon_members", "staff_audits", "video_jobs",
+            "podelam_profiles", "podelam_daily_plans", "podelam_daily_income", "podelam_task_log",
         ]
         for t in own_tables_by_user_id:
             cur.execute(f"DELETE FROM {tbl(t)} WHERE user_id=%s", (user_id,))
