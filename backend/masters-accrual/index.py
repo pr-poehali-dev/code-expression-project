@@ -9,7 +9,7 @@ POST ?action=podelam_save_profile  — сохранить диагностику
 POST ?action=podelam_task_done     — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
 GET  ?action=podelam_stats         — статистика выполненных дел за неделю/месяц (X-Session-Id)
 POST ?action=podelam_set_income    — прибавить фактический доход за день (amount, опц. date, mode="add"|"replace") (X-Session-Id)
-GET/POST ?action=podelam_notify    — cron: письмо пользователям с новым планом на сегодня, у кого ещё не отправлено (X-Internal-Key = ADMIN_TOKEN).
+GET/POST ?action=podelam_notify&key=ADMIN_TOKEN — cron: письмо пользователям с новым планом на сегодня, у кого ещё не отправлено.
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с при большом числе пользователей.
 POST / (без action или action=withdraw) — начисления мастерам (X-Master-Session)
 GET  / (без action) — история начислений мастера (X-Master-Session)
@@ -613,8 +613,9 @@ def _send_podelam_notify_email(to_email: str, full_name: str, main_task: dict | 
 def handle_podelam_notify(event: dict, conn) -> dict:
     """Cron: рассылает письмо всем пользователям, у которых сегодня уже есть план, но письмо ещё не отправлено."""
     admin_token = os.environ.get("ADMIN_TOKEN", "")
-    internal_key = (event.get("headers") or {}).get("X-Internal-Key", "")
-    if not admin_token or internal_key != admin_token:
+    qs = event.get("queryStringParameters") or {}
+    key = (event.get("headers") or {}).get("X-Internal-Key", "") or qs.get("key", "")
+    if not admin_token or key != admin_token:
         return err("Доступ запрещён", 403)
 
     today = date.today()
