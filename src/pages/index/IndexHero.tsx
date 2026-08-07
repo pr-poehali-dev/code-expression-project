@@ -8,7 +8,7 @@ const SERIF = "'Cormorant Garamond', serif";
 const HERO_POINTS = [
   { icon: "Users", text: "Что написать, чтобы клиент вернулся" },
   { icon: "CalendarCheck", text: "Чем заполнить свободные окна" },
-  { icon: "TrendingUp", text: "Где вы теряете деньги" },
+  { icon: "TrendingUp", text: "Желаемый доход в месяц" },
   { icon: "ListChecks", text: "Продуманные шаги к цели" },
 ];
 
