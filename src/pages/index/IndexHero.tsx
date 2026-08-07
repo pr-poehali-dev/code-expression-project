@@ -6,7 +6,7 @@ const GRAY = "#64748B";
 const SERIF = "'Cormorant Garamond', serif";
 
 const HERO_POINTS = [
-  { icon: "Users", text: "Кому написать, чтобы вернуть клиентов" },
+  { icon: "Users", text: "Что написать, чтобы клиент вернулся" },
   { icon: "CalendarCheck", text: "Чем заполнить свободные окна" },
   { icon: "TrendingUp", text: "Где вы теряете деньги" },
   { icon: "ListChecks", text: "Что сделать сегодня, а не «когда-нибудь»" },
