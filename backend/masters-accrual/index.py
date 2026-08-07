@@ -674,19 +674,25 @@ def handle_podelam_stats(event: dict, conn) -> dict:
 CONTENT_AI_URL = "https://polza.ai/api/v1/chat/completions"
 CONTENT_AI_MODEL = "openai/gpt-5.6-terra"
 
+CONTENT_CATEGORIES = {
+    "marketing": "Маркетинг",
+    "upsell": "Допродажи",
+    "clients": "Работа с клиентами",
+}
+
 CONTENT_TOPICS = [
-    "как удержать клиента, который давно не приходил",
-    "как поднять средний чек через допуслуги без давления на клиента",
-    "как заполнить окна в расписании мастера в межсезонье",
-    "как получать больше отзывов и повторных визитов",
-    "как правильно вести соцсети салона, чтобы шли записи, а не лайки",
-    "как посчитать реальную прибыльность мастера, а не только выручку",
-    "как выстроить систему допродаж в салоне без раздражения клиентов",
-    "как мотивировать мастеров расти в доходе, а не просто отрабатывать смену",
-    "какие 3 метрики салону нужно смотреть каждую неделю",
-    "как вернуть клиентов, которые ушли к конкурентам",
-    "как настроить сарафанное радио так, чтобы оно реально работало",
-    "как мастеру выйти на стабильный доход без хаотичной записи",
+    ("как удержать клиента, который давно не приходил", "clients"),
+    ("как поднять средний чек через допуслуги без давления на клиента", "upsell"),
+    ("как заполнить окна в расписании мастера в межсезонье", "marketing"),
+    ("как получать больше отзывов и повторных визитов", "clients"),
+    ("как правильно вести соцсети салона, чтобы шли записи, а не лайки", "marketing"),
+    ("как посчитать реальную прибыльность мастера, а не только выручку", "upsell"),
+    ("как выстроить систему допродаж в салоне без раздражения клиентов", "upsell"),
+    ("как мотивировать мастеров расти в доходе, а не просто отрабатывать смену", "clients"),
+    ("какие 3 метрики салону нужно смотреть каждую неделю", "upsell"),
+    ("как вернуть клиентов, которые ушли к конкурентам", "clients"),
+    ("как настроить сарафанное радио так, чтобы оно реально работало", "marketing"),
+    ("как мастеру выйти на стабильный доход без хаотичной записи", "marketing"),
 ]
 
 
@@ -807,7 +813,7 @@ def handle_content_daily_post(event: dict, conn) -> dict:
     if existing:
         return ok({"post": dict(existing), "created": False})
 
-    topic = random.choice(CONTENT_TOPICS)
+    topic, category = random.choice(CONTENT_TOPICS)
     ai_result = call_content_ai(topic)
     if not ai_result:
         return err("Не удалось сгенерировать пост", 502)
@@ -821,11 +827,11 @@ def handle_content_daily_post(event: dict, conn) -> dict:
 
     cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur2.execute(
-        f"""INSERT INTO {SCHEMA}.content_posts (post_date, title, excerpt, body, hashtags, source)
-            VALUES (%s, %s, %s, %s, %s, 'ai')
+        f"""INSERT INTO {SCHEMA}.content_posts (post_date, title, excerpt, body, hashtags, category, source)
+            VALUES (%s, %s, %s, %s, %s, %s, 'ai')
             ON CONFLICT (post_date) DO NOTHING
             RETURNING *""",
-        (today, ai_result["title"], ai_result.get("excerpt") or "", ai_result["body"], hashtags_str)
+        (today, ai_result["title"], ai_result.get("excerpt") or "", ai_result["body"], hashtags_str, category)
     )
     row = cur2.fetchone()
     conn.commit()
@@ -848,29 +854,42 @@ def handle_content_daily_post(event: dict, conn) -> dict:
 
 
 def handle_content_list(event: dict, conn) -> dict:
-    """Список последних опубликованных постов для ленты на сайте, со ссылкой на полный текст в Telegram."""
+    """Список последних опубликованных постов для ленты на сайте, со ссылкой на полный текст в Telegram.
+    Опционально фильтруется по ?category=marketing|upsell|clients."""
     qs = event.get("queryStringParameters") or {}
     try:
         limit = min(int(qs.get("limit", 20)), 50)
     except ValueError:
         limit = 20
+    category = qs.get("category", "")
 
     channel = os.environ.get("TELEGRAM_CHANNEL_ID", "").lstrip("@")
 
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute(
-        f"""SELECT id, post_date, title, excerpt, body, hashtags, telegram_message_id, created_at
-            FROM {SCHEMA}.content_posts
-            WHERE telegram_message_id IS NOT NULL
-            ORDER BY post_date DESC
-            LIMIT %s""",
-        (limit,)
-    )
+    if category and category in CONTENT_CATEGORIES:
+        cur.execute(
+            f"""SELECT id, post_date, title, excerpt, body, hashtags, category, telegram_message_id, created_at
+                FROM {SCHEMA}.content_posts
+                WHERE telegram_message_id IS NOT NULL AND category = %s
+                ORDER BY post_date DESC
+                LIMIT %s""",
+            (category, limit)
+        )
+    else:
+        cur.execute(
+            f"""SELECT id, post_date, title, excerpt, body, hashtags, category, telegram_message_id, created_at
+                FROM {SCHEMA}.content_posts
+                WHERE telegram_message_id IS NOT NULL
+                ORDER BY post_date DESC
+                LIMIT %s""",
+            (limit,)
+        )
     rows = [dict(r) for r in cur.fetchall()]
     for r in rows:
         msg_id = r.get("telegram_message_id")
         r["telegram_url"] = f"https://t.me/{channel}/{msg_id}" if channel and not channel.lstrip("-").isdigit() and msg_id else None
-    return ok({"posts": rows})
+        r["category_label"] = CONTENT_CATEGORIES.get(r.get("category"), "")
+    return ok({"posts": rows, "categories": CONTENT_CATEGORIES})
 
 
 def process_accruals(conn):

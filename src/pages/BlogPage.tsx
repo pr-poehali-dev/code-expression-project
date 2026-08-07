@@ -19,8 +19,17 @@ interface Post {
   excerpt: string;
   body: string;
   hashtags: string;
+  category: string | null;
+  category_label: string;
   telegram_url: string | null;
 }
+
+const CATEGORIES: { key: string; label: string }[] = [
+  { key: "", label: "Все темы" },
+  { key: "marketing", label: "Маркетинг" },
+  { key: "upsell", label: "Допродажи" },
+  { key: "clients", label: "Работа с клиентами" },
+];
 
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -31,13 +40,17 @@ export default function BlogPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState<number | null>(null);
+  const [category, setCategory] = useState("");
 
   useEffect(() => {
-    fetch(`${CONTENT_URL}?action=content_list&limit=30`)
+    setLoading(true);
+    const qs = new URLSearchParams({ action: "content_list", limit: "30" });
+    if (category) qs.set("category", category);
+    fetch(`${CONTENT_URL}?${qs.toString()}`)
       .then(r => r.json())
       .then(d => setPosts(d.posts || []))
       .finally(() => setLoading(false));
-  }, []);
+  }, [category]);
 
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", minHeight: "100vh" }}>
@@ -67,6 +80,28 @@ export default function BlogPage() {
 
       <section style={{ padding: "64px 32px 120px" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 40 }}>
+            {CATEGORIES.map(c => {
+              const active = category === c.key;
+              return (
+                <button
+                  key={c.key}
+                  onClick={() => setCategory(c.key)}
+                  style={{
+                    fontFamily: "Inter, sans-serif", fontSize: 14, fontWeight: 500, cursor: "pointer",
+                    padding: "9px 20px", borderRadius: 20, whiteSpace: "nowrap",
+                    border: active ? "1px solid transparent" : "1px solid #E2E8F0",
+                    background: active ? "linear-gradient(135deg,#2DD4BF,#14B8A6)" : "#fff",
+                    color: active ? DARK : GRAY,
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
+          </div>
+
           {loading ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {[1, 2, 3].map(i => (
@@ -76,7 +111,7 @@ export default function BlogPage() {
           ) : posts.length === 0 ? (
             <div style={{ textAlign: "center", padding: "60px 0" }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>📝</div>
-              <div style={{ fontSize: 17, fontWeight: 600, color: DARK }}>Постов пока нет</div>
+              <div style={{ fontSize: 17, fontWeight: 600, color: DARK }}>По этой теме пока нет постов</div>
               <div style={{ fontSize: 14, color: GRAY, marginTop: 6 }}>Загляните сюда чуть позже</div>
             </div>
           ) : (
@@ -89,8 +124,16 @@ export default function BlogPage() {
                   onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = TEAL; el.style.boxShadow = "0 8px 24px rgba(45,212,191,0.1)"; }}
                   onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "#E2E8F0"; el.style.boxShadow = "none"; }}
                 >
-                  <div style={{ fontSize: 13, color: GRAY, marginBottom: 10, fontWeight: 400 }}>
-                    {formatDate(post.post_date)}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                    <span style={{ fontSize: 13, color: GRAY, fontWeight: 400 }}>{formatDate(post.post_date)}</span>
+                    {post.category_label && (
+                      <span style={{
+                        fontSize: 12, fontWeight: 600, color: "#0D9488", background: "#CCFBF1",
+                        padding: "3px 10px", borderRadius: 20, letterSpacing: "0.2px",
+                      }}>
+                        {post.category_label}
+                      </span>
+                    )}
                   </div>
                   <h2 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 600, color: DARK, margin: "0 0 12px", lineHeight: 1.25 }}>
                     {post.title}
