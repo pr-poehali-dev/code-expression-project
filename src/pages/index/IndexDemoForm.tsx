@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { setPodelamTrial } from "@/lib/podelamTrial";
 import { calcGapAmount, calcGrowthPoints, fmt, DemoGrowthPoint } from "@/lib/podelamDemoCalc";
@@ -32,6 +32,7 @@ export default function IndexDemoForm() {
   const navigate = useNavigate();
   const [form, setForm] = useState<FormState>(INITIAL);
   const [error, setError] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [result, setResult] = useState<{ gap: number; points: DemoGrowthPoint[] } | null>(null);
 
   const set = (k: keyof FormState, v: string | boolean) => setForm(p => ({ ...p, [k]: v }));
@@ -46,6 +47,10 @@ export default function IndexDemoForm() {
   const handleCalc = () => {
     if (!form.avg_check || !form.current_revenue || !form.target_revenue) {
       setError("Заполните средний чек, текущий и желаемый доход");
+      return;
+    }
+    if (!agreed) {
+      setError("Примите политику конфиденциальности");
       return;
     }
     setError("");
@@ -148,14 +153,31 @@ export default function IndexDemoForm() {
                   <span style={{ fontSize: 13, color: "#374151" }}>Есть дополнительные услуги / пакеты</span>
                 </label>
 
+                <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginBottom: 16 }}>
+                  <input
+                    type="checkbox"
+                    checked={agreed}
+                    onChange={e => { setAgreed(e.target.checked); if (e.target.checked) setError(""); }}
+                    style={{ width: 18, height: 18, flexShrink: 0, marginTop: 1 }}
+                  />
+                  <span style={{ fontSize: 12.5, color: "#374151", lineHeight: 1.5 }}>
+                    Я принимаю{" "}
+                    <Link to="/privacy" target="_blank" style={{ color: TEAL2, textDecoration: "none", fontWeight: 500 }} onClick={e => e.stopPropagation()}>
+                      политику конфиденциальности
+                    </Link>{" "}
+                    и даю согласие на обработку персональных данных
+                  </span>
+                </label>
+
                 {error && <div style={{ fontSize: 13, color: "#DC2626", background: "#FEF2F2", borderRadius: 8, padding: "8px 12px", marginBottom: 16 }}>{error}</div>}
 
                 <button
                   onClick={handleCalc}
+                  disabled={!agreed}
                   style={{
                     width: "100%", padding: "14px 0", borderRadius: 12, border: "none",
-                    background: `linear-gradient(135deg,${TEAL},${TEAL2})`,
-                    color: DARK, fontSize: 15, fontWeight: 700, cursor: "pointer",
+                    background: agreed ? `linear-gradient(135deg,${TEAL},${TEAL2})` : "#E2E8F0",
+                    color: agreed ? DARK : "#94A3B8", fontSize: 15, fontWeight: 700, cursor: agreed ? "pointer" : "not-allowed",
                     fontFamily: "Inter,sans-serif",
                   }}
                 >
