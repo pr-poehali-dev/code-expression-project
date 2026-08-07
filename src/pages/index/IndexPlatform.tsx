@@ -91,7 +91,7 @@ export default function IndexPlatform() {
               В основе — цифры, формулы и алгоритмы
             </h2>
             <p style={{ fontSize: 15, color: GRAY, lineHeight: 1.7, fontWeight: 300 }}>
-              ИИ помогает понять контекст и подготовить тексты. А рекомендации строит математическая модель, которая учитывает:
+              ИИ помогает понять контекст, подготовить тексты. Рекомендации строит математическая модель:
             </p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12, marginBottom: 40 }}>
