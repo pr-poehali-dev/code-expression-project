@@ -17,6 +17,7 @@ interface Post {
   post_date: string;
   title: string;
   excerpt: string;
+  body: string;
   hashtags: string;
   telegram_url: string | null;
 }
@@ -29,6 +30,7 @@ function formatDate(iso: string) {
 export default function BlogPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openId, setOpenId] = useState<number | null>(null);
 
   useEffect(() => {
     fetch(`${CONTENT_URL}?action=content_list&limit=30`)
@@ -103,14 +105,23 @@ export default function BlogPage() {
                       {post.hashtags}
                     </div>
                   )}
-                  {post.telegram_url && (
-                    <a href={post.telegram_url} target="_blank" rel="noopener noreferrer" style={{
-                      display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500,
-                      color: DARK, textDecoration: "none", padding: "10px 20px", borderRadius: 2,
-                      background: "linear-gradient(135deg,#2DD4BF,#14B8A6)",
-                    }}>
-                      Читать полностью в Telegram <Icon name="ArrowRight" size={15} />
-                    </a>
+                  {openId === post.id && post.body && (
+                    <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.75, margin: "0 0 20px", fontWeight: 300, whiteSpace: "pre-line" }}>
+                      {post.body}
+                    </p>
+                  )}
+                  {post.body && (
+                    <button
+                      onClick={() => setOpenId(openId === post.id ? null : post.id)}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500,
+                        color: DARK, border: "none", cursor: "pointer", padding: "10px 20px", borderRadius: 2,
+                        background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", fontFamily: "Inter, sans-serif",
+                      }}
+                    >
+                      {openId === post.id ? "Свернуть" : "Читать полностью"}
+                      <Icon name={openId === post.id ? "ChevronUp" : "ArrowRight"} size={15} />
+                    </button>
                   )}
                 </article>
               ))}

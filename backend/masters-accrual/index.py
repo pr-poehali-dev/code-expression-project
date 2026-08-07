@@ -859,7 +859,7 @@ def handle_content_list(event: dict, conn) -> dict:
 
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"""SELECT id, post_date, title, excerpt, hashtags, telegram_message_id, created_at
+        f"""SELECT id, post_date, title, excerpt, body, hashtags, telegram_message_id, created_at
             FROM {SCHEMA}.content_posts
             WHERE telegram_message_id IS NOT NULL
             ORDER BY post_date DESC
