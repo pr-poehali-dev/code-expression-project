@@ -11,11 +11,15 @@ GET  ?action=podelam_stats         — статистика выполненны
 POST ?action=podelam_set_income    — прибавить фактический доход за день (amount, опц. date, mode="add"|"replace") (X-Session-Id)
 GET/POST ?action=podelam_notify&key=ADMIN_TOKEN — cron: письмо пользователям с новым планом на сегодня, у кого ещё не отправлено.
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с при большом числе пользователей.
+GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет ежедневный экспертный пост и публикует в Telegram-канал.
+                                       Повторно в этот же день не публикует. ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с.
+GET  ?action=content_list          — последние опубликованные посты (для ленты на сайте), без авторизации.
 POST / (без action или action=withdraw) — начисления мастерам (X-Master-Session)
 GET  / (без action) — история начислений мастера (X-Master-Session)
 """
 import json
 import os
+import random
 import smtplib
 import ssl
 import urllib.request
@@ -665,6 +669,184 @@ def handle_podelam_stats(event: dict, conn) -> dict:
     return ok({"week": week, "month": month})
 
 
+# ── Автопубликация ежедневного экспертного поста (ИИ, модель terra) в Telegram ─
+
+CONTENT_AI_URL = "https://polza.ai/api/v1/chat/completions"
+CONTENT_AI_MODEL = "openai/gpt-5.6-terra"
+
+CONTENT_TOPICS = [
+    "как удержать клиента, который давно не приходил",
+    "как поднять средний чек через допуслуги без давления на клиента",
+    "как заполнить окна в расписании мастера в межсезонье",
+    "как получать больше отзывов и повторных визитов",
+    "как правильно вести соцсети салона, чтобы шли записи, а не лайки",
+    "как посчитать реальную прибыльность мастера, а не только выручку",
+    "как выстроить систему допродаж в салоне без раздражения клиентов",
+    "как мотивировать мастеров расти в доходе, а не просто отрабатывать смену",
+    "какие 3 метрики салону нужно смотреть каждую неделю",
+    "как вернуть клиентов, которые ушли к конкурентам",
+    "как настроить сарафанное радио так, чтобы оно реально работало",
+    "как мастеру выйти на стабильный доход без хаотичной записи",
+]
+
+
+def call_content_ai(topic: str) -> dict | None:
+    """Просит ИИ написать короткую экспертную статью на заданную тему. Возвращает None при ошибке."""
+    api_key = os.environ.get("POLZA_AI_API_KEY", "")
+    if not api_key:
+        return None
+
+    system_prompt = f"""Ты — экспертный автор блога сервиса «Промт Диалог» (платформа для салонов красоты и мастеров: \
+маркетинг, обучение, ИИ-инструменты, навигатор дохода «ПоДелам»).
+
+Напиши короткую полезную статью для владельцев салонов и мастеров красоты на тему: {topic}.
+
+Требования:
+- Конкретика и практические советы, без воды, без общих фраз.
+- Тон — дружелюбный эксперт, на "вы", без канцелярита.
+- В конце статьи органично, без давления, можно упомянуть, что похожие задачи в один клик решает навигатор \
+дохода «ПоДелам» в личном кабинете «Промт Диалог» — но только если это уместно по теме, не в каждом посте.
+
+Отвечай СТРОГО в формате JSON, без markdown-обёртки:
+{{
+  "title": "Короткий цепляющий заголовок, до 60 знаков",
+  "excerpt": "Превью-анонс на 1-2 предложения, до 150 знаков, без спойлера сути",
+  "body": "Полный текст статьи, 800-1200 знаков, можно с переносами строк \\n"
+}}"""
+
+    payload = json.dumps({
+        "model": CONTENT_AI_MODEL,
+        "messages": [{"role": "system", "content": system_prompt}],
+        "temperature": 0.8,
+        "max_tokens": 1200,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        CONTENT_AI_URL, data=payload,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        content = data["choices"][0]["message"]["content"].strip()
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            content = content.strip()
+        parsed = json.loads(content)
+        if not parsed.get("title") or not parsed.get("body"):
+            return None
+        return parsed
+    except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError):
+        return None
+
+
+def send_content_to_telegram(title: str, body: str) -> int | None:
+    """Публикует пост в Telegram-канал. Возвращает message_id или None при ошибке/отсутствии настроек."""
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+    channel_id = os.environ.get("TELEGRAM_CHANNEL_ID", "")
+    if not bot_token or not channel_id:
+        return None
+
+    def esc(text: str) -> str:
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+    text = f"<b>{esc(title)}</b>\n\n{esc(body)}\n\n🔗 {SITE_URL}"
+    payload = json.dumps({
+        "chat_id": channel_id,
+        "text": text,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": False,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        f"https://api.telegram.org/bot{bot_token}/sendMessage",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        if data.get("ok"):
+            return data["result"]["message_id"]
+        return None
+    except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError):
+        return None
+
+
+def handle_content_daily_post(event: dict, conn) -> dict:
+    """Cron: генерирует (если ещё нет) и публикует пост дня в Telegram."""
+    admin_token = os.environ.get("ADMIN_TOKEN", "")
+    qs = event.get("queryStringParameters") or {}
+    key = (event.get("headers") or {}).get("X-Internal-Key", "") or qs.get("key", "")
+    if not admin_token or key != admin_token:
+        return err("Доступ запрещён", 403)
+
+    today = date.today()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT * FROM {SCHEMA}.content_posts WHERE post_date = %s",
+        (today,)
+    )
+    existing = cur.fetchone()
+    if existing:
+        return ok({"post": dict(existing), "created": False})
+
+    topic = random.choice(CONTENT_TOPICS)
+    ai_result = call_content_ai(topic)
+    if not ai_result:
+        return err("Не удалось сгенерировать пост", 502)
+
+    cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur2.execute(
+        f"""INSERT INTO {SCHEMA}.content_posts (post_date, title, excerpt, body, source)
+            VALUES (%s, %s, %s, %s, 'ai')
+            ON CONFLICT (post_date) DO NOTHING
+            RETURNING *""",
+        (today, ai_result["title"], ai_result.get("excerpt") or "", ai_result["body"])
+    )
+    row = cur2.fetchone()
+    conn.commit()
+    if not row:
+        cur.execute(f"SELECT * FROM {SCHEMA}.content_posts WHERE post_date = %s", (today,))
+        row = cur.fetchone()
+        return ok({"post": dict(row), "created": False})
+
+    message_id = send_content_to_telegram(row["title"], row["body"])
+    if message_id:
+        cur3 = conn.cursor()
+        cur3.execute(
+            f"UPDATE {SCHEMA}.content_posts SET telegram_message_id = %s, telegram_sent_at = now() WHERE id = %s",
+            (message_id, row["id"])
+        )
+        conn.commit()
+        row["telegram_message_id"] = message_id
+
+    return ok({"post": dict(row), "created": True, "telegram_sent": bool(message_id)})
+
+
+def handle_content_list(event: dict, conn) -> dict:
+    """Список последних постов (для будущей ленты на сайте)."""
+    qs = event.get("queryStringParameters") or {}
+    try:
+        limit = min(int(qs.get("limit", 20)), 50)
+    except ValueError:
+        limit = 20
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT id, post_date, title, excerpt, created_at
+            FROM {SCHEMA}.content_posts
+            ORDER BY post_date DESC
+            LIMIT %s""",
+        (limit,)
+    )
+    rows = [dict(r) for r in cur.fetchall()]
+    return ok({"posts": rows})
+
+
 def process_accruals(conn):
     """Переводит pending-начисления в available после 30 дней ожидания."""
     cur = conn.cursor()
@@ -716,6 +898,12 @@ def handler(event: dict, context) -> dict:
             return handle_podelam_set_income(event, conn)
         if route_action == "podelam_notify":
             return handle_podelam_notify(event, conn)
+
+        # ── Автопубликация ежедневного поста в Telegram ───────────────────────
+        if route_action == "content_daily_post":
+            return handle_content_daily_post(event, conn)
+        if route_action == "content_list":
+            return handle_content_list(event, conn)
 
         headers = event.get("headers") or {}
         session_id = headers.get("X-Master-Session", "")

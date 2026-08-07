@@ -59,6 +59,18 @@
       "method": "GET",
       "path": "/?action=podelam_notify",
       "expectedStatus": 403
+    },
+    {
+      "name": "GET content_daily_post without key — 403",
+      "method": "GET",
+      "path": "/?action=content_daily_post",
+      "expectedStatus": 403
+    },
+    {
+      "name": "GET content_list — 200",
+      "method": "GET",
+      "path": "/?action=content_list",
+      "expectedStatus": 200
     }
   ]
 }
