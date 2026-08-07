@@ -6,6 +6,7 @@ import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { markBlogSeen } from "@/pages/lk/blogNotice";
+import { toast } from "@/hooks/use-toast";
 import func2url from "../../backend/func2url.json";
 
 const TEAL = "#2DD4BF";
@@ -60,6 +61,25 @@ export default function BlogPage() {
       return;
     }
     setOpenId(openId === post.id ? null : post.id);
+  };
+
+  const handleShare = async (post: Post) => {
+    const url = `${window.location.origin}/blog?post=${post.id}`;
+    const shareData = { title: post.title, text: post.excerpt || post.title, url };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        // пользователь отменил шаринг — ничего не делаем
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: "Ссылка скопирована", description: "Можно поделиться постом в соцсетях или мессенджере" });
+    } catch {
+      toast({ title: "Не удалось скопировать ссылку", variant: "destructive" });
+    }
   };
 
   useEffect(() => {
@@ -196,17 +216,32 @@ export default function BlogPage() {
                           {post.body}
                         </p>
                       )}
-                      <button
-                        onClick={() => handleReadMore(post)}
-                        style={{
-                          display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500,
-                          color: DARK, border: "none", cursor: "pointer", padding: "10px 20px", borderRadius: 2,
-                          background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", fontFamily: "Inter, sans-serif",
-                        }}
-                      >
-                        {isOpen ? "Свернуть" : user ? "Читать полностью" : "Войти, чтобы читать"}
-                        <Icon name={isOpen ? "ChevronUp" : user ? "ArrowRight" : "Lock"} size={15} />
-                      </button>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                        <button
+                          onClick={() => handleReadMore(post)}
+                          style={{
+                            display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500,
+                            color: DARK, border: "none", cursor: "pointer", padding: "10px 20px", borderRadius: 2,
+                            background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", fontFamily: "Inter, sans-serif",
+                          }}
+                        >
+                          {isOpen ? "Свернуть" : user ? "Читать полностью" : "Войти, чтобы читать"}
+                          <Icon name={isOpen ? "ChevronUp" : user ? "ArrowRight" : "Lock"} size={15} />
+                        </button>
+                        <button
+                          onClick={() => handleShare(post)}
+                          style={{
+                            display: "inline-flex", alignItems: "center", gap: 7, fontSize: 14, fontWeight: 500,
+                            color: GRAY, border: "1px solid #E2E8F0", cursor: "pointer", padding: "10px 18px", borderRadius: 2,
+                            background: "#fff", fontFamily: "Inter, sans-serif", transition: "border-color 0.2s, color 0.2s",
+                          }}
+                          onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.borderColor = TEAL; el.style.color = DARK; }}
+                          onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.borderColor = "#E2E8F0"; el.style.color = GRAY; }}
+                        >
+                          <Icon name="Share2" size={15} />
+                          Поделиться
+                        </button>
+                      </div>
                     </article>
                   );
                 })}
