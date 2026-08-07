@@ -230,18 +230,18 @@ export default function IndexBottom() {
           <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", marginBottom: 40, fontWeight: 300, lineHeight: 1.7 }}>
             100 энергий бесплатно при регистрации — без оплаты, без обязательств.
           </p>
-          <Link to="/cabinet" style={{
+          <a href="#demo-form" onClick={e => { e.preventDefault(); document.getElementById("demo-form")?.scrollIntoView({ behavior: "smooth" }); }} style={{
             display: "inline-flex", alignItems: "center", gap: 10,
             padding: "18px 48px", borderRadius: 2, fontSize: 15, fontWeight: 600,
             background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A",
-            textDecoration: "none", transition: "all 0.3s",
+            textDecoration: "none", transition: "all 0.3s", cursor: "pointer",
           }}
             onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(-2px)"; el.style.boxShadow = "0 16px 40px rgba(45,212,191,0.3)"; }}
             onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.transform = "translateY(0)"; el.style.boxShadow = "none"; }}
           >
             <Icon name="Compass" size={16} />
             Получить план роста
-          </Link>
+          </a>
         </div>
       </section>
     </>
