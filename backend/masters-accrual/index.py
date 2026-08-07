@@ -681,36 +681,86 @@ CONTENT_CATEGORIES = {
     "clients": "Работа с клиентами",
 }
 
-CONTENT_TOPICS = [
-    ("как удержать клиента, который давно не приходил", "clients"),
-    ("как поднять средний чек через допуслуги без давления на клиента", "upsell"),
-    ("как заполнить окна в расписании мастера в межсезонье", "marketing"),
-    ("как получать больше отзывов и повторных визитов", "clients"),
-    ("как правильно вести соцсети салона, чтобы шли записи, а не лайки", "marketing"),
-    ("как посчитать реальную прибыльность мастера, а не только выручку", "upsell"),
-    ("как выстроить систему допродаж в салоне без раздражения клиентов", "upsell"),
-    ("как мотивировать мастеров расти в доходе, а не просто отрабатывать смену", "clients"),
-    ("какие 3 метрики салону нужно смотреть каждую неделю", "upsell"),
-    ("как вернуть клиентов, которые ушли к конкурентам", "clients"),
-    ("как настроить сарафанное радио так, чтобы оно реально работало", "marketing"),
-    ("как мастеру выйти на стабильный доход без хаотичной записи", "marketing"),
-]
+# Строгий порядок ротации тем: сегодня — маркетинг, завтра — допродажи, послезавтра — работа
+# с клиентами, затем снова по кругу. Категория следующего поста вычисляется от категории
+# последнего опубликованного поста (см. get_next_content_category), а не от дня недели —
+# это устойчиво к пропущенным дням публикации.
+CONTENT_CATEGORY_ORDER = ["marketing", "upsell", "clients"]
+
+CONTENT_TOPICS_BY_CATEGORY = {
+    "marketing": [
+        "как заполнить окна в расписании мастера в межсезонье",
+        "как правильно вести соцсети салона, чтобы шли записи, а не лайки",
+        "как настроить сарафанное радио так, чтобы оно реально работало",
+        "как мастеру выйти на стабильный доход без хаотичной записи",
+        "с чего начать продвижение нового салона в районе без бюджета на рекламу",
+        "как посчитать, сколько реально стоит один новый клиент из рекламы",
+        "какие офферы работают лучше скидок для привлечения новых клиентов",
+        "как использовать сторис и Reels, чтобы они приводили именно записи",
+    ],
+    "upsell": [
+        "как поднять средний чек через допуслуги без давления на клиента",
+        "как посчитать реальную прибыльность мастера, а не только выручку",
+        "как выстроить систему допродаж в салоне без раздражения клиентов",
+        "какие 3 метрики салону нужно смотреть каждую неделю",
+        "как предлагать абонементы и пакеты услуг так, чтобы их покупали",
+        "как обучить администратора допродажам без скриптов-роботов",
+        "как формировать комплекты услуг, которые увеличивают чек на 20-30%",
+    ],
+    "clients": [
+        "как удержать клиента, который давно не приходил",
+        "как получать больше отзывов и повторных визитов",
+        "как мотивировать мастеров расти в доходе, а не просто отрабатывать смену",
+        "как вернуть клиентов, которые ушли к конкурентам",
+        "как выстроить систему напоминаний о записи, чтобы снизить неявки",
+        "как разговаривать с недовольным клиентом, чтобы он остался",
+        "как превратить разовых клиентов в постоянных за первые три визита",
+    ],
+}
 
 
-def call_content_ai(topic: str) -> dict | None:
-    """Просит ИИ написать короткую экспертную статью на заданную тему. Возвращает None при ошибке."""
+def get_next_content_category(conn) -> str:
+    """Определяет категорию следующего поста по строгой ротации marketing → upsell → clients,
+    отталкиваясь от категории последнего опубликованного поста."""
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT category FROM {SCHEMA}.content_posts WHERE category IS NOT NULL ORDER BY post_date DESC LIMIT 1"
+    )
+    row = cur.fetchone()
+    last_category = row[0] if row else None
+    if last_category not in CONTENT_CATEGORY_ORDER:
+        return CONTENT_CATEGORY_ORDER[0]
+    idx = CONTENT_CATEGORY_ORDER.index(last_category)
+    return CONTENT_CATEGORY_ORDER[(idx + 1) % len(CONTENT_CATEGORY_ORDER)]
+
+
+def call_content_ai(topic: str, category: str) -> dict | None:
+    """Просит ИИ написать продуманную экспертную статью на заданную тему строго в рамках одной
+    из трёх категорий блога. Возвращает None при ошибке."""
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
         return None
 
+    category_label = CONTENT_CATEGORIES.get(category, category)
+
     system_prompt = f"""Ты — практикующий эксперт по бизнесу в бьюти-индустрии, ведёшь блог «Промт Диалог» (платформа \
 для салонов красоты и мастеров: маркетинг, обучение, ИИ-инструменты, навигатор дохода «ПоДелам»).
 
-Напиши короткий полезный пост для владельцев салонов и мастеров красоты на тему: {topic}.
+Блог строго разделён на три постоянные рубрики, и сегодняшний пост должен относиться ТОЛЬКО к рубрике «{category_label}»:
+- Маркетинг — привлечение новых клиентов, продвижение, соцсети, реклама, сарафанное радио, заполнение окон в записи.
+- Допродажи — рост среднего чека, допуслуги, абонементы, пакеты услуг, финансовая аналитика мастера/салона.
+- Работа с клиентами — удержание, возврат ушедших, отзывы, повторные визиты, коммуникация с клиентом, мотивация мастеров.
+Не смешивай рубрики: если тема пограничная, раскрывай её строго под углом «{category_label}», не уходя в другие темы.
+
+Напиши пост для владельцев салонов и мастеров красоты на тему: {topic}.
 
 Требования к тексту:
 - Пиши как живой человек, который сам через это прошёл — без воды, без вступлений типа "в наше время" или \
 "многие сталкиваются", без канцелярита и штампов.
+- Текст должен быть продуманным и структурным: сначала суть проблемы в 1-2 фразах, затем 3-4 конкретных шага или приёма, \
+которые можно применить уже сегодня.
+- Там, где уместно, используй конкретные цифры для примера (проценты, суммы в рублях, количество клиентов, сроки) — \
+это должны быть реалистичные ориентиры, а не выдуманная точность. Не в каждом предложении, а там, где цифра усиливает совет.
 - Каждое предложение — по делу: конкретный совет, цифра, пример или чёткий шаг. Никаких общих фраз "нужно улучшать \
 сервис" — только конкретика типа "что именно сделать".
 - Тон — дружелюбный эксперт, на "вы", простыми словами, будто объясняешь коллеге за чашкой кофе.
@@ -723,15 +773,15 @@ def call_content_ai(topic: str) -> dict | None:
 {{
   "title": "Короткий цепляющий заголовок, до 60 знаков",
   "excerpt": "Превью-анонс на 1-2 предложения, до 150 знаков, без спойлера сути",
-  "body": "Полный текст статьи, 800-1200 знаков, без хэштегов, можно с переносами строк \\n",
+  "body": "Полный текст статьи, 900-1400 знаков, без хэштегов, можно с переносами строк \\n",
   "hashtags": ["хэштег1", "хэштег2"]
 }}"""
 
     payload = json.dumps({
         "model": CONTENT_AI_MODEL,
         "messages": [{"role": "system", "content": system_prompt}],
-        "temperature": 0.8,
-        "max_tokens": 1200,
+        "temperature": 0.75,
+        "max_tokens": 1400,
     }).encode("utf-8")
 
     req = urllib.request.Request(
@@ -791,8 +841,13 @@ def send_content_to_telegram(title: str, body: str, hashtags: str = "") -> int |
             data = json.loads(resp.read().decode("utf-8"))
         if data.get("ok"):
             return data["result"]["message_id"]
+        print(f"[content_publisher] Telegram API вернул ok=false: {data}")
         return None
-    except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError):
+    except urllib.error.HTTPError as e:
+        print(f"[content_publisher] Telegram HTTPError {e.code}: {e.read().decode('utf-8', 'ignore')}")
+        return None
+    except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError) as e:
+        print(f"[content_publisher] Telegram send failed: {type(e).__name__}: {e}")
         return None
 
 
@@ -812,10 +867,30 @@ def handle_content_daily_post(event: dict, conn) -> dict:
     )
     existing = cur.fetchone()
     if existing:
+        if not existing.get("telegram_message_id"):
+            retry_id = send_content_to_telegram(existing["title"], existing["body"], existing.get("hashtags") or "")
+            if retry_id:
+                cur_retry = conn.cursor()
+                cur_retry.execute(
+                    f"UPDATE {SCHEMA}.content_posts SET telegram_message_id = %s, telegram_sent_at = now() WHERE id = %s",
+                    (retry_id, existing["id"])
+                )
+                conn.commit()
+                existing["telegram_message_id"] = retry_id
         return ok({"post": dict(existing), "created": False})
 
-    topic, category = random.choice(CONTENT_TOPICS)
-    ai_result = call_content_ai(topic)
+    category = get_next_content_category(conn)
+    cur.execute(
+        f"""SELECT topic FROM {SCHEMA}.content_posts
+            WHERE category = %s AND topic IS NOT NULL
+            ORDER BY post_date DESC LIMIT 5""",
+        (category,)
+    )
+    recent_topics = {r["topic"] for r in cur.fetchall()}
+    available_topics = [t for t in CONTENT_TOPICS_BY_CATEGORY[category] if t not in recent_topics]
+    topic = random.choice(available_topics or CONTENT_TOPICS_BY_CATEGORY[category])
+
+    ai_result = call_content_ai(topic, category)
     if not ai_result:
         return err("Не удалось сгенерировать пост", 502)
 
@@ -828,11 +903,11 @@ def handle_content_daily_post(event: dict, conn) -> dict:
 
     cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur2.execute(
-        f"""INSERT INTO {SCHEMA}.content_posts (post_date, title, excerpt, body, hashtags, category, source)
-            VALUES (%s, %s, %s, %s, %s, %s, 'ai')
+        f"""INSERT INTO {SCHEMA}.content_posts (post_date, title, excerpt, body, hashtags, category, topic, source)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'ai')
             ON CONFLICT (post_date) DO NOTHING
             RETURNING *""",
-        (today, ai_result["title"], ai_result.get("excerpt") or "", ai_result["body"], hashtags_str, category)
+        (today, ai_result["title"], ai_result.get("excerpt") or "", ai_result["body"], hashtags_str, category, topic)
     )
     row = cur2.fetchone()
     conn.commit()
