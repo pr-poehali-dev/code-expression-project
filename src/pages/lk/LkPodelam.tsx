@@ -86,7 +86,30 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   };
 
   if (loading) {
-    return <div style={{ display: "flex", justifyContent: "center", padding: 60, color: "#94A3B8" }}>Загрузка…</div>;
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 24px", textAlign: "center" }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: 16, marginBottom: 20,
+          background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          animation: "podelam-pulse 1.6s ease-in-out infinite",
+        }}>
+          <Icon name="Compass" size={26} style={{ color: "#fff" }} />
+        </div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 8 }}>
+          Собираем ваши данные…
+        </div>
+        <div style={{ fontSize: 13.5, color: "#64748B", maxWidth: 320, lineHeight: 1.6 }}>
+          ИИ анализирует ваш доход, чек и базу клиентов и формирует шаги на сегодня. Обычно это занимает до минуты.
+        </div>
+        <style>{`
+          @keyframes podelam-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.8; }
+          }
+        `}</style>
+      </div>
+    );
   }
 
   if (!data?.has_profile || editing) {
