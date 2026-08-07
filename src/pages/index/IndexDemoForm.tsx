@@ -83,7 +83,7 @@ export default function IndexDemoForm() {
   };
 
   return (
-    <section style={{ padding: "120px 32px", background: `radial-gradient(120% 100% at 20% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`, position: "relative", overflow: "hidden" }}>
+    <section id="demo-form" style={{ padding: "120px 32px", background: `radial-gradient(120% 100% at 20% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`, position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", top: "5%", left: "-8%", width: 560, height: 560, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
       <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative" }}>
         <div style={{ display: "grid", gridTemplateColumns: "0.85fr 1.15fr", gap: 56, alignItems: "start" }} className="demo-form-grid">
