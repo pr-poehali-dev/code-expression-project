@@ -7,6 +7,7 @@ import { ACCENT, ACCENT_DARK, PODELAM_URL, sid, PodelamData, StatsData, fmt } fr
 import DiagnosticForm from "./PodelamDiagnosticForm";
 import InfoModal from "./PodelamInfoModal";
 import { DailyIncomeCard, StatsSection } from "./PodelamWidgets";
+import { isPodelamTrial, getPodelamTrialData, clearPodelamTrial } from "@/lib/podelamTrial";
 
 // ── Главный экран ПоДелам ──────────────────────────────────────────────────────
 export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
@@ -38,7 +39,23 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
     setLoading(true);
     fetch(`${PODELAM_URL}?action=podelam_get`, { headers: { "X-Session-Id": sid() } })
       .then(r => r.json())
-      .then(d => { setData(d); if (d?.has_profile) markPodelamSeen(); })
+      .then(async d => {
+        // Данные с демо-формы на главной — сохраняем как настоящий профиль, чтобы не вводить заново
+        if (!d?.has_profile && isPodelamTrial()) {
+          const trial = getPodelamTrialData();
+          clearPodelamTrial();
+          if (trial) {
+            await fetch(`${PODELAM_URL}?action=podelam_save_profile`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
+              body: JSON.stringify(trial),
+            }).catch(() => {});
+            const res2 = await fetch(`${PODELAM_URL}?action=podelam_get`, { headers: { "X-Session-Id": sid() } });
+            d = await res2.json();
+          }
+        }
+        setData(d); if (d?.has_profile) markPodelamSeen();
+      })
       .finally(() => setLoading(false));
     loadStats();
   }, [loadStats]);

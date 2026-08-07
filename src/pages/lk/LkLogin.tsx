@@ -4,6 +4,7 @@ import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
 import BrandLogo from "@/components/BrandLogo";
 import { isFittingTrial } from "@/lib/fittingTrial";
+import { isPodelamTrial } from "@/lib/podelamTrial";
 
 const TEAL = "#2DD4BF";
 const DARK = "#0F172A";
@@ -27,7 +28,8 @@ const inputStyle = (focused: boolean): React.CSSProperties => ({
 export default function LkLogin() {
   const { login, register } = useLkAuth();
   const fittingTrial = isFittingTrial();
-  const [tab, setTab] = useState<"login" | "register">(fittingTrial ? "register" : "login");
+  const podelamTrial = isPodelamTrial();
+  const [tab, setTab] = useState<"login" | "register">(fittingTrial || podelamTrial ? "register" : "login");
 
   // Login fields
   const [username, setUsername] = useState("");
@@ -185,11 +187,13 @@ export default function LkLogin() {
             {tab === "register" && (
               <form onSubmit={handleRegister}>
                 <div style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 600, color: DARK, marginBottom: 6 }}>
-                  {fittingTrial ? "Ещё один шаг — и результат готов" : "Создать аккаунт"}
+                  {fittingTrial ? "Ещё один шаг — и результат готов" : podelamTrial ? "Ещё один шаг — и план готов" : "Создать аккаунт"}
                 </div>
                 <p style={{ fontSize: 13, color: GRAY, margin: "0 0 20px", fontWeight: 300 }}>
                   {fittingTrial
                     ? "Зарегистрируйтесь — фото и выбранная примерка уже ждут внутри, останется нажать «Примерить»"
+                    : podelamTrial
+                    ? "Зарегистрируйтесь — ваши данные уже сохранены, план роста дохода откроется сразу"
                     : "Зарегистрируйтесь и получите 100 энергий в подарок"}
                 </p>
 
