@@ -79,6 +79,7 @@ def build_growth_points(profile: dict) -> list:
     repeat_rate = int(profile["repeat_rate"])
     free_slots = int(profile["free_slots_per_week"])
     has_addon = bool(profile["has_addon_services"])
+    addon_text = (profile.get("addon_services_text") or "").strip()
 
     points = []
 
@@ -111,9 +112,10 @@ def build_growth_points(profile: dict) -> list:
         addon_count = max(3, round(base_size * 0.08))
     addon_check = round(avg_check * 0.3)
     potential = addon_count * addon_check
+    action = f"Предложить {addon_text} {addon_count} клиентам" if addon_text else f"Предложить допуслугу {addon_count} клиентам"
     points.append({
         "key": "upsell", "title": "Поднять средний чек",
-        "action": f"Предложить допуслугу {addon_count} клиентам",
+        "action": action,
         "potential": potential, "count": addon_count,
     })
 
@@ -178,18 +180,22 @@ PODELAM_SYSTEM_PROMPT = f"""Ты — экспертный бизнес-конс�
 
 Твоя задача — на основе диагностики конкретного мастера/салона построить ЧЁТКИЙ, ПРИЧИННО-СЛЕДСТВЕННЫЙ план роста дохода:
 1. Учти АБСОЛЮТНО ВСЕ данные из диагностики (ниша, средний чек, текущий и целевой доход, клиентов в месяц, \
-размер базы, % повторных визитов, свободные окна, есть ли допуслуги, откуда приходят записи).
-2. Посчитай разрыв между текущим и целевым доходом и реалистично разложи его на 3-4 точки роста — откуда именно \
-возьмутся деньги (возврат клиентов, заполнение окон, допродажи, привлечение новых через конкретный канал lead_source).
-3. Для каждой точки роста подбери КОНКРЕТНОЕ маркетинговое или операционное действие на сегодня, которое можно \
+размер базы, % повторных визитов, свободные окна, есть ли допуслуги и их конкретный список/цены, откуда приходят записи).
+2. Если указан конкретный список допуслуг/пакетов (addon_services_text) — используй ИМЕННО ЭТИ названия в действиях \
+и рекомендациях по допродажам вместо общих формулировок вроде "предложить допуслугу". Учитывай их ориентировочную \
+стоимость при расчёте potential, если она указана в тексте.
+3. Посчитай разрыв между текущим и целевым доходом и реалистично разложи его на 3-4 точки роста — откуда именно \
+возьмутся деньги (возврат клиентов, заполнение окон, допродажи конкретных допуслуг/пакетов, привлечение новых через \
+конкретный канал lead_source).
+4. Для каждой точки роста подбери КОНКРЕТНОЕ маркетинговое или операционное действие на сегодня, которое можно \
 выполнить с помощью инструментов личного кабинета. Обязательно указывай nav — раздел ЛК, который реально решает эту \
 задачу, выбирай СТРОГО из списка ниже, ничего не выдумывай:
 {PODELAM_NAV_CATALOG}
-4. Если lead_source указывает на конкретный канал (Instagram, Директ, сарафанное радио и т.д.) — учитывай это при \
+5. Если lead_source указывает на конкретный канал (Instagram, Директ, сарафанное радио и т.д.) — учитывай это при \
 выборе маркетинговых действий (например, если реклама не настроена, а доход не дотягивает до цели — предложи \
 семантику/объявления/бюджет для Директа; если упор на контент — Reels/посты/визуалы).
-5. Одно из дел сделай "главным делом дня" — тем, что даст наибольший или самый быстрый эффект.
-6. Придумай короткий, тёплый, мотивирующий анонс на завтра (2-3 предложения, обращение на "вы"), который объясняет, \
+6. Одно из дел сделай "главным делом дня" — тем, что даст наибольший или самый быстрый эффект.
+7. Придумай короткий, тёплый, мотивирующий анонс на завтра (2-3 предложения, обращение на "вы"), который объясняет, \
 что план не статичен: завтра появится новый набор дел с учётом того, что было сделано сегодня, и почему это важно \
 (регулярность даёт результат). НЕ повторяй сегодняшние формулировки дословно.
 
@@ -226,6 +232,7 @@ def call_podelam_ai(profile: dict, gap: float) -> dict | None:
         "repeat_rate": int(profile.get("repeat_rate") or 0),
         "free_slots_per_week": int(profile.get("free_slots_per_week") or 0),
         "has_addon_services": bool(profile.get("has_addon_services")),
+        "addon_services_text": profile.get("addon_services_text") or "не указан",
         "lead_source": profile.get("lead_source") or "не указан",
     }
 
@@ -381,21 +388,24 @@ def handle_podelam_save_profile(event: dict, conn) -> dict:
     cur.execute(
         f"""INSERT INTO {SCHEMA}.podelam_profiles
             (user_id, salon_id, niche, avg_check, current_revenue, target_revenue,
-             clients_per_month, base_size, repeat_rate, free_slots_per_week, has_addon_services, lead_source, updated_at)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW())
+             clients_per_month, base_size, repeat_rate, free_slots_per_week, has_addon_services,
+             addon_services_text, lead_source, updated_at)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW())
             ON CONFLICT (user_id) DO UPDATE SET
                 salon_id=EXCLUDED.salon_id, niche=EXCLUDED.niche, avg_check=EXCLUDED.avg_check,
                 current_revenue=EXCLUDED.current_revenue, target_revenue=EXCLUDED.target_revenue,
                 clients_per_month=EXCLUDED.clients_per_month, base_size=EXCLUDED.base_size,
                 repeat_rate=EXCLUDED.repeat_rate, free_slots_per_week=EXCLUDED.free_slots_per_week,
-                has_addon_services=EXCLUDED.has_addon_services, lead_source=EXCLUDED.lead_source,
+                has_addon_services=EXCLUDED.has_addon_services, addon_services_text=EXCLUDED.addon_services_text,
+                lead_source=EXCLUDED.lead_source,
                 updated_at=NOW()""",
         (
             user["id"], user.get("salon_id"), body.get("niche", ""),
             float(body["avg_check"]), float(body["current_revenue"]), float(body["target_revenue"]),
             int(body.get("clients_per_month") or 0), int(body.get("base_size") or 0),
             int(body.get("repeat_rate") or 0), int(body.get("free_slots_per_week") or 0),
-            bool(body.get("has_addon_services") or False), body.get("lead_source", ""),
+            bool(body.get("has_addon_services") or False), (body.get("addon_services_text") or "").strip() or None,
+            body.get("lead_source", ""),
         )
     )
     # Сбрасываем план на сегодня, чтобы пересчитать с новыми данными

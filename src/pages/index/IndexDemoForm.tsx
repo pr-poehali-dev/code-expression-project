@@ -19,13 +19,14 @@ interface FormState {
   repeat_rate: string;
   free_slots_per_week: string;
   has_addon_services: boolean;
+  addon_services_text: string;
   lead_source: string;
 }
 
 const INITIAL: FormState = {
   niche: "", avg_check: "", current_revenue: "", target_revenue: "",
   base_size: "", repeat_rate: "", free_slots_per_week: "",
-  has_addon_services: false, lead_source: "",
+  has_addon_services: false, addon_services_text: "", lead_source: "",
 };
 
 export default function IndexDemoForm() {
@@ -62,6 +63,7 @@ export default function IndexDemoForm() {
       repeat_rate: Number(form.repeat_rate) || 0,
       free_slots_per_week: Number(form.free_slots_per_week) || 0,
       has_addon_services: form.has_addon_services,
+      addon_services_text: form.addon_services_text,
     };
     setResult({ gap: calcGapAmount(profile), points: calcGrowthPoints(profile) });
   };
@@ -77,6 +79,7 @@ export default function IndexDemoForm() {
       repeat_rate: Number(form.repeat_rate) || 0,
       free_slots_per_week: Number(form.free_slots_per_week) || 0,
       has_addon_services: form.has_addon_services,
+      addon_services_text: form.addon_services_text.trim(),
       lead_source: form.lead_source,
     });
     navigate("/cabinet");
@@ -148,10 +151,31 @@ export default function IndexDemoForm() {
                   <label style={label}>Ниша / услуга</label>
                   <input style={inputStyle} value={form.niche} onChange={e => set("niche", e.target.value)} placeholder="Например: массаж, маникюр, стрижки" />
                 </div>
-                <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", marginBottom: 18 }}>
-                  <input type="checkbox" checked={form.has_addon_services} onChange={e => set("has_addon_services", e.target.checked)} style={{ width: 18, height: 18 }} />
-                  <span style={{ fontSize: 13, color: "#374151" }}>Есть дополнительные услуги / пакеты</span>
-                </label>
+                <div style={{ marginBottom: 18 }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={form.has_addon_services}
+                      onChange={e => {
+                        const checked = e.target.checked;
+                        setForm(p => ({ ...p, has_addon_services: checked, addon_services_text: checked ? p.addon_services_text : "" }));
+                      }}
+                      style={{ width: 18, height: 18 }}
+                    />
+                    <span style={{ fontSize: 13, color: "#374151" }}>Есть дополнительные услуги / пакеты</span>
+                  </label>
+                  {form.has_addon_services && (
+                    <div style={{ marginTop: 10 }}>
+                      <label style={label}>Какие именно? (название и цена — так ИИ даст точнее рекомендации)</label>
+                      <textarea
+                        style={{ ...inputStyle, minHeight: 60, resize: "vertical" }}
+                        value={form.addon_services_text}
+                        onChange={e => set("addon_services_text", e.target.value)}
+                        placeholder="Например: уход за кожей головы — 800 ₽, пакет из 4 массажей — 6000 ₽"
+                      />
+                    </div>
+                  )}
+                </div>
 
                 <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginBottom: 16 }}>
                   <input

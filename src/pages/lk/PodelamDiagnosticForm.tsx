@@ -7,7 +7,7 @@ export default function DiagnosticForm({ onSaved }: { onSaved: () => void }) {
   const [form, setForm] = useState({
     niche: "", avg_check: "", current_revenue: "", target_revenue: "",
     clients_per_month: "", base_size: "", repeat_rate: "", free_slots_per_week: "",
-    has_addon_services: false, lead_source: "",
+    has_addon_services: false, addon_services_text: "", lead_source: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -42,6 +42,7 @@ export default function DiagnosticForm({ onSaved }: { onSaved: () => void }) {
           repeat_rate: Number(form.repeat_rate) || 0,
           free_slots_per_week: Number(form.free_slots_per_week) || 0,
           has_addon_services: form.has_addon_services,
+          addon_services_text: form.addon_services_text.trim(),
           lead_source: form.lead_source,
         }),
       });
@@ -116,10 +117,31 @@ export default function DiagnosticForm({ onSaved }: { onSaved: () => void }) {
           <input style={inputStyle} value={form.lead_source} onChange={e => set("lead_source", e.target.value)} placeholder="Instagram, сарафанное радио, реклама..." />
         </div>
 
-        <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-          <input type="checkbox" checked={form.has_addon_services} onChange={e => set("has_addon_services", e.target.checked)} style={{ width: 18, height: 18 }} />
-          <span style={{ fontSize: 13, color: "#374151" }}>Есть дополнительные услуги / пакеты</span>
-        </label>
+        <div>
+          <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={form.has_addon_services}
+              onChange={e => {
+                const checked = e.target.checked;
+                setForm(p => ({ ...p, has_addon_services: checked, addon_services_text: checked ? p.addon_services_text : "" }));
+              }}
+              style={{ width: 18, height: 18 }}
+            />
+            <span style={{ fontSize: 13, color: "#374151" }}>Есть дополнительные услуги / пакеты</span>
+          </label>
+          {form.has_addon_services && (
+            <div style={{ marginTop: 10 }}>
+              <label style={label}>Какие именно? (название и цена — так ИИ даст точнее рекомендации)</label>
+              <textarea
+                style={{ ...inputStyle, minHeight: 64, resize: "vertical", fontFamily: "Montserrat,sans-serif" }}
+                value={form.addon_services_text}
+                onChange={e => set("addon_services_text", e.target.value)}
+                placeholder="Например: уход за кожей головы — 800 ₽, парафинотерапия — 500 ₽, пакет из 4 массажей — 6000 ₽"
+              />
+            </div>
+          )}
+        </div>
 
         {error && <div style={{ fontSize: 13, color: "#DC2626", background: "#FEF2F2", borderRadius: 8, padding: "8px 12px" }}>{error}</div>}
 

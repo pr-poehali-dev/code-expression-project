@@ -14,6 +14,7 @@ export interface PodelamTrialProfile {
   repeat_rate: number;
   free_slots_per_week: number;
   has_addon_services: boolean;
+  addon_services_text: string;
   lead_source: string;
 }
 

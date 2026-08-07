@@ -10,6 +10,7 @@ export interface DemoProfile {
   repeat_rate: number;
   free_slots_per_week: number;
   has_addon_services: boolean;
+  addon_services_text?: string;
 }
 
 export interface DemoGrowthPoint {
@@ -24,7 +25,7 @@ export function calcGapAmount(profile: DemoProfile): number {
 }
 
 export function calcGrowthPoints(profile: DemoProfile): DemoGrowthPoint[] {
-  const { avg_check, base_size, repeat_rate, free_slots_per_week, has_addon_services } = profile;
+  const { avg_check, base_size, repeat_rate, free_slots_per_week, has_addon_services, addon_services_text } = profile;
   const points: DemoGrowthPoint[] = [];
 
   const inactive = Math.max(0, Math.round(base_size * (1 - repeat_rate / 100)));
@@ -51,10 +52,11 @@ export function calcGrowthPoints(profile: DemoProfile): DemoGrowthPoint[] {
 
   const addonCount = has_addon_services ? Math.max(5, Math.round(base_size * 0.15)) : Math.max(3, Math.round(base_size * 0.08));
   const addonCheck = Math.round(avg_check * 0.3);
+  const addonText = (addon_services_text || "").trim();
   points.push({
     key: "upsell",
     title: "Поднять средний чек",
-    action: `Предложить допуслугу ${addonCount} клиентам`,
+    action: addonText ? `Предложить ${addonText} ${addonCount} клиентам` : `Предложить допуслугу ${addonCount} клиентам`,
     potential: addonCount * addonCheck,
   });
 

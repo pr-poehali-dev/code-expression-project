@@ -103,6 +103,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
     `Цель месяца: ${fmt(profile.target_revenue)} ₽`,
     `Доход сейчас: ${fmt(profile.current_revenue)} ₽`,
     `Не хватает до цели: ${fmt(Math.max(0, gap_amount))} ₽ (${progress}% от цели уже выполнено)`,
+    profile.has_addon_services && profile.addon_services_text ? `Дополнительные услуги/пакеты: ${profile.addon_services_text}` : "",
     growth_points.length ? `Где лежат деньги: ${growth_points.map(p => `${p.title} — до ${fmt(p.potential)} ₽ (${p.action})`).join("; ")}` : "",
     tasks.length ? `План на сегодня: ${tasks.map(t => `${t.title}${task_log[t.key]?.done ? " [выполнено]" : ""} — ${t.action_text}`).join("; ")}` : "",
     mainTask ? `Главное дело дня: ${mainTask.title} — ${mainTask.action_text}` : "",
