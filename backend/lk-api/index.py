@@ -2,7 +2,7 @@
 API личного кабинета: авторизация, профиль, тесты, зоны тела, управление пользователями (админ).
 Маршруты: ?action=login|logout|me|tests|test_detail|submit_test|body_zones|body_zone|
            admin_users|admin_create_user|admin_update_user|admin_set_password|
-           admin_body_zone_save|admin_technique_save
+           admin_body_zone_save|admin_technique_save|register
 """
 import json
 import os
@@ -16,6 +16,7 @@ from email.utils import formataddr
 from datetime import datetime, timezone
 
 FROM_EMAIL = "massopro@mail.ru"
+ADMIN_NOTIFY_EMAIL = "webmanager5@yandex.ru"
 SITE_URL = "https://promtdialog.ru"
 MASTERS_ACCRUAL_URL = "https://functions.poehali.dev/2907ddb5-140b-429e-a5b0-30b5bd898074"
 
@@ -158,6 +159,7 @@ def handle_register(event: dict) -> dict:
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
     user_type = body.get("user_type") or "salon"  # "salon" (владелец) или "solo_master" (независимый мастер)
+    source = (body.get("source") or "").strip()  # напр. "podelam_demo" — регистрация после демо-формы на главной
 
     if not full_name:
         return err("Укажите ваше имя")
@@ -235,6 +237,7 @@ def handle_register(event: dict) -> dict:
         # Отправляем письмо подтверждения и приветственное письмо с объяснением, как начать работу с «ПоДелам»
         _send_verify_email(email, full_name, verify_token)
         _send_welcome_email(email, full_name)
+        _send_admin_new_user_email(full_name, email, user_type, source)
 
         return ok({
             "session_id": session_id,
@@ -1945,6 +1948,53 @@ def _require_owner(user: dict, conn) -> dict | None:
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(f"SELECT * FROM {tbl('salons')} WHERE id=%s AND owner_id=%s", (user["salon_id"], user["id"]))
     return cur.fetchone()
+
+
+def _send_admin_new_user_email(full_name: str, email: str, user_type: str, source: str) -> None:
+    """Уведомляет администратора на почту о каждой новой самостоятельной регистрации пользователя."""
+    import smtplib
+    import ssl
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    from email.header import Header
+
+    smtp_password = os.environ.get("SMTP_PASSWORD", "")
+    if not smtp_password:
+        return
+
+    type_label = "Владелец салона" if user_type == "salon" else "Независимый мастер"
+    source_label = "Демо-форма на главной странице" if source == "podelam_demo" else "Обычная регистрация"
+
+    html = f"""<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f4f4f0;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <div style="max-width:480px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background:linear-gradient(135deg,#1a9fae,#136e7a);padding:22px 28px;">
+      <div style="font-size:18px;font-weight:800;color:#fff;">Новая регистрация</div>
+    </div>
+    <div style="padding:24px 28px;">
+      <table style="width:100%;border-collapse:collapse;font-size:14px;color:#333;">
+        <tr><td style="padding:6px 0;color:#888;">Имя</td><td style="padding:6px 0;font-weight:600;">{full_name}</td></tr>
+        <tr><td style="padding:6px 0;color:#888;">Email</td><td style="padding:6px 0;font-weight:600;">{email}</td></tr>
+        <tr><td style="padding:6px 0;color:#888;">Тип аккаунта</td><td style="padding:6px 0;font-weight:600;">{type_label}</td></tr>
+        <tr><td style="padding:6px 0;color:#888;">Источник</td><td style="padding:6px 0;font-weight:600;">{source_label}</td></tr>
+      </table>
+    </div>
+  </div>
+</body>
+</html>"""
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = str(Header(f"Новая регистрация — {full_name}", "utf-8"))
+    msg["From"]    = formataddr((str(Header("Промт Диалог", "utf-8")), FROM_EMAIL))
+    msg["To"]      = ADMIN_NOTIFY_EMAIL
+    msg["MIME-Version"] = "1.0"
+    msg.attach(MIMEText(html, "html", "utf-8"))
+
+    ctx = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.mail.ru", 465, context=ctx) as srv:
+        srv.login(FROM_EMAIL, smtp_password)
+        srv.sendmail(FROM_EMAIL, [ADMIN_NOTIFY_EMAIL], msg.as_string())
 
 
 def _send_verify_email(to_email: str, full_name: str, token: str) -> None:

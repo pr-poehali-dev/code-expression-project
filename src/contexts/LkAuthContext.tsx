@@ -29,7 +29,7 @@ interface LkAuthCtx {
   needsEmailVerify: boolean;
   pendingEmail: string;
   login: (username: string, password: string) => Promise<void>;
-  register: (full_name: string, email: string, password: string, userType?: "salon" | "solo_master") => Promise<void>;
+  register: (full_name: string, email: string, password: string, userType?: "salon" | "solo_master", source?: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   markEmailVerified: () => void;
@@ -95,9 +95,9 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   };
 
-  const register = async (full_name: string, email: string, password: string, userType: "salon" | "solo_master" = "salon") => {
+  const register = async (full_name: string, email: string, password: string, userType: "salon" | "solo_master" = "salon", source?: string) => {
     sessionStorage.removeItem("lk_tab");
-    const data = await lkApi.register(full_name, email, password, userType);
+    const data = await lkApi.register(full_name, email, password, userType, source);
     saveSession(data.session_id);
     // После регистрации показываем экран подтверждения email, не пускаем в кабинет
     setPendingEmail(email);

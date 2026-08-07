@@ -70,7 +70,7 @@ export default function LkLogin() {
     setError("");
     setLoading(true);
     try {
-      await register(fullName, email, regPassword, userType);
+      await register(fullName, email, regPassword, userType, podelamTrial ? "podelam_demo" : undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка регистрации");
     } finally {
