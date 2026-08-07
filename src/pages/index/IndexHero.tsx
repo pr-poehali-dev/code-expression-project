@@ -9,7 +9,7 @@ const HERO_POINTS = [
   { icon: "Users", text: "Что написать, чтобы клиент вернулся" },
   { icon: "CalendarCheck", text: "Чем заполнить свободные окна" },
   { icon: "TrendingUp", text: "Где вы теряете деньги" },
-  { icon: "ListChecks", text: "Что сделать сегодня, а не «когда-нибудь»" },
+  { icon: "ListChecks", text: "Продуманные шаги к цели" },
 ];
 
 const ALREADY_HAVE = [
