@@ -1966,28 +1966,28 @@ def _send_verify_email(to_email: str, full_name: str, token: str) -> None:
   <div style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
     <div style="background:linear-gradient(135deg,#1a9fae,#136e7a);padding:28px 32px;">
       <div style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Промт Диалог</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">Platforma dlya byuti-biznesa</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">Платформа для бьюти-бизнеса</div>
     </div>
     <div style="padding:32px 32px 24px;">
       <p style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;">
-        {full_name}, podtverdite email
+        {full_name}, подтвердите email
       </p>
       <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 28px;">
-        Vy uspeshno zaregistrirovalis v Promt Dialog. Nazhite knopku nizhe, chtoby podtverdit adres elektronnoy pochty i aktivirovat akkaunt.
+        Вы успешно зарегистрировались в Промт Диалог. Нажмите кнопку ниже, чтобы подтвердить адрес электронной почты и активировать аккаунт.
       </p>
       <a href="{verify_url}"
          style="display:inline-block;background:linear-gradient(135deg,#1a9fae,#136e7a);color:#fff;text-decoration:none;
                 font-size:15px;font-weight:700;padding:16px 32px;border-radius:12px;letter-spacing:0.2px;">
-        Podtverdit email
+        Подтвердить email
       </a>
       <p style="font-size:12px;color:#aaa;margin:24px 0 0;line-height:1.6;">
-        Ssylka deystvitelna 48 chasov.<br>
-        Esli knopka ne rabotaet, skopiruyte adres:<br>
+        Ссылка действительна 48 часов.<br>
+        Если кнопка не работает, скопируйте адрес:<br>
         <a href="{verify_url}" style="color:#1a9fae;word-break:break-all;">{verify_url}</a>
       </p>
     </div>
     <div style="padding:16px 32px;background:#f8f8f5;border-top:1px solid #eee;">
-      <p style="font-size:11px;color:#bbb;margin:0;">Esli vy ne registrirovalis — prosto proignoriruyte eto pismo.</p>
+      <p style="font-size:11px;color:#bbb;margin:0;">Если вы не регистрировались — просто проигнорируйте это письмо.</p>
     </div>
   </div>
 </body>
@@ -2166,27 +2166,27 @@ def _send_invite_email(to_email: str, full_name: str, salon_name: str, role_labe
     </div>
     <div style="padding:32px 32px 24px;">
       <p style="font-size:16px;font-weight:700;color:#1a1a1a;margin:0 0 8px;">
-        {full_name}, vas priglashayut v komandu!
+        {full_name}, вас приглашают в команду!
       </p>
       <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 8px;">
-        Salon: <strong>{salon_name}</strong>
+        Салон: <strong>{salon_name}</strong>
       </p>
       <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 20px;">
-        Rol: <strong>{role_label}</strong>
+        Роль: <strong>{role_label}</strong>
       </p>
       <a href="{invite_url}"
          style="display:inline-block;background:#1a9fae;color:#fff;text-decoration:none;
                 font-size:14px;font-weight:700;padding:14px 28px;border-radius:12px;">
-        Prinyat priglashenie
+        Принять приглашение
       </a>
       <p style="font-size:12px;color:#aaa;margin:20px 0 0;line-height:1.6;">
-        Ssylka deystvitelna 7 dney.<br>
-        Esli knopka ne rabotaet, skopiruyte adres:<br>
+        Ссылка действительна 7 дней.<br>
+        Если кнопка не работает, скопируйте адрес:<br>
         <a href="{invite_url}" style="color:#1a9fae;word-break:break-all;">{invite_url}</a>
       </p>
     </div>
     <div style="padding:16px 32px;background:#f8f8f5;border-top:1px solid #eee;">
-      <p style="font-size:11px;color:#bbb;margin:0;">Промт Диалог — platforma dlya byuti-biznesa</p>
+      <p style="font-size:11px;color:#bbb;margin:0;">Промт Диалог — платформа для бьюти-бизнеса</p>
     </div>
   </div>
 </body>
