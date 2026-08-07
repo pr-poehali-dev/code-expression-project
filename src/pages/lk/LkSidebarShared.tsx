@@ -3,6 +3,10 @@ import { useEnergy } from "@/contexts/EnergyContext";
 import Icon from "@/components/ui/icon";
 import { ACCENT, ACCENT_DARK } from "./LkDashboardTypes";
 import { isPodelamSeenToday, PODELAM_SEEN_EVENT } from "./podelamNotice";
+import { getBlogSeenDate, BLOG_SEEN_EVENT } from "./blogNotice";
+import func2url from "../../../backend/func2url.json";
+
+const CONTENT_URL = (func2url as Record<string, string>)["masters-accrual"] || "";
 
 // ── Хук: не открыт ли сегодня план «ПоДелам» ───────────────────────────────────
 export function usePodelamUnseen() {
@@ -21,6 +25,35 @@ export function usePodelamUnseen() {
   }, []);
 
   return unseen;
+}
+
+// ── Хук: есть ли новый пост в блоге, который пользователь ещё не видел ────────
+export function useBlogUnseen(): [boolean, string] {
+  const [latestDate, setLatestDate] = useState("");
+  const [seenDate, setSeenDate] = useState(() => getBlogSeenDate());
+
+  useEffect(() => {
+    if (!CONTENT_URL) return;
+    fetch(`${CONTENT_URL}?action=content_list&limit=1`)
+      .then(r => r.json())
+      .then(d => {
+        const first = d?.posts?.[0];
+        if (first?.post_date) setLatestDate(first.post_date);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const recheck = () => setSeenDate(getBlogSeenDate());
+    window.addEventListener(BLOG_SEEN_EVENT, recheck);
+    window.addEventListener("storage", recheck);
+    return () => {
+      window.removeEventListener(BLOG_SEEN_EVENT, recheck);
+      window.removeEventListener("storage", recheck);
+    };
+  }, []);
+
+  return [!!latestDate && latestDate !== seenDate, latestDate];
 }
 
 // ── Хук: кол-во входящих запросов на тренинги (для владельца) ─────────────────

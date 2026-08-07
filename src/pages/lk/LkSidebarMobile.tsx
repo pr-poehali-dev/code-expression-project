@@ -3,7 +3,8 @@ import Icon from "@/components/ui/icon";
 import {
   Tab, NAV_ITEMS, SALON_REQUIRED, TEAL_BRIGHT, ACCENT,
 } from "./LkDashboardTypes";
-import { usePodelamUnseen, useRequestsCount, EnergyBadge } from "./LkSidebarShared";
+import { usePodelamUnseen, useBlogUnseen, useRequestsCount, EnergyBadge } from "./LkSidebarShared";
+import { markBlogSeen } from "./blogNotice";
 import { InstallButtonMobile } from "./LkPwaInstall";
 
 // ── Мобильный хедер ────────────────────────────────────────────────────────────
@@ -50,6 +51,7 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
   const role = user?.is_admin ? "owner" : (user?.role || "body_specialist");
   const requestsCount = useRequestsCount(role);
   const podelamUnseen = usePodelamUnseen();
+  const [blogUnseen, blogLatestDate] = useBlogUnseen();
 
   return (
     <>
@@ -58,6 +60,7 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
           const locked = !hasSalon && role !== "solo_master" && SALON_REQUIRED.includes(item.id);
           const showBadge = item.id === "employees" && requestsCount > 0;
           const showPodelamDot = item.id === "home" && podelamUnseen && !locked;
+          const showBlogDot = item.id === "blog" && blogUnseen;
           const itemStyle = {
             flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center",
             justifyContent: "center", gap: 3, border: "none", background: "none",
@@ -75,7 +78,7 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
                     {requestsCount}
                   </span>
                 )}
-                {showPodelamDot && (
+                {(showPodelamDot || showBlogDot) && (
                   <span style={{ position: "absolute", top: -2, right: -3, width: 7, height: 7, borderRadius: "50%", background: "hsl(0,80%,60%)", border: "1.5px solid #0F172A" }} />
                 )}
               </div>
@@ -84,7 +87,13 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
             </>
           );
           if (item.external) {
-            return <a key={item.id} href={item.external} style={itemStyle}>{content}</a>;
+            return (
+              <a key={item.id} href={item.external} style={itemStyle}
+                onClick={() => { if (item.id === "blog") markBlogSeen(blogLatestDate); }}
+              >
+                {content}
+              </a>
+            );
           }
           return (
             <button key={item.id} onClick={() => onNav(item.id)} style={itemStyle}>
@@ -115,6 +124,7 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
             {moreItems.map(item => {
               const locked = !hasSalon && role !== "solo_master" && SALON_REQUIRED.includes(item.id);
               const showBadge = item.id === "employees" && requestsCount > 0;
+              const showBlogDotMore = item.id === "blog" && blogUnseen;
               const itemStyle = {
                 width: "100%", display: "flex", alignItems: "center", gap: 14,
                 padding: "14px 24px", border: "none", background: tab === item.id ? `hsla(185,85%,32%,0.06)` : "none",
@@ -126,14 +136,22 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: tab === item.id ? `hsla(185,85%,32%,0.1)` : "#f5f5f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative" }}>
                     <Icon name={locked ? "Lock" : item.icon} size={18} style={{ color: tab === item.id ? ACCENT : "#888" }} />
                     {showBadge && <span style={{ position: "absolute", top: -4, right: -4, fontSize: 9, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 8, padding: "1px 5px", minWidth: 14, textAlign: "center", lineHeight: "14px" }}>{requestsCount}</span>}
+                    {showBlogDotMore && <span style={{ position: "absolute", top: -2, right: -2, width: 8, height: 8, borderRadius: "50%", background: "hsl(0,80%,60%)", border: "1.5px solid #fff" }} />}
                   </div>
                   <span style={{ fontSize: 14, fontWeight: tab === item.id ? 700 : 500, color: tab === item.id ? ACCENT : "#1a1a1a" }}>{item.label}</span>
                   {!locked && showBadge && <span style={{ fontSize: 11, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 6, padding: "2px 8px", marginLeft: "auto" }}>{requestsCount} запроса</span>}
+                  {!locked && showBlogDotMore && <span style={{ fontSize: 11, fontWeight: 700, color: "hsl(0,80%,55%)", marginLeft: "auto" }}>Новое</span>}
                   {locked && <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto" }}>Нужен салон</span>}
                 </>
               );
               if (item.external) {
-                return <a key={item.id} href={item.external} style={itemStyle}>{content}</a>;
+                return (
+                  <a key={item.id} href={item.external} style={itemStyle}
+                    onClick={() => { if (item.id === "blog") markBlogSeen(blogLatestDate); }}
+                  >
+                    {content}
+                  </a>
+                );
               }
               return (
                 <button key={item.id} onClick={() => onNav(item.id)} style={itemStyle}>

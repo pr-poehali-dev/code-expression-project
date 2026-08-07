@@ -3,7 +3,8 @@ import Icon from "@/components/ui/icon";
 import {
   Tab, NAV_ITEMS, ROLE_TABS, SALON_REQUIRED, ROLE_LABELS, TEAL_BRIGHT, ACCENT,
 } from "./LkDashboardTypes";
-import { usePodelamUnseen, useRequestsCount, EnergyBadge } from "./LkSidebarShared";
+import { usePodelamUnseen, useBlogUnseen, useRequestsCount, EnergyBadge } from "./LkSidebarShared";
+import { markBlogSeen } from "./blogNotice";
 import { InstallButtonSidebar } from "./LkPwaInstall";
 
 // ── Боковой сайдбар ────────────────────────────────────────────────────────────
@@ -19,6 +20,7 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
   const { user } = useLkAuth();
   const requestsCount = useRequestsCount(role);
   const podelamUnseen = usePodelamUnseen();
+  const [blogUnseen, blogLatestDate] = useBlogUnseen();
   const allowedNav = NAV_ITEMS.filter(n => {
     const allowed: Tab[] = user?.is_admin
       ? [...(ROLE_TABS["owner"] as Tab[]), "admin" as Tab]
@@ -77,11 +79,12 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
             marginBottom: 2, transition: "all 0.15s", textAlign: "left" as const,
             opacity: locked ? 0.7 : 1, textDecoration: "none",
           };
+          const showBlogDot = item.id === "blog" && blogUnseen;
           const content = (
             <>
               <span style={{ position: "relative", display: "inline-flex" }}>
                 <Icon name={item.icon} size={17} />
-                {item.id === "home" && podelamUnseen && !locked && (
+                {((item.id === "home" && podelamUnseen && !locked) || showBlogDot) && (
                   <span style={{ position: "absolute", top: -2, right: -2, width: 8, height: 8, borderRadius: "50%", background: "hsl(0,80%,60%)", border: "1.5px solid #0F172A" }} />
                 )}
               </span>
@@ -92,13 +95,16 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
                   ? <span style={{ fontSize: 10, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 10, padding: "1px 7px", minWidth: 18, textAlign: "center" }}>{requestsCount}</span>
                   : item.id === "home" && podelamUnseen
                     ? <span style={{ fontSize: 9, fontWeight: 700, color: "hsl(0,80%,65%)" }}>Новое</span>
-                    : null
+                    : showBlogDot
+                      ? <span style={{ fontSize: 9, fontWeight: 700, color: "hsl(0,80%,65%)" }}>Новое</span>
+                      : null
               }
             </>
           );
           if (item.external) {
             return (
               <a key={item.id} href={item.external} style={itemStyle}
+                onClick={() => { if (item.id === "blog") markBlogSeen(blogLatestDate); }}
                 onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.05)"}
                 onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = "transparent"}
               >

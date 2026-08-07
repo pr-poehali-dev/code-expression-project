@@ -5,6 +5,7 @@ import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
+import { markBlogSeen } from "@/pages/lk/blogNotice";
 import func2url from "../../backend/func2url.json";
 
 const TEAL = "#2DD4BF";
@@ -78,9 +79,13 @@ export default function BlogPage() {
         setPosts(d.posts || []);
         const total = d.total || 0;
         setTotalPages(Math.max(1, Math.ceil(total / PAGE_SIZE)));
+        if (user && page === 1 && !category && d.posts?.[0]?.post_date) {
+          markBlogSeen(d.posts[0].post_date);
+        }
       })
       .finally(() => setLoading(false));
-  }, [category, page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, page, user]);
 
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", minHeight: "100vh" }}>
