@@ -15,6 +15,7 @@ GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет е
                                        Повторно в этот же день не публикует. ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с.
 GET  ?action=content_list          — посты для ленты на сайте с пагинацией (page, limit, category).
                                        Полный текст (body) только авторизованным (X-Session-Id), иначе только превью.
+GET  ?action=content_related       — похожие посты той же категории (post_id, category, limit) для блока «Читать дальше».
 POST / (без action или action=withdraw) — начисления мастерам (X-Master-Session)
 GET  / (без action) — история начислений мастера (X-Master-Session)
 """
@@ -987,6 +988,37 @@ def handle_content_list(event: dict, conn) -> dict:
     })
 
 
+def handle_content_related(event: dict, conn) -> dict:
+    """Похожие посты той же категории для блока «Читать дальше» (?post_id, ?category, ?limit)."""
+    qs = event.get("queryStringParameters") or {}
+    category = qs.get("category", "")
+    try:
+        post_id = int(qs.get("post_id", 0))
+    except ValueError:
+        post_id = 0
+    try:
+        limit = min(max(int(qs.get("limit", 3)), 1), 10)
+    except ValueError:
+        limit = 3
+
+    if category not in CONTENT_CATEGORIES:
+        return ok({"posts": []})
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT id, post_date, title, excerpt, category, telegram_message_id
+            FROM {SCHEMA}.content_posts
+            WHERE category = %s AND telegram_message_id IS NOT NULL AND id != %s
+            ORDER BY post_date DESC
+            LIMIT %s""",
+        (category, post_id, limit)
+    )
+    rows = [dict(r) for r in cur.fetchall()]
+    for r in rows:
+        r["category_label"] = CONTENT_CATEGORIES.get(r.get("category"), "")
+    return ok({"posts": rows})
+
+
 def process_accruals(conn):
     """Переводит pending-начисления в available после 30 дней ожидания."""
     cur = conn.cursor()
@@ -1044,6 +1076,8 @@ def handler(event: dict, context) -> dict:
             return handle_content_daily_post(event, conn)
         if route_action == "content_list":
             return handle_content_list(event, conn)
+        if route_action == "content_related":
+            return handle_content_related(event, conn)
 
         headers = event.get("headers") or {}
         session_id = headers.get("X-Master-Session", "")

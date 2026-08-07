@@ -71,6 +71,12 @@
       "method": "GET",
       "path": "/?action=content_list",
       "expectedStatus": 200
+    },
+    {
+      "name": "GET content_related — 200",
+      "method": "GET",
+      "path": "/?action=content_related&category=marketing&post_id=0",
+      "expectedStatus": 200
     }
   ]
 }

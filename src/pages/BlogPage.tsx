@@ -29,6 +29,14 @@ interface Post {
   telegram_url: string | null;
 }
 
+interface RelatedPost {
+  id: number;
+  post_date: string;
+  title: string;
+  excerpt: string;
+  category_label: string;
+}
+
 const CATEGORIES: { key: string; label: string }[] = [
   { key: "", label: "Все темы" },
   { key: "marketing", label: "Маркетинг" },
@@ -54,13 +62,25 @@ export default function BlogPage() {
   const [category, setCategory] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [relatedByPost, setRelatedByPost] = useState<Record<number, RelatedPost[]>>({});
+
+  const loadRelated = (post: Post) => {
+    if (!post.category || relatedByPost[post.id]) return;
+    const qs = new URLSearchParams({ action: "content_related", category: post.category, post_id: String(post.id), limit: "3" });
+    fetch(`${CONTENT_URL}?${qs.toString()}`)
+      .then(r => r.json())
+      .then(d => setRelatedByPost(prev => ({ ...prev, [post.id]: d.posts || [] })))
+      .catch(() => {});
+  };
 
   const handleReadMore = (post: Post) => {
     if (!user) {
       navigate("/cabinet?tab=register");
       return;
     }
-    setOpenId(openId === post.id ? null : post.id);
+    const next = openId === post.id ? null : post.id;
+    setOpenId(next);
+    if (next) loadRelated(post);
   };
 
   const handleShare = async (post: Post) => {
@@ -180,9 +200,9 @@ export default function BlogPage() {
                 {posts.map(post => {
                   const isOpen = user && openId === post.id;
                   return (
-                    <article key={post.id} style={{
+                    <article key={post.id} id={`blog-post-${post.id}`} style={{
                       border: "1px solid #E2E8F0", borderRadius: 8, padding: "28px 32px",
-                      transition: "border-color 0.25s, box-shadow 0.25s",
+                      transition: "border-color 0.25s, box-shadow 0.25s", scrollMarginTop: 100,
                     }}
                       onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = TEAL; el.style.boxShadow = "0 8px 24px rgba(45,212,191,0.1)"; }}
                       onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "#E2E8F0"; el.style.boxShadow = "none"; }}
@@ -215,6 +235,39 @@ export default function BlogPage() {
                         <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.75, margin: "0 0 20px", fontWeight: 300, whiteSpace: "pre-line" }}>
                           {post.body}
                         </p>
+                      )}
+                      {isOpen && (relatedByPost[post.id]?.length ?? 0) > 0 && (
+                        <div style={{ margin: "0 0 24px", paddingTop: 20, borderTop: "1px solid #F1F5F9" }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: GRAY, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 14 }}>
+                            Читайте также
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                            {relatedByPost[post.id].map(rp => (
+                              <button
+                                key={rp.id}
+                                onClick={() => {
+                                  setOpenId(rp.id);
+                                  const target = posts.find(p => p.id === rp.id);
+                                  if (target) loadRelated(target);
+                                  requestAnimationFrame(() => {
+                                    document.getElementById(`blog-post-${rp.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                  });
+                                }}
+                                style={{
+                                  display: "flex", alignItems: "center", gap: 10, textAlign: "left",
+                                  padding: "10px 12px", margin: "0 -12px", borderRadius: 6, border: "none",
+                                  background: "transparent", cursor: "pointer", fontFamily: "Inter, sans-serif",
+                                  transition: "background 0.15s",
+                                }}
+                                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = "#F8FAFC"}
+                                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = "transparent"}
+                              >
+                                <Icon name="ArrowUpRight" size={15} style={{ color: TEAL, flexShrink: 0 }} />
+                                <span style={{ fontSize: 14, fontWeight: 500, color: DARK }}>{rp.title}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       )}
                       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                         <button
