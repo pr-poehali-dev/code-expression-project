@@ -58,15 +58,16 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
           const locked = !hasSalon && role !== "solo_master" && SALON_REQUIRED.includes(item.id);
           const showBadge = item.id === "employees" && requestsCount > 0;
           const showPodelamDot = item.id === "home" && podelamUnseen && !locked;
-          return (
-            <button key={item.id} onClick={() => onNav(item.id)} style={{
-              flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", gap: 3, border: "none", background: "none",
-              color: locked ? "rgba(255,255,255,0.2)" : tab === item.id ? TEAL_BRIGHT : "rgba(255,255,255,0.5)",
-              fontSize: 9, fontWeight: tab === item.id ? 700 : 500,
-              cursor: "pointer", fontFamily: "Montserrat, sans-serif", padding: "7px 2px",
-              position: "relative",
-            }}>
+          const itemStyle = {
+            flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center",
+            justifyContent: "center", gap: 3, border: "none", background: "none",
+            color: locked ? "rgba(255,255,255,0.2)" : tab === item.id ? TEAL_BRIGHT : "rgba(255,255,255,0.5)",
+            fontSize: 9, fontWeight: tab === item.id ? 700 : 500,
+            cursor: "pointer", fontFamily: "Montserrat, sans-serif", padding: "7px 2px",
+            position: "relative" as const, textDecoration: "none",
+          };
+          const content = (
+            <>
               <div style={{ position: "relative" }}>
                 <Icon name={item.icon} size={20} />
                 {showBadge && (
@@ -80,6 +81,14 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
               </div>
               {locked && <Icon name="Lock" size={9} style={{ position: "absolute", top: 5, right: "calc(50% - 14px)", color: "rgba(255,255,255,0.3)" }} />}
               {item.label}
+            </>
+          );
+          if (item.external) {
+            return <a key={item.id} href={item.external} style={itemStyle}>{content}</a>;
+          }
+          return (
+            <button key={item.id} onClick={() => onNav(item.id)} style={itemStyle}>
+              {content}
             </button>
           );
         })}
@@ -106,13 +115,14 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
             {moreItems.map(item => {
               const locked = !hasSalon && role !== "solo_master" && SALON_REQUIRED.includes(item.id);
               const showBadge = item.id === "employees" && requestsCount > 0;
-              return (
-                <button key={item.id} onClick={() => onNav(item.id)} style={{
-                  width: "100%", display: "flex", alignItems: "center", gap: 14,
-                  padding: "14px 24px", border: "none", background: tab === item.id ? `hsla(185,85%,32%,0.06)` : "none",
-                  cursor: "pointer", fontFamily: "Montserrat, sans-serif", textAlign: "left",
-                  opacity: locked ? 0.5 : 1,
-                }}>
+              const itemStyle = {
+                width: "100%", display: "flex", alignItems: "center", gap: 14,
+                padding: "14px 24px", border: "none", background: tab === item.id ? `hsla(185,85%,32%,0.06)` : "none",
+                cursor: "pointer", fontFamily: "Montserrat, sans-serif", textAlign: "left" as const,
+                opacity: locked ? 0.5 : 1, textDecoration: "none",
+              };
+              const content = (
+                <>
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: tab === item.id ? `hsla(185,85%,32%,0.1)` : "#f5f5f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative" }}>
                     <Icon name={locked ? "Lock" : item.icon} size={18} style={{ color: tab === item.id ? ACCENT : "#888" }} />
                     {showBadge && <span style={{ position: "absolute", top: -4, right: -4, fontSize: 9, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 8, padding: "1px 5px", minWidth: 14, textAlign: "center", lineHeight: "14px" }}>{requestsCount}</span>}
@@ -120,6 +130,14 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
                   <span style={{ fontSize: 14, fontWeight: tab === item.id ? 700 : 500, color: tab === item.id ? ACCENT : "#1a1a1a" }}>{item.label}</span>
                   {!locked && showBadge && <span style={{ fontSize: 11, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 6, padding: "2px 8px", marginLeft: "auto" }}>{requestsCount} запроса</span>}
                   {locked && <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto" }}>Нужен салон</span>}
+                </>
+              );
+              if (item.external) {
+                return <a key={item.id} href={item.external} style={itemStyle}>{content}</a>;
+              }
+              return (
+                <button key={item.id} onClick={() => onNav(item.id)} style={itemStyle}>
+                  {content}
                 </button>
               );
             })}

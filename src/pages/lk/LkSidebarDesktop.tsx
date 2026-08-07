@@ -66,21 +66,19 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
           const locked = !hasSalon && role !== "solo_master" && SALON_REQUIRED.includes(item.id);
           const active = tab === item.id;
           const highlight = !!item.highlight && !active;
-          return (
-            <button key={item.id} onClick={() => onNav(item.id)} style={{
-              width: "100%", display: "flex", alignItems: "center", gap: 11,
-              padding: "10px 12px", borderRadius: 10,
-              border: active ? "1px solid rgba(45,212,191,0.25)" : highlight ? "1px solid rgba(45,212,191,0.2)" : "1px solid transparent",
-              background: active ? "rgba(45,212,191,0.12)" : highlight ? "rgba(45,212,191,0.06)" : "transparent",
-              color: locked ? "rgba(255,255,255,0.25)" : active || highlight ? TEAL_BRIGHT : "rgba(255,255,255,0.6)",
-              fontSize: 13, fontWeight: active || highlight ? 700 : 500,
-              cursor: "pointer", fontFamily: "Montserrat, sans-serif",
-              marginBottom: 2, transition: "all 0.15s", textAlign: "left",
-              opacity: locked ? 0.7 : 1,
-            }}
-            onMouseEnter={e => { if (!active && !locked) (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; }}
-            onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = highlight ? "rgba(45,212,191,0.06)" : "transparent"; }}
-            >
+          const itemStyle = {
+            width: "100%", display: "flex", alignItems: "center", gap: 11,
+            padding: "10px 12px", borderRadius: 10,
+            border: active ? "1px solid rgba(45,212,191,0.25)" : highlight ? "1px solid rgba(45,212,191,0.2)" : "1px solid transparent",
+            background: active ? "rgba(45,212,191,0.12)" : highlight ? "rgba(45,212,191,0.06)" : "transparent",
+            color: locked ? "rgba(255,255,255,0.25)" : active || highlight ? TEAL_BRIGHT : "rgba(255,255,255,0.6)",
+            fontSize: 13, fontWeight: active || highlight ? 700 : 500,
+            cursor: "pointer", fontFamily: "Montserrat, sans-serif",
+            marginBottom: 2, transition: "all 0.15s", textAlign: "left" as const,
+            opacity: locked ? 0.7 : 1, textDecoration: "none",
+          };
+          const content = (
+            <>
               <span style={{ position: "relative", display: "inline-flex" }}>
                 <Icon name={item.icon} size={17} />
                 {item.id === "home" && podelamUnseen && !locked && (
@@ -96,6 +94,24 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
                     ? <span style={{ fontSize: 9, fontWeight: 700, color: "hsl(0,80%,65%)" }}>Новое</span>
                     : null
               }
+            </>
+          );
+          if (item.external) {
+            return (
+              <a key={item.id} href={item.external} style={itemStyle}
+                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.05)"}
+                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = "transparent"}
+              >
+                {content}
+              </a>
+            );
+          }
+          return (
+            <button key={item.id} onClick={() => onNav(item.id)} style={itemStyle}
+            onMouseEnter={e => { if (!active && !locked) (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; }}
+            onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = highlight ? "rgba(45,212,191,0.06)" : "transparent"; }}
+            >
+              {content}
             </button>
           );
         })}

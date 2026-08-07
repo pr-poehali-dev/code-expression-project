@@ -7,14 +7,14 @@ export type Tab =
   | "home" | "tools" | "academy" | "ai" | "shop"
   | "employees" | "purchases" | "profile" | "salon"
   | "admin" | "support" | "more" | "clientmsg" | "marketing"
-  | "championship";
+  | "championship" | "blog";
 
 export const ROLE_TABS: Record<string, Tab[]> = {
-  owner:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "shop", "employees", "purchases", "salon", "championship", "profile", "support"],
-  admin:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "championship", "profile", "support"],
-  master:         ["home", "tools", "academy", "ai", "profile", "support"],
-  body_specialist:["home", "tools", "academy", "ai", "profile", "support"],
-  solo_master:    ["home", "tools", "academy", "clientmsg", "marketing", "shop", "purchases", "championship", "profile", "support"],
+  owner:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "shop", "employees", "purchases", "salon", "championship", "blog", "profile", "support"],
+  admin:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "championship", "blog", "profile", "support"],
+  master:         ["home", "tools", "academy", "ai", "blog", "profile", "support"],
+  body_specialist:["home", "tools", "academy", "ai", "blog", "profile", "support"],
+  solo_master:    ["home", "tools", "academy", "clientmsg", "marketing", "shop", "purchases", "championship", "blog", "profile", "support"],
 };
 
 export function getAllowedTabs(role: string, isAdmin: boolean): Tab[] {
@@ -32,7 +32,7 @@ export const MOBILE_PRIMARY: Record<string, Tab[]> = {
   solo_master:    ["home", "marketing", "championship", "profile"],
 };
 
-export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string; highlight?: boolean }[] = [
+export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string; highlight?: boolean; external?: string }[] = [
   { id: "home",      icon: "Compass",        label: "ПоДелам",            highlight: true },
   { id: "marketing", icon: "BarChart3",      label: "Маркетинг"           },
   { id: "ai",        icon: "Sparkles",       label: "Развитие салона"     },
@@ -42,6 +42,7 @@ export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string; 
   { id: "tools",     icon: "Wrench",         label: "Развитие персонала"  },
   { id: "salon",         icon: "Building2",      label: "Мой салон"           },
   { id: "championship",  icon: "Trophy",         label: "Чемпионат"           },
+  { id: "blog",      icon: "Newspaper",      label: "Блог",                external: "/blog" },
   { id: "purchases",     icon: "Receipt",        label: "Покупки"             },
   { id: "shop",      icon: "Zap",            label: "Энергия"             },
   { id: "profile",   icon: "UserCircle",     label: "Профиль"             },

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
+import { useLkAuth } from "@/contexts/LkAuthContext";
 import func2url from "../../backend/func2url.json";
 
 const TEAL = "#2DD4BF";
@@ -37,10 +39,20 @@ function formatDate(iso: string) {
 }
 
 export default function BlogPage() {
+  const { user } = useLkAuth();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState<number | null>(null);
   const [category, setCategory] = useState("");
+
+  const handleReadMore = (post: Post) => {
+    if (!user) {
+      navigate("/cabinet?tab=register");
+      return;
+    }
+    setOpenId(openId === post.id ? null : post.id);
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -148,22 +160,22 @@ export default function BlogPage() {
                       {post.hashtags}
                     </div>
                   )}
-                  {openId === post.id && post.body && (
+                  {user && openId === post.id && post.body && (
                     <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.75, margin: "0 0 20px", fontWeight: 300, whiteSpace: "pre-line" }}>
                       {post.body}
                     </p>
                   )}
                   {post.body && (
                     <button
-                      onClick={() => setOpenId(openId === post.id ? null : post.id)}
+                      onClick={() => handleReadMore(post)}
                       style={{
                         display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500,
                         color: DARK, border: "none", cursor: "pointer", padding: "10px 20px", borderRadius: 2,
                         background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", fontFamily: "Inter, sans-serif",
                       }}
                     >
-                      {openId === post.id ? "Свернуть" : "Читать полностью"}
-                      <Icon name={openId === post.id ? "ChevronUp" : "ArrowRight"} size={15} />
+                      {user && openId === post.id ? "Свернуть" : "Читать полностью"}
+                      <Icon name={user && openId === post.id ? "ChevronUp" : "ArrowRight"} size={15} />
                     </button>
                   )}
                 </article>
