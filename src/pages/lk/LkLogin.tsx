@@ -29,7 +29,9 @@ export default function LkLogin() {
   const { login, register } = useLkAuth();
   const fittingTrial = isFittingTrial();
   const podelamTrial = isPodelamTrial();
-  const [tab, setTab] = useState<"login" | "register">(fittingTrial || podelamTrial ? "register" : "login");
+  const wantsRegister = fittingTrial || podelamTrial
+    || new URLSearchParams(window.location.search).get("tab") === "register";
+  const [tab, setTab] = useState<"login" | "register">(wantsRegister ? "register" : "login");
 
   // Login fields
   const [username, setUsername] = useState("");

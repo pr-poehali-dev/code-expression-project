@@ -760,12 +760,17 @@ def send_content_to_telegram(title: str, body: str, hashtags: str = "") -> int |
         return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
     tags_line = f"\n\n{esc(hashtags)}" if hashtags else ""
-    text = f"<b>{esc(title)}</b>\n\n{esc(body)}{tags_line}\n\n🔗 {SITE_URL}"
+    text = f"<b>{esc(title)}</b>\n\n{esc(body)}{tags_line}"
     payload = json.dumps({
         "chat_id": channel_id,
         "text": text,
         "parse_mode": "HTML",
         "disable_web_page_preview": False,
+        "reply_markup": {
+            "inline_keyboard": [[
+                {"text": "Зарегистрироваться →", "url": f"{SITE_URL}/cabinet?tab=register"}
+            ]]
+        },
     }).encode("utf-8")
 
     req = urllib.request.Request(
