@@ -13,7 +13,8 @@ GET/POST ?action=podelam_notify&key=ADMIN_TOKEN — cron: письмо поль�
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с при большом числе пользователей.
 GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет ежедневный экспертный пост и публикует в Telegram-канал.
                                        Повторно в этот же день не публикует. ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с.
-GET  ?action=content_list          — последние опубликованные посты (для ленты на сайте), без авторизации.
+GET  ?action=content_list          — посты для ленты на сайте с пагинацией (page, limit, category).
+                                       Полный текст (body) только авторизованным (X-Session-Id), иначе только превью.
 POST / (без action или action=withdraw) — начисления мастерам (X-Master-Session)
 GET  / (без action) — история начислений мастера (X-Master-Session)
 """
@@ -854,42 +855,61 @@ def handle_content_daily_post(event: dict, conn) -> dict:
 
 
 def handle_content_list(event: dict, conn) -> dict:
-    """Список последних опубликованных постов для ленты на сайте, со ссылкой на полный текст в Telegram.
-    Опционально фильтруется по ?category=marketing|upsell|clients."""
+    """Список опубликованных постов для ленты на сайте, с пагинацией (?page, ?limit) и фильтром
+    по ?category=marketing|upsell|clients. Полный текст (body) отдаётся только авторизованным
+    пользователям личного кабинета (X-Session-Id) — иначе только заголовок и превью."""
     qs = event.get("queryStringParameters") or {}
     try:
-        limit = min(int(qs.get("limit", 20)), 50)
+        limit = min(max(int(qs.get("limit", 6)), 1), 50)
     except ValueError:
-        limit = 20
+        limit = 6
+    try:
+        page = max(int(qs.get("page", 1)), 1)
+    except ValueError:
+        page = 1
+    offset = (page - 1) * limit
     category = qs.get("category", "")
+
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+    is_authorized = bool(session_id and get_lk_user_by_session(session_id, conn))
 
     channel = os.environ.get("TELEGRAM_CHANNEL_ID", "").lstrip("@")
 
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    where_clause = "WHERE telegram_message_id IS NOT NULL"
+    params: tuple = ()
     if category and category in CONTENT_CATEGORIES:
-        cur.execute(
-            f"""SELECT id, post_date, title, excerpt, body, hashtags, category, telegram_message_id, created_at
-                FROM {SCHEMA}.content_posts
-                WHERE telegram_message_id IS NOT NULL AND category = %s
-                ORDER BY post_date DESC
-                LIMIT %s""",
-            (category, limit)
-        )
-    else:
-        cur.execute(
-            f"""SELECT id, post_date, title, excerpt, body, hashtags, category, telegram_message_id, created_at
-                FROM {SCHEMA}.content_posts
-                WHERE telegram_message_id IS NOT NULL
-                ORDER BY post_date DESC
-                LIMIT %s""",
-            (limit,)
-        )
+        where_clause += " AND category = %s"
+        params = (category,)
+
+    cur.execute(f"SELECT COUNT(*) AS total FROM {SCHEMA}.content_posts {where_clause}", params)
+    total = cur.fetchone()["total"]
+
+    cur.execute(
+        f"""SELECT id, post_date, title, excerpt, body, hashtags, category, telegram_message_id, created_at
+            FROM {SCHEMA}.content_posts
+            {where_clause}
+            ORDER BY post_date DESC
+            LIMIT %s OFFSET %s""",
+        params + (limit, offset)
+    )
     rows = [dict(r) for r in cur.fetchall()]
     for r in rows:
         msg_id = r.get("telegram_message_id")
         r["telegram_url"] = f"https://t.me/{channel}/{msg_id}" if channel and not channel.lstrip("-").isdigit() and msg_id else None
         r["category_label"] = CONTENT_CATEGORIES.get(r.get("category"), "")
-    return ok({"posts": rows, "categories": CONTENT_CATEGORIES})
+        if not is_authorized:
+            r["body"] = None
+
+    return ok({
+        "posts": rows,
+        "categories": CONTENT_CATEGORIES,
+        "page": page,
+        "limit": limit,
+        "total": total,
+        "has_more": offset + len(rows) < total,
+        "authorized": is_authorized,
+    })
 
 
 def process_accruals(conn):

@@ -11,6 +11,7 @@ const TEAL = "#2DD4BF";
 const DARK = "#0F172A";
 const GRAY = "#64748B";
 const SERIF = "'Cormorant Garamond', serif";
+const PAGE_SIZE = 6;
 
 const CONTENT_URL = (func2url as Record<string, string>)["masters-accrual"] || "";
 
@@ -19,7 +20,7 @@ interface Post {
   post_date: string;
   title: string;
   excerpt: string;
-  body: string;
+  body: string | null;
   hashtags: string;
   category: string | null;
   category_label: string;
@@ -38,6 +39,10 @@ function formatDate(iso: string) {
   return d.toLocaleDateString("ru", { day: "numeric", month: "long", year: "numeric" });
 }
 
+function getSessionId(): string {
+  return localStorage.getItem("lk_session") || "";
+}
+
 export default function BlogPage() {
   const { user } = useLkAuth();
   const navigate = useNavigate();
@@ -45,6 +50,8 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState<number | null>(null);
   const [category, setCategory] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const handleReadMore = (post: Post) => {
     if (!user) {
@@ -55,14 +62,25 @@ export default function BlogPage() {
   };
 
   useEffect(() => {
-    setLoading(true);
-    const qs = new URLSearchParams({ action: "content_list", limit: "30" });
-    if (category) qs.set("category", category);
-    fetch(`${CONTENT_URL}?${qs.toString()}`)
-      .then(r => r.json())
-      .then(d => setPosts(d.posts || []))
-      .finally(() => setLoading(false));
+    setPage(1);
   }, [category]);
+
+  useEffect(() => {
+    setLoading(true);
+    setOpenId(null);
+    const qs = new URLSearchParams({ action: "content_list", limit: String(PAGE_SIZE), page: String(page) });
+    if (category) qs.set("category", category);
+    fetch(`${CONTENT_URL}?${qs.toString()}`, {
+      headers: { "X-Session-Id": getSessionId() },
+    })
+      .then(r => r.json())
+      .then(d => {
+        setPosts(d.posts || []);
+        const total = d.total || 0;
+        setTotalPages(Math.max(1, Math.ceil(total / PAGE_SIZE)));
+      })
+      .finally(() => setLoading(false));
+  }, [category, page]);
 
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", minHeight: "100vh" }}>
@@ -87,6 +105,11 @@ export default function BlogPage() {
           <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", marginTop: 18, fontWeight: 300 }}>
             Каждый день — новая статья о маркетинге, допродажах и управлении доходом
           </p>
+          {!user && (
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", marginTop: 14, fontWeight: 300 }}>
+              Полные тексты статей доступны после регистрации в личном кабинете
+            </p>
+          )}
         </div>
       </section>
 
@@ -127,60 +150,106 @@ export default function BlogPage() {
               <div style={{ fontSize: 14, color: GRAY, marginTop: 6 }}>Загляните сюда чуть позже</div>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              {posts.map(post => (
-                <article key={post.id} style={{
-                  border: "1px solid #E2E8F0", borderRadius: 8, padding: "28px 32px",
-                  transition: "border-color 0.25s, box-shadow 0.25s",
-                }}
-                  onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = TEAL; el.style.boxShadow = "0 8px 24px rgba(45,212,191,0.1)"; }}
-                  onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "#E2E8F0"; el.style.boxShadow = "none"; }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                    <span style={{ fontSize: 13, color: GRAY, fontWeight: 400 }}>{formatDate(post.post_date)}</span>
-                    {post.category_label && (
-                      <span style={{
-                        fontSize: 12, fontWeight: 600, color: "#0D9488", background: "#CCFBF1",
-                        padding: "3px 10px", borderRadius: 20, letterSpacing: "0.2px",
-                      }}>
-                        {post.category_label}
-                      </span>
-                    )}
-                  </div>
-                  <h2 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 600, color: DARK, margin: "0 0 12px", lineHeight: 1.25 }}>
-                    {post.title}
-                  </h2>
-                  {post.excerpt && (
-                    <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.6, margin: "0 0 18px", fontWeight: 300 }}>
-                      {post.excerpt}
-                    </p>
-                  )}
-                  {post.hashtags && (
-                    <div style={{ fontSize: 13, color: TEAL, marginBottom: 18, fontWeight: 400 }}>
-                      {post.hashtags}
-                    </div>
-                  )}
-                  {user && openId === post.id && post.body && (
-                    <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.75, margin: "0 0 20px", fontWeight: 300, whiteSpace: "pre-line" }}>
-                      {post.body}
-                    </p>
-                  )}
-                  {post.body && (
+            <>
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                {posts.map(post => {
+                  const isOpen = user && openId === post.id;
+                  return (
+                    <article key={post.id} style={{
+                      border: "1px solid #E2E8F0", borderRadius: 8, padding: "28px 32px",
+                      transition: "border-color 0.25s, box-shadow 0.25s",
+                    }}
+                      onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = TEAL; el.style.boxShadow = "0 8px 24px rgba(45,212,191,0.1)"; }}
+                      onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "#E2E8F0"; el.style.boxShadow = "none"; }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                        <span style={{ fontSize: 13, color: GRAY, fontWeight: 400 }}>{formatDate(post.post_date)}</span>
+                        {post.category_label && (
+                          <span style={{
+                            fontSize: 12, fontWeight: 600, color: "#0D9488", background: "#CCFBF1",
+                            padding: "3px 10px", borderRadius: 20, letterSpacing: "0.2px",
+                          }}>
+                            {post.category_label}
+                          </span>
+                        )}
+                      </div>
+                      <h2 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 600, color: DARK, margin: "0 0 12px", lineHeight: 1.25 }}>
+                        {post.title}
+                      </h2>
+                      {post.excerpt && (
+                        <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.6, margin: "0 0 18px", fontWeight: 300 }}>
+                          {post.excerpt}
+                        </p>
+                      )}
+                      {post.hashtags && (
+                        <div style={{ fontSize: 13, color: TEAL, marginBottom: 18, fontWeight: 400 }}>
+                          {post.hashtags}
+                        </div>
+                      )}
+                      {isOpen && post.body && (
+                        <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.75, margin: "0 0 20px", fontWeight: 300, whiteSpace: "pre-line" }}>
+                          {post.body}
+                        </p>
+                      )}
+                      <button
+                        onClick={() => handleReadMore(post)}
+                        style={{
+                          display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500,
+                          color: DARK, border: "none", cursor: "pointer", padding: "10px 20px", borderRadius: 2,
+                          background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", fontFamily: "Inter, sans-serif",
+                        }}
+                      >
+                        {isOpen ? "Свернуть" : user ? "Читать полностью" : "Войти, чтобы читать"}
+                        <Icon name={isOpen ? "ChevronUp" : user ? "ArrowRight" : "Lock"} size={15} />
+                      </button>
+                    </article>
+                  );
+                })}
+              </div>
+
+              {totalPages > 1 && (
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 44, flexWrap: "wrap" }}>
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    style={{
+                      width: 38, height: 38, borderRadius: 8, border: "1px solid #E2E8F0", background: "#fff",
+                      color: page === 1 ? "#CBD5E1" : DARK, cursor: page === 1 ? "default" : "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    <Icon name="ChevronLeft" size={16} />
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                     <button
-                      onClick={() => handleReadMore(post)}
+                      key={p}
+                      onClick={() => setPage(p)}
                       style={{
-                        display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500,
-                        color: DARK, border: "none", cursor: "pointer", padding: "10px 20px", borderRadius: 2,
-                        background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", fontFamily: "Inter, sans-serif",
+                        minWidth: 38, height: 38, borderRadius: 8, fontSize: 14, fontWeight: 600,
+                        border: p === page ? "1px solid transparent" : "1px solid #E2E8F0",
+                        background: p === page ? "linear-gradient(135deg,#2DD4BF,#14B8A6)" : "#fff",
+                        color: p === page ? DARK : GRAY, cursor: "pointer", fontFamily: "Inter, sans-serif",
                       }}
                     >
-                      {user && openId === post.id ? "Свернуть" : "Читать полностью"}
-                      <Icon name={user && openId === post.id ? "ChevronUp" : "ArrowRight"} size={15} />
+                      {p}
                     </button>
-                  )}
-                </article>
-              ))}
-            </div>
+                  ))}
+
+                  <button
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    style={{
+                      width: 38, height: 38, borderRadius: 8, border: "1px solid #E2E8F0", background: "#fff",
+                      color: page === totalPages ? "#CBD5E1" : DARK, cursor: page === totalPages ? "default" : "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    <Icon name="ChevronRight" size={16} />
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
