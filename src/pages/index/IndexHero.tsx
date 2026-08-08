@@ -158,7 +158,7 @@ export default function IndexHero() {
               <div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 14 }}>Но нет ответа на вопрос</div>
                 <div style={{ fontFamily: SERIF, fontSize: 20, color: TEAL, lineHeight: 1.4, fontStyle: "italic" }}>
-                  «Что сделать сегодня, чтобы завтра стало больше денег?»
+                  «Что сделать сегодня, чтобы завтра стало больше клиентов?»
                 </div>
               </div>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, marginTop: 20, fontWeight: 300 }}>
