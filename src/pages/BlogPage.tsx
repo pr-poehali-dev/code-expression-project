@@ -207,12 +207,12 @@ export default function BlogPage() {
                       onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = TEAL; el.style.boxShadow = "0 8px 24px rgba(45,212,191,0.1)"; }}
                       onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "#E2E8F0"; el.style.boxShadow = "none"; }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                        <span style={{ fontSize: 13, color: GRAY, fontWeight: 400 }}>{formatDate(post.post_date)}</span>
+                      <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 10 }}>
+                        <span style={{ fontSize: 13, color: GRAY, fontWeight: 400, whiteSpace: "nowrap" }}>{formatDate(post.post_date)}</span>
                         {post.category_label && (
                           <span style={{
                             fontSize: 12, fontWeight: 600, color: "#0D9488", background: "#CCFBF1",
-                            padding: "3px 10px", borderRadius: 20, letterSpacing: "0.2px",
+                            padding: "3px 10px", borderRadius: 20, letterSpacing: "0.2px", whiteSpace: "nowrap",
                           }}>
                             {post.category_label}
                           </span>
