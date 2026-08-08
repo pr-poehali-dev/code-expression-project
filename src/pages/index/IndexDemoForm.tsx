@@ -43,7 +43,7 @@ export default function IndexDemoForm() {
     fontSize: 14, fontFamily: "Inter,sans-serif", background: "#fff", boxSizing: "border-box",
     color: DARK, outline: "none",
   };
-  const label: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: GRAY, marginBottom: 6, display: "block" };
+  const label: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: GRAY, marginBottom: 6, display: "block", minHeight: 30, lineHeight: 1.35 };
 
   const handleCalc = () => {
     if (!form.avg_check || !form.current_revenue || !form.target_revenue) {
