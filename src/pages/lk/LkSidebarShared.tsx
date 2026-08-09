@@ -73,7 +73,7 @@ export function useRequestsCount(role: string) {
     };
 
     load();
-    const interval = setInterval(load, 60_000);
+    const interval = setInterval(load, 5 * 60_000);
     return () => clearInterval(interval);
   }, [role]);
 
