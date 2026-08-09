@@ -147,8 +147,19 @@ def build_growth_points(profile: dict) -> list:
     return points
 
 
-def build_today_tasks(points: list) -> list:
-    """Из точек роста собирает 3-4 конкретных дела на сегодня со ссылкой на инструмент ЛК."""
+# Тесты/инструменты раздела «Развитие персонала», для fallback-режима и ротации
+DEVELOPMENT_TOOLS = [
+    {"title": "Пройти тест «Мышление с премиум-клиентами»", "button": "Пройти тест", "nav": "tools"},
+    {"title": "Пройти тест «Внутренние барьеры специалиста»", "button": "Пройти тест", "nav": "tools"},
+    {"title": "Пройти тест «Финансовая грамотность специалиста PRO»", "button": "Пройти тест", "nav": "tools"},
+    {"title": "Пройти тест «Финансовый профиль PRO»", "button": "Пройти тест", "nav": "tools"},
+]
+
+
+def build_today_tasks(points: list, day_seed: int = 0) -> list:
+    """Из точек роста собирает 3-4 конкретных дела на сегодня со ссылкой на инструмент ЛК.
+    Используется как резервный вариант, когда ИИ недоступен — чередует маркетинг, контент
+    и развитие персонала (тесты), чтобы план не был однообразным день за днём."""
     task_map = {
         "return_clients": {"title": "Вернуть клиентов", "button": "Создать сообщения", "nav": "clientmsg", "minutes": 20},
         "fill_slots":     {"title": "Заполнить окна",   "button": "Создать оффер",     "nav": "marketing:offers", "minutes": 15},
@@ -168,13 +179,23 @@ def build_today_tasks(points: list) -> list:
             "minutes": meta["minutes"],
             "potential": p["potential"],
         })
-    # Всегда добавляем контентную задачу на привлечение новых
-    tasks.append({
-        "key": "content", "title": "Привлечь новые записи",
-        "action_text": "Опубликуйте один Reels или пост под конкретную услугу и оффер",
-        "button": "Создать Reels", "nav": "marketing:reel-script", "minutes": 25,
-        "potential": 0,
-    })
+
+    # Чередуем два дополнительных дела по дню: контент (Reels/пост) и развитие персонала (тест)
+    if day_seed % 2 == 0:
+        tasks.append({
+            "key": "content", "title": "Привлечь новые записи",
+            "action_text": "Опубликуйте один Reels или пост под конкретную услугу и оффер",
+            "button": "Создать Reels", "nav": "marketing:reel-script", "minutes": 25,
+            "potential": 0,
+        })
+    else:
+        tool = DEVELOPMENT_TOOLS[day_seed % len(DEVELOPMENT_TOOLS)]
+        tasks.append({
+            "key": "skill_up", "title": "Прокачать навыки",
+            "action_text": tool["title"],
+            "button": tool["button"], "nav": tool["nav"], "minutes": 15,
+            "potential": 0,
+        })
     return tasks
 
 
@@ -185,6 +206,7 @@ PODELAM_AI_URL = "https://polza.ai/api/v1/chat/completions"
 
 # Разделы ЛК, куда ИИ может направить пользователя для выполнения дела
 PODELAM_NAV_CATALOG = """
+Маркетинг и клиенты:
 - clientmsg — генератор сообщений клиентам (напоминания, возврат ушедших, акции, поздравления, просьба отзыва)
 - marketing:audience — портрет целевой аудитории
 - marketing:offers — офферы/спецпредложения под сегменты клиентов
@@ -198,6 +220,17 @@ PODELAM_NAV_CATALOG = """
 - marketing:photo-fitting — примерочная (ИИ показывает результат услуги на фото клиента)
 - marketing:seo — SEO-анализ сайта и рекомендации
 - agent — ИИ-агент: скрипты продаж, допродаж, работы с возражениями
+
+Развитие персонала (раздел «Развитие персонала» в ЛК, tools) — тесты и диагностики специалиста:
+- tools — открывает раздел с тестами: «Мышление с премиум-клиентами» (уверенность и навыки общения с VIP-клиентами), \
+«Внутренние барьеры специалиста» (психологические блоки, мешающие росту), «Финансовая грамотность специалиста PRO» \
+(управление доходом), «Финансовый профиль PRO» (финансовое мышление и привычки). Используй, когда причина низкого \
+дохода может быть не только в маркетинге, но и в мышлении/уверенности/финансовых привычках специалиста.
+
+Академия (раздел «Академия» в ЛК, academy) — курсы и тренинги, конкретный список ниже в payload (course_catalog). \
+Рекомендуй курс, ТОЧНО подходящий по категории роли пользователя (owner/admin/master/body) и по теме, которая \
+реально поможет с текущим разрывом в доходе (продажи, личный бренд, психология общения, ИИ-инструменты и т.д.).
+- academy — открывает раздел Академии со списком курсов
 """
 
 PODELAM_SYSTEM_PROMPT = f"""Ты — экспертный бизнес-консультант и маркетолог-стратег, встроенный в сервис «ПоДелам» \
@@ -205,22 +238,29 @@ PODELAM_SYSTEM_PROMPT = f"""Ты — экспертный бизнес-конс�
 
 Твоя задача — на основе диагностики конкретного мастера/салона построить ЧЁТКИЙ, ПРИЧИННО-СЛЕДСТВЕННЫЙ план роста дохода:
 1. Учти АБСОЛЮТНО ВСЕ данные из диагностики (ниша, средний чек, текущий и целевой доход, клиентов в месяц, \
-размер базы, % повторных визитов, свободные окна, есть ли допуслуги и их конкретный список/цены, откуда приходят записи).
+размер базы, % повторных визитов, свободные окна, есть ли допуслуги и их конкретный список/цены, откуда приходят записи, \
+роль пользователя role, доступные курсы Академии course_catalog).
 2. Если указан конкретный список допуслуг/пакетов (addon_services_text) — используй ИМЕННО ЭТИ названия в действиях \
 и рекомендациях по допродажам вместо общих формулировок вроде "предложить допуслугу". Учитывай их ориентировочную \
 стоимость при расчёте potential, если она указана в тексте.
 3. Посчитай разрыв между текущим и целевым доходом и реалистично разложи его на 3-4 точки роста — откуда именно \
 возьмутся деньги (возврат клиентов, заполнение окон, допродажи конкретных допуслуг/пакетов, привлечение новых через \
-конкретный канал lead_source).
-4. Для каждой точки роста подбери КОНКРЕТНОЕ маркетинговое или операционное действие на сегодня, которое можно \
-выполнить с помощью инструментов личного кабинета. Обязательно указывай nav — раздел ЛК, который реально решает эту \
-задачу, выбирай СТРОГО из списка ниже, ничего не выдумывай:
+конкретный канал lead_source, рост навыков/уверенности специалиста).
+4. Для каждой точки роста подбери КОНКРЕТНОЕ действие на сегодня, которое можно выполнить с помощью инструментов \
+личного кабинета. Обязательно указывай nav — раздел ЛК, который реально решает эту задачу, выбирай СТРОГО из \
+категорий ниже, ничего не выдумывай:
 {PODELAM_NAV_CATALOG}
-5. Если lead_source указывает на конкретный канал (Instagram, Директ, сарафанное радио и т.д.) — учитывай это при \
+5. ВАЖНО — РАЗНООБРАЗИЕ: план из 3-4 дел НЕ должен состоять только из маркетинговых разделов. Как правило включай: \
+1-2 дела из блока «Маркетинг и клиенты», РОВНО 1 дело из блока «Развитие персонала» (tools) — конкретный тест из \
+списка, подходящий под ситуацию, и когда есть подходящий курс в course_catalog — 1 дело из блока «Академия» (academy) \
+с названием конкретного курса. Если сегодня уже был другой набор — не повторяй вчерашние формулировки и разделы \
+(смотри yesterday_tasks в payload), чередуй их день ото дня.
+6. Если lead_source указывает на конкретный канал (Instagram, Директ, сарафанное радио и т.д.) — учитывай это при \
 выборе маркетинговых действий (например, если реклама не настроена, а доход не дотягивает до цели — предложи \
 семантику/объявления/бюджет для Директа; если упор на контент — Reels/посты/визуалы).
-6. Одно из дел сделай "главным делом дня" — тем, что даст наибольший или самый быстрый эффект.
-7. Придумай короткий, тёплый, мотивирующий анонс на завтра (2-3 предложения, обращение на "вы"), который объясняет, \
+7. Одно из дел сделай "главным делом дня" — тем, что даст наибольший или самый быстрый эффект (обычно из блока \
+«Маркетинг и клиенты», но может быть и тест/курс, если явно видно, что причина разрыва — не в маркетинге).
+8. Придумай короткий, тёплый, мотивирующий анонс на завтра (2-3 предложения, обращение на "вы"), который объясняет, \
 что план не статичен: завтра появится новый набор дел с учётом того, что было сделано сегодня, и почему это важно \
 (регулярность даёт результат). НЕ повторяй сегодняшние формулировки дословно.
 
@@ -230,23 +270,26 @@ PODELAM_SYSTEM_PROMPT = f"""Ты — экспертный бизнес-конс�
     {{"key": "верхнеуровневый_слаг_латиницей", "title": "Короткое название точки роста", "action": "Конкретное действие с цифрами", "potential": число_рублей}}
   ],
   "tasks": [
-    {{"key": "тот_же_слаг_что_в_growth_points_или_content", "title": "Название дела (2-4 слова)", "action_text": "Развёрнутое пояснение что и как сделать, с цифрами из диагностики", "button": "Текст кнопки перехода (2-4 слова)", "nav": "раздел_из_списка", "minutes": число_минут_на_выполнение, "potential": число_рублей_или_0}}
+    {{"key": "тот_же_слаг_что_в_growth_points_или_content_или_skill_up_или_course", "title": "Название дела (2-4 слова)", "action_text": "Развёрнутое пояснение что и как сделать, с цифрами из диагностики (для tools/academy — назови конкретный тест или курс)", "button": "Текст кнопки перехода (2-4 слова)", "nav": "раздел_из_списка", "minutes": число_минут_на_выполнение, "potential": число_рублей_или_0}}
   ],
   "main_task_key": "key дела с наибольшим приоритетом на сегодня",
   "tomorrow_preview": "Тёплый анонс на завтра, 2-3 предложения"
 }}
 
 Правила по числам: potential — целые рубли, реалистичные исходя из среднего чека и базы клиентов, никогда не превышай \
-величину разрыва между текущим и целевым доходом суммарно по всем tasks. Дел должно быть 3-4, каждое выполнимо за 10-30 минут."""
+величину разрыва между текущим и целевым доходом суммарно по всем tasks (у дел из tools/academy potential = 0). \
+Дел должно быть 3-4, каждое выполнимо за 10-30 минут."""
 
 
-def call_podelam_ai(profile: dict, gap: float) -> dict | None:
+def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | None = None,
+                     yesterday_tasks: list | None = None) -> dict | None:
     """Запрашивает у модели terra (polza.ai) персональный план роста дохода. Возвращает None при ошибке."""
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
         return None
 
     user_payload = {
+        "role": role or "не указана",
         "niche": profile.get("niche") or "не указана",
         "avg_check": float(profile["avg_check"]),
         "current_revenue": float(profile["current_revenue"]),
@@ -259,6 +302,8 @@ def call_podelam_ai(profile: dict, gap: float) -> dict | None:
         "has_addon_services": bool(profile.get("has_addon_services")),
         "addon_services_text": profile.get("addon_services_text") or "не указан",
         "lead_source": profile.get("lead_source") or "не указан",
+        "course_catalog": courses or [],
+        "yesterday_tasks": yesterday_tasks or [],
     }
 
     payload = json.dumps({
@@ -267,7 +312,7 @@ def call_podelam_ai(profile: dict, gap: float) -> dict | None:
             {"role": "system", "content": PODELAM_SYSTEM_PROMPT},
             {"role": "user", "content": f"Диагностика мастера/салона:\n{json.dumps(user_payload, ensure_ascii=False, indent=2)}"},
         ],
-        "temperature": 0.6,
+        "temperature": 0.7,
         "max_tokens": 2000,
     }).encode("utf-8")
 
@@ -326,7 +371,33 @@ def handle_podelam_get(event: dict, conn) -> dict:
     )
     plan_row = cur.fetchone()
     if not plan_row:
-        ai_result = call_podelam_ai(dict(profile), gap)
+        role = user.get("role") or "body_specialist"
+        cur.execute(
+            f"""SELECT title, category, categories, description FROM {SCHEMA}.courses
+                WHERE is_published = TRUE ORDER BY sort_order LIMIT 20"""
+        )
+        role_map = {"owner": "owner", "admin": "admin", "master": "master",
+                    "solo_master": "master", "body_specialist": "body"}
+        role_cat = role_map.get(role, "body")
+        all_courses = cur.fetchall()
+        courses_for_role = [
+            {"title": c["title"], "description": c["description"] or ""}
+            for c in all_courses
+            if role_cat in (c.get("categories") or [c.get("category")])
+        ][:8]
+
+        cur.execute(
+            f"""SELECT tasks FROM {SCHEMA}.podelam_daily_plans
+                WHERE user_id = %s AND plan_date = %s""",
+            (user["id"], today - timedelta(days=1))
+        )
+        yesterday_row = cur.fetchone()
+        yesterday_tasks = []
+        if yesterday_row and yesterday_row.get("tasks"):
+            yt = yesterday_row["tasks"] if isinstance(yesterday_row["tasks"], list) else json.loads(yesterday_row["tasks"])
+            yesterday_tasks = [{"title": t.get("title"), "nav": t.get("nav")} for t in yt]
+
+        ai_result = call_podelam_ai(dict(profile), gap, role=role, courses=courses_for_role, yesterday_tasks=yesterday_tasks)
         if ai_result:
             points = ai_result["growth_points"]
             tasks = ai_result["tasks"]
@@ -335,7 +406,7 @@ def handle_podelam_get(event: dict, conn) -> dict:
             source = "ai"
         else:
             points = fallback_points
-            tasks = build_today_tasks(points)
+            tasks = build_today_tasks(points, day_seed=today.toordinal())
             main_key = tasks[0]["key"] if tasks else None
             tomorrow_preview = default_preview
             source = "rules"
