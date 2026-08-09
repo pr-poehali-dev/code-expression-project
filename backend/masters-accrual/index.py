@@ -1268,11 +1268,11 @@ def tg_call(method: str, payload: dict, timeout: int = 15, retries: int = 0) -> 
 
 
 def tg_delete_message(chat_id: int, message_id: int) -> None:
-    tg_call("deleteMessage", {"chat_id": chat_id, "message_id": message_id}, timeout=8)
+    tg_call("deleteMessage", {"chat_id": chat_id, "message_id": message_id}, timeout=8, retries=1)
 
 
 def tg_ban_user(chat_id: int, user_id: int) -> None:
-    tg_call("banChatMember", {"chat_id": chat_id, "user_id": user_id, "revoke_messages": False}, timeout=8)
+    tg_call("banChatMember", {"chat_id": chat_id, "user_id": user_id, "revoke_messages": False}, timeout=8, retries=1)
 
 
 def tg_send_message(chat_id: int, text: str, reply_to_message_id: int | None = None,
@@ -1282,7 +1282,9 @@ def tg_send_message(chat_id: int, text: str, reply_to_message_id: int | None = N
         payload["reply_parameters"] = {"message_id": reply_to_message_id, "allow_sending_without_reply": True}
     if thread_id:
         payload["message_thread_id"] = thread_id
-    tg_call("sendMessage", payload, timeout=10)
+    # Сеть до Telegram у этой инфраструктуры периодически подвисает на 15-25 секунд —
+    # даём 3 попытки, чтобы ответ гарантированно дошёл даже при просадке сети.
+    tg_call("sendMessage", payload, timeout=12, retries=2)
 
 
 def tg_download_file_as_data_url(file_id: str) -> str | None:
@@ -1348,7 +1350,7 @@ def classify_text(text: str) -> dict:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         content = data["choices"][0]["message"]["content"].strip()
         if content.startswith("```"):
