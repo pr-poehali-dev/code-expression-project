@@ -612,9 +612,16 @@ def _send_podelam_notify_email(to_email: str, full_name: str, main_task: dict | 
     msg.attach(MIMEText(html, "html", "utf-8"))
 
     ctx = ssl.create_default_context()
-    with smtplib.SMTP_SSL("smtp.mail.ru", 465, context=ctx, timeout=15) as srv:
-        srv.login(FROM_EMAIL, smtp_password)
-        srv.sendmail(FROM_EMAIL, [to_email], msg.as_string())
+    for attempt in range(2):
+        try:
+            with smtplib.SMTP_SSL("smtp.mail.ru", 465, context=ctx, timeout=15) as srv:
+                srv.login(FROM_EMAIL, smtp_password)
+                srv.sendmail(FROM_EMAIL, [to_email], msg.as_string())
+            return
+        except (smtplib.SMTPException, TimeoutError, OSError):
+            if attempt == 1:
+                raise
+            time.sleep(1.5)
 
 
 def handle_podelam_notify(event: dict, conn) -> dict:
