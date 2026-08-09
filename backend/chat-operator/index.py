@@ -293,25 +293,26 @@ def has_link(text: str, entities: list) -> bool:
     return bool(_URL_RE.search(text or ""))
 
 
-def tg_call(method: str, payload: dict, timeout: int = 15) -> dict | None:
+def tg_call(method: str, payload: dict, timeout: int = 15, retries: int = 1) -> dict | None:
     bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
     if not bot_token:
         return None
-    req = urllib.request.Request(
-        f"https://api.telegram.org/bot{bot_token}/{method}",
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        print(f"[tg_moderator] {method} HTTPError {e.code}: {e.read().decode('utf-8', 'ignore')}")
-        return None
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
-        print(f"[tg_moderator] {method} failed: {type(e).__name__}: {e}")
-        return None
+    for attempt in range(retries + 1):
+        req = urllib.request.Request(
+            f"https://api.telegram.org/bot{bot_token}/{method}",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            print(f"[tg_moderator] {method} HTTPError {e.code}: {e.read().decode('utf-8', 'ignore')}")
+            return None
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
+            print(f"[tg_moderator] {method} failed (attempt {attempt + 1}/{retries + 1}): {type(e).__name__}: {e}")
+    return None
 
 
 def tg_delete_message(chat_id: int, message_id: int) -> None:
@@ -590,12 +591,12 @@ def handle_set_webhook(event: dict) -> dict:
         "url": url,
         "secret_token": secret,
         "allowed_updates": ["message", "edited_message"],
-    }, timeout=15)
+    }, timeout=25, retries=0)
     return ok(result or {"ok": False, "error": "Нет ответа от Telegram"})
 
 
 def handle_webhook_info() -> dict:
-    result = tg_call("getWebhookInfo", {}, timeout=10)
+    result = tg_call("getWebhookInfo", {}, timeout=25, retries=0)
     return ok(result or {"ok": False})
 
 
