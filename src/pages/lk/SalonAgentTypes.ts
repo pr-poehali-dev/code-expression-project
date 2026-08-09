@@ -3,19 +3,16 @@ export const LK_URL = "https://functions.poehali.dev/1c0ad024-179b-4644-9621-377
 export const FREE_LIMIT = 10;
 export const ENERGY_PER_MSG = 10;
 
-export type AgentRole = "business" | "service" | "admin" | "marketer";
-
 export type ChatMode = "salon" | "free";
 
 export interface ChatModeConfig { id: ChatMode; label: string; icon: string; hint: string; }
 
 export const CHAT_MODES: ChatModeConfig[] = [
   { id: "salon", label: "По салону",         icon: "Building2",    hint: "Ответы с учётом данных вашего салона" },
-  { id: "free",  label: "Свободное общение",  icon: "MessageCircle", hint: "Общение на любые темы по профилю агента" },
+  { id: "free",  label: "Свободное общение",  icon: "MessageCircle", hint: "Общение на любые темы в рамках экспертизы агента" },
 ];
 
 export interface AgentConfig {
-  id: AgentRole;
   label: string;
   icon: string;
   color: string;
@@ -25,12 +22,17 @@ export interface AgentConfig {
   welcome: string;
 }
 
-export const AGENTS: AgentConfig[] = [
-  { id: "business", label: "Бизнес-ассистент",  icon: "Briefcase",      color: "#1e40af", bg: "#eff6ff", borderColor: "#bfdbfe", hint: "Стратегия, финансы, управление командой", welcome: "Здравствуйте! Я ваш бизнес-ассистент.\n\nПомогу с финансовыми расчётами, стратегией развития, управлением командой и операционными вопросами. Что обсудим?" },
-  { id: "service",  label: "Эксперт по сервису", icon: "HeartHandshake", color: "#065f46", bg: "#ecfdf5", borderColor: "#a7f3d0", hint: "Техники, работа с клиентами, протоколы",  welcome: "Добро пожаловать! Я эксперт по телесным практикам и сервису.\n\nРазберём любой клиентский случай, подберём технику, помогу с коммуникацией. Расскажите о задаче." },
-  { id: "admin",    label: "Администратор",       icon: "PhoneCall",      color: "#92400e", bg: "#fffbeb", borderColor: "#fde68a", hint: "Скрипты, ответы клиентам, отзывы",        welcome: "Привет! Я помощник администратора.\n\nНапишу скрипт для звонка, ответ на отзыв или сообщение клиенту — готовое, чтобы сразу использовать. Что нужно?" },
-  { id: "marketer", label: "Маркетолог",          icon: "Megaphone",      color: "#6d28d9", bg: "#f5f3ff", borderColor: "#ddd6fe", hint: "Контент, акции, продвижение, реклама",    welcome: "Привет! Я маркетолог вашего салона.\n\nПомогу с постами, акциями, настройкой рекламы и удержанием клиентов. С чего начнём?" },
-];
+// Единый ИИ-агент — совмещает экспертизу бизнес-ассистента, эксперта по сервису,
+// администратора и маркетолога. Сам определяет нужную роль по сути вопроса.
+export const AGENT: AgentConfig = {
+  label: "ИИ-агент салона",
+  icon: "Sparkles",
+  color: "#1e40af",
+  bg: "#eff6ff",
+  borderColor: "#bfdbfe",
+  hint: "Стратегия, сервис, клиенты, маркетинг — всё в одном чате",
+  welcome: "Здравствуйте! Я ваш персональный ИИ-агент.\n\nПомогу со стратегией и финансами, разбором клиентских случаев, скриптами для администратора, контентом и рекламой — спрашивайте о чём угодно, я сам разберусь, какая экспертиза нужна. Что обсудим?",
+};
 
 export const PACKAGES = [
   { code: "start",    name: "Старт",   price: 990,  energy: 150,  msgs: 15  },

@@ -4,7 +4,7 @@ import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import {
   AGENT_URL, FREE_LIMIT, ENERGY_PER_MSG,
-  AgentRole, AGENTS, Message, AttachedFile,
+  AGENT, Message, AttachedFile,
   ChatMode, CHAT_MODES,
 } from "./SalonAgentTypes";
 import { FreeUsageBar, PaywallModal } from "./SalonAgentWidgets";
@@ -20,7 +20,6 @@ export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGr
   const { user } = useLkAuth();
   const sessionId = localStorage.getItem("lk_session") || "";
 
-  const [activeAgent, setActiveAgent] = useState<AgentRole>("business");
   const [chatMode, setChatMode] = useState<ChatMode>("salon");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -35,7 +34,7 @@ export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGr
   const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
-  const agent = AGENTS.find(a => a.id === activeAgent)!;
+  const agent = AGENT;
 
   async function handleFileAttach(file: File) {
     const BATCH_ROWS = 300;
@@ -87,11 +86,11 @@ export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGr
     });
   }
 
-  const loadHistory = useCallback(async (role: AgentRole, mode: ChatMode) => {
+  const loadHistory = useCallback(async (mode: ChatMode) => {
     setHistoryLoading(true);
     setError("");
     try {
-      const res = await fetch(`${AGENT_URL}?agent_role=${role}&chat_mode=${mode}`, { headers: { "X-Session-Id": sessionId } });
+      const res = await fetch(`${AGENT_URL}?chat_mode=${mode}`, { headers: { "X-Session-Id": sessionId } });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Ошибка загрузки");
       setMessages(data.messages || []);
@@ -102,7 +101,7 @@ export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGr
     } finally { setHistoryLoading(false); }
   }, [sessionId]);
 
-  useEffect(() => { loadHistory(activeAgent, chatMode); }, [activeAgent, chatMode, loadHistory]);
+  useEffect(() => { loadHistory(chatMode); }, [chatMode, loadHistory]);
 
   const skipNextScroll = useRef(true);
   useEffect(() => {
@@ -110,14 +109,14 @@ export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGr
     if (skipNextScroll.current) { skipNextScroll.current = false; return; }
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [messages, loading]);
-  useEffect(() => { skipNextScroll.current = true; }, [activeAgent, chatMode]);
+  useEffect(() => { skipNextScroll.current = true; }, [chatMode]);
 
   async function sendOneBatch(message: string): Promise<{ reply: string; free_used?: number; energy_balance?: number; error?: string; ok: boolean }> {
     const res = await fetch(AGENT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Session-Id": sessionId },
       body: JSON.stringify({
-        agent_role: activeAgent, message, chat_mode: chatMode,
+        message, chat_mode: chatMode,
         ...(chatMode === "salon" && podelamContext ? { podelam_context: podelamContext } : {}),
       }),
     });
@@ -217,7 +216,7 @@ export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGr
   async function clearHistory() {
     if (!confirmClear) { setConfirmClear(true); setTimeout(() => setConfirmClear(false), 3000); return; }
     setConfirmClear(false);
-    await fetch(`${AGENT_URL}?agent_role=${activeAgent}&chat_mode=${chatMode}`, { method: "DELETE", headers: { "X-Session-Id": sessionId } });
+    await fetch(`${AGENT_URL}?chat_mode=${chatMode}`, { method: "DELETE", headers: { "X-Session-Id": sessionId } });
     setMessages([]);
     setError("");
   }
@@ -273,25 +272,6 @@ export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGr
             >
               <Icon name={m.icon} size={14} style={{ color: isActive ? agent.color : "#94A3B8" }} />
               {m.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Выбор агента */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10 }}>
-        {AGENTS.map(a => {
-          const isActive = a.id === activeAgent;
-          return (
-            <button key={a.id} onClick={() => { setActiveAgent(a.id); setError(""); }} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 14, textAlign: "left", border: `2px solid ${isActive ? a.color : "#E8ECF0"}`, background: isActive ? a.bg : "#fff", cursor: "pointer", transition: "all 0.18s", boxShadow: isActive ? `0 4px 16px ${a.color}22` : "0 1px 3px rgba(0,0,0,0.04)" }}>
-              <div style={{ width: 40, height: 40, borderRadius: 11, flexShrink: 0, background: isActive ? `${a.color}18` : "#F1F5F9", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Icon name={a.icon} size={18} style={{ color: isActive ? a.color : "#94A3B8" }} />
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: isActive ? a.color : "#0F172A", lineHeight: 1.3 }}>{a.label}</div>
-                <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2, lineHeight: 1.4 }}>{a.hint}</div>
-              </div>
-              {isActive && <div style={{ marginLeft: "auto", flexShrink: 0 }}><Icon name="CheckCircle2" size={16} style={{ color: a.color }} /></div>}
             </button>
           );
         })}
