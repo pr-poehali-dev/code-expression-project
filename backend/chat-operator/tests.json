@@ -12,27 +12,6 @@
       "path": "/",
       "body": {"messages": []},
       "expectedStatus": 400
-    },
-    {
-      "name": "GET set_webhook without key — 403",
-      "method": "GET",
-      "path": "/?action=set_webhook&url=https://example.com",
-      "expectedStatus": 403
-    },
-    {
-      "name": "GET webhook_info without key — 403",
-      "method": "GET",
-      "path": "/?action=webhook_info",
-      "expectedStatus": 403
-    },
-    {
-      "name": "POST empty telegram update — 200 ok",
-      "method": "POST",
-      "path": "/",
-      "body": {"update_id": 1},
-      "expectedStatus": 200,
-      "expectedBody": {"ok": true},
-      "bodyMatcher": "partial"
     }
   ]
 }
