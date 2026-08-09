@@ -24,6 +24,7 @@ import os
 import random
 import smtplib
 import ssl
+import time
 import urllib.request
 import urllib.error
 import psycopg2
@@ -954,25 +955,28 @@ def send_content_to_telegram(title: str, body: str, hashtags: str = "") -> int |
         },
     }).encode("utf-8")
 
-    req = urllib.request.Request(
-        f"https://api.telegram.org/bot{bot_token}/sendMessage",
-        data=payload,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        if data.get("ok"):
-            return data["result"]["message_id"]
-        print(f"[content_publisher] Telegram API вернул ok=false: {data}")
-        return None
-    except urllib.error.HTTPError as e:
-        print(f"[content_publisher] Telegram HTTPError {e.code}: {e.read().decode('utf-8', 'ignore')}")
-        return None
-    except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError) as e:
-        print(f"[content_publisher] Telegram send failed: {type(e).__name__}: {e}")
-        return None
+    for attempt in range(2):
+        req = urllib.request.Request(
+            f"https://api.telegram.org/bot{bot_token}/sendMessage",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            if data.get("ok"):
+                return data["result"]["message_id"]
+            print(f"[content_publisher] Telegram API вернул ok=false: {data}")
+            return None
+        except urllib.error.HTTPError as e:
+            print(f"[content_publisher] Telegram HTTPError {e.code}: {e.read().decode('utf-8', 'ignore')}")
+            return None
+        except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError) as e:
+            print(f"[content_publisher] Telegram send failed (attempt {attempt + 1}/2): {type(e).__name__}: {e}")
+            if attempt == 0:
+                time.sleep(1.5)
+    return None
 
 
 def handle_content_daily_post(event: dict, conn) -> dict:
