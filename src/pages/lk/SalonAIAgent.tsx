@@ -241,7 +241,7 @@ export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGr
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", letterSpacing: -0.5 }}>ИИ-Агент салона</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#0F172A", letterSpacing: -0.5 }}>Твои ИИ-агенты</div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "4px 10px", borderRadius: 20, background: "linear-gradient(135deg, #6d28d9, #2563eb)", boxShadow: "0 2px 8px rgba(109,40,217,0.25)" }}>
               <Icon name="Sparkles" size={11} style={{ color: "#fff" }} />
               <span style={{ fontSize: 10.5, fontWeight: 700, color: "#fff", letterSpacing: 0.2 }}>Современные и мощные AI-модели</span>
