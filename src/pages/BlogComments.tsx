@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import func2url from "../../backend/func2url.json";
 
 const TEAL = "#2DD4BF";
@@ -6,6 +6,7 @@ const DARK = "#0F172A";
 const GRAY = "#64748B";
 
 const CONTENT_URL = (func2url as Record<string, string>)["masters-accrual"] || "";
+const POLL_INTERVAL_MS = 15_000;
 
 interface Comment {
   id: number;
@@ -39,17 +40,48 @@ export default function BlogComments({ postId, canComment }: { postId: number; c
   const [replyTo, setReplyTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
   const [sendingReply, setSendingReply] = useState(false);
+  // parent-комментарии, под которыми ждём ответ Светланы (индикатор "печатает…")
+  const [pendingParents, setPendingParents] = useState<Set<number>>(new Set());
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const load = () => {
-    setLoading(true);
-    fetch(`${CONTENT_URL}?action=comments_list&post_id=${postId}`)
+  const load = (silent = false) => {
+    if (!silent) setLoading(true);
+    return fetch(`${CONTENT_URL}?action=comments_list&post_id=${postId}`)
       .then(r => r.json())
-      .then(d => setComments(d.comments || []))
+      .then(d => {
+        const list: Comment[] = d.comments || [];
+        setComments(list);
+        // Если ответ на ожидаемый parent_id уже появился — снимаем индикатор "печатает…"
+        setPendingParents(prev => {
+          if (prev.size === 0) return prev;
+          const next = new Set(prev);
+          for (const c of list) {
+            if (c.is_admin_reply && c.parent_id && next.has(c.parent_id)) next.delete(c.parent_id);
+          }
+          return next;
+        });
+      })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => { if (!silent) setLoading(false); });
   };
 
-  useEffect(() => { load(); }, [postId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    load();
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postId]);
+
+  // Пока есть комментарии, ожидающие ответа Светланы, — тихо опрашиваем сервер каждые 15с
+  useEffect(() => {
+    if (pendingParents.size === 0) {
+      if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+      return;
+    }
+    if (pollRef.current) return;
+    pollRef.current = setInterval(() => load(true), POLL_INTERVAL_MS);
+    return () => { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingParents.size]);
 
   const submit = async (body: string, parentId: number | null, onDone: () => void) => {
     const trimmed = body.trim();
@@ -62,9 +94,12 @@ export default function BlogComments({ postId, canComment }: { postId: number; c
       });
       const data = await res.json();
       if (!res.ok) return;
-      const next = [...comments, data.comment];
-      if (data.admin_reply) next.push(data.admin_reply);
-      setComments(next);
+      setComments(prev => [...prev, data.comment]);
+      if (data.admin_reply_pending) {
+        // Ответ Светланы уже готов на сервере, но появится в ленте только через 1-2.5 минуты —
+        // показываем индикатор "печатает…" под тем комментарием, на который она отвечает.
+        setPendingParents(prev => new Set(prev).add(data.comment.id));
+      }
       onDone();
     } catch {
       // молча — комментарий можно попробовать отправить ещё раз
@@ -100,6 +135,11 @@ export default function BlogComments({ postId, canComment }: { postId: number; c
                   <CommentRow c={r} />
                 </div>
               ))}
+              {pendingParents.has(c.id) && (
+                <div style={{ marginLeft: 44, marginTop: 12 }}>
+                  <TypingIndicator />
+                </div>
+              )}
               {replyTo === c.id && (
                 <div style={{ marginLeft: 44, marginTop: 10, display: "flex", gap: 8 }}>
                   <input
@@ -171,6 +211,38 @@ function CommentRow({ c }: { c: Comment }) {
           <span style={{ fontSize: 11.5, color: "#94A3B8" }}>{formatDateTime(c.created_at)}</span>
         </div>
         <div style={{ fontSize: 14, color: "#334155", lineHeight: 1.55, whiteSpace: "pre-line" }}>{c.body}</div>
+      </div>
+    </div>
+  );
+}
+
+function TypingIndicator() {
+  return (
+    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+      <div style={{
+        width: 34, height: 34, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 13, fontWeight: 700, color: "#fff", fontFamily: "Inter, sans-serif",
+        background: "linear-gradient(135deg,#2DD4BF,#14B8A6)",
+      }}>
+        С
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#94A3B8", fontStyle: "italic" }}>
+        Светлана печатает
+        <span style={{ display: "inline-flex", gap: 2 }}>
+          <span className="blog-typing-dot" style={{ animationDelay: "0s" }} />
+          <span className="blog-typing-dot" style={{ animationDelay: "0.2s" }} />
+          <span className="blog-typing-dot" style={{ animationDelay: "0.4s" }} />
+        </span>
+        <style>{`
+          .blog-typing-dot {
+            width: 4px; height: 4px; border-radius: 50%; background: #94A3B8;
+            display: inline-block; animation: blog-typing-blink 1.2s infinite ease-in-out;
+          }
+          @keyframes blog-typing-blink {
+            0%, 80%, 100% { opacity: 0.25; }
+            40% { opacity: 1; }
+          }
+        `}</style>
       </div>
     </div>
   );

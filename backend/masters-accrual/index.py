@@ -1463,7 +1463,9 @@ def call_comment_ai(comment_text: str, post_title: str, post_body: str, category
 
 
 def handle_comments_list(event: dict, conn) -> dict:
-    """Список комментариев к посту (плоский список с parent_id для отображения дерева ответов)."""
+    """Список комментариев к посту (плоский список с parent_id для отображения дерева ответов).
+    Ответы Админ Светланы скрыты до наступления visible_at — создаётся видимость, что она
+    печатает ответ не мгновенно, а с обычной человеческой задержкой (см. handle_comment_add)."""
     qs = event.get("queryStringParameters") or {}
     try:
         post_id = int(qs.get("post_id", 0))
@@ -1476,7 +1478,7 @@ def handle_comments_list(event: dict, conn) -> dict:
     cur.execute(
         f"""SELECT id, post_id, parent_id, author_name, is_admin_reply, body, created_at
             FROM {SCHEMA}.content_comments
-            WHERE post_id = %s
+            WHERE post_id = %s AND visible_at <= NOW()
             ORDER BY created_at ASC""",
         (post_id,)
     )
@@ -1549,17 +1551,26 @@ def handle_comment_add(event: dict, conn) -> dict:
             reply_text = ai_verdict["reply"]
 
         if reply_text:
+            # Ответ уже сгенерирован, но публикуем его не мгновенно, а с человеческой задержкой
+            # (1-2.5 минуты) — иначе видно, что комментарий и ответ появляются одновременно,
+            # что выдаёт автоматику. visible_at скрывает запись из GET до этого момента,
+            # created_at при этом честно фиксирует момент написания для сортировки треда.
+            delay_seconds = random.randint(60, 150)
             cur3 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             cur3.execute(
-                f"""INSERT INTO {SCHEMA}.content_comments (post_id, user_id, parent_id, author_name, is_admin_reply, body)
-                    VALUES (%s, %s, %s, %s, TRUE, %s)
-                    RETURNING id, post_id, parent_id, author_name, is_admin_reply, body, created_at""",
-                (post_id, user["id"], new_comment["id"], ADMIN_NAME, reply_text)
+                f"""INSERT INTO {SCHEMA}.content_comments
+                    (post_id, user_id, parent_id, author_name, is_admin_reply, body, visible_at)
+                    VALUES (%s, %s, %s, %s, TRUE, %s, NOW() + (%s || ' seconds')::interval)
+                    RETURNING id, post_id, parent_id, author_name, is_admin_reply, body, created_at, visible_at""",
+                (post_id, user["id"], new_comment["id"], ADMIN_NAME, reply_text, delay_seconds)
             )
             admin_reply = dict(cur3.fetchone())
             conn.commit()
 
-    return ok({"comment": new_comment, "admin_reply": admin_reply})
+    # admin_reply возвращаем фронту сразу (чтобы можно было показать «печатает…»), но реальный
+    # текст ответа станет доступен через comments_list только после visible_at.
+    return ok({"comment": new_comment, "admin_reply_pending": admin_reply is not None,
+               "admin_reply_delay_seconds": (admin_reply["visible_at"] - admin_reply["created_at"]).total_seconds() if admin_reply else None})
 
 
 def process_accruals(conn):
