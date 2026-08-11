@@ -140,7 +140,15 @@ export default function BlogComments({ postId, canComment }: { postId: number; c
   const repliesOf = (id: number) => comments.filter(c => c.parent_id === id);
 
   return (
-    <div style={{ marginTop: 8, paddingTop: 24, borderTop: "1px solid #F1F5F9" }}>
+    <div style={{ marginTop: 8, paddingTop: 24, borderTop: "1px solid #F1F5F9", maxWidth: "100%", overflowX: "hidden" }}>
+      <style>{`
+        .blog-comment-indent { margin-left: 44px; }
+        @media (max-width: 480px) {
+          .blog-comment-indent { margin-left: 20px; }
+          .blog-comment-form-row { flex-direction: column; align-items: stretch; }
+          .blog-comment-form-row button { width: 100%; justify-content: center; }
+        }
+      `}</style>
       <div style={{ fontSize: 12, fontWeight: 600, color: GRAY, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 18 }}>
         Комментарии {comments.length > 0 && `(${comments.length})`}
       </div>
@@ -155,34 +163,35 @@ export default function BlogComments({ postId, canComment }: { postId: number; c
               {canComment && (
                 <button
                   onClick={() => { setReplyTo(replyTo === c.id ? null : c.id); setReplyText(""); }}
-                  style={{ marginLeft: 44, marginTop: 4, background: "none", border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 500, color: TEAL, padding: 0, fontFamily: "Inter, sans-serif" }}
+                  className="blog-comment-indent"
+                  style={{ marginTop: 4, background: "none", border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 500, color: TEAL, padding: 0, fontFamily: "Inter, sans-serif" }}
                 >
                   Ответить
                 </button>
               )}
               {repliesOf(c.id).map(r => (
-                <div key={r.id} style={{ marginLeft: 44, marginTop: 12 }}>
+                <div key={r.id} className="blog-comment-indent" style={{ marginTop: 12 }}>
                   <CommentRow c={r} canLike={canComment} onToggleLike={() => toggleLike(r.id)} />
                 </div>
               ))}
               {pendingParents.has(c.id) && (
-                <div style={{ marginLeft: 44, marginTop: 12 }}>
+                <div className="blog-comment-indent" style={{ marginTop: 12 }}>
                   <TypingIndicator />
                 </div>
               )}
               {replyTo === c.id && (
-                <div style={{ marginLeft: 44, marginTop: 10, display: "flex", gap: 8 }}>
+                <div className="blog-comment-indent blog-comment-form-row" style={{ marginTop: 10, display: "flex", gap: 8, maxWidth: "100%" }}>
                   <input
                     value={replyText}
                     onChange={e => setReplyText(e.target.value)}
                     placeholder="Ваш ответ…"
-                    style={{ flex: 1, padding: "9px 12px", borderRadius: 6, border: "1px solid #E2E8F0", fontSize: 13.5, fontFamily: "Inter, sans-serif", outline: "none" }}
+                    style={{ flex: 1, minWidth: 0, width: "100%", boxSizing: "border-box", padding: "9px 12px", borderRadius: 6, border: "1px solid #E2E8F0", fontSize: 13.5, fontFamily: "Inter, sans-serif", outline: "none" }}
                     onKeyDown={e => { if (e.key === "Enter" && !sendingReply) { setSendingReply(true); submit(replyText, c.id, () => { setReplyText(""); setReplyTo(null); }).finally(() => setSendingReply(false)); } }}
                   />
                   <button
                     disabled={sendingReply || !replyText.trim()}
                     onClick={() => { setSendingReply(true); submit(replyText, c.id, () => { setReplyText(""); setReplyTo(null); }).finally(() => setSendingReply(false)); }}
-                    style={{ padding: "9px 16px", borderRadius: 6, border: "none", background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: DARK, fontSize: 13, fontWeight: 600, cursor: sendingReply ? "default" : "pointer", fontFamily: "Inter, sans-serif", whiteSpace: "nowrap" }}
+                    style={{ flexShrink: 0, padding: "9px 16px", borderRadius: 6, border: "none", background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: DARK, fontSize: 13, fontWeight: 600, cursor: sendingReply ? "default" : "pointer", fontFamily: "Inter, sans-serif", whiteSpace: "nowrap" }}
                   >
                     Отправить
                   </button>
@@ -197,18 +206,18 @@ export default function BlogComments({ postId, canComment }: { postId: number; c
       )}
 
       {canComment ? (
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="blog-comment-form-row" style={{ display: "flex", gap: 8, maxWidth: "100%" }}>
           <input
             value={text}
             onChange={e => setText(e.target.value)}
             placeholder="Написать комментарий…"
-            style={{ flex: 1, padding: "11px 14px", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 14, fontFamily: "Inter, sans-serif", outline: "none" }}
+            style={{ flex: 1, minWidth: 0, width: "100%", boxSizing: "border-box", padding: "11px 14px", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 14, fontFamily: "Inter, sans-serif", outline: "none" }}
             onKeyDown={e => { if (e.key === "Enter" && !sending) { setSending(true); submit(text, null, () => setText("")).finally(() => setSending(false)); } }}
           />
           <button
             disabled={sending || !text.trim()}
             onClick={() => { setSending(true); submit(text, null, () => setText("")).finally(() => setSending(false)); }}
-            style={{ padding: "11px 20px", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: DARK, fontSize: 14, fontWeight: 600, cursor: sending ? "default" : "pointer", fontFamily: "Inter, sans-serif", whiteSpace: "nowrap" }}
+            style={{ flexShrink: 0, padding: "11px 20px", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: DARK, fontSize: 14, fontWeight: 600, cursor: sending ? "default" : "pointer", fontFamily: "Inter, sans-serif", whiteSpace: "nowrap" }}
           >
             {sending ? "…" : "Отправить"}
           </button>
