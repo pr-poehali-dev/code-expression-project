@@ -52,9 +52,13 @@ export interface PodelamData {
   profile?: Profile;
   growth_points?: GrowthPoint[];
   gap_amount?: number;
-  plan?: { tasks: Task[]; main_task_key: string | null; gap_amount: number; tomorrow_preview?: string; source?: string; salon_focus?: SalonFocusStaff | null };
+  plan?: { tasks: Task[]; main_task_key: string | null; gap_amount: number; tomorrow_preview?: string; source?: string; salon_focus?: SalonFocusStaff | null } | null;
   task_log?: Record<string, { done: boolean; actual_amount: number | null }>;
   today_income?: number | null;
+  salon_profile_filled?: boolean | null;
+  energy_insufficient?: boolean;
+  energy_balance?: number;
+  energy_needed?: number;
 }
 
 export interface PeriodStats {

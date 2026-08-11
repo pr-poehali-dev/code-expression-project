@@ -4,10 +4,16 @@
 Ручное пополнение и бонусы — не считаются.
 Формула: 10% от количества энергий = рубли (100 энергий → 10 ₽).
 GET  ?action=podelam_get           — профиль дохода + план на сегодня, план строит ИИ (модель terra через polza.ai) (X-Session-Id).
-                                       Для владельцев/администраторов салона с заполненным «Мой салон» дополнительно подмешиваются
-                                       реальные данные салона и сотрудников (salon_staff), с ротацией фокус-сотрудника по дням —
-                                       сегодня один специалист, завтра другой. Все доп. данные читаются ТОЛЬКО при первой генерации
-                                       плана за сутки (кэш в podelam_daily_plans), повторные заходы в этот же день — без единого запроса к ИИ или доп. таблицам.
+                                       Для владельцев/администраторов салона с заполненным «Мой салон» (указаны средний чек и
+                                       выручка) дополнительно подмешиваются реальные данные салона и сотрудников (salon_staff),
+                                       с ротацией фокус-сотрудника по дням — сегодня один специалист, завтра другой. Пока «Мой
+                                       салон» не заполнен — план строится по карточке диагностики ПоДелам (как раньше), а в ответе
+                                       флаг salon_profile_filled=false — фронт показывает напоминание заполнить профиль салона.
+                                       Построение НОВОГО плана на день платное — списывается ОДИН РАЗ В СУТКИ с баланса салона:
+                                       3 энергии для владельца/администратора, 1 энергия для мастера/специалиста. Если энергии не
+                                       хватает — план не строится, ответ содержит energy_insufficient=true. Все доп. данные читаются
+                                       ТОЛЬКО при первой генерации плана за сутки (кэш в podelam_daily_plans), повторные заходы в
+                                       этот же день — без единого запроса к ИИ, доп. таблицам или повторного списания энергии.
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с — иначе запрос к ИИ обрывается по 504 и план не сохраняется.
 POST ?action=podelam_save_profile  — сохранить диагностику дохода (X-Session-Id)
 POST ?action=podelam_task_done     — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
@@ -97,6 +103,45 @@ def get_lk_user_by_session(session_id: str, conn):
         (session_id,)
     )
     return cur.fetchone()
+
+
+# ── Энергия за построение плана «ПоДелам» ───────────────────────────────────
+# Списывается ОДИН РАЗ в сутки — только когда план на день реально строится (первый заход
+# после полуночи и после заполнения диагностики), а не при каждом повторном заходе в течение дня.
+PODELAM_TOOL_KEY = "podelam_daily_plan"
+PODELAM_COST_SALON = 3   # владелец/администратор салона (owner/admin)
+PODELAM_COST_MASTER = 1  # мастер-одиночка и остальные роли
+
+
+def get_salon_balance(conn, salon_id: int) -> int:
+    cur = conn.cursor()
+    cur.execute(f"SELECT credits_balance FROM {SCHEMA}.salons WHERE id = %s", (salon_id,))
+    row = cur.fetchone()
+    return row[0] if row else 0
+
+
+def deduct_podelam_energy(conn, salon_id: int, user_id: int, amount: int):
+    cur = conn.cursor()
+    cur.execute(
+        f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s",
+        (amount, salon_id)
+    )
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
+        f"VALUES (%s, %s, 'План «ПоДелам» на день', %s, %s, 'debit')",
+        (salon_id, user_id, amount, PODELAM_TOOL_KEY)
+    )
+
+
+def is_salon_profile_filled(conn, salon_id: int | None) -> bool:
+    """Считаем «Мой салон» заполненным, если указаны ключевые бизнес-показатели
+    (средний чек и месячная выручка) — именно они подмешиваются в план ПоДелам."""
+    if not salon_id:
+        return False
+    cur = conn.cursor()
+    cur.execute(f"SELECT avg_check, monthly_revenue FROM {SCHEMA}.salons WHERE id = %s", (salon_id,))
+    row = cur.fetchone()
+    return bool(row and row[0] is not None and row[1] is not None)
 
 
 # ── «ПоДелам» — навигатор дохода ────────────────────────────────────────────
@@ -476,6 +521,16 @@ def handle_podelam_get(event: dict, conn) -> dict:
     if not profile:
         return ok({"has_profile": False})
 
+    role = user.get("role") or "body_specialist"
+    salon_id = user.get("salon_id")
+
+    # «Мой салон» считается заполненным, если указаны ключевые показатели (чек и выручка) —
+    # именно эти данные подмешиваются в план. Проверяем только для владельца/администратора,
+    # чтобы показать напоминание заполнить профиль, пока план строится по анкете ПоДелам.
+    salon_profile_filled = None
+    if role in ("owner", "admin") and salon_id:
+        salon_profile_filled = is_salon_profile_filled(conn, salon_id)
+
     gap = float(profile["target_revenue"]) - float(profile["current_revenue"])
     fallback_points = build_growth_points(profile)
     default_preview = (
@@ -490,7 +545,27 @@ def handle_podelam_get(event: dict, conn) -> dict:
     )
     plan_row = cur.fetchone()
     if not plan_row:
-        role = user.get("role") or "body_specialist"
+        # Энергия списывается ОДИН РАЗ в сутки — только в момент реальной постройки нового
+        # плана на день (карточка диагностики уже точно заполнена, иначе вышли бы раньше).
+        # Проверяем баланс ДО дорогих запросов (курсы/данные салона/вызов ИИ), чтобы не тратить
+        # вычисления, если энергии не хватает.
+        podelam_cost = PODELAM_COST_SALON if role in ("owner", "admin") else PODELAM_COST_MASTER
+        balance = get_salon_balance(conn, salon_id) if salon_id else 0
+        if salon_id and balance < podelam_cost:
+            return ok({
+                "has_profile": True,
+                "profile": dict(profile),
+                "growth_points": fallback_points,
+                "gap_amount": gap,
+                "plan": None,
+                "task_log": {},
+                "today_income": None,
+                "energy_insufficient": True,
+                "energy_balance": balance,
+                "energy_needed": podelam_cost,
+                "salon_profile_filled": salon_profile_filled,
+            })
+
         cur.execute(
             f"""SELECT title, category, categories, description FROM {SCHEMA}.courses
                 WHERE is_published = TRUE ORDER BY sort_order LIMIT 20"""
@@ -518,10 +593,10 @@ def handle_podelam_get(event: dict, conn) -> dict:
 
         # Для владельца/администратора салона — подмешиваем реальные данные из «Мой салон»
         # (агрегированные показатели, услуги, сотрудники) и фокус-сотрудника дня по ротации.
+        # Если «Мой салон» ещё не заполнен — данные берём из карточки диагностики ПоДелам (fallback).
         # Запрос делается ТОЛЬКО здесь — при первой генерации плана за сутки, не при каждом заходе.
         salon_context = None
-        salon_id = user.get("salon_id")
-        if role in ("owner", "admin") and salon_id:
+        if role in ("owner", "admin") and salon_id and salon_profile_filled:
             salon_context = build_salon_context(conn, salon_id, day_seed=today.toordinal())
 
         ai_result = call_podelam_ai(dict(profile), gap, role=role, courses=courses_for_role,
@@ -553,6 +628,8 @@ def handle_podelam_get(event: dict, conn) -> dict:
              json.dumps(salon_focus, ensure_ascii=False) if salon_focus else None)
         )
         cur2.fetchone()
+        if salon_id:
+            deduct_podelam_energy(conn, salon_id, user["id"], podelam_cost)
         conn.commit()
         plan = {
             "tasks": tasks, "main_task_key": main_key, "gap_amount": gap,
@@ -594,6 +671,7 @@ def handle_podelam_get(event: dict, conn) -> dict:
         "plan": plan,
         "task_log": log,
         "today_income": today_income,
+        "salon_profile_filled": salon_profile_filled,
     })
 
 

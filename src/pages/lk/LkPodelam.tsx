@@ -116,7 +116,28 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
     return <DiagnosticForm onSaved={() => { setEditing(false); load(); }} />;
   }
 
-  const { profile, growth_points = [], gap_amount = 0, plan, task_log = {} } = data;
+  if (data.energy_insufficient) {
+    return (
+      <div style={{ maxWidth: 480, margin: "60px auto", textAlign: "center", padding: "0 20px" }}>
+        <div style={{ width: 56, height: 56, borderRadius: 16, background: "linear-gradient(135deg,#f59e0b,#d97706)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+          <Icon name="Zap" size={26} style={{ color: "#fff" }} />
+        </div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A", marginBottom: 8 }}>Недостаточно энергии для нового плана</div>
+        <div style={{ fontSize: 13.5, color: "#64748B", lineHeight: 1.6, marginBottom: 24 }}>
+          Построение нового плана на день стоит {data.energy_needed ?? ""} ⚡, доступно {data.energy_balance ?? 0} ⚡. Пополните баланс, чтобы ИИ собрал сегодняшние шаги.
+        </div>
+        <button
+          onClick={() => onNav("shop")}
+          style={{ padding: "12px 28px", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+        >
+          Пополнить энергию
+        </button>
+      </div>
+    );
+  }
+
+  const { profile, growth_points = [], gap_amount = 0, plan, task_log = {}, salon_profile_filled } = data;
+  const showSalonReminder = salon_profile_filled === false;
   const progress = profile ? Math.min(100, Math.round((profile.current_revenue / profile.target_revenue) * 100)) : 0;
   const tasks = plan?.tasks || [];
   const mainTask = tasks[0];
@@ -140,6 +161,22 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
 
   return (
     <div>
+      {showSalonReminder && (
+        <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", borderRadius: 14, background: "hsl(40,90%,96%)", border: "1.5px solid hsl(40,90%,80%)", marginBottom: 20 }}>
+          <Icon name="Building2" size={20} style={{ color: "hsl(30,95%,40%)", flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>Заполните «Мой салон» для более точного плана</div>
+            <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>Пока профиль салона не заполнен, план строится по данным диагностики ниже. Добавьте показатели салона и сотрудников — ИИ будет учитывать каждого специалиста по очереди.</div>
+          </div>
+          <button
+            onClick={() => onNav("salon")}
+            style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: "#fff", background: "hsl(30,95%,45%)", border: "none", borderRadius: 9, padding: "9px 16px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}
+          >
+            Заполнить
+          </button>
+        </div>
+      )}
+
       {/* Заголовок */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 24 }}>
         <div>
