@@ -38,12 +38,21 @@ export interface Profile {
   lead_source: string;
 }
 
+export interface SalonFocusStaff {
+  name: string;
+  role: string;
+  clients_per_month?: number | null;
+  revenue?: number | null;
+  avg_check?: number | null;
+  return_pct?: number | null;
+}
+
 export interface PodelamData {
   has_profile: boolean;
   profile?: Profile;
   growth_points?: GrowthPoint[];
   gap_amount?: number;
-  plan?: { tasks: Task[]; main_task_key: string | null; gap_amount: number; tomorrow_preview?: string; source?: string };
+  plan?: { tasks: Task[]; main_task_key: string | null; gap_amount: number; tomorrow_preview?: string; source?: string; salon_focus?: SalonFocusStaff | null };
   task_log?: Record<string, { done: boolean; actual_amount: number | null }>;
   today_income?: number | null;
 }

@@ -120,6 +120,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   const progress = profile ? Math.min(100, Math.round((profile.current_revenue / profile.target_revenue) * 100)) : 0;
   const tasks = plan?.tasks || [];
   const mainTask = tasks[0];
+  const salonFocus = plan?.salon_focus;
 
   const podelamContext = profile ? [
     `Ниша: ${profile.niche || "не указана"}`,
@@ -127,6 +128,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
     `Доход сейчас: ${fmt(profile.current_revenue)} ₽`,
     `Не хватает до цели: ${fmt(Math.max(0, gap_amount))} ₽ (${progress}% от цели уже выполнено)`,
     profile.has_addon_services && profile.addon_services_text ? `Дополнительные услуги/пакеты: ${profile.addon_services_text}` : "",
+    salonFocus ? `Фокус-сотрудник сегодня: ${salonFocus.name} (${salonFocus.role})` : "",
     growth_points.length ? `Где лежат деньги: ${growth_points.map(p => `${p.title} — до ${fmt(p.potential)} ₽ (${p.action})`).join("; ")}` : "",
     tasks.length ? `План на сегодня: ${tasks.map(t => `${t.title}${task_log[t.key]?.done ? " [выполнено]" : ""} — ${t.action_text}`).join("; ")}` : "",
     mainTask ? `Главное дело дня: ${mainTask.title} — ${mainTask.action_text}` : "",
@@ -257,7 +259,16 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
 
       {/* Экран 3: План на день */}
       <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16 }}>План на сегодня</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", letterSpacing: 1.5, textTransform: "uppercase" }}>План на сегодня</div>
+          {salonFocus && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: "hsl(185,85%,96%)", borderRadius: 20 }}>
+              <Icon name="UserRound" size={13} style={{ color: ACCENT }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT }}>Фокус дня: {salonFocus.name}</span>
+              <span style={{ fontSize: 11, color: "#64748B" }}>· {salonFocus.role}</span>
+            </div>
+          )}
+        </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {tasks.map((t, i) => {
             const done = task_log[t.key]?.done;

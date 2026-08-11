@@ -4,6 +4,10 @@
 Ручное пополнение и бонусы — не считаются.
 Формула: 10% от количества энергий = рубли (100 энергий → 10 ₽).
 GET  ?action=podelam_get           — профиль дохода + план на сегодня, план строит ИИ (модель terra через polza.ai) (X-Session-Id).
+                                       Для владельцев/администраторов салона с заполненным «Мой салон» дополнительно подмешиваются
+                                       реальные данные салона и сотрудников (salon_staff), с ротацией фокус-сотрудника по дням —
+                                       сегодня один специалист, завтра другой. Все доп. данные читаются ТОЛЬКО при первой генерации
+                                       плана за сутки (кэш в podelam_daily_plans), повторные заходы в этот же день — без единого запроса к ИИ или доп. таблицам.
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с — иначе запрос к ИИ обрывается по 504 и план не сохраняется.
 POST ?action=podelam_save_profile  — сохранить диагностику дохода (X-Session-Id)
 POST ?action=podelam_task_done     — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
@@ -199,6 +203,86 @@ def build_today_tasks(points: list, day_seed: int = 0) -> list:
     return tasks
 
 
+def build_salon_context(conn, salon_id: int, day_seed: int) -> dict | None:
+    """Для владельца/администратора салона собирает реальные данные из раздела «Мой салон»:
+    агрегированные показатели салона, услуги и (если заполнены) сотрудников из «Анализ персонала».
+    Фокус-сотрудник дня выбирается ротацией по day_seed — каждый день другой специалист.
+    Вызывается ТОЛЬКО при первой генерации плана за сутки (кэшируется вместе с планом),
+    повторные заходы в течение дня не делают дополнительных запросов к БД."""
+    if not salon_id:
+        return None
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT name, city, avg_check, monthly_revenue, clients_count, masters_count,
+                   target_audience, main_goal
+            FROM {SCHEMA}.salons WHERE id = %s""",
+        (salon_id,)
+    )
+    salon = cur.fetchone()
+    if not salon:
+        return None
+
+    cur.execute(
+        f"""SELECT name, price_min, price_max FROM {SCHEMA}.salon_services
+            WHERE salon_id = %s ORDER BY sort_order LIMIT 20""",
+        (salon_id,)
+    )
+    services = [
+        {"name": s["name"], "price_min": float(s["price_min"]) if s["price_min"] else None,
+         "price_max": float(s["price_max"]) if s["price_max"] else None}
+        for s in cur.fetchall()
+    ]
+
+    cur.execute(
+        f"""SELECT id, name, role, experience, clients_count, new_clients, return_pct,
+                   revenue, avg_check, has_upsell, rebooking_pct, has_rebooking_offer,
+                   service_score, has_sales_script
+            FROM {SCHEMA}.salon_staff
+            WHERE salon_id = %s AND is_active = TRUE ORDER BY id""",
+        (salon_id,)
+    )
+    staff_rows = cur.fetchall()
+
+    staff_list = []
+    focus_staff = None
+    if staff_rows:
+        for s in staff_rows:
+            staff_list.append({
+                "name": s["name"], "role": s["role"] or "не указана",
+                "experience_years": float(s["experience"]) if s["experience"] else None,
+                "clients_per_month": s["clients_count"], "new_clients": s["new_clients"],
+                "return_pct": float(s["return_pct"]) if s["return_pct"] else None,
+                "revenue": float(s["revenue"]) if s["revenue"] else None,
+                "avg_check": float(s["avg_check"]) if s["avg_check"] else None,
+                "has_upsell": s["has_upsell"], "rebooking_pct": float(s["rebooking_pct"]) if s["rebooking_pct"] else None,
+                "has_rebooking_offer": s["has_rebooking_offer"], "service_score": s["service_score"],
+                "has_sales_script": s["has_sales_script"],
+            })
+        # Ротация фокус-сотрудника по дню: каждый день — следующий по кругу
+        focus_row = staff_rows[day_seed % len(staff_rows)]
+        focus_staff = {
+            "name": focus_row["name"], "role": focus_row["role"] or "не указана",
+            "clients_per_month": focus_row["clients_count"], "revenue": float(focus_row["revenue"]) if focus_row["revenue"] else None,
+            "avg_check": float(focus_row["avg_check"]) if focus_row["avg_check"] else None,
+            "return_pct": float(focus_row["return_pct"]) if focus_row["return_pct"] else None,
+            "has_upsell": focus_row["has_upsell"], "has_rebooking_offer": focus_row["has_rebooking_offer"],
+            "service_score": focus_row["service_score"], "has_sales_script": focus_row["has_sales_script"],
+        }
+
+    return {
+        "salon": {
+            "name": salon["name"], "city": salon["city"],
+            "avg_check": float(salon["avg_check"]) if salon["avg_check"] else None,
+            "monthly_revenue": float(salon["monthly_revenue"]) if salon["monthly_revenue"] else None,
+            "clients_count": salon["clients_count"], "masters_count": salon["masters_count"],
+            "target_audience": salon["target_audience"] or None, "main_goal": salon["main_goal"] or None,
+        },
+        "services": services,
+        "staff_list": staff_list,
+        "focus_staff": focus_staff,
+    }
+
+
 # ── Генерация плана «ПоДелам» через ИИ (модель terra, polza.ai) ────────────
 
 PODELAM_MODEL = "openai/gpt-5.6-terra"
@@ -231,6 +315,36 @@ PODELAM_NAV_CATALOG = """
 Рекомендуй курс, ТОЧНО подходящий по категории роли пользователя (owner/admin/master/body) и по теме, которая \
 реально поможет с текущим разрывом в доходе (продажи, личный бренд, психология общения, ИИ-инструменты и т.д.).
 - academy — открывает раздел Академии со списком курсов
+
+Сотрудники (раздел «Сотрудники» в ЛК, employees) — команда и приглашения:
+- employees — открывает раздел управления командой (пригласить сотрудника, роли, доступы)
+"""
+
+# Инструкция для владельцев/администраторов салона с заполненными реальными данными
+# (профиль салона + список сотрудников из раздела «Мой салон» / «Анализ персонала»)
+PODELAM_SALON_MODE_PROMPT = """
+════════════════════════════════════════════════
+РЕЖИМ ВЛАДЕЛЬЦА/АДМИНИСТРАТОРА САЛОНА (передан salon_context)
+════════════════════════════════════════════════
+Пользователь — владелец или администратор салона, в payload дополнительно передан salon_context с реальными \
+данными из раздела «Мой салон» личного кабинета: агрегированные показатели салона (salon), список услуг (services) \
+и, если заполнен раздел «Анализ персонала», список сотрудников (staff_list) с их личными метриками (выручка, средний \
+чек, % повторных визитов, оценка сервиса, наличие допродаж и скриптов продаж).
+
+- Если staff_list НЕ пуст (салон с несколькими сотрудниками): обязательно посвяти 1-2 дела из плана КОНКРЕТНОМУ \
+фокус-сотруднику дня — он указан в salon_context.focus_staff (имя, специализация/роль и его личные метрики). \
+Используй его имя и специализацию прямо в title и action_text дела (например: «Massаж: разбор с Анной» вместо общих \
+формулировок), опирайся на ЕГО конкретные цифры (выручка, чек, % возврата, оценка сервиса, есть ли допродажи/скрипты) \
+чтобы предложить точечное действие именно для роста ЕГО показателей. Остальные 2-3 дела делай ОБЩИМИ по салону в целом \
+(заполнение расписания всего салона, акции и офферы на основе услуг services, отзывы, привлечение новых клиентов, \
+контент) на основе агрегированных данных salon_context.salon и его услуг. Фокус-сотрудник меняется автоматически \
+каждый день ротацией — не пытайся выбрать другого сотрудника сам, всегда используй именно focus_staff.
+- Если staff_list пуст (сотрудники ещё не добавлены) — работай только с агрегированными данными salon_context.salon \
+и services, как в обычном режиме, без выдуманных имён сотрудников. Никогда не выдумывай сотрудников, которых нет \
+в staff_list.
+- Приоритет данных: если salon_context.salon содержит monthly_revenue/avg_check — используй их как более точные \
+и актуальные, чем ручная диагностика профиля, но саму цель (target_revenue) и разрыв (gap_amount) бери из диагностики.
+════════════════════════════════════════════════
 """
 
 PODELAM_SYSTEM_PROMPT = f"""Ты — экспертный бизнес-консультант и маркетолог-стратег, встроенный в сервис «ПоДелам» \
@@ -239,7 +353,9 @@ PODELAM_SYSTEM_PROMPT = f"""Ты — экспертный бизнес-конс�
 Твоя задача — на основе диагностики конкретного мастера/салона построить ЧЁТКИЙ, ПРИЧИННО-СЛЕДСТВЕННЫЙ план роста дохода:
 1. Учти АБСОЛЮТНО ВСЕ данные из диагностики (ниша, средний чек, текущий и целевой доход, клиентов в месяц, \
 размер базы, % повторных визитов, свободные окна, есть ли допуслуги и их конкретный список/цены, откуда приходят записи, \
-роль пользователя role, доступные курсы Академии course_catalog).
+роль пользователя role, доступные курсы Академии course_catalog). Если в payload передан salon_context — это владелец/\
+администратор салона с реальными данными из раздела «Мой салон», действуй согласно отдельной инструкции ниже \
+(РЕЖИМ ВЛАДЕЛЬЦА/АДМИНИСТРАТОРА САЛОНА).
 2. Если указан конкретный список допуслуг/пакетов (addon_services_text) — используй ИМЕННО ЭТИ названия в действиях \
 и рекомендациях по допродажам вместо общих формулировок вроде "предложить допуслугу". Учитывай их ориентировочную \
 стоимость при расчёте potential, если она указана в тексте.
@@ -278,11 +394,12 @@ PODELAM_SYSTEM_PROMPT = f"""Ты — экспертный бизнес-конс�
 
 Правила по числам: potential — целые рубли, реалистичные исходя из среднего чека и базы клиентов, никогда не превышай \
 величину разрыва между текущим и целевым доходом суммарно по всем tasks (у дел из tools/academy potential = 0). \
-Дел должно быть 3-4, каждое выполнимо за 10-30 минут."""
+Дел должно быть 3-4, каждое выполнимо за 10-30 минут.
+{PODELAM_SALON_MODE_PROMPT}"""
 
 
 def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | None = None,
-                     yesterday_tasks: list | None = None) -> dict | None:
+                     yesterday_tasks: list | None = None, salon_context: dict | None = None) -> dict | None:
     """Запрашивает у модели terra (polza.ai) персональный план роста дохода. Возвращает None при ошибке."""
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
@@ -305,6 +422,8 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
         "course_catalog": courses or [],
         "yesterday_tasks": yesterday_tasks or [],
     }
+    if salon_context:
+        user_payload["salon_context"] = salon_context
 
     payload = json.dumps({
         "model": PODELAM_MODEL,
@@ -313,7 +432,7 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
             {"role": "user", "content": f"Диагностика мастера/салона:\n{json.dumps(user_payload, ensure_ascii=False, indent=2)}"},
         ],
         "temperature": 0.7,
-        "max_tokens": 2000,
+        "max_tokens": 2200 if salon_context else 2000,
     }).encode("utf-8")
 
     req = urllib.request.Request(
@@ -397,7 +516,16 @@ def handle_podelam_get(event: dict, conn) -> dict:
             yt = yesterday_row["tasks"] if isinstance(yesterday_row["tasks"], list) else json.loads(yesterday_row["tasks"])
             yesterday_tasks = [{"title": t.get("title"), "nav": t.get("nav")} for t in yt]
 
-        ai_result = call_podelam_ai(dict(profile), gap, role=role, courses=courses_for_role, yesterday_tasks=yesterday_tasks)
+        # Для владельца/администратора салона — подмешиваем реальные данные из «Мой салон»
+        # (агрегированные показатели, услуги, сотрудники) и фокус-сотрудника дня по ротации.
+        # Запрос делается ТОЛЬКО здесь — при первой генерации плана за сутки, не при каждом заходе.
+        salon_context = None
+        salon_id = user.get("salon_id")
+        if role in ("owner", "admin") and salon_id:
+            salon_context = build_salon_context(conn, salon_id, day_seed=today.toordinal())
+
+        ai_result = call_podelam_ai(dict(profile), gap, role=role, courses=courses_for_role,
+                                     yesterday_tasks=yesterday_tasks, salon_context=salon_context)
         if ai_result:
             points = ai_result["growth_points"]
             tasks = ai_result["tasks"]
@@ -411,21 +539,25 @@ def handle_podelam_get(event: dict, conn) -> dict:
             tomorrow_preview = default_preview
             source = "rules"
 
+        salon_focus = salon_context.get("focus_staff") if salon_context else None
+
         cur2 = conn.cursor()
         cur2.execute(
             f"""INSERT INTO {SCHEMA}.podelam_daily_plans
-                (user_id, plan_date, main_task_key, gap_amount, tasks, tomorrow_preview, source, growth_points)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                (user_id, plan_date, main_task_key, gap_amount, tasks, tomorrow_preview, source, growth_points, salon_focus)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (user_id, plan_date) DO NOTHING
                 RETURNING *""",
             (user["id"], today, main_key, gap, json.dumps(tasks, ensure_ascii=False),
-             tomorrow_preview, source, json.dumps(points, ensure_ascii=False))
+             tomorrow_preview, source, json.dumps(points, ensure_ascii=False),
+             json.dumps(salon_focus, ensure_ascii=False) if salon_focus else None)
         )
         cur2.fetchone()
         conn.commit()
         plan = {
             "tasks": tasks, "main_task_key": main_key, "gap_amount": gap,
             "plan_date": str(today), "tomorrow_preview": tomorrow_preview, "source": source,
+            "salon_focus": salon_focus,
         }
         growth_points = points
     else:
