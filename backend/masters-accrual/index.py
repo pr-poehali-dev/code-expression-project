@@ -1614,18 +1614,20 @@ def handle_comment_add(event: dict, conn) -> dict:
             reply_text = ai_verdict["reply"]
 
         if reply_text:
-            # Ответ уже сгенерирован, но публикуем его не мгновенно, а с человеческой задержкой
+            # Ответ уже сгенерирован, но публикуется не мгновенно, а с человеческой задержкой
             # (1-2.5 минуты) — иначе видно, что комментарий и ответ появляются одновременно,
-            # что выдаёт автоматику. visible_at скрывает запись из GET до этого момента,
-            # created_at при этом честно фиксирует момент написания для сортировки треда.
+            # что выдаёт автоматику. created_at = visible_at (момент фактической публикации),
+            # чтобы читатель видел время "написания" таким же, как момент появления в ленте,
+            # а не момент, когда ИИ сгенерировал текст на сервере.
             delay_seconds = random.randint(60, 150)
             cur3 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             cur3.execute(
                 f"""INSERT INTO {SCHEMA}.content_comments
-                    (post_id, user_id, parent_id, author_name, is_admin_reply, body, visible_at)
-                    VALUES (%s, %s, %s, %s, TRUE, %s, NOW() + (%s || ' seconds')::interval)
+                    (post_id, user_id, parent_id, author_name, is_admin_reply, body, created_at, visible_at)
+                    VALUES (%s, %s, %s, %s, TRUE, %s,
+                            NOW() + (%s || ' seconds')::interval, NOW() + (%s || ' seconds')::interval)
                     RETURNING id, post_id, parent_id, author_name, is_admin_reply, body, created_at, visible_at""",
-                (post_id, user["id"], new_comment["id"], ADMIN_NAME, reply_text, delay_seconds)
+                (post_id, user["id"], new_comment["id"], ADMIN_NAME, reply_text, delay_seconds, delay_seconds)
             )
             admin_reply = dict(cur3.fetchone())
             conn.commit()
