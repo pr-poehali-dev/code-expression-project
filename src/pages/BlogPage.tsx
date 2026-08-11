@@ -42,6 +42,7 @@ const CATEGORIES: { key: string; label: string }[] = [
   { key: "marketing", label: "Маркетинг" },
   { key: "upsell", label: "Допродажи" },
   { key: "clients", label: "Работа с клиентами" },
+  { key: "tools", label: "Инструменты платформы" },
 ];
 
 function formatDate(iso: string) {
