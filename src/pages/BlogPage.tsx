@@ -7,6 +7,7 @@ import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { markBlogSeen } from "@/pages/lk/blogNotice";
 import { toast } from "@/hooks/use-toast";
+import BlogComments from "./BlogComments";
 import func2url from "../../backend/func2url.json";
 
 const TEAL = "#2DD4BF";
@@ -26,7 +27,6 @@ interface Post {
   hashtags: string;
   category: string | null;
   category_label: string;
-  telegram_url: string | null;
 }
 
 interface RelatedPost {
@@ -322,6 +322,7 @@ export default function BlogPage() {
                           Поделиться
                         </button>
                       </div>
+                      {isOpen && <BlogComments postId={post.id} canComment={!!user} />}
                     </article>
                   );
                 })}

@@ -79,25 +79,17 @@
       "expectedStatus": 200
     },
     {
-      "name": "GET set_webhook without key — 403",
+      "name": "GET comments_list without post_id — 400",
       "method": "GET",
-      "path": "/?action=set_webhook&url=https://example.com",
-      "expectedStatus": 403
+      "path": "/?action=comments_list",
+      "expectedStatus": 400
     },
     {
-      "name": "GET webhook_info without key — 403",
-      "method": "GET",
-      "path": "/?action=webhook_info",
-      "expectedStatus": 403
-    },
-    {
-      "name": "POST empty telegram update — 200 ok",
+      "name": "POST comment_add without session — 401",
       "method": "POST",
-      "path": "/",
-      "body": {"update_id": 1},
-      "expectedStatus": 200,
-      "expectedBody": {"ok": true},
-      "bodyMatcher": "partial"
+      "path": "/?action=comment_add",
+      "body": {"post_id": 1, "text": "Тест"},
+      "expectedStatus": 401
     }
   ]
 }

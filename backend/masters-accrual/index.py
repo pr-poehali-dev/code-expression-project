@@ -22,21 +22,17 @@ POST ?action=podelam_set_income    — прибавить фактический
 GET/POST ?action=podelam_notify&key=ADMIN_TOKEN — cron: письмо пользователям с новым планом на сегодня, у кого ещё не отправлено.
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с при большом числе пользователей.
 GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет ежедневный экспертный пост и публикует в блог сайта
-                                       (главное, надёжное действие — обычный INSERT в БД). В Telegram-канал уходит только
-                                       короткий анонс (заголовок + превью + ссылка на статью в блоге), best-effort — сбой
-                                       отправки анонса НЕ мешает публикации статьи в блоге. Повторно в этот же день не
-                                       публикует, при повторном вызове донаправляет анонс, если он ещё не ушёл.
-                                       ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с.
-GET  ?action=content_list          — посты для ленты на сайте с пагинацией (page, limit, category), независимо от статуса
-                                       отправки анонса в Telegram. Полный текст (body) только авторизованным (X-Session-Id),
-                                       иначе только превью.
+                                       (простой INSERT в БД, ничего внешнего). ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с.
+GET  ?action=content_list          — посты для ленты на сайте с пагинацией (page, limit, category). Полный текст (body)
+                                       только авторизованным (X-Session-Id), иначе только превью.
 GET  ?action=content_related       — похожие посты той же категории (post_id, category, limit) для блока «Читать дальше».
-POST / c телом Telegram-апдейта (есть "update_id") — вебхук модерации группы обсуждений Telegram-канала:
-                                       удаляет мат/спам/ссылки/нерелевантные фото-видео (бан при повторном нарушении),
-                                       коротко отвечает только если сообщение — явный вопрос/обращение к боту.
-                                       Заголовок X-Telegram-Bot-Api-Secret-Token сверяется с TELEGRAM_WEBHOOK_SECRET.
-GET/POST ?action=set_webhook&key=ADMIN_TOKEN&url=<URL функции> — регистрирует вебхук модерации в Telegram.
-GET  ?action=webhook_info&key=ADMIN_TOKEN — текущая информация о вебхуке (диагностика).
+GET  ?action=comments_list&post_id=N — список комментариев к посту (дерево: комментарий + ответы), включая ответы
+                                       Админ Светланы (ИИ, модель gpt-4o-mini через polza.ai).
+POST ?action=comment_add           — оставить комментарий к посту (только авторизованным, X-Session-Id). body: post_id,
+                                       text, опц. parent_id (ответ на комментарий). Если комментарий — вопрос/обращение
+                                       по теме статьи, Админ Светлана отвечает автоматически (без пометки, что это ИИ).
+                                       Вопросы не по теме платформы/статьи получают ответ с просьбой обратиться в
+                                       техподдержку личного кабинета вместо содержательного ответа.
 POST / (без action или action=withdraw) — начисления мастерам (X-Master-Session)
 GET  / (без action) — история начислений мастера (X-Master-Session)
 """
@@ -70,7 +66,7 @@ PAID_ACTIONS = {"Покупка пакета энергии"}
 CORS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Master-Session, X-Internal-Key, X-Session-Id, X-Telegram-Bot-Api-Secret-Token",
+    "Access-Control-Allow-Headers": "Content-Type, X-Master-Session, X-Internal-Key, X-Session-Id",
 }
 
 
@@ -973,7 +969,7 @@ def handle_podelam_stats(event: dict, conn) -> dict:
     return ok({"week": week, "month": month})
 
 
-# ── Автопубликация ежедневного экспертного поста (ИИ, модель terra) в Telegram ─
+# ── Автопубликация ежедневного экспертного поста (ИИ, модель terra) в блог ────
 
 CONTENT_AI_URL = "https://polza.ai/api/v1/chat/completions"
 CONTENT_AI_MODEL = "openai/gpt-5.6-terra"
@@ -1232,59 +1228,8 @@ Telegram, соцсети, реклама, отзывы, повторные ви�
         return None
 
 
-def send_telegram_announcement(post_id: int, title: str, excerpt: str) -> int | None:
-    """Публикует в Telegram-канал КОРОТКИЙ анонс поста (заголовок + превью + ссылка на статью
-    в блоге сайта) — сама статья целиком живёт только в блоге. Короткое сообщение отправляется
-    быстрее и надёжнее полного текста, а таймаут/сбой Telegram больше не мешает публикации в блог
-    (статья к этому моменту уже сохранена в БД). Возвращает message_id или None при ошибке/отсутствии настроек."""
-    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-    channel_id = os.environ.get("TELEGRAM_CHANNEL_ID", "")
-    if not bot_token or not channel_id:
-        return None
-
-    def esc(text: str) -> str:
-        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-    post_url = f"{SITE_URL}/blog?post={post_id}"
-    text = f"<b>{esc(title)}</b>\n\n{esc(excerpt)}"
-    payload = json.dumps({
-        "chat_id": channel_id,
-        "text": text,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": False,
-        "reply_markup": {
-            "inline_keyboard": [[
-                {"text": "Читать статью →", "url": post_url}
-            ]]
-        },
-    }).encode("utf-8")
-
-    for attempt in range(2):
-        req = urllib.request.Request(
-            f"https://api.telegram.org/bot{bot_token}/sendMessage",
-            data=payload,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-            if data.get("ok"):
-                return data["result"]["message_id"]
-            print(f"[content_publisher] Telegram API вернул ok=false: {data}")
-            return None
-        except urllib.error.HTTPError as e:
-            print(f"[content_publisher] Telegram HTTPError {e.code}: {e.read().decode('utf-8', 'ignore')}")
-            return None
-        except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError) as e:
-            print(f"[content_publisher] Telegram send failed (attempt {attempt + 1}/2): {type(e).__name__}: {e}")
-            if attempt == 0:
-                time.sleep(1)
-    return None
-
-
 def handle_content_daily_post(event: dict, conn) -> dict:
-    """Cron: генерирует (если ещё нет) и публикует пост дня в Telegram."""
+    """Cron: генерирует (если ещё нет) и публикует пост дня в блог сайта."""
     admin_token = os.environ.get("ADMIN_TOKEN", "")
     qs = event.get("queryStringParameters") or {}
     key = (event.get("headers") or {}).get("X-Internal-Key", "") or qs.get("key", "")
@@ -1299,18 +1244,6 @@ def handle_content_daily_post(event: dict, conn) -> dict:
     )
     existing = cur.fetchone()
     if existing:
-        # Статья уже опубликована в блоге — это главное. Анонс в Telegram (best-effort) пробуем
-        # довести только если он ещё не ушёл; сбой Telegram НЕ влияет на публикацию в блоге.
-        if not existing.get("telegram_message_id"):
-            retry_id = send_telegram_announcement(existing["id"], existing["title"], existing.get("excerpt") or "")
-            if retry_id:
-                cur_retry = conn.cursor()
-                cur_retry.execute(
-                    f"UPDATE {SCHEMA}.content_posts SET telegram_message_id = %s, telegram_sent_at = now() WHERE id = %s",
-                    (retry_id, existing["id"])
-                )
-                conn.commit()
-                existing["telegram_message_id"] = retry_id
         return ok({"post": dict(existing), "created": False})
 
     category = get_next_content_category(conn)
@@ -1335,8 +1268,7 @@ def handle_content_daily_post(event: dict, conn) -> dict:
         if t
     )
 
-    # Главное действие — сохранить статью в блог. Это простой INSERT, он не зависит от
-    # внешних сервисов вроде Telegram и не может «зависнуть» из-за таймаута соединения.
+    # Единственное действие — сохранить статью в блог. Простой INSERT, ничего внешнего.
     cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur2.execute(
         f"""INSERT INTO {SCHEMA}.content_posts (post_date, title, excerpt, body, hashtags, category, topic, source)
@@ -1352,27 +1284,14 @@ def handle_content_daily_post(event: dict, conn) -> dict:
         row = cur.fetchone()
         return ok({"post": dict(row), "created": False})
 
-    # Статья уже в блоге и доступна читателям независимо от результата ниже.
-    # Анонс в Telegram — короткое сообщение (заголовок + превью + ссылка), best-effort:
-    # при сбое пост в блоге всё равно опубликован, анонс можно будет доотправить следующим cron-запуском.
-    message_id = send_telegram_announcement(row["id"], row["title"], row.get("excerpt") or "")
-    if message_id:
-        cur3 = conn.cursor()
-        cur3.execute(
-            f"UPDATE {SCHEMA}.content_posts SET telegram_message_id = %s, telegram_sent_at = now() WHERE id = %s",
-            (message_id, row["id"])
-        )
-        conn.commit()
-        row["telegram_message_id"] = message_id
-
-    return ok({"post": dict(row), "created": True, "telegram_sent": bool(message_id)})
+    return ok({"post": dict(row), "created": True})
 
 
 def handle_content_list(event: dict, conn) -> dict:
     """Список опубликованных постов для ленты на сайте, с пагинацией (?page, ?limit) и фильтром
     по ?category=marketing|upsell|clients. Полный текст (body) отдаётся только авторизованным
     пользователям личного кабинета (X-Session-Id) — иначе только заголовок и превью.
-    ?post_id=N — вернуть конкретный пост по id (для перехода по ссылке из Telegram-анонса),
+    ?post_id=N — вернуть конкретный пост по id (для перехода по прямой ссылке на статью),
     игнорируя пагинацию и фильтр категории."""
     qs = event.get("queryStringParameters") or {}
     try:
@@ -1393,10 +1312,6 @@ def handle_content_list(event: dict, conn) -> dict:
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
     is_authorized = bool(session_id and get_lk_user_by_session(session_id, conn))
 
-    channel = os.environ.get("TELEGRAM_CHANNEL_ID", "").lstrip("@")
-
-    # Пост публикуется в блоге сразу при создании — независимо от статуса отправки анонса
-    # в Telegram (telegram_message_id может быть NULL, если анонс ещё не ушёл или не настроен).
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     if post_id:
         where_clause = "WHERE id = %s"
@@ -1412,7 +1327,7 @@ def handle_content_list(event: dict, conn) -> dict:
     total = cur.fetchone()["total"]
 
     cur.execute(
-        f"""SELECT id, post_date, title, excerpt, body, hashtags, category, telegram_message_id, created_at
+        f"""SELECT id, post_date, title, excerpt, body, hashtags, category, created_at
             FROM {SCHEMA}.content_posts
             {where_clause}
             ORDER BY post_date DESC
@@ -1421,8 +1336,6 @@ def handle_content_list(event: dict, conn) -> dict:
     )
     rows = [dict(r) for r in cur.fetchall()]
     for r in rows:
-        msg_id = r.get("telegram_message_id")
-        r["telegram_url"] = f"https://t.me/{channel}/{msg_id}" if channel and not channel.lstrip("-").isdigit() and msg_id else None
         r["category_label"] = CONTENT_CATEGORIES.get(r.get("category"), "")
         if not is_authorized:
             r["body"] = None
@@ -1456,7 +1369,7 @@ def handle_content_related(event: dict, conn) -> dict:
 
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"""SELECT id, post_date, title, excerpt, category, telegram_message_id
+        f"""SELECT id, post_date, title, excerpt, category
             FROM {SCHEMA}.content_posts
             WHERE category = %s AND id != %s
             ORDER BY post_date DESC
@@ -1467,6 +1380,186 @@ def handle_content_related(event: dict, conn) -> dict:
     for r in rows:
         r["category_label"] = CONTENT_CATEGORIES.get(r.get("category"), "")
     return ok({"posts": rows})
+
+
+# ── Комментарии к постам блога + ответы «Админ Светлана» (ИИ, gpt-4o-mini) ─────
+
+COMMENTS_AI_MODEL = "openai/gpt-4o-mini"
+COMMENTS_AI_URL = "https://polza.ai/api/v1/chat/completions"
+ADMIN_NAME = "Светлана"
+
+SUPPORT_REDIRECT_REPLY = (
+    "По вопросам работы платформы, оплаты или доступа лучше сразу написать в техподдержку "
+    "личного кабинета — там быстрее разберутся и подскажут точно по вашему аккаунту."
+)
+
+
+def build_comment_ai_prompt(post_title: str, post_body: str, category_label: str) -> str:
+    return f"""Ты — Светлана, администратор блога платформы «Промт Диалог» (инструменты для салонов красоты и мастеров: \
+маркетинг, обучение, ИИ-инструменты, навигатор дохода «ПоДелам»). Ты отвечаешь на комментарии читателей под конкретной \
+статьёй блога. Никогда, ни при каких условиях не сообщай и не намекай, что ты ИИ, бот, нейросеть или автоматический \
+ответ — ты живой администратор блога по имени Светлана.
+
+СТАТЬЯ, ПОД КОТОРОЙ ОСТАВЛЕН КОММЕНТАРИЙ (рубрика «{category_label}»):
+Заголовок: {post_title}
+Текст: {post_body}
+
+Твоя задача — оценить комментарий читателя и ответить СТРОГО в формате JSON без markdown-обёртки:
+{{
+  "should_reply": true/false,
+  "reply": "текст ответа" | null,
+  "redirect_to_support": true/false
+}}
+
+Правила:
+- should_reply=true, если комментарий — вопрос, просьба уточнить, несогласие по теме статьи или прямое обращение \
+к администрации по теме статьи. should_reply=false для простых благодарностей, согласия, эмоциональных реплик без \
+вопроса — на них отвечать не нужно (reply тогда null).
+- Если вопрос ПО ТЕМЕ СТАТЬИ (уточнение совета, как применить, почему так, личный опыт по теме) — дай развёрнутый, \
+полезный, дружелюбный ответ на 2-5 предложений, как живой человек-эксперт, по-русски, на "вы", без канцелярита. \
+Можно вести диалог, уточнять детали ситуации читателя, давать дополнительные советы по теме статьи.
+- Если вопрос НЕ по теме статьи и не по бьюти-бизнесу вообще, а касается работы самой платформы «Промт Диалог» \
+(оплата, доступ, техническая проблема, тарифы, личный кабинет, баг) — redirect_to_support=true, reply = null \
+(программно подставится стандартная фраза с просьбой обратиться в техподдержку).
+- Если вопрос явно оскорбительный, спам или реклама постороннего — should_reply=false, reply=null.
+- Никогда не упоминай, что ты ИИ, модель, бот или автоматика. Ты — Светлана, администратор блога."""
+
+
+def call_comment_ai(comment_text: str, post_title: str, post_body: str, category_label: str) -> dict | None:
+    """Просит ИИ (от имени Админ Светланы) оценить комментарий и сформировать ответ. None при ошибке."""
+    api_key = os.environ.get("POLZA_AI_API_KEY", "") or os.environ.get("OPENAI_API_KEY", "")
+    if not api_key:
+        return None
+
+    system_prompt = build_comment_ai_prompt(post_title, post_body[:2000], category_label)
+    payload = json.dumps({
+        "model": COMMENTS_AI_MODEL,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": comment_text[:1500]},
+        ],
+        "temperature": 0.6,
+        "max_tokens": 400,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        COMMENTS_AI_URL, data=payload,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        content = data["choices"][0]["message"]["content"].strip()
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            content = content.strip()
+        return json.loads(content)
+    except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError) as e:
+        print(f"[comments_ai] failed: {type(e).__name__}: {e}")
+        return None
+
+
+def handle_comments_list(event: dict, conn) -> dict:
+    """Список комментариев к посту (плоский список с parent_id для отображения дерева ответов)."""
+    qs = event.get("queryStringParameters") or {}
+    try:
+        post_id = int(qs.get("post_id", 0))
+    except ValueError:
+        post_id = 0
+    if not post_id:
+        return err("Не указан post_id")
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT id, post_id, parent_id, author_name, is_admin_reply, body, created_at
+            FROM {SCHEMA}.content_comments
+            WHERE post_id = %s
+            ORDER BY created_at ASC""",
+        (post_id,)
+    )
+    rows = [dict(r) for r in cur.fetchall()]
+    return ok({"comments": rows})
+
+
+def handle_comment_add(event: dict, conn) -> dict:
+    """Добавляет комментарий авторизованного пользователя к посту. Если это вопрос/обращение по теме
+    статьи — Админ Светлана (ИИ, gpt-4o-mini) отвечает развёрнуто в том же треде; вопросы по работе
+    платформы получают ответ с просьбой обратиться в техподдержку личного кабинета вместо содержательного ответа."""
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+    if not session_id:
+        return err("Не авторизован", 401)
+    user = get_lk_user_by_session(session_id, conn)
+    if not user:
+        return err("Сессия истекла", 401)
+
+    body = json.loads(event.get("body") or "{}")
+    try:
+        post_id = int(body.get("post_id", 0))
+    except (TypeError, ValueError):
+        post_id = 0
+    text = (body.get("text") or "").strip()
+    parent_id = body.get("parent_id")
+    try:
+        parent_id = int(parent_id) if parent_id else None
+    except (TypeError, ValueError):
+        parent_id = None
+
+    if not post_id:
+        return err("Не указан post_id")
+    if not text:
+        return err("Комментарий не может быть пустым")
+    if len(text) > 2000:
+        return err("Комментарий слишком длинный")
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT id, title, body, category FROM {SCHEMA}.content_posts WHERE id = %s",
+        (post_id,)
+    )
+    post = cur.fetchone()
+    if not post:
+        return err("Пост не найден", 404)
+
+    author_name = (user.get("full_name") or "").strip() or "Читатель"
+
+    cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur2.execute(
+        f"""INSERT INTO {SCHEMA}.content_comments (post_id, user_id, parent_id, author_name, is_admin_reply, body)
+            VALUES (%s, %s, %s, %s, FALSE, %s)
+            RETURNING id, post_id, parent_id, author_name, is_admin_reply, body, created_at""",
+        (post_id, user["id"], parent_id, author_name, text)
+    )
+    new_comment = dict(cur2.fetchone())
+    conn.commit()
+
+    # Ответ Админ Светланы — best-effort: если ИИ недоступен или сбой, комментарий пользователя
+    # всё равно уже сохранён и опубликован, диалог просто не продолжится автоматически.
+    category_label = CONTENT_CATEGORIES.get(post.get("category"), "")
+    ai_verdict = call_comment_ai(text, post["title"], post.get("body") or "", category_label)
+
+    admin_reply = None
+    if ai_verdict and ai_verdict.get("should_reply"):
+        reply_text = None
+        if ai_verdict.get("redirect_to_support"):
+            reply_text = SUPPORT_REDIRECT_REPLY
+        elif ai_verdict.get("reply"):
+            reply_text = ai_verdict["reply"]
+
+        if reply_text:
+            cur3 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            cur3.execute(
+                f"""INSERT INTO {SCHEMA}.content_comments (post_id, user_id, parent_id, author_name, is_admin_reply, body)
+                    VALUES (%s, %s, %s, %s, TRUE, %s)
+                    RETURNING id, post_id, parent_id, author_name, is_admin_reply, body, created_at""",
+                (post_id, user["id"], new_comment["id"], ADMIN_NAME, reply_text)
+            )
+            admin_reply = dict(cur3.fetchone())
+            conn.commit()
+
+    return ok({"comment": new_comment, "admin_reply": admin_reply})
 
 
 def process_accruals(conn):
@@ -1496,367 +1589,6 @@ def process_accruals(conn):
     conn.commit()
 
 
-# ── Модерация группы обсуждений Telegram (бот отвечает на вопросы + чистит мусор) ──────────
-
-MODERATION_AI_MODEL = "openai/gpt-4o-mini"
-MODERATION_AI_URL = "https://polza.ai/api/v1/chat/completions"
-
-_MOD_LETTER_MAP = str.maketrans({
-    "0": "о", "1": "i", "3": "е", "4": "ч", "@": "a", "$": "s",
-    "!": "i", "|": "l",
-})
-
-_PROFANITY_STEMS = [
-    "хуй", "хуе", "хуя", "хуё", "пизд", "ебат", "ебал", "ебан", "ебуч",
-    "ёбан", "заеб", "наеб", "объеб", "разъеб", "выеб", "уеб", "еблан",
-    "бляд", "мудак", "мудил", "мудоз", "гондон", "гандон", "долбоеб",
-    "долбаеб", "залуп", "пидор", "пидар", "пидр", "сучар", "уебищ",
-    "хуило", "хуила",
-]
-
-_SPAM_MARKERS = [
-    "заработ", "подпишись", "подписывайся", "переходи по ссылк", "накрутк",
-    "casino", "казино", "ставки на спорт", "crypto", "криптовалют",
-    "инвестици", "продвижение канала", "работа на дому", "1xbet",
-    "заработай", "пассивный доход", "airdrop",
-]
-
-
-def _mod_normalize(text: str) -> str:
-    text = text.lower().translate(_MOD_LETTER_MAP)
-    text = re.sub(r"[^a-zа-яё0-9\s]", "", text)
-    text = re.sub(r"(.)\1{2,}", r"\1\1", text)
-    return text
-
-
-def has_profanity(text: str) -> bool:
-    norm = _mod_normalize(text)
-    return any(stem in norm for stem in _PROFANITY_STEMS)
-
-
-def has_spam_marker(text: str) -> bool:
-    norm = _mod_normalize(text)
-    return any(marker in norm for marker in _SPAM_MARKERS)
-
-
-_MOD_URL_RE = re.compile(
-    r"(https?://|www\.|t\.me/|telegram\.me/)|"
-    r"\b[a-zа-я0-9-]+\.(ru|com|net|org|рф|io|shop|store|xyz|site|online|biz|info)\b",
-    re.IGNORECASE,
-)
-
-
-def has_link(text: str, entities: list) -> bool:
-    for e in entities or []:
-        if e.get("type") in ("url", "text_link", "mention"):
-            return True
-    return bool(_MOD_URL_RE.search(text or ""))
-
-
-def tg_call(method: str, payload: dict, timeout: int = 15, retries: int = 0) -> dict | None:
-    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-    if not bot_token:
-        return None
-    for attempt in range(retries + 1):
-        req = urllib.request.Request(
-            f"https://api.telegram.org/bot{bot_token}/{method}",
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                return json.loads(resp.read().decode("utf-8"))
-        except urllib.error.HTTPError as e:
-            print(f"[tg_moderator] {method} HTTPError {e.code}: {e.read().decode('utf-8', 'ignore')}")
-            return None
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
-            print(f"[tg_moderator] {method} failed (attempt {attempt + 1}/{retries + 1}): {type(e).__name__}: {e}")
-    return None
-
-
-def tg_delete_message(chat_id: int, message_id: int) -> None:
-    tg_call("deleteMessage", {"chat_id": chat_id, "message_id": message_id}, timeout=6, retries=0)
-
-
-def tg_ban_user(chat_id: int, user_id: int) -> None:
-    tg_call("banChatMember", {"chat_id": chat_id, "user_id": user_id, "revoke_messages": False}, timeout=6, retries=0)
-
-
-def tg_send_message(chat_id: int, text: str, reply_to_message_id: int | None = None,
-                     thread_id: int | None = None) -> None:
-    payload = {"chat_id": chat_id, "text": text, "parse_mode": "HTML"}
-    if reply_to_message_id:
-        payload["reply_parameters"] = {"message_id": reply_to_message_id, "allow_sending_without_reply": True}
-    if thread_id:
-        payload["message_thread_id"] = thread_id
-    # Один повтор достаточно — повторные попытки при сетевых сбоях сильно повышают
-    # расход вычислительного времени, не гарантируя доставку при долгой просадке сети.
-    tg_call("sendMessage", payload, timeout=8, retries=1)
-
-
-def tg_download_file_as_data_url(file_id: str) -> str | None:
-    """Скачивает фото из Telegram и возвращает data:image/jpeg;base64,... для vision-запроса."""
-    info = tg_call("getFile", {"file_id": file_id}, timeout=8)
-    if not info or not info.get("ok"):
-        return None
-    file_path = info["result"].get("file_path")
-    if not file_path:
-        return None
-    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-    try:
-        with urllib.request.urlopen(
-            f"https://api.telegram.org/file/bot{bot_token}/{file_path}", timeout=15
-        ) as resp:
-            raw = resp.read()
-        b64 = base64.b64encode(raw).decode("ascii")
-        return f"data:image/jpeg;base64,{b64}"
-    except (urllib.error.URLError, TimeoutError) as e:
-        print(f"[tg_moderator] file download failed: {e}")
-        return None
-
-
-MOD_TEXT_SYSTEM_PROMPT = """Ты — модератор и короткий помощник в группе обсуждений Telegram-канала бьюти-платформы \
-«Промт Диалог» (промтдиалог.рф — инструменты и обучение для мастеров и салонов красоты).
-
-Оцени сообщение пользователя из комментариев и верни СТРОГО JSON без markdown:
-{
-  "violation": true/false,
-  "reason": "spam" | "rude" | "offtopic_ad" | null,
-  "reply": "короткий ответ (1-2 предложения)" | null
-}
-
-Правила:
-- violation=true, если сообщение — оскорбление, токсичность, грубость, скрытая реклама/спам постороннего \
-бизнеса, флуд бессмысленными символами. Матерные слова уже отфильтрованы раньше, ищи именно грубость и спам.
-- Обычные эмоциональные, но не оскорбительные комментарии — НЕ нарушение.
-- reply заполняй ТОЛЬКО если сообщение — явный вопрос или прямое обращение к боту/администрации \
-(например "а сколько стоит", "бот, подскажи", "как записаться", "работает ли для мастеров маникюра").
-- Если это просто комментарий/мнение/благодарность без вопроса — reply=null, даже если оно позитивное.
-- Ответ пиши дружелюбно, по-русски, на "вы", без канцелярита, максимум 2 коротких предложения, без ссылок.
-- Если не уверен в ответе на вопрос — reply можно оставить null."""
-
-
-def classify_text(text: str) -> dict:
-    api_key = os.environ.get("OPENAI_API_KEY", "") or os.environ.get("POLZA_AI_API_KEY", "")
-    if not api_key or not text.strip():
-        return {"violation": False, "reason": None, "reply": None}
-
-    payload = json.dumps({
-        "model": MODERATION_AI_MODEL,
-        "messages": [
-            {"role": "system", "content": MOD_TEXT_SYSTEM_PROMPT},
-            {"role": "user", "content": text[:2000]},
-        ],
-        "temperature": 0.3,
-        "max_tokens": 300,
-    }).encode("utf-8")
-
-    req = urllib.request.Request(
-        MODERATION_AI_URL, data=payload,
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        content = data["choices"][0]["message"]["content"].strip()
-        if content.startswith("```"):
-            content = content.split("```")[1]
-            if content.startswith("json"):
-                content = content[4:]
-        return json.loads(content)
-    except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError) as e:
-        print(f"[tg_moderator] classify_text failed: {type(e).__name__}: {e}")
-        return {"violation": False, "reason": None, "reply": None}
-
-
-MOD_IMAGE_SYSTEM_PROMPT = """Ты — модератор фото/видео в группе обсуждений бьюти-канала «Промт Диалог» \
-(мастера и салоны красоты). Посмотри на изображение и оцени, уместно ли оно в контексте обсуждения услуг \
-красоты, работ мастеров, вопросов по платформе, отзывов или общения по теме салона/бьюти-индустрии.
-Верни СТРОГО JSON без markdown: {"on_topic": true/false, "reason": "коротко почему, если не по теме"}
-Нерелевантным считай: рекламу постороннего бизнеса, обнажённый/шокирующий контент, мемы и картинки \
-никак не связанные с бьюти-темой или платформой. Фото причёсок, работ мастера, до/после, интерьера \
-салона, скриншотов платформы — это ПО ТЕМЕ (on_topic=true)."""
-
-
-def classify_image(data_url: str) -> dict:
-    api_key = os.environ.get("OPENAI_API_KEY", "") or os.environ.get("POLZA_AI_API_KEY", "")
-    if not api_key:
-        return {"on_topic": True, "reason": None}
-
-    payload = json.dumps({
-        "model": MODERATION_AI_MODEL,
-        "messages": [
-            {"role": "system", "content": MOD_IMAGE_SYSTEM_PROMPT},
-            {"role": "user", "content": [
-                {"type": "text", "text": "Оцени это изображение."},
-                {"type": "image_url", "image_url": {"url": data_url}},
-            ]},
-        ],
-        "temperature": 0.2,
-        "max_tokens": 200,
-    }).encode("utf-8")
-
-    req = urllib.request.Request(
-        MODERATION_AI_URL, data=payload,
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        content = data["choices"][0]["message"]["content"].strip()
-        if content.startswith("```"):
-            content = content.split("```")[1]
-            if content.startswith("json"):
-                content = content[4:]
-        return json.loads(content)
-    except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError) as e:
-        print(f"[tg_moderator] classify_image failed: {type(e).__name__}: {e}")
-        return {"on_topic": True, "reason": None}
-
-
-def register_violation(conn, chat_id: int, user_id: int, reason: str) -> int:
-    """Увеличивает счётчик предупреждений пользователя в чате, возвращает новое значение."""
-    cur = conn.cursor()
-    cur.execute(
-        f"""INSERT INTO {SCHEMA}.telegram_warnings (chat_id, user_id, warning_count, last_reason, last_violation_at)
-            VALUES (%s, %s, 1, %s, NOW())
-            ON CONFLICT (chat_id, user_id) DO UPDATE
-            SET warning_count = {SCHEMA}.telegram_warnings.warning_count + 1,
-                last_reason = EXCLUDED.last_reason,
-                last_violation_at = NOW()
-            RETURNING warning_count""",
-        (chat_id, user_id, reason)
-    )
-    count = cur.fetchone()[0]
-    conn.commit()
-    return count
-
-
-REASON_LABELS = {
-    "profanity": "нецензурная лексика",
-    "link": "ссылки/реклама",
-    "spam": "спам",
-    "rude": "грубость",
-    "offtopic_ad": "реклама постороннего",
-    "offtopic_media": "фото/видео не по теме",
-}
-
-
-def process_telegram_message(conn, message: dict) -> None:
-    chat = message.get("chat") or {}
-    chat_id = chat.get("id")
-    from_user = message.get("from") or {}
-    if not chat_id or from_user.get("is_bot"):
-        return
-    if chat.get("type") not in ("group", "supergroup"):
-        return
-
-    user_id = from_user.get("id")
-    first_name = from_user.get("first_name") or "Гость"
-    message_id = message.get("message_id")
-    thread_id = message.get("message_thread_id")
-    text = message.get("text") or message.get("caption") or ""
-    entities = message.get("entities") or message.get("caption_entities") or []
-
-    photos = message.get("photo") or []
-    video = message.get("video")
-    animation = message.get("animation")
-
-    reason = None
-
-    if text and has_profanity(text):
-        reason = "profanity"
-    elif has_link(text, entities):
-        reason = "link"
-    elif text and has_spam_marker(text):
-        reason = "spam"
-
-    ai_reply = None
-
-    if not reason and photos:
-        largest = photos[-1]
-        data_url = tg_download_file_as_data_url(largest.get("file_id"))
-        if data_url:
-            verdict = classify_image(data_url)
-            if not verdict.get("on_topic", True):
-                reason = "offtopic_media"
-    elif not reason and (video or animation):
-        media_obj = video or animation
-        thumb = (media_obj or {}).get("thumbnail") or (media_obj or {}).get("thumb")
-        if thumb:
-            data_url = tg_download_file_as_data_url(thumb.get("file_id"))
-            if data_url:
-                verdict = classify_image(data_url)
-                if not verdict.get("on_topic", True):
-                    reason = "offtopic_media"
-
-    if not reason and text.strip():
-        verdict = classify_text(text)
-        if verdict.get("violation"):
-            reason = verdict.get("reason") or "rude"
-        else:
-            ai_reply = verdict.get("reply")
-
-    if reason:
-        tg_delete_message(chat_id, message_id)
-        count = register_violation(conn, chat_id, user_id, reason)
-        label = REASON_LABELS.get(reason, "нарушение правил")
-        if count >= 2:
-            tg_ban_user(chat_id, user_id)
-            tg_send_message(
-                chat_id,
-                f"🚫 {first_name} заблокирован за повторное нарушение правил ({label}).",
-                thread_id=thread_id,
-            )
-        else:
-            tg_send_message(
-                chat_id,
-                f"⚠️ {first_name}, сообщение удалено ({label}). При повторном нарушении — блокировка.",
-                thread_id=thread_id,
-            )
-        return
-
-    if ai_reply:
-        tg_send_message(chat_id, ai_reply, reply_to_message_id=message_id, thread_id=thread_id)
-
-
-def handle_telegram_webhook(event: dict, update: dict, conn) -> dict:
-    headers = event.get("headers") or {}
-    webhook_secret = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "")
-    incoming_secret = headers.get("X-Telegram-Bot-Api-Secret-Token", "")
-    if webhook_secret and incoming_secret != webhook_secret:
-        return err("Доступ запрещён", 403)
-
-    message = update.get("message") or update.get("edited_message")
-    if not message:
-        return ok({"ok": True})
-
-    process_telegram_message(conn, message)
-    return ok({"ok": True})
-
-
-def handle_set_webhook(event: dict) -> dict:
-    qs = event.get("queryStringParameters") or {}
-    url = qs.get("url", "")
-    if not url:
-        return err("Нужен параметр url — публичный URL этой функции")
-    secret = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "")
-    result = tg_call("setWebhook", {
-        "url": url,
-        "secret_token": secret,
-        "allowed_updates": ["message", "edited_message"],
-    }, timeout=25)
-    return ok(result or {"ok": False, "error": "Нет ответа от Telegram"})
-
-
-def handle_webhook_info() -> dict:
-    result = tg_call("getWebhookInfo", {}, timeout=25)
-    return ok(result or {"ok": False})
-
-
 def handler(event: dict, context) -> dict:
     """Начисление и просмотр партнёрских вознаграждений мастеров + ПоДелам (навигатор дохода)."""
     if event.get("httpMethod") == "OPTIONS":
@@ -1882,7 +1614,7 @@ def handler(event: dict, context) -> dict:
         if route_action == "podelam_notify":
             return handle_podelam_notify(event, conn)
 
-        # ── Автопубликация ежедневного поста в Telegram ───────────────────────
+        # ── Автопубликация ежедневного поста в блог ───────────────────────────
         if route_action == "content_daily_post":
             return handle_content_daily_post(event, conn)
         if route_action == "content_list":
@@ -1890,26 +1622,11 @@ def handler(event: dict, context) -> dict:
         if route_action == "content_related":
             return handle_content_related(event, conn)
 
-        # ── Модерация группы обсуждений Telegram (админ-действия) ────────────
-        admin_token = os.environ.get("ADMIN_TOKEN", "")
-        if route_action == "set_webhook":
-            if not admin_token or qs.get("key", "") != admin_token:
-                return err("Доступ запрещён", 403)
-            return handle_set_webhook(event)
-        if route_action == "webhook_info":
-            if not admin_token or qs.get("key", "") != admin_token:
-                return err("Доступ запрещён", 403)
-            return handle_webhook_info()
-
-        # ── Вебхук Telegram (POST с телом апдейта, содержащим update_id) ─────
-        if method == "POST" and not route_action:
-            raw_body = event.get("body") or "{}"
-            try:
-                parsed_body = json.loads(raw_body)
-            except json.JSONDecodeError:
-                parsed_body = {}
-            if isinstance(parsed_body, dict) and "update_id" in parsed_body:
-                return handle_telegram_webhook(event, parsed_body, conn)
+        # ── Комментарии к постам блога (личный кабинет, X-Session-Id) ────────
+        if route_action == "comments_list":
+            return handle_comments_list(event, conn)
+        if route_action == "comment_add":
+            return handle_comment_add(event, conn)
 
         headers = event.get("headers") or {}
         session_id = headers.get("X-Master-Session", "")
