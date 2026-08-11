@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
@@ -56,9 +56,11 @@ function getSessionId(): string {
 export default function BlogPage() {
   const { user } = useLkAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sharedPostId = searchParams.get("post");
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [openId, setOpenId] = useState<number | null>(null);
+  const [openId, setOpenId] = useState<number | null>(sharedPostId ? Number(sharedPostId) : null);
   const [category, setCategory] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -108,7 +110,7 @@ export default function BlogPage() {
 
   useEffect(() => {
     setLoading(true);
-    setOpenId(null);
+    setOpenId(sharedPostId ? Number(sharedPostId) : null);
     const qs = new URLSearchParams({ action: "content_list", limit: String(PAGE_SIZE), page: String(page) });
     if (category) qs.set("category", category);
     fetch(`${CONTENT_URL}?${qs.toString()}`, {
@@ -126,6 +128,31 @@ export default function BlogPage() {
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, page, user]);
+
+  // Переход по ссылке из анонса в Telegram (/blog?post=ID) — подгружаем именно этот пост
+  // (может не быть на текущей странице ленты), открываем его и убираем query-параметр из URL.
+  useEffect(() => {
+    if (!sharedPostId) return;
+    const qs = new URLSearchParams({ action: "content_list", post_id: sharedPostId });
+    fetch(`${CONTENT_URL}?${qs.toString()}`, { headers: { "X-Session-Id": getSessionId() } })
+      .then(r => r.json())
+      .then(d => {
+        const post: Post | undefined = d.posts?.[0];
+        if (!post) return;
+        setPosts(prev => (prev.some(p => p.id === post.id) ? prev : [post, ...prev]));
+        setOpenId(post.id);
+        loadRelated(post);
+        requestAnimationFrame(() => {
+          document.getElementById(`blog-post-${post.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      })
+      .catch(() => {})
+      .finally(() => {
+        searchParams.delete("post");
+        setSearchParams(searchParams, { replace: true });
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sharedPostId]);
 
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", minHeight: "100vh" }}>

@@ -21,10 +21,15 @@ GET  ?action=podelam_stats         — статистика выполненны
 POST ?action=podelam_set_income    — прибавить фактический доход за день (amount, опц. date, mode="add"|"replace") (X-Session-Id)
 GET/POST ?action=podelam_notify&key=ADMIN_TOKEN — cron: письмо пользователям с новым планом на сегодня, у кого ещё не отправлено.
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с при большом числе пользователей.
-GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет ежедневный экспертный пост и публикует в Telegram-канал.
-                                       Повторно в этот же день не публикует. ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с.
-GET  ?action=content_list          — посты для ленты на сайте с пагинацией (page, limit, category).
-                                       Полный текст (body) только авторизованным (X-Session-Id), иначе только превью.
+GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет ежедневный экспертный пост и публикует в блог сайта
+                                       (главное, надёжное действие — обычный INSERT в БД). В Telegram-канал уходит только
+                                       короткий анонс (заголовок + превью + ссылка на статью в блоге), best-effort — сбой
+                                       отправки анонса НЕ мешает публикации статьи в блоге. Повторно в этот же день не
+                                       публикует, при повторном вызове донаправляет анонс, если он ещё не ушёл.
+                                       ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с.
+GET  ?action=content_list          — посты для ленты на сайте с пагинацией (page, limit, category), независимо от статуса
+                                       отправки анонса в Telegram. Полный текст (body) только авторизованным (X-Session-Id),
+                                       иначе только превью.
 GET  ?action=content_related       — похожие посты той же категории (post_id, category, limit) для блока «Читать дальше».
 POST / c телом Telegram-апдейта (есть "update_id") — вебхук модерации группы обсуждений Telegram-канала:
                                        удаляет мат/спам/ссылки/нерелевантные фото-видео (бан при повторном нарушении),
@@ -1227,8 +1232,11 @@ Telegram, соцсети, реклама, отзывы, повторные ви�
         return None
 
 
-def send_content_to_telegram(title: str, body: str, hashtags: str = "") -> int | None:
-    """Публикует пост в Telegram-канал. Возвращает message_id или None при ошибке/отсутствии настроек."""
+def send_telegram_announcement(post_id: int, title: str, excerpt: str) -> int | None:
+    """Публикует в Telegram-канал КОРОТКИЙ анонс поста (заголовок + превью + ссылка на статью
+    в блоге сайта) — сама статья целиком живёт только в блоге. Короткое сообщение отправляется
+    быстрее и надёжнее полного текста, а таймаут/сбой Telegram больше не мешает публикации в блог
+    (статья к этому моменту уже сохранена в БД). Возвращает message_id или None при ошибке/отсутствии настроек."""
     bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
     channel_id = os.environ.get("TELEGRAM_CHANNEL_ID", "")
     if not bot_token or not channel_id:
@@ -1237,8 +1245,8 @@ def send_content_to_telegram(title: str, body: str, hashtags: str = "") -> int |
     def esc(text: str) -> str:
         return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-    tags_line = f"\n\n{esc(hashtags)}" if hashtags else ""
-    text = f"<b>{esc(title)}</b>\n\n{esc(body)}{tags_line}"
+    post_url = f"{SITE_URL}/blog?post={post_id}"
+    text = f"<b>{esc(title)}</b>\n\n{esc(excerpt)}"
     payload = json.dumps({
         "chat_id": channel_id,
         "text": text,
@@ -1246,7 +1254,7 @@ def send_content_to_telegram(title: str, body: str, hashtags: str = "") -> int |
         "disable_web_page_preview": False,
         "reply_markup": {
             "inline_keyboard": [[
-                {"text": "Зарегистрироваться →", "url": f"{SITE_URL}/cabinet?tab=register"}
+                {"text": "Читать статью →", "url": post_url}
             ]]
         },
     }).encode("utf-8")
@@ -1259,7 +1267,7 @@ def send_content_to_telegram(title: str, body: str, hashtags: str = "") -> int |
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=20) as resp:
+            with urllib.request.urlopen(req, timeout=10) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
             if data.get("ok"):
                 return data["result"]["message_id"]
@@ -1271,7 +1279,7 @@ def send_content_to_telegram(title: str, body: str, hashtags: str = "") -> int |
         except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError) as e:
             print(f"[content_publisher] Telegram send failed (attempt {attempt + 1}/2): {type(e).__name__}: {e}")
             if attempt == 0:
-                time.sleep(1.5)
+                time.sleep(1)
     return None
 
 
@@ -1291,8 +1299,10 @@ def handle_content_daily_post(event: dict, conn) -> dict:
     )
     existing = cur.fetchone()
     if existing:
+        # Статья уже опубликована в блоге — это главное. Анонс в Telegram (best-effort) пробуем
+        # довести только если он ещё не ушёл; сбой Telegram НЕ влияет на публикацию в блоге.
         if not existing.get("telegram_message_id"):
-            retry_id = send_content_to_telegram(existing["title"], existing["body"], existing.get("hashtags") or "")
+            retry_id = send_telegram_announcement(existing["id"], existing["title"], existing.get("excerpt") or "")
             if retry_id:
                 cur_retry = conn.cursor()
                 cur_retry.execute(
@@ -1325,6 +1335,8 @@ def handle_content_daily_post(event: dict, conn) -> dict:
         if t
     )
 
+    # Главное действие — сохранить статью в блог. Это простой INSERT, он не зависит от
+    # внешних сервисов вроде Telegram и не может «зависнуть» из-за таймаута соединения.
     cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur2.execute(
         f"""INSERT INTO {SCHEMA}.content_posts (post_date, title, excerpt, body, hashtags, category, topic, source)
@@ -1340,7 +1352,10 @@ def handle_content_daily_post(event: dict, conn) -> dict:
         row = cur.fetchone()
         return ok({"post": dict(row), "created": False})
 
-    message_id = send_content_to_telegram(row["title"], row["body"], row.get("hashtags") or "")
+    # Статья уже в блоге и доступна читателям независимо от результата ниже.
+    # Анонс в Telegram — короткое сообщение (заголовок + превью + ссылка), best-effort:
+    # при сбое пост в блоге всё равно опубликован, анонс можно будет доотправить следующим cron-запуском.
+    message_id = send_telegram_announcement(row["id"], row["title"], row.get("excerpt") or "")
     if message_id:
         cur3 = conn.cursor()
         cur3.execute(
@@ -1356,7 +1371,9 @@ def handle_content_daily_post(event: dict, conn) -> dict:
 def handle_content_list(event: dict, conn) -> dict:
     """Список опубликованных постов для ленты на сайте, с пагинацией (?page, ?limit) и фильтром
     по ?category=marketing|upsell|clients. Полный текст (body) отдаётся только авторизованным
-    пользователям личного кабинета (X-Session-Id) — иначе только заголовок и превью."""
+    пользователям личного кабинета (X-Session-Id) — иначе только заголовок и превью.
+    ?post_id=N — вернуть конкретный пост по id (для перехода по ссылке из Telegram-анонса),
+    игнорируя пагинацию и фильтр категории."""
     qs = event.get("queryStringParameters") or {}
     try:
         limit = min(max(int(qs.get("limit", 6)), 1), 50)
@@ -1368,18 +1385,28 @@ def handle_content_list(event: dict, conn) -> dict:
         page = 1
     offset = (page - 1) * limit
     category = qs.get("category", "")
+    try:
+        post_id = int(qs.get("post_id", 0)) or None
+    except ValueError:
+        post_id = None
 
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
     is_authorized = bool(session_id and get_lk_user_by_session(session_id, conn))
 
     channel = os.environ.get("TELEGRAM_CHANNEL_ID", "").lstrip("@")
 
+    # Пост публикуется в блоге сразу при создании — независимо от статуса отправки анонса
+    # в Telegram (telegram_message_id может быть NULL, если анонс ещё не ушёл или не настроен).
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    where_clause = "WHERE telegram_message_id IS NOT NULL"
-    params: tuple = ()
-    if category and category in CONTENT_CATEGORIES:
-        where_clause += " AND category = %s"
-        params = (category,)
+    if post_id:
+        where_clause = "WHERE id = %s"
+        params: tuple = (post_id,)
+    else:
+        where_clause = ""
+        params = ()
+        if category and category in CONTENT_CATEGORIES:
+            where_clause = "WHERE category = %s"
+            params = (category,)
 
     cur.execute(f"SELECT COUNT(*) AS total FROM {SCHEMA}.content_posts {where_clause}", params)
     total = cur.fetchone()["total"]
@@ -1390,7 +1417,7 @@ def handle_content_list(event: dict, conn) -> dict:
             {where_clause}
             ORDER BY post_date DESC
             LIMIT %s OFFSET %s""",
-        params + (limit, offset)
+        params + (limit if not post_id else 1, offset if not post_id else 0)
     )
     rows = [dict(r) for r in cur.fetchall()]
     for r in rows:
@@ -1431,7 +1458,7 @@ def handle_content_related(event: dict, conn) -> dict:
     cur.execute(
         f"""SELECT id, post_date, title, excerpt, category, telegram_message_id
             FROM {SCHEMA}.content_posts
-            WHERE category = %s AND telegram_message_id IS NOT NULL AND id != %s
+            WHERE category = %s AND id != %s
             ORDER BY post_date DESC
             LIMIT %s""",
         (category, post_id, limit)
