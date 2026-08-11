@@ -90,6 +90,13 @@
       "path": "/?action=comment_add",
       "body": {"post_id": 1, "text": "Тест"},
       "expectedStatus": 401
+    },
+    {
+      "name": "POST comment_like without session — 401",
+      "method": "POST",
+      "path": "/?action=comment_like",
+      "body": {"comment_id": 1},
+      "expectedStatus": 401
     }
   ]
 }

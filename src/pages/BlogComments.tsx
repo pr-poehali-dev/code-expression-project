@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import Icon from "@/components/ui/icon";
 import func2url from "../../backend/func2url.json";
 
 const TEAL = "#2DD4BF";
@@ -16,6 +17,8 @@ interface Comment {
   is_admin_reply: boolean;
   body: string;
   created_at: string;
+  likes_count: number;
+  liked_by_me: boolean;
 }
 
 function getSessionId(): string {
@@ -46,7 +49,9 @@ export default function BlogComments({ postId, canComment }: { postId: number; c
 
   const load = (silent = false) => {
     if (!silent) setLoading(true);
-    return fetch(`${CONTENT_URL}?action=comments_list&post_id=${postId}`)
+    return fetch(`${CONTENT_URL}?action=comments_list&post_id=${postId}`, {
+      headers: { "X-Session-Id": getSessionId() },
+    })
       .then(r => r.json())
       .then(d => {
         const list: Comment[] = d.comments || [];
@@ -94,7 +99,7 @@ export default function BlogComments({ postId, canComment }: { postId: number; c
       });
       const data = await res.json();
       if (!res.ok) return;
-      setComments(prev => [...prev, data.comment]);
+      setComments(prev => [...prev, { ...data.comment, likes_count: 0, liked_by_me: false }]);
       if (data.admin_reply_pending) {
         // Ответ Светланы уже готов на сервере, но появится в ленте только через 1-2.5 минуты —
         // показываем индикатор "печатает…" под тем комментарием, на который она отвечает.
@@ -103,6 +108,31 @@ export default function BlogComments({ postId, canComment }: { postId: number; c
       onDone();
     } catch {
       // молча — комментарий можно попробовать отправить ещё раз
+    }
+  };
+
+  const toggleLike = async (commentId: number) => {
+    if (!canComment) return;
+    // Оптимистично обновляем UI, чтобы лайк срабатывал мгновенно
+    setComments(prev => prev.map(c => c.id === commentId
+      ? { ...c, liked_by_me: !c.liked_by_me, likes_count: c.likes_count + (c.liked_by_me ? -1 : 1) }
+      : c));
+    try {
+      const res = await fetch(`${CONTENT_URL}?action=comment_like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Session-Id": getSessionId() },
+        body: JSON.stringify({ comment_id: commentId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error();
+      setComments(prev => prev.map(c => c.id === commentId
+        ? { ...c, liked_by_me: data.liked_by_me, likes_count: data.likes_count }
+        : c));
+    } catch {
+      // откатываем оптимистичное изменение при ошибке
+      setComments(prev => prev.map(c => c.id === commentId
+        ? { ...c, liked_by_me: !c.liked_by_me, likes_count: c.likes_count + (c.liked_by_me ? -1 : 1) }
+        : c));
     }
   };
 
@@ -121,7 +151,7 @@ export default function BlogComments({ postId, canComment }: { postId: number; c
         <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 20 }}>
           {topLevel.map(c => (
             <div key={c.id}>
-              <CommentRow c={c} />
+              <CommentRow c={c} canLike={canComment} onToggleLike={() => toggleLike(c.id)} />
               {canComment && (
                 <button
                   onClick={() => { setReplyTo(replyTo === c.id ? null : c.id); setReplyText(""); }}
@@ -132,7 +162,7 @@ export default function BlogComments({ postId, canComment }: { postId: number; c
               )}
               {repliesOf(c.id).map(r => (
                 <div key={r.id} style={{ marginLeft: 44, marginTop: 12 }}>
-                  <CommentRow c={r} />
+                  <CommentRow c={r} canLike={canComment} onToggleLike={() => toggleLike(r.id)} />
                 </div>
               ))}
               {pendingParents.has(c.id) && (
@@ -190,7 +220,7 @@ export default function BlogComments({ postId, canComment }: { postId: number; c
   );
 }
 
-function CommentRow({ c }: { c: Comment }) {
+function CommentRow({ c, canLike, onToggleLike }: { c: Comment; canLike: boolean; onToggleLike: () => void }) {
   return (
     <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
       <div style={{
@@ -210,7 +240,20 @@ function CommentRow({ c }: { c: Comment }) {
           )}
           <span style={{ fontSize: 11.5, color: "#94A3B8" }}>{formatDateTime(c.created_at)}</span>
         </div>
-        <div style={{ fontSize: 14, color: "#334155", lineHeight: 1.55, whiteSpace: "pre-line" }}>{c.body}</div>
+        <div style={{ fontSize: 14, color: "#334155", lineHeight: 1.55, whiteSpace: "pre-line", marginBottom: 6 }}>{c.body}</div>
+        <button
+          onClick={onToggleLike}
+          disabled={!canLike}
+          title={canLike ? undefined : "Войдите, чтобы оценить комментарий"}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 5, background: "none", border: "none", padding: 0,
+            cursor: canLike ? "pointer" : "default", fontFamily: "Inter, sans-serif",
+            fontSize: 12.5, fontWeight: 600, color: c.liked_by_me ? "#0D9488" : "#94A3B8",
+          }}
+        >
+          <Icon name="Heart" size={14} style={c.liked_by_me ? { fill: "#0D9488", color: "#0D9488" } : undefined} />
+          {c.likes_count > 0 ? c.likes_count : ""}
+        </button>
       </div>
     </div>
   );

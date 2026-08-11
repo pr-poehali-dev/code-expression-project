@@ -27,12 +27,15 @@ GET  ?action=content_list          — посты для ленты на сай�
                                        только авторизованным (X-Session-Id), иначе только превью.
 GET  ?action=content_related       — похожие посты той же категории (post_id, category, limit) для блока «Читать дальше».
 GET  ?action=comments_list&post_id=N — список комментариев к посту (дерево: комментарий + ответы), включая ответы
-                                       Админ Светланы (ИИ, модель gpt-4o-mini через polza.ai).
+                                       Админ Светланы (ИИ, модель gpt-4o-mini через polza.ai), с количеством лайков
+                                       (likes_count) и флагом liked_by_me для авторизованного читателя (X-Session-Id опц.).
 POST ?action=comment_add           — оставить комментарий к посту (только авторизованным, X-Session-Id). body: post_id,
                                        text, опц. parent_id (ответ на комментарий). Если комментарий — вопрос/обращение
                                        по теме статьи, Админ Светлана отвечает автоматически (без пометки, что это ИИ).
                                        Вопросы не по теме платформы/статьи получают ответ с просьбой обратиться в
                                        техподдержку личного кабинета вместо содержательного ответа.
+POST ?action=comment_like          — поставить/снять свой лайк на комментарии (только авторизованным, X-Session-Id).
+                                       body: comment_id. Возвращает liked_by_me и итоговый likes_count.
 POST / (без action или action=withdraw) — начисления мастерам (X-Master-Session)
 GET  / (без action) — история начислений мастера (X-Master-Session)
 """
@@ -1463,7 +1466,8 @@ def call_comment_ai(comment_text: str, post_title: str, post_body: str, category
 
 
 def handle_comments_list(event: dict, conn) -> dict:
-    """Список комментариев к посту (плоский список с parent_id для отображения дерева ответов).
+    """Список комментариев к посту (плоский список с parent_id для отображения дерева ответов),
+    с количеством лайков на каждом и флагом liked_by_me для авторизованного читателя.
     Ответы Админ Светланы скрыты до наступления visible_at — создаётся видимость, что она
     печатает ответ не мгновенно, а с обычной человеческой задержкой (см. handle_comment_add)."""
     qs = event.get("queryStringParameters") or {}
@@ -1474,16 +1478,75 @@ def handle_comments_list(event: dict, conn) -> dict:
     if not post_id:
         return err("Не указан post_id")
 
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+    viewer = get_lk_user_by_session(session_id, conn) if session_id else None
+    viewer_id = viewer["id"] if viewer else 0
+
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"""SELECT id, post_id, parent_id, author_name, is_admin_reply, body, created_at
-            FROM {SCHEMA}.content_comments
-            WHERE post_id = %s AND visible_at <= NOW()
-            ORDER BY created_at ASC""",
-        (post_id,)
+        f"""SELECT c.id, c.post_id, c.parent_id, c.author_name, c.is_admin_reply, c.body, c.created_at,
+                   COUNT(l.id) AS likes_count,
+                   COUNT(l.id) FILTER (WHERE l.user_id = %s) > 0 AS liked_by_me
+            FROM {SCHEMA}.content_comments c
+            LEFT JOIN {SCHEMA}.content_comment_likes l ON l.comment_id = c.id
+            WHERE c.post_id = %s AND c.visible_at <= NOW()
+            GROUP BY c.id
+            ORDER BY c.created_at ASC""",
+        (viewer_id, post_id)
     )
     rows = [dict(r) for r in cur.fetchall()]
     return ok({"comments": rows})
+
+
+def handle_comment_like(event: dict, conn) -> dict:
+    """Переключает лайк текущего пользователя на комментарии (поставить/снять). Требует авторизации."""
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+    if not session_id:
+        return err("Не авторизован", 401)
+    user = get_lk_user_by_session(session_id, conn)
+    if not user:
+        return err("Сессия истекла", 401)
+
+    body = json.loads(event.get("body") or "{}")
+    try:
+        comment_id = int(body.get("comment_id", 0))
+    except (TypeError, ValueError):
+        comment_id = 0
+    if not comment_id:
+        return err("Не указан comment_id")
+
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT id FROM {SCHEMA}.content_comments WHERE id = %s",
+        (comment_id,)
+    )
+    if not cur.fetchone():
+        return err("Комментарий не найден", 404)
+
+    cur.execute(
+        f"SELECT id FROM {SCHEMA}.content_comment_likes WHERE comment_id = %s AND user_id = %s",
+        (comment_id, user["id"])
+    )
+    existing = cur.fetchone()
+    if existing:
+        cur.execute(
+            f"DELETE FROM {SCHEMA}.content_comment_likes WHERE comment_id = %s AND user_id = %s",
+            (comment_id, user["id"])
+        )
+        liked = False
+    else:
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.content_comment_likes (comment_id, user_id) VALUES (%s, %s) "
+            f"ON CONFLICT (comment_id, user_id) DO NOTHING",
+            (comment_id, user["id"])
+        )
+        liked = True
+    conn.commit()
+
+    cur.execute(f"SELECT COUNT(*) FROM {SCHEMA}.content_comment_likes WHERE comment_id = %s", (comment_id,))
+    likes_count = cur.fetchone()[0]
+
+    return ok({"comment_id": comment_id, "liked_by_me": liked, "likes_count": likes_count})
 
 
 def handle_comment_add(event: dict, conn) -> dict:
@@ -1638,6 +1701,8 @@ def handler(event: dict, context) -> dict:
             return handle_comments_list(event, conn)
         if route_action == "comment_add":
             return handle_comment_add(event, conn)
+        if route_action == "comment_like":
+            return handle_comment_like(event, conn)
 
         headers = event.get("headers") or {}
         session_id = headers.get("X-Master-Session", "")
