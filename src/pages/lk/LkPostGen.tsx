@@ -30,8 +30,12 @@ export default function LkPostGen() {
   const { user } = useLkAuth();
   const hasSalon = !!user?.salon_id;
 
-  // Шаг 1 — вводные
-  const [topic, setTopic] = useState("");
+  // Шаг 1 — вводные (тема может прийти готовой из «ПоДелам» через sessionStorage)
+  const [topic, setTopic] = useState(() => {
+    const pending = sessionStorage.getItem("lk_postgen_topic_pending");
+    if (pending) { sessionStorage.removeItem("lk_postgen_topic_pending"); return pending; }
+    return "";
+  });
   const [goal, setGoal] = useState("");
   const [tone, setTone] = useState("");
 

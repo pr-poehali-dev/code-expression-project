@@ -3,7 +3,7 @@ import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { markPodelamSeen } from "./podelamNotice";
 import SalonAIAgent from "./SalonAIAgent";
-import { ACCENT, ACCENT_DARK, PODELAM_URL, sid, PodelamData, StatsData, fmt } from "./podelamShared";
+import { ACCENT, ACCENT_DARK, PODELAM_URL, sid, PodelamData, StatsData, fmt, TOPIC_KEY_BY_NAV } from "./podelamShared";
 import DiagnosticForm from "./PodelamDiagnosticForm";
 import InfoModal from "./PodelamInfoModal";
 import { DailyIncomeCard, StatsSection } from "./PodelamWidgets";
@@ -18,12 +18,17 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   const [editing, setEditing] = useState(false);
   const [marking, setMarking] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState<Record<string, string>>({});
   const agentRef = useRef<HTMLDivElement>(null);
 
-  const goTo = useCallback((target: string) => {
+  const goTo = useCallback((target: string, topic?: string) => {
     if (target === "agent") {
       agentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
+    }
+    if (topic) {
+      const key = TOPIC_KEY_BY_NAV[target];
+      if (key) sessionStorage.setItem(key, topic);
     }
     onNav(target);
   }, [onNav]);
@@ -280,13 +285,44 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
           </div>
           <div style={{ fontSize: 19, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>{mainTask.title}</div>
           <div style={{ fontSize: 14, color: "#64748B", marginBottom: 14, lineHeight: 1.6 }}>{mainTask.action_text}</div>
+          {mainTask.why && (
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-start", background: "hsl(40,90%,97%)", border: "1px solid hsl(40,90%,88%)", borderRadius: 10, padding: "10px 12px", marginBottom: 14 }}>
+              <Icon name="Lightbulb" size={14} style={{ color: "hsl(40,90%,40%)", flexShrink: 0, marginTop: 1 }} />
+              <div style={{ fontSize: 12.5, color: "#78350F", lineHeight: 1.55 }}>{mainTask.why}</div>
+            </div>
+          )}
+          {mainTask.topic_options && mainTask.topic_options.length > 0 && (
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Готовые темы на выбор</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {mainTask.topic_options.map((topic, i) => {
+                  const active = selectedTopic[mainTask.key] === topic;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedTopic(p => ({ ...p, [mainTask.key]: topic }))}
+                      style={{
+                        textAlign: "left", padding: "9px 12px", borderRadius: 9, cursor: "pointer",
+                        border: `1.5px solid ${active ? ACCENT : "#E2E8F0"}`,
+                        background: active ? "hsl(185,85%,96%)" : "#fff",
+                        color: active ? ACCENT_DARK : "#334155",
+                        fontSize: 13, fontWeight: active ? 700 : 500, fontFamily: "Montserrat,sans-serif",
+                      }}
+                    >
+                      {topic}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {mainTask.potential > 0 && (
             <div style={{ fontSize: 13, fontWeight: 600, color: "hsl(145,60%,35%)", marginBottom: 16 }}>
               Потенциал: до {fmt(mainTask.potential)} ₽
             </div>
           )}
           <button
-            onClick={() => goTo(mainTask.nav)}
+            onClick={() => goTo(mainTask.nav, selectedTopic[mainTask.key])}
             style={{ padding: "11px 22px", borderRadius: 10, border: "none", background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
           >
             {mainTask.button}
@@ -309,30 +345,61 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {tasks.map((t, i) => {
             const done = task_log[t.key]?.done;
+            const hasTopics = !done && t.topic_options && t.topic_options.length > 0;
             return (
-              <div key={t.key + i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", borderRadius: 12, background: done ? "hsl(145,60%,97%)" : "#F8FAFC", border: `1px solid ${done ? "hsl(145,60%,85%)" : "#E8ECF0"}` }}>
-                <button
-                  onClick={() => !done && markDone(t.key)}
-                  disabled={marking === t.key}
-                  style={{
-                    width: 26, height: 26, borderRadius: "50%", flexShrink: 0, border: `2px solid ${done ? "hsl(145,60%,45%)" : "#CBD5E1"}`,
-                    background: done ? "hsl(145,60%,45%)" : "#fff", cursor: done ? "default" : "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  {done && <Icon name="Check" size={14} style={{ color: "#fff" }} />}
-                </button>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: done ? "#64748B" : "#0F172A", textDecoration: done ? "line-through" : "none" }}>{t.title}</div>
-                  <div style={{ fontSize: 12, color: "#94A3B8" }}>{t.action_text} · ~{t.minutes} мин{t.potential > 0 ? ` · до ${fmt(t.potential)} ₽` : ""}</div>
-                </div>
-                {!done && (
+              <div key={t.key + i} style={{ padding: "12px 14px", borderRadius: 12, background: done ? "hsl(145,60%,97%)" : "#F8FAFC", border: `1px solid ${done ? "hsl(145,60%,85%)" : "#E8ECF0"}` }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <button
-                    onClick={() => goTo(t.nav)}
-                    style={{ fontSize: 12, fontWeight: 600, color: ACCENT, background: "hsl(185,85%,95%)", border: "none", borderRadius: 8, padding: "7px 12px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}
+                    onClick={() => !done && markDone(t.key)}
+                    disabled={marking === t.key}
+                    style={{
+                      width: 26, height: 26, borderRadius: "50%", flexShrink: 0, border: `2px solid ${done ? "hsl(145,60%,45%)" : "#CBD5E1"}`,
+                      background: done ? "hsl(145,60%,45%)" : "#fff", cursor: done ? "default" : "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
                   >
-                    {t.button}
+                    {done && <Icon name="Check" size={14} style={{ color: "#fff" }} />}
                   </button>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: done ? "#64748B" : "#0F172A", textDecoration: done ? "line-through" : "none" }}>{t.title}</div>
+                    <div style={{ fontSize: 12, color: "#94A3B8" }}>{t.action_text} · ~{t.minutes} мин{t.potential > 0 ? ` · до ${fmt(t.potential)} ₽` : ""}</div>
+                  </div>
+                  {!done && (
+                    <button
+                      onClick={() => goTo(t.nav, selectedTopic[t.key])}
+                      style={{ fontSize: 12, fontWeight: 600, color: ACCENT, background: "hsl(185,85%,95%)", border: "none", borderRadius: 8, padding: "7px 12px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}
+                    >
+                      {t.button}
+                    </button>
+                  )}
+                </div>
+                {!done && t.why && (
+                  <div style={{ display: "flex", gap: 7, alignItems: "flex-start", marginTop: 10, marginLeft: 40, background: "hsl(40,90%,97%)", border: "1px solid hsl(40,90%,88%)", borderRadius: 9, padding: "8px 10px" }}>
+                    <Icon name="Lightbulb" size={12} style={{ color: "hsl(40,90%,40%)", flexShrink: 0, marginTop: 2 }} />
+                    <div style={{ fontSize: 11.5, color: "#78350F", lineHeight: 1.5 }}>{t.why}</div>
+                  </div>
+                )}
+                {hasTopics && (
+                  <div style={{ marginTop: 10, marginLeft: 40, display: "flex", flexDirection: "column", gap: 5 }}>
+                    {t.topic_options!.map((topic, ti) => {
+                      const active = selectedTopic[t.key] === topic;
+                      return (
+                        <button
+                          key={ti}
+                          onClick={() => setSelectedTopic(p => ({ ...p, [t.key]: topic }))}
+                          style={{
+                            textAlign: "left", padding: "7px 10px", borderRadius: 8, cursor: "pointer",
+                            border: `1.5px solid ${active ? ACCENT : "#E2E8F0"}`,
+                            background: active ? "hsl(185,85%,96%)" : "#fff",
+                            color: active ? ACCENT_DARK : "#475569",
+                            fontSize: 12, fontWeight: active ? 700 : 500, fontFamily: "Montserrat,sans-serif",
+                          }}
+                        >
+                          {topic}
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             );

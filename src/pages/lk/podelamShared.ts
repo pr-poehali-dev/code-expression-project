@@ -22,7 +22,16 @@ export interface Task {
   nav: string;
   minutes: number;
   potential: number;
+  topic_options?: string[];
+  why?: string;
 }
+
+// Разделы-генераторы контента, куда можно передать готовую тему через sessionStorage —
+// компонент открывается на нужной вкладке и сразу подставляет тему в поле ввода.
+export const TOPIC_KEY_BY_NAV: Record<string, string> = {
+  "marketing:post-gen": "lk_postgen_topic_pending",
+  "marketing:reel-script": "lk_reelscript_topic_pending",
+};
 
 export interface Profile {
   niche: string;

@@ -36,7 +36,12 @@ export default function LkReelScript({ onGoToVideoGen }: LkReelScriptProps = {})
   const { user } = useLkAuth();
   const hasSalon = !!user?.salon_id;
 
-  const [service, setService] = useState("");
+  // Тема может прийти готовой из «ПоДелам» через sessionStorage
+  const [service, setService] = useState(() => {
+    const pending = sessionStorage.getItem("lk_reelscript_topic_pending");
+    if (pending) { sessionStorage.removeItem("lk_reelscript_topic_pending"); return pending; }
+    return "";
+  });
   const [goal, setGoal] = useState("");
   const [tone, setTone] = useState("");
   const [useSalonCtx, setUseSalonCtx] = useState(hasSalon);

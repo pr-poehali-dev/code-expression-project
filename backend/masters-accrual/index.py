@@ -203,23 +203,52 @@ def build_growth_points(profile: dict) -> list:
     return points
 
 
-# Тесты/инструменты раздела «Развитие персонала», для fallback-режима и ротации
+# Тесты/инструменты раздела «Развитие персонала», для fallback-режима и ротации.
+# why — почему важно пройти именно этот тест сейчас (объясняем пользу и накопление динамики).
 DEVELOPMENT_TOOLS = [
-    {"title": "Пройти тест «Мышление с премиум-клиентами»", "button": "Пройти тест", "nav": "tools"},
-    {"title": "Пройти тест «Внутренние барьеры специалиста»", "button": "Пройти тест", "nav": "tools"},
-    {"title": "Пройти тест «Финансовая грамотность специалиста PRO»", "button": "Пройти тест", "nav": "tools"},
-    {"title": "Пройти тест «Финансовый профиль PRO»", "button": "Пройти тест", "nav": "tools"},
+    {"title": "Пройти тест «Мышление с премиум-клиентами»", "button": "Пройти тест", "nav": "tools",
+     "why": "Тест фиксирует ваш текущий уровень уверенности в общении с дорогими клиентами. Пройдите его повторно через месяц — увидите личную динамику и поймёте, что действительно изменилось."},
+    {"title": "Пройти тест «Внутренние барьеры специалиста»", "button": "Пройти тест", "nav": "tools",
+     "why": "Часто разрыв в доходе объясняется не отсутствием клиентов, а внутренними ограничениями — страхом называть цену, неловкостью в допродажах. Тест показывает, какие именно барьеры сейчас мешают вам больше всего."},
+    {"title": "Пройти тест «Финансовая грамотность специалиста PRO»", "button": "Пройти тест", "nav": "tools",
+     "why": "Управление доходом — отдельный навык, который редко преподают мастерам. Результат теста покажет слабые места в финансовых привычках, из-за которых деньги «утекают» несмотря на хороший поток клиентов."},
+    {"title": "Пройти тест «Финансовый профиль PRO»", "button": "Пройти тест", "nav": "tools",
+     "why": "Финансовое мышление влияет на то, как вы ставите цены и распоряжаетесь доходом. Зафиксировав профиль сейчас, вы сможете через пару месяцев сравнить результат и увидеть реальный прогресс."},
+]
+
+# Готовые темы для контента в fallback-режиме (когда ИИ недоступен) — общие, но конкретные
+# формулировки, ротируются по дню, чтобы не повторяться неделями подряд.
+FALLBACK_CONTENT_TOPICS = [
+    ["Разбор частого вопроса клиентов о вашей услуге", "До/после: реальный результат работы за последнюю неделю", "3 признака, что пора записаться именно сейчас"],
+    ["Что входит в услугу, а что часто путают клиенты", "Личный лайфхак по уходу между визитами", "Отзыв клиента с разбором, почему результат получился именно таким"],
+    ["Частая ошибка клиентов дома, которая портит результат процедуры", "Как выбрать подходящий вариант услуги под свою задачу", "Сравнение: разовая услуга vs абонемент — что выгоднее"],
+    ["История одного клиента: с какой проблемой пришёл и что получил", "5 вопросов, которые стоит задать мастеру перед записью", "Сезонный повод напомнить о себе клиентам"],
 ]
 
 
-def build_today_tasks(points: list, day_seed: int = 0) -> list:
+def build_today_tasks(points: list, day_seed: int = 0, profile: dict | None = None, is_first_plan: bool = False) -> list:
     """Из точек роста собирает 3-4 конкретных дела на сегодня со ссылкой на инструмент ЛК.
     Используется как резервный вариант, когда ИИ недоступен — чередует маркетинг, контент
-    и развитие персонала (тесты), чтобы план не был однообразным день за днём."""
+    и развитие персонала (тесты), чтобы план не был однообразным день за днём. При первом
+    плане (is_first_plan) вместо контента включает изучение ЦА и создание офферов."""
+    addon_text = ((profile or {}).get("addon_services_text") or "").strip()
+    niche = ((profile or {}).get("niche") or "услугу").strip() or "услугу"
+
     task_map = {
-        "return_clients": {"title": "Вернуть клиентов", "button": "Создать сообщения", "nav": "clientmsg", "minutes": 20},
-        "fill_slots":     {"title": "Заполнить окна",   "button": "Создать оффер",     "nav": "marketing:offers", "minutes": 15},
-        "upsell":         {"title": "Поднять чек",      "button": "Получить скрипт",   "nav": "agent", "minutes": 10},
+        "return_clients": {
+            "title": "Вернуть клиентов", "button": "Создать сообщения", "nav": "clientmsg", "minutes": 20,
+        },
+        "fill_slots": {
+            "title": "Заполнить окна", "button": "Создать оффер", "nav": "marketing:offers", "minutes": 15,
+        },
+        "upsell": {
+            "title": "Поднять чек", "button": "Получить скрипт", "nav": "agent", "minutes": 10,
+        },
+    }
+    action_hints = {
+        "return_clients": " Пример сообщения: «Здравствуйте! Давно вас не видели — соскучились 🙂 Если актуально, у меня есть удобное время на этой неделе». Пишите тепло, без давления, и указывайте конкретный срок записи.",
+        "fill_slots": " Сформулируйте предложение с чёткой выгодой и сроком действия — например, скидка 15% при записи на свободные часы буднего дня. Разместите его там, где его увидят именно те, кто уже давно у вас не был.",
+        "upsell": f" Предлагайте{f' {addon_text}' if addon_text else ' дополнительную услугу'} не как навязывание, а как решение конкретной задачи клиента — спросите о его цели и предложите то, что реально её закрывает.",
     }
     tasks = []
     for p in points:
@@ -229,29 +258,49 @@ def build_today_tasks(points: list, day_seed: int = 0) -> list:
         tasks.append({
             "key": p["key"],
             "title": meta["title"],
-            "action_text": p["action"],
+            "action_text": p["action"] + action_hints.get(p["key"], ""),
             "button": meta["button"],
             "nav": meta["nav"],
             "minutes": meta["minutes"],
             "potential": p["potential"],
+            "topic_options": None,
+            "why": None,
         })
 
-    # Чередуем два дополнительных дела по дню: контент (Reels/пост) и развитие персонала (тест)
-    if day_seed % 2 == 0:
+    if is_first_plan:
+        # Первый план — сначала фундамент: изучить аудиторию и собрать под неё офферы,
+        # прежде чем звать публиковать контент или запускать рекламу.
         tasks.append({
-            "key": "content", "title": "Привлечь новые записи",
-            "action_text": "Опубликуйте один Reels или пост под конкретную услугу и оффер",
-            "button": "Создать Reels", "nav": "marketing:reel-script", "minutes": 25,
-            "potential": 0,
+            "key": "audience", "title": "Изучить свою аудиторию",
+            "action_text": "ИИ за 5-10 минут соберёт портреты ваших клиентов: их боли, мотивацию и то, на что они реагируют при выборе мастера. Это фундамент — весь дальнейший маркетинг (посты, офферы, реклама) будет точнее, если вы понимаете, кому именно продаёте.",
+            "button": "Изучить аудиторию", "nav": "marketing:audience", "minutes": 10, "potential": 0,
+            "topic_options": None, "why": None,
+        })
+        tasks.append({
+            "key": "offers", "title": "Создать офферы под аудиторию",
+            "action_text": "На основе портретов ИИ соберёт конкретные предложения под каждый сегмент клиентов. Эти офферы дальше используются в постах, сообщениях клиентам и рекламе — не придётся придумывать заново.",
+            "button": "Создать оффер", "nav": "marketing:offers", "minutes": 10, "potential": 0,
+            "topic_options": None, "why": None,
         })
     else:
-        tool = DEVELOPMENT_TOOLS[day_seed % len(DEVELOPMENT_TOOLS)]
+        # Каждый день — конкретные готовые темы для контента, чтобы не думать, о чём писать
+        topics = FALLBACK_CONTENT_TOPICS[day_seed % len(FALLBACK_CONTENT_TOPICS)]
+        content_nav = "marketing:reel-script" if day_seed % 2 == 0 else "marketing:post-gen"
+        content_label = "Reels" if content_nav == "marketing:reel-script" else "пост"
         tasks.append({
-            "key": "skill_up", "title": "Прокачать навыки",
-            "action_text": tool["title"],
-            "button": tool["button"], "nav": tool["nav"], "minutes": 15,
-            "potential": 0,
+            "key": "content", "title": "Привлечь новые записи",
+            "action_text": f"Опубликуйте один {content_label} про {niche} — ниже готовые темы на выбор, не нужно придумывать самим. Выберите ту, что ближе к текущей ситуации клиентов, и переходите в генератор.",
+            "button": f"Создать {content_label}", "nav": content_nav, "minutes": 25, "potential": 0,
+            "topic_options": topics, "why": None,
         })
+
+    tool = DEVELOPMENT_TOOLS[day_seed % len(DEVELOPMENT_TOOLS)]
+    tasks.append({
+        "key": "skill_up", "title": "Прокачать навыки",
+        "action_text": tool["title"],
+        "button": tool["button"], "nav": tool["nav"], "minutes": 15, "potential": 0,
+        "topic_options": None, "why": tool["why"],
+    })
     return tasks
 
 
@@ -372,6 +421,13 @@ PODELAM_NAV_CATALOG = """
 - employees — открывает раздел управления командой (пригласить сотрудника, роли, доступы)
 """
 
+# Разделы, которые являются генераторами контента — для дел с этими nav ИИ обязан придумать
+# 3 конкретные готовые темы (topic_options), а не просто написать «сделайте пост»
+PODELAM_CONTENT_NAVS = ["marketing:post-gen", "marketing:reel-script", "marketing:image-gen"]
+
+# Разделы развития — для дел с этими nav ИИ обязан объяснить пользу через поле "why"
+PODELAM_DEVELOPMENT_NAVS = ["tools", "academy"]
+
 # Инструкция для владельцев/администраторов салона с заполненными реальными данными
 # (профиль салона + список сотрудников из раздела «Мой салон» / «Анализ персонала»)
 PODELAM_SALON_MODE_PROMPT = """
@@ -399,7 +455,26 @@ PODELAM_SALON_MODE_PROMPT = """
 ════════════════════════════════════════════════
 """
 
-PODELAM_SYSTEM_PROMPT = f"""Ты — экспертный бизнес-консультант и маркетолог-стратег, встроенный в сервис «ПоДелам» \
+PODELAM_FIRST_PLAN_PROMPT = """
+════════════════════════════════════════════════
+ПЕРВЫЙ ПЛАН (payload.is_first_plan = true)
+════════════════════════════════════════════════
+Это ПЕРВЫЙ раз, когда пользователь получает план от «ПоДелам» — истории вчерашних дел ещё нет. Прежде чем предлагать \
+маркетинговые действия (посты, Reels, реклама), человек должен понимать, КОМУ он продаёт и ЧТО именно предлагать. \
+Поэтому ОБЯЗАТЕЛЬНО включи в план первым/главным делом связку из двух шагов подряд, которые вместе объясняются как \
+фундамент: 1) «Изучить свою аудиторию» — nav: marketing:audience, объясни в action_text, что за 5-10 минут ИИ соберёт \
+портреты клиентов с их болями и мотивацией, и весь дальнейший маркетинг (посты, офферы, реклама) будет точнее. \
+2) «Создать офферы под аудиторию» — nav: marketing:offers, action_text объясни, что на основе портретов ИИ соберёт \
+конкретные предложения, которые дальше используются в постах, рассылках и рекламе. Остальные 1-2 дела в плане — как \
+обычно (возврат клиентов/заполнение окон/тест из «Развитие персонала»), но БЕЗ дел на публикацию контента (посты/ \
+Reels) — их полезно делать ПОСЛЕ того как аудитория и офферы готовы, это будет предложено уже завтра.
+════════════════════════════════════════════════
+"""
+
+def build_podelam_system_prompt(is_first_plan: bool = False) -> str:
+    """Собирает системный промпт для генерации плана. При первом плане (is_first_plan=True)
+    добавляет отдельный блок инструкций про изучение ЦА и создание офферов первым делом."""
+    return f"""Ты — экспертный бизнес-консультант и маркетолог-стратег, встроенный в сервис «ПоДелам» \
 внутри платформы «Промт Диалог» для мастеров и владельцев салонов красоты (парикмахеры, мастера маникюра, массажисты и т.п.).
 
 Твоя задача — на основе диагностики конкретного мастера/салона построить ЧЁТКИЙ, ПРИЧИННО-СЛЕДСТВЕННЫЙ план роста дохода:
@@ -431,14 +506,34 @@ PODELAM_SYSTEM_PROMPT = f"""Ты — экспертный бизнес-конс�
 8. Придумай короткий, тёплый, мотивирующий анонс на завтра (2-3 предложения, обращение на "вы"), который объясняет, \
 что план не статичен: завтра появится новый набор дел с учётом того, что было сделано сегодня, и почему это важно \
 (регулярность даёт результат). НЕ повторяй сегодняшние формулировки дословно.
-
+9. КОНКРЕТНЫЕ ТЕМЫ ДЛЯ КОНТЕНТА: если дело ведёт в раздел-генератор контента (nav = marketing:post-gen, \
+marketing:reel-script или marketing:image-gen) — НЕДОСТАТОЧНО написать «опубликуйте пост». Заполни поле topic_options \
+массивом из РОВНО 3 готовых, конкретных тем на выбор, сформулированных под нишу/услуги пользователя (например для \
+маникюра: "Разбор частых ошибок в домашнем уходе за кутикулой", "До/после: результат покрытия гель-лаком на слабых \
+ногтях", "3 признака, что пора менять мастера"). Каждая тема — законченная мысль 4-10 слов, НЕ общая фраза вроде \
+"полезный пост об услуге". Темы не должны повторять то, что уже публиковалось — смотри recent_content_topics в payload \
+и никогда не предлагай темы, близкие по смыслу к уже использованным. Такие дела (контент) старайся включать в план \
+КАЖДЫЙ ДЕНЬ (кроме первого плана — см. правило ниже про is_first_plan), чередуя nav между post-gen и reel-script, \
+чтобы соцсети пополнялись регулярно.
+10. ПОДРОБНЫЕ ШАГИ: action_text каждого дела должен быть НЕ ОДНОЙ строкой, а мини-инструкцией на 2-4 предложения: \
+что именно сделать, с конкретным примером или вариантом формулировки (например, готовый текст сообщения клиенту или \
+пример оффера), и на что обратить внимание, чтобы не ошибиться (тайминг, тон, кому подходит/не подходит). Пиши по \
+существу, без воды, как будто объясняешь занятому человеку, а не пишешь маркетинговый слоган.
+11. ОБЪЯСНЕНИЕ ПОЛЬЗЫ РАЗВИТИЯ: для дел с nav = tools или academy заполни отдельное поле why (1-2 предложения) — \
+объясни, ПОЧЕМУ важно пройти именно это (например: тест фиксирует текущий уровень барьеров/уверенности, при повторном \
+прохождении через месяц-два будет видна личная динамика роста; или: курс даёт конкретный навык, который сразу решает \
+затык, из-за которого сейчас теряются деньги). Без общих фраз "это полезно" — привязывай к текущей ситуации человека.
+12. АНТИ-ПОВТОР: НИКОГДА не повторяй буквально или почти буквально формулировки title/action_text/topic_options из \
+yesterday_tasks и recent_content_topics (последние темы контента за 14 дней, если переданы в payload) — каждый день \
+план должен ощущаться как новый шаг вперёд, а не копия вчерашнего.
+{PODELAM_FIRST_PLAN_PROMPT if is_first_plan else ""}
 Отвечай СТРОГО в формате JSON, без markdown-обёртки, без пояснений вне JSON:
 {{
   "growth_points": [
     {{"key": "верхнеуровневый_слаг_латиницей", "title": "Короткое название точки роста", "action": "Конкретное действие с цифрами", "potential": число_рублей}}
   ],
   "tasks": [
-    {{"key": "тот_же_слаг_что_в_growth_points_или_content_или_skill_up_или_course", "title": "Название дела (2-4 слова)", "action_text": "Развёрнутое пояснение что и как сделать, с цифрами из диагностики (для tools/academy — назови конкретный тест или курс)", "button": "Текст кнопки перехода (2-4 слова)", "nav": "раздел_из_списка", "minutes": число_минут_на_выполнение, "potential": число_рублей_или_0}}
+    {{"key": "тот_же_слаг_что_в_growth_points_или_content_или_skill_up_или_course", "title": "Название дела (2-4 слова)", "action_text": "Развёрнутая мини-инструкция 2-4 предложения с примером/вариантом и на что обратить внимание, с цифрами из диагностики (для tools/academy — назови конкретный тест или курс)", "button": "Текст кнопки перехода (2-4 слова)", "nav": "раздел_из_списка", "minutes": число_минут_на_выполнение, "potential": число_рублей_или_0, "topic_options": ["тема 1", "тема 2", "тема 3"] или null если nav не контентный, "why": "почему важно, 1-2 предложения" или null если nav не tools/academy}}
   ],
   "main_task_key": "key дела с наибольшим приоритетом на сегодня",
   "tomorrow_preview": "Тёплый анонс на завтра, 2-3 предложения"
@@ -451,7 +546,8 @@ PODELAM_SYSTEM_PROMPT = f"""Ты — экспертный бизнес-конс�
 
 
 def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | None = None,
-                     yesterday_tasks: list | None = None, salon_context: dict | None = None) -> dict | None:
+                     yesterday_tasks: list | None = None, salon_context: dict | None = None,
+                     is_first_plan: bool = False, recent_content_topics: list | None = None) -> dict | None:
     """Запрашивает у модели terra (polza.ai) персональный план роста дохода. Возвращает None при ошибке."""
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
@@ -473,6 +569,8 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
         "lead_source": profile.get("lead_source") or "не указан",
         "course_catalog": courses or [],
         "yesterday_tasks": yesterday_tasks or [],
+        "is_first_plan": is_first_plan,
+        "recent_content_topics": recent_content_topics or [],
     }
     if salon_context:
         user_payload["salon_context"] = salon_context
@@ -480,11 +578,11 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
     payload = json.dumps({
         "model": PODELAM_MODEL,
         "messages": [
-            {"role": "system", "content": PODELAM_SYSTEM_PROMPT},
+            {"role": "system", "content": build_podelam_system_prompt(is_first_plan)},
             {"role": "user", "content": f"Диагностика мастера/салона:\n{json.dumps(user_payload, ensure_ascii=False, indent=2)}"},
         ],
         "temperature": 0.7,
-        "max_tokens": 2200 if salon_context else 2000,
+        "max_tokens": 2600 if salon_context else 2400,
     }).encode("utf-8")
 
     req = urllib.request.Request(
@@ -598,6 +696,28 @@ def handle_podelam_get(event: dict, conn) -> dict:
             yt = yesterday_row["tasks"] if isinstance(yesterday_row["tasks"], list) else json.loads(yesterday_row["tasks"])
             yesterday_tasks = [{"title": t.get("title"), "nav": t.get("nav")} for t in yt]
 
+        # Первый ли это план вообще у пользователя — если раньше планов не было, ИИ сперва
+        # предложит изучить ЦА и собрать офферы, прежде чем звать публиковать контент.
+        cur.execute(
+            f"SELECT 1 FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s LIMIT 1",
+            (user["id"],)
+        )
+        is_first_plan = cur.fetchone() is None
+
+        # Темы постов/Reels за последние 14 дней — чтобы ИИ не предлагал те же темы снова.
+        cur.execute(
+            f"""SELECT tasks FROM {SCHEMA}.podelam_daily_plans
+                WHERE user_id = %s AND plan_date >= %s AND plan_date < %s""",
+            (user["id"], today - timedelta(days=14), today)
+        )
+        recent_content_topics: list = []
+        for row in cur.fetchall():
+            rt = row["tasks"] if isinstance(row["tasks"], list) else json.loads(row["tasks"] or "[]")
+            for t in rt:
+                if t.get("nav") in PODELAM_CONTENT_NAVS and t.get("topic_options"):
+                    recent_content_topics.extend(t["topic_options"])
+        recent_content_topics = recent_content_topics[-30:]
+
         # Для владельца/администратора салона — подмешиваем реальные данные из «Мой салон»
         # (агрегированные показатели, услуги, сотрудники) и фокус-сотрудника дня по ротации.
         # Если «Мой салон» ещё не заполнен — данные берём из карточки диагностики ПоДелам (fallback).
@@ -607,7 +727,8 @@ def handle_podelam_get(event: dict, conn) -> dict:
             salon_context = build_salon_context(conn, salon_id, day_seed=today.toordinal())
 
         ai_result = call_podelam_ai(dict(profile), gap, role=role, courses=courses_for_role,
-                                     yesterday_tasks=yesterday_tasks, salon_context=salon_context)
+                                     yesterday_tasks=yesterday_tasks, salon_context=salon_context,
+                                     is_first_plan=is_first_plan, recent_content_topics=recent_content_topics)
         if ai_result:
             points = ai_result["growth_points"]
             tasks = ai_result["tasks"]
@@ -616,7 +737,7 @@ def handle_podelam_get(event: dict, conn) -> dict:
             source = "ai"
         else:
             points = fallback_points
-            tasks = build_today_tasks(points, day_seed=today.toordinal())
+            tasks = build_today_tasks(points, day_seed=today.toordinal(), profile=dict(profile), is_first_plan=is_first_plan)
             main_key = tasks[0]["key"] if tasks else None
             tomorrow_preview = default_preview
             source = "rules"
