@@ -1823,7 +1823,10 @@ def handle_comment_add(event: dict, conn) -> dict:
     ai_verdict = call_comment_ai(text, post["title"], post.get("body") or "", category_label)
 
     admin_reply = None
-    if ai_verdict and ai_verdict.get("should_reply"):
+    # redirect_to_support обрабатываем независимо от should_reply — модель иногда возвращает
+    # should_reply=false вместе с redirect_to_support=true (расценивает вопрос не по теме статьи
+    # как "не требующий содержательного ответа"), но это тоже полноценный повод ответить.
+    if ai_verdict and (ai_verdict.get("should_reply") or ai_verdict.get("redirect_to_support")):
         reply_text = None
         if ai_verdict.get("redirect_to_support"):
             reply_text = SUPPORT_REDIRECT_REPLY
