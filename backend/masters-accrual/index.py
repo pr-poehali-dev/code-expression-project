@@ -24,7 +24,10 @@ GET/POST ?action=podelam_notify&key=ADMIN_TOKEN — cron: письмо поль�
 GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет ежедневный экспертный пост и публикует в блог сайта
                                        (простой INSERT в БД, ничего внешнего). ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с.
 GET  ?action=content_list          — посты для ленты на сайте с пагинацией (page, limit, category). Полный текст (body)
-                                       только авторизованным (X-Session-Id), иначе только превью.
+                                       доступен ВСЕМ читателям, без авторизации. Посты категории «tools» дополнительно
+                                       содержат tool_link_* (заметная ссылка на инструмент/курс Академии, о котором пост) —
+                                       tool_link_label, tool_link_desc, tool_link_icon, tool_link_target (куда вести после
+                                       клика: {"tab": "...", "tool": "..."} или {"route": "/blog"} и т.п.).
 GET  ?action=content_related       — похожие посты той же категории (post_id, category, limit) для блока «Читать дальше».
 GET  ?action=comments_list&post_id=N — список комментариев к посту (дерево: комментарий + ответы), включая ответы
                                        Админ Светланы (ИИ, модель gpt-4o-mini через polza.ai), с количеством лайков
@@ -1048,6 +1051,101 @@ CONTENT_TOPICS_BY_CATEGORY = {
     ],
 }
 
+# Карта «тема поста категории tools → карточка перехода к инструменту/курсу». Ссылка строго
+# детерминирована (не выдумывается ИИ), чтобы вести читателя ровно в тот раздел личного кабинета,
+# о котором рассказывает пост. tab — вкладка кабинета (Tab), tool — id инструмента внутри неё
+# (открывается автоматически через sessionStorage), None — просто открыть вкладку целиком.
+CONTENT_TOOLS_TOPIC_LINKS: dict[str, dict] = {
+    "ПоДелам: обзор навигатора дохода — как ИИ строит план на день по вашим реальным данным": {
+        "label": "Открыть навигатор «ПоДелам»", "desc": "Персональный план дел на сегодня уже ждёт в кабинете",
+        "icon": "Compass", "tab": "home", "tool": None,
+    },
+    "ПоДелам: для кого этот навигатор и как он подстраивается под роль — владелец, администратор, мастер": {
+        "label": "Открыть навигатор «ПоДелам»", "desc": "План строится под вашу роль и данные вашего салона",
+        "icon": "Compass", "tab": "home", "tool": None,
+    },
+    "ПоДелам: как правильно пользоваться навигатором каждый день, чтобы он реально приносил доход": {
+        "label": "Открыть навигатор «ПоДелам»", "desc": "Загляните и отметьте первое дело на сегодня",
+        "icon": "Compass", "tab": "home", "tool": None,
+    },
+    "Академия Промт Диалог: чем обучение внутри платформы отличается от курсов на сторонних площадках": {
+        "label": "Перейти в Академию", "desc": "Курсы по ролям — смотрите урок и сразу закрепляйте на практике",
+        "icon": "GraduationCap", "tab": "academy", "tool": None,
+    },
+    "Академия: почему удобно применять знания сразу на месте, не отходя от урока, и задавать вопросы ИИ по ходу занятия": {
+        "label": "Перейти в Академию", "desc": "Задайте вопрос по уроку прямо на странице обучения",
+        "icon": "GraduationCap", "tab": "academy", "tool": None,
+    },
+    "Академия: для кого подойдут курсы — от новичка-мастера до владельца сети салонов": {
+        "label": "Перейти в Академию", "desc": "Курсы для владельца, администратора, мастера и специалиста по телу",
+        "icon": "GraduationCap", "tab": "academy", "tool": None,
+    },
+    "Академия: как устроены уроки и домашние задания и почему это не просто видео": {
+        "label": "Перейти в Академию", "desc": "Модули, домашние задания и отслеживание прогресса обучения",
+        "icon": "GraduationCap", "tab": "academy", "tool": None,
+    },
+    "Мой салон: зачем заполнять профиль салона и как это раскрывает все ИИ-инструменты платформы": {
+        "label": "Заполнить профиль салона", "desc": "Откройте персонализацию всех ИИ-инструментов платформы",
+        "icon": "Building2", "tab": "salon", "tool": None,
+    },
+    "Аудит салона: как ИИ за пару минут находит слабые места в работе салона и точки роста дохода": {
+        "label": "Пройти аудит салона", "desc": "Найдите узкие места и точки роста дохода за пару минут",
+        "icon": "ClipboardCheck", "tab": "ai", "tool": "salon-audit",
+    },
+    "Аудит персонала: как понять, кто из мастеров недорабатывает, а кто тянет команду вперёд": {
+        "label": "Открыть аудит персонала", "desc": "Разбор по каждому мастеру и расчёт потенциала роста",
+        "icon": "Users", "tab": "ai", "tool": "staff-audit",
+    },
+    "Генератор ответов на отзывы: как отвечать на отзывы так, чтобы это работало на репутацию": {
+        "label": "Открыть генератор ответов на отзывы", "desc": "Готовый ответ под площадку и тон за несколько секунд",
+        "icon": "MessageCircle", "tab": "ai", "tool": "review-reply",
+    },
+    "Скрипты общения с клиентом: готовые сценарии для администратора и мастера на сложные ситуации": {
+        "label": "Открыть скрипты общения с клиентом", "desc": "Готовые сценарии диалогов под вашу ситуацию",
+        "icon": "MessagesSquare", "tab": "ai", "tool": "client-scripts",
+    },
+    "Портрет целевой аудитории и офферы: как ИИ помогает понять, кому и что предлагать": {
+        "label": "Открыть портрет аудитории", "desc": "Первый шаг маркетинговой цепочки — портреты клиентов и офферы",
+        "icon": "Users", "tab": "marketing", "tool": "audience",
+    },
+    "Семантика и объявления для Яндекс.Директ: как запустить рекламу салона без агентства": {
+        "label": "Открыть семантику для Директа", "desc": "Список запросов и готовые объявления под ваши услуги",
+        "icon": "Search", "tab": "marketing", "tool": "semantics",
+    },
+    "Медиаплан для рекламы: как ИИ считает бюджет и прогнозирует поток клиентов": {
+        "label": "Рассчитать медиаплан", "desc": "Бюджет, стратегия и прогноз клиентов по данным вашего салона",
+        "icon": "Calculator", "tab": "marketing", "tool": "budget",
+    },
+    "Генератор постов для соцсетей: как за пару минут получить готовый пост с картинкой": {
+        "label": "Открыть генератор постов", "desc": "Тема → заголовки → готовый текст с картинкой за пару минут",
+        "icon": "FileText", "tab": "marketing", "tool": "post-gen",
+    },
+    "Генерация изображений и видео для соцсетей: как оформлять сторис и рилс без дизайнера": {
+        "label": "Открыть генерацию изображений", "desc": "Визуалы под пост, сторис или баннер без дизайнера",
+        "icon": "Image", "tab": "marketing", "tool": "image-gen",
+    },
+    "Конструктор лендингов: как собрать продающую страницу салона без программиста": {
+        "label": "Смотреть «Развитие салона»", "desc": "Здесь появится конструктор лендингов и другие ИИ-инструменты",
+        "icon": "LayoutTemplate", "tab": "ai", "tool": None,
+    },
+    "Диагностика мышления, барьеров и финансов: зачем мастеру и владельцу знать свои слабые места": {
+        "label": "Пройти диагностику", "desc": "Тесты мышления, барьеров и финансовых привычек с рекомендациями",
+        "icon": "Brain", "tab": "tools", "tool": None,
+    },
+    "ИИ-агент салона: как задать вопрос по бизнесу и получить разбор с учётом данных вашего салона": {
+        "label": "Задать вопрос ИИ-агенту", "desc": "Чат с ИИ-ассистентом прямо в навигаторе «ПоДелам»",
+        "icon": "Sparkles", "tab": "home", "tool": None,
+    },
+    "Диагностика тела клиента: как инструмент помогает мастеру точнее находить причину проблемы": {
+        "label": "Открыть диагностику тела клиента", "desc": "Возможные причины, зоны компенсации и рекомендации",
+        "icon": "Stethoscope", "tab": "tools", "tool": None,
+    },
+    "Чемпионат салонов: как участие в конкурсе приносит новых клиентов и узнаваемость": {
+        "label": "Открыть чемпионат салонов", "desc": "Турниры, голосование и рейтинг — узнаваемость для вашего салона",
+        "icon": "Trophy", "tab": "championship", "tool": None,
+    },
+}
+
 
 def get_next_content_category(conn) -> str:
     """Определяет категорию следующего поста по строгой ротации marketing → upsell → clients → tools,
@@ -1370,14 +1468,23 @@ def handle_content_daily_post(event: dict, conn) -> dict:
         if t
     )
 
+    # Для категории «tools» подмешиваем детерминированную карточку перехода к инструменту/курсу —
+    # ссылка строго из справочника CONTENT_TOOLS_TOPIC_LINKS, ИИ её не придумывает.
+    tool_link = CONTENT_TOOLS_TOPIC_LINKS.get(topic) if category == "tools" else None
+
     # Единственное действие — сохранить статью в блог. Простой INSERT, ничего внешнего.
     cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur2.execute(
-        f"""INSERT INTO {SCHEMA}.content_posts (post_date, title, excerpt, body, hashtags, category, topic, source)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, 'ai')
+        f"""INSERT INTO {SCHEMA}.content_posts
+            (post_date, title, excerpt, body, hashtags, category, topic, source,
+             tool_link_label, tool_link_desc, tool_link_icon, tool_link_tab, tool_link_tool)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'ai', %s, %s, %s, %s, %s)
             ON CONFLICT (post_date) DO NOTHING
             RETURNING *""",
-        (today, ai_result["title"], ai_result.get("excerpt") or "", ai_result["body"], hashtags_str, category, topic)
+        (today, ai_result["title"], ai_result.get("excerpt") or "", ai_result["body"], hashtags_str, category, topic,
+         tool_link["label"] if tool_link else None, tool_link["desc"] if tool_link else None,
+         tool_link["icon"] if tool_link else None, tool_link["tab"] if tool_link else None,
+         tool_link["tool"] if tool_link else None)
     )
     row = cur2.fetchone()
     conn.commit()
@@ -1391,10 +1498,13 @@ def handle_content_daily_post(event: dict, conn) -> dict:
 
 def handle_content_list(event: dict, conn) -> dict:
     """Список опубликованных постов для ленты на сайте, с пагинацией (?page, ?limit) и фильтром
-    по ?category=marketing|upsell|clients|tools. Полный текст (body) отдаётся только авторизованным
-    пользователям личного кабинета (X-Session-Id) — иначе только заголовок и превью.
-    ?post_id=N — вернуть конкретный пост по id (для перехода по прямой ссылке на статью),
-    игнорируя пагинацию и фильтр категории."""
+    по ?category=marketing|upsell|clients|tools. Полный текст (body) доступен всем читателям без
+    авторизации. Посты категории «tools» дополнительно содержат tool_link (заметная карточка-ссылка
+    на инструмент/курс Академии, которому посвящён пост) — в формате {label, desc, icon, tab, tool}
+    или null, если для темы ссылка не задана. Поле authorized (авторизован ли читатель) остаётся в
+    ответе — фронт использует его, чтобы решить, куда вести по клику на tool_link: в кабинет или
+    на форму регистрации. ?post_id=N — вернуть конкретный пост по id (для перехода по прямой ссылке
+    на статью), игнорируя пагинацию и фильтр категории."""
     qs = event.get("queryStringParameters") or {}
     try:
         limit = min(max(int(qs.get("limit", 6)), 1), 50)
@@ -1429,7 +1539,8 @@ def handle_content_list(event: dict, conn) -> dict:
     total = cur.fetchone()["total"]
 
     cur.execute(
-        f"""SELECT id, post_date, title, excerpt, body, hashtags, category, created_at
+        f"""SELECT id, post_date, title, excerpt, body, hashtags, category, created_at,
+                   tool_link_label, tool_link_desc, tool_link_icon, tool_link_tab, tool_link_tool
             FROM {SCHEMA}.content_posts
             {where_clause}
             ORDER BY post_date DESC
@@ -1439,8 +1550,15 @@ def handle_content_list(event: dict, conn) -> dict:
     rows = [dict(r) for r in cur.fetchall()]
     for r in rows:
         r["category_label"] = CONTENT_CATEGORIES.get(r.get("category"), "")
-        if not is_authorized:
-            r["body"] = None
+        if r.get("tool_link_label"):
+            r["tool_link"] = {
+                "label": r["tool_link_label"], "desc": r["tool_link_desc"],
+                "icon": r["tool_link_icon"], "tab": r["tool_link_tab"], "tool": r["tool_link_tool"],
+            }
+        else:
+            r["tool_link"] = None
+        for key in ("tool_link_label", "tool_link_desc", "tool_link_icon", "tool_link_tab", "tool_link_tool"):
+            r.pop(key, None)
 
     return ok({
         "posts": rows,

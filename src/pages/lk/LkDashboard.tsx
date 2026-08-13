@@ -44,7 +44,12 @@ export default function LkDashboard() {
 
   const [tab, setTab]           = useState<Tab>(getInitialTab);
   const [moreOpen, setMoreOpen] = useState(false);
-  const [marketingTool, setMarketingTool] = useState<string | undefined>(fittingTrial ? "photo-fitting" : undefined);
+  const [marketingTool, setMarketingTool] = useState<string | undefined>(() => {
+    if (fittingTrial) return "photo-fitting";
+    const pending = sessionStorage.getItem("lk_marketing_tool_pending");
+    if (pending) { sessionStorage.removeItem("lk_marketing_tool_pending"); return pending; }
+    return undefined;
+  });
 
   // Фикс для Chrome/Android: браузерная строка занимает место и скрывает bottom nav
   useEffect(() => {

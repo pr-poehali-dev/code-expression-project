@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
@@ -8,6 +8,7 @@ import { useLkAuth } from "@/contexts/LkAuthContext";
 import { markBlogSeen } from "@/pages/lk/blogNotice";
 import { toast } from "@/hooks/use-toast";
 import BlogComments from "./BlogComments";
+import BlogToolLink, { ToolLink } from "./BlogToolLink";
 import func2url from "../../backend/func2url.json";
 
 const TEAL = "#2DD4BF";
@@ -27,6 +28,7 @@ interface Post {
   hashtags: string;
   category: string | null;
   category_label: string;
+  tool_link: ToolLink | null;
 }
 
 interface RelatedPost {
@@ -56,7 +58,6 @@ function getSessionId(): string {
 
 export default function BlogPage() {
   const { user } = useLkAuth();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const sharedPostId = searchParams.get("post");
   const [posts, setPosts] = useState<Post[]>([]);
@@ -77,10 +78,6 @@ export default function BlogPage() {
   };
 
   const handleReadMore = (post: Post) => {
-    if (!user) {
-      navigate("/cabinet?tab=register");
-      return;
-    }
     const next = openId === post.id ? null : post.id;
     setOpenId(next);
     if (next) loadRelated(post);
@@ -180,7 +177,7 @@ export default function BlogPage() {
           </p>
           {!user && (
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", marginTop: 14, fontWeight: 300 }}>
-              Полные тексты статей доступны после регистрации в личном кабинете
+              Комментировать статьи можно после регистрации в личном кабинете
             </p>
           )}
         </div>
@@ -226,7 +223,7 @@ export default function BlogPage() {
             <>
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 {posts.map(post => {
-                  const isOpen = user && openId === post.id;
+                  const isOpen = openId === post.id;
                   return (
                     <article key={post.id} id={`blog-post-${post.id}`} style={{
                       border: "1px solid #E2E8F0", borderRadius: 8, padding: "28px 32px",
@@ -263,6 +260,9 @@ export default function BlogPage() {
                         <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.75, margin: "0 0 20px", fontWeight: 300, whiteSpace: "pre-line" }}>
                           {post.body}
                         </p>
+                      )}
+                      {isOpen && post.tool_link && (
+                        <BlogToolLink toolLink={post.tool_link} authenticated={!!user} />
                       )}
                       {isOpen && (relatedByPost[post.id]?.length ?? 0) > 0 && (
                         <div style={{ margin: "0 0 24px", paddingTop: 20, borderTop: "1px solid #F1F5F9" }}>
@@ -306,8 +306,8 @@ export default function BlogPage() {
                             background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", fontFamily: "Inter, sans-serif",
                           }}
                         >
-                          {isOpen ? "Свернуть" : user ? "Читать полностью" : "Войти, чтобы читать"}
-                          <Icon name={isOpen ? "ChevronUp" : user ? "ArrowRight" : "Lock"} size={15} />
+                          {isOpen ? "Свернуть" : "Читать полностью"}
+                          <Icon name={isOpen ? "ChevronUp" : "ArrowRight"} size={15} />
                         </button>
                         <button
                           onClick={() => handleShare(post)}

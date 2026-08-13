@@ -1,0 +1,6 @@
+ALTER TABLE content_posts
+  ADD COLUMN IF NOT EXISTS tool_link_label TEXT NULL,
+  ADD COLUMN IF NOT EXISTS tool_link_desc TEXT NULL,
+  ADD COLUMN IF NOT EXISTS tool_link_tab TEXT NULL,
+  ADD COLUMN IF NOT EXISTS tool_link_tool TEXT NULL,
+  ADD COLUMN IF NOT EXISTS tool_link_icon TEXT NULL;
