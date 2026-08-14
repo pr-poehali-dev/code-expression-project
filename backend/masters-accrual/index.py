@@ -153,6 +153,64 @@ def is_salon_profile_filled(conn, salon_id: int | None) -> bool:
 
 # ── «ПоДелам» — навигатор дохода ────────────────────────────────────────────
 
+def extract_service_names(niche: str, addon_text: str, salon_services: list | None = None) -> list[str]:
+    """Достаёт реальные названия услуг пользователя из диагностики (ниша + допуслуги) и,
+    если есть, из раздела «Мой салон» — чтобы темы контента строились строго вокруг того,
+    чем человек реально занимается (психолог, остеопат, массажист и т.д.), а не вокруг
+    случайных формулировок про маникюр/кутикулу."""
+    names: list[str] = []
+    niche = (niche or "").strip()
+    if niche and niche.lower() not in ("не указана", "не указан"):
+        names.append(niche)
+    if salon_services:
+        for s in salon_services:
+            name = (s.get("name") or "").strip() if isinstance(s, dict) else str(s).strip()
+            if name and name.lower() not in [n.lower() for n in names]:
+                names.append(name)
+    if addon_text:
+        # Убираем упоминания цены («8000 рублей», «от 5000 руб.», «15 000 ₽») перед разбивкой на пункты
+        cleaned = re.sub(r'[-–—]?\s*\d[\d\s]*\s*(?:руб(?:лей|ль)?|₽|р\.)', '', addon_text, flags=re.IGNORECASE)
+        for part in re.split(r'[,;\n]+', cleaned):
+            part = part.strip(" .-–—")
+            if part and part.lower() not in [n.lower() for n in names]:
+                names.append(part)
+    if not names:
+        names.append("вашу услугу")
+    return names[:6]
+
+
+# Шаблоны тем для контента в fallback-режиме (когда ИИ недоступен) — формат «Услуга: тема»
+# работает грамматически корректно для ЛЮБОЙ ниши (психолог, остеопат, маникюр, массаж и т.п.),
+# без необходимости склонять название услуги.
+FALLBACK_CONTENT_TEMPLATES = [
+    "{s}: частый вопрос клиентов — отвечаем подробно",
+    "{s}: реальный кейс клиента до/после",
+    "{s}: 3 признака, что вам это нужно уже сейчас",
+    "{s}: что входит, а что клиенты часто путают",
+    "{s}: личный лайфхак, который помогает между визитами",
+    "{s}: отзыв клиента с разбором результата",
+    "{s}: частая ошибка, которая мешает получить результат",
+    "{s}: как понять, что формат работы вам подходит",
+    "{s}: разовая встреча или курс/абонемент — что выгоднее",
+    "{s}: история одного клиента от запроса до результата",
+    "{s}: вопросы, которые стоит задать специалисту перед первой встречей",
+    "{s}: повод обратиться именно сейчас",
+]
+
+
+def build_fallback_content_topics(services: list[str], day_seed: int) -> list[str]:
+    """Собирает 3 готовые темы для поста/Reels на основе РЕАЛЬНЫХ услуг пользователя,
+    ротируя и шаблоны, и сами услуги по дню, чтобы темы не повторялись день за днём."""
+    n = len(FALLBACK_CONTENT_TEMPLATES)
+    start = (day_seed * 3) % n
+    topics = []
+    for i in range(3):
+        tmpl = FALLBACK_CONTENT_TEMPLATES[(start + i) % n]
+        service = services[(day_seed + i) % len(services)]
+        topics.append(tmpl.format(s=service))
+    return topics
+
+
 def build_growth_points(profile: dict) -> list:
     """Раскладывает разрыв между текущим и целевым доходом на 3 точки роста с потенциалом в рублях."""
     avg_check = float(profile["avg_check"])
@@ -216,23 +274,17 @@ DEVELOPMENT_TOOLS = [
      "why": "Финансовое мышление влияет на то, как вы ставите цены и распоряжаетесь доходом. Зафиксировав профиль сейчас, вы сможете через пару месяцев сравнить результат и увидеть реальный прогресс."},
 ]
 
-# Готовые темы для контента в fallback-режиме (когда ИИ недоступен) — общие, но конкретные
-# формулировки, ротируются по дню, чтобы не повторяться неделями подряд.
-FALLBACK_CONTENT_TOPICS = [
-    ["Разбор частого вопроса клиентов о вашей услуге", "До/после: реальный результат работы за последнюю неделю", "3 признака, что пора записаться именно сейчас"],
-    ["Что входит в услугу, а что часто путают клиенты", "Личный лайфхак по уходу между визитами", "Отзыв клиента с разбором, почему результат получился именно таким"],
-    ["Частая ошибка клиентов дома, которая портит результат процедуры", "Как выбрать подходящий вариант услуги под свою задачу", "Сравнение: разовая услуга vs абонемент — что выгоднее"],
-    ["История одного клиента: с какой проблемой пришёл и что получил", "5 вопросов, которые стоит задать мастеру перед записью", "Сезонный повод напомнить о себе клиентам"],
-]
-
-
-def build_today_tasks(points: list, day_seed: int = 0, profile: dict | None = None, is_first_plan: bool = False) -> list:
+def build_today_tasks(points: list, day_seed: int = 0, profile: dict | None = None, is_first_plan: bool = False,
+                       salon_services: list | None = None) -> list:
     """Из точек роста собирает 3-4 конкретных дела на сегодня со ссылкой на инструмент ЛК.
     Используется как резервный вариант, когда ИИ недоступен — чередует маркетинг, контент
     и развитие персонала (тесты), чтобы план не был однообразным день за днём. При первом
-    плане (is_first_plan) вместо контента включает изучение ЦА и создание офферов."""
+    плане (is_first_plan) вместо контента включает изучение ЦА и создание офферов. Темы контента
+    строятся строго на реальных услугах из диагностики/«Мой салон» (salon_services)."""
     addon_text = ((profile or {}).get("addon_services_text") or "").strip()
-    niche = ((profile or {}).get("niche") or "услугу").strip() or "услугу"
+    niche_raw = ((profile or {}).get("niche") or "").strip()
+    services = extract_service_names(niche_raw, addon_text, salon_services)
+    niche = niche_raw or services[0]
 
     task_map = {
         "return_clients": {
@@ -283,13 +335,14 @@ def build_today_tasks(points: list, day_seed: int = 0, profile: dict | None = No
             "topic_options": None, "why": None,
         })
     else:
-        # Каждый день — конкретные готовые темы для контента, чтобы не думать, о чём писать
-        topics = FALLBACK_CONTENT_TOPICS[day_seed % len(FALLBACK_CONTENT_TOPICS)]
+        # Каждый день — конкретные готовые темы для контента на основе РЕАЛЬНЫХ услуг
+        # пользователя, чтобы не думать, о чём писать, и не получать темы не по своей нише
+        topics = build_fallback_content_topics(services, day_seed)
         content_nav = "marketing:reel-script" if day_seed % 2 == 0 else "marketing:post-gen"
         content_label = "Reels" if content_nav == "marketing:reel-script" else "пост"
         tasks.append({
             "key": "content", "title": "Привлечь новые записи",
-            "action_text": f"Опубликуйте один {content_label} про {niche} — ниже готовые темы на выбор, не нужно придумывать самим. Выберите ту, что ближе к текущей ситуации клиентов, и переходите в генератор.",
+            "action_text": f"Опубликуйте один {content_label} по вашему направлению «{niche}» — ниже готовые темы на выбор, не нужно придумывать самим. Выберите ту, что ближе к текущей ситуации клиентов, и переходите в генератор.",
             "button": f"Создать {content_label}", "nav": content_nav, "minutes": 25, "potential": 0,
             "topic_options": topics, "why": None,
         })
@@ -508,13 +561,17 @@ def build_podelam_system_prompt(is_first_plan: bool = False) -> str:
 (регулярность даёт результат). НЕ повторяй сегодняшние формулировки дословно.
 9. КОНКРЕТНЫЕ ТЕМЫ ДЛЯ КОНТЕНТА: если дело ведёт в раздел-генератор контента (nav = marketing:post-gen, \
 marketing:reel-script или marketing:image-gen) — НЕДОСТАТОЧНО написать «опубликуйте пост». Заполни поле topic_options \
-массивом из РОВНО 3 готовых, конкретных тем на выбор, сформулированных под нишу/услуги пользователя (например для \
-маникюра: "Разбор частых ошибок в домашнем уходе за кутикулой", "До/после: результат покрытия гель-лаком на слабых \
-ногтях", "3 признака, что пора менять мастера"). Каждая тема — законченная мысль 4-10 слов, НЕ общая фраза вроде \
-"полезный пост об услуге". Темы не должны повторять то, что уже публиковалось — смотри recent_content_topics в payload \
-и никогда не предлагай темы, близкие по смыслу к уже использованным. Такие дела (контент) старайся включать в план \
-КАЖДЫЙ ДЕНЬ (кроме первого плана — см. правило ниже про is_first_plan), чередуя nav между post-gen и reel-script, \
-чтобы соцсети пополнялись регулярно.
+массивом из РОВНО 3 готовых, конкретных тем на выбор. КРИТИЧЕСКИ ВАЖНО: темы должны строиться СТРОГО вокруг реальной \
+ниши и услуг пользователя из поля service_names в payload (и, если передан salon_context, из salon_context.services) \
+— НЕ придумывай услуги, которых нет в этом списке, и НЕ используй тематику другой отрасли (например, если ниша \
+«психолог» или «остеопат» — темы должны быть про психологическую консультацию/телесную терапию, а НЕ про маникюр, \
+причёски или любую бьюти-тематику, даже если платформа в целом ориентирована на индустрию красоты). Формулируй тему \
+как законченную мысль 4-10 слов, привязанную к конкретной услуге из service_names (например, если услуга «Массаж \
+спины» — «Массаж спины: как понять, что пора на процедуру», если услуга «Психолог» — «Психолог: как отличить усталость \
+от выгорания»), НЕ общую фразу вроде "полезный пост об услуге". Темы не должны повторять то, что уже публиковалось — \
+смотри recent_content_topics в payload и никогда не предлагай темы, близкие по смыслу к уже использованным. Такие \
+дела (контент) старайся включать в план КАЖДЫЙ ДЕНЬ (кроме первого плана — см. правило ниже про is_first_plan), \
+чередуя nav между post-gen и reel-script, чтобы соцсети пополнялись регулярно.
 10. ПОДРОБНЫЕ ШАГИ: action_text каждого дела должен быть НЕ ОДНОЙ строкой, а мини-инструкцией на 2-4 предложения: \
 что именно сделать, с конкретным примером или вариантом формулировки (например, готовый текст сообщения клиенту или \
 пример оффера), и на что обратить внимание, чтобы не ошибиться (тайминг, тон, кому подходит/не подходит). Пиши по \
@@ -571,6 +628,13 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
         "yesterday_tasks": yesterday_tasks or [],
         "is_first_plan": is_first_plan,
         "recent_content_topics": recent_content_topics or [],
+        # Явный список реальных услуг пользователя (ниша + допуслуги, плюс услуги салона, если есть) —
+        # именно из этого списка ИИ обязан брать темы для постов/Reels, а не из общей тематики платформы.
+        "service_names": extract_service_names(
+            profile.get("niche") or "",
+            profile.get("addon_services_text") or "",
+            salon_context.get("services") if salon_context else None,
+        ),
     }
     if salon_context:
         user_payload["salon_context"] = salon_context
@@ -737,7 +801,8 @@ def handle_podelam_get(event: dict, conn) -> dict:
             source = "ai"
         else:
             points = fallback_points
-            tasks = build_today_tasks(points, day_seed=today.toordinal(), profile=dict(profile), is_first_plan=is_first_plan)
+            tasks = build_today_tasks(points, day_seed=today.toordinal(), profile=dict(profile), is_first_plan=is_first_plan,
+                                       salon_services=salon_context.get("services") if salon_context else None)
             main_key = tasks[0]["key"] if tasks else None
             tomorrow_preview = default_preview
             source = "rules"
