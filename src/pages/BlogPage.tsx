@@ -28,6 +28,8 @@ interface Post {
   hashtags: string;
   category: string | null;
   category_label: string;
+  role: string | null;
+  role_label: string;
   tool_link: ToolLink | null;
 }
 
@@ -240,6 +242,14 @@ export default function BlogPage() {
                             padding: "3px 10px", borderRadius: 20, letterSpacing: "0.2px", whiteSpace: "nowrap",
                           }}>
                             {post.category_label}
+                          </span>
+                        )}
+                        {post.role_label && (
+                          <span style={{
+                            fontSize: 12, fontWeight: 600, color: "#334155", background: "#F1F5F9",
+                            padding: "3px 10px", borderRadius: 20, letterSpacing: "0.2px", whiteSpace: "nowrap",
+                          }}>
+                            Для: {post.role_label}
                           </span>
                         )}
                       </div>
