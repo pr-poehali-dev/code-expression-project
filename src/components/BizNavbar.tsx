@@ -8,7 +8,7 @@ const NAV_LINKS = [
   { label: "Для кого", href: "/dlya-kogo" },
   { label: "Тарифы", href: "/tseny" },
   { label: "🏆 Чемпионат", href: "/championship" },
-  { label: "Блог", href: "/blog" },
+  { label: "Полезная лента", href: "/blog" },
 
 ];
 

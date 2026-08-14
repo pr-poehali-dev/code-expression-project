@@ -167,10 +167,10 @@ export default function BlogPage() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", minHeight: "100vh" }}>
       <Helmet>
-        <title>Блог — полезные статьи для салонов красоты | Промт Диалог</title>
-        <meta name="description" content="Экспертные статьи о росте дохода салона красоты: маркетинг, допродажи, работа с клиентами, управление мастерами." />
+        <title>Полезная лента — подсказки по сегментам для салонов красоты | Промт Диалог</title>
+        <meta name="description" content="Каждый день новые рекомендации по оптимизации салона: маркетинг, допродажи, работа с клиентами, управление мастерами — под вашу роль в салоне." />
         <link rel="canonical" href="https://promtdialog.ru/blog" />
-        <meta property="og:title" content="Блог Промт Диалог — статьи для салонов красоты" />
+        <meta property="og:title" content="Полезная лента Промт Диалог — подсказки по сегментам" />
         <meta property="og:type" content="website" />
       </Helmet>
 
@@ -179,13 +179,13 @@ export default function BlogPage() {
       <section style={{ padding: "160px 32px 60px", background: `linear-gradient(135deg, ${DARK}, #112B3C)` }}>
         <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: TEAL, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 18 }}>
-            Блог
+            Полезная лента
           </div>
           <h1 style={{ fontFamily: SERIF, fontSize: "clamp(32px,5vw,52px)", fontWeight: 500, color: "#fff", margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-            Полезные статьи для роста салона
+            Подсказки по сегментам
           </h1>
           <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", marginTop: 18, fontWeight: 300 }}>
-            Каждый день — новая статья о маркетинге, допродажах и управлении доходом
+            Каждый день — новые рекомендации по оптимизации салона
           </p>
           {!user && (
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", marginTop: 14, fontWeight: 300 }}>
