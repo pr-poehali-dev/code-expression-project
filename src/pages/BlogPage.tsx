@@ -49,6 +49,14 @@ const CATEGORIES: { key: string; label: string }[] = [
   { key: "tools", label: "Инструменты платформы" },
 ];
 
+const ROLES: { key: string; label: string }[] = [
+  { key: "", label: "Все роли" },
+  { key: "owner", label: "Владелец салона" },
+  { key: "admin", label: "Администратор" },
+  { key: "master", label: "Мастер" },
+  { key: "massage", label: "Массажист" },
+];
+
 function formatDate(iso: string) {
   const d = new Date(iso);
   return d.toLocaleDateString("ru", { day: "numeric", month: "long", year: "numeric" });
@@ -66,6 +74,7 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState<number | null>(sharedPostId ? Number(sharedPostId) : null);
   const [category, setCategory] = useState("");
+  const [role, setRole] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [relatedByPost, setRelatedByPost] = useState<Record<number, RelatedPost[]>>({});
@@ -106,13 +115,14 @@ export default function BlogPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [category]);
+  }, [category, role]);
 
   useEffect(() => {
     setLoading(true);
     setOpenId(sharedPostId ? Number(sharedPostId) : null);
     const qs = new URLSearchParams({ action: "content_list", limit: String(PAGE_SIZE), page: String(page) });
     if (category) qs.set("category", category);
+    if (role) qs.set("role", role);
     fetch(`${CONTENT_URL}?${qs.toString()}`, {
       headers: { "X-Session-Id": getSessionId() },
     })
@@ -121,13 +131,13 @@ export default function BlogPage() {
         setPosts(d.posts || []);
         const total = d.total || 0;
         setTotalPages(Math.max(1, Math.ceil(total / PAGE_SIZE)));
-        if (user && page === 1 && !category && d.posts?.[0]?.post_date) {
+        if (user && page === 1 && !category && !role && d.posts?.[0]?.post_date) {
           markBlogSeen(d.posts[0].post_date);
         }
       })
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, page, user]);
+  }, [category, role, page, user]);
 
   // Переход по ссылке из анонса в Telegram (/blog?post=ID) — подгружаем именно этот пост
   // (может не быть на текущей странице ленты), открываем его и убираем query-параметр из URL.
@@ -187,7 +197,7 @@ export default function BlogPage() {
 
       <section style={{ padding: "64px 32px 120px" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 40 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>
             {CATEGORIES.map(c => {
               const active = category === c.key;
               return (
@@ -204,6 +214,29 @@ export default function BlogPage() {
                   }}
                 >
                   {c.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 40 }}>
+            <span style={{ fontSize: 13, color: GRAY, fontWeight: 400, marginRight: 2 }}>Ваша роль:</span>
+            {ROLES.map(r => {
+              const active = role === r.key;
+              return (
+                <button
+                  key={r.key}
+                  onClick={() => setRole(r.key)}
+                  style={{
+                    fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500, cursor: "pointer",
+                    padding: "7px 16px", borderRadius: 20, whiteSpace: "nowrap",
+                    border: active ? "1px solid transparent" : "1px solid #E2E8F0",
+                    background: active ? DARK : "#fff",
+                    color: active ? "#fff" : GRAY,
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {r.label}
                 </button>
               );
             })}

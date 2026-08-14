@@ -1753,14 +1753,15 @@ def handle_content_daily_post(event: dict, conn) -> dict:
 
 
 def handle_content_list(event: dict, conn) -> dict:
-    """Список опубликованных постов для ленты на сайте, с пагинацией (?page, ?limit) и фильтром
-    по ?category=marketing|upsell|clients|tools. Полный текст (body) доступен всем читателям без
-    авторизации. Посты категории «tools» дополнительно содержат tool_link (заметная карточка-ссылка
-    на инструмент/курс Академии, которому посвящён пост) — в формате {label, desc, icon, tab, tool}
-    или null, если для темы ссылка не задана. Поле authorized (авторизован ли читатель) остаётся в
-    ответе — фронт использует его, чтобы решить, куда вести по клику на tool_link: в кабинет или
-    на форму регистрации. ?post_id=N — вернуть конкретный пост по id (для перехода по прямой ссылке
-    на статью), игнорируя пагинацию и фильтр категории."""
+    """Список опубликованных постов для ленты на сайте, с пагинацией (?page, ?limit) и фильтрами
+    по ?category=marketing|upsell|clients|tools и ?role=owner|admin|master|massage (можно оба
+    одновременно). Полный текст (body) доступен всем читателям без авторизации. Посты категории
+    «tools» дополнительно содержат tool_link (заметная карточка-ссылка на инструмент/курс Академии,
+    которому посвящён пост) — в формате {label, desc, icon, tab, tool} или null, если для темы
+    ссылка не задана. Поле authorized (авторизован ли читатель) остаётся в ответе — фронт использует
+    его, чтобы решить, куда вести по клику на tool_link: в кабинет или на форму регистрации.
+    ?post_id=N — вернуть конкретный пост по id (для перехода по прямой ссылке на статью), игнорируя
+    пагинацию и фильтры категории/роли."""
     qs = event.get("queryStringParameters") or {}
     try:
         limit = min(max(int(qs.get("limit", 6)), 1), 50)
@@ -1772,6 +1773,7 @@ def handle_content_list(event: dict, conn) -> dict:
         page = 1
     offset = (page - 1) * limit
     category = qs.get("category", "")
+    role_filter = qs.get("role", "")
     try:
         post_id = int(qs.get("post_id", 0)) or None
     except ValueError:
@@ -1785,11 +1787,15 @@ def handle_content_list(event: dict, conn) -> dict:
         where_clause = "WHERE id = %s"
         params: tuple = (post_id,)
     else:
-        where_clause = ""
+        conditions = []
         params = ()
         if category and category in CONTENT_CATEGORIES:
-            where_clause = "WHERE category = %s"
-            params = (category,)
+            conditions.append("category = %s")
+            params += (category,)
+        if role_filter and role_filter in CONTENT_ROLES:
+            conditions.append("role = %s")
+            params += (role_filter,)
+        where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
 
     cur.execute(f"SELECT COUNT(*) AS total FROM {SCHEMA}.content_posts {where_clause}", params)
     total = cur.fetchone()["total"]
