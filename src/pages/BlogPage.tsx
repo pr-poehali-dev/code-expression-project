@@ -182,7 +182,7 @@ export default function BlogPage() {
             Полезная лента
           </div>
           <h1 style={{ fontFamily: SERIF, fontSize: "clamp(32px,5vw,52px)", fontWeight: 500, color: "#fff", margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-            Подсказки по сегментам
+            Подсказки по ролям
           </h1>
           <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", marginTop: 18, fontWeight: 300 }}>
             Каждый день — новые рекомендации по оптимизации салона
