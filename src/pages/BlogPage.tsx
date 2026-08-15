@@ -88,10 +88,27 @@ export default function BlogPage() {
       .catch(() => {});
   };
 
+  // Список постов не содержит полного текста (body) — подгружаем его только при раскрытии поста.
+  const loadBody = (post: Post) => {
+    if (post.body !== null) return;
+    const qs = new URLSearchParams({ action: "content_list", post_id: String(post.id) });
+    fetch(`${CONTENT_URL}?${qs.toString()}`, { headers: { "X-Session-Id": getSessionId() } })
+      .then(r => r.json())
+      .then(d => {
+        const full: Post | undefined = d.posts?.[0];
+        if (!full) return;
+        setPosts(prev => prev.map(p => (p.id === post.id ? { ...p, body: full.body } : p)));
+      })
+      .catch(() => {});
+  };
+
   const handleReadMore = (post: Post) => {
     const next = openId === post.id ? null : post.id;
     setOpenId(next);
-    if (next) loadRelated(post);
+    if (next) {
+      loadRelated(post);
+      loadBody(post);
+    }
   };
 
   const handleShare = async (post: Post) => {

@@ -1120,6 +1120,10 @@ def handle_podelam_notify(event: dict, conn) -> dict:
     if not admin_token or key != admin_token:
         return err("Доступ запрещён", 403)
 
+    # ВРЕМЕННО ОТКЛЮЧЕНО по просьбе пользователя — рассылка писем о новых шагах приостановлена.
+    # Чтобы включить обратно, удалить этот return.
+    return ok({"ok": True, "sent": [], "failed": [], "total_found": 0, "disabled": True})
+
     today = date.today()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
@@ -1800,8 +1804,11 @@ def handle_content_list(event: dict, conn) -> dict:
     cur.execute(f"SELECT COUNT(*) AS total FROM {SCHEMA}.content_posts {where_clause}", params)
     total = cur.fetchone()["total"]
 
+    # Полный текст (body) отдаём только при запросе конкретного поста (?post_id) — в ленте он не
+    # отображается, пока пост не раскрыт, и лишние килобайты на каждый пост в списке не нужны.
+    body_column = "body," if post_id else "NULL AS body,"
     cur.execute(
-        f"""SELECT id, post_date, title, excerpt, body, hashtags, category, role, created_at,
+        f"""SELECT id, post_date, title, excerpt, {body_column} hashtags, category, role, created_at,
                    tool_link_label, tool_link_desc, tool_link_icon, tool_link_tab, tool_link_tool
             FROM {SCHEMA}.content_posts
             {where_clause}
@@ -1998,13 +2005,6 @@ def handle_comment_like(event: dict, conn) -> dict:
 
     cur = conn.cursor()
     cur.execute(
-        f"SELECT id FROM {SCHEMA}.content_comments WHERE id = %s",
-        (comment_id,)
-    )
-    if not cur.fetchone():
-        return err("Комментарий не найден", 404)
-
-    cur.execute(
         f"SELECT id FROM {SCHEMA}.content_comment_likes WHERE comment_id = %s AND user_id = %s",
         (comment_id, user["id"])
     )
@@ -2016,11 +2016,17 @@ def handle_comment_like(event: dict, conn) -> dict:
         )
         liked = False
     else:
-        cur.execute(
-            f"INSERT INTO {SCHEMA}.content_comment_likes (comment_id, user_id) VALUES (%s, %s) "
-            f"ON CONFLICT (comment_id, user_id) DO NOTHING",
-            (comment_id, user["id"])
-        )
+        # FK на content_comments сам вернёт ошибку, если комментарий не существует — отдельный
+        # SELECT для проверки существования не нужен.
+        try:
+            cur.execute(
+                f"INSERT INTO {SCHEMA}.content_comment_likes (comment_id, user_id) VALUES (%s, %s) "
+                f"ON CONFLICT (comment_id, user_id) DO NOTHING",
+                (comment_id, user["id"])
+            )
+        except psycopg2.errors.ForeignKeyViolation:
+            conn.rollback()
+            return err("Комментарий не найден", 404)
         liked = True
     conn.commit()
 
