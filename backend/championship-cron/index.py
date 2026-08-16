@@ -58,6 +58,12 @@ def handler(event: dict, context) -> dict:
     qs = event.get("queryStringParameters") or {}
     action = qs.get("action", "run")
 
+    # ВРЕМЕННО ОТКЛЮЧЕНО: чемпионат сейчас не проводится, автоматика по расписанию (action=run,
+    # так вызывает внешний cron каждые 15 минут) не должна тратить вычислительное время впустую.
+    # Чтобы возобновить перед следующим турниром — удалить этот блок.
+    if action == "run":
+        return ok({"ok": True, "results": {}, "ran_at": now().isoformat(), "disabled": True})
+
     results = {}
 
     # Раньше каждый шаг открывал собственное подключение к БД (до 8 подключений за один cron

@@ -9,12 +9,15 @@ export type Tab =
   | "admin" | "support" | "more" | "clientmsg" | "marketing"
   | "championship" | "blog";
 
+// Чемпионат временно отключён (не проводится) — вкладка убрана из меню, чтобы cron-функция
+// не расходовала вычислительное время впустую. Чтобы вернуть, добавить "championship" обратно
+// в нужные роли ниже и в MOBILE_PRIMARY.
 export const ROLE_TABS: Record<string, Tab[]> = {
-  owner:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "shop", "employees", "purchases", "salon", "championship", "blog", "profile", "support"],
-  admin:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "championship", "blog", "profile", "support"],
+  owner:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "shop", "employees", "purchases", "salon", "blog", "profile", "support"],
+  admin:          ["home", "tools", "academy", "ai", "clientmsg", "marketing", "blog", "profile", "support"],
   master:         ["home", "tools", "academy", "ai", "blog", "profile", "support"],
   body_specialist:["home", "tools", "academy", "ai", "blog", "profile", "support"],
-  solo_master:    ["home", "tools", "academy", "clientmsg", "marketing", "shop", "purchases", "championship", "blog", "profile", "support"],
+  solo_master:    ["home", "tools", "academy", "clientmsg", "marketing", "shop", "purchases", "blog", "profile", "support"],
 };
 
 export function getAllowedTabs(role: string, isAdmin: boolean): Tab[] {
@@ -25,11 +28,11 @@ export function getAllowedTabs(role: string, isAdmin: boolean): Tab[] {
 }
 
 export const MOBILE_PRIMARY: Record<string, Tab[]> = {
-  owner:          ["home", "marketing", "championship", "employees"],
-  admin:          ["home", "marketing", "championship", "profile"],
+  owner:          ["home", "marketing", "academy", "employees"],
+  admin:          ["home", "marketing", "academy", "profile"],
   master:         ["home", "tools", "ai", "profile"],
   body_specialist:["home", "tools", "ai", "profile"],
-  solo_master:    ["home", "marketing", "championship", "profile"],
+  solo_master:    ["home", "marketing", "academy", "profile"],
 };
 
 export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string; highlight?: boolean; external?: string }[] = [

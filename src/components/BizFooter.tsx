@@ -14,14 +14,6 @@ const COLS = [
     ],
   },
   {
-    title: "Чемпионат",
-    links: [
-      { label: "🏆 Главная", href: "/championship" },
-      { label: "Рейтинг салонов", href: "/championship/rating" },
-      { label: "Зал славы", href: "/championship/hall-of-fame" },
-    ],
-  },
-  {
     title: "Компания",
     links: [
       { label: "О проекте", href: "/o-proekte" },
@@ -43,7 +35,7 @@ export default function BizFooter() {
   return (
     <footer style={{ background: "#080E1C", fontFamily: "Inter, sans-serif", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "72px 32px 36px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", gap: 40, marginBottom: 64 }} className="footer-grid">
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 40, marginBottom: 64 }} className="footer-grid">
           <div>
             <div style={{ marginBottom: 22 }}>
               <BrandLogo variant="light" size="md" />

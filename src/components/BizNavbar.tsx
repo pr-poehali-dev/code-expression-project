@@ -7,9 +7,7 @@ const NAV_LINKS = [
   { label: "Возможности", href: "/vozmozhnosti" },
   { label: "Для кого", href: "/dlya-kogo" },
   { label: "Тарифы", href: "/tseny" },
-  { label: "🏆 Чемпионат", href: "/championship" },
   { label: "Полезная лента", href: "/blog" },
-
 ];
 
 export default function BizNavbar() {
