@@ -60,31 +60,36 @@ def handler(event: dict, context) -> dict:
 
     results = {}
 
-    if action in ("run", "notify"):
-        results["notify"] = do_notify_salons()
-    if action in ("run", "open_registration"):
-        results["open_registration"] = do_open_registration()
-    if action in ("run", "check_min"):
-        results["check_min"] = do_check_min_participants()
-    if action in ("run", "close_registration"):
-        results["close_registration"] = do_close_registration()
-    if action in ("run", "open_tasks"):
-        results["open_tasks"] = do_open_tasks()
-    if action in ("run", "start_voting"):
-        results["start_voting"] = do_start_voting()
-    if action in ("run", "close_voting"):
-        results["close_voting"] = do_close_voting()
-    if action in ("run", "auto_finalize"):
-        results["auto_finalize"] = do_auto_finalize()
+    # Раньше каждый шаг открывал собственное подключение к БД (до 8 подключений за один cron
+    # запуск, который выполняется каждые 15 минут) — теперь одно общее подключение на весь запуск.
+    conn = get_db()
+    try:
+        if action in ("run", "notify"):
+            results["notify"] = do_notify_salons(conn)
+        if action in ("run", "open_registration"):
+            results["open_registration"] = do_open_registration(conn)
+        if action in ("run", "check_min"):
+            results["check_min"] = do_check_min_participants(conn)
+        if action in ("run", "close_registration"):
+            results["close_registration"] = do_close_registration(conn)
+        if action in ("run", "open_tasks"):
+            results["open_tasks"] = do_open_tasks(conn)
+        if action in ("run", "start_voting"):
+            results["start_voting"] = do_start_voting(conn)
+        if action in ("run", "close_voting"):
+            results["close_voting"] = do_close_voting(conn)
+        if action in ("run", "auto_finalize"):
+            results["auto_finalize"] = do_auto_finalize(conn)
+    finally:
+        conn.close()
 
     return ok({"ok": True, "results": results, "ran_at": now().isoformat()})
 
 
 # ── Открытие регистрации ──────────────────────────────────────────────────────
 
-def do_open_registration() -> dict:
+def do_open_registration(conn) -> dict:
     """Переводит турниры announced → registration когда наступает registration_starts."""
-    conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         f"""SELECT * FROM {tbl('ch_tournaments')}
@@ -106,13 +111,12 @@ def do_open_registration() -> dict:
 
 # ── Проверка минимума участников ─────────────────────────────────────────────
 
-def do_check_min_participants() -> dict:
+def do_check_min_participants(conn) -> dict:
     """
     После окончания регистрации (registration_ends) проверяет набран ли минимум участников.
     Если нет — переводит в postponed, ставит next_date и рассылает уведомление.
     Проверяет только турниры у которых регистрация уже завершилась, а задание ещё не открылось.
     """
-    conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     cur.execute(
@@ -210,9 +214,8 @@ def _send_postpone_email(to_email: str, tournament: dict, count: int, next_dt):
 
 # ── Закрытие регистрации ──────────────────────────────────────────────────────
 
-def do_close_registration() -> dict:
+def do_close_registration(conn) -> dict:
     """Переводит турниры registration → registration_closed когда наступает registration_ends."""
-    conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         f"""SELECT * FROM {tbl('ch_tournaments')}
@@ -234,9 +237,8 @@ def do_close_registration() -> dict:
 
 # ── Открытие задания ──────────────────────────────────────────────────────────
 
-def do_open_tasks() -> dict:
+def do_open_tasks(conn) -> dict:
     """Переводит турниры в статус 'active' когда наступает task_opens_at."""
-    conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         f"""SELECT * FROM {tbl('ch_tournaments')}
@@ -310,9 +312,8 @@ def _send_task_open_email(to_email: str, salon_name: str, tournament: dict):
 
 # ── Старт голосования ─────────────────────────────────────────────────────────
 
-def do_start_voting() -> dict:
+def do_start_voting(conn) -> dict:
     """Переводит турнир в статус 'voting' когда наступает voting_starts и рассылает письма участникам."""
-    conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         f"""SELECT * FROM {tbl('ch_tournaments')}
@@ -416,9 +417,8 @@ def _send_voting_started_email(to_email: str, salon_name: str, tournament: dict)
 
 # ── Закрытие голосования ──────────────────────────────────────────────────────
 
-def do_close_voting() -> dict:
+def do_close_voting(conn) -> dict:
     """Переводит турнир в статус 'finished_pending' для ручного подведения итогов."""
-    conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         f"""SELECT * FROM {tbl('ch_tournaments')}
@@ -440,7 +440,7 @@ def do_close_voting() -> dict:
 
 # ── Авто-финализация турниров ─────────────────────────────────────────────────
 
-def do_auto_finalize() -> dict:
+def do_auto_finalize(conn) -> dict:
     """
     Для турниров в статусе finished_pending:
     - расставляет места по количеству голосов
@@ -450,7 +450,6 @@ def do_auto_finalize() -> dict:
     - переводит турнир в finished
     """
 
-    conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     cur.execute(
@@ -623,12 +622,11 @@ def _send_winner_email(to_email: str, salon_name: str, tournament: dict, place: 
 
 # ── Уведомления о новых турнирах ──────────────────────────────────────────────
 
-def do_notify_salons() -> dict:
+def do_notify_salons(conn) -> dict:
     """
     Рассылает email о новых анонсированных турнирах всем активным салонам.
     Не рассылает дважды — использует флаг announced_notified.
     """
-    conn = get_db()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     cur.execute(

@@ -73,7 +73,11 @@ export function useRequestsCount(role: string) {
     };
 
     load();
-    const interval = setInterval(load, 5 * 60_000);
+    // Реже опрашиваем сервер и делаем это только пока вкладка активна — экономит вычисления
+    // на бэкенде без потери функциональности (счётчик всё равно обновится при возврате на вкладку).
+    const interval = setInterval(() => {
+      if (!document.hidden) load();
+    }, 15 * 60_000);
     return () => clearInterval(interval);
   }, [role]);
 
