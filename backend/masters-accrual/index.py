@@ -27,13 +27,15 @@ GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет е
                                        owner → admin → master → massage (см. CONTENT_ROLES/CONTENT_ROLE_GUIDANCE) — один
                                        пост пишется строго для одной роли, а не «для всех». ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ
                                        НЕ МЕНЕЕ 60с.
-GET  ?action=content_list          — посты для ленты на сайте с пагинацией (page, limit, category). Полный текст (body)
-                                       доступен ВСЕМ читателям, без авторизации. Каждый пост содержит role/role_label
-                                       (владелец/администратор/мастер/массажист), под кого он написан. Посты категории
-                                       «tools» дополнительно содержат tool_link_* (заметная ссылка на инструмент/курс
-                                       Академии, о котором пост) — tool_link_label, tool_link_desc, tool_link_icon,
-                                       tool_link_target (куда вести после клика: {"tab": "...", "tool": "..."} или
-                                       {"route": "/blog"} и т.п.).
+GET  ?action=content_list          — посты для ленты на сайте с пагинацией (page, limit, category). Список без полного
+                                       текста (body) — только заголовок/анонс, лёгкая нагрузка на ленту. Каждый пост
+                                       содержит slug для отдельной SEO-страницы /blog/:slug и role/role_label
+                                       (владелец/администратор/мастер/массажист), под кого он написан. ?post_id=N или
+                                       ?slug=... — конкретный пост С полным текстом (body), доступен ВСЕМ без авторизации.
+                                       Посты категории «tools» дополнительно содержат tool_link_* (заметная ссылка на
+                                       инструмент/курс Академии, о котором пост) — tool_link_label, tool_link_desc,
+                                       tool_link_icon, tool_link_target (куда вести после клика: {"tab": "...", "tool": "..."}
+                                       или {"route": "/blog"} и т.п.).
 GET  ?action=content_related       — похожие посты той же категории (post_id, category, limit) для блока «Читать дальше».
 GET  ?action=comments_list&post_id=N — список комментариев к посту (дерево: комментарий + ответы), включая ответы
                                        Админ Светланы (ИИ, модель gpt-4o-mini через polza.ai), с количеством лайков
@@ -1183,6 +1185,35 @@ CONTENT_CATEGORIES = {
     "tools": "Инструменты платформы",
 }
 
+_SLUG_TRANSLIT = {
+    'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'e','ж':'zh','з':'z','и':'i','й':'y',
+    'к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f',
+    'х':'h','ц':'ts','ч':'ch','ш':'sh','щ':'sch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya',
+}
+
+
+def _slugify_title(title: str, max_words: int = 8) -> str:
+    """Транслитерирует заголовок поста в короткий URL-slug (для отдельной SEO-страницы поста)."""
+    words = re.findall(r"[a-zA-Zа-яА-ЯёЁ0-9]+", title.lower())[:max_words]
+    parts = []
+    for w in words:
+        out = "".join(_SLUG_TRANSLIT.get(ch, ch if ch.isalnum() else "") for ch in w)
+        if out:
+            parts.append(out)
+    return "-".join(parts) or "post"
+
+
+def _unique_content_slug(conn, base_slug: str) -> str:
+    cur = conn.cursor()
+    slug = base_slug
+    i = 1
+    while True:
+        cur.execute(f"SELECT 1 FROM {SCHEMA}.content_posts WHERE slug = %s", (slug,))
+        if not cur.fetchone():
+            return slug
+        i += 1
+        slug = f"{base_slug}-{i}"
+
 # Строгий порядок ротации тем: сегодня — маркетинг, завтра — допродажи, послезавтра — работа
 # с клиентами, послепослезавтра — инструменты платформы, затем снова по кругу. Категория
 # следующего поста вычисляется от категории последнего опубликованного поста (см.
@@ -1732,16 +1763,19 @@ def handle_content_daily_post(event: dict, conn) -> dict:
     # ссылка строго из справочника CONTENT_TOOLS_TOPIC_LINKS, ИИ её не придумывает.
     tool_link = CONTENT_TOOLS_TOPIC_LINKS.get(topic) if category == "tools" else None
 
+    # Slug для отдельной SEO-страницы поста (/blog/slug) — уникальный, транслитерация заголовка.
+    slug = _unique_content_slug(conn, _slugify_title(ai_result["title"]))
+
     # Единственное действие — сохранить статью в блог. Простой INSERT, ничего внешнего.
     cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur2.execute(
         f"""INSERT INTO {SCHEMA}.content_posts
-            (post_date, title, excerpt, body, hashtags, category, topic, role, source,
+            (post_date, title, excerpt, body, hashtags, category, topic, role, source, slug,
              tool_link_label, tool_link_desc, tool_link_icon, tool_link_tab, tool_link_tool)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'ai', %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'ai', %s, %s, %s, %s, %s, %s)
             ON CONFLICT (post_date) DO NOTHING
             RETURNING *""",
-        (today, ai_result["title"], ai_result.get("excerpt") or "", ai_result["body"], hashtags_str, category, topic, role,
+        (today, ai_result["title"], ai_result.get("excerpt") or "", ai_result["body"], hashtags_str, category, topic, role, slug,
          tool_link["label"] if tool_link else None, tool_link["desc"] if tool_link else None,
          tool_link["icon"] if tool_link else None, tool_link["tab"] if tool_link else None,
          tool_link["tool"] if tool_link else None)
@@ -1759,13 +1793,15 @@ def handle_content_daily_post(event: dict, conn) -> dict:
 def handle_content_list(event: dict, conn) -> dict:
     """Список опубликованных постов для ленты на сайте, с пагинацией (?page, ?limit) и фильтрами
     по ?category=marketing|upsell|clients|tools и ?role=owner|admin|master|massage (можно оба
-    одновременно). Полный текст (body) доступен всем читателям без авторизации. Посты категории
-    «tools» дополнительно содержат tool_link (заметная карточка-ссылка на инструмент/курс Академии,
-    которому посвящён пост) — в формате {label, desc, icon, tab, tool} или null, если для темы
-    ссылка не задана. Поле authorized (авторизован ли читатель) остаётся в ответе — фронт использует
-    его, чтобы решить, куда вести по клику на tool_link: в кабинет или на форму регистрации.
-    ?post_id=N — вернуть конкретный пост по id (для перехода по прямой ссылке на статью), игнорируя
-    пагинацию и фильтры категории/роли."""
+    одновременно). Список НЕ содержит полного текста (body) — только заголовок/анонс, чтобы лента
+    оставалась лёгкой. Посты категории «tools» дополнительно содержат tool_link (заметная
+    карточка-ссылка на инструмент/курс Академии, которому посвящён пост) — в формате
+    {label, desc, icon, tab, tool} или null, если для темы ссылка не задана. Поле authorized
+    (авторизован ли читатель) остаётся в ответе — фронт использует его, чтобы решить, куда вести по
+    клику на tool_link: в кабинет или на форму регистрации.
+    ?post_id=N или ?slug=... — вернуть конкретный пост (с полным текстом body) по id или по
+    человекочитаемому slug (для отдельной SEO-страницы /blog/:slug), игнорируя пагинацию и фильтры
+    категории/роли."""
     qs = event.get("queryStringParameters") or {}
     try:
         limit = min(max(int(qs.get("limit", 6)), 1), 50)
@@ -1782,14 +1818,19 @@ def handle_content_list(event: dict, conn) -> dict:
         post_id = int(qs.get("post_id", 0)) or None
     except ValueError:
         post_id = None
+    slug = qs.get("slug", "") or None
 
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
     is_authorized = bool(session_id and get_lk_user_by_session(session_id, conn))
 
+    single = bool(post_id or slug)
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    if post_id:
+    if slug:
+        where_clause = "WHERE slug = %s"
+        params: tuple = (slug,)
+    elif post_id:
         where_clause = "WHERE id = %s"
-        params: tuple = (post_id,)
+        params = (post_id,)
     else:
         conditions = []
         params = ()
@@ -1804,17 +1845,17 @@ def handle_content_list(event: dict, conn) -> dict:
     cur.execute(f"SELECT COUNT(*) AS total FROM {SCHEMA}.content_posts {where_clause}", params)
     total = cur.fetchone()["total"]
 
-    # Полный текст (body) отдаём только при запросе конкретного поста (?post_id) — в ленте он не
-    # отображается, пока пост не раскрыт, и лишние килобайты на каждый пост в списке не нужны.
-    body_column = "body," if post_id else "NULL AS body,"
+    # Полный текст (body) отдаём только при запросе конкретного поста (?post_id/?slug) — в ленте он
+    # не отображается, и лишние килобайты на каждый пост в списке не нужны.
+    body_column = "body," if single else "NULL AS body,"
     cur.execute(
-        f"""SELECT id, post_date, title, excerpt, {body_column} hashtags, category, role, created_at,
+        f"""SELECT id, slug, post_date, title, excerpt, {body_column} hashtags, category, role, created_at,
                    tool_link_label, tool_link_desc, tool_link_icon, tool_link_tab, tool_link_tool
             FROM {SCHEMA}.content_posts
             {where_clause}
             ORDER BY post_date DESC
             LIMIT %s OFFSET %s""",
-        params + (limit if not post_id else 1, offset if not post_id else 0)
+        params + (limit if not single else 1, offset if not single else 0)
     )
     rows = [dict(r) for r in cur.fetchall()]
     for r in rows:
@@ -1860,7 +1901,7 @@ def handle_content_related(event: dict, conn) -> dict:
 
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
-        f"""SELECT id, post_date, title, excerpt, category
+        f"""SELECT id, slug, post_date, title, excerpt, category
             FROM {SCHEMA}.content_posts
             WHERE category = %s AND id != %s
             ORDER BY post_date DESC

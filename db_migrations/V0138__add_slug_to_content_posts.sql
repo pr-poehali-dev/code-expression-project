@@ -1,0 +1,2 @@
+ALTER TABLE t_p84565078_code_expression_proj.content_posts ADD COLUMN IF NOT EXISTS slug text;
+CREATE UNIQUE INDEX IF NOT EXISTS content_posts_slug_idx ON t_p84565078_code_expression_proj.content_posts (slug);

@@ -31,6 +31,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Offer = lazy(() => import("./pages/Offer"));
 const Reviews = lazy(() => import("./pages/Reviews"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
+const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const Praktika = lazy(() => import("./pages/Praktika"));
 const PremiumPraktika = lazy(() => import("./pages/PremiumPraktika"));
@@ -112,6 +113,7 @@ const App = () => (
             <Route path="/offer" element={<Offer />} />
             <Route path="/reviews" element={<Reviews />} />
             <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
             <Route path="/cabinet" element={<LkPage />} />
             <Route path="/join" element={<LkJoinPage />} />
             <Route path="/join/:token" element={<LkJoinPage />} />

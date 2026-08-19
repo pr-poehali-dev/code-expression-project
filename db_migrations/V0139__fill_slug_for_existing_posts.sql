@@ -1,0 +1,13 @@
+UPDATE t_p84565078_code_expression_proj.content_posts SET slug = 'kak-zakryt-okna-v-raspisanii-bez-skidok-dlya' WHERE id = 1;
+UPDATE t_p84565078_code_expression_proj.content_posts SET slug = 'abonementy-pokupayut-ne-iz-za-skidki' WHERE id = 2;
+UPDATE t_p84565078_code_expression_proj.content_posts SET slug = 'tri-vizita-posle-kotoryh-klient-ostaetsya' WHERE id = 3;
+UPDATE t_p84565078_code_expression_proj.content_posts SET slug = 'kak-zapolnit-okna-v-mezhsezone-bez-skidki-na' WHERE id = 4;
+UPDATE t_p84565078_code_expression_proj.content_posts SET slug = 'kak-nauchit-administratora-doprodavat-po-chelovecheski' WHERE id = 5;
+UPDATE t_p84565078_code_expression_proj.content_posts SET slug = 'kak-vernut-klienta-posle-dolgoy-pauzy' WHERE id = 6;
+UPDATE t_p84565078_code_expression_proj.content_posts SET slug = 'akademiya-kurs-pod-vashu-rol-a-ne-dlya' WHERE id = 7;
+UPDATE t_p84565078_code_expression_proj.content_posts SET slug = 'chem-zamenit-skidku-dlya-pervogo-vizita' WHERE id = 8;
+UPDATE t_p84565078_code_expression_proj.content_posts SET slug = 'dopusluga-bez-nelovkogo-budete' WHERE id = 9;
+UPDATE t_p84565078_code_expression_proj.content_posts SET slug = 'napominaniya-kotorye-snizhayut-neyavki' WHERE id = 10;
+UPDATE t_p84565078_code_expression_proj.content_posts SET slug = 'audit-salona-gde-administrator-teryaet-zapis' WHERE id = 11;
+UPDATE t_p84565078_code_expression_proj.content_posts SET slug = 'kak-masteru-zapolnit-zapis-v-novom-salone-bez' WHERE id = 12;
+ALTER TABLE t_p84565078_code_expression_proj.content_posts ALTER COLUMN slug SET NOT NULL;

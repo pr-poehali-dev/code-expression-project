@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { markBlogSeen } from "@/pages/lk/blogNotice";
-import { toast } from "@/hooks/use-toast";
-import BlogComments from "./BlogComments";
-import BlogToolLink, { ToolLink } from "./BlogToolLink";
 import func2url from "../../backend/func2url.json";
 
 const TEAL = "#2DD4BF";
@@ -21,24 +18,15 @@ const CONTENT_URL = (func2url as Record<string, string>)["masters-accrual"] || "
 
 interface Post {
   id: number;
+  slug: string;
   post_date: string;
   title: string;
   excerpt: string;
-  body: string | null;
   hashtags: string;
   category: string | null;
   category_label: string;
   role: string | null;
   role_label: string;
-  tool_link: ToolLink | null;
-}
-
-interface RelatedPost {
-  id: number;
-  post_date: string;
-  title: string;
-  excerpt: string;
-  category_label: string;
 }
 
 const CATEGORIES: { key: string; label: string }[] = [
@@ -68,75 +56,22 @@ function getSessionId(): string {
 
 export default function BlogPage() {
   const { user } = useLkAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const sharedPostId = searchParams.get("post");
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [openId, setOpenId] = useState<number | null>(sharedPostId ? Number(sharedPostId) : null);
   const [category, setCategory] = useState("");
   const [role, setRole] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [relatedByPost, setRelatedByPost] = useState<Record<number, RelatedPost[]>>({});
-
-  const loadRelated = (post: Post) => {
-    if (!post.category || relatedByPost[post.id]) return;
-    const qs = new URLSearchParams({ action: "content_related", category: post.category, post_id: String(post.id), limit: "3" });
-    fetch(`${CONTENT_URL}?${qs.toString()}`)
-      .then(r => r.json())
-      .then(d => setRelatedByPost(prev => ({ ...prev, [post.id]: d.posts || [] })))
-      .catch(() => {});
-  };
-
-  // Список постов не содержит полного текста (body) — подгружаем его только при раскрытии поста.
-  const loadBody = (post: Post) => {
-    if (post.body !== null) return;
-    const qs = new URLSearchParams({ action: "content_list", post_id: String(post.id) });
-    fetch(`${CONTENT_URL}?${qs.toString()}`, { headers: { "X-Session-Id": getSessionId() } })
-      .then(r => r.json())
-      .then(d => {
-        const full: Post | undefined = d.posts?.[0];
-        if (!full) return;
-        setPosts(prev => prev.map(p => (p.id === post.id ? { ...p, body: full.body } : p)));
-      })
-      .catch(() => {});
-  };
-
-  const handleReadMore = (post: Post) => {
-    const next = openId === post.id ? null : post.id;
-    setOpenId(next);
-    if (next) {
-      loadRelated(post);
-      loadBody(post);
-    }
-  };
-
-  const handleShare = async (post: Post) => {
-    const url = `${window.location.origin}/blog?post=${post.id}`;
-    const shareData = { title: post.title, text: post.excerpt || post.title, url };
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch {
-        // пользователь отменил шаринг — ничего не делаем
-      }
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      toast({ title: "Ссылка скопирована", description: "Можно поделиться постом в соцсетях или мессенджере" });
-    } catch {
-      toast({ title: "Не удалось скопировать ссылку", variant: "destructive" });
-    }
-  };
 
   useEffect(() => {
     setPage(1);
   }, [category, role]);
 
+  // Лента отдаёт посты БЕЗ полного текста (body) — карточки ведут на отдельную страницу
+  // /blog/:slug, где текст подгружается только для этого одного поста. Так лента остаётся лёгкой,
+  // а у каждой статьи — своя SEO-страница со своим адресом.
   useEffect(() => {
     setLoading(true);
-    setOpenId(sharedPostId ? Number(sharedPostId) : null);
     const qs = new URLSearchParams({ action: "content_list", limit: String(PAGE_SIZE), page: String(page) });
     if (category) qs.set("category", category);
     if (role) qs.set("role", role);
@@ -153,33 +88,7 @@ export default function BlogPage() {
         }
       })
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, role, page, user]);
-
-  // Переход по ссылке из анонса в Telegram (/blog?post=ID) — подгружаем именно этот пост
-  // (может не быть на текущей странице ленты), открываем его и убираем query-параметр из URL.
-  useEffect(() => {
-    if (!sharedPostId) return;
-    const qs = new URLSearchParams({ action: "content_list", post_id: sharedPostId });
-    fetch(`${CONTENT_URL}?${qs.toString()}`, { headers: { "X-Session-Id": getSessionId() } })
-      .then(r => r.json())
-      .then(d => {
-        const post: Post | undefined = d.posts?.[0];
-        if (!post) return;
-        setPosts(prev => (prev.some(p => p.id === post.id) ? prev : [post, ...prev]));
-        setOpenId(post.id);
-        loadRelated(post);
-        requestAnimationFrame(() => {
-          document.getElementById(`blog-post-${post.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-      })
-      .catch(() => {})
-      .finally(() => {
-        searchParams.delete("post");
-        setSearchParams(searchParams, { replace: true });
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sharedPostId]);
 
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", minHeight: "100vh" }}>
@@ -274,119 +183,59 @@ export default function BlogPage() {
           ) : (
             <>
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                {posts.map(post => {
-                  const isOpen = openId === post.id;
-                  return (
-                    <article key={post.id} id={`blog-post-${post.id}`} style={{
-                      border: "1px solid #E2E8F0", borderRadius: 8, padding: "28px 32px",
-                      transition: "border-color 0.25s, box-shadow 0.25s", scrollMarginTop: 100,
+                {posts.map(post => (
+                  <Link
+                    key={post.id}
+                    to={`/blog/${post.slug}`}
+                    style={{
+                      display: "block", border: "1px solid #E2E8F0", borderRadius: 8, padding: "28px 32px",
+                      transition: "border-color 0.25s, box-shadow 0.25s", textDecoration: "none", color: "inherit",
                     }}
-                      onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = TEAL; el.style.boxShadow = "0 8px 24px rgba(45,212,191,0.1)"; }}
-                      onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "#E2E8F0"; el.style.boxShadow = "none"; }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 10 }}>
-                        <span style={{ fontSize: 13, color: GRAY, fontWeight: 400, whiteSpace: "nowrap" }}>{formatDate(post.post_date)}</span>
-                        {post.category_label && (
-                          <span style={{
-                            fontSize: 12, fontWeight: 600, color: "#0D9488", background: "#CCFBF1",
-                            padding: "3px 10px", borderRadius: 20, letterSpacing: "0.2px", whiteSpace: "nowrap",
-                          }}>
-                            {post.category_label}
-                          </span>
-                        )}
-                        {post.role_label && (
-                          <span style={{
-                            fontSize: 12, fontWeight: 600, color: "#334155", background: "#F1F5F9",
-                            padding: "3px 10px", borderRadius: 20, letterSpacing: "0.2px", whiteSpace: "nowrap",
-                          }}>
-                            Для: {post.role_label}
-                          </span>
-                        )}
+                    onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = TEAL; el.style.boxShadow = "0 8px 24px rgba(45,212,191,0.1)"; }}
+                    onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "#E2E8F0"; el.style.boxShadow = "none"; }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 10 }}>
+                      <span style={{ fontSize: 13, color: GRAY, fontWeight: 400, whiteSpace: "nowrap" }}>{formatDate(post.post_date)}</span>
+                      {post.category_label && (
+                        <span style={{
+                          fontSize: 12, fontWeight: 600, color: "#0D9488", background: "#CCFBF1",
+                          padding: "3px 10px", borderRadius: 20, letterSpacing: "0.2px", whiteSpace: "nowrap",
+                        }}>
+                          {post.category_label}
+                        </span>
+                      )}
+                      {post.role_label && (
+                        <span style={{
+                          fontSize: 12, fontWeight: 600, color: "#334155", background: "#F1F5F9",
+                          padding: "3px 10px", borderRadius: 20, letterSpacing: "0.2px", whiteSpace: "nowrap",
+                        }}>
+                          Для: {post.role_label}
+                        </span>
+                      )}
+                    </div>
+                    <h2 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 600, color: DARK, margin: "0 0 12px", lineHeight: 1.25 }}>
+                      {post.title}
+                    </h2>
+                    {post.excerpt && (
+                      <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.6, margin: "0 0 18px", fontWeight: 300 }}>
+                        {post.excerpt}
+                      </p>
+                    )}
+                    {post.hashtags && (
+                      <div style={{ fontSize: 13, color: TEAL, marginBottom: 18, fontWeight: 400 }}>
+                        {post.hashtags}
                       </div>
-                      <h2 style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 600, color: DARK, margin: "0 0 12px", lineHeight: 1.25 }}>
-                        {post.title}
-                      </h2>
-                      {post.excerpt && (
-                        <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.6, margin: "0 0 18px", fontWeight: 300 }}>
-                          {post.excerpt}
-                        </p>
-                      )}
-                      {post.hashtags && (
-                        <div style={{ fontSize: 13, color: TEAL, marginBottom: 18, fontWeight: 400 }}>
-                          {post.hashtags}
-                        </div>
-                      )}
-                      {isOpen && post.body && (
-                        <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.75, margin: "0 0 20px", fontWeight: 300, whiteSpace: "pre-line" }}>
-                          {post.body}
-                        </p>
-                      )}
-                      {isOpen && post.tool_link && (
-                        <BlogToolLink toolLink={post.tool_link} authenticated={!!user} />
-                      )}
-                      {isOpen && (relatedByPost[post.id]?.length ?? 0) > 0 && (
-                        <div style={{ margin: "0 0 24px", paddingTop: 20, borderTop: "1px solid #F1F5F9" }}>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: GRAY, letterSpacing: "1px", textTransform: "uppercase", marginBottom: 14 }}>
-                            Читайте также
-                          </div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                            {relatedByPost[post.id].map(rp => (
-                              <button
-                                key={rp.id}
-                                onClick={() => {
-                                  setOpenId(rp.id);
-                                  const target = posts.find(p => p.id === rp.id);
-                                  if (target) loadRelated(target);
-                                  requestAnimationFrame(() => {
-                                    document.getElementById(`blog-post-${rp.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-                                  });
-                                }}
-                                style={{
-                                  display: "flex", alignItems: "center", gap: 10, textAlign: "left",
-                                  padding: "10px 12px", margin: "0 -12px", borderRadius: 6, border: "none",
-                                  background: "transparent", cursor: "pointer", fontFamily: "Inter, sans-serif",
-                                  transition: "background 0.15s",
-                                }}
-                                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = "#F8FAFC"}
-                                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = "transparent"}
-                              >
-                                <Icon name="ArrowUpRight" size={15} style={{ color: TEAL, flexShrink: 0 }} />
-                                <span style={{ fontSize: 14, fontWeight: 500, color: DARK }}>{rp.title}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                        <button
-                          onClick={() => handleReadMore(post)}
-                          style={{
-                            display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500,
-                            color: DARK, border: "none", cursor: "pointer", padding: "10px 20px", borderRadius: 2,
-                            background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", fontFamily: "Inter, sans-serif",
-                          }}
-                        >
-                          {isOpen ? "Свернуть" : "Читать полностью"}
-                          <Icon name={isOpen ? "ChevronUp" : "ArrowRight"} size={15} />
-                        </button>
-                        <button
-                          onClick={() => handleShare(post)}
-                          style={{
-                            display: "inline-flex", alignItems: "center", gap: 7, fontSize: 14, fontWeight: 500,
-                            color: GRAY, border: "1px solid #E2E8F0", cursor: "pointer", padding: "10px 18px", borderRadius: 2,
-                            background: "#fff", fontFamily: "Inter, sans-serif", transition: "border-color 0.2s, color 0.2s",
-                          }}
-                          onMouseEnter={e => { const el = e.currentTarget as HTMLButtonElement; el.style.borderColor = TEAL; el.style.color = DARK; }}
-                          onMouseLeave={e => { const el = e.currentTarget as HTMLButtonElement; el.style.borderColor = "#E2E8F0"; el.style.color = GRAY; }}
-                        >
-                          <Icon name="Share2" size={15} />
-                          Поделиться
-                        </button>
-                      </div>
-                      {isOpen && <BlogComments postId={post.id} canComment={!!user} />}
-                    </article>
-                  );
-                })}
+                    )}
+                    <span style={{
+                      display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500,
+                      color: DARK, padding: "10px 20px", borderRadius: 2,
+                      background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", fontFamily: "Inter, sans-serif",
+                    }}>
+                      Читать полностью
+                      <Icon name="ArrowRight" size={15} />
+                    </span>
+                  </Link>
+                ))}
               </div>
 
               {totalPages > 1 && (
