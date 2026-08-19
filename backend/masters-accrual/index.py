@@ -37,6 +37,10 @@ GET  ?action=content_list          — посты для ленты на сай�
                                        tool_link_icon, tool_link_target (куда вести после клика: {"tab": "...", "tool": "..."}
                                        или {"route": "/blog"} и т.п.).
 GET  ?action=content_related       — похожие посты той же категории (post_id, category, limit) для блока «Читать дальше».
+GET  ?action=sitemap               — динамическая карта сайта (XML, Content-Type application/xml) со всеми
+                                       статичными страницами + ссылкой на КАЖДУЮ опубликованную статью блога
+                                       (/blog/:slug), пополняется автоматически по мере публикации новых постов.
+                                       Без авторизации, публичный эндпоинт для поисковых роботов.
 GET  ?action=comments_list&post_id=N — список комментариев к посту (дерево: комментарий + ответы), включая ответы
                                        Админ Светланы (ИИ, модель gpt-4o-mini через polza.ai), с количеством лайков
                                        (likes_count) и флагом liked_by_me для авторизованного читателя (X-Session-Id опц.).
@@ -1914,6 +1918,61 @@ def handle_content_related(event: dict, conn) -> dict:
     return ok({"posts": rows})
 
 
+# Статичные страницы сайта (совпадает со списком в public/sitemap.xml) — здесь дублируются, чтобы
+# динамическая карта сайта была ПОЛНОЙ (статика + блог) и её можно было указать в robots.txt вместо
+# статического файла. (url, changefreq, priority)
+SITEMAP_STATIC_PAGES = [
+    ("/", "weekly", "1.0"),
+    ("/vozmozhnosti", "weekly", "0.9"),
+    ("/dlya-kogo", "monthly", "0.8"),
+    ("/akademiya", "weekly", "0.8"),
+    ("/tseny", "monthly", "0.8"),
+    ("/keysy", "monthly", "0.7"),
+    ("/o-proekte", "monthly", "0.6"),
+    ("/tarify", "monthly", "0.7"),
+    ("/reviews", "weekly", "0.7"),
+    ("/praktika", "monthly", "0.7"),
+    ("/premium", "monthly", "0.7"),
+    ("/ekspert", "monthly", "0.7"),
+    ("/free", "monthly", "0.6"),
+    ("/trening-prodazhi", "monthly", "0.6"),
+    ("/dlya-salonov", "monthly", "0.7"),
+    ("/kontakty", "yearly", "0.5"),
+    ("/blog", "daily", "0.8"),
+    ("/privacy", "yearly", "0.3"),
+    ("/offer", "yearly", "0.3"),
+]
+
+
+def _xml_escape(text: str) -> str:
+    return (text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            .replace('"', "&quot;").replace("'", "&apos;"))
+
+
+def handle_sitemap(event: dict, conn) -> dict:
+    """Динамическая карта сайта (XML): статичные страницы + ссылка на КАЖДУЮ опубликованную статью
+    блога. Пополняется сама по мере публикации новых постов — ничего вручную обновлять не нужно."""
+    parts = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+
+    for path, changefreq, priority in SITEMAP_STATIC_PAGES:
+        parts.append(
+            f"  <url><loc>{SITE_URL}{path}</loc><changefreq>{changefreq}</changefreq><priority>{priority}</priority></url>"
+        )
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT slug, post_date FROM {SCHEMA}.content_posts WHERE slug IS NOT NULL ORDER BY post_date DESC")
+    for r in cur.fetchall():
+        loc = _xml_escape(f"{SITE_URL}/blog/{r['slug']}")
+        lastmod = r["post_date"].isoformat() if hasattr(r["post_date"], "isoformat") else str(r["post_date"])
+        parts.append(
+            f"  <url><loc>{loc}</loc><lastmod>{lastmod}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>"
+        )
+
+    parts.append("</urlset>")
+    xml = "\n".join(parts)
+    return {"statusCode": 200, "headers": {**CORS, "Content-Type": "application/xml; charset=utf-8"}, "body": xml}
+
+
 # ── Комментарии к постам блога + ответы «Админ Светлана» (ИИ, gpt-4o-mini) ─────
 
 COMMENTS_AI_MODEL = "openai/gpt-4o-mini"
@@ -2228,6 +2287,8 @@ def handler(event: dict, context) -> dict:
             return handle_content_list(event, conn)
         if route_action == "content_related":
             return handle_content_related(event, conn)
+        if route_action == "sitemap":
+            return handle_sitemap(event, conn)
 
         # ── Комментарии к постам блога (личный кабинет, X-Session-Id) ────────
         if route_action == "comments_list":

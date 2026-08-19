@@ -8,3 +8,4 @@ Disallow: /masters/register
 Disallow: /masters/login
 
 Sitemap: https://promtdialog.ru/sitemap.xml
+Sitemap: https://functions.poehali.dev/2907ddb5-140b-429e-a5b0-30b5bd898074?action=sitemap

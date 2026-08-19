@@ -79,6 +79,12 @@
       "expectedStatus": 200
     },
     {
+      "name": "GET sitemap — 200",
+      "method": "GET",
+      "path": "/?action=sitemap",
+      "expectedStatus": 200
+    },
+    {
       "name": "GET comments_list without post_id — 400",
       "method": "GET",
       "path": "/?action=comments_list",
