@@ -27,10 +27,10 @@ const FACTORS = [
 ];
 
 const STEPS = [
-  { num: "01", icon: "ClipboardList", title: "Расскажите о своей ситуации", desc: "Доход, чек, база клиентов, окна и цели — несколько вопросов, 10–15 минут" },
-  { num: "02", icon: "Map", title: "Получите карту роста", desc: "Разрыв до цели раскладывается на точки роста с оценкой вклада в рублях" },
-  { num: "03", icon: "Target", title: "Получите план по делам", desc: "Не список задач, а главное дело на сегодня — с кнопкой готового действия" },
-  { num: "04", icon: "LineChart", title: "Выполняйте и фиксируйте", desc: "Отмечайте результат — каждый день рекомендации становятся точнее" },
+  { num: "01", icon: "UserPlus", title: "Регистрация", desc: "Аккаунт за 1 минуту — расскажите о доходе, чеке, базе клиентов и цели" },
+  { num: "02", icon: "Target", title: "План на день", desc: "ИИ раскладывает разрыв до цели на понятные дела с оценкой вклада в рублях" },
+  { num: "03", icon: "Rocket", title: "Выполняете", desc: "С готовыми инструментами платформы — с гарантией результата, либо самостоятельно" },
+  { num: "04", icon: "BarChart2", title: "Результат", desc: "Фиксируете доход и клиентов — получаете отчёт и точный план на завтра" },
 ];
 
 export default function IndexPlatform() {
@@ -118,24 +118,73 @@ export default function IndexPlatform() {
           <div style={{ maxWidth: 560, marginBottom: 56 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Как это работает</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: "#fff", margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-              От цели по доходу — к действиям
+              От регистрации — к результату
             </h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 20 }}>
-            {STEPS.map((s, i) => (
-              <div key={i} style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: "28px 24px", background: "rgba(255,255,255,0.04)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                  <div style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 600, color: "rgba(255,255,255,0.25)", lineHeight: 1 }}>{s.num}</div>
-                  <div style={{ width: 38, height: 38, borderRadius: 10, background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Icon name={s.icon} size={17} style={{ color: TEAL }} />
+
+          {/* Схема: 4 этапа со стрелками, третий — развилка (инструменты платформы / самостоятельно) */}
+          <div style={{ display: "flex", alignItems: "stretch", gap: 0, flexWrap: "wrap" }} className="how-flow">
+            {STEPS.slice(0, 2).map((s, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", flex: "1 1 200px" }} className="how-flow-item">
+                <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: "26px 22px", background: "rgba(255,255,255,0.04)", flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                    <div style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 600, color: "rgba(255,255,255,0.25)", lineHeight: 1 }}>{s.num}</div>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Icon name={s.icon} size={16} style={{ color: TEAL }} />
+                    </div>
                   </div>
+                  <div style={{ fontSize: 14.5, fontWeight: 700, color: "#fff", marginBottom: 6, lineHeight: 1.3 }}>{s.title}</div>
+                  <p style={{ margin: 0, fontSize: 12.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.55, fontWeight: 300 }}>{s.desc}</p>
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 8, lineHeight: 1.3 }}>{s.title}</div>
-                <p style={{ margin: 0, fontSize: 13.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, fontWeight: 300 }}>{s.desc}</p>
+                <Icon name="ChevronRight" size={20} style={{ color: "rgba(45,212,191,0.35)", flexShrink: 0, margin: "0 8px" }} className="how-flow-arrow" />
               </div>
             ))}
+
+            {/* Шаг 3: развилка */}
+            <div style={{ display: "flex", alignItems: "center", flex: "1 1 320px" }} className="how-flow-item">
+              <div style={{ border: "1.5px solid rgba(45,212,191,0.35)", borderRadius: 16, padding: "26px 22px", background: "rgba(45,212,191,0.06)", flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                  <div style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 600, color: "rgba(255,255,255,0.25)", lineHeight: 1 }}>03</div>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(45,212,191,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Icon name="Rocket" size={16} style={{ color: TEAL }} />
+                  </div>
+                </div>
+                <div style={{ fontSize: 14.5, fontWeight: 700, color: "#fff", marginBottom: 12, lineHeight: 1.3 }}>Выполняете дела дня</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 10, padding: "9px 12px" }}>
+                    <Icon name="ShieldCheck" size={14} style={{ color: TEAL, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12.5, color: "#fff", fontWeight: 500 }}>Инструментами платформы — с гарантией результата</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "9px 12px" }}>
+                    <Icon name="User" size={14} style={{ color: "rgba(255,255,255,0.5)", flexShrink: 0 }} />
+                    <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.7)", fontWeight: 400 }}>Или самостоятельно, по своим силам</span>
+                  </div>
+                </div>
+              </div>
+              <Icon name="ChevronRight" size={20} style={{ color: "rgba(45,212,191,0.35)", flexShrink: 0, margin: "0 8px" }} className="how-flow-arrow" />
+            </div>
+
+            {/* Шаг 4: результат */}
+            <div style={{ flex: "1 1 200px" }} className="how-flow-item">
+              <div style={{ border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: "26px 22px", background: "rgba(255,255,255,0.04)", height: "100%" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                  <div style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 600, color: "rgba(255,255,255,0.25)", lineHeight: 1 }}>04</div>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Icon name="BarChart2" size={16} style={{ color: TEAL }} />
+                  </div>
+                </div>
+                <div style={{ fontSize: 14.5, fontWeight: 700, color: "#fff", marginBottom: 6, lineHeight: 1.3 }}>Результат</div>
+                <p style={{ margin: 0, fontSize: 12.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.55, fontWeight: 300 }}>Фиксируете доход и клиентов — получаете отчёт и точный план на завтра</p>
+              </div>
+            </div>
           </div>
         </div>
+        <style>{`
+          @media (max-width: 900px) {
+            .how-flow-arrow { display: none !important; }
+            .how-flow-item { flex: 1 1 100% !important; }
+          }
+        `}</style>
       </section>
     </>
   );

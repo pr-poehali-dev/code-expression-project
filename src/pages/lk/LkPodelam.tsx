@@ -81,11 +81,11 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
     }
   };
 
-  const saveIncome = async (amount: number) => {
+  const saveIncome = async (amount: number, newClients: number, returnedClients: number) => {
     await fetch(`${PODELAM_URL}?action=podelam_set_income`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
-      body: JSON.stringify({ amount }),
+      body: JSON.stringify({ amount, new_clients: newClients, returned_clients: returnedClients }),
     });
     load();
   };
@@ -274,7 +274,12 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
       )}
 
       {/* Доход за сегодня */}
-      <DailyIncomeCard savedAmount={data.today_income} onSave={saveIncome} />
+      <DailyIncomeCard
+        savedAmount={data.today_income}
+        savedNewClients={data.today_new_clients}
+        savedReturnedClients={data.today_returned_clients}
+        onSave={saveIncome}
+      />
 
       {/* Экран 2: Главное дело дня */}
       {mainTask && (

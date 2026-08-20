@@ -64,6 +64,8 @@ export interface PodelamData {
   plan?: { tasks: Task[]; main_task_key: string | null; gap_amount: number; tomorrow_preview?: string; source?: string; salon_focus?: SalonFocusStaff | null } | null;
   task_log?: Record<string, { done: boolean; actual_amount: number | null }>;
   today_income?: number | null;
+  today_new_clients?: number | null;
+  today_returned_clients?: number | null;
   salon_profile_filled?: boolean | null;
   energy_insufficient?: boolean;
   energy_balance?: number;
@@ -77,6 +79,8 @@ export interface PeriodStats {
   completion_rate: number;
   potential_total: number;
   actual_total: number;
+  new_clients_total?: number;
+  returned_clients_total?: number;
 }
 
 export interface StatsData {

@@ -15,12 +15,15 @@ GET  ?action=podelam_get           — профиль дохода + план н
                                        специалиста. Если энергии не хватает — план не строится, ответ содержит energy_insufficient=true.
                                        Все доп. данные читаются ТОЛЬКО при первой генерации плана за сутки (кэш в podelam_daily_plans),
                                        повторные заходы в этот же день — без единого запроса к ИИ, доп. таблицам или повторного
-                                       списания энергии.
+                                       списания энергии. При построении НОВОГО плана дополнительно читается вчерашний факт из
+                                       podelam_daily_income (доход + new_clients/returned_clients, если пользователь их указал) и
+                                       передаётся ИИ, чтобы план подстраивался под то, что реально сработало.
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с — иначе запрос к ИИ обрывается по 504 и план не сохраняется.
 POST ?action=podelam_save_profile  — сохранить диагностику дохода (X-Session-Id)
 POST ?action=podelam_task_done     — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
-GET  ?action=podelam_stats         — статистика выполненных дел за неделю/месяц (X-Session-Id)
-POST ?action=podelam_set_income    — прибавить фактический доход за день (amount, опц. date, mode="add"|"replace") (X-Session-Id)
+GET  ?action=podelam_stats         — статистика выполненных дел, дохода и новых/вернувшихся клиентов за неделю/месяц (X-Session-Id)
+POST ?action=podelam_set_income    — прибавить фактический доход за день и опционально кол-во новых/вернувшихся клиентов
+                                       (amount, опц. new_clients, returned_clients, date, mode="add"|"replace") (X-Session-Id)
 GET/POST ?action=podelam_notify&key=ADMIN_TOKEN — cron: письмо пользователям с новым планом на сегодня, у кого ещё не отправлено.
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с при большом числе пользователей.
 GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет ежедневный экспертный пост и публикует в блог сайта
@@ -599,6 +602,13 @@ marketing:reel-script или marketing:image-gen) — НЕДОСТАТОЧНО �
 12. АНТИ-ПОВТОР: НИКОГДА не повторяй буквально или почти буквально формулировки title/action_text/topic_options из \
 yesterday_tasks и recent_content_topics (последние темы контента за 14 дней, если переданы в payload) — каждый день \
 план должен ощущаться как новый шаг вперёд, а не копия вчерашнего.
+13. ФАКТИЧЕСКИЙ РЕЗУЛЬТАТ ВЧЕРА: если в payload передан yesterday_result (amount — фактическая выручка за вчера, \
+new_clients — сколько пришло новых клиентов, returned_clients — сколько вернулось из базы), обязательно учти это при \
+построении сегодняшнего плана. Сравни amount с ожидаемым дневным темпом (gap_amount, разложенный примерно на дни до \
+конца месяца) — если сильно отстаёт, усиль сегодня дело с наибольшим потенциалом; если идёт с опережением, можно один \
+день посвятить развитию/тестам. Если new_clients низкий или 0 — сделай акцент на привлечении (контент/офферы/реклама); \
+если returned_clients низкий — на возврате из базы. Коротко (1 фраза в action_text главного дела) можно сослаться на \
+вчерашний результат, чтобы человек видел связь между тем, что он делал, и тем, что предлагается сегодня.
 {PODELAM_FIRST_PLAN_PROMPT if is_first_plan else ""}
 Отвечай СТРОГО в формате JSON, без markdown-обёртки, без пояснений вне JSON:
 {{
@@ -620,7 +630,8 @@ yesterday_tasks и recent_content_topics (последние темы конте
 
 def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | None = None,
                      yesterday_tasks: list | None = None, salon_context: dict | None = None,
-                     is_first_plan: bool = False, recent_content_topics: list | None = None) -> dict | None:
+                     is_first_plan: bool = False, recent_content_topics: list | None = None,
+                     yesterday_result: dict | None = None) -> dict | None:
     """Запрашивает у модели terra (polza.ai) персональный план роста дохода. Возвращает None при ошибке."""
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
@@ -654,6 +665,11 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
     }
     if salon_context:
         user_payload["salon_context"] = salon_context
+    if yesterday_result:
+        # Фактический результат вчерашнего дня, который человек сам внёс в кабинете — реальная
+        # выручка и сколько пришло новых/вернулось клиентов. Используется, чтобы ИИ подстраивал
+        # план под то, что реально сработало, а не только под вчерашние формулировки дел.
+        user_payload["yesterday_result"] = yesterday_result
 
     payload = json.dumps({
         "model": PODELAM_MODEL,
@@ -785,6 +801,22 @@ def handle_podelam_get(event: dict, conn) -> dict:
             yt = yesterday_row["tasks"] if isinstance(yesterday_row["tasks"], list) else json.loads(yesterday_row["tasks"])
             yesterday_tasks = [{"title": t.get("title"), "nav": t.get("nav")} for t in yt]
 
+        # Фактический результат за вчера (доход + новые/вернувшиеся клиенты, если пользователь
+        # их указал) — ИИ учитывает, что реально сработало, и опирается на это при новом плане.
+        cur.execute(
+            f"""SELECT amount, new_clients, returned_clients FROM {SCHEMA}.podelam_daily_income
+                WHERE user_id = %s AND income_date = %s""",
+            (user["id"], today - timedelta(days=1))
+        )
+        yesterday_income_row = cur.fetchone()
+        yesterday_result = None
+        if yesterday_income_row:
+            yesterday_result = {
+                "amount": float(yesterday_income_row["amount"] or 0),
+                "new_clients": yesterday_income_row["new_clients"] or 0,
+                "returned_clients": yesterday_income_row["returned_clients"] or 0,
+            }
+
         # Темы постов/Reels за последние 14 дней — чтобы ИИ не предлагал те же темы снова.
         cur.execute(
             f"""SELECT tasks FROM {SCHEMA}.podelam_daily_plans
@@ -809,7 +841,8 @@ def handle_podelam_get(event: dict, conn) -> dict:
 
         ai_result = call_podelam_ai(dict(profile), gap, role=role, courses=courses_for_role,
                                      yesterday_tasks=yesterday_tasks, salon_context=salon_context,
-                                     is_first_plan=is_first_plan, recent_content_topics=recent_content_topics)
+                                     is_first_plan=is_first_plan, recent_content_topics=recent_content_topics,
+                                     yesterday_result=yesterday_result)
         if ai_result:
             points = ai_result["growth_points"]
             tasks = ai_result["tasks"]
@@ -867,11 +900,13 @@ def handle_podelam_get(event: dict, conn) -> dict:
     log = {r["task_key"]: {"done": r["done"], "actual_amount": float(r["actual_amount"]) if r["actual_amount"] else None} for r in cur.fetchall()}
 
     cur.execute(
-        f"SELECT amount FROM {SCHEMA}.podelam_daily_income WHERE user_id = %s AND income_date = %s",
+        f"SELECT amount, new_clients, returned_clients FROM {SCHEMA}.podelam_daily_income WHERE user_id = %s AND income_date = %s",
         (user["id"], today)
     )
     income_row = cur.fetchone()
     today_income = float(income_row["amount"]) if income_row else None
+    today_new_clients = income_row["new_clients"] if income_row else None
+    today_returned_clients = income_row["returned_clients"] if income_row else None
 
     return ok({
         "has_profile": True,
@@ -881,6 +916,8 @@ def handle_podelam_get(event: dict, conn) -> dict:
         "plan": plan,
         "task_log": log,
         "today_income": today_income,
+        "today_new_clients": today_new_clients,
+        "today_returned_clients": today_returned_clients,
         "salon_profile_filled": salon_profile_filled,
     })
 
@@ -962,8 +999,12 @@ def handle_podelam_task_done(event: dict, conn) -> dict:
 
 
 def handle_podelam_set_income(event: dict, conn) -> dict:
-    """Прибавляет фактический доход мастера за конкретный день (по умолчанию — сегодня) к уже накопленной сумме.
-    Если передан mode="replace" — заменяет сумму целиком (используется при исправлении ошибочного ввода)."""
+    """Прибавляет фактический доход мастера за конкретный день (по умолчанию — сегодня) к уже накопленной
+    сумме, а также опционально количество новых клиентов (new_clients) и вернувшихся клиентов
+    (returned_clients) за этот день — тоже прибавляются к уже накопленным. Если передан mode="replace" —
+    заменяет сумму и счётчики клиентов целиком (используется при исправлении ошибочного ввода).
+    Сохранённые new_clients/returned_clients учитываются ИИ при построении СЛЕДУЮЩЕГО плана (см.
+    call_podelam_ai) — показывают, какие действия реально сработали."""
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
     if not session_id:
         return err("Не авторизован", 401)
@@ -981,31 +1022,51 @@ def handle_podelam_set_income(event: dict, conn) -> dict:
     if amount < 0:
         return err("Сумма не может быть отрицательной")
 
+    def _parse_count(key: str) -> int:
+        v = body.get(key)
+        if v in (None, ""):
+            return 0
+        try:
+            n = int(v)
+        except (TypeError, ValueError):
+            return 0
+        return max(0, n)
+
+    new_clients = _parse_count("new_clients")
+    returned_clients = _parse_count("returned_clients")
+
     income_date = body.get("date") or str(date.today())
     mode = body.get("mode") or "add"
 
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     if mode == "replace":
         cur.execute(
-            f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, updated_at)
-                VALUES (%s, %s, %s, NOW())
+            f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, new_clients, returned_clients, updated_at)
+                VALUES (%s, %s, %s, %s, %s, NOW())
                 ON CONFLICT (user_id, income_date) DO UPDATE SET
-                    amount=EXCLUDED.amount, updated_at=NOW()
-                RETURNING amount""",
-            (user["id"], income_date, amount)
+                    amount=EXCLUDED.amount, new_clients=EXCLUDED.new_clients,
+                    returned_clients=EXCLUDED.returned_clients, updated_at=NOW()
+                RETURNING amount, new_clients, returned_clients""",
+            (user["id"], income_date, amount, new_clients, returned_clients)
         )
     else:
         cur.execute(
-            f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, updated_at)
-                VALUES (%s, %s, %s, NOW())
+            f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, new_clients, returned_clients, updated_at)
+                VALUES (%s, %s, %s, %s, %s, NOW())
                 ON CONFLICT (user_id, income_date) DO UPDATE SET
-                    amount=podelam_daily_income.amount + EXCLUDED.amount, updated_at=NOW()
-                RETURNING amount""",
-            (user["id"], income_date, amount)
+                    amount=podelam_daily_income.amount + EXCLUDED.amount,
+                    new_clients=COALESCE(podelam_daily_income.new_clients, 0) + EXCLUDED.new_clients,
+                    returned_clients=COALESCE(podelam_daily_income.returned_clients, 0) + EXCLUDED.returned_clients,
+                    updated_at=NOW()
+                RETURNING amount, new_clients, returned_clients""",
+            (user["id"], income_date, amount, new_clients, returned_clients)
         )
-    total_amount = float(cur.fetchone()["amount"])
+    row = cur.fetchone()
     conn.commit()
-    return ok({"ok": True, "amount": total_amount})
+    return ok({
+        "ok": True, "amount": float(row["amount"]),
+        "new_clients": row["new_clients"] or 0, "returned_clients": row["returned_clients"] or 0,
+    })
 
 
 def _compute_period_stats(conn, user_id: int, days: int) -> dict:
@@ -1037,14 +1098,16 @@ def _compute_period_stats(conn, user_id: int, days: int) -> dict:
     logs = cur.fetchall()
     done_count = sum(1 for r in logs if r["done"])
 
-    # Фактический доход, указанный мастером по дням
+    # Фактический доход и клиенты, указанные мастером по дням
     cur.execute(
-        f"""SELECT amount FROM {SCHEMA}.podelam_daily_income
+        f"""SELECT amount, new_clients, returned_clients FROM {SCHEMA}.podelam_daily_income
             WHERE user_id = %s AND income_date >= %s AND income_date <= %s""",
         (user_id, since, date.today())
     )
     income_rows = cur.fetchall()
     actual_total = sum(float(r["amount"]) for r in income_rows)
+    new_clients_total = sum(r["new_clients"] or 0 for r in income_rows)
+    returned_clients_total = sum(r["returned_clients"] or 0 for r in income_rows)
 
     return {
         "days": days,
@@ -1053,6 +1116,8 @@ def _compute_period_stats(conn, user_id: int, days: int) -> dict:
         "completion_rate": round(done_count / total_tasks * 100) if total_tasks > 0 else 0,
         "potential_total": round(potential_total),
         "actual_total": round(actual_total),
+        "new_clients_total": new_clients_total,
+        "returned_clients_total": returned_clients_total,
     }
 
 
