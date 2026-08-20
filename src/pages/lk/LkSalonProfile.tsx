@@ -4,7 +4,7 @@ import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
 import { ACCENT, ACCENT_DARK, SalonForm, Service, EMPTY_FORM, loadDraft, saveDraft, clearDraft } from "./SalonProfileTypes";
 import { LogoSection, BasicSection, ServicesSection, FinanceSection, MarketingSection } from "./SalonProfileSections";
-import { GiftBanner, DraftRestoredBanner, WelcomeBonusBanner } from "./SalonProfileBanners";
+import { GiftBanner, DraftRestoredBanner } from "./SalonProfileBanners";
 
 const SEO_ANALYZER_URL = "https://functions.poehali.dev/3603658f-6f23-4de6-b671-73bb1832b4e0";
 
@@ -19,7 +19,6 @@ export default function LkSalonProfile({ onSaved, onGoToSeo }: { onSaved?: () =>
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [welcomeBonus, setWelcomeBonus] = useState(false);
   const hasDraft = !!(draft.form?.name);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -145,7 +144,7 @@ export default function LkSalonProfile({ onSaved, onGoToSeo }: { onSaved?: () =>
     if (!form.name.trim()) { setError("Укажите название салона"); return; }
     setSaving(true); setError("");
     try {
-      const result = await lkApi.salonProfileSave({
+      await lkApi.salonProfileSave({
         ...form,
         avg_check:       form.avg_check ? Number(form.avg_check) : null,
         monthly_revenue: form.monthly_revenue ? Number(form.monthly_revenue) : null,
@@ -159,10 +158,9 @@ export default function LkSalonProfile({ onSaved, onGoToSeo }: { onSaved?: () =>
           price_max:    s.price_max ? Number(s.price_max) : null,
           duration_min: s.duration_min ? Number(s.duration_min) : null,
         })),
-      }) as { welcome_bonus?: boolean };
+      });
       clearDraft(uid);
       setSaved(true);
-      if (result?.welcome_bonus) setWelcomeBonus(true);
       setTimeout(() => setSaved(false), 3000);
       if (onSaved) setTimeout(onSaved, 800);
       if (form.website_url && seoStatus === "idle") {
@@ -269,9 +267,6 @@ export default function LkSalonProfile({ onSaved, onGoToSeo }: { onSaved?: () =>
           Данные профиля — это <strong>ваш контекст для ИИ</strong>. Чем подробнее заполнено, тем точнее будут результаты инструментов: посты, расчёты, рекомендации — всё будет про ваш конкретный салон.
         </div>
       </div>
-
-      {/* Баннер приветственного бонуса */}
-      {welcomeBonus && <WelcomeBonusBanner onClose={() => setWelcomeBonus(false)} />}
     </div>
   );
 }

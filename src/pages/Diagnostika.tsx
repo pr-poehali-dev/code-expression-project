@@ -26,7 +26,7 @@ const FEELINGS = [
 ];
 
 const STEPS = [
-  { num: "01", title: "Регистрация",        desc: "Аккаунт за 1 минуту. Без карты — сразу 100 энергий в подарок.",                                     icon: "UserPlus"   },
+  { num: "01", title: "Регистрация",        desc: "Аккаунт за 1 минуту. Без карты.",                                                                     icon: "UserPlus"   },
   { num: "02", title: "Добавьте салон",     desc: "Название, количество мастеров, средний чек. Займёт 3 минуты.",                                        icon: "Building2"  },
   { num: "03", title: "Запустите аудит",    desc: "Откройте «Диагностику роста PRO» и ответьте на 8–12 вопросов о бизнесе.",                            icon: "PlayCircle" },
   { num: "04", title: "Получите результат", desc: "Графики, прогнозы, точки роста и план действий — готово через несколько минут.",                     icon: "BarChart2"  },
@@ -46,7 +46,7 @@ export default function Diagnostika() {
     <>
       <Helmet>
         <title>Диагностика роста салона красоты — бесплатный аудит потенциала за 10 минут | Промт Диалог</title>
-        <meta name="description" content="Бесплатная диагностика салона красоты на основе математических алгоритмов. Узнайте потенциал роста выручки, загрузки мастеров и возврата клиентов. Конкретные цифры по вашим данным — за 10 минут. 100 энергий в подарок при регистрации." />
+        <meta name="description" content="Бесплатная диагностика салона красоты на основе математических алгоритмов. Узнайте потенциал роста выручки, загрузки мастеров и возврата клиентов. Конкретные цифры по вашим данным — за 10 минут. Получить план роста дохода — бесплатно." />
         <meta name="keywords" content="диагностика салона красоты, аудит салона красоты бесплатно, потенциал роста салона, как увеличить выручку салона, загрузка мастеров, аналитика салона красоты, инструменты для управляющего салоном, рост прибыли салона, анализ бизнеса салона, про диалог диагностика" />
       </Helmet>
 
@@ -104,7 +104,7 @@ export default function Diagnostika() {
               </div>
 
               <div style={{ display: "flex", gap: 40, paddingTop: 36, borderTop: "1px solid rgba(255,255,255,0.07)", flexWrap: "wrap" as const }}>
-                {[["10 мин","время прохождения"],["100 ⚡","энергий в подарок"],["0 ₽","полностью бесплатно"]].map(([v, l], i) => (
+                {[["10 мин","время прохождения"],["ИИ","анализ данных"],["0 ₽","полностью бесплатно"]].map(([v, l], i) => (
                   <div key={i}>
                     <div style={{ fontFamily: SERIF, fontSize: 30, fontWeight: 600, color: "#fff", lineHeight: 1 }}>{v}</div>
                     <div style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", marginTop: 5 }}>{l}</div>
@@ -167,7 +167,7 @@ export default function Diagnostika() {
               </div>
               <div style={{ position: "absolute", top: -16, right: -16, background: TEAL, borderRadius: 12, padding: "10px 16px", boxShadow: "0 8px 24px rgba(45,212,191,0.4)", display: "flex", alignItems: "center", gap: 8 }}>
                 <Icon name="Gift" size={16} style={{ color: DARK }} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: DARK }}>100 ⚡ в подарок</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: DARK }}>Бесплатно</span>
               </div>
             </div>
           </div>
@@ -298,7 +298,7 @@ export default function Diagnostika() {
         <style>{`@media(max-width:800px){.steps-grid{grid-template-columns:1fr 1fr!important;}}@media(max-width:480px){.steps-grid{grid-template-columns:1fr!important;}}`}</style>
       </section>
 
-      {/* ── 100 ЭНЕРГИЙ ──────────────────────────────────────────────────── */}
+      {/* ── ПЛАН БЕСПЛАТНО ──────────────────────────────────────────────────── */}
       <section style={{ background: "#F8FAFC", padding: "72px 32px" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ background: `linear-gradient(135deg,${DARK},#112B3C)`, borderRadius: 6, padding: "48px 40px", display: "flex", alignItems: "center", gap: 40, position: "relative", overflow: "hidden" }} className="gift-block">
@@ -307,10 +307,10 @@ export default function Diagnostika() {
               <Icon name="Gift" size={36} style={{ color: DARK }} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "2px", marginBottom: 8 }}>Бонус при регистрации</div>
-              <h3 style={{ fontFamily: SERIF, fontSize: "clamp(22px,2.5vw,32px)", fontWeight: 500, color: "#fff", margin: "0 0 8px", lineHeight: 1.2 }}>100 энергий — бесплатно</h3>
+              <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "2px", marginBottom: 8 }}>Без оплаты</div>
+              <h3 style={{ fontFamily: SERIF, fontSize: "clamp(22px,2.5vw,32px)", fontWeight: 500, color: "#fff", margin: "0 0 8px", lineHeight: 1.2 }}>Получить план — бесплатно</h3>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, margin: 0, maxWidth: 520 }}>
-                После диагностики останутся энергии на другие инструменты: скрипты для администратора, ответы на отзывы, контент для соцсетей и многое другое.
+                Пройдите диагностику и получите план роста дохода без оплаты — дальше можно пополнить баланс энергии для других инструментов: скрипты для администратора, ответы на отзывы, контент для соцсетей и многое другое.
               </p>
             </div>
             <Link to="/cabinet" style={{
@@ -322,7 +322,7 @@ export default function Diagnostika() {
               boxShadow: "0 8px 24px rgba(45,212,191,0.3)",
               whiteSpace: "nowrap" as const,
             }}>
-              Получить 100 ⚡ <Icon name="ArrowRight" size={16} />
+              Получить план бесплатно <Icon name="ArrowRight" size={16} />
             </Link>
           </div>
         </div>

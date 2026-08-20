@@ -207,22 +207,17 @@ def handle_register(event: dict) -> dict:
         if user_type == "solo_master":
             # Независимому мастеру создаём личный "салон" — это внутренний контейнер
             # для баланса энергии, платежей и покупок, устройство не отличается от салона.
-            WELCOME_BONUS = 100
+            # Приветственный бонус энергии БОЛЬШЕ НЕ начисляется — баланс стартует с нуля,
+            # первый план «ПоДелам» бесплатен отдельной логикой (см. handle_podelam_get).
             cur.execute(
                 f"INSERT INTO {tbl('salons')} (owner_id, name, credits_balance) "
-                f"VALUES (%s,%s,%s) RETURNING id",
-                (user_id, full_name, WELCOME_BONUS)
+                f"VALUES (%s,%s,0) RETURNING id",
+                (user_id, full_name)
             )
             salon_id = cur.fetchone()["id"]
             cur.execute(
                 f"UPDATE {tbl('lk_users')} SET salon_id=%s, welcome_bonus_given=TRUE WHERE id=%s",
                 (salon_id, user_id)
-            )
-            cur.execute(
-                f"INSERT INTO {tbl('credit_transactions')} "
-                f"(salon_id, user_id, action, amount, tool_key, type) "
-                f"VALUES (%s,%s,'Приветственный подарок 🎁',%s,NULL,'credit')",
-                (salon_id, user_id, WELCOME_BONUS)
             )
             salon_data = {"id": salon_id, "name": full_name, "logo_url": None}
 
@@ -1608,25 +1603,15 @@ def handle_salon_profile_save(event: dict) -> dict:
                 (salon_id, user["id"])
             )
 
-            # Приветственный бонус 100 ⚡ — только если ещё не получал
+            # Приветственный бонус энергии БОЛЬШЕ НЕ начисляется — только помечаем флаг,
+            # чтобы не пытаться начислить его повторно нигде в старой логике. Баланс остаётся
+            # нулевым, первый план «ПоДелам» бесплатен отдельной логикой (handle_podelam_get).
             welcome_bonus = False
             if not user.get("welcome_bonus_given"):
-                WELCOME_BONUS = 100
-                cur.execute(
-                    f"UPDATE {tbl('salons')} SET credits_balance=%s WHERE id=%s",
-                    (WELCOME_BONUS, salon_id)
-                )
-                cur.execute(
-                    f"INSERT INTO {tbl('credit_transactions')} "
-                    f"(salon_id, user_id, action, amount, tool_key, type) "
-                    f"VALUES (%s,%s,'Приветственный подарок 🎁',%s,NULL,'credit')",
-                    (salon_id, user["id"], WELCOME_BONUS)
-                )
                 cur.execute(
                     f"UPDATE {tbl('lk_users')} SET welcome_bonus_given=TRUE WHERE id=%s",
                     (user["id"],)
                 )
-                welcome_bonus = True
 
         # Сохраняем услуги (полная замена)
         services = body.get("services", [])
@@ -2107,7 +2092,7 @@ def _send_welcome_email(to_email: str, full_name: str) -> None:
         Открыть «ПоДелам»
       </a>
       <p style="font-size:12px;color:#aaa;margin:24px 0 0;line-height:1.6;">
-        100 энергий уже начислены на баланс — можно сразу пробовать инструменты платформы.
+        Первый план роста дохода — бесплатно, без списаний с баланса.
       </p>
     </div>
     <div style="padding:16px 32px;background:#f8f8f5;border-top:1px solid #eee;">
@@ -3313,8 +3298,8 @@ def _get_member_monthly_spent(conn, salon_id: int, user_id: int) -> int:
 
 def _check_free_limit(conn, salon_id: int, tool_key: str, free_limit: int) -> tuple[bool, int]:
     """
-    Если у салона не было ни одного успешного платежа — бонусными 100 энергий
-    можно пользоваться максимум free_limit раз для данного инструмента.
+    Если у салона не было ни одного успешного платежа — данным инструментом
+    можно пользоваться максимум free_limit раз (независимо от источника энергии на балансе).
     Возвращает (allowed, used_count).
     """
     cur = conn.cursor()

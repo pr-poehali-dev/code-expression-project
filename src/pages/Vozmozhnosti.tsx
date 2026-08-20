@@ -119,7 +119,7 @@ export default function Vozmozhnosti() {
           "url": "https://promtdialog.ru",
           "applicationCategory": "BusinessApplication",
           "description": "Платформа роста салона красоты: маркетинг, управление, обучение персонала и ИИ-инструменты в одном кабинете.",
-          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB", "description": "100 энергий в подарок при регистрации" },
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB", "description": "Получить план роста дохода — бесплатно" },
           "featureList": ["Генератор постов", "Сценарии и видео для Reels", "SEO-оптимизация", "Анализ персонала", "Скрипты продаж", "Обучение команды"],
           "operatingSystem": "Web"
         })}</script>

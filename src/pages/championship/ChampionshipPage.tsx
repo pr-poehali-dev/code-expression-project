@@ -367,7 +367,7 @@ export default function ChampionshipPage() {
           <div className="champ-cta-inner">
             <h2 style={{ margin: "0 0 10px", fontSize: "clamp(18px,3vw,24px)", fontWeight: 800, color: "#fff" }}>Готовы участвовать?</h2>
             <p style={{ margin: "0 0 22px", fontSize: 15, color: "rgba(255,255,255,0.8)" }}>
-              Зарегистрируйте салон и получите 100 ⚡ энергии в подарок
+              Зарегистрируйте салон и получите план роста дохода бесплатно
             </p>
             <Link to="/cabinet" style={{ display: "inline-block", padding: "13px 32px", background: "#fff", color: "#14B8A6", borderRadius: 12, textDecoration: "none", fontSize: 15, fontWeight: 800 }}>
               Войти в кабинет →

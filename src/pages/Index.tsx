@@ -11,7 +11,7 @@ export default function Index() {
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
         <title>Промт Диалог — ИИ-навигатор дохода «ПоДелам» для салонов и мастеров</title>
-        <meta name="description" content="«ПоДелам» — ИИ-навигатор дохода: анализирует ваш чек, базу клиентов и загрузку, показывает конкретный план роста на день, неделю и месяц. 100 энергий бесплатно." />
+        <meta name="description" content="«ПоДелам» — ИИ-навигатор дохода: анализирует ваш чек, базу клиентов и загрузку, показывает конкретный план роста на день, неделю и месяц. Получить план роста дохода — бесплатно." />
         <meta name="keywords" content="навигатор дохода, план роста салона, ИИ для салона красоты, увеличение выручки мастера, маркетинг для салона" />
         <link rel="canonical" href="https://promtdialog.ru/" />
         <meta property="og:title" content="Промт Диалог — ИИ-навигатор дохода «ПоДелам»" />
@@ -25,7 +25,7 @@ export default function Index() {
           "name": "Промт Диалог",
           "url": "https://promtdialog.ru",
           "description": "ИИ-навигатор дохода «ПоДелам» для мастеров и салонов — план роста на основе реальных данных.",
-          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB", "description": "100 энергий бесплатно при регистрации" }
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB", "description": "Получить план роста дохода — бесплатно" }
         })}</script>
       </Helmet>
       <BizNavbar />

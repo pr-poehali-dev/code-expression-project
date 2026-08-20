@@ -157,7 +157,7 @@ export default function Keysy() {
             Ваш результат — следующий
           </h2>
           <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 40px", fontWeight: 300, position: "relative" }}>
-            Начните со 100 энергий в подарок и проверьте платформу на своём салоне.
+            Получите план роста дохода бесплатно и проверьте платформу на своём салоне.
           </p>
           <Link to="/cabinet" style={{
             display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 44px", borderRadius: 2,

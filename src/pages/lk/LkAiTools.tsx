@@ -232,7 +232,7 @@ export default function LkAiTools() {
         <div style={{ marginBottom: 16, padding: "12px 16px", background: "hsl(40,90%,96%)", border: "1px solid hsl(40,90%,80%)", borderRadius: 12, display: "flex", alignItems: "center", gap: 10 }}>
           <Icon name="Info" size={15} style={{ color: "hsl(30,95%,45%)", flexShrink: 0 }} />
           <div style={{ fontSize: 13, color: "hsl(30,70%,35%)", lineHeight: 1.5 }}>
-            Инструменты «Развитие салона» доступны после первого пополнения баланса. Бонусные 100 энергий можно использовать в разделе <strong>«Развитие персонала»</strong>.
+            Инструменты «Развитие салона» доступны после первого пополнения баланса энергии.
           </div>
         </div>
       )}

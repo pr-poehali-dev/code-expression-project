@@ -228,7 +228,7 @@ export default function IndexBottom() {
             Начните с диагностики — получите первый план
           </div>
           <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", marginBottom: 40, fontWeight: 300, lineHeight: 1.7 }}>
-            100 энергий бесплатно при регистрации — без оплаты, без обязательств.
+            Получите план роста дохода бесплатно — без оплаты, без обязательств.
           </p>
           <a href="#demo-form" onClick={e => { e.preventDefault(); document.getElementById("demo-form")?.scrollIntoView({ behavior: "smooth" }); }} style={{
             display: "inline-flex", alignItems: "center", gap: 10,

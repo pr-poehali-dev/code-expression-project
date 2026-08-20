@@ -92,7 +92,7 @@ export default function IndexHero() {
               <Icon name="Compass" size={16} />
               Получить план роста
             </a>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 12 }}>Без оплаты · 100 энергий начисляются автоматически</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 12 }}>Получить план роста дохода — бесплатно</div>
 
             <div style={{ display: "flex", gap: 36, marginTop: 48, flexWrap: "wrap" }}>
               {[["200+", "салонов"], ["20+", "инструментов"], ["4.9", "средняя оценка"]].map(([v, l], i) => (

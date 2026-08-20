@@ -9,11 +9,13 @@ GET  ?action=podelam_get           — профиль дохода + план н
                                        с ротацией фокус-сотрудника по дням — сегодня один специалист, завтра другой. Пока «Мой
                                        салон» не заполнен — план строится по карточке диагностики ПоДелам (как раньше), а в ответе
                                        флаг salon_profile_filled=false — фронт показывает напоминание заполнить профиль салона.
-                                       Построение НОВОГО плана на день платное — списывается ОДИН РАЗ В СУТКИ с баланса салона:
-                                       3 энергии для владельца/администратора, 1 энергия для мастера/специалиста. Если энергии не
-                                       хватает — план не строится, ответ содержит energy_insufficient=true. Все доп. данные читаются
-                                       ТОЛЬКО при первой генерации плана за сутки (кэш в podelam_daily_plans), повторные заходы в
-                                       этот же день — без единого запроса к ИИ, доп. таблицам или повторного списания энергии.
+                                       САМЫЙ ПЕРВЫЙ план у пользователя — БЕСПЛАТНО (энергия не списывается, баланс не проверяется).
+                                       Начиная со второго плана построение НОВОГО плана на день платное — списывается ОДИН РАЗ
+                                       В СУТКИ с баланса салона: 3 энергии для владельца/администратора, 1 энергия для мастера/
+                                       специалиста. Если энергии не хватает — план не строится, ответ содержит energy_insufficient=true.
+                                       Все доп. данные читаются ТОЛЬКО при первой генерации плана за сутки (кэш в podelam_daily_plans),
+                                       повторные заходы в этот же день — без единого запроса к ИИ, доп. таблицам или повторного
+                                       списания энергии.
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с — иначе запрос к ИИ обрывается по 504 и план не сохраняется.
 POST ?action=podelam_save_profile  — сохранить диагностику дохода (X-Session-Id)
 POST ?action=podelam_task_done     — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
@@ -127,6 +129,8 @@ def get_lk_user_by_session(session_id: str, conn):
 # ── Энергия за построение плана «ПоДелам» ───────────────────────────────────
 # Списывается ОДИН РАЗ в сутки — только когда план на день реально строится (первый заход
 # после полуночи и после заполнения диагностики), а не при каждом повторном заходе в течение дня.
+# ПЕРВЫЙ план у пользователя — БЕСПЛАТНО (без списания и без проверки баланса), дальше — платно
+# по тем же расценкам, что и раньше.
 PODELAM_TOOL_KEY = "podelam_daily_plan"
 PODELAM_COST_SALON = 3   # владелец/администратор салона (owner/admin)
 PODELAM_COST_MASTER = 1  # мастер-одиночка и остальные роли
@@ -726,13 +730,22 @@ def handle_podelam_get(event: dict, conn) -> dict:
     )
     plan_row = cur.fetchone()
     if not plan_row:
+        # Первый ли это план вообще у пользователя — если раньше планов не было, ИИ сперва
+        # предложит изучить ЦА и собрать офферы, прежде чем звать публиковать контент. ПЕРВЫЙ
+        # план также БЕСПЛАТНЫЙ — энергия за него не списывается и баланс не проверяется.
+        cur.execute(
+            f"SELECT 1 FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s LIMIT 1",
+            (user["id"],)
+        )
+        is_first_plan = cur.fetchone() is None
+
         # Энергия списывается ОДИН РАЗ в сутки — только в момент реальной постройки нового
-        # плана на день (карточка диагностики уже точно заполнена, иначе вышли бы раньше).
+        # платного плана на день (карточка диагностики уже точно заполнена, иначе вышли бы раньше).
         # Проверяем баланс ДО дорогих запросов (курсы/данные салона/вызов ИИ), чтобы не тратить
-        # вычисления, если энергии не хватает.
+        # вычисления, если энергии не хватает. Первый план у пользователя пропускает эту проверку.
         podelam_cost = PODELAM_COST_SALON if role in ("owner", "admin") else PODELAM_COST_MASTER
         balance = get_salon_balance(conn, salon_id) if salon_id else 0
-        if salon_id and balance < podelam_cost:
+        if not is_first_plan and salon_id and balance < podelam_cost:
             return ok({
                 "has_profile": True,
                 "profile": dict(profile),
@@ -771,14 +784,6 @@ def handle_podelam_get(event: dict, conn) -> dict:
         if yesterday_row and yesterday_row.get("tasks"):
             yt = yesterday_row["tasks"] if isinstance(yesterday_row["tasks"], list) else json.loads(yesterday_row["tasks"])
             yesterday_tasks = [{"title": t.get("title"), "nav": t.get("nav")} for t in yt]
-
-        # Первый ли это план вообще у пользователя — если раньше планов не было, ИИ сперва
-        # предложит изучить ЦА и собрать офферы, прежде чем звать публиковать контент.
-        cur.execute(
-            f"SELECT 1 FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s LIMIT 1",
-            (user["id"],)
-        )
-        is_first_plan = cur.fetchone() is None
 
         # Темы постов/Reels за последние 14 дней — чтобы ИИ не предлагал те же темы снова.
         cur.execute(
@@ -833,7 +838,7 @@ def handle_podelam_get(event: dict, conn) -> dict:
              json.dumps(salon_focus, ensure_ascii=False) if salon_focus else None)
         )
         cur2.fetchone()
-        if salon_id:
+        if salon_id and not is_first_plan:
             deduct_podelam_energy(conn, salon_id, user["id"], podelam_cost)
         conn.commit()
         plan = {

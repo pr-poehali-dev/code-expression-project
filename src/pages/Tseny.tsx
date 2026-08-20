@@ -56,7 +56,7 @@ const EXPLAINER = [
 
 const FAQ = [
   { q: "Что такое энергия", a: "Энергия — это внутренняя валюта платформы. Каждый инструмент расходует определённое количество энергий: чем сложнее задача, тем выше расход." },
-  { q: "Можно ли попробовать бесплатно", a: "Да. При создании первого профиля салона вы получаете 100 энергий в подарок — этого достаточно для знакомства с платформой." },
+  { q: "Можно ли попробовать бесплатно", a: "Да. В разделе «ПоДелам» — навигаторе дохода — можно получить план роста без оплаты, чтобы оценить платформу перед покупкой энергии." },
   { q: "Не использованные энергии сгорают", a: "Нет. Приобретённые энергии хранятся на балансе вашего салона без ограничения срока." },
   { q: "Можно добавить несколько сотрудников", a: "Да. Вы можете пригласить команду в кабинет — все используют общий баланс энергий салона." },
 ];
@@ -66,11 +66,11 @@ export default function Tseny() {
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
         <title>Цены и тарифы — энергия для работы с платформой | Промт Диалог</title>
-        <meta name="description" content="Гибкая система энергии: платите только за то, что используете. Пакеты от 500 до 5000 энергий. 100 энергий бесплатно при регистрации." />
+        <meta name="description" content="Гибкая система энергии: платите только за то, что используете. Пакеты от 500 до 5000 энергий. Получить план роста дохода — бесплатно." />
         <meta name="keywords" content="цены Промт Диалог, тарифы для салона, стоимость платформы для салона красоты" />
         <link rel="canonical" href="https://promtdialog.ru/tseny" />
         <meta property="og:title" content="Цены и тарифы Промт Диалог — платите только за результат" />
-        <meta property="og:description" content="Гибкая система энергии без подписки. 100 энергий бесплатно при регистрации." />
+        <meta property="og:description" content="Гибкая система энергии без подписки. Получить план роста дохода — бесплатно." />
         <meta property="og:url" content="https://promtdialog.ru/tseny" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -108,7 +108,7 @@ export default function Tseny() {
             </p>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "9px 20px" }}>
               <Icon name="Gift" size={16} style={{ color: TEAL }} />
-              <span style={{ fontSize: 13, color: TEAL, fontWeight: 500, letterSpacing: "0.5px" }}>100 энергий бесплатно при регистрации</span>
+              <span style={{ fontSize: 13, color: TEAL, fontWeight: 500, letterSpacing: "0.5px" }}>Получить план роста дохода — бесплатно</span>
             </div>
           </div>
 
@@ -237,7 +237,7 @@ export default function Tseny() {
             Начните бесплатно
           </h2>
           <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 40px", fontWeight: 300, position: "relative" }}>
-            100 энергий в подарок при создании первого салона. Без карты и обязательств.
+            Получите план роста дохода бесплатно. Без карты и обязательств.
           </p>
           <Link to="/cabinet" style={{
             display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 44px", borderRadius: 2,
