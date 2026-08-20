@@ -56,18 +56,41 @@ export interface SalonFocusStaff {
   return_pct?: number | null;
 }
 
+export interface PodelamPlan {
+  tasks: Task[];
+  main_task_key: string | null;
+  gap_amount: number;
+  plan_date?: string;
+  tomorrow_preview?: string;
+  source?: string;
+  salon_focus?: SalonFocusStaff | null;
+}
+
 export interface PodelamData {
   has_profile: boolean;
+  has_plan_for_date?: boolean;
   profile?: Profile;
   growth_points?: GrowthPoint[];
   gap_amount?: number;
-  plan?: { tasks: Task[]; main_task_key: string | null; gap_amount: number; tomorrow_preview?: string; source?: string; salon_focus?: SalonFocusStaff | null } | null;
+  plan?: PodelamPlan | null;
   task_log?: Record<string, { done: boolean; actual_amount: number | null }>;
   today_income?: number | null;
+  day_new_clients?: number | null;
+  day_returned_clients?: number | null;
   salon_profile_filled?: boolean | null;
   energy_insufficient?: boolean;
   energy_balance?: number;
   energy_needed?: number;
+}
+
+// Облегчённая карточка одного дня из батча плана (14 дней) — для календаря/списка дней,
+// без полного текста задач (см. action=podelam_batch_days).
+export interface BatchDay {
+  plan_date: string;
+  is_today: boolean;
+  main_task_title: string | null;
+  total_tasks: number;
+  done_tasks: number;
 }
 
 export interface PeriodStats {
@@ -77,6 +100,8 @@ export interface PeriodStats {
   completion_rate: number;
   potential_total: number;
   actual_total: number;
+  new_clients_total?: number;
+  returned_clients_total?: number;
 }
 
 export interface StatsData {

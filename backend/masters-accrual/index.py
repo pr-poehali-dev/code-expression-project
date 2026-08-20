@@ -3,22 +3,32 @@
 Начисление мастерам ТОЛЬКО при реальной покупке энергии через ЮКассу.
 Ручное пополнение и бонусы — не считаются.
 Формула: 10% от количества энергий = рубли (100 энергий → 10 ₽).
-GET  ?action=podelam_get           — профиль дохода + план на сегодня, план строит ИИ (модель terra через polza.ai) (X-Session-Id).
-                                       Для владельцев/администраторов салона с заполненным «Мой салон» (указаны средний чек и
-                                       выручка) дополнительно подмешиваются реальные данные салона и сотрудников (salon_staff),
-                                       с ротацией фокус-сотрудника по дням — сегодня один специалист, завтра другой. Пока «Мой
-                                       салон» не заполнен — план строится по карточке диагностики ПоДелам (как раньше), а в ответе
-                                       флаг salon_profile_filled=false — фронт показывает напоминание заполнить профиль салона.
-                                       Построение НОВОГО плана на день платное — списывается ОДИН РАЗ В СУТКИ с баланса салона:
-                                       3 энергии для владельца/администратора, 1 энергия для мастера/специалиста. Если энергии не
-                                       хватает — план не строится, ответ содержит energy_insufficient=true. Все доп. данные читаются
-                                       ТОЛЬКО при первой генерации плана за сутки (кэш в podelam_daily_plans), повторные заходы в
-                                       этот же день — без единого запроса к ИИ, доп. таблицам или повторного списания энергии.
-                                       ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с — иначе запрос к ИИ обрывается по 504 и план не сохраняется.
-POST ?action=podelam_save_profile  — сохранить диагностику дохода (X-Session-Id)
-POST ?action=podelam_task_done     — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
-GET  ?action=podelam_stats         — статистика выполненных дел за неделю/месяц (X-Session-Id)
-POST ?action=podelam_set_income    — прибавить фактический доход за день (amount, опц. date, mode="add"|"replace") (X-Session-Id)
+GET  ?action=podelam_get           — профиль дохода + план на сегодняшний день из ТЕКУЩЕЙ пачки (X-Session-Id).
+                                       План строится СРАЗУ на 14 дней вперёд ОДНИМ запросом к ИИ (модель terra через
+                                       polza.ai) и кэшируется в podelam_daily_plans — по одной строке на каждый день.
+                                       Пока today входит в диапазон уже сохранённой пачки, повторные заходы (в этот же
+                                       день ИЛИ в любой из следующих 14 дней) — БЕЗ единого запроса к ИИ или доп.
+                                       таблицам, просто чтение сохранённой строки. Новая пачка строится (и энергия
+                                       списывается) только когда пачка из 14 дней закончилась. ?date=YYYY-MM-DD —
+                                       вернуть конкретный день уже сохранённой пачки (переключение дней в календаре на
+                                       фронте, тоже без похода к ИИ; если дня в БД ещё нет — has_plan_for_date=false).
+                                       Для владельцев/администраторов салона с заполненным «Мой салон» дополнительно
+                                       подмешиваются реальные данные салона и сотрудников (salon_staff), с ротацией
+                                       фокус-сотрудника по дням пачки — день 1 один специалист, день 2 другой и т.д.
+                                       Пока «Мой салон» не заполнен — план строится по карточке диагностики ПоДелам,
+                                       а в ответе флаг salon_profile_filled=false. Построение НОВОЙ пачки платное —
+                                       списывается ОДИН РАЗ НА ВСЕ 14 ДНЕЙ с баланса салона: 3 энергии для владельца/
+                                       администратора, 1 энергия для мастера/специалиста. Если энергии не хватает —
+                                       план не строится, ответ содержит energy_insufficient=true.
+                                       ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 100с — иначе запрос к ИИ на 14 дней обрывается по 504.
+GET  ?action=podelam_batch_days    — облегчённый список всех дней ТЕКУЩЕЙ пачки (дата, заголовок главного дела,
+                                       кол-во дел всего/выполнено), БЕЗ полного текста задач — для календаря/списка
+                                       дней на фронте. Один SELECT, без похода к ИИ (X-Session-Id).
+POST ?action=podelam_save_profile  — сохранить диагностику дохода (X-Session-Id). Сбрасывает всю текущую (и будущую) пачку плана.
+POST ?action=podelam_task_done     — отметить дело выполненным, опц. фактической суммой и plan_date (X-Session-Id)
+GET  ?action=podelam_stats         — статистика выполненных дел, дохода и новых/вернувшихся клиентов за неделю/месяц (X-Session-Id)
+POST ?action=podelam_set_income    — прибавить фактический доход за день (amount, опц. new_clients, returned_clients,
+                                       date, mode="add"|"replace") (X-Session-Id)
 GET/POST ?action=podelam_notify&key=ADMIN_TOKEN — cron: письмо пользователям с новым планом на сегодня, у кого ещё не отправлено.
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с при большом числе пользователей.
 GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет ежедневный экспертный пост и публикует в блог сайта
@@ -125,11 +135,13 @@ def get_lk_user_by_session(session_id: str, conn):
 
 
 # ── Энергия за построение плана «ПоДелам» ───────────────────────────────────
-# Списывается ОДИН РАЗ в сутки — только когда план на день реально строится (первый заход
-# после полуночи и после заполнения диагностики), а не при каждом повторном заходе в течение дня.
+# План строится СРАЗУ НА 14 ДНЕЙ вперёд ОДНИМ запросом к ИИ — и списывается ОДИН РАЗ В 2 НЕДЕЛИ
+# (когда пачка дней закончилась), а не каждые сутки. Повторные заходы в течение всей
+# двухнедельной пачки — без единого обращения к ИИ, просто читаем уже сохранённый день.
 PODELAM_TOOL_KEY = "podelam_daily_plan"
-PODELAM_COST_SALON = 3   # владелец/администратор салона (owner/admin)
-PODELAM_COST_MASTER = 1  # мастер-одиночка и остальные роли
+PODELAM_COST_SALON = 3   # владелец/администратор салона (owner/admin) — за ОДИН день пачки
+PODELAM_COST_MASTER = 1  # мастер-одиночка и остальные роли — за ОДИН день пачки
+PODELAM_BATCH_DAYS = 14  # сколько дней генерируется за один запрос к ИИ
 
 
 def get_salon_balance(conn, salon_id: int) -> int:
@@ -369,12 +381,13 @@ def build_today_tasks(points: list, day_seed: int = 0, profile: dict | None = No
     return tasks
 
 
-def build_salon_context(conn, salon_id: int, day_seed: int) -> dict | None:
+def build_salon_context(conn, salon_id: int, day_seed: int, num_days: int = 1) -> dict | None:
     """Для владельца/администратора салона собирает реальные данные из раздела «Мой салон»:
     агрегированные показатели салона, услуги и (если заполнены) сотрудников из «Анализ персонала».
-    Фокус-сотрудник дня выбирается ротацией по day_seed — каждый день другой специалист.
-    Вызывается ТОЛЬКО при первой генерации плана за сутки (кэшируется вместе с планом),
-    повторные заходы в течение дня не делают дополнительных запросов к БД."""
+    focus_staff_by_day — фокус-сотрудник на КАЖДЫЙ из num_days дней пачки, ротация по кругу
+    начиная с day_seed (детерминированно, БЕЗ участия ИИ — экономит токены и делает ротацию
+    предсказуемой). Вызывается ТОЛЬКО при генерации новой пачки плана (кэшируется вместе с ней),
+    повторные заходы в течение всей пачки не делают дополнительных запросов к БД."""
     if not salon_id:
         return None
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -410,7 +423,7 @@ def build_salon_context(conn, salon_id: int, day_seed: int) -> dict | None:
     staff_rows = cur.fetchall()
 
     staff_list = []
-    focus_staff = None
+    focus_staff_by_day: list[dict] = []
     if staff_rows:
         for s in staff_rows:
             staff_list.append({
@@ -424,16 +437,20 @@ def build_salon_context(conn, salon_id: int, day_seed: int) -> dict | None:
                 "has_rebooking_offer": s["has_rebooking_offer"], "service_score": s["service_score"],
                 "has_sales_script": s["has_sales_script"],
             })
-        # Ротация фокус-сотрудника по дню: каждый день — следующий по кругу
-        focus_row = staff_rows[day_seed % len(staff_rows)]
-        focus_staff = {
-            "name": focus_row["name"], "role": focus_row["role"] or "не указана",
-            "clients_per_month": focus_row["clients_count"], "revenue": float(focus_row["revenue"]) if focus_row["revenue"] else None,
-            "avg_check": float(focus_row["avg_check"]) if focus_row["avg_check"] else None,
-            "return_pct": float(focus_row["return_pct"]) if focus_row["return_pct"] else None,
-            "has_upsell": focus_row["has_upsell"], "has_rebooking_offer": focus_row["has_rebooking_offer"],
-            "service_score": focus_row["service_score"], "has_sales_script": focus_row["has_sales_script"],
-        }
+
+        def _staff_brief(row) -> dict:
+            return {
+                "name": row["name"], "role": row["role"] or "не указана",
+                "clients_per_month": row["clients_count"], "revenue": float(row["revenue"]) if row["revenue"] else None,
+                "avg_check": float(row["avg_check"]) if row["avg_check"] else None,
+                "return_pct": float(row["return_pct"]) if row["return_pct"] else None,
+                "has_upsell": row["has_upsell"], "has_rebooking_offer": row["has_rebooking_offer"],
+                "service_score": row["service_score"], "has_sales_script": row["has_sales_script"],
+            }
+
+        # Ротация фокус-сотрудника по дню: каждый день пачки — следующий по кругу, считается
+        # заранее по формуле (без участия ИИ), чтобы не тратить токены на этот выбор.
+        focus_staff_by_day = [_staff_brief(staff_rows[(day_seed + i) % len(staff_rows)]) for i in range(num_days)]
 
     return {
         "salon": {
@@ -445,7 +462,7 @@ def build_salon_context(conn, salon_id: int, day_seed: int) -> dict | None:
         },
         "services": services,
         "staff_list": staff_list,
-        "focus_staff": focus_staff,
+        "focus_staff_by_day": focus_staff_by_day,
     }
 
 
@@ -504,14 +521,15 @@ PODELAM_SALON_MODE_PROMPT = """
 и, если заполнен раздел «Анализ персонала», список сотрудников (staff_list) с их личными метриками (выручка, средний \
 чек, % повторных визитов, оценка сервиса, наличие допродаж и скриптов продаж).
 
-- Если staff_list НЕ пуст (салон с несколькими сотрудниками): обязательно посвяти 1-2 дела из плана КОНКРЕТНОМУ \
-фокус-сотруднику дня — он указан в salon_context.focus_staff (имя, специализация/роль и его личные метрики). \
-Используй его имя и специализацию прямо в title и action_text дела (например: «Massаж: разбор с Анной» вместо общих \
-формулировок), опирайся на ЕГО конкретные цифры (выручка, чек, % возврата, оценка сервиса, есть ли допродажи/скрипты) \
-чтобы предложить точечное действие именно для роста ЕГО показателей. Остальные 2-3 дела делай ОБЩИМИ по салону в целом \
-(заполнение расписания всего салона, акции и офферы на основе услуг services, отзывы, привлечение новых клиентов, \
-контент) на основе агрегированных данных salon_context.salon и его услуг. Фокус-сотрудник меняется автоматически \
-каждый день ротацией — не пытайся выбрать другого сотрудника сам, всегда используй именно focus_staff.
+- Если staff_list НЕ пуст (салон с несколькими сотрудниками): для КАЖДОГО дня пачки обязательно посвяти 1-2 дела \
+КОНКРЕТНОМУ фокус-сотруднику этого дня — он указан в salon_context.focus_staff_by_day[индекс_дня] (имя, специализация/\
+роль и его личные метрики). Используй его имя и специализацию прямо в title и action_text дела (например: «Массаж: \
+разбор с Анной» вместо общих формулировок), опирайся на ЕГО конкретные цифры (выручка, чек, % возврата, оценка сервиса, \
+есть ли допродажи/скрипты) чтобы предложить точечное действие именно для роста ЕГО показателей. Остальные 2-3 дела \
+делай ОБЩИМИ по салону в целом (заполнение расписания всего салона, акции и офферы на основе услуг services, отзывы, \
+привлечение новых клиентов, контент) на основе агрегированных данных salon_context.salon и его услуг. Фокус-сотрудник \
+на каждый день УЖЕ определён по ротации в focus_staff_by_day — не выбирай сам, используй ровно тот индекс, что \
+соответствует номеру дня.
 - Если staff_list пуст (сотрудники ещё не добавлены) — работай только с агрегированными данными salon_context.salon \
 и services, как в обычном режиме, без выдуманных имён сотрудников. Никогда не выдумывай сотрудников, которых нет \
 в staff_list.
@@ -522,27 +540,30 @@ PODELAM_SALON_MODE_PROMPT = """
 
 PODELAM_FIRST_PLAN_PROMPT = """
 ════════════════════════════════════════════════
-ПЕРВЫЙ ПЛАН (payload.is_first_plan = true)
+ПЕРВАЯ ПАЧКА ПЛАНА (payload.is_first_plan = true)
 ════════════════════════════════════════════════
-Это ПЕРВЫЙ раз, когда пользователь получает план от «ПоДелам» — истории вчерашних дел ещё нет. Прежде чем предлагать \
+Это ПЕРВЫЙ раз, когда пользователь получает план от «ПоДелам» — истории прошлых дел ещё нет. Прежде чем предлагать \
 маркетинговые действия (посты, Reels, реклама), человек должен понимать, КОМУ он продаёт и ЧТО именно предлагать. \
-Поэтому ОБЯЗАТЕЛЬНО включи в план первым/главным делом связку из двух шагов подряд, которые вместе объясняются как \
-фундамент: 1) «Изучить свою аудиторию» — nav: marketing:audience, объясни в action_text, что за 5-10 минут ИИ соберёт \
-портреты клиентов с их болями и мотивацией, и весь дальнейший маркетинг (посты, офферы, реклама) будет точнее. \
-2) «Создать офферы под аудиторию» — nav: marketing:offers, action_text объясни, что на основе портретов ИИ соберёт \
-конкретные предложения, которые дальше используются в постах, рассылках и рекламе. Остальные 1-2 дела в плане — как \
-обычно (возврат клиентов/заполнение окон/тест из «Развитие персонала»), но БЕЗ дел на публикацию контента (посты/ \
-Reels) — их полезно делать ПОСЛЕ того как аудитория и офферы готовы, это будет предложено уже завтра.
+Поэтому ОБЯЗАТЕЛЬНО включи в день 1 (days[0]) первым/главным делом связку из двух шагов подряд, которые вместе \
+объясняются как фундамент: 1) «Изучить свою аудиторию» — nav: marketing:audience, объясни в action_text, что за \
+5-10 минут ИИ соберёт портреты клиентов с их болями и мотивацией, и весь дальнейший маркетинг (посты, офферы, реклама) \
+будет точнее. 2) «Создать офферы под аудиторию» — nav: marketing:offers, action_text объясни, что на основе портретов \
+ИИ соберёт конкретные предложения, которые дальше используются в постах, рассылках и рекламе. Остальные 1-2 дела \
+дня 1 — как обычно (возврат клиентов/заполнение окон/тест из «Развитие персонала»), но БЕЗ дел на публикацию контента \
+(посты/Reels) в день 1 — их полезно делать ПОСЛЕ того как аудитория и офферы готовы, начни их со дня 2.
 ════════════════════════════════════════════════
 """
 
-def build_podelam_system_prompt(is_first_plan: bool = False) -> str:
-    """Собирает системный промпт для генерации плана. При первом плане (is_first_plan=True)
-    добавляет отдельный блок инструкций про изучение ЦА и создание офферов первым делом."""
+def build_podelam_system_prompt(is_first_plan: bool = False, num_days: int = PODELAM_BATCH_DAYS) -> str:
+    """Собирает системный промпт для генерации плана СРАЗУ на num_days дней ОДНИМ запросом (а не
+    по одному дню в сутки) — экономит вызовы ИИ и даёт модели весь горизонт сразу, чтобы дни были
+    разнообразны между собой без отдельной проверки «вчерашних дел» на каждом шаге. При первой
+    пачке (is_first_plan=True) добавляет отдельный блок инструкций про изучение ЦА и офферы в день 1."""
     return f"""Ты — экспертный бизнес-консультант и маркетолог-стратег, встроенный в сервис «ПоДелам» \
 внутри платформы «Промт Диалог» для мастеров и владельцев салонов красоты (парикмахеры, мастера маникюра, массажисты и т.п.).
 
-Твоя задача — на основе диагностики конкретного мастера/салона построить ЧЁТКИЙ, ПРИЧИННО-СЛЕДСТВЕННЫЙ план роста дохода:
+Твоя задача — на основе диагностики конкретного мастера/салона построить ЧЁТКИЙ, ПРИЧИННО-СЛЕДСТВЕННЫЙ план роста \
+дохода СРАЗУ НА {num_days} ДНЕЙ ВПЕРЁД (days[0] — первый день пачки, days[{num_days - 1}] — последний):
 1. Учти АБСОЛЮТНО ВСЕ данные из диагностики (ниша, средний чек, текущий и целевой доход, клиентов в месяц, \
 размер базы, % повторных визитов, свободные окна, есть ли допуслуги и их конкретный список/цены, откуда приходят записи, \
 роль пользователя role, доступные курсы Академии course_catalog). Если в payload передан salon_context — это владелец/\
@@ -551,27 +572,27 @@ def build_podelam_system_prompt(is_first_plan: bool = False) -> str:
 2. Если указан конкретный список допуслуг/пакетов (addon_services_text) — используй ИМЕННО ЭТИ названия в действиях \
 и рекомендациях по допродажам вместо общих формулировок вроде "предложить допуслугу". Учитывай их ориентировочную \
 стоимость при расчёте potential, если она указана в тексте.
-3. Посчитай разрыв между текущим и целевым доходом и реалистично разложи его на 3-4 точки роста — откуда именно \
-возьмутся деньги (возврат клиентов, заполнение окон, допродажи конкретных допуслуг/пакетов, привлечение новых через \
-конкретный канал lead_source, рост навыков/уверенности специалиста).
-4. Для каждой точки роста подбери КОНКРЕТНОЕ действие на сегодня, которое можно выполнить с помощью инструментов \
-личного кабинета. Обязательно указывай nav — раздел ЛК, который реально решает эту задачу, выбирай СТРОГО из \
+3. Посчитай разрыв между текущим и целевым доходом и реалистично разложи его на 3-4 ОБЩИЕ точки роста на весь период \
+(одни growth_points на всю пачку, не по дням) — откуда именно возьмутся деньги (возврат клиентов, заполнение окон, \
+допродажи конкретных допуслуг/пакетов, привлечение новых через конкретный канал lead_source, рост навыков/уверенности \
+специалиста).
+4. Для КАЖДОГО из {num_days} дней подбери 3-4 КОНКРЕТНЫХ дела, которые можно выполнить с помощью инструментов личного \
+кабинета за один заход. Обязательно указывай nav — раздел ЛК, который реально решает эту задачу, выбирай СТРОГО из \
 категорий ниже, ничего не выдумывай:
 {PODELAM_NAV_CATALOG}
-5. ВАЖНО — РАЗНООБРАЗИЕ: план из 3-4 дел НЕ должен состоять только из маркетинговых разделов. Как правило включай: \
-1-2 дела из блока «Маркетинг и клиенты», РОВНО 1 дело из блока «Развитие персонала» (tools) — конкретный тест из \
-списка, подходящий под ситуацию, и когда есть подходящий курс в course_catalog — 1 дело из блока «Академия» (academy) \
-с названием конкретного курса. Если сегодня уже был другой набор — не повторяй вчерашние формулировки и разделы \
-(смотри yesterday_tasks в payload), чередуй их день ото дня.
+5. ВАЖНО — РАЗНООБРАЗИЕ МЕЖДУ ДНЯМИ: набор дел одного дня НЕ должен состоять только из маркетинговых разделов — как \
+правило, 1-2 дела из блока «Маркетинг и клиенты», РОВНО 1 дело из блока «Развитие персонала» (tools, чередуй ТЕСТЫ \
+между днями — не повторяй один и тот же тест дважды в пачке) и, когда есть подходящий курс в course_catalog, 1 дело \
+из блока «Академия» (academy). ГЛАВНОЕ ПРАВИЛО ПАЧКИ: каждый день должен ощущаться как новый шаг вперёд — НИКОГДА не \
+повторяй буквально или почти буквально формулировки title/action_text/topic_options между days[i] и days[j] внутри \
+этой же пачки, а также не повторяй yesterday_tasks и recent_content_topics (дела/темы из ПРЕДЫДУЩЕЙ пачки, см. payload).
 6. Если lead_source указывает на конкретный канал (Instagram, Директ, сарафанное радио и т.д.) — учитывай это при \
 выборе маркетинговых действий (например, если реклама не настроена, а доход не дотягивает до цели — предложи \
 семантику/объявления/бюджет для Директа; если упор на контент — Reels/посты/визуалы).
-7. Одно из дел сделай "главным делом дня" — тем, что даст наибольший или самый быстрый эффект (обычно из блока \
-«Маркетинг и клиенты», но может быть и тест/курс, если явно видно, что причина разрыва — не в маркетинге).
-8. Придумай короткий, тёплый, мотивирующий анонс на завтра (2-3 предложения, обращение на "вы"), который объясняет, \
-что план не статичен: завтра появится новый набор дел с учётом того, что было сделано сегодня, и почему это важно \
-(регулярность даёт результат). НЕ повторяй сегодняшние формулировки дословно.
-9. КОНКРЕТНЫЕ ТЕМЫ ДЛЯ КОНТЕНТА: если дело ведёт в раздел-генератор контента (nav = marketing:post-gen, \
+7. В КАЖДОМ дне одно из дел сделай "главным делом дня" (main_task_key) — тем, что даст наибольший или самый быстрый \
+эффект (обычно из блока «Маркетинг и клиенты», но может быть и тест/курс, если явно видно, что причина разрыва — не \
+в маркетинге).
+8. КОНКРЕТНЫЕ ТЕМЫ ДЛЯ КОНТЕНТА: если дело ведёт в раздел-генератор контента (nav = marketing:post-gen, \
 marketing:reel-script или marketing:image-gen) — НЕДОСТАТОЧНО написать «опубликуйте пост». Заполни поле topic_options \
 массивом из РОВНО 3 готовых, конкретных тем на выбор. КРИТИЧЕСКИ ВАЖНО: темы должны строиться СТРОГО вокруг реальной \
 ниши и услуг пользователя из поля service_names в payload (и, если передан salon_context, из salon_context.services) \
@@ -580,44 +601,49 @@ marketing:reel-script или marketing:image-gen) — НЕДОСТАТОЧНО �
 причёски или любую бьюти-тематику, даже если платформа в целом ориентирована на индустрию красоты). Формулируй тему \
 как законченную мысль 4-10 слов, привязанную к конкретной услуге из service_names (например, если услуга «Массаж \
 спины» — «Массаж спины: как понять, что пора на процедуру», если услуга «Психолог» — «Психолог: как отличить усталость \
-от выгорания»), НЕ общую фразу вроде "полезный пост об услуге". Темы не должны повторять то, что уже публиковалось — \
-смотри recent_content_topics в payload и никогда не предлагай темы, близкие по смыслу к уже использованным. Такие \
-дела (контент) старайся включать в план КАЖДЫЙ ДЕНЬ (кроме первого плана — см. правило ниже про is_first_plan), \
-чередуя nav между post-gen и reel-script, чтобы соцсети пополнялись регулярно.
-10. ПОДРОБНЫЕ ШАГИ: action_text каждого дела должен быть НЕ ОДНОЙ строкой, а мини-инструкцией на 2-4 предложения: \
+от выгорания»), НЕ общую фразу вроде "полезный пост об услуге". Темы НЕ должны повторяться ни между днями внутри \
+пачки, ни с recent_content_topics в payload (темы из предыдущей пачки). Такие дела (контент) старайся включать в план \
+КАЖДЫЙ ДЕНЬ (кроме дня 1 при is_first_plan — см. правило ниже), чередуя nav между post-gen и reel-script по дням, \
+чтобы соцсети пополнялись регулярно.
+9. ПОДРОБНЫЕ ШАГИ: action_text каждого дела должен быть НЕ ОДНОЙ строкой, а мини-инструкцией на 2-4 предложения: \
 что именно сделать, с конкретным примером или вариантом формулировки (например, готовый текст сообщения клиенту или \
 пример оффера), и на что обратить внимание, чтобы не ошибиться (тайминг, тон, кому подходит/не подходит). Пиши по \
 существу, без воды, как будто объясняешь занятому человеку, а не пишешь маркетинговый слоган.
-11. ОБЪЯСНЕНИЕ ПОЛЬЗЫ РАЗВИТИЯ: для дел с nav = tools или academy заполни отдельное поле why (1-2 предложения) — \
+10. ОБЪЯСНЕНИЕ ПОЛЬЗЫ РАЗВИТИЯ: для дел с nav = tools или academy заполни отдельное поле why (1-2 предложения) — \
 объясни, ПОЧЕМУ важно пройти именно это (например: тест фиксирует текущий уровень барьеров/уверенности, при повторном \
 прохождении через месяц-два будет видна личная динамика роста; или: курс даёт конкретный навык, который сразу решает \
 затык, из-за которого сейчас теряются деньги). Без общих фраз "это полезно" — привязывай к текущей ситуации человека.
-12. АНТИ-ПОВТОР: НИКОГДА не повторяй буквально или почти буквально формулировки title/action_text/topic_options из \
-yesterday_tasks и recent_content_topics (последние темы контента за 14 дней, если переданы в payload) — каждый день \
-план должен ощущаться как новый шаг вперёд, а не копия вчерашнего.
 {PODELAM_FIRST_PLAN_PROMPT if is_first_plan else ""}
 Отвечай СТРОГО в формате JSON, без markdown-обёртки, без пояснений вне JSON:
 {{
   "growth_points": [
     {{"key": "верхнеуровневый_слаг_латиницей", "title": "Короткое название точки роста", "action": "Конкретное действие с цифрами", "potential": число_рублей}}
   ],
-  "tasks": [
-    {{"key": "тот_же_слаг_что_в_growth_points_или_content_или_skill_up_или_course", "title": "Название дела (2-4 слова)", "action_text": "Развёрнутая мини-инструкция 2-4 предложения с примером/вариантом и на что обратить внимание, с цифрами из диагностики (для tools/academy — назови конкретный тест или курс)", "button": "Текст кнопки перехода (2-4 слова)", "nav": "раздел_из_списка", "minutes": число_минут_на_выполнение, "potential": число_рублей_или_0, "topic_options": ["тема 1", "тема 2", "тема 3"] или null если nav не контентный, "why": "почему важно, 1-2 предложения" или null если nav не tools/academy}}
+  "days": [
+    {{
+      "tasks": [
+        {{"key": "тот_же_слаг_что_в_growth_points_или_content_или_skill_up_или_course", "title": "Название дела (2-4 слова)", "action_text": "Развёрнутая мини-инструкция 2-4 предложения с примером/вариантом и на что обратить внимание, с цифрами из диагностики (для tools/academy — назови конкретный тест или курс)", "button": "Текст кнопки перехода (2-4 слова)", "nav": "раздел_из_списка", "minutes": число_минут_на_выполнение, "potential": число_рублей_или_0, "topic_options": ["тема 1", "тема 2", "тема 3"] или null если nav не контентный, "why": "почему важно, 1-2 предложения" или null если nav не tools/academy}}
+      ],
+      "main_task_key": "key дела с наибольшим приоритетом в этот день"
+    }}
+    // ровно {num_days} объектов в days, по порядку от дня 1 до дня {num_days}
   ],
-  "main_task_key": "key дела с наибольшим приоритетом на сегодня",
-  "tomorrow_preview": "Тёплый анонс на завтра, 2-3 предложения"
+  "batch_preview": "Тёплый анонс о том, что через {num_days} дней появится новый план с учётом того, что было сделано за этот период — 2-3 предложения, обращение на 'вы'"
 }}
 
-Правила по числам: potential — целые рубли, реалистичные исходя из среднего чека и базы клиентов, никогда не превышай \
-величину разрыва между текущим и целевым доходом суммарно по всем tasks (у дел из tools/academy potential = 0). \
-Дел должно быть 3-4, каждое выполнимо за 10-30 минут.
+Правила по числам: potential — целые рубли, реалистичные исходя из среднего чека и базы клиентов, суммарно по ВСЕМ \
+дням и делам никогда не превышай величину разрыва между текущим и целевым доходом, умноженную на {num_days} \
+(у дел из tools/academy potential = 0). В каждом дне 3-4 дела, каждое выполнимо за 10-30 минут.
 {PODELAM_SALON_MODE_PROMPT}"""
 
 
 def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | None = None,
                      yesterday_tasks: list | None = None, salon_context: dict | None = None,
-                     is_first_plan: bool = False, recent_content_topics: list | None = None) -> dict | None:
-    """Запрашивает у модели terra (polza.ai) персональный план роста дохода. Возвращает None при ошибке."""
+                     is_first_plan: bool = False, recent_content_topics: list | None = None,
+                     num_days: int = PODELAM_BATCH_DAYS) -> dict | None:
+    """Запрашивает у модели terra (polza.ai) персональный план роста дохода СРАЗУ на num_days дней
+    вперёд ОДНИМ запросом — вместо отдельного запроса на каждые сутки. Возвращает None при ошибке
+    или если ответ содержит не ровно num_days дней."""
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
         return None
@@ -640,6 +666,7 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
         "yesterday_tasks": yesterday_tasks or [],
         "is_first_plan": is_first_plan,
         "recent_content_topics": recent_content_topics or [],
+        "num_days": num_days,
         # Явный список реальных услуг пользователя (ниша + допуслуги, плюс услуги салона, если есть) —
         # именно из этого списка ИИ обязан брать темы для постов/Reels, а не из общей тематики платформы.
         "service_names": extract_service_names(
@@ -654,11 +681,11 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
     payload = json.dumps({
         "model": PODELAM_MODEL,
         "messages": [
-            {"role": "system", "content": build_podelam_system_prompt(is_first_plan)},
+            {"role": "system", "content": build_podelam_system_prompt(is_first_plan, num_days)},
             {"role": "user", "content": f"Диагностика мастера/салона:\n{json.dumps(user_payload, ensure_ascii=False, indent=2)}"},
         ],
         "temperature": 0.7,
-        "max_tokens": 2600 if salon_context else 2400,
+        "max_tokens": 12000 if salon_context else 11000,
     }).encode("utf-8")
 
     req = urllib.request.Request(
@@ -668,7 +695,7 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=45) as resp:
+        with urllib.request.urlopen(req, timeout=90) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         content = data["choices"][0]["message"]["content"].strip()
         if content.startswith("```"):
@@ -677,7 +704,10 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
                 content = content[4:]
             content = content.strip()
         parsed = json.loads(content)
-        if not parsed.get("tasks") or not parsed.get("growth_points"):
+        days = parsed.get("days")
+        if not isinstance(days, list) or len(days) != num_days or not parsed.get("growth_points"):
+            return None
+        if any(not d.get("tasks") for d in days):
             return None
         return parsed
     except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError):
@@ -685,7 +715,16 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
 
 
 def handle_podelam_get(event: dict, conn) -> dict:
-    """Возвращает сохранённый профиль дохода, финансовую карту и план на сегодня."""
+    """Возвращает сохранённый профиль дохода, финансовую карту и план на сегодняшний день из
+    ТЕКУЩЕЙ пачки. План строится СРАЗУ на PODELAM_BATCH_DAYS (14) дней вперёд ОДНИМ запросом к ИИ —
+    и кэшируется целиком в БД (одна строка на каждый день, объединённых batch_start_date). Пока
+    today входит в диапазон уже сохранённой пачки — ни одного обращения к ИИ или доп. таблицам
+    (курсы/данные салона), просто читаем сохранённый день. Новая пачка строится и энергия
+    списывается ТОЛЬКО когда текущая пачка закончилась (today вышел за её 14 дней).
+    ?date=YYYY-MM-DD (опционально) — вернуть конкретный день из уже сохранённой пачки, к которой он
+    относится (используется при переключении дней в календаре на фронте, БЕЗ похода к ИИ — просто
+    чтение уже сохранённой строки; если план на этот день ещё не существует, отдаётся ошибка 404-типа
+    has_plan_for_date=False)."""
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
     if not session_id:
         return err("Не авторизован", 401)
@@ -715,19 +754,55 @@ def handle_podelam_get(event: dict, conn) -> dict:
     gap = float(profile["target_revenue"]) - float(profile["current_revenue"])
     fallback_points = build_growth_points(profile)
     default_preview = (
-        "Завтра здесь появится новый набор дел — ИИ пересчитает план с учётом того, что вы выполните сегодня. "
-        "Регулярные небольшие шаги дают самый устойчивый рост дохода."
+        "Через две недели здесь появится новый набор дел — ИИ пересчитает план с учётом того, что вы "
+        "выполните за это время. Регулярные небольшие шаги дают самый устойчивый рост дохода."
     )
 
     today = date.today()
+    qs = event.get("queryStringParameters") or {}
+    try:
+        requested_date = date.fromisoformat(qs["date"]) if qs.get("date") else today
+    except ValueError:
+        requested_date = today
+
+    # Читаем день из уже сохранённой пачки (если он туда входит) — просто SELECT, без ИИ.
     cur.execute(
         f"SELECT * FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s AND plan_date = %s",
-        (user["id"], today)
+        (user["id"], requested_date)
     )
     plan_row = cur.fetchone()
+
+    # Переключение на день внутри уже существующей пачки (без построения новой) — если день не
+    # найден, просто говорим фронту, что для этой даты плана ещё нет (например, будущее за
+    # пределами текущей пачки), без похода к ИИ.
+    if requested_date != today:
+        if not plan_row:
+            return ok({"has_profile": True, "has_plan_for_date": False})
+        plan = dict(plan_row)
+        growth_points = plan.get("growth_points") or fallback_points
+        cur.execute(
+            f"SELECT task_key, done, actual_amount FROM {SCHEMA}.podelam_task_log WHERE user_id = %s AND plan_date = %s",
+            (user["id"], requested_date)
+        )
+        log = {r["task_key"]: {"done": r["done"], "actual_amount": float(r["actual_amount"]) if r["actual_amount"] else None} for r in cur.fetchall()}
+        cur.execute(
+            f"SELECT amount, new_clients, returned_clients FROM {SCHEMA}.podelam_daily_income WHERE user_id = %s AND income_date = %s",
+            (user["id"], requested_date)
+        )
+        income_row = cur.fetchone()
+        return ok({
+            "has_profile": True, "has_plan_for_date": True,
+            "profile": dict(profile), "growth_points": growth_points, "gap_amount": gap,
+            "plan": plan, "task_log": log,
+            "today_income": float(income_row["amount"]) if income_row else None,
+            "day_new_clients": income_row["new_clients"] if income_row else None,
+            "day_returned_clients": income_row["returned_clients"] if income_row else None,
+            "salon_profile_filled": salon_profile_filled,
+        })
+
     if not plan_row:
-        # Энергия списывается ОДИН РАЗ в сутки — только в момент реальной постройки нового
-        # плана на день (карточка диагностики уже точно заполнена, иначе вышли бы раньше).
+        # Текущая пачка на 14 дней закончилась (или это первый заход вообще) — строим НОВУЮ.
+        # Энергия списывается ОДИН РАЗ за пачку — только в момент реальной постройки новых 14 дней.
         # Проверяем баланс ДО дорогих запросов (курсы/данные салона/вызов ИИ), чтобы не тратить
         # вычисления, если энергии не хватает.
         podelam_cost = PODELAM_COST_SALON if role in ("owner", "admin") else PODELAM_COST_MASTER
@@ -761,10 +836,11 @@ def handle_podelam_get(event: dict, conn) -> dict:
             if role_cat in (c.get("categories") or [c.get("category")])
         ][:8]
 
+        # Дела из ПОСЛЕДНЕГО дня предыдущей пачки — чтобы новая пачка не повторяла их дословно.
         cur.execute(
             f"""SELECT tasks FROM {SCHEMA}.podelam_daily_plans
-                WHERE user_id = %s AND plan_date = %s""",
-            (user["id"], today - timedelta(days=1))
+                WHERE user_id = %s AND plan_date < %s ORDER BY plan_date DESC LIMIT 1""",
+            (user["id"], today)
         )
         yesterday_row = cur.fetchone()
         yesterday_tasks = []
@@ -772,7 +848,7 @@ def handle_podelam_get(event: dict, conn) -> dict:
             yt = yesterday_row["tasks"] if isinstance(yesterday_row["tasks"], list) else json.loads(yesterday_row["tasks"])
             yesterday_tasks = [{"title": t.get("title"), "nav": t.get("nav")} for t in yt]
 
-        # Первый ли это план вообще у пользователя — если раньше планов не было, ИИ сперва
+        # Первая ли это пачка вообще у пользователя — если раньше планов не было, ИИ сперва
         # предложит изучить ЦА и собрать офферы, прежде чем звать публиковать контент.
         cur.execute(
             f"SELECT 1 FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s LIMIT 1",
@@ -780,11 +856,12 @@ def handle_podelam_get(event: dict, conn) -> dict:
         )
         is_first_plan = cur.fetchone() is None
 
-        # Темы постов/Reels за последние 14 дней — чтобы ИИ не предлагал те же темы снова.
+        # Темы постов/Reels из ПРЕДЫДУЩЕЙ пачки (последние 30 дней) — чтобы новая пачка не
+        # предлагала те же темы снова.
         cur.execute(
             f"""SELECT tasks FROM {SCHEMA}.podelam_daily_plans
                 WHERE user_id = %s AND plan_date >= %s AND plan_date < %s""",
-            (user["id"], today - timedelta(days=14), today)
+            (user["id"], today - timedelta(days=30), today)
         )
         recent_content_topics: list = []
         for row in cur.fetchall():
@@ -795,65 +872,76 @@ def handle_podelam_get(event: dict, conn) -> dict:
         recent_content_topics = recent_content_topics[-30:]
 
         # Для владельца/администратора салона — подмешиваем реальные данные из «Мой салон»
-        # (агрегированные показатели, услуги, сотрудники) и фокус-сотрудника дня по ротации.
-        # Если «Мой салон» ещё не заполнен — данные берём из карточки диагностики ПоДелам (fallback).
-        # Запрос делается ТОЛЬКО здесь — при первой генерации плана за сутки, не при каждом заходе.
+        # (агрегированные показатели, услуги, сотрудники) и фокус-сотрудника НА КАЖДЫЙ день пачки
+        # по ротации. Если «Мой салон» ещё не заполнен — данные берём из карточки диагностики
+        # ПоДелам (fallback). Запрос делается ТОЛЬКО здесь — при построении новой пачки раз в
+        # 2 недели, не при каждом заходе.
         salon_context = None
         if role in ("owner", "admin") and salon_id and salon_profile_filled:
-            salon_context = build_salon_context(conn, salon_id, day_seed=today.toordinal())
+            salon_context = build_salon_context(conn, salon_id, day_seed=today.toordinal(), num_days=PODELAM_BATCH_DAYS)
 
         ai_result = call_podelam_ai(dict(profile), gap, role=role, courses=courses_for_role,
                                      yesterday_tasks=yesterday_tasks, salon_context=salon_context,
-                                     is_first_plan=is_first_plan, recent_content_topics=recent_content_topics)
+                                     is_first_plan=is_first_plan, recent_content_topics=recent_content_topics,
+                                     num_days=PODELAM_BATCH_DAYS)
         if ai_result:
             points = ai_result["growth_points"]
-            tasks = ai_result["tasks"]
-            main_key = ai_result.get("main_task_key") or (tasks[0]["key"] if tasks else None)
-            tomorrow_preview = ai_result.get("tomorrow_preview") or default_preview
+            days_data = ai_result["days"]
+            batch_preview = ai_result.get("batch_preview") or default_preview
             source = "ai"
         else:
             points = fallback_points
-            tasks = build_today_tasks(points, day_seed=today.toordinal(), profile=dict(profile), is_first_plan=is_first_plan,
-                                       salon_services=salon_context.get("services") if salon_context else None)
-            main_key = tasks[0]["key"] if tasks else None
-            tomorrow_preview = default_preview
+            days_data = []
+            for i in range(PODELAM_BATCH_DAYS):
+                day_tasks = build_today_tasks(
+                    points, day_seed=today.toordinal() + i, profile=dict(profile),
+                    is_first_plan=(is_first_plan and i == 0),
+                    salon_services=salon_context.get("services") if salon_context else None,
+                )
+                days_data.append({"tasks": day_tasks, "main_task_key": day_tasks[0]["key"] if day_tasks else None})
+            batch_preview = default_preview
             source = "rules"
 
-        salon_focus = salon_context.get("focus_staff") if salon_context else None
+        salon_focus_by_day = (salon_context.get("focus_staff_by_day") if salon_context else None) or []
 
-        cur2 = conn.cursor()
-        cur2.execute(
-            f"""INSERT INTO {SCHEMA}.podelam_daily_plans
-                (user_id, plan_date, main_task_key, gap_amount, tasks, tomorrow_preview, source, growth_points, salon_focus)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (user_id, plan_date) DO NOTHING
-                RETURNING *""",
-            (user["id"], today, main_key, gap, json.dumps(tasks, ensure_ascii=False),
-             tomorrow_preview, source, json.dumps(points, ensure_ascii=False),
-             json.dumps(salon_focus, ensure_ascii=False) if salon_focus else None)
-        )
-        cur2.fetchone()
+        cur2 = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        rows_by_date: dict[date, dict] = {}
+        for i, day in enumerate(days_data):
+            plan_date = today + timedelta(days=i)
+            day_tasks = day.get("tasks") or []
+            day_main_key = day.get("main_task_key") or (day_tasks[0]["key"] if day_tasks else None)
+            day_salon_focus = salon_focus_by_day[i] if i < len(salon_focus_by_day) else None
+            cur2.execute(
+                f"""INSERT INTO {SCHEMA}.podelam_daily_plans
+                    (user_id, plan_date, batch_start_date, main_task_key, gap_amount, tasks,
+                     tomorrow_preview, source, growth_points, salon_focus)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (user_id, plan_date) DO NOTHING
+                    RETURNING *""",
+                (user["id"], plan_date, today, day_main_key, gap, json.dumps(day_tasks, ensure_ascii=False),
+                 batch_preview, source, json.dumps(points, ensure_ascii=False),
+                 json.dumps(day_salon_focus, ensure_ascii=False) if day_salon_focus else None)
+            )
+            saved_row = cur2.fetchone()
+            if saved_row:
+                rows_by_date[plan_date] = dict(saved_row)
         if salon_id:
             deduct_podelam_energy(conn, salon_id, user["id"], podelam_cost)
         conn.commit()
-        plan = {
-            "tasks": tasks, "main_task_key": main_key, "gap_amount": gap,
-            "plan_date": str(today), "tomorrow_preview": tomorrow_preview, "source": source,
-            "salon_focus": salon_focus,
-        }
-        growth_points = points
+
+        plan_row_dict = rows_by_date.get(today)
+        if not plan_row_dict:
+            # ON CONFLICT DO NOTHING сработал (гонка потоков) — читаем то, что реально сохранено.
+            cur.execute(
+                f"SELECT * FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s AND plan_date = %s",
+                (user["id"], today)
+            )
+            plan_row_dict = dict(cur.fetchone())
+        plan = plan_row_dict
+        growth_points = plan.get("growth_points") or points
     else:
         plan = dict(plan_row)
-        saved_points = plan.get("growth_points")
-        growth_points = saved_points if saved_points else fallback_points
-        if not plan.get("tomorrow_preview"):
-            plan["tomorrow_preview"] = default_preview
-            cur_fix = conn.cursor()
-            cur_fix.execute(
-                f"UPDATE {SCHEMA}.podelam_daily_plans SET tomorrow_preview = %s WHERE user_id = %s AND plan_date = %s",
-                (default_preview, user["id"], today)
-            )
-            conn.commit()
+        growth_points = plan.get("growth_points") or fallback_points
 
     cur.execute(
         f"SELECT task_key, done, actual_amount FROM {SCHEMA}.podelam_task_log WHERE user_id = %s AND plan_date = %s",
@@ -862,7 +950,7 @@ def handle_podelam_get(event: dict, conn) -> dict:
     log = {r["task_key"]: {"done": r["done"], "actual_amount": float(r["actual_amount"]) if r["actual_amount"] else None} for r in cur.fetchall()}
 
     cur.execute(
-        f"SELECT amount FROM {SCHEMA}.podelam_daily_income WHERE user_id = %s AND income_date = %s",
+        f"SELECT amount, new_clients, returned_clients FROM {SCHEMA}.podelam_daily_income WHERE user_id = %s AND income_date = %s",
         (user["id"], today)
     )
     income_row = cur.fetchone()
@@ -870,14 +958,77 @@ def handle_podelam_get(event: dict, conn) -> dict:
 
     return ok({
         "has_profile": True,
+        "has_plan_for_date": True,
         "profile": dict(profile),
         "growth_points": growth_points,
         "gap_amount": gap,
         "plan": plan,
         "task_log": log,
         "today_income": today_income,
+        "day_new_clients": income_row["new_clients"] if income_row else None,
+        "day_returned_clients": income_row["returned_clients"] if income_row else None,
         "salon_profile_filled": salon_profile_filled,
     })
+
+
+def handle_podelam_batch_days(event: dict, conn) -> dict:
+    """Облегчённый список ВСЕХ дней текущей пачки плана (batch_start_date той строки, что
+    относится к сегодняшнему дню) — только дата, главное дело и % выполнения, БЕЗ полного текста
+    задач. Нужен фронту, чтобы отрисовать календарь/список на 14 дней и переключаться между ними
+    БЕЗ отдельного запроса на каждый день (сам день целиком подгружается через podelam_get?date=...
+    только когда пользователь реально кликает на него)."""
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+    if not session_id:
+        return err("Не авторизован", 401)
+    user = get_lk_user_by_session(session_id, conn)
+    if not user:
+        return err("Сессия истекла", 401)
+
+    today = date.today()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT batch_start_date FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s AND plan_date = %s",
+        (user["id"], today)
+    )
+    today_row = cur.fetchone()
+    if not today_row:
+        return ok({"days": []})
+    batch_start = today_row["batch_start_date"] or today
+
+    cur.execute(
+        f"""SELECT plan_date, main_task_key, tasks FROM {SCHEMA}.podelam_daily_plans
+            WHERE user_id = %s AND batch_start_date = %s ORDER BY plan_date""",
+        (user["id"], batch_start)
+    )
+    plan_rows = cur.fetchall()
+    plan_dates = [r["plan_date"] for r in plan_rows]
+    if not plan_dates:
+        return ok({"days": []})
+
+    cur.execute(
+        f"""SELECT plan_date, task_key, done FROM {SCHEMA}.podelam_task_log
+            WHERE user_id = %s AND plan_date = ANY(%s)""",
+        (user["id"], plan_dates)
+    )
+    done_by_date: dict = {}
+    for r in cur.fetchall():
+        if r["done"]:
+            done_by_date.setdefault(r["plan_date"], set()).add(r["task_key"])
+
+    days = []
+    for r in plan_rows:
+        tasks = r["tasks"] if isinstance(r["tasks"], list) else json.loads(r["tasks"] or "[]")
+        done_keys = done_by_date.get(r["plan_date"], set())
+        main_task = next((t for t in tasks if t.get("key") == r["main_task_key"]), tasks[0] if tasks else None)
+        days.append({
+            "plan_date": str(r["plan_date"]),
+            "is_today": r["plan_date"] == today,
+            "main_task_title": main_task.get("title") if main_task else None,
+            "total_tasks": len(tasks),
+            "done_tasks": len(done_keys),
+        })
+
+    return ok({"days": days})
 
 
 def handle_podelam_save_profile(event: dict, conn) -> dict:
@@ -919,9 +1070,10 @@ def handle_podelam_save_profile(event: dict, conn) -> dict:
             body.get("lead_source", ""),
         )
     )
-    # Сбрасываем план на сегодня, чтобы пересчитать с новыми данными
+    # Сбрасываем ВСЮ текущую пачку плана (сегодня и вперёд), чтобы пересчитать с новыми данными —
+    # прошлые дни (уже пройденные) не трогаем, это история.
     cur.execute(
-        f"DELETE FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s AND plan_date = %s",
+        f"DELETE FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s AND plan_date >= %s",
         (user["id"], date.today())
     )
     conn.commit()
@@ -929,7 +1081,9 @@ def handle_podelam_save_profile(event: dict, conn) -> dict:
 
 
 def handle_podelam_task_done(event: dict, conn) -> dict:
-    """Отмечает дело дня выполненным/невыполненным, опционально с фактической суммой."""
+    """Отмечает дело дня выполненным/невыполненным, опционально с фактической суммой.
+    ?plan_date опционально (по умолчанию — сегодня) — позволяет отметить дело в любом дне
+    уже сохранённой пачки, не только в сегодняшнем."""
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
     if not session_id:
         return err("Не авторизован", 401)
@@ -943,6 +1097,10 @@ def handle_podelam_task_done(event: dict, conn) -> dict:
         return err("Нужен task_key")
     done = bool(body.get("done", True))
     actual_amount = body.get("actual_amount")
+    try:
+        plan_date = date.fromisoformat(body["plan_date"]) if body.get("plan_date") else date.today()
+    except ValueError:
+        plan_date = date.today()
 
     cur = conn.cursor()
     cur.execute(
@@ -950,15 +1108,16 @@ def handle_podelam_task_done(event: dict, conn) -> dict:
             VALUES (%s, %s, %s, %s, %s, NOW())
             ON CONFLICT (user_id, plan_date, task_key) DO UPDATE SET
                 done=EXCLUDED.done, actual_amount=EXCLUDED.actual_amount, updated_at=NOW()""",
-        (user["id"], date.today(), task_key, done, actual_amount)
+        (user["id"], plan_date, task_key, done, actual_amount)
     )
     conn.commit()
     return ok({"ok": True})
 
 
 def handle_podelam_set_income(event: dict, conn) -> dict:
-    """Прибавляет фактический доход мастера за конкретный день (по умолчанию — сегодня) к уже накопленной сумме.
-    Если передан mode="replace" — заменяет сумму целиком (используется при исправлении ошибочного ввода)."""
+    """Прибавляет фактический доход мастера за конкретный день (по умолчанию — сегодня) к уже накопленной сумме,
+    а также опционально количество новых и вернувшихся клиентов за этот день (тоже прибавляются к накопленным).
+    Если передан mode="replace" — заменяет сумму/клиентов целиком (используется при исправлении ошибочного ввода)."""
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
     if not session_id:
         return err("Не авторизован", 401)
@@ -976,31 +1135,52 @@ def handle_podelam_set_income(event: dict, conn) -> dict:
     if amount < 0:
         return err("Сумма не может быть отрицательной")
 
+    def _int_or_none(v):
+        if v in (None, ""):
+            return None
+        try:
+            n = int(v)
+        except (TypeError, ValueError):
+            return None
+        return max(0, n)
+
+    new_clients = _int_or_none(body.get("new_clients"))
+    returned_clients = _int_or_none(body.get("returned_clients"))
+
     income_date = body.get("date") or str(date.today())
     mode = body.get("mode") or "add"
 
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     if mode == "replace":
         cur.execute(
-            f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, updated_at)
-                VALUES (%s, %s, %s, NOW())
+            f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, new_clients, returned_clients, updated_at)
+                VALUES (%s, %s, %s, %s, %s, NOW())
                 ON CONFLICT (user_id, income_date) DO UPDATE SET
-                    amount=EXCLUDED.amount, updated_at=NOW()
-                RETURNING amount""",
-            (user["id"], income_date, amount)
+                    amount=EXCLUDED.amount,
+                    new_clients=COALESCE(EXCLUDED.new_clients, podelam_daily_income.new_clients),
+                    returned_clients=COALESCE(EXCLUDED.returned_clients, podelam_daily_income.returned_clients),
+                    updated_at=NOW()
+                RETURNING amount, new_clients, returned_clients""",
+            (user["id"], income_date, amount, new_clients, returned_clients)
         )
     else:
         cur.execute(
-            f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, updated_at)
-                VALUES (%s, %s, %s, NOW())
+            f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, new_clients, returned_clients, updated_at)
+                VALUES (%s, %s, %s, %s, %s, NOW())
                 ON CONFLICT (user_id, income_date) DO UPDATE SET
-                    amount=podelam_daily_income.amount + EXCLUDED.amount, updated_at=NOW()
-                RETURNING amount""",
-            (user["id"], income_date, amount)
+                    amount=podelam_daily_income.amount + EXCLUDED.amount,
+                    new_clients=COALESCE(podelam_daily_income.new_clients, 0) + COALESCE(EXCLUDED.new_clients, 0),
+                    returned_clients=COALESCE(podelam_daily_income.returned_clients, 0) + COALESCE(EXCLUDED.returned_clients, 0),
+                    updated_at=NOW()
+                RETURNING amount, new_clients, returned_clients""",
+            (user["id"], income_date, amount, new_clients, returned_clients)
         )
-    total_amount = float(cur.fetchone()["amount"])
+    row = cur.fetchone()
     conn.commit()
-    return ok({"ok": True, "amount": total_amount})
+    return ok({
+        "ok": True, "amount": float(row["amount"]),
+        "new_clients": row["new_clients"], "returned_clients": row["returned_clients"],
+    })
 
 
 def _compute_period_stats(conn, user_id: int, days: int) -> dict:
@@ -1032,14 +1212,16 @@ def _compute_period_stats(conn, user_id: int, days: int) -> dict:
     logs = cur.fetchall()
     done_count = sum(1 for r in logs if r["done"])
 
-    # Фактический доход, указанный мастером по дням
+    # Фактический доход и клиенты, указанные мастером по дням
     cur.execute(
-        f"""SELECT amount FROM {SCHEMA}.podelam_daily_income
+        f"""SELECT amount, new_clients, returned_clients FROM {SCHEMA}.podelam_daily_income
             WHERE user_id = %s AND income_date >= %s AND income_date <= %s""",
         (user_id, since, date.today())
     )
     income_rows = cur.fetchall()
     actual_total = sum(float(r["amount"]) for r in income_rows)
+    new_clients_total = sum(r["new_clients"] or 0 for r in income_rows)
+    returned_clients_total = sum(r["returned_clients"] or 0 for r in income_rows)
 
     return {
         "days": days,
@@ -1048,6 +1230,8 @@ def _compute_period_stats(conn, user_id: int, days: int) -> dict:
         "completion_rate": round(done_count / total_tasks * 100) if total_tasks > 0 else 0,
         "potential_total": round(potential_total),
         "actual_total": round(actual_total),
+        "new_clients_total": new_clients_total,
+        "returned_clients_total": returned_clients_total,
     }
 
 
@@ -2269,6 +2453,8 @@ def handler(event: dict, context) -> dict:
         # ── ПоДелам — навигатор дохода (личный кабинет, X-Session-Id) ────────
         if route_action == "podelam_get":
             return handle_podelam_get(event, conn)
+        if route_action == "podelam_batch_days":
+            return handle_podelam_batch_days(event, conn)
         if route_action == "podelam_save_profile":
             return handle_podelam_save_profile(event, conn)
         if route_action == "podelam_task_done":

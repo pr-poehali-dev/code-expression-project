@@ -3,18 +3,26 @@ import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { markPodelamSeen } from "./podelamNotice";
 import SalonAIAgent from "./SalonAIAgent";
-import { ACCENT, ACCENT_DARK, PODELAM_URL, sid, PodelamData, StatsData, fmt, TOPIC_KEY_BY_NAV } from "./podelamShared";
+import { ACCENT, ACCENT_DARK, PODELAM_URL, sid, PodelamData, StatsData, BatchDay, fmt, TOPIC_KEY_BY_NAV } from "./podelamShared";
 import DiagnosticForm from "./PodelamDiagnosticForm";
 import InfoModal from "./PodelamInfoModal";
 import { DailyIncomeCard, StatsSection } from "./PodelamWidgets";
+import { PodelamDayNav } from "./PodelamDayNav";
 import { isPodelamTrial, getPodelamTrialData, clearPodelamTrial } from "@/lib/podelamTrial";
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 // ── Главный экран ПоДелам ──────────────────────────────────────────────────────
 export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   const { user } = useLkAuth();
   const [data, setData] = useState<PodelamData | null>(null);
   const [stats, setStats] = useState<StatsData | null>(null);
+  const [batchDays, setBatchDays] = useState<BatchDay[]>([]);
+  const [activeDate, setActiveDate] = useState(todayIso());
   const [loading, setLoading] = useState(true);
+  const [dayLoading, setDayLoading] = useState(false);
   const [editing, setEditing] = useState(false);
   const [marking, setMarking] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -40,8 +48,21 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
       .catch(() => {});
   }, []);
 
+  // Облегчённый список дней текущей пачки (14 дней) — один лёгкий запрос, без полного текста
+  // задач, нужен только для переключателя дней. Подгружается один раз при входе и после того,
+  // как построена новая пачка — переключение между уже загруженными днями его не трогает.
+  const loadBatchDays = useCallback(() => {
+    fetch(`${PODELAM_URL}?action=podelam_batch_days`, { headers: { "X-Session-Id": sid() } })
+      .then(r => r.json())
+      .then(d => setBatchDays(d.days || []))
+      .catch(() => {});
+  }, []);
+
+  // Загрузка сегодняшнего дня (может построить новую пачку на 14 дней, если предыдущая
+  // закончилась — тогда одним запросом к ИИ, не по одному дню за сутки).
   const load = useCallback(() => {
     setLoading(true);
+    setActiveDate(todayIso());
     fetch(`${PODELAM_URL}?action=podelam_get`, { headers: { "X-Session-Id": sid() } })
       .then(r => r.json())
       .then(async d => {
@@ -63,9 +84,23 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
       })
       .finally(() => setLoading(false));
     loadStats();
-  }, [loadStats]);
+    loadBatchDays();
+  }, [loadStats, loadBatchDays]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Переключение на другой день пачки (клик в календаре) — читает уже сохранённый день,
+  // БЕЗ обращения к ИИ (см. backend action=podelam_get?date=...).
+  const selectDay = useCallback((date: string) => {
+    if (date === activeDate) return;
+    setActiveDate(date);
+    setSelectedTopic({});
+    setDayLoading(true);
+    fetch(`${PODELAM_URL}?action=podelam_get&date=${date}`, { headers: { "X-Session-Id": sid() } })
+      .then(r => r.json())
+      .then(d => setData(d))
+      .finally(() => setDayLoading(false));
+  }, [activeDate]);
 
   const markDone = async (taskKey: string) => {
     setMarking(taskKey);
@@ -73,21 +108,31 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
       await fetch(`${PODELAM_URL}?action=podelam_task_done`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
-        body: JSON.stringify({ task_key: taskKey, done: true }),
+        body: JSON.stringify({ task_key: taskKey, done: true, plan_date: activeDate }),
       });
-      load();
+      if (activeDate === todayIso()) { load(); } else { selectDayForce(activeDate); }
     } finally {
       setMarking(null);
     }
   };
 
-  const saveIncome = async (amount: number) => {
+  // Принудительная перезагрузка текущего (уже выбранного) дня без сравнения с activeDate —
+  // используется после markDone/saveIncome, когда день уже активен.
+  const selectDayForce = (date: string) => {
+    setDayLoading(true);
+    fetch(`${PODELAM_URL}?action=podelam_get&date=${date}`, { headers: { "X-Session-Id": sid() } })
+      .then(r => r.json())
+      .then(d => setData(d))
+      .finally(() => { setDayLoading(false); loadBatchDays(); });
+  };
+
+  const saveIncome = async (amount: number, newClients: number | null, returnedClients: number | null) => {
     await fetch(`${PODELAM_URL}?action=podelam_set_income`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
-      body: JSON.stringify({ amount }),
+      body: JSON.stringify({ amount, new_clients: newClients, returned_clients: returnedClients, date: activeDate }),
     });
-    load();
+    if (activeDate === todayIso()) { load(); } else { selectDayForce(activeDate); }
   };
 
   if (loading) {
@@ -160,9 +205,9 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
     mainTask ? `Главное дело дня: ${mainTask.title} — ${mainTask.action_text}` : "",
   ].filter(Boolean).join("\n") : "";
 
-  const podelamGreeting = profile
-    ? `Здравствуйте${user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}! Вижу вашу цель — ${fmt(profile.target_revenue)} ₽ в месяц, сейчас у вас ${fmt(profile.current_revenue)} ₽, не хватает ${fmt(Math.max(0, gap_amount))} ₽.${mainTask ? ` Сегодня главное — «${mainTask.title.toLowerCase()}».` : ""}\n\nСпрашивайте, как быстрее закрыть разрыв в доходе — отвечу с учётом ваших цифр и плана на сегодня.`
-    : undefined;
+  // Статичное системное сообщение вместо «живого» приветствия от ИИ — не расходует запрос
+  // к модели, просто текст-заглушка до первого сообщения пользователя.
+  const podelamGreeting = "Есть вопросы по плану или доходу — напишите, отвечу с учётом ваших цифр.";
 
   return (
     <div>
@@ -273,15 +318,24 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
         </div>
       )}
 
-      {/* Доход за сегодня */}
-      <DailyIncomeCard savedAmount={data.today_income} onSave={saveIncome} />
+      {/* Переключатель дней плана на 2 недели */}
+      <PodelamDayNav days={batchDays} activeDate={activeDate} onSelect={selectDay} />
+
+      {/* Доход за выбранный день */}
+      <DailyIncomeCard
+        savedAmount={data.today_income}
+        savedNewClients={data.day_new_clients}
+        savedReturnedClients={data.day_returned_clients}
+        isToday={activeDate === todayIso()}
+        onSave={saveIncome}
+      />
 
       {/* Экран 2: Главное дело дня */}
       {mainTask && (
-        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: 24, marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: 24, marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)", opacity: dayLoading ? 0.5 : 1, transition: "opacity 0.15s" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <Icon name="Target" size={16} style={{ color: ACCENT }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>Сегодня главное</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>{activeDate === todayIso() ? "Сегодня главное" : "Главное в этот день"}</span>
           </div>
           <div style={{ fontSize: 19, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>{mainTask.title}</div>
           <div style={{ fontSize: 14, color: "#64748B", marginBottom: 14, lineHeight: 1.6 }}>{mainTask.action_text}</div>
@@ -331,9 +385,9 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
       )}
 
       {/* Экран 3: План на день */}
-      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
+      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)", opacity: dayLoading ? 0.5 : 1, transition: "opacity 0.15s" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", letterSpacing: 1.5, textTransform: "uppercase" }}>План на сегодня</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", letterSpacing: 1.5, textTransform: "uppercase" }}>{activeDate === todayIso() ? "План на сегодня" : "План на этот день"}</div>
           {salonFocus && (
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: "hsl(185,85%,96%)", borderRadius: 20 }}>
               <Icon name="UserRound" size={13} style={{ color: ACCENT }} />
@@ -446,12 +500,12 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
         </div>
       )}
 
-      {/* Анонс на завтра */}
+      {/* Анонс на следующую пачку из 14 дней */}
       {plan?.tomorrow_preview && (
         <div style={{ display: "flex", alignItems: "flex-start", gap: 12, background: "hsl(185,85%,96%)", borderRadius: 14, padding: "16px 20px", marginTop: 20 }}>
           <Icon name="Sunrise" size={18} style={{ color: ACCENT, flexShrink: 0, marginTop: 2 }} />
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Завтра новые шаги</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Скоро новые 2 недели</div>
             <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.6 }}>{plan.tomorrow_preview}</div>
           </div>
         </div>

@@ -28,6 +28,12 @@
       "expectedStatus": 401
     },
     {
+      "name": "GET podelam_batch_days without session — 401",
+      "method": "GET",
+      "path": "/?action=podelam_batch_days",
+      "expectedStatus": 401
+    },
+    {
       "name": "POST podelam_save_profile without session — 401",
       "method": "POST",
       "path": "/?action=podelam_save_profile",

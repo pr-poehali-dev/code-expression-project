@@ -2,19 +2,31 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { ACCENT, ACCENT_DARK, StatsData, fmt } from "./podelamShared";
 
-// ── Карточка «Доход за сегодня» ──────────────────────────────────────────────
-export function DailyIncomeCard({ savedAmount, onSave }: { savedAmount: number | null | undefined; onSave: (amount: number) => Promise<void> }) {
+interface DailyIncomeCardProps {
+  savedAmount: number | null | undefined;
+  savedNewClients: number | null | undefined;
+  savedReturnedClients: number | null | undefined;
+  isToday: boolean;
+  onSave: (amount: number, newClients: number | null, returnedClients: number | null) => Promise<void>;
+}
+
+// ── Карточка «Доход за день»: сумма + новые/вернувшиеся клиенты ─────────────
+export function DailyIncomeCard({ savedAmount, savedNewClients, savedReturnedClients, isToday, onSave }: DailyIncomeCardProps) {
   const [value, setValue] = useState("");
+  const [newClients, setNewClients] = useState("");
+  const [returnedClients, setReturnedClients] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const submit = async () => {
-    const amount = Number(value);
-    if (value.trim() === "" || Number.isNaN(amount) || amount <= 0) return;
+    const amount = Number(value || 0);
+    const nc = newClients.trim() === "" ? null : Number(newClients);
+    const rc = returnedClients.trim() === "" ? null : Number(returnedClients);
+    if ((value.trim() === "" || Number.isNaN(amount) || amount <= 0) && nc == null && rc == null) return;
     setSaving(true);
     try {
-      await onSave(amount);
-      setValue("");
+      await onSave(Number.isNaN(amount) ? 0 : amount, nc != null && !Number.isNaN(nc) ? nc : null, rc != null && !Number.isNaN(rc) ? rc : null);
+      setValue(""); setNewClients(""); setReturnedClients("");
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } finally {
@@ -22,47 +34,72 @@ export function DailyIncomeCard({ savedAmount, onSave }: { savedAmount: number |
     }
   };
 
+  const inputStyle: React.CSSProperties = { width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid #E2E8F0", fontSize: 14, fontWeight: 600, fontFamily: "Montserrat,sans-serif", color: "#0F172A", outline: "none", boxSizing: "border-box" };
+
   return (
     <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Icon name="Wallet" size={16} style={{ color: ACCENT }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>Доход за сегодня</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>{isToday ? "Доход за сегодня" : "Доход за этот день"}</span>
         </div>
-        {savedAmount != null && savedAmount > 0 && (
+        {(savedAmount != null && savedAmount > 0) && (
           <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>Уже указано: {fmt(savedAmount)} ₽</div>
         )}
       </div>
       <div style={{ fontSize: 13, color: "#64748B", marginBottom: 14, lineHeight: 1.6 }}>
-        Добавляйте суммы по мере поступления оплат — они прибавляются к уже указанным за сегодня и учитываются в статистике ниже (факт vs потенциал).
+        Заполните итоги дня: сумму оплат, сколько пришло новых клиентов и сколько вернулось — данные складываются с уже указанными и видны в статистике ниже.
       </div>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <div style={{ position: "relative", flex: "1 1 180px" }}>
+      {(savedNewClients != null || savedReturnedClients != null) && (
+        <div style={{ display: "flex", gap: 16, marginBottom: 12, fontSize: 12.5, color: "#475569" }}>
+          {savedNewClients != null && <span>Новых клиентов: <b>{savedNewClients}</b></span>}
+          {savedReturnedClients != null && <span>Вернулось: <b>{savedReturnedClients}</b></span>}
+        </div>
+      )}
+      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: 10 }} className="podelam-income-grid">
+        <div style={{ position: "relative" }}>
           <input
-            type="number"
-            min={0}
-            value={value}
+            type="number" min={0} value={value}
             onChange={e => setValue(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") submit(); }}
-            placeholder="0"
-            style={{ width: "100%", padding: "11px 40px 11px 14px", borderRadius: 10, border: "1.5px solid #E2E8F0", fontSize: 15, fontWeight: 600, fontFamily: "Montserrat,sans-serif", color: "#0F172A", outline: "none", boxSizing: "border-box" }}
+            placeholder="Сумма, ₽"
+            style={{ ...inputStyle, paddingRight: 32 }}
           />
-          <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#94A3B8", fontWeight: 600 }}>₽</span>
+          <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#94A3B8", fontWeight: 600 }}>₽</span>
         </div>
-        <button
-          onClick={submit}
-          disabled={saving || value.trim() === ""}
-          style={{
-            padding: "11px 22px", borderRadius: 10, border: "none",
-            background: saved ? "hsl(145,60%,40%)" : `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`,
-            color: "#fff", fontSize: 13, fontWeight: 700, cursor: saving || value.trim() === "" ? "default" : "pointer",
-            fontFamily: "Montserrat,sans-serif", opacity: saving ? 0.7 : 1, whiteSpace: "nowrap",
-            display: "flex", alignItems: "center", gap: 6,
-          }}
-        >
-          {saved ? <><Icon name="Check" size={15} /> Добавлено</> : saving ? "Сохраняю…" : "Добавить"}
-        </button>
+        <input
+          type="number" min={0} value={newClients}
+          onChange={e => setNewClients(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") submit(); }}
+          placeholder="Новых клиентов"
+          style={inputStyle}
+        />
+        <input
+          type="number" min={0} value={returnedClients}
+          onChange={e => setReturnedClients(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") submit(); }}
+          placeholder="Вернулось"
+          style={inputStyle}
+        />
       </div>
+      <button
+        onClick={submit}
+        disabled={saving}
+        style={{
+          marginTop: 10, padding: "11px 22px", borderRadius: 10, border: "none",
+          background: saved ? "hsl(145,60%,40%)" : `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`,
+          color: "#fff", fontSize: 13, fontWeight: 700, cursor: saving ? "default" : "pointer",
+          fontFamily: "Montserrat,sans-serif", opacity: saving ? 0.7 : 1, whiteSpace: "nowrap",
+          display: "flex", alignItems: "center", gap: 6,
+        }}
+      >
+        {saved ? <><Icon name="Check" size={15} /> Сохранено</> : saving ? "Сохраняю…" : "Сохранить"}
+      </button>
+      <style>{`
+        @media (max-width: 480px) {
+          .podelam-income-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }
@@ -115,6 +152,18 @@ export function StatsSection({ stats }: { stats: StatsData | null }) {
           <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>Получено факт.</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: "hsl(145,60%,35%)" }}>{fmt(s.actual_total)} ₽</div>
         </div>
+        {(s.new_clients_total != null || s.returned_clients_total != null) && (
+          <>
+            <div>
+              <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>Новых клиентов</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "#0F172A" }}>{s.new_clients_total ?? 0}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>Вернулось клиентов</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "#0F172A" }}>{s.returned_clients_total ?? 0}</div>
+            </div>
+          </>
+        )}
       </div>
 
       <div style={{ height: 8, borderRadius: 4, background: "#F1F5F9", overflow: "hidden", marginBottom: 6 }}>
