@@ -6,7 +6,7 @@ import { isPodelamSeenToday, PODELAM_SEEN_EVENT } from "./podelamNotice";
 import { getBlogSeenDate, BLOG_SEEN_EVENT } from "./blogNotice";
 import func2url from "../../../backend/func2url.json";
 
-const CONTENT_URL = (func2url as Record<string, string>)["masters-accrual"] || "";
+const CONTENT_URL = (func2url as Record<string, string>)["blog-public"] || "";
 
 // ── Хук: не открыт ли сегодня план «ПоДелам» ───────────────────────────────────
 export function usePodelamUnseen() {

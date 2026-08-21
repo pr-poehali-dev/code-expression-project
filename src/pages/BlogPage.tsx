@@ -14,7 +14,7 @@ const GRAY = "#64748B";
 const SERIF = "'Cormorant Garamond', serif";
 const PAGE_SIZE = 6;
 
-const CONTENT_URL = (func2url as Record<string, string>)["masters-accrual"] || "";
+const CONTENT_URL = (func2url as Record<string, string>)["blog-public"] || "";
 
 interface Post {
   id: number;

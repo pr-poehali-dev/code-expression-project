@@ -1,7 +1,7 @@
 import Icon from "@/components/ui/icon";
 import { ACCENT, User, labelStyle, inputStyle, actionBtn, iconBtn } from "./LkAdminShared";
 
-export function UserCard({ u, editUser, setEditUser, saving, onUpdate, onNewPw, onCourseAccess, onRepEdit, onDelete }: {
+export function UserCard({ u, editUser, setEditUser, saving, onUpdate, onNewPw, onCourseAccess, onDelete }: {
   u: User;
   editUser: User | null;
   setEditUser: React.Dispatch<React.SetStateAction<User | null>>;
@@ -9,7 +9,6 @@ export function UserCard({ u, editUser, setEditUser, saving, onUpdate, onNewPw, 
   onUpdate: () => void;
   onNewPw: () => void;
   onCourseAccess: () => void;
-  onRepEdit: () => void;
   onDelete: () => void;
 }) {
   return (
@@ -119,9 +118,6 @@ export function UserCard({ u, editUser, setEditUser, saving, onUpdate, onNewPw, 
               {u.is_admin && (
                 <span style={{ fontSize: 10, background: "hsl(280,60%,95%)", color: "hsl(280,60%,55%)", padding: "2px 7px", borderRadius: 20, fontWeight: 700 }}>Admin</span>
               )}
-              {u.is_representative && (
-                <span style={{ fontSize: 10, background: "hsl(38,90%,94%)", color: "hsl(38,80%,35%)", padding: "2px 7px", borderRadius: 20, fontWeight: 700 }}>Представитель</span>
-              )}
               <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 20, fontWeight: 600, background: u.segment === "salon" ? "hsl(335,80%,96%)" : "hsl(185,85%,95%)", color: u.segment === "salon" ? "hsl(335,80%,45%)" : ACCENT }}>
                 {u.segment === "salon" ? "Салон" : "Специалист"}
               </span>
@@ -154,13 +150,6 @@ export function UserCard({ u, editUser, setEditUser, saving, onUpdate, onNewPw, 
               title="Доступ к курсам"
             >
               <Icon name="GraduationCap" size={15} style={{ color: ACCENT }} />
-            </button>
-            <button
-              onClick={onRepEdit}
-              style={{ ...iconBtn, borderColor: u.is_representative ? "hsl(38,80%,50%)" : "#e8e8e4", background: u.is_representative ? "hsl(38,90%,94%)" : "#fafafa" }}
-              title="Статус представителя"
-            >
-              <Icon name="Briefcase" size={15} style={{ color: u.is_representative ? "hsl(38,80%,35%)" : "#888" }} />
             </button>
             <button
               onClick={onDelete}

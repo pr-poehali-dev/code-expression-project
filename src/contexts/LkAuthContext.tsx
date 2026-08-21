@@ -13,8 +13,6 @@ export interface LkUser {
   full_name: string;
   email: string;
   is_admin: boolean;
-  is_representative: boolean;
-  rep_permissions: string[] | null;
   access_expires_at: string | null;
   segment: "specialist" | "salon";
   role: "owner" | "admin" | "master" | "body_specialist" | "solo_master";

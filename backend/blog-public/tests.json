@@ -1,0 +1,54 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Unknown action — 404",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 404
+    },
+    {
+      "name": "GET content_list — 200",
+      "method": "GET",
+      "path": "/?action=content_list",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET content_related — 200",
+      "method": "GET",
+      "path": "/?action=content_related&category=marketing&post_id=0",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET sitemap — 200",
+      "method": "GET",
+      "path": "/?action=sitemap",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET comments_list without post_id — 400",
+      "method": "GET",
+      "path": "/?action=comments_list",
+      "expectedStatus": 400
+    },
+    {
+      "name": "POST comment_add without session — 401",
+      "method": "POST",
+      "path": "/?action=comment_add",
+      "body": {"post_id": 1, "text": "Тест"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST comment_like without session — 401",
+      "method": "POST",
+      "path": "/?action=comment_like",
+      "body": {"comment_id": 1},
+      "expectedStatus": 401
+    }
+  ]
+}

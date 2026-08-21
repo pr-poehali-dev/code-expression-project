@@ -16,7 +16,7 @@ const DARK = "#0F172A";
 const GRAY = "#64748B";
 const SERIF = "'Cormorant Garamond', serif";
 
-const CONTENT_URL = (func2url as Record<string, string>)["masters-accrual"] || "";
+const CONTENT_URL = (func2url as Record<string, string>)["blog-public"] || "";
 
 interface Post {
   id: number;

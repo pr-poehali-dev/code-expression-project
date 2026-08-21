@@ -6,7 +6,7 @@ const TEAL = "#2DD4BF";
 const DARK = "#0F172A";
 const GRAY = "#64748B";
 
-const CONTENT_URL = (func2url as Record<string, string>)["masters-accrual"] || "";
+const CONTENT_URL = (func2url as Record<string, string>)["blog-public"] || "";
 const POLL_INTERVAL_MS = 15_000;
 
 interface Comment {

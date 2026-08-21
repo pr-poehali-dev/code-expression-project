@@ -51,10 +51,9 @@ const ChampionshipRating = lazy(() => import("./pages/championship/ChampionshipR
 const ChampionshipHallOfFame = lazy(() => import("./pages/championship/ChampionshipHallOfFame"));
 const ChampionshipSalon = lazy(() => import("./pages/championship/ChampionshipSalon"));
 
-// Кабинет и rep — отдельные чанки
+// Кабинет — отдельный чанк
 const LkPage = lazy(() => import("./pages/lk/LkPage"));
 const LkJoinPage = lazy(() => import("./pages/lk/LkJoinPage"));
-const RepPage = lazy(() => import("./pages/rep/RepPage"));
 const TreningProdazhi = lazy(() => import("./pages/TreningProdazhi"));
 
 const queryClient = new QueryClient({
@@ -77,7 +76,7 @@ function PageFallback() {
 
 function ChatWidgetConditional() {
   const { pathname } = useLocation();
-  if (pathname.startsWith("/cabinet") || pathname.startsWith("/rep")) return null;
+  if (pathname.startsWith("/cabinet")) return null;
   return <ChatWidget />;
 }
 
@@ -117,7 +116,6 @@ const App = () => (
             <Route path="/cabinet" element={<LkPage />} />
             <Route path="/join" element={<LkJoinPage />} />
             <Route path="/join/:token" element={<LkJoinPage />} />
-            <Route path="/rep" element={<RepPage />} />
             <Route path="/trening-prodazhi" element={<TreningProdazhi />} />
             <Route path="/praktika" element={<Praktika />} />
             <Route path="/premium" element={<PremiumPraktika />} />

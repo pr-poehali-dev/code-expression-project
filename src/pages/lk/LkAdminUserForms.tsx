@@ -1,13 +1,6 @@
 import Icon from "@/components/ui/icon";
 import { ACCENT, labelStyle, inputStyle, actionBtn } from "./LkAdminShared";
 
-export const REP_PERMISSIONS = [
-  { key: "ai", label: "ИИ-ассистент" },
-  { key: "kp", label: "КП и письма" },
-  { key: "scripts", label: "Скрипты продаж" },
-  { key: "calc", label: "Расчёт выгоды" },
-];
-
 type CreateForm = {
   username: string; email: string; password: string; full_name: string;
   notes: string; is_admin: boolean; access_type: string; segment: string;
@@ -106,41 +99,6 @@ export function CreateUserForm({ form, setForm, saving, onCreate, onCancel }: {
         <button onClick={onCreate} disabled={saving} style={actionBtn(ACCENT)}>
           {saving ? "Создаю..." : "Создать"}
         </button>
-        <button onClick={onCancel} style={actionBtn("#999")}>Отмена</button>
-      </div>
-    </div>
-  );
-}
-
-export function RepEditForm({ repEdit, setRepEdit, saving, onSave, onCancel }: {
-  repEdit: { userId: number; isRep: boolean; perms: string[] };
-  setRepEdit: React.Dispatch<React.SetStateAction<{ userId: number; isRep: boolean; perms: string[] } | null>>;
-  saving: boolean;
-  onSave: () => void;
-  onCancel: () => void;
-}) {
-  return (
-    <div style={{ background: "#fff", borderRadius: 16, padding: "18px 20px", marginBottom: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-      <h3 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 14px" }}>Статус представителя</h3>
-      <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, cursor: "pointer", marginBottom: 14 }}>
-        <input type="checkbox" checked={repEdit.isRep} onChange={e => setRepEdit(p => p ? { ...p, isRep: e.target.checked } : null)} />
-        Назначить представителем по салонам
-      </label>
-      {repEdit.isRep && (
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "#666", marginBottom: 8 }}>Доступные разделы:</div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {REP_PERMISSIONS.map(p => (
-              <label key={p.key} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer", padding: "6px 12px", borderRadius: 8, border: `1.5px solid ${repEdit.perms.includes(p.key) ? ACCENT : "#e8e8e4"}`, background: repEdit.perms.includes(p.key) ? "hsl(185,85%,95%)" : "#fafafa" }}>
-                <input type="checkbox" checked={repEdit.perms.includes(p.key)} onChange={e => setRepEdit(prev => prev ? { ...prev, perms: e.target.checked ? [...prev.perms, p.key] : prev.perms.filter(x => x !== p.key) } : null)} style={{ display: "none" }} />
-                {p.label}
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-      <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-        <button onClick={onSave} disabled={saving} style={actionBtn(ACCENT)}>Сохранить</button>
         <button onClick={onCancel} style={actionBtn("#999")}>Отмена</button>
       </div>
     </div>
