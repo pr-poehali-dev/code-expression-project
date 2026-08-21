@@ -9,13 +9,16 @@ const GRAY = "#64748B";
 
 function sid() { return localStorage.getItem("lk_session") || ""; }
 
+interface PromoResult { applied: boolean; error?: string; bonus_energy?: number; school_name?: string; }
+
 interface Props {
   email: string;
   verifyToken?: string | null; // токен из ?verify=... в URL
+  promo?: PromoResult | null;  // результат применения промокода школы-партнёра при регистрации
   onVerified: () => void;
 }
 
-export default function LkEmailVerify({ email, verifyToken, onVerified }: Props) {
+export default function LkEmailVerify({ email, verifyToken, promo, onVerified }: Props) {
   const [status, setStatus] = useState<"idle" | "verifying" | "success" | "error" | "resending" | "resent">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -144,6 +147,22 @@ export default function LkEmailVerify({ email, verifyToken, onVerified }: Props)
             {/* Экран ожидания (после регистрации, без токена) */}
             {status === "idle" && !verifyToken && (
               <>
+                {promo?.applied && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, background: "hsl(45,90%,96%)", border: "1px solid hsl(45,80%,75%)", borderRadius: 10, padding: "12px 14px", marginBottom: 20 }}>
+                    <Icon name="Zap" size={18} style={{ color: "hsl(40,90%,45%)", flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, color: "hsl(30,70%,30%)", lineHeight: 1.6 }}>
+                      Начислено <strong>{promo.bonus_energy} ⚡</strong> по промокоду школы «{promo.school_name}»
+                    </span>
+                  </div>
+                )}
+                {promo?.error === "already_used" && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, padding: "12px 14px", marginBottom: 20 }}>
+                    <Icon name="AlertCircle" size={18} style={{ color: "#ea580c", flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, color: "#9a3412", lineHeight: 1.6 }}>
+                      Этот промокод уже был использован ранее — бонус не начислен
+                    </span>
+                  </div>
+                )}
                 <div style={{ textAlign: "center", marginBottom: 24 }}>
                   <div style={{ fontSize: 40, marginBottom: 8 }}>✉️</div>
                   <p style={{ fontSize: 15, color: DARK, fontWeight: 600, margin: "0 0 8px" }}>

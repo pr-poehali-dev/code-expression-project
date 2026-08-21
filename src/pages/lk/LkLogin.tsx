@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useLkAuth } from "@/contexts/LkAuthContext";
+import { lkApi } from "@/lib/lkApi";
 import Icon from "@/components/ui/icon";
 import BrandLogo from "@/components/BrandLogo";
 import { isFittingTrial } from "@/lib/fittingTrial";
@@ -43,6 +44,9 @@ export default function LkLogin() {
   const [regPassword, setRegPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [userType, setUserType] = useState<"salon" | "solo_master">(fittingTrial ? "solo_master" : "salon");
+  const [promoCode, setPromoCode] = useState("");
+  const [promoCheck, setPromoCheck] = useState<{ status: "idle" | "checking" | "valid" | "invalid"; schoolName?: string; bonus?: number }>({ status: "idle" });
+  const promoCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -52,6 +56,28 @@ export default function LkLogin() {
   const [focus, setFocus] = useState<Record<string, boolean>>({});
   const onFocus = (k: string) => setFocus(p => ({ ...p, [k]: true }));
   const onBlur = (k: string) => setFocus(p => ({ ...p, [k]: false }));
+
+  // Промокод школы-партнёра доступен только мастерам — при переключении на «Салон» сбрасываем
+  useEffect(() => {
+    if (userType === "salon") { setPromoCode(""); setPromoCheck({ status: "idle" }); }
+  }, [userType]);
+
+  // Живая проверка промокода с задержкой, чтобы не дёргать сервер на каждый символ
+  useEffect(() => {
+    if (promoCheckTimer.current) clearTimeout(promoCheckTimer.current);
+    const code = promoCode.trim();
+    if (!code) { setPromoCheck({ status: "idle" }); return; }
+    setPromoCheck({ status: "checking" });
+    promoCheckTimer.current = setTimeout(async () => {
+      try {
+        const res = await lkApi.promoCodeCheck(code);
+        setPromoCheck({ status: "valid", schoolName: res.name, bonus: res.bonus_energy });
+      } catch {
+        setPromoCheck({ status: "invalid" });
+      }
+    }, 500);
+    return () => { if (promoCheckTimer.current) clearTimeout(promoCheckTimer.current); };
+  }, [promoCode]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +98,10 @@ export default function LkLogin() {
     setError("");
     setLoading(true);
     try {
-      await register(fullName, email, regPassword, userType, podelamTrial ? "podelam_demo" : undefined);
+      const code = userType === "solo_master" ? promoCode.trim() : "";
+      // Результат применения промокода (начислено / уже использован) показывается
+      // на следующем экране подтверждения email — см. LkEmailVerify.
+      await register(fullName, email, regPassword, userType, podelamTrial ? "podelam_demo" : undefined, code || undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка регистрации");
     } finally {
@@ -227,6 +256,46 @@ export default function LkLogin() {
                     ))}
                   </div>
                 </div>
+
+                {userType === "solo_master" && (
+                  <div style={{ marginBottom: 22 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                      Промокод школы <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(необязательно)</span>
+                    </label>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        type="text" value={promoCode}
+                        onChange={e => setPromoCode(e.target.value.toUpperCase())}
+                        placeholder="Например, ABC12345"
+                        style={{ ...inputStyle(!!focus.promo), paddingRight: 36, textTransform: "uppercase" }}
+                        onFocus={() => onFocus("promo")}
+                        onBlur={() => onBlur("promo")}
+                      />
+                      {promoCheck.status === "checking" && (
+                        <div style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)" }}>
+                          <div style={{ width: 15, height: 15, border: "2px solid #eee", borderTopColor: TEAL, borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+                        </div>
+                      )}
+                      {promoCheck.status === "valid" && (
+                        <Icon name="CheckCircle" size={17} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "hsl(150,60%,40%)" }} />
+                      )}
+                      {promoCheck.status === "invalid" && (
+                        <Icon name="XCircle" size={17} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", color: "#e55" }} />
+                      )}
+                    </div>
+                    {promoCheck.status === "valid" && (
+                      <div style={{ fontSize: 12, color: "hsl(150,60%,32%)", marginTop: 6 }}>
+                        Промокод школы «{promoCheck.schoolName}» — вы получите {promoCheck.bonus} ⚡ после регистрации
+                      </div>
+                    )}
+                    {promoCheck.status === "invalid" && (
+                      <div style={{ fontSize: 12, color: "#e55", marginTop: 6 }}>
+                        Промокод не найден
+                      </div>
+                    )}
+                    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                  </div>
+                )}
 
                 <div style={{ marginBottom: 18 }}>
                   <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.8px" }}>

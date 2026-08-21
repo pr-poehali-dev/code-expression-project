@@ -40,7 +40,7 @@ SCHEMA = "t_p84565078_code_expression_proj"
 CORS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Session-Id",
+    "Access-Control-Allow-Headers": "Content-Type, X-Session-Id, X-Device-Fp",
 }
 
 
@@ -150,14 +150,29 @@ def handle_login(event: dict) -> dict:
         conn.close()
 
 
+def _get_ip(event: dict) -> str:
+    rc = (event.get("requestContext") or {}).get("identity") or {}
+    ip = rc.get("sourceIp", "")
+    if not ip:
+        ip = (event.get("headers") or {}).get("X-Forwarded-For", "").split(",")[0].strip()
+    return ip or "unknown"
+
+
+def _hash_val(v: str) -> str:
+    return hashlib.sha256(v.encode()).hexdigest()[:64] if v else ""
+
+
 def handle_register(event: dict) -> dict:
-    """Самостоятельная регистрация нового пользователя: владелец салона или независимый мастер."""
+    """Самостоятельная регистрация нового пользователя: владелец салона или независимый мастер.
+    Мастер может указать промокод школы-партнёра — разово начисляется бонусная энергия
+    (см. _apply_partner_promo_code), для салонов промокод не действует."""
     body = json.loads(event.get("body") or "{}")
     full_name = (body.get("full_name") or "").strip()
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
     user_type = body.get("user_type") or "salon"  # "salon" (владелец) или "solo_master" (независимый мастер)
     source = (body.get("source") or "").strip()  # напр. "podelam_demo" — регистрация после демо-формы на главной
+    promo_code = (body.get("promo_code") or "").strip()
 
     if not full_name:
         return err("Укажите ваше имя")
@@ -177,6 +192,21 @@ def handle_register(event: dict) -> dict:
     conn = get_db()
     try:
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # Промокод школы-партнёра проверяем ДО создания пользователя — чтобы явная
+        # опечатка не оставляла человека без бонуса из-за уже занятого email/username.
+        school = None
+        if promo_code:
+            if user_type != "solo_master":
+                return err("Промокод школы действует только при регистрации мастера")
+            cur.execute(
+                f"SELECT * FROM {tbl('partner_schools')} WHERE UPPER(promo_code)=UPPER(%s) AND is_active=TRUE",
+                (promo_code,)
+            )
+            school = cur.fetchone()
+            if not school:
+                return err("Промокод не найден или больше не действует")
+
         # Проверяем уникальность email
         cur.execute(f"SELECT id FROM {tbl('lk_users')} WHERE email = %s", (email,))
         if cur.fetchone():
@@ -219,6 +249,12 @@ def handle_register(event: dict) -> dict:
             )
             salon_data = {"id": salon_id, "name": full_name, "logo_url": None}
 
+        # Промокод не прошедший антифрод-проверку регистрацию НЕ блокирует — просто бонус
+        # не начисляется, пользователь узнаёт об этом из поля "promo" в ответе.
+        promo_result = None
+        if school and salon_id:
+            promo_result = _apply_partner_promo_code(cur, event, school, user_id, salon_id, email)
+
         session_id = secrets.token_hex(32)
         ua = (event.get("headers") or {}).get("User-Agent", "")
         cur.execute(
@@ -232,7 +268,7 @@ def handle_register(event: dict) -> dict:
         _send_welcome_email(email, full_name)
         _send_admin_new_user_email(full_name, email, user_type, source)
 
-        return ok({
+        resp = {
             "session_id": session_id,
             "email_verified": False,
             "user": {
@@ -248,9 +284,61 @@ def handle_register(event: dict) -> dict:
                 "salon": salon_data,
                 "email_verified": False,
             }
-        })
+        }
+        if promo_result:
+            resp["promo"] = promo_result
+        return ok(resp)
     finally:
         conn.close()
+
+
+def _apply_partner_promo_code(cur, event: dict, school: dict, user_id: int, salon_id: int, email: str) -> dict:
+    """Начисляет разовый бонус энергии за промокод школы-партнёра с защитой от повторной
+    регистрации одного и того же человека под другим email: сверяем хэш IP, хэш device
+    fingerprint (заголовок X-Device-Fp с клиента) и локальную часть email (до @) — если
+    любой из них уже засветился с этим промокодом, бонус не начисляем."""
+    body = json.loads(event.get("body") or "{}")
+    raw_fp = (event.get("headers") or {}).get("X-Device-Fp", "") or body.get("device_fp", "")
+    ip_hash = _hash_val(_get_ip(event))
+    fp_hash = _hash_val(raw_fp)
+    email_local = email.split("@")[0]
+
+    dupe_conditions = []
+    dupe_params = [school["id"]]
+    if ip_hash:
+        dupe_conditions.append("ip_hash=%s")
+        dupe_params.append(ip_hash)
+    if fp_hash:
+        dupe_conditions.append("device_fp_hash=%s")
+        dupe_params.append(fp_hash)
+    dupe_conditions.append("email_local=%s")
+    dupe_params.append(email_local)
+
+    cur.execute(
+        f"SELECT id FROM {tbl('promo_code_usages')} WHERE school_id=%s AND ({' OR '.join(dupe_conditions)}) LIMIT 1",
+        tuple(dupe_params)
+    )
+    if cur.fetchone():
+        return {"applied": False, "error": "already_used", "school_name": school["name"]}
+
+    bonus = int(school["bonus_energy"] or 0)
+    if bonus > 0:
+        cur.execute(
+            f"UPDATE {tbl('salons')} SET credits_balance=credits_balance+%s WHERE id=%s",
+            (bonus, salon_id)
+        )
+        cur.execute(
+            f"INSERT INTO {tbl('credit_transactions')} (salon_id, user_id, action, amount, tool_key, type) "
+            f"VALUES (%s,%s,%s,%s,'promo_code','credit')",
+            (salon_id, user_id, f"Промокод школы «{school['name']}»", bonus)
+        )
+    cur.execute(
+        f"INSERT INTO {tbl('promo_code_usages')} (school_id, user_id, bonus_energy, ip_hash, device_fp_hash, email_local) "
+        f"VALUES (%s,%s,%s,%s,%s,%s)",
+        (school["id"], user_id, bonus, ip_hash or None, fp_hash or None, email_local)
+    )
+    cur.execute(f"UPDATE {tbl('lk_users')} SET partner_school_id=%s WHERE id=%s", (school["id"], user_id))
+    return {"applied": True, "bonus_energy": bonus, "school_name": school["name"]}
 
 
 def handle_logout(event: dict) -> dict:
@@ -442,6 +530,168 @@ def require_admin(event: dict, conn) -> dict | None:
     if not user or not user["is_admin"]:
         return None
     return user
+
+
+# ── Школы-партнёры и промокоды ──────────────────────────────────────────────
+
+def _gen_promo_code(cur) -> str:
+    """Генерирует уникальный короткий промокод вида SCHOOL-A1B2C3."""
+    import random
+    import string
+    alphabet = string.ascii_uppercase + string.digits
+    for _ in range(20):
+        code = "".join(random.choices(alphabet, k=8))
+        cur.execute(f"SELECT 1 FROM {tbl('partner_schools')} WHERE UPPER(promo_code)=%s", (code,))
+        if not cur.fetchone():
+            return code
+    raise RuntimeError("Не удалось сгенерировать уникальный промокод")
+
+
+def handle_admin_schools_list(event: dict) -> dict:
+    """Список школ-партнёров с числом использований промокода каждой."""
+    conn = get_db()
+    try:
+        if not require_admin(event, conn):
+            return err("Нет доступа", 403)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT s.*, "
+            f"(SELECT COUNT(*) FROM {tbl('promo_code_usages')} WHERE school_id=s.id) AS usages_count, "
+            f"(SELECT COALESCE(SUM(bonus_energy),0) FROM {tbl('promo_code_usages')} WHERE school_id=s.id) AS total_bonus_given "
+            f"FROM {tbl('partner_schools')} s ORDER BY s.created_at DESC"
+        )
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
+def handle_admin_school_create(event: dict) -> dict:
+    """Создаёт школу-партнёра с автоматически сгенерированным уникальным промокодом."""
+    body = json.loads(event.get("body") or "{}")
+    name = (body.get("name") or "").strip()
+    if not name:
+        return err("Укажите название школы")
+    bonus_energy = int(body.get("bonus_energy") or 200)
+
+    conn = get_db()
+    try:
+        user = require_admin(event, conn)
+        if not user:
+            return err("Нет доступа", 403)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        code = _gen_promo_code(cur)
+        cur.execute(
+            f"INSERT INTO {tbl('partner_schools')} "
+            f"(name, contact_name, contact_phone, contact_email, promo_code, bonus_energy, notes, created_by) "
+            f"VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *",
+            (name, (body.get("contact_name") or "").strip() or None, (body.get("contact_phone") or "").strip() or None,
+             (body.get("contact_email") or "").strip() or None, code, bonus_energy, (body.get("notes") or "").strip() or None, user["id"])
+        )
+        row = cur.fetchone()
+        conn.commit()
+        return ok(dict(row))
+    finally:
+        conn.close()
+
+
+def handle_admin_school_update(event: dict) -> dict:
+    """Обновляет школу-партнёра: название, контакты, размер бонуса, активность."""
+    body = json.loads(event.get("body") or "{}")
+    school_id = body.get("id")
+    if not school_id:
+        return err("id обязателен")
+
+    conn = get_db()
+    try:
+        if not require_admin(event, conn):
+            return err("Нет доступа", 403)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        fields = {
+            "name": (body.get("name") or "").strip(),
+            "contact_name": (body.get("contact_name") or "").strip() or None,
+            "contact_phone": (body.get("contact_phone") or "").strip() or None,
+            "contact_email": (body.get("contact_email") or "").strip() or None,
+            "bonus_energy": int(body.get("bonus_energy") or 0),
+            "is_active": bool(body.get("is_active", True)),
+            "notes": (body.get("notes") or "").strip() or None,
+        }
+        if not fields["name"]:
+            return err("Укажите название школы")
+        sets = ", ".join(f"{k}=%s" for k in fields)
+        cur.execute(
+            f"UPDATE {tbl('partner_schools')} SET {sets}, updated_at=NOW() WHERE id=%s RETURNING *",
+            list(fields.values()) + [school_id]
+        )
+        row = cur.fetchone()
+        if not row:
+            return err("Школа не найдена", 404)
+        conn.commit()
+        return ok(dict(row))
+    finally:
+        conn.close()
+
+
+def handle_admin_school_delete(event: dict) -> dict:
+    body = json.loads(event.get("body") or "{}")
+    school_id = body.get("id")
+    if not school_id:
+        return err("id обязателен")
+    conn = get_db()
+    try:
+        if not require_admin(event, conn):
+            return err("Нет доступа", 403)
+        cur = conn.cursor()
+        cur.execute(f"UPDATE {tbl('lk_users')} SET partner_school_id=NULL WHERE partner_school_id=%s", (school_id,))
+        cur.execute(f"DELETE FROM {tbl('promo_code_usages')} WHERE school_id=%s", (school_id,))
+        cur.execute(f"DELETE FROM {tbl('partner_schools')} WHERE id=%s", (school_id,))
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
+def handle_admin_school_usages(event: dict) -> dict:
+    """Список учеников, зарегистрировавшихся по промокоду конкретной школы."""
+    qs = event.get("queryStringParameters") or {}
+    school_id = qs.get("school_id")
+    if not school_id:
+        return err("school_id обязателен")
+    conn = get_db()
+    try:
+        if not require_admin(event, conn):
+            return err("Нет доступа", 403)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT pcu.id, pcu.bonus_energy, pcu.created_at, u.full_name, u.email "
+            f"FROM {tbl('promo_code_usages')} pcu JOIN {tbl('lk_users')} u ON u.id=pcu.user_id "
+            f"WHERE pcu.school_id=%s ORDER BY pcu.created_at DESC",
+            (school_id,)
+        )
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
+def handle_promo_code_check(event: dict) -> dict:
+    """Публичная проверка промокода на этапе регистрации (без начисления) — чтобы показать
+    пользователю название школы и размер бонуса до отправки формы."""
+    qs = event.get("queryStringParameters") or {}
+    code = (qs.get("code") or "").strip()
+    if not code:
+        return err("code обязателен")
+    conn = get_db()
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT name, bonus_energy FROM {tbl('partner_schools')} WHERE UPPER(promo_code)=UPPER(%s) AND is_active=TRUE",
+            (code,)
+        )
+        row = cur.fetchone()
+        if not row:
+            return err("Промокод не найден", 404)
+        return ok(dict(row))
+    finally:
+        conn.close()
 
 
 def handle_admin_users(event: dict) -> dict:
@@ -4523,6 +4773,13 @@ ROUTES = {
     ("DELETE", "quiz_admin_delete_course"): handle_quiz_admin_delete_course,
     # Универсальная отправка заявок с сайта (перенесена из send-inquiry)
     ("POST", "send_inquiry"): handle_send_inquiry,
+    # Школы-партнёры и промокоды
+    ("GET",  "promo_code_check"): handle_promo_code_check,
+    ("GET",  "admin_schools_list"): handle_admin_schools_list,
+    ("POST", "admin_school_create"): handle_admin_school_create,
+    ("POST", "admin_school_update"): handle_admin_school_update,
+    ("POST", "admin_school_delete"): handle_admin_school_delete,
+    ("GET",  "admin_school_usages"): handle_admin_school_usages,
 }
 
 

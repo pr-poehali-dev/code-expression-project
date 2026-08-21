@@ -10,8 +10,9 @@ import { CoursesSection } from "./LkAdminCourses";
 import { PaymentsSection } from "./LkAdminPayments";
 import { TrainingGeneratorSection, TrainingImageGenSection } from "./LkAdminTrainingGenerator";
 import { ChampionshipSection } from "./LkAdminChampionship";
+import { SchoolsSection } from "./LkAdminSchools";
 
-type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments" | "training" | "training-img" | "championship";
+type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments" | "training" | "training-img" | "championship" | "schools";
 
 export default function LkAdmin() {
   const [section, setSection] = useState<Section>("ai");
@@ -32,6 +33,7 @@ export default function LkAdmin() {
           { id: "candidates" as Section, icon: "UserCheck",    label: "Кандидаты"    },
           { id: "body"       as Section, icon: "User",         label: "Схема тела"   },
           { id: "energy"     as Section, icon: "Zap",          label: "Энергия"      },
+          { id: "schools"    as Section, icon: "School",       label: "Школы-партнёры" },
           { id: "payments"      as Section, icon: "CreditCard",   label: "Платежи"      },
           { id: "championship"  as Section, icon: "Trophy",       label: "Чемпионат"    },
         ].map(s => (
@@ -58,6 +60,7 @@ export default function LkAdmin() {
       {section === "candidates" && <CandidatesSection />}
       {section === "body"       && <BodySection />}
       {section === "energy"     && <EnergySection />}
+      {section === "schools"    && <SchoolsSection />}
       {section === "payments"      && <PaymentsSection />}
       {section === "championship"  && <ChampionshipSection />}
 

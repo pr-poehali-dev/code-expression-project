@@ -22,6 +22,10 @@ export class EnergyError extends Error {
   }
 }
 
+function getDeviceFp(): string {
+  return navigator.userAgent + "|" + screen.width + "x" + screen.height + "|" + Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
 async function request(method: string, action: string, body?: object, extraParams?: string) {
   const url = `${BASE}?action=${action}${extraParams || ""}`;
   const res = await fetch(url, {
@@ -29,6 +33,7 @@ async function request(method: string, action: string, body?: object, extraParam
     headers: {
       "Content-Type": "application/json",
       "X-Session-Id": getSessionId(),
+      "X-Device-Fp": getDeviceFp(),
     },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -50,8 +55,18 @@ export const lkApi = {
   login: (username: string, password: string) =>
     request("POST", "login", { username, password }),
 
-  register: (full_name: string, email: string, password: string, user_type: "salon" | "solo_master" = "salon", source?: string) =>
-    request("POST", "register", { full_name, email, password, user_type, source }),
+  register: (full_name: string, email: string, password: string, user_type: "salon" | "solo_master" = "salon", source?: string, promo_code?: string) =>
+    request("POST", "register", { full_name, email, password, user_type, source, promo_code }),
+
+  promoCodeCheck: (code: string) =>
+    request("GET", "promo_code_check", undefined, `&code=${encodeURIComponent(code)}`),
+
+  // Школы-партнёры (админ)
+  adminSchoolsList: () => request("GET", "admin_schools_list"),
+  adminSchoolCreate: (data: object) => request("POST", "admin_school_create", data),
+  adminSchoolUpdate: (data: object) => request("POST", "admin_school_update", data),
+  adminSchoolDelete: (id: number) => request("POST", "admin_school_delete", { id }),
+  adminSchoolUsages: (schoolId: number) => request("GET", "admin_school_usages", undefined, `&school_id=${schoolId}`),
 
   logout: () => request("POST", "logout"),
 

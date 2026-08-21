@@ -21,13 +21,16 @@ export interface LkUser {
   course_ids: number[];
 }
 
+interface PromoResult { applied: boolean; error?: string; bonus_energy?: number; school_name?: string; }
+
 interface LkAuthCtx {
   user: LkUser | null;
   loading: boolean;
   needsEmailVerify: boolean;
   pendingEmail: string;
+  pendingPromo: PromoResult | null;
   login: (username: string, password: string) => Promise<void>;
-  register: (full_name: string, email: string, password: string, userType?: "salon" | "solo_master", source?: string) => Promise<void>;
+  register: (full_name: string, email: string, password: string, userType?: "salon" | "solo_master", source?: string, promoCode?: string) => Promise<{ promo?: PromoResult }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   markEmailVerified: () => void;
@@ -40,6 +43,7 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [needsEmailVerify, setNeedsEmailVerify] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
+  const [pendingPromo, setPendingPromo] = useState<PromoResult | null>(null);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Сколько раз подряд получили AuthError — сбрасываем сессию только после 3 подряд
   const authFailCountRef = useRef(0);
@@ -93,19 +97,22 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   };
 
-  const register = async (full_name: string, email: string, password: string, userType: "salon" | "solo_master" = "salon", source?: string) => {
+  const register = async (full_name: string, email: string, password: string, userType: "salon" | "solo_master" = "salon", source?: string, promoCode?: string) => {
     sessionStorage.removeItem("lk_tab");
-    const data = await lkApi.register(full_name, email, password, userType, source);
+    const data = await lkApi.register(full_name, email, password, userType, source, promoCode);
     saveSession(data.session_id);
     // После регистрации показываем экран подтверждения email, не пускаем в кабинет
     setPendingEmail(email);
+    setPendingPromo(data.promo || null);
     setNeedsEmailVerify(true);
     setUser(data.user);
+    return { promo: data.promo };
   };
 
   const markEmailVerified = () => {
     setNeedsEmailVerify(false);
     setPendingEmail("");
+    setPendingPromo(null);
   };
 
   const logout = async () => {
@@ -122,7 +129,7 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
     setUser(u);
   };
 
-  return <Ctx.Provider value={{ user, loading, needsEmailVerify, pendingEmail, login, register, logout, refreshUser, markEmailVerified }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, loading, needsEmailVerify, pendingEmail, pendingPromo, login, register, logout, refreshUser, markEmailVerified }}>{children}</Ctx.Provider>;
 }
 
 export function useLkAuth() {

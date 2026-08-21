@@ -4,7 +4,7 @@ import LkDashboard from "./LkDashboard";
 import LkEmailVerify from "./LkEmailVerify";
 
 export default function LkPage() {
-  const { user, loading, needsEmailVerify, pendingEmail, markEmailVerified } = useLkAuth();
+  const { user, loading, needsEmailVerify, pendingEmail, pendingPromo, markEmailVerified } = useLkAuth();
 
   // Токен подтверждения из URL (?verify=TOKEN)
   const verifyToken = new URLSearchParams(window.location.search).get("verify");
@@ -47,6 +47,7 @@ export default function LkPage() {
     return (
       <LkEmailVerify
         email={pendingEmail || user.email}
+        promo={pendingPromo}
         onVerified={markEmailVerified}
       />
     );
