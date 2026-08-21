@@ -154,6 +154,29 @@ export default function Tseny() {
             <p style={{ fontSize: 17, color: GRAY, margin: 0, fontWeight: 300 }}>Оплата через ЮKassa — будет доступна в ближайшее время</p>
           </div>
 
+          {/* ── ГАРАНТИЯ РЕЗУЛЬТАТА ── */}
+          <div style={{
+            background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6,
+            padding: "40px 44px", marginBottom: 56, position: "relative", overflow: "hidden",
+            display: "flex", alignItems: "center", gap: 32, flexWrap: "wrap",
+          }} className="guarantee-block">
+            <div style={{ position: "absolute", right: -50, top: -50, width: 240, height: 240, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.14) 0%, transparent 70%)", pointerEvents: "none" }} />
+            <div style={{ width: 64, height: 64, borderRadius: 16, background: "rgba(45,212,191,0.15)", border: "1px solid rgba(45,212,191,0.35)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Icon name="ShieldCheck" size={30} style={{ color: TEAL }} />
+            </div>
+            <div style={{ flex: 1, minWidth: 260, position: "relative" }}>
+              <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "2px", marginBottom: 8 }}>
+                Гарантия результата
+              </div>
+              <h3 style={{ fontFamily: SERIF, fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 500, color: "#fff", margin: "0 0 10px", lineHeight: 1.25 }}>
+                Выполняете план инструментами платформы — получаете результат
+              </h3>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.7, maxWidth: 620 }}>
+                Каждый день ИИ собирает конкретные шаги под ваши цифры, а инструменты кабинета доводят их до готового действия — сообщения клиентам, офферы, контент. Купленная энергия не сгорает и остаётся на балансе. Не пригодилась — неизрасходованный остаток вернём деньгами.
+              </p>
+            </div>
+          </div>
+
           <div className="pkg-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 20 }}>
             {PACKAGES.map((pkg) => (
               <div key={pkg.code} style={{
@@ -262,6 +285,9 @@ export default function Tseny() {
         @media (max-width: 880px) {
           .energy-grid { grid-template-columns: 1fr !important; }
           .pkg-grid { grid-template-columns: repeat(2,1fr) !important; }
+        }
+        @media (max-width: 700px) {
+          .guarantee-block { flex-direction: column !important; align-items: flex-start !important; padding: 32px 28px !important; }
         }
         @media (max-width: 560px) {
           .pkg-grid { grid-template-columns: 1fr !important; }
