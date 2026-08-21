@@ -47,11 +47,17 @@ export function SchoolsSection() {
     if (!form.name.trim()) { setMsg("Укажите название школы"); return; }
     setSaving(true); setMsg("");
     try {
-      await lkApi.adminSchoolCreate(form);
+      const res = await lkApi.adminSchoolCreate(form);
       setCreating(false);
       setForm(emptyForm);
       load();
-      setMsg("Школа создана, промокод сгенерирован");
+      setMsg(
+        form.contact_email.trim()
+          ? (res.email_sent
+              ? `Школа создана, промокод сгенерирован и отправлен на ${form.contact_email}`
+              : `Школа создана, промокод сгенерирован — письмо на ${form.contact_email} отправить не удалось, скопируйте код вручную`)
+          : "Школа создана, промокод сгенерирован. Укажите email школы, чтобы отправлять промокод автоматически"
+      );
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "Ошибка");
     } finally { setSaving(false); }
@@ -101,7 +107,8 @@ export function SchoolsSection() {
         <span>
           Промокод школы можно применить только при регистрации мастера (не салона). Начисляется разово {" "}
           <strong>указанная сумма энергии</strong> на баланс. Повторная регистрация одного человека под другим email
-          с тем же промокодом блокируется по IP и отпечатку устройства.
+          с тем же промокодом блокируется по IP и отпечатку устройства. Если указать email школы — письмо с промокодом
+          и инструкцией для учеников отправится ей автоматически сразу после создания.
         </span>
       </div>
 

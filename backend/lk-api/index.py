@@ -566,12 +566,15 @@ def handle_admin_schools_list(event: dict) -> dict:
 
 
 def handle_admin_school_create(event: dict) -> dict:
-    """Создаёт школу-партнёра с автоматически сгенерированным уникальным промокодом."""
+    """Создаёт школу-партнёра с автоматически сгенерированным уникальным промокодом
+    и, если указан контактный email, сразу отправляет письмо с промокодом и инструкцией."""
     body = json.loads(event.get("body") or "{}")
     name = (body.get("name") or "").strip()
     if not name:
         return err("Укажите название школы")
     bonus_energy = int(body.get("bonus_energy") or 200)
+    contact_email = (body.get("contact_email") or "").strip() or None
+    contact_name = (body.get("contact_name") or "").strip() or None
 
     conn = get_db()
     try:
@@ -584,14 +587,96 @@ def handle_admin_school_create(event: dict) -> dict:
             f"INSERT INTO {tbl('partner_schools')} "
             f"(name, contact_name, contact_phone, contact_email, promo_code, bonus_energy, notes, created_by) "
             f"VALUES (%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *",
-            (name, (body.get("contact_name") or "").strip() or None, (body.get("contact_phone") or "").strip() or None,
-             (body.get("contact_email") or "").strip() or None, code, bonus_energy, (body.get("notes") or "").strip() or None, user["id"])
+            (name, contact_name, (body.get("contact_phone") or "").strip() or None,
+             contact_email, code, bonus_energy, (body.get("notes") or "").strip() or None, user["id"])
         )
         row = cur.fetchone()
         conn.commit()
-        return ok(dict(row))
+
+        email_sent = False
+        if contact_email:
+            try:
+                _send_school_promo_email(contact_email, contact_name, name, code, bonus_energy)
+                email_sent = True
+            except Exception:
+                pass
+
+        result = dict(row)
+        result["email_sent"] = email_sent
+        return ok(result)
     finally:
         conn.close()
+
+
+def _send_school_promo_email(to_email: str, contact_name: str | None, school_name: str, promo_code: str, bonus_energy: int) -> None:
+    """Отправляет школе-партнёру письмо с её промокодом и инструкцией для передачи ученикам."""
+    import smtplib
+    import ssl
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    from email.header import Header
+
+    smtp_password = os.environ.get("SMTP_PASSWORD", "")
+    if not smtp_password:
+        return
+
+    sender = "massopro@mail.ru"
+    greeting = contact_name or school_name
+    register_url = f"{SITE_URL}/cabinet?tab=register"
+
+    html = f"""<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f4f4f0;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <div style="max-width:520px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background:linear-gradient(135deg,#1a9fae,#136e7a);padding:28px 32px;">
+      <div style="font-size:22px;font-weight:800;color:#fff;">Промт Диалог</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">Партнёрская программа для школ</div>
+    </div>
+    <div style="padding:32px 32px 24px;">
+      <p style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;">
+        {greeting}, добро пожаловать в партнёрскую программу!
+      </p>
+      <p style="font-size:14px;color:#555;line-height:1.7;margin:0 0 24px;">
+        Школа «<strong>{school_name}</strong>» подключена к платформе Промт Диалог. Ваш промокод уже активен —
+        передайте его выпускникам, чтобы каждый получил бонус энергии на старте работы с платформой.
+      </p>
+      <div style="background:#f0fdfa;border:1.5px dashed #1a9fae;border-radius:12px;padding:18px 20px;text-align:center;margin-bottom:24px;">
+        <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Ваш промокод</div>
+        <div style="font-size:26px;font-weight:800;color:#136e7a;letter-spacing:1px;font-family:'Courier New',monospace;">{promo_code}</div>
+      </div>
+      <p style="font-size:14px;color:#1a1a1a;font-weight:700;margin:0 0 10px;">Как это работает</p>
+      <ol style="font-size:13px;color:#555;line-height:1.9;margin:0 0 24px;padding-left:20px;">
+        <li>Передайте промокод <strong>{promo_code}</strong> своим ученикам</li>
+        <li>При регистрации на платформе ученик выбирает тип аккаунта «Мастер» и вводит промокод</li>
+        <li>Сразу после регистрации на баланс ученика начисляется <strong>{bonus_energy} энергии</strong> — их можно использовать на любые инструменты платформы</li>
+      </ol>
+      <a href="{register_url}"
+         style="display:inline-block;background:linear-gradient(135deg,#1a9fae,#136e7a);color:#fff;text-decoration:none;
+                font-size:15px;font-weight:700;padding:14px 28px;border-radius:12px;">
+        Страница регистрации
+      </a>
+      <p style="font-size:12px;color:#aaa;margin:24px 0 0;line-height:1.6;">
+        Один и тот же промокод нельзя использовать повторно под разными данными — система это отслеживает автоматически.
+      </p>
+    </div>
+    <div style="padding:16px 32px;background:#f8f8f5;border-top:1px solid #eee;">
+      <p style="font-size:11px;color:#bbb;margin:0;">Промт Диалог — платформа для бьюти-бизнеса</p>
+    </div>
+  </div>
+</body>
+</html>"""
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = str(Header(f"Ваш промокод школы — {promo_code}", "utf-8"))
+    msg["From"]    = formataddr((str(Header("Промт Диалог", "utf-8")), sender))
+    msg["To"]      = to_email
+    msg["MIME-Version"] = "1.0"
+    msg.attach(MIMEText(html, "html", "utf-8"))
+
+    ctx = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.mail.ru", 465, context=ctx) as srv:
+        srv.login(sender, smtp_password)
+        srv.sendmail(sender, [to_email], msg.as_string())
 
 
 def handle_admin_school_update(event: dict) -> dict:
