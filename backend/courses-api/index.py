@@ -8,9 +8,10 @@ API для системы курсов и тренингов Академии.
     offline_training_buy   — купить офлайн-тренинг (списать энергию, начислить energy_reward)
     lesson_open            — открыть урок (списать энергию)
     lesson_ask_ai          — задать вопрос ИИ по уроку (2 энергии)
+    categories_list        — категории витрины Академии (картинка, название, описание)
   Админ:
     admin_courses_list        — все курсы/тренинги
-    admin_course_save         — создать/обновить курс или офлайн-тренинг
+    admin_course_save         — создать/обновить курс, офлайн-тренинг или партнёрский тренинг
     admin_module_save         — создать/обновить модуль
     admin_module_delete       — удалить модуль
     admin_lesson_save         — создать/обновить урок
@@ -20,6 +21,14 @@ API для системы курсов и тренингов Академии.
     admin_lesson_file_add     — добавить файл к уроку (base64)
     admin_lesson_file_delete  — удалить файл урока
     admin_grant_access        — вручную выдать доступ к курсу пользователю
+    admin_categories_list     — все категории витрины (включая неактивные)
+    admin_category_save       — создать/обновить категорию витрины
+    admin_category_cover_upload — загрузить обложку категории (base64)
+
+  Партнёрские тренинги (courses.is_partner=true): карточка на витрине показывает картинку, описание,
+  цену (свободный текст partner_price или «Бесплатно») и кнопку «Подробнее» — ведёт по внешней
+  ссылке partner_url на страницу школы-партнёра (онлайн или офлайн). Модулей/уроков внутри кабинета
+  и энергии платформы у такого тренинга нет.
 """
 import json
 import os
@@ -304,7 +313,8 @@ def handle_courses_list(event, conn):
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         f"SELECT id,title,description,cover_url,trailer_url,category,categories,access_cost,lesson_cost,sort_order,"
-        f"type,event_date,event_time_start,event_time_end,event_location,schedule,energy_reward,max_participants "
+        f"type,event_date,event_time_start,event_time_end,event_location,schedule,energy_reward,max_participants,"
+        f"is_partner,partner_name,partner_url,partner_price,partner_format "
         f"FROM {tbl('courses')} WHERE is_published=TRUE ORDER BY sort_order,id"
     )
     rows = cur.fetchall()
@@ -891,6 +901,11 @@ def handle_admin_course_save(event, conn):
         "energy_reward": int(body.get("energy_reward", 0)),
         "max_participants": int(body.get("max_participants")) if body.get("max_participants") else None,
         "full_description": body.get("full_description") or None,
+        "is_partner": bool(body.get("is_partner", False)),
+        "partner_name": body.get("partner_name") or None,
+        "partner_url": body.get("partner_url") or None,
+        "partner_price": body.get("partner_price") or None,
+        "partner_format": body.get("partner_format") or None,
     }
     if cid:
         sets = ", ".join(f"{k}=%s" for k in fields)
@@ -1144,6 +1159,84 @@ def handle_admin_course_cover_upload(event, conn):
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
     mime = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp"}.get(ext, "image/jpeg")
     key = f"courses/covers/{course_id or 'new'}/{filename}"
+    s3 = s3_client()
+    s3.put_object(Bucket="files", Key=key, Body=file_bytes, ContentType=mime)
+    url = cdn_url(key)
+    return ok({"url": url, "ok": True})
+
+
+# ── Категории витрины Академии ──────────────────────────────────────────────
+
+def handle_categories_list(event, conn):
+    """Активные категории витрины для пользователя (картинка, название, описание)."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT code,title,description,cover_url,icon,sort_order FROM {tbl('academy_categories')} "
+        f"WHERE is_active=TRUE ORDER BY sort_order,id"
+    )
+    return ok([dict(r) for r in cur.fetchall()])
+
+
+def handle_admin_categories_list(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT * FROM {tbl('academy_categories')} ORDER BY sort_order,id")
+    return ok([dict(r) for r in cur.fetchall()])
+
+
+def handle_admin_category_save(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    cid = body.get("id")
+    code = (body.get("code") or "").strip()
+    title = (body.get("title") or "").strip()
+    if not code or not title:
+        return err("Код и название обязательны")
+
+    fields = {
+        "code": code,
+        "title": title,
+        "description": body.get("description") or None,
+        "cover_url": body.get("cover_url") or None,
+        "icon": body.get("icon") or "GraduationCap",
+        "sort_order": int(body.get("sort_order", 0)),
+        "is_active": bool(body.get("is_active", True)),
+    }
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    if cid:
+        sets = ", ".join(f"{k}=%s" for k in fields)
+        cur.execute(
+            f"UPDATE {tbl('academy_categories')} SET {sets}, updated_at=NOW() WHERE id=%s RETURNING id",
+            list(fields.values()) + [cid]
+        )
+    else:
+        cols = ", ".join(fields.keys())
+        placeholders = ", ".join(["%s"] * len(fields))
+        cur.execute(
+            f"INSERT INTO {tbl('academy_categories')} ({cols}) VALUES ({placeholders}) RETURNING id",
+            list(fields.values())
+        )
+    row = cur.fetchone()
+    conn.commit()
+    return ok({"id": row["id"], "ok": True})
+
+
+def handle_admin_category_cover_upload(event, conn):
+    _, e = require_admin(event, conn)
+    if e: return e
+    body = json.loads(event.get("body") or "{}")
+    category_id = body.get("category_id")
+    data_b64 = body.get("data")
+    filename = body.get("filename", "cover.jpg")
+    if not data_b64:
+        return err("data обязателен")
+
+    file_bytes = base64.b64decode(data_b64)
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    mime = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp"}.get(ext, "image/jpeg")
+    key = f"academy_categories/covers/{category_id or 'new'}/{filename}"
     s3 = s3_client()
     s3.put_object(Bucket="files", Key=key, Body=file_bytes, ContentType=mime)
     url = cdn_url(key)
@@ -1408,6 +1501,10 @@ ROUTES = {
     "admin_rehost_images":       handle_admin_rehost_images,
     "admin_course_delete":       handle_admin_course_delete,
     "courses_catalog":           handle_courses_catalog,
+    "categories_list":           handle_categories_list,
+    "admin_categories_list":     handle_admin_categories_list,
+    "admin_category_save":       handle_admin_category_save,
+    "admin_category_cover_upload": handle_admin_category_cover_upload,
 }
 
 

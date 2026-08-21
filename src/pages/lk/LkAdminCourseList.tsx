@@ -40,9 +40,18 @@ export function CourseList({ courses, onNew, onEdit, onReload }: {
                 </div>
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a" }}>{c.title}</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#1a1a1a", display: "flex", alignItems: "center", gap: 8 }}>
+                  {c.title}
+                  {c.is_partner && (
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: "hsl(38,90%,92%)", color: "hsl(38,80%,35%)", whiteSpace: "nowrap" }}>
+                      ПАРТНЁР
+                    </span>
+                  )}
+                </div>
                 <div style={{ fontSize: 12, color: "#888", marginTop: 3 }}>
-                  {c.modules_count ?? 0} модулей · {c.lessons_count ?? 0} уроков · доступ {c.access_cost}⚡ · урок {c.lesson_cost}⚡
+                  {c.is_partner
+                    ? (c.partner_name || "Внешняя школа") + (c.partner_price ? ` · ${c.partner_price}` : " · Бесплатно")
+                    : `${c.modules_count ?? 0} модулей · ${c.lessons_count ?? 0} уроков · доступ ${c.access_cost}⚡ · урок ${c.lesson_cost}⚡`}
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>

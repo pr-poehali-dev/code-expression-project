@@ -13,7 +13,7 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
   const initCategories = course?.categories?.length ? course.categories : [course?.category || "body"];
   const [form, setForm] = useState<Partial<Course>>(course
     ? { ...course, categories: initCategories, schedule: course.schedule || [] }
-    : { access_cost: 0, lesson_cost: 1, category: "body", categories: ["body"], is_published: false, type: "online", schedule: [], energy_reward: 0 });
+    : { access_cost: 0, lesson_cost: 1, category: "body", categories: ["body"], is_published: false, type: "online", schedule: [], energy_reward: 0, is_partner: false, partner_format: "online" });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const [newModTitle, setNewModTitle] = useState("");
@@ -39,6 +39,7 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
 
   const save = async () => {
     if (!form.title?.trim()) { setMsg("Введите название тренинга"); return; }
+    if (form.is_partner && !form.partner_url?.trim()) { setMsg("Укажите ссылку на страницу тренинга партнёра"); return; }
     setSaving(true); setMsg("");
     const res = await apiFetch("admin_course_save", "POST", form);
     setSaving(false);
@@ -107,10 +108,11 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
             <label style={labelStyle}>КАТЕГОРИЯ <span style={{ fontWeight: 400, color: "#aaa" }}>(можно выбрать несколько)</span></label>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {[
-                { value: "body",   label: "Для специалистов по телу" },
-                { value: "owner",  label: "Для владельца" },
-                { value: "admin",  label: "Для администратора" },
-                { value: "master", label: "Для мастеров" },
+                { value: "body",    label: "Для специалистов по телу" },
+                { value: "owner",   label: "Для владельца" },
+                { value: "admin",   label: "Для администратора" },
+                { value: "master",  label: "Для мастеров" },
+                { value: "clients", label: "Для клиентов" },
               ].map(opt => {
                 const selected = (form.categories || []).includes(opt.value);
                 return (
@@ -147,42 +149,92 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
             )}
           </div>
           <div>
-            <label style={labelStyle}>ТИП</label>
-            <div style={{ display: "flex", gap: 8 }}>
-              {([["online", "Онлайн-курс"], ["offline", "Офлайн-тренинг"]] as const).map(([val, label]) => (
-                <button key={val} type="button" onClick={() => setForm(f => ({ ...f, type: val }))}
-                  style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: "1.5px solid", cursor: "pointer", fontFamily: "Montserrat, sans-serif", fontSize: 13, fontWeight: 600,
-                    borderColor: form.type === val ? ACCENT : "#e8e8e4",
-                    background: form.type === val ? "hsl(185,85%,95%)" : "#fafafa",
-                    color: form.type === val ? ACCENT : "#666" }}>
-                  {label}
-                </button>
-              ))}
+            <label style={{ ...labelStyle, display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={!!form.is_partner}
+                onChange={e => setForm(f => ({ ...f, is_partner: e.target.checked }))}
+                style={{ width: 15, height: 15 }}
+              />
+              <span style={{ color: form.is_partner ? "hsl(38,80%,40%)" : "#666" }}>ПАРТНЁРСКИЙ ТРЕНИНГ (внешняя школа)</span>
+            </label>
+            <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>
+              Карточка на витрине с картинкой, описанием и ценой — кнопка «Подробнее» ведёт на сайт партнёра, без уроков внутри кабинета
             </div>
           </div>
+
+          {form.is_partner ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: "14px 16px", background: "hsl(38,90%,97%)", border: "1.5px solid hsl(38,80%,85%)", borderRadius: 10 }}>
+              <div>
+                <label style={labelStyle}>ШКОЛА-ПАРТНЁР</label>
+                <input style={inputStyle} value={form.partner_name || ""} onChange={e => setForm(f => ({ ...f, partner_name: e.target.value }))} placeholder="Название школы/автора" />
+              </div>
+              <div>
+                <label style={labelStyle}>ССЫЛКА НА СТРАНИЦУ ТРЕНИНГА *</label>
+                <input style={inputStyle} value={form.partner_url || ""} onChange={e => setForm(f => ({ ...f, partner_url: e.target.value }))} placeholder="https://..." />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>ФОРМАТ</label>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {([["online", "Онлайн"], ["offline", "Офлайн"]] as const).map(([val, label]) => (
+                      <button key={val} type="button" onClick={() => setForm(f => ({ ...f, partner_format: val }))}
+                        style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: "1.5px solid", cursor: "pointer", fontFamily: "Montserrat, sans-serif", fontSize: 13, fontWeight: 600,
+                          borderColor: form.partner_format === val ? "hsl(38,80%,45%)" : "#e8e8e4",
+                          background: form.partner_format === val ? "hsl(38,90%,92%)" : "#fff",
+                          color: form.partner_format === val ? "hsl(38,80%,35%)" : "#666" }}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label style={labelStyle}>ЦЕНА <span style={{ fontWeight: 400, color: "#aaa" }}>(текст, пусто = бесплатно)</span></label>
+                  <input style={inputStyle} value={form.partner_price || ""} onChange={e => setForm(f => ({ ...f, partner_price: e.target.value }))} placeholder="Например: 12 900 ₽" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label style={labelStyle}>ТИП</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                {([["online", "Онлайн-курс"], ["offline", "Офлайн-тренинг"]] as const).map(([val, label]) => (
+                  <button key={val} type="button" onClick={() => setForm(f => ({ ...f, type: val }))}
+                    style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: "1.5px solid", cursor: "pointer", fontFamily: "Montserrat, sans-serif", fontSize: 13, fontWeight: 600,
+                      borderColor: form.type === val ? ACCENT : "#e8e8e4",
+                      background: form.type === val ? "hsl(185,85%,95%)" : "#fafafa",
+                      color: form.type === val ? ACCENT : "#666" }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div>
             <label style={labelStyle}>ОПИСАНИЕ</label>
             <textarea style={{ ...inputStyle, height: 90 }} value={form.description || ""} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Краткое описание для витрины" />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div>
-              <label style={labelStyle}>СТОИМОСТЬ УЧАСТИЯ (⚡)</label>
-              <input style={inputStyle} type="number" min={0} value={form.access_cost ?? 0} onChange={e => setForm(f => ({ ...f, access_cost: +e.target.value }))} />
+          {!form.is_partner && (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>
+                <label style={labelStyle}>СТОИМОСТЬ УЧАСТИЯ (⚡)</label>
+                <input style={inputStyle} type="number" min={0} value={form.access_cost ?? 0} onChange={e => setForm(f => ({ ...f, access_cost: +e.target.value }))} />
+              </div>
+              {form.type === "offline" ? (
+                <div>
+                  <label style={labelStyle}>БОНУС ЭНЕРГИИ (⚡) после покупки</label>
+                  <input style={inputStyle} type="number" min={0} value={form.energy_reward ?? 0} onChange={e => setForm(f => ({ ...f, energy_reward: +e.target.value }))} />
+                </div>
+              ) : (
+                <div>
+                  <label style={labelStyle}>СТОИМОСТЬ УРОКА (⚡)</label>
+                  <input style={inputStyle} type="number" min={0} value={form.lesson_cost ?? 1} onChange={e => setForm(f => ({ ...f, lesson_cost: +e.target.value }))} />
+                </div>
+              )}
             </div>
-            {form.type === "offline" ? (
-              <div>
-                <label style={labelStyle}>БОНУС ЭНЕРГИИ (⚡) после покупки</label>
-                <input style={inputStyle} type="number" min={0} value={form.energy_reward ?? 0} onChange={e => setForm(f => ({ ...f, energy_reward: +e.target.value }))} />
-              </div>
-            ) : (
-              <div>
-                <label style={labelStyle}>СТОИМОСТЬ УРОКА (⚡)</label>
-                <input style={inputStyle} type="number" min={0} value={form.lesson_cost ?? 1} onChange={e => setForm(f => ({ ...f, lesson_cost: +e.target.value }))} />
-              </div>
-            )}
-          </div>
+          )}
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
@@ -261,7 +313,7 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
       </div>
 
       {/* ── Блок офлайн-тренинга ───────────────────────────────────────────── */}
-      {form.type === "offline" && (
+      {!form.is_partner && form.type === "offline" && (
         <div style={{ background: "#fff", borderRadius: 14, padding: "20px 22px", border: "1.5px solid #e8e8e4", marginTop: 20, display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>Параметры офлайн-тренинга</div>
 
@@ -328,7 +380,7 @@ export function CourseEditor({ course, modules, onBack, onReloadModules, onEditL
         </div>
       )}
 
-      {form.id && form.type !== "offline" && (
+      {form.id && !form.is_partner && form.type !== "offline" && (
         <div style={{ marginTop: 24 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
             <div style={{ fontSize: 15, fontWeight: 700 }}>Модули и уроки</div>

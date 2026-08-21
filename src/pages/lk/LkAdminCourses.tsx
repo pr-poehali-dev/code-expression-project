@@ -5,9 +5,10 @@ import { CourseList } from "./LkAdminCourseList";
 import { CourseEditor } from "./LkAdminCourseEditor";
 import { LessonEditor } from "./LkAdminLessonEditor";
 import { OfflineParticipantsSection } from "./LkAdminOfflineParticipants";
+import { CategoriesSection } from "./LkAdminCategories";
 import Icon from "@/components/ui/icon";
 
-type Tab = "courses" | "participants";
+type Tab = "courses" | "participants" | "categories";
 
 export function CoursesSection() {
   const [tab, setTab] = useState<Tab>("courses");
@@ -52,6 +53,7 @@ export function CoursesSection() {
       <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
         {([
           { id: "courses" as Tab, icon: "GraduationCap", label: "Тренинги и курсы" },
+          { id: "categories" as Tab, icon: "LayoutGrid", label: "Категории витрины" },
           { id: "participants" as Tab, icon: "Users", label: "Участники офлайн", badge: offlineCount > 0 },
         ]).map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
@@ -68,6 +70,7 @@ export function CoursesSection() {
       </div>
 
       {tab === "participants" && <OfflineParticipantsSection courses={courses} />}
+      {tab === "categories" && <CategoriesSection />}
 
       {tab === "courses" && screen === "list" && (
         <CourseList

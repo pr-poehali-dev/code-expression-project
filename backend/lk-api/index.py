@@ -2722,9 +2722,16 @@ def handle_member_courses_list(event: dict) -> dict:
 
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-        # Только опубликованные курсы
-        cur.execute(f"SELECT id, title, description, category, cover_url FROM {tbl('courses')} WHERE is_published=TRUE ORDER BY sort_order, id")
+        # Только опубликованные курсы (включая партнёрские — внешняя ссылка, без запроса доступа)
+        cur.execute(
+            f"SELECT id, title, description, category, categories, cover_url, "
+            f"is_partner, partner_name, partner_url, partner_price, partner_format "
+            f"FROM {tbl('courses')} WHERE is_published=TRUE ORDER BY sort_order, id"
+        )
         courses = [dict(r) for r in cur.fetchall()]
+        for c in courses:
+            cats = c.get("categories") or []
+            c["categories"] = list(cats) if cats else [c.get("category", "body")]
 
         # Мой member_id
         cur.execute(f"SELECT id FROM {tbl('salon_members')} WHERE user_id=%s AND salon_id=%s AND is_active=TRUE", (user["id"], salon_id))
@@ -2751,6 +2758,12 @@ def handle_member_courses_list(event: dict) -> dict:
         owner_courses = {r["course_id"] for r in cur.fetchall()}
 
         for c in courses:
+            if c.get("is_partner"):
+                # Партнёрский тренинг — внешняя ссылка, доступна сразу всем без запроса к владельцу
+                c["granted"] = True
+                c["request_status"] = None
+                c["owner_has"] = True
+                continue
             c["granted"] = c["id"] in granted_ids
             c["request_status"] = requests.get(c["id"])
             c["owner_has"] = c["id"] in owner_courses

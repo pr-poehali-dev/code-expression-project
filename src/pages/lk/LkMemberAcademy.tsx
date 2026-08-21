@@ -15,6 +15,11 @@ interface MemberCourse {
   granted: boolean;
   owner_has: boolean;
   request_status: "pending" | "approved" | "rejected" | null;
+  is_partner?: boolean;
+  partner_name?: string;
+  partner_url?: string;
+  partner_price?: string;
+  partner_format?: "online" | "offline" | "";
 }
 
 const CAT_LABELS: Record<string, string> = {
@@ -22,6 +27,7 @@ const CAT_LABELS: Record<string, string> = {
   admin: "Для администратора",
   master: "Для мастеров",
   body: "Для специалистов по телу",
+  clients: "Для клиентов",
 };
 
 export default function LkMemberAcademy({ onNavigate }: { onNavigate?: (tab: string) => void }) {
@@ -113,7 +119,32 @@ export default function LkMemberAcademy({ onNavigate }: { onNavigate?: (tab: str
                   {CAT_LABELS[cat] || cat}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 1, background: "#f5f5f2" }}>
-                  {catCourses.map(c => (
+                  {catCourses.map(c => c.is_partner ? (
+                    <div key={c.id} style={{ background: "#fff", display: "flex", flexDirection: "column", position: "relative" }}>
+                      <div style={{ position: "absolute", top: 10, left: 10, zIndex: 2, fontSize: 10, fontWeight: 800, letterSpacing: "0.05em", color: "hsl(38,80%,35%)", background: "#fff", padding: "2px 8px", borderRadius: 6, border: "1px solid hsl(38,80%,70%)" }}>
+                        ПАРТНЁР
+                      </div>
+                      {c.cover_url ? (
+                        <img src={c.cover_url} alt="" style={{ width: "100%", objectFit: "contain", display: "block" }} />
+                      ) : (
+                        <div style={{ width: "100%", aspectRatio: "16/9", background: "hsl(38,90%,96%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Icon name="ExternalLink" size={24} style={{ color: "hsl(38,80%,50%)" }} />
+                        </div>
+                      )}
+                      <div style={{ padding: "14px 18px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+                        {c.partner_name && <div style={{ fontSize: 11, color: "#aaa", fontWeight: 600, textTransform: "uppercase" }}>{c.partner_name}</div>}
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a1a", lineHeight: 1.4 }}>{c.title}</div>
+                        {c.description && <div style={{ fontSize: 12, color: "#888", lineHeight: 1.6, flex: 1 }}>{c.description}</div>}
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4, gap: 8 }}>
+                          <span style={{ fontSize: 13, fontWeight: 800, color: "hsl(38,80%,40%)" }}>{c.partner_price?.trim() || "Бесплатно"}</span>
+                          <a href={c.partner_url || "#"} target="_blank" rel="noopener noreferrer"
+                            style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#fff", fontWeight: 700, background: "hsl(38,80%,50%)", padding: "8px 14px", borderRadius: 9, textDecoration: "none", whiteSpace: "nowrap" }}>
+                            Подробнее <Icon name="ArrowUpRight" size={13} />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
                     <div key={c.id} style={{ background: "#fff", display: "flex", flexDirection: "column" }}>
                       {c.cover_url && <img src={c.cover_url} alt="" style={{ width: "100%", objectFit: "contain", display: "block" }} />}
                       <div style={{ padding: "14px 18px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>

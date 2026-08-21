@@ -31,6 +31,16 @@ export interface Course {
   energy_reward?: number;
   max_participants?: number;
   full_description?: string;
+  is_partner?: boolean;
+  partner_name?: string;
+  partner_url?: string;
+  partner_price?: string;
+  partner_format?: "online" | "offline" | "";
+}
+
+export interface AcademyCategory {
+  id: number; code: string; title: string; description: string;
+  cover_url: string; icon: string; sort_order: number; is_active: boolean;
 }
 
 export interface Module { id: number; course_id: number; title: string; sort_order: number; lessons?: Lesson[]; }
