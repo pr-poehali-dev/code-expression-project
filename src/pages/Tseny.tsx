@@ -171,9 +171,13 @@ export default function Tseny() {
               <h3 style={{ fontFamily: SERIF, fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 500, color: "#fff", margin: "0 0 10px", lineHeight: 1.25 }}>
                 Выполняете план инструментами платформы — получаете результат
               </h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", margin: 0, lineHeight: 1.7, maxWidth: 620 }}>
-                Каждый день ИИ собирает конкретные шаги под ваши цифры, а инструменты кабинета доводят их до готового действия — сообщения клиентам, офферы, контент. Купленная энергия не сгорает и остаётся на балансе. Не пригодилась — неизрасходованный остаток вернём деньгами.
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", margin: "0 0 16px", lineHeight: 1.7, maxWidth: 620 }}>
+                Каждый день ИИ собирает конкретные шаги под ваши цифры, а инструменты кабинета доводят их до готового действия — сообщения клиентам, офферы, контент. Купленная энергия не сгорает и остаётся на балансе сколько угодно.
               </p>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 9, background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 10, padding: "9px 14px" }}>
+                <Icon name="ShieldOff" size={15} style={{ color: TEAL, flexShrink: 0 }} />
+                <span style={{ fontSize: 12.5, color: "#fff", fontWeight: 500 }}>Сбой сервиса или обрыв связи во время генерации — энергия не списывается</span>
+              </div>
             </div>
           </div>
 
