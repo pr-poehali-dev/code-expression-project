@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { lkApi } from "@/lib/lkApi";
 import Icon from "@/components/ui/icon";
 import { ACCENT, Spinner, labelStyle, inputStyle, actionBtn, iconBtn } from "./LkAdminShared";
+import { SchoolsStats } from "./LkAdminSchoolsStats";
 
 interface School {
   id: number;
@@ -28,6 +29,7 @@ interface Usage {
 const emptyForm = { name: "", contact_name: "", contact_phone: "", contact_email: "", bonus_energy: 200, notes: "" };
 
 export function SchoolsSection() {
+  const [tab, setTab] = useState<"list" | "stats">("list");
   const [schools, setSchools] = useState<School[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -102,6 +104,25 @@ export function SchoolsSection() {
         />
       )}
 
+      <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+        {([["list", "Школы", "School"], ["stats", "Статистика", "BarChart3"]] as const).map(([id, label, icon]) => (
+          <button key={id} onClick={() => setTab(id)} style={{
+            display: "flex", alignItems: "center", gap: 7, padding: "8px 16px",
+            borderRadius: 9, border: "none", cursor: "pointer",
+            fontFamily: "Montserrat, sans-serif", fontSize: 13, fontWeight: 600,
+            background: tab === id ? ACCENT : "#f0f0ec",
+            color: tab === id ? "#fff" : "#666",
+          }}>
+            <Icon name={icon} size={14} />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "stats" && <SchoolsStats />}
+
+      {tab === "list" && (
+      <>
       <div style={{ background: "hsl(185,85%,97%)", border: `1px solid hsl(185,85%,80%)`, borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 12.5, color: "#334155", lineHeight: 1.7, display: "flex", gap: 10 }}>
         <Icon name="Info" size={15} style={{ color: ACCENT, flexShrink: 0, marginTop: 1 }} />
         <span>
@@ -254,6 +275,8 @@ export function SchoolsSection() {
           </div>
         ))}
       </div>
+      </>
+      )}
     </div>
   );
 }

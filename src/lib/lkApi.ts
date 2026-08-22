@@ -67,6 +67,7 @@ export const lkApi = {
   adminSchoolUpdate: (data: object) => request("POST", "admin_school_update", data),
   adminSchoolDelete: (id: number) => request("POST", "admin_school_delete", { id }),
   adminSchoolUsages: (schoolId: number) => request("GET", "admin_school_usages", undefined, `&school_id=${schoolId}`),
+  adminSchoolsStats: (days = 30) => request("GET", "admin_schools_stats", undefined, `&days=${days}`),
 
   logout: () => request("POST", "logout"),
 

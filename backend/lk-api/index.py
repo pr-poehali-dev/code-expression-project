@@ -13,7 +13,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email.utils import formataddr
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 FROM_EMAIL = "massopro@mail.ru"
 ADMIN_NOTIFY_EMAIL = "webmanager5@yandex.ru"
@@ -753,6 +753,80 @@ def handle_admin_school_usages(event: dict) -> dict:
             (school_id,)
         )
         return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
+def handle_admin_schools_stats(event: dict) -> dict:
+    """Сводная статистика по школам-партнёрам для админки: регистрации по дням за последние
+    N дней (?days=, по умолчанию 30), суммарно потраченная (начисленная ученикам) энергия и
+    топ школ по числу приведённых учеников."""
+    qs = event.get("queryStringParameters") or {}
+    try:
+        days = min(max(int(qs.get("days", 30)), 7), 180)
+    except (TypeError, ValueError):
+        days = 30
+
+    conn = get_db()
+    try:
+        if not require_admin(event, conn):
+            return err("Нет доступа", 403)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # Регистрации по промокодам школ по дням — заполняем нулями дни без регистраций,
+        # чтобы график был непрерывным.
+        cur.execute(
+            f"SELECT DATE(created_at) AS day, COUNT(*) AS count, COALESCE(SUM(bonus_energy),0) AS energy "
+            f"FROM {tbl('promo_code_usages')} "
+            f"WHERE created_at >= NOW() - (%s || ' days')::interval "
+            f"GROUP BY DATE(created_at) ORDER BY day",
+            (days,)
+        )
+        by_day_map = {str(r["day"]): {"count": r["count"], "energy": int(r["energy"])} for r in cur.fetchall()}
+        today = datetime.now(timezone.utc).date()
+        by_day = []
+        for i in range(days - 1, -1, -1):
+            d = today - timedelta(days=i)
+            key = str(d)
+            row = by_day_map.get(key, {"count": 0, "energy": 0})
+            by_day.append({"date": key, "count": row["count"], "energy": row["energy"]})
+
+        # Итоги за весь период существования промокодов (не только за окно days)
+        cur.execute(
+            f"SELECT COUNT(*) AS total_registrations, COALESCE(SUM(bonus_energy),0) AS total_energy "
+            f"FROM {tbl('promo_code_usages')}"
+        )
+        totals = cur.fetchone()
+
+        cur.execute(
+            f"SELECT COUNT(*) AS total_registrations, COALESCE(SUM(bonus_energy),0) AS total_energy "
+            f"FROM {tbl('promo_code_usages')} WHERE created_at >= NOW() - (%s || ' days')::interval",
+            (days,)
+        )
+        totals_period = cur.fetchone()
+
+        # Топ школ по числу приведённых учеников
+        cur.execute(
+            f"SELECT s.id, s.name, s.promo_code, s.is_active, "
+            f"COUNT(pcu.id) AS usages_count, COALESCE(SUM(pcu.bonus_energy),0) AS total_energy "
+            f"FROM {tbl('partner_schools')} s "
+            f"LEFT JOIN {tbl('promo_code_usages')} pcu ON pcu.school_id=s.id "
+            f"GROUP BY s.id, s.name, s.promo_code, s.is_active "
+            f"ORDER BY usages_count DESC, total_energy DESC LIMIT 10"
+        )
+        top_schools = [dict(r) for r in cur.fetchall()]
+
+        cur.execute(f"SELECT COUNT(*) AS c FROM {tbl('partner_schools')}")
+        schools_count = cur.fetchone()["c"]
+
+        return ok({
+            "days": days,
+            "by_day": by_day,
+            "totals": {"registrations": int(totals["total_registrations"]), "energy": int(totals["total_energy"])},
+            "totals_period": {"registrations": int(totals_period["total_registrations"]), "energy": int(totals_period["total_energy"])},
+            "top_schools": top_schools,
+            "schools_count": int(schools_count),
+        })
     finally:
         conn.close()
 
@@ -4865,6 +4939,7 @@ ROUTES = {
     ("POST", "admin_school_update"): handle_admin_school_update,
     ("POST", "admin_school_delete"): handle_admin_school_delete,
     ("GET",  "admin_school_usages"): handle_admin_school_usages,
+    ("GET",  "admin_schools_stats"): handle_admin_schools_stats,
 }
 
 
