@@ -1,0 +1,22 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET without session — 401",
+      "method": "GET",
+      "path": "/?chat_mode=salon",
+      "expectedStatus": 401
+    },
+    {
+      "name": "DELETE without session — 401",
+      "method": "DELETE",
+      "path": "/?chat_mode=salon",
+      "expectedStatus": 401
+    }
+  ]
+}

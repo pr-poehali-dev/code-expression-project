@@ -17,7 +17,7 @@ def get_db():
 
 CORS = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, X-Session-Id",
 }
 
@@ -355,7 +355,10 @@ def handler(event: dict, context) -> dict:
     POST принимает опциональное поле podelam_context (строка) — цель месяца, разрыв дохода и план на сегодня
     из раздела «ПоДелам»; если передано — подмешивается в системный промпт, чтобы советы опирались на эти цифры.
     Ответы ограничены по длине: 1500 знаков для обычных вопросов, 4000 знаков для развёрнутых документов/анализов.
-    Модель: openai/gpt-5.6-terra. ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 100с для развёрнутых ответов."""
+    Модель: openai/gpt-5.6-terra. ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 100с для развёрнутых ответов.
+    Обслуживает ТОЛЬКО POST (отправка сообщения) — история чата (GET) и очистка (DELETE)
+    вынесены в отдельную быструю функцию salon-agent-history, чтобы не тарифицироваться по
+    высокому таймауту этой функции на каждом открытии кабинета."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -376,33 +379,9 @@ def handler(event: dict, context) -> dict:
         salon_id = user.get("salon_id")
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-        # GET — история + баланс (история объединена: включает и старые сообщения от прежних
-        # отдельных ролей-агентов, чтобы не терять переписку после объединения в одного агента)
-        if method == "GET":
-            qs = event.get("queryStringParameters") or {}
-            chat_mode = qs.get("chat_mode", "salon")
-            if chat_mode not in ("salon", "free"):
-                chat_mode = "salon"
-            cur.execute(
-                f"SELECT role, content, created_at FROM {tbl('salon_agent_chats')} "
-                f"WHERE user_id = %s AND chat_mode = %s AND content != '[удалено]' "
-                f"ORDER BY created_at DESC LIMIT %s",
-                (user_id, chat_mode, MAX_HISTORY)
-            )
-            rows = cur.fetchall()
-            messages = [{"role": r["role"], "content": r["content"]} for r in reversed(rows)]
-
-            free_used = get_free_used(conn, user_id)
-            balance = get_salon_balance(conn, salon_id) if salon_id else 0
-
-            return ok({
-                "messages": messages,
-                "chat_mode": chat_mode,
-                "free_used": free_used,
-                "free_limit": FREE_MESSAGES,
-                "energy_balance": balance,
-                "energy_per_message": ENERGY_PER_MESSAGE,
-            })
+        # История (GET) и очистка (DELETE) вынесены в отдельную быструю функцию salon-agent-history —
+        # эта функция обслуживает ТОЛЬКО тяжёлый POST (ответ ИИ), ей нужен таймаут ≥100с, а история
+        # дёргается на каждом открытии главного экрана кабинета и не должна тарифицироваться по нему.
 
         # POST — отправить сообщение
         if method == "POST":
@@ -511,20 +490,6 @@ def handler(event: dict, context) -> dict:
                 "energy_balance": new_balance,
                 "energy_per_message": ENERGY_PER_MESSAGE,
             })
-
-        # DELETE — очистка истории
-        if method == "DELETE":
-            qs = event.get("queryStringParameters") or {}
-            chat_mode = qs.get("chat_mode", "salon")
-            if chat_mode not in ("salon", "free"):
-                chat_mode = "salon"
-            cur.execute(
-                f"UPDATE {tbl('salon_agent_chats')} SET content = '[удалено]' "
-                f"WHERE user_id = %s AND chat_mode = %s",
-                (user_id, chat_mode)
-            )
-            conn.commit()
-            return ok({"cleared": True})
 
         return err("Метод не поддерживается", 405)
 

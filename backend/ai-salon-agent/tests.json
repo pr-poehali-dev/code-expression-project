@@ -1,9 +1,16 @@
 {
   "tests": [
     {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
       "name": "No session returns 401",
-      "method": "GET",
-      "path": "/?agent_role=business",
+      "method": "POST",
+      "path": "/",
+      "body": {"message": "test"},
       "expectedStatus": 401
     }
   ]

@@ -1,4 +1,9 @@
+import func2url from "../../../backend/func2url.json";
+
 export const AGENT_URL = "https://functions.poehali.dev/40feaf4c-2193-430d-98ae-16712a91feb4";
+// История чата и очистка вынесены в отдельную быструю функцию (не тарифицируется по высокому
+// таймауту AGENT_URL, нужному только для самого ИИ-ответа)
+export const AGENT_HISTORY_URL = (func2url as Record<string, string>)["salon-agent-history"] || "";
 export const LK_URL = "https://functions.poehali.dev/1c0ad024-179b-4644-9621-377174bbeba3";
 export const FREE_LIMIT = 10;
 export const ENERGY_PER_MSG = 10;

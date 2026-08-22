@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import {
-  AGENT_URL, FREE_LIMIT, ENERGY_PER_MSG,
+  AGENT_URL, AGENT_HISTORY_URL, FREE_LIMIT, ENERGY_PER_MSG,
   AGENT, Message, AttachedFile,
   ChatMode, CHAT_MODES,
 } from "./SalonAgentTypes";
@@ -90,7 +90,7 @@ export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGr
     setHistoryLoading(true);
     setError("");
     try {
-      const res = await fetch(`${AGENT_URL}?chat_mode=${mode}`, { headers: { "X-Session-Id": sessionId } });
+      const res = await fetch(`${AGENT_HISTORY_URL}?chat_mode=${mode}`, { headers: { "X-Session-Id": sessionId } });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Ошибка загрузки");
       setMessages(data.messages || []);
@@ -216,7 +216,7 @@ export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGr
   async function clearHistory() {
     if (!confirmClear) { setConfirmClear(true); setTimeout(() => setConfirmClear(false), 3000); return; }
     setConfirmClear(false);
-    await fetch(`${AGENT_URL}?chat_mode=${chatMode}`, { method: "DELETE", headers: { "X-Session-Id": sessionId } });
+    await fetch(`${AGENT_HISTORY_URL}?chat_mode=${chatMode}`, { method: "DELETE", headers: { "X-Session-Id": sessionId } });
     setMessages([]);
     setError("");
   }
