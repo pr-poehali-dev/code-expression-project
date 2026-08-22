@@ -998,6 +998,27 @@ def handle_admin_delete_user(event: dict) -> dict:
         cur.execute(f"UPDATE {tbl('member_course_access')} SET granted_by=NULL WHERE granted_by=%s", (user_id,))
         cur.execute(f"UPDATE {tbl('salon_invites')} SET used_by=NULL WHERE used_by=%s", (user_id,))
         cur.execute(f"UPDATE {tbl('salon_members')} SET invited_by=NULL WHERE invited_by=%s", (user_id,))
+        cur.execute(f"UPDATE {tbl('partner_schools')} SET created_by=NULL WHERE created_by=%s", (user_id,))
+
+        # 2b. Комментарии блога — самоссылающаяся таблица (parent_id -> content_comments.id),
+        # поэтому сначала чистим лайки, потом чужие ответы на комментарии этого пользователя
+        # (иначе NO ACTION на parent_id не даст удалить его комментарий), и только потом сами комментарии.
+        cur.execute(
+            f"DELETE FROM {tbl('content_comment_likes')} WHERE comment_id IN ("
+            f"  SELECT id FROM {tbl('content_comments')} WHERE user_id=%s"
+            f"  UNION"
+            f"  SELECT id FROM {tbl('content_comments')} WHERE parent_id IN ("
+            f"    SELECT id FROM {tbl('content_comments')} WHERE user_id=%s)"
+            f")",
+            (user_id, user_id)
+        )
+        cur.execute(f"DELETE FROM {tbl('content_comment_likes')} WHERE user_id=%s", (user_id,))
+        cur.execute(
+            f"DELETE FROM {tbl('content_comments')} WHERE parent_id IN ("
+            f"  SELECT id FROM {tbl('content_comments')} WHERE user_id=%s)",
+            (user_id,)
+        )
+        cur.execute(f"DELETE FROM {tbl('content_comments')} WHERE user_id=%s", (user_id,))
 
         # 3. Удаляем все собственные данные пользователя
         own_tables_by_user_id = [
@@ -1009,6 +1030,7 @@ def handle_admin_delete_user(event: dict) -> dict:
             "review_replies", "salon_agent_chats", "salon_agent_free_usage",
             "salon_audits", "salon_members", "staff_audits", "video_jobs",
             "podelam_profiles", "podelam_daily_plans", "podelam_daily_income", "podelam_task_log",
+            "promo_code_usages",
         ]
         for t in own_tables_by_user_id:
             cur.execute(f"DELETE FROM {tbl(t)} WHERE user_id=%s", (user_id,))
