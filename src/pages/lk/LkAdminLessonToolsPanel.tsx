@@ -67,43 +67,6 @@ export default function LkAdminLessonToolsPanel({ tools, savingTools, onToggle, 
         <Icon name="Save" size={13} />
         {savingTools ? "Сохраняем..." : `Сохранить инструменты (${tools.length})`}
       </button>
-
-      {/* Партнёрская программа — переключаемые плашки */}
-      <div>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "hsl(280,60%,50%)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Партнёрская программа</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {TOOLS_CATALOG.filter(t => t.category === "partners").map(tool => {
-            const active = tools.includes(tool.slug);
-            const isRegister = tool.slug === "masters-register";
-            const color = isRegister ? ACCENT : "hsl(40,90%,45%)";
-            const bgActive = isRegister ? "hsl(185,85%,96%)" : "hsl(40,90%,97%)";
-            const borderActive = isRegister ? ACCENT : "hsl(40,90%,60%)";
-            const iconBg = isRegister ? ACCENT : "hsl(40,90%,50%)";
-            return (
-              <div
-                key={tool.slug}
-                onClick={() => onToggle(tool.slug)}
-                style={{
-                  background: active ? bgActive : "#fafaf8",
-                  border: `1.5px solid ${active ? borderActive : "#e0e0dc"}`,
-                  borderRadius: 12, padding: "14px 16px",
-                  display: "flex", alignItems: "center", gap: 12,
-                  cursor: "pointer", transition: "all 0.15s",
-                }}
-              >
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: active ? iconBg : "#e8e8e4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "background 0.15s" }}>
-                  <Icon name={tool.icon} size={17} style={{ color: active ? "#fff" : "#aaa" }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: active ? 700 : 500, color: active ? "#1a1a1a" : "#888", marginBottom: 2 }}>{tool.name}</div>
-                  <div style={{ fontSize: 11, color: active ? "#64748b" : "#bbb", lineHeight: 1.4 }}>{tool.description}</div>
-                </div>
-                {active && <Icon name="Check" size={15} style={{ color, flexShrink: 0 }} />}
-              </div>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 }

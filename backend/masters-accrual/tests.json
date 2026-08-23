@@ -7,19 +7,10 @@
       "expectedStatus": 200
     },
     {
-      "name": "GET without session — 401",
+      "name": "Unknown action — 404",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 401
-    },
-    {
-      "name": "POST bonus action — skipped",
-      "method": "POST",
-      "path": "/",
-      "body": {"salon_id": 1, "amount": 100, "action": "Приветственный подарок 🎁"},
-      "expectedStatus": 200,
-      "expectedBody": {"skipped": true},
-      "bodyMatcher": "partial"
+      "expectedStatus": 404
     },
     {
       "name": "GET podelam_get without session — 401",
@@ -64,12 +55,6 @@
       "name": "GET content_daily_post without key — 403",
       "method": "GET",
       "path": "/?action=content_daily_post",
-      "expectedStatus": 403
-    },
-    {
-      "name": "GET process_accruals without key — 403",
-      "method": "GET",
-      "path": "/?action=process_accruals",
       "expectedStatus": 403
     }
   ]

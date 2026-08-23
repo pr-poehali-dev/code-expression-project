@@ -12,9 +12,8 @@ const CAT_COLORS: Record<string, { bg: string; border: string; badge: string; ba
   tools:    { bg: "hsl(185,85%,96%)", border: "hsl(185,85%,78%)", badge: "hsl(185,85%,32%)", badgeBg: "hsl(185,85%,92%)" },
   ai:       { bg: "hsl(280,60%,97%)", border: "hsl(280,60%,80%)", badge: "hsl(280,60%,48%)", badgeBg: "hsl(280,60%,93%)" },
   marketing:{ bg: "hsl(25,90%,97%)",  border: "hsl(25,90%,78%)",  badge: "hsl(25,90%,45%)",  badgeBg: "hsl(25,90%,92%)"  },
-  partners: { bg: "hsl(40,90%,97%)",  border: "hsl(40,90%,78%)",  badge: "hsl(40,90%,40%)",  badgeBg: "hsl(40,90%,92%)"  },
 };
-const CAT_LABEL: Record<string, string> = { tools: "Инструмент", ai: "ИИ", marketing: "Маркетинг", partners: "Партнёрство" };
+const CAT_LABEL: Record<string, string> = { tools: "Инструмент", ai: "ИИ", marketing: "Маркетинг" };
 
 export default function LkLessonTools({ tools, onNavigate, previewMode }: Props) {
   if (!tools || tools.length === 0) return null;
@@ -92,7 +91,7 @@ export default function LkLessonTools({ tools, onNavigate, previewMode }: Props)
                 }}
               >
                 <Icon name={previewMode ? "Eye" : "ExternalLink"} size={12} />
-                {previewMode ? "Недоступно в предпросмотре" : tool!.category === "partners" ? "Узнать подробнее" : "Открыть инструмент"}
+                {previewMode ? "Недоступно в предпросмотре" : "Открыть инструмент"}
               </button>
             </div>
           );
