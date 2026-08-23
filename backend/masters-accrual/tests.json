@@ -65,6 +65,12 @@
       "method": "GET",
       "path": "/?action=content_daily_post",
       "expectedStatus": 403
+    },
+    {
+      "name": "GET process_accruals without key — 403",
+      "method": "GET",
+      "path": "/?action=process_accruals",
+      "expectedStatus": 403
     }
   ]
 }

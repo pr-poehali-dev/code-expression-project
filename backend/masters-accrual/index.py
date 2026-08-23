@@ -26,6 +26,10 @@ POST ?action=podelam_set_income    — прибавить фактический
                                        (amount, опц. new_clients, returned_clients, date, mode="add"|"replace") (X-Session-Id)
 GET/POST ?action=podelam_notify&key=ADMIN_TOKEN — cron: письмо пользователям с новым планом на сегодня, у кого ещё не отправлено.
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с при большом числе пользователей.
+GET/POST ?action=process_accruals&key=ADMIN_TOKEN — cron: переводит партнёрские начисления мастеров из pending
+                                       в available после истечения 30-дневной задержки (DAYS_HOLD). Раньше выполнялось
+                                       синхронно на КАЖДОМ открытии кабинета мастера (GET без action) — вынесено сюда,
+                                       вызывается внешним планировщиком 1 раз в сутки.
 GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет ежедневный экспертный пост и публикует в блог сайта
                                        (простой INSERT в БД, ничего внешнего). Категория ротируется по кругу marketing →
                                        upsell → clients → tools, а роль читателя — НЕЗАВИСИМО от категории по кругу
@@ -1844,7 +1848,10 @@ def handle_content_daily_post(event: dict, conn) -> dict:
 
 
 def process_accruals(conn):
-    """Переводит pending-начисления в available после 30 дней ожидания."""
+    """Переводит pending-начисления в available после 30 дней ожидания. Раньше вызывалась при
+    КАЖДОМ открытии кабинета мастера (каждый GET) — 3 лишних UPDATE-запроса на пустое множество
+    строк в 99% случаев, так как начисление "созревает" лишь раз в 30 дней. Теперь вызывается
+    ТОЛЬКО из cron-эндпоинта action=process_accruals (см. handle_process_accruals), 1 раз в сутки."""
     cur = conn.cursor()
     cur.execute(
         f"""UPDATE {SCHEMA}.master_accruals
@@ -1868,6 +1875,19 @@ def process_accruals(conn):
             f"UPDATE {SCHEMA}.master_accruals SET status = 'credited' WHERE status = 'available'"
         )
     conn.commit()
+
+
+def handle_process_accruals(event: dict, conn) -> dict:
+    """Cron: переводит партнёрские начисления мастеров из pending в available/credited после
+    истечения 30-дневной задержки. Раньше выполнялось синхронно на каждом открытии кабинета
+    мастера — вынесено в отдельный cron, вызывается 1 раз в сутки внешним планировщиком."""
+    admin_token = os.environ.get("ADMIN_TOKEN", "")
+    qs = event.get("queryStringParameters") or {}
+    key = (event.get("headers") or {}).get("X-Internal-Key", "") or qs.get("key", "")
+    if not admin_token or key != admin_token:
+        return err("Доступ запрещён", 403)
+    process_accruals(conn)
+    return ok({"ok": True})
 
 
 def handler(event: dict, context) -> dict:
@@ -1895,6 +1915,10 @@ def handler(event: dict, context) -> dict:
         if route_action == "podelam_notify":
             return handle_podelam_notify(event, conn)
 
+        # ── Cron: перевод партнёрских начислений мастеров pending → available (1 раз в сутки) ──
+        if route_action == "process_accruals":
+            return handle_process_accruals(event, conn)
+
         # ── Автопубликация ежедневного поста в блог ───────────────────────────
         if route_action == "content_daily_post":
             return handle_content_daily_post(event, conn)
@@ -1910,8 +1934,6 @@ def handler(event: dict, context) -> dict:
             master = get_master_by_session(session_id, conn)
             if not master:
                 return err("Сессия истекла", 401)
-
-            process_accruals(conn)
 
             cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
