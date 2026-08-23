@@ -274,20 +274,6 @@ export default function LkEnergy() {
                           <span style={{ fontSize: 12, color: "#94A3B8", marginLeft: 4 }}>единиц энергии</span>
                         </div>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #F1F5F9" }}>
-                        <div style={{ width: 28, height: 28, borderRadius: 8, background: c.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <Icon name="Globe" size={14} style={{ color: c.color }} />
-                        </div>
-                        <div>
-                          <span style={{ fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
-                            {{ start: 3, business: 5, growth: 10, premium: 50 }[pkg.code] ?? 3}
-                          </span>
-                          <span style={{ fontSize: 12, color: "#94A3B8", marginLeft: 4 }}>лендинга в конструкторе</span>
-                        </div>
-                      </div>
-
-
-
                       <label
                         onClick={e => { e.preventDefault(); setAutopaySelected(isAutopayThis ? null : pkg.code); }}
                         style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, cursor: "pointer", userSelect: "none" }}
@@ -326,64 +312,6 @@ export default function LkEnergy() {
                     </div>
                   );
                 })}
-              </div>
-
-              {/* Сколько стоит лендинг — наглядный пример в энергии */}
-              <div style={{ marginTop: 20, background: "#fff", border: "1px solid #E8ECF0", borderRadius: 16, padding: "20px 22px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 14 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: 9, background: "hsl(185,85%,96%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Icon name="Calculator" size={16} style={{ color: ACCENT }} />
-                  </div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", fontFamily: "Montserrat,sans-serif" }}>Сколько энергии уходит на сайт</div>
-                </div>
-
-                {/* Два типовых лендинга */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10, marginBottom: 16 }}>
-                  {[
-                    { t: "Простой лендинг", d: "Дизайн + 4–5 блоков", e: "≈ 470–520 ⚡", c: "hsl(185,85%,96%)", cl: ACCENT },
-                    { t: "Сложный лендинг", d: "Дизайн + 7–8 блоков", e: "≈ 700–790 ⚡", c: "hsl(280,60%,96%)", cl: "hsl(280,60%,50%)" },
-                  ].map(x => (
-                    <div key={x.t} style={{ background: x.c, borderRadius: 12, padding: "14px 16px" }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 2 }}>{x.t}</div>
-                      <div style={{ fontSize: 11.5, color: "#64748B", marginBottom: 8 }}>{x.d}</div>
-                      <div style={{ fontSize: 18, fontWeight: 800, color: x.cl, fontFamily: "Montserrat,sans-serif" }}>{x.e}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Прайс операций в энергии */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 1, borderRadius: 10, overflow: "hidden", border: "1px solid #F1F5F9" }}>
-                  {[
-                    { n: "Чат и советы ИИ", e: "бесплатно", free: true },
-                    { n: "Подбор дизайна и стиля", e: "70 ⚡" },
-                    { n: "Генерация одного блока", e: "90 ⚡" },
-                    { n: "Пересоздать блок заново", e: "45 ⚡" },
-                    { n: "Правка элемента через ИИ", e: "24 ⚡" },
-                    { n: "Изменить цвета и шрифты", e: "20 ⚡" },
-                    { n: "Отдельная страница услуги", e: "70 ⚡" },
-                  ].map((r, i) => (
-                    <div key={r.n} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 14px", background: i % 2 ? "#fff" : "#FAFBFC" }}>
-                      <span style={{ fontSize: 12.5, color: "#475569" }}>{r.n}</span>
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: r.free ? "#16a34a" : "#0F172A", fontFamily: "Montserrat,sans-serif" }}>{r.e}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Доп. услуги хранения и заявок */}
-                <div style={{ marginTop: 14, background: "hsl(40,90%,97%)", border: "1px solid hsl(40,90%,85%)", borderRadius: 12, padding: "13px 16px" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "hsl(35,90%,38%)", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
-                    <Icon name="Server" size={13} /> Если сайт работает на нашем сервере
-                  </div>
-                  <div style={{ fontSize: 12, color: "#78624a", lineHeight: 1.7 }}>
-                    • Хранение сайта на сервере — <b>2 ⚡ в день</b><br />
-                    • Каждая заявка с формы, отправленная через нас на почту — <b>3 ⚡</b><br />
-                    <span style={{ color: "#9a8468" }}>Если разместить сайт на своём хостинге и настроить форму самостоятельно — эти списания не применяются.</span>
-                  </div>
-                </div>
-
-                <div style={{ marginTop: 10, fontSize: 11.5, color: "#94A3B8", lineHeight: 1.6 }}>
-                  Цифры примерные: точная сумма зависит от количества блоков и правок. Чат и консультации всегда бесплатны — платите только за результат.
-                </div>
               </div>
 
               {autopaySelected && !(autopay?.is_enabled && autopay.has_payment_method) && (
