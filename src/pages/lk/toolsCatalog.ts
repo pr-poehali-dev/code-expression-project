@@ -164,14 +164,6 @@ export const TOOLS_CATALOG: ToolInfo[] = [
     tab: "marketing:seo",
     category: "marketing",
   },
-  {
-    slug: "landing-builder",
-    name: "Конструктор лендингов",
-    description: "Расскажите о бизнесе в чате — ИИ создаст готовый лендинг для скачивания и размещения.",
-    icon: "Globe",
-    tab: "ai",
-    category: "ai",
-  },
 ];
 
 export function getToolBySlug(slug: string): ToolInfo | undefined {

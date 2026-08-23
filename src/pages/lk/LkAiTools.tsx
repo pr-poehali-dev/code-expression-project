@@ -4,8 +4,6 @@ import LkSalonAudit from "./LkSalonAudit";
 import LkStaffAudit from "./LkStaffAudit";
 import LkReviewReply from "./LkReviewReply";
 import LkClientScripts from "./LkClientScripts";
-import LkLandingBuilder from "./LkLandingBuilder";
-import LkLandingGuide from "./LkLandingGuide";
 import SalonBot from "./SalonBot";
 import { useEnergy } from "@/contexts/EnergyContext";
 import { showEnergyGate } from "@/components/EnergyGate";
@@ -57,37 +55,6 @@ function ToolCard({ icon, color, bg, title, description, badge, onStart }: ToolC
   );
 }
 
-interface ComingSoonCardProps {
-  icon: string;
-  color: string;
-  bg: string;
-  title: string;
-  description: string;
-}
-
-function ComingSoonCard({ icon, color, bg, title, description }: ComingSoonCardProps) {
-  return (
-    <div style={{ background: "#fff", borderRadius: 16, border: "1px dashed #E2E8F0", padding: "20px 20px 18px", display: "flex", flexDirection: "column", gap: 12, opacity: 0.75 }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-        <div style={{ width: 44, height: 44, borderRadius: 12, background: bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <Icon name={icon} size={22} style={{ color }} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#555" }}>{title}</div>
-            <span style={{ fontSize: 9, fontWeight: 700, background: "#e0e0db", color: "#999", borderRadius: 4, padding: "2px 6px", letterSpacing: 0.5, textTransform: "uppercase" }}>скоро</span>
-          </div>
-          <div style={{ fontSize: 12, color: "#aaa", lineHeight: 1.6 }}>{description}</div>
-        </div>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#bbb", padding: "10px 0 0" }}>
-        <Icon name="Clock" size={13} />
-        В разработке
-      </div>
-    </div>
-  );
-}
-
 function PaywallToolCard({ icon, color, bg, title, description, badge }: {
   icon: string; color: string; bg: string;
   title: string; description: string; badge?: string;
@@ -124,7 +91,7 @@ function PaywallToolCard({ icon, color, bg, title, description, badge }: {
   );
 }
 
-type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | "review-reply" | "client-scripts" | "salon-diag" | "landing-builder" | "landing-guide" | null;
+type Tool = "image-gen" | "salon-audit" | "post-gen" | "reel-script" | "staff-audit" | "review-reply" | "client-scripts" | "salon-diag" | null;
 
 export default function LkAiTools() {
   const [activeTool, setActiveTool] = useState<Tool>(() => {
@@ -132,7 +99,6 @@ export default function LkAiTools() {
     if (pending) { sessionStorage.removeItem("lk_ai_tool_pending"); return pending; }
     return null;
   });
-  const [landingForceList, setLandingForceList] = useState(false);
   const { hasPaid, loading: energyLoading } = useEnergy();
   const { user } = useLkAuth();
   const hasSalon = !!user?.salon_id;
@@ -171,19 +137,6 @@ export default function LkAiTools() {
 
   if ((hasPaid || hasSalon) && activeTool === "salon-diag") {
     return <SalonBot onBack={() => { setActiveTool(null); window.scrollTo({ top: 0, behavior: "instant" }); }} />;
-  }
-
-  if (user?.is_admin && activeTool === "landing-guide") {
-    return (
-      <div>
-        <BackButton />
-        <LkLandingGuide onClose={() => { setActiveTool("landing-builder"); window.scrollTo({ top: 0, behavior: "instant" }); }} />
-      </div>
-    );
-  }
-
-  if (user?.is_admin && activeTool === "landing-builder") {
-    return <div><BackButton /><LkLandingBuilder forceList={landingForceList} /></div>;
   }
 
   return (
@@ -307,43 +260,6 @@ export default function LkAiTools() {
           />
         ) : (
           <PaywallToolCard icon="Scissors" color="hsl(335,80%,50%)" bg="hsl(335,80%,97%)" title="Диагностика роста салона PRO" description="Поймите, где салон теряет деньги — и как увеличить прибыль без увеличения потока клиентов." badge="бесплатно" />
-        )}
-
-        {user?.is_admin ? (
-          <div
-            style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 20px 18px", display: "flex", flexDirection: "column", boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}
-            onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.07)")}
-            onMouseLeave={e => (e.currentTarget.style.boxShadow = "0 1px 3px rgba(15,23,42,0.05)")}
-          >
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 14, flex: 1, marginBottom: 16 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: "hsl(185,85%,96%)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Icon name="Globe" size={22} style={{ color: "hsl(185,85%,32%)" }} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>Конструктор лендингов</div>
-                  <span style={{ fontSize: 9, fontWeight: 700, background: "hsl(40,90%,50%)", color: "#fff", borderRadius: 4, padding: "2px 6px", letterSpacing: 0.5, textTransform: "uppercase", flexShrink: 0 }}>бета</span>
-                </div>
-                <div style={{ fontSize: 12, color: "#888", lineHeight: 1.6 }}>Расскажите о бизнесе — ИИ создаст лендинг по блокам. Скачайте HTML и разместите на любом хостинге.</div>
-              </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: "auto" }}>
-              <button
-                onClick={() => { setLandingForceList(true); setActiveTool("landing-builder"); window.scrollTo({ top: 0, behavior: "instant" }); }}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "hsl(185,85%,96%)", color: "hsl(185,85%,32%)", border: "1.5px solid hsl(185,85%,80%)", borderRadius: 10, padding: "10px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-              >
-                <Icon name="FolderOpen" size={13} />Мои лендинги
-              </button>
-              <button
-                onClick={() => { setLandingForceList(false); setActiveTool("landing-guide"); window.scrollTo({ top: 0, behavior: "instant" }); }}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "linear-gradient(135deg,hsl(40,90%,50%),hsl(30,95%,50%))", color: "#fff", border: "none", borderRadius: 10, padding: "10px 12px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-              >
-                <Icon name="Sparkles" size={13} />Создать новый
-              </button>
-            </div>
-          </div>
-        ) : (
-          <ComingSoonCard icon="Globe" color="hsl(185,85%,32%)" bg="hsl(185,85%,96%)" title="Конструктор лендингов" description="Расскажите о бизнесе в чате — ИИ создаст готовый лендинг. Скачайте HTML и разместите на любом хостинге." />
         )}
       </div>}
 

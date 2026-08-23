@@ -40,7 +40,6 @@ const FreeTarif = lazy(() => import("./pages/FreeTarif"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 const DlyaSalonov = lazy(() => import("./pages/DlyaSalonov"));
 const FreeTrenings = lazy(() => import("./pages/FreeTrenings"));
-const LandingView = lazy(() => import("./pages/LandingView"));
 const Diagnostika = lazy(() => import("./pages/Diagnostika"));
 const ChampionshipPage = lazy(() => import("./pages/championship/ChampionshipPage"));
 const ChampionshipTournament = lazy(() => import("./pages/championship/ChampionshipTournament"));
@@ -122,7 +121,6 @@ const App = () => (
             <Route path="/dlya-salonov" element={<DlyaSalonov />} />
             <Route path="/free-trenings" element={<FreeTrenings />} />
 
-            <Route path="/landing/:id" element={<LandingView />} />
             <Route path="/diagnostika" element={<Diagnostika />} />
 
             {/* Чемпионат красоты */}
