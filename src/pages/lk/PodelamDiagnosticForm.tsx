@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
-import { ACCENT, ACCENT_DARK, PODELAM_URL, sid } from "./podelamShared";
+import { ACCENT, ACCENT_DARK, PODELAM_FAST_URL, sid } from "./podelamShared";
 
 // ── Форма диагностики (8-12 вопросов) ─────────────────────────────────────────
 export default function DiagnosticForm({ onSaved }: { onSaved: () => void }) {
@@ -29,7 +29,7 @@ export default function DiagnosticForm({ onSaved }: { onSaved: () => void }) {
     setSaving(true);
     setError("");
     try {
-      const res = await fetch(`${PODELAM_URL}?action=podelam_save_profile`, {
+      const res = await fetch(`${PODELAM_FAST_URL}?action=podelam_save_profile`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
         body: JSON.stringify({

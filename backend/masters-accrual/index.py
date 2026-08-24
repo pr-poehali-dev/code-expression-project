@@ -1,7 +1,10 @@
 """
-«ПоДелам» -- ИИ-навигатор дохода в личном кабинете + автопубликация ежедневного поста в блог.
-Партнёрская программа мастеров (приглашение салонов за вознаграждение) удалена — эта функция
-раньше совмещала обе задачи, начисления мастерам больше не выполняются.
+«ПоДелам» -- построение ИИ-плана дня в личном кабинете + автопубликация ежедневного поста в блог.
+Быстрые операции ПоДелам (сохранение диагностики, отметка дел, статистика, доход за день) вынесены
+в отдельную функцию podelam-fast с низким таймаутом (15с) — здесь остались ТОЛЬКО тяжёлые
+ИИ-операции, которым нужен большой таймаут. Раньше всё жило в одной функции — из-за завышенного
+таймаута (60-100с) даже мгновенные запросы (открыть кабинет, отметить дело) тарифицировались по
+цене долгих ИИ-действий, это и разделили.
 GET  ?action=podelam_get           — профиль дохода + план на сегодня, план строит ИИ (модель terra через polza.ai) (X-Session-Id).
                                        Для владельцев/администраторов салона с заполненным «Мой салон» (указаны средний чек и
                                        выручка) дополнительно подмешиваются реальные данные салона и сотрудников (salon_staff),
@@ -18,11 +21,6 @@ GET  ?action=podelam_get           — профиль дохода + план н
                                        podelam_daily_income (доход + new_clients/returned_clients, если пользователь их указал) и
                                        передаётся ИИ, чтобы план подстраивался под то, что реально сработало.
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с — иначе запрос к ИИ обрывается по 504 и план не сохраняется.
-POST ?action=podelam_save_profile  — сохранить диагностику дохода (X-Session-Id)
-POST ?action=podelam_task_done     — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
-GET  ?action=podelam_stats         — статистика выполненных дел, дохода и новых/вернувшихся клиентов за неделю/месяц (X-Session-Id)
-POST ?action=podelam_set_income    — прибавить фактический доход за день и опционально кол-во новых/вернувшихся клиентов
-                                       (amount, опц. new_clients, returned_clients, date, mode="add"|"replace") (X-Session-Id)
 GET/POST ?action=podelam_notify&key=ADMIN_TOKEN — cron: письмо пользователям с новым планом на сегодня, у кого ещё не отправлено.
                                        ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 60с при большом числе пользователей.
 GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет ежедневный экспертный пост и публикует в блог сайта
@@ -882,205 +880,6 @@ def handle_podelam_get(event: dict, conn) -> dict:
     })
 
 
-def handle_podelam_save_profile(event: dict, conn) -> dict:
-    """Сохраняет/обновляет диагностику дохода пользователя (8-12 вопросов)."""
-    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
-    if not session_id:
-        return err("Не авторизован", 401)
-    user = get_lk_user_by_session(session_id, conn)
-    if not user:
-        return err("Сессия истекла", 401)
-
-    body = json.loads(event.get("body") or "{}")
-    required = ["avg_check", "current_revenue", "target_revenue"]
-    for f in required:
-        if body.get(f) in (None, ""):
-            return err(f"Заполните поле: {f}")
-
-    cur = conn.cursor()
-    cur.execute(
-        f"""INSERT INTO {SCHEMA}.podelam_profiles
-            (user_id, salon_id, niche, avg_check, current_revenue, target_revenue,
-             clients_per_month, base_size, repeat_rate, free_slots_per_week, has_addon_services,
-             addon_services_text, lead_source, updated_at)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW())
-            ON CONFLICT (user_id) DO UPDATE SET
-                salon_id=EXCLUDED.salon_id, niche=EXCLUDED.niche, avg_check=EXCLUDED.avg_check,
-                current_revenue=EXCLUDED.current_revenue, target_revenue=EXCLUDED.target_revenue,
-                clients_per_month=EXCLUDED.clients_per_month, base_size=EXCLUDED.base_size,
-                repeat_rate=EXCLUDED.repeat_rate, free_slots_per_week=EXCLUDED.free_slots_per_week,
-                has_addon_services=EXCLUDED.has_addon_services, addon_services_text=EXCLUDED.addon_services_text,
-                lead_source=EXCLUDED.lead_source,
-                updated_at=NOW()""",
-        (
-            user["id"], user.get("salon_id"), body.get("niche", ""),
-            float(body["avg_check"]), float(body["current_revenue"]), float(body["target_revenue"]),
-            int(body.get("clients_per_month") or 0), int(body.get("base_size") or 0),
-            int(body.get("repeat_rate") or 0), int(body.get("free_slots_per_week") or 0),
-            bool(body.get("has_addon_services") or False), (body.get("addon_services_text") or "").strip() or None,
-            body.get("lead_source", ""),
-        )
-    )
-    # Сбрасываем план на сегодня, чтобы пересчитать с новыми данными
-    cur.execute(
-        f"DELETE FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s AND plan_date = %s",
-        (user["id"], date.today())
-    )
-    conn.commit()
-    return ok({"ok": True})
-
-
-def handle_podelam_task_done(event: dict, conn) -> dict:
-    """Отмечает дело дня выполненным/невыполненным, опционально с фактической суммой."""
-    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
-    if not session_id:
-        return err("Не авторизован", 401)
-    user = get_lk_user_by_session(session_id, conn)
-    if not user:
-        return err("Сессия истекла", 401)
-
-    body = json.loads(event.get("body") or "{}")
-    task_key = body.get("task_key")
-    if not task_key:
-        return err("Нужен task_key")
-    done = bool(body.get("done", True))
-    actual_amount = body.get("actual_amount")
-
-    cur = conn.cursor()
-    cur.execute(
-        f"""INSERT INTO {SCHEMA}.podelam_task_log (user_id, plan_date, task_key, done, actual_amount, updated_at)
-            VALUES (%s, %s, %s, %s, %s, NOW())
-            ON CONFLICT (user_id, plan_date, task_key) DO UPDATE SET
-                done=EXCLUDED.done, actual_amount=EXCLUDED.actual_amount, updated_at=NOW()""",
-        (user["id"], date.today(), task_key, done, actual_amount)
-    )
-    conn.commit()
-    return ok({"ok": True})
-
-
-def handle_podelam_set_income(event: dict, conn) -> dict:
-    """Прибавляет фактический доход мастера за конкретный день (по умолчанию — сегодня) к уже накопленной
-    сумме, а также опционально количество новых клиентов (new_clients) и вернувшихся клиентов
-    (returned_clients) за этот день — тоже прибавляются к уже накопленным. Если передан mode="replace" —
-    заменяет сумму и счётчики клиентов целиком (используется при исправлении ошибочного ввода).
-    Сохранённые new_clients/returned_clients учитываются ИИ при построении СЛЕДУЮЩЕГО плана (см.
-    call_podelam_ai) — показывают, какие действия реально сработали."""
-    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
-    if not session_id:
-        return err("Не авторизован", 401)
-    user = get_lk_user_by_session(session_id, conn)
-    if not user:
-        return err("Сессия истекла", 401)
-
-    body = json.loads(event.get("body") or "{}")
-    if body.get("amount") in (None, ""):
-        return err("Укажите сумму")
-    try:
-        amount = float(body["amount"])
-    except (TypeError, ValueError):
-        return err("Некорректная сумма")
-    if amount < 0:
-        return err("Сумма не может быть отрицательной")
-
-    def _parse_count(key: str) -> int:
-        v = body.get(key)
-        if v in (None, ""):
-            return 0
-        try:
-            n = int(v)
-        except (TypeError, ValueError):
-            return 0
-        return max(0, n)
-
-    new_clients = _parse_count("new_clients")
-    returned_clients = _parse_count("returned_clients")
-
-    income_date = body.get("date") or str(date.today())
-    mode = body.get("mode") or "add"
-
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    if mode == "replace":
-        cur.execute(
-            f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, new_clients, returned_clients, updated_at)
-                VALUES (%s, %s, %s, %s, %s, NOW())
-                ON CONFLICT (user_id, income_date) DO UPDATE SET
-                    amount=EXCLUDED.amount, new_clients=EXCLUDED.new_clients,
-                    returned_clients=EXCLUDED.returned_clients, updated_at=NOW()
-                RETURNING amount, new_clients, returned_clients""",
-            (user["id"], income_date, amount, new_clients, returned_clients)
-        )
-    else:
-        cur.execute(
-            f"""INSERT INTO {SCHEMA}.podelam_daily_income (user_id, income_date, amount, new_clients, returned_clients, updated_at)
-                VALUES (%s, %s, %s, %s, %s, NOW())
-                ON CONFLICT (user_id, income_date) DO UPDATE SET
-                    amount=podelam_daily_income.amount + EXCLUDED.amount,
-                    new_clients=COALESCE(podelam_daily_income.new_clients, 0) + EXCLUDED.new_clients,
-                    returned_clients=COALESCE(podelam_daily_income.returned_clients, 0) + EXCLUDED.returned_clients,
-                    updated_at=NOW()
-                RETURNING amount, new_clients, returned_clients""",
-            (user["id"], income_date, amount, new_clients, returned_clients)
-        )
-    row = cur.fetchone()
-    conn.commit()
-    return ok({
-        "ok": True, "amount": float(row["amount"]),
-        "new_clients": row["new_clients"] or 0, "returned_clients": row["returned_clients"] or 0,
-    })
-
-
-def _compute_period_stats(conn, user_id: int, days: int) -> dict:
-    """Считает статистику по выполненным делам и потенциалу/факту за последние N дней."""
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    since = date.today() - timedelta(days=days - 1)
-
-    # Все задачи из планов за период (для подсчёта общего количества и потенциала)
-    cur.execute(
-        f"""SELECT plan_date, tasks FROM {SCHEMA}.podelam_daily_plans
-            WHERE user_id = %s AND plan_date >= %s AND plan_date <= %s""",
-        (user_id, since, date.today())
-    )
-    plans = cur.fetchall()
-
-    total_tasks = 0
-    potential_total = 0.0
-    for p in plans:
-        tasks = p["tasks"] if isinstance(p["tasks"], list) else json.loads(p["tasks"])
-        total_tasks += len(tasks)
-        potential_total += sum(float(t.get("potential") or 0) for t in tasks)
-
-    # Выполненные дела за период (для счётчика "дел выполнено")
-    cur.execute(
-        f"""SELECT done FROM {SCHEMA}.podelam_task_log
-            WHERE user_id = %s AND plan_date >= %s AND plan_date <= %s""",
-        (user_id, since, date.today())
-    )
-    logs = cur.fetchall()
-    done_count = sum(1 for r in logs if r["done"])
-
-    # Фактический доход и клиенты, указанные мастером по дням
-    cur.execute(
-        f"""SELECT amount, new_clients, returned_clients FROM {SCHEMA}.podelam_daily_income
-            WHERE user_id = %s AND income_date >= %s AND income_date <= %s""",
-        (user_id, since, date.today())
-    )
-    income_rows = cur.fetchall()
-    actual_total = sum(float(r["amount"]) for r in income_rows)
-    new_clients_total = sum(r["new_clients"] or 0 for r in income_rows)
-    returned_clients_total = sum(r["returned_clients"] or 0 for r in income_rows)
-
-    return {
-        "days": days,
-        "total_tasks": total_tasks,
-        "done_tasks": done_count,
-        "completion_rate": round(done_count / total_tasks * 100) if total_tasks > 0 else 0,
-        "potential_total": round(potential_total),
-        "actual_total": round(actual_total),
-        "new_clients_total": new_clients_total,
-        "returned_clients_total": returned_clients_total,
-    }
-
-
 def _send_podelam_notify_email(to_email: str, full_name: str, main_task: dict | None, gap_amount: float) -> None:
     """Письмо о новых шагах ПоДелам на сегодня."""
     smtp_password = os.environ.get("SMTP_PASSWORD", "")
@@ -1190,21 +989,6 @@ def handle_podelam_notify(event: dict, conn) -> dict:
             failed.append({"user_id": row["user_id"], "error": str(e)})
 
     return ok({"ok": True, "sent": sent, "failed": failed, "total_found": len(rows)})
-
-
-def handle_podelam_stats(event: dict, conn) -> dict:
-    """Возвращает статистику выполненных дел и денег (потенциал/факт) за неделю и месяц."""
-    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
-    if not session_id:
-        return err("Не авторизован", 401)
-    user = get_lk_user_by_session(session_id, conn)
-    if not user:
-        return err("Сессия истекла", 401)
-
-    week = _compute_period_stats(conn, user["id"], 7)
-    month = _compute_period_stats(conn, user["id"], 30)
-
-    return ok({"week": week, "month": month})
 
 
 # ── Автопубликация ежедневного экспертного поста (ИИ, модель terra) в блог ────
@@ -1816,7 +1600,9 @@ def handle_content_daily_post(event: dict, conn) -> dict:
 
 
 def handler(event: dict, context) -> dict:
-    """«ПоДелам» — ИИ-навигатор дохода в личном кабинете + автопубликация ежедневного поста в блог."""
+    """«ПоДелам» — построение ИИ-плана дня в личном кабинете + автопубликация ежедневного поста в блог.
+    Быстрые операции (сохранение диагностики, отметка дел, статистика, доход за день) вынесены
+    в отдельную функцию podelam-fast с низким таймаутом — см. её docstring."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -1825,17 +1611,9 @@ def handler(event: dict, context) -> dict:
 
     conn = get_db()
     try:
-        # ── ПоДелам — навигатор дохода (личный кабинет, X-Session-Id) ────────
+        # ── ПоДелам — построение ИИ-плана дня (личный кабинет, X-Session-Id) ─
         if route_action == "podelam_get":
             return handle_podelam_get(event, conn)
-        if route_action == "podelam_save_profile":
-            return handle_podelam_save_profile(event, conn)
-        if route_action == "podelam_task_done":
-            return handle_podelam_task_done(event, conn)
-        if route_action == "podelam_stats":
-            return handle_podelam_stats(event, conn)
-        if route_action == "podelam_set_income":
-            return handle_podelam_set_income(event, conn)
         if route_action == "podelam_notify":
             return handle_podelam_notify(event, conn)
 

@@ -1,0 +1,43 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Unknown action — 404",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 404
+    },
+    {
+      "name": "POST podelam_save_profile without session — 401",
+      "method": "POST",
+      "path": "/?action=podelam_save_profile",
+      "body": {"avg_check": 2000, "current_revenue": 100000, "target_revenue": 150000},
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST podelam_task_done without session — 401",
+      "method": "POST",
+      "path": "/?action=podelam_task_done",
+      "body": {"task_key": "return_clients"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET podelam_stats without session — 401",
+      "method": "GET",
+      "path": "/?action=podelam_stats",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST podelam_set_income without session — 401",
+      "method": "POST",
+      "path": "/?action=podelam_set_income",
+      "body": {"amount": 5000},
+      "expectedStatus": 401
+    }
+  ]
+}

@@ -4,6 +4,9 @@ export const ACCENT = "hsl(185,85%,32%)";
 export const ACCENT_DARK = "hsl(185,85%,24%)";
 
 export const PODELAM_URL = (func2url as Record<string, string>)["masters-accrual"] || "";
+// Быстрые операции (сохранить диагностику, отметить дело, статистика, доход за день) — отдельная
+// функция с низким таймаутом, чтобы не тарифицироваться по цене долгих ИИ-действий из masters-accrual.
+export const PODELAM_FAST_URL = (func2url as Record<string, string>)["podelam-fast"] || "";
 export function sid() { return localStorage.getItem("lk_session") || ""; }
 
 export interface GrowthPoint {

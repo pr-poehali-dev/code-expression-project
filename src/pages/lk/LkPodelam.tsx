@@ -3,7 +3,7 @@ import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { markPodelamSeen } from "./podelamNotice";
 import SalonAIAgent from "./SalonAIAgent";
-import { ACCENT, ACCENT_DARK, PODELAM_URL, sid, PodelamData, StatsData, fmt, TOPIC_KEY_BY_NAV } from "./podelamShared";
+import { ACCENT, ACCENT_DARK, PODELAM_URL, PODELAM_FAST_URL, sid, PodelamData, StatsData, fmt, TOPIC_KEY_BY_NAV } from "./podelamShared";
 import DiagnosticForm from "./PodelamDiagnosticForm";
 import InfoModal from "./PodelamInfoModal";
 import { DailyIncomeCard, StatsSection } from "./PodelamWidgets";
@@ -34,7 +34,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   }, [onNav]);
 
   const loadStats = useCallback(() => {
-    fetch(`${PODELAM_URL}?action=podelam_stats`, { headers: { "X-Session-Id": sid() } })
+    fetch(`${PODELAM_FAST_URL}?action=podelam_stats`, { headers: { "X-Session-Id": sid() } })
       .then(r => r.json())
       .then(d => { if (d.week && d.month) setStats(d); })
       .catch(() => {});
@@ -50,7 +50,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
           const trial = getPodelamTrialData();
           clearPodelamTrial();
           if (trial) {
-            await fetch(`${PODELAM_URL}?action=podelam_save_profile`, {
+            await fetch(`${PODELAM_FAST_URL}?action=podelam_save_profile`, {
               method: "POST",
               headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
               body: JSON.stringify(trial),
@@ -70,7 +70,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   const markDone = async (taskKey: string) => {
     setMarking(taskKey);
     try {
-      await fetch(`${PODELAM_URL}?action=podelam_task_done`, {
+      await fetch(`${PODELAM_FAST_URL}?action=podelam_task_done`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
         body: JSON.stringify({ task_key: taskKey, done: true }),
@@ -82,7 +82,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   };
 
   const saveIncome = async (amount: number, newClients: number, returnedClients: number) => {
-    await fetch(`${PODELAM_URL}?action=podelam_set_income`, {
+    await fetch(`${PODELAM_FAST_URL}?action=podelam_set_income`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
       body: JSON.stringify({ amount, new_clients: newClients, returned_clients: returnedClients }),
