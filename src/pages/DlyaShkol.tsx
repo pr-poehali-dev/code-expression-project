@@ -377,9 +377,6 @@ export default function DlyaShkol() {
       {/* ── 3. ЧТО ПРОИСХОДИТ ПОСЛЕ ОБУЧЕНИЯ ── */}
       <section style={{ padding: "88px 32px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <SectionLabel>Знакомая ситуация?</SectionLabel>
-          </div>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 500, color: DARK, margin: "0 0 40px", lineHeight: 1.1 }}>
             Диплом — это только начало
           </h2>
