@@ -111,7 +111,7 @@ export default function DlyaShkolConnect() {
           </p>
 
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, flexWrap: "wrap" }}>
-            {["1 поток", "промокод", "+200 энергии", "регистрации", "активность", "рекомендации курсов", "переходы на сайт школы"].map((s, i, arr) => (
+            {["1 поток", "промокод", "регистрации", "рекомендации курсов", "переходы на сайт школы"].map((s, i, arr) => (
               <div key={s} style={{ display: "flex", alignItems: "center", margin: "4px 0" }}>
                 <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 100, padding: "9px 16px", fontSize: 12.5, fontWeight: 600, color: DARK, whiteSpace: "nowrap" }}>
                   {s}
