@@ -26,10 +26,10 @@ const FEELINGS = [
 ];
 
 const STEPS = [
-  { num: "01", title: "Регистрация",        desc: "Аккаунт за 1 минуту. Без карты.",                                                                     icon: "UserPlus"   },
-  { num: "02", title: "Добавьте салон",     desc: "Название, количество мастеров, средний чек. Займёт 3 минуты.",                                        icon: "Building2"  },
-  { num: "03", title: "Запустите аудит",    desc: "Откройте «Диагностику роста PRO» и ответьте на 8–12 вопросов о бизнесе.",                            icon: "PlayCircle" },
-  { num: "04", title: "Получите результат", desc: "Графики, прогнозы, точки роста и план действий — готово через несколько минут.",                     icon: "BarChart2"  },
+  { num: "01", title: "Регистрация",     desc: "Аккаунт за 1 минуту. Без карты.",                                                          icon: "UserPlus"   },
+  { num: "02", title: "Поставьте цель",  desc: "Название салона, показатели и цель по прибыли — займёт 3 минуты.",                          icon: "Target"     },
+  { num: "03", title: "Пройдите диагностику", desc: "8–12 вопросов о бизнесе — ИИ построит карту точек роста.",                             icon: "PlayCircle" },
+  { num: "04", title: "Получайте план каждый день", desc: "Не разовый отчёт — ИИ ежедневно подсказывает следующий шаг к цели.",             icon: "RefreshCw"  },
 ];
 
 const MATH_POINTS = [
@@ -41,13 +41,30 @@ const MATH_POINTS = [
   { icon: "GitBranch",  text: "Сценарный анализ: три варианта развития на 3–6 месяцев" },
 ];
 
+const SCORE_ITEMS = [
+  { label: "Клиенты",   val: 81, color: "#2DD4BF" },
+  { label: "Персонал",  val: 64, color: "#f59e0b" },
+  { label: "Продажи",   val: 72, color: "#2DD4BF" },
+  { label: "Маркетинг", val: 58, color: "#ef4444" },
+  { label: "Финансы",   val: 75, color: "#2DD4BF" },
+];
+
+const CYCLE_STEPS = [
+  { icon: "Target",      title: "Цель",         desc: "Указываете, куда хотите прийти — конкретную цифру и срок." },
+  { icon: "ScanEye",     title: "Диагностика",  desc: "ИИ анализирует показатели салона и находит разрывы." },
+  { icon: "ListChecks",  title: "План",         desc: "Формируется точный маршрут действий к вашей цели." },
+  { icon: "Zap",         title: "Действие",     desc: "Выполняете шаги сами или доверяете AI-инструментам." },
+  { icon: "BarChart2",   title: "Результат",    desc: "Фиксируете, что реально изменилось в цифрах." },
+  { icon: "RefreshCw",   title: "Корректировка",desc: "ИИ пересчитывает план с учётом нового результата." },
+];
+
 export default function Diagnostika() {
   return (
     <>
       <Helmet>
-        <title>Диагностика роста салона красоты — бесплатный аудит потенциала за 10 минут | Промт Диалог</title>
-        <meta name="description" content="Бесплатная диагностика салона красоты на основе математических алгоритмов. Узнайте потенциал роста выручки, загрузки мастеров и возврата клиентов. Конкретные цифры по вашим данным — за 10 минут. Получить план роста дохода — бесплатно." />
-        <meta name="keywords" content="диагностика салона красоты, аудит салона красоты бесплатно, потенциал роста салона, как увеличить выручку салона, загрузка мастеров, аналитика салона красоты, инструменты для управляющего салоном, рост прибыли салона, анализ бизнеса салона, про диалог диагностика" />
+        <title>AI-навигатор роста салона красоты — бесплатная диагностика и ежедневный план | Промт Диалог</title>
+        <meta name="description" content="Узнайте, что мешает вашему салону расти — и получите персональный план действий. Бесплатный AI-анализ показателей и целей салона, ежедневные рекомендации и отслеживание прогресса. Не разовый тест, а навигатор, который ведёт салон к цели." />
+        <meta name="keywords" content="диагностика салона красоты, AI навигатор роста салона, бесплатный аудит салона красоты, план роста выручки салона, индекс здоровья салона, управление салоном красоты ИИ, аналитика салона красоты, рост прибыли салона, промт диалог диагностика" />
       </Helmet>
 
       <BizNavbar />
@@ -66,20 +83,20 @@ export default function Diagnostika() {
             <div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
-                <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" as const }}>Бесплатный аудит · 10 минут</span>
+                <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" as const }}>AI-навигатор роста · бесплатно</span>
               </div>
 
-              <h1 style={{ fontFamily: SERIF, fontSize: "clamp(44px,5.5vw,72px)", fontWeight: 500, color: "#fff", lineHeight: 1.06, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
-                Раскройте полный<br />
-                <span style={{ color: TEAL }}>потенциал</span> вашего<br />
-                салона за 10 минут
+              <h1 style={{ fontFamily: SERIF, fontSize: "clamp(40px,5vw,64px)", fontWeight: 500, color: "#fff", lineHeight: 1.1, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
+                Узнайте, что мешает<br />
+                салону расти — и получите<br />
+                <span style={{ color: TEAL }}>персональный план</span> действий
               </h1>
 
-              <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.75, margin: "0 0 12px", fontWeight: 300, maxWidth: 500 }}>
-                Бесплатная диагностика на основе <strong style={{ color: "#fff", fontWeight: 600 }}>математических формул и экономических алгоритмов</strong> — результат по вашим данным, а не общие советы.
+              <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.75, margin: "0 0 12px", fontWeight: 300, maxWidth: 520 }}>
+                Бесплатно подключите <strong style={{ color: "#fff", fontWeight: 600 }}>AI-анализ салона</strong>. Он изучит показатели, вашу цель и текущую ситуацию, определит точки роста — и <strong style={{ color: "#fff", fontWeight: 600 }}>каждый день будет подсказывать, что делать дальше</strong>.
               </p>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.38)", lineHeight: 1.7, margin: "0 0 40px", fontWeight: 300 }}>
-                ИИ даёт только интерпретацию — все выводы считаются по формулам.
+                Расчёты строятся на математических формулах, ИИ — интерпретирует и ведёт вас к цели.
               </p>
 
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap" as const, marginBottom: 48 }}>
@@ -91,7 +108,7 @@ export default function Diagnostika() {
                   textDecoration: "none", boxShadow: "0 8px 32px rgba(45,212,191,0.35)",
                 }}>
                   <Icon name="Zap" size={18} />
-                  Пройти диагностику бесплатно
+                  Начать бесплатную диагностику
                 </Link>
                 <a href="#how" style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
@@ -104,9 +121,9 @@ export default function Diagnostika() {
               </div>
 
               <div style={{ display: "flex", gap: 40, paddingTop: 36, borderTop: "1px solid rgba(255,255,255,0.07)", flexWrap: "wrap" as const }}>
-                {[["10 мин","время прохождения"],["ИИ","анализ данных"],["0 ₽","полностью бесплатно"]].map(([v, l], i) => (
+                {[["Каждый день","новый план от ИИ"],["Цель","в центре системы"],["0 ₽","полностью бесплатно"]].map(([v, l], i) => (
                   <div key={i}>
-                    <div style={{ fontFamily: SERIF, fontSize: 30, fontWeight: 600, color: "#fff", lineHeight: 1 }}>{v}</div>
+                    <div style={{ fontFamily: SERIF, fontSize: 26, fontWeight: 600, color: "#fff", lineHeight: 1 }}>{v}</div>
                     <div style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", marginTop: 5 }}>{l}</div>
                   </div>
                 ))}
@@ -120,49 +137,44 @@ export default function Diagnostika() {
                   <div style={{ display: "flex", gap: 6 }}>
                     {["#ef4444","#f59e0b","#22c55e"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
                   </div>
-                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginLeft: 8 }}>Диагностика роста · Промт Диалог</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginLeft: 8 }}>AI-навигатор роста · Промт Диалог</span>
                 </div>
                 <div style={{ padding: 24 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: 6 }}>Ваша цель</div>
+                    <div style={{ fontSize: 15, color: "#fff", fontWeight: 600, lineHeight: 1.4 }}>
+                      Увеличить прибыль с 800 000 ₽ до <span style={{ color: TEAL }}>1 100 000 ₽</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginTop: 3 }}>Срок: 90 дней</div>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 8 }}>
                     <div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: 6 }}>Потенциал роста</div>
-                      <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                        <span style={{ fontFamily: SERIF, fontSize: 48, fontWeight: 600, color: TEAL, lineHeight: 1 }}>+34%</span>
-                        <span style={{ fontSize: 14, color: "rgba(255,255,255,0.3)" }}>к выручке</span>
-                      </div>
-                      <div style={{ fontSize: 12, color: TEAL, marginTop: 4 }}>за 3 месяца</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: 6 }}>Прогресс к цели</div>
+                      <div style={{ fontFamily: SERIF, fontSize: 34, fontWeight: 600, color: TEAL, lineHeight: 1 }}>34%</div>
                     </div>
                     <div style={{ textAlign: "right" as const }}>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Индекс здоровья</div>
-                      <div style={{ fontFamily: SERIF, fontSize: 28, color: "#f59e0b", fontWeight: 600 }}>62<span style={{ fontSize: 16, color: "rgba(255,255,255,0.3)" }}>/100</span></div>
-                      <div style={{ fontSize: 11, color: "#f59e0b" }}>Есть резервы</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Индекс салона</div>
+                      <div style={{ fontFamily: SERIF, fontSize: 24, color: "#f59e0b", fontWeight: 600 }}>67<span style={{ fontSize: 14, color: "rgba(255,255,255,0.3)" }}>/100</span></div>
+                      <div style={{ fontSize: 10.5, color: TEAL }}>📈 +4 за 14 дней</div>
                     </div>
                   </div>
+                  <div style={{ height: 8, background: "rgba(255,255,255,0.08)", borderRadius: 10, marginBottom: 22 }}>
+                    <div style={{ height: "100%", width: "34%", background: `linear-gradient(90deg,${TEAL},${TEAL2})`, borderRadius: 10 }} />
+                  </div>
+
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: 12 }}>Сегодня ИИ рекомендует</div>
                   {[
-                    { label: "Загрузка мастеров", val: 58, color: "#f59e0b", tag: "Резерв" },
-                    { label: "Возврат клиентов",  val: 44, color: "#ef4444", tag: "Низко"  },
-                    { label: "Средний чек",        val: 71, color: TEAL,      tag: "Норма"  },
-                    { label: "Маркетинговый охват",val: 36, color: "#ef4444", tag: "Низко"  },
-                  ].map(({ label, val, color, tag }) => (
-                    <div key={label} style={{ marginBottom: 14 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{label}</span>
-                        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                          <span style={{ fontSize: 11, color, fontWeight: 600 }}>{tag}</span>
-                          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{val}%</span>
-                        </div>
-                      </div>
-                      <div style={{ height: 5, background: "rgba(255,255,255,0.08)", borderRadius: 10 }}>
-                        <div style={{ height: "100%", width: `${val}%`, background: color, borderRadius: 10 }} />
-                      </div>
+                    { title: "Вернуть 27 клиентов без записи 60+ дней", effect: "+85 000 ₽" },
+                    { title: "Перераспределить загрузку двух мастеров", effect: "+42 000 ₽" },
+                    { title: "Изменить сценарий администратора", effect: "+8–12% повторных" },
+                  ].map(({ title, effect }, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                      <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 11, fontWeight: 700, color: TEAL }}>{i + 1}</div>
+                      <div style={{ flex: 1, fontSize: 12.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.4 }}>{title}</div>
+                      <div style={{ fontSize: 12, color: TEAL, fontWeight: 700, whiteSpace: "nowrap" as const }}>{effect}</div>
                     </div>
                   ))}
-                  <div style={{ marginTop: 20, padding: "14px 16px", background: "rgba(45,212,191,0.07)", border: "1px solid rgba(45,212,191,0.18)", borderRadius: 10 }}>
-                    <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: 6 }}>Приоритет №1</div>
-                    <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>
-                      Загрузить «мёртвые» часы вт–ср 11:00–14:00 → <strong style={{ color: TEAL }}>+18% к выручке</strong> без доп. затрат
-                    </div>
-                  </div>
                 </div>
               </div>
               <div style={{ position: "absolute", top: -16, right: -16, background: TEAL, borderRadius: 12, padding: "10px 16px", boxShadow: "0 8px 24px rgba(45,212,191,0.4)", display: "flex", alignItems: "center", gap: 8 }}>
@@ -173,6 +185,46 @@ export default function Diagnostika() {
           </div>
         </div>
         <style>{`@media(max-width:900px){.hero-diag-grid{grid-template-columns:1fr!important;}}`}</style>
+      </section>
+
+      {/* ── ЦИКЛ: НЕ ТЕСТ, А НАВИГАТОР ──────────────────────────────────────── */}
+      <section style={{ background: "#fff", padding: "100px 32px" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <div style={{ maxWidth: 720, marginBottom: 56 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase" as const, letterSpacing: "2.5px", marginBottom: 16 }}>Не тест, а навигатор</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,4vw,46px)", fontWeight: 500, color: DARK, margin: "0 0 16px", lineHeight: 1.15 }}>
+              ИИ работает над вашей целью каждый день
+            </h2>
+            <p style={{ fontSize: 15.5, color: "#64748B", lineHeight: 1.75, margin: 0, fontWeight: 300 }}>
+              Диагностика — это точка входа, а не разовый отчёт. Дальше запускается замкнутый цикл: салон движется к цели, а ИИ каждый день сверяет результат и подсказывает следующий шаг.
+            </p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0", borderRadius: 4, overflow: "hidden" }} className="cycle-grid">
+            {CYCLE_STEPS.map(({ icon, title, desc }, i) => (
+              <div key={i} style={{ background: "#F8FAFC", padding: "26px 18px", position: "relative" }}>
+                <div style={{ width: 34, height: 34, borderRadius: 9, background: "rgba(45,212,191,0.1)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+                  <Icon name={icon} size={16} style={{ color: TEAL }} />
+                </div>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: DARK, marginBottom: 6 }}>{title}</div>
+                <div style={{ fontSize: 11.5, color: "#64748B", lineHeight: 1.5 }}>{desc}</div>
+                {i < CYCLE_STEPS.length - 1 && (
+                  <div style={{ position: "absolute", top: 38, right: -9, width: 18, height: 18, borderRadius: "50%", background: "#fff", border: "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }} className="cycle-arrow">
+                    <Icon name="ArrowRight" size={10} style={{ color: "#94A3B8" }} />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#94A3B8" }}>
+            <Icon name="RotateCw" size={14} style={{ color: TEAL }} />
+            Цикл повторяется — чем дольше вы им пользуетесь, тем точнее становятся рекомендации.
+          </div>
+        </div>
+        <style>{`
+          @media(max-width:1000px){.cycle-grid{grid-template-columns:repeat(3,1fr)!important;}.cycle-arrow{display:none;}}
+          @media(max-width:560px){.cycle-grid{grid-template-columns:1fr 1fr!important;}}
+        `}</style>
       </section>
 
       {/* ── МАТЕМАТИКА ──────────────────────────────────────────────────────── */}
@@ -239,6 +291,87 @@ export default function Diagnostika() {
         <style>{`@media(max-width:900px){.get-grid{grid-template-columns:1fr 1fr!important;}}@media(max-width:540px){.get-grid{grid-template-columns:1fr!important;}}`}</style>
       </section>
 
+      {/* ── ПОЧЕМУ ИИ РЕКОМЕНДУЕТ ИМЕННО ЭТО ─────────────────────────────────── */}
+      <section style={{ background: "#fff", padding: "100px 32px" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }} className="why-grid">
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase" as const, letterSpacing: "2.5px", marginBottom: 20 }}>Доверие к рекомендациям</div>
+              <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,4vw,46px)", fontWeight: 500, color: DARK, margin: "0 0 20px", lineHeight: 1.15 }}>
+                ИИ объясняет,<br />почему рекомендует именно это
+              </h2>
+              <p style={{ fontSize: 16, color: "#475569", lineHeight: 1.75, margin: "0 0 28px", fontWeight: 300 }}>
+                Не абстрактный совет, а видимая связь между вашими данными и предложенным действием. Вы всегда понимаете, откуда взялась рекомендация — и можете ей доверять.
+              </p>
+              <Link to="/cabinet?tab=register" style={{
+                display: "inline-flex", alignItems: "center", gap: 8,
+                padding: "14px 28px", borderRadius: 2,
+                background: `linear-gradient(135deg,${TEAL},${TEAL2})`,
+                color: DARK, fontSize: 15, fontWeight: 700,
+                textDecoration: "none", boxShadow: "0 6px 20px rgba(45,212,191,0.3)",
+              }}>
+                Начать диагностику <Icon name="ArrowRight" size={16} />
+              </Link>
+            </div>
+            <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 12, padding: "28px 26px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Icon name="MessageCircleQuestion" size={16} style={{ color: TEAL }} />
+                </div>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: DARK }}>Почему сегодня — работа с возвратом клиентов?</div>
+              </div>
+              <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.75, margin: 0 }}>
+                За последние 14 дней у вас появилось <strong style={{ color: DARK }}>86 новых клиентов</strong>, но только <strong style={{ color: DARK }}>41%</strong> записались повторно. При вашем среднем чеке рост повторной записи всего на 7% может добавить около <strong style={{ color: TEAL }}>56 000 ₽</strong> в месяц.
+              </p>
+            </div>
+          </div>
+        </div>
+        <style>{`@media(max-width:900px){.why-grid{grid-template-columns:1fr!important;}}`}</style>
+      </section>
+
+      {/* ── AI НЕ ТОЛЬКО СОВЕТУЕТ, НО И ДЕЛАЕТ ───────────────────────────────── */}
+      <section style={{ background: "#F8FAFC", padding: "100px 32px" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <div style={{ maxWidth: 720, marginBottom: 48 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase" as const, letterSpacing: "2.5px", marginBottom: 16 }}>Не только совет</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,4vw,46px)", fontWeight: 500, color: DARK, margin: "0 0 16px", lineHeight: 1.15 }}>
+              AI не просто советует — AI выполняет
+            </h2>
+            <p style={{ fontSize: 15.5, color: "#64748B", lineHeight: 1.75, margin: 0, fontWeight: 300 }}>
+              Рядом с каждой рекомендацией — кнопка «Сделать». Инструменты платформы сами переводят совет в готовое действие.
+            </p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 24, alignItems: "center" }} className="do-grid">
+            <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, padding: "22px 24px" }}>
+              <div style={{ fontSize: 11, color: TEAL, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 10 }}>Рекомендация</div>
+              <div style={{ fontSize: 15, color: DARK, fontWeight: 600, lineHeight: 1.5 }}>Нужно вернуть 27 клиентов, которые не были 60+ дней</div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <Icon name="ArrowRight" size={22} style={{ color: TEAL }} className="do-arrow" />
+            </div>
+            <div style={{ background: DARK, borderRadius: 12, padding: "22px 24px" }}>
+              <div style={{ fontSize: 11, color: TEAL, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 10 }}>Promt Dialog делает сам</div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
+                {["Сегментирует клиентов", "Готовит предложение и несколько вариантов", "Пишет сообщения и сценарий администратора", "Формирует задачу и отслеживает результат"].map((t, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Icon name="Check" size={13} style={{ color: TEAL, flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.75)" }}>{t}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 40, fontSize: 13, color: "#94A3B8", maxWidth: 640, lineHeight: 1.7 }}>
+            Вам не нужно знать, какой именно AI-агент сейчас работает — генератор сообщений, скрипты продаж или анализ персонала. Вы видите только: <strong style={{ color: DARK }}>проблема → решение → действие → результат</strong>.
+          </div>
+        </div>
+        <style>{`
+          @media(max-width:800px){.do-grid{grid-template-columns:1fr!important;}.do-arrow{transform:rotate(90deg);}}
+        `}</style>
+      </section>
+
       {/* ── ЧТО ВЫ ПОЧУВСТВУЕТЕ ──────────────────────────────────────────── */}
       <section style={{ background: DARK, padding: "100px 32px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 800, height: 400, background: `radial-gradient(ellipse,rgba(45,212,191,0.06) 0%,transparent 65%)`, pointerEvents: "none" }} />
@@ -271,6 +404,56 @@ export default function Diagnostika() {
           </div>
         </div>
         <style>{`@media(max-width:900px){.feelings-grid{grid-template-columns:1fr 1fr!important;}}@media(max-width:500px){.feelings-grid{grid-template-columns:1fr!important;}}`}</style>
+      </section>
+
+      {/* ── PROMT SCORE ───────────────────────────────────────────────────────── */}
+      <section style={{ background: "#F8FAFC", padding: "100px 32px" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }} className="score-grid">
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase" as const, letterSpacing: "2.5px", marginBottom: 20 }}>Индекс здоровья салона</div>
+              <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,4vw,46px)", fontWeight: 500, color: DARK, margin: "0 0 20px", lineHeight: 1.15 }}>
+                Один показатель — вся картина бизнеса
+              </h2>
+              <p style={{ fontSize: 16, color: "#475569", lineHeight: 1.75, margin: "0 0 20px", fontWeight: 300 }}>
+                Не десятки графиков, а единый <strong style={{ color: DARK }}>PROMT SCORE</strong> из пяти составляющих. ИИ прямо говорит, что сейчас ограничивает рост, и как индекс меняется со временем.
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 10, maxWidth: 440 }}>
+                <Icon name="Lightbulb" size={16} style={{ color: TEAL, flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: "#334155" }}>Главное ограничение роста сейчас — <strong style={{ color: DARK }}>маркетинг</strong></span>
+              </div>
+            </div>
+
+            <div style={{ background: DARK, borderRadius: 16, padding: "32px 28px", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: -40, right: -40, width: 220, height: 220, background: "radial-gradient(circle,rgba(45,212,191,0.1) 0%,transparent 65%)", pointerEvents: "none" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 26, position: "relative" }}>
+                <div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: 6 }}>PROMT SCORE</div>
+                  <div style={{ fontFamily: SERIF, fontSize: 44, fontWeight: 600, color: TEAL, lineHeight: 1 }}>72</div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(45,212,191,0.12)", border: "1px solid rgba(45,212,191,0.3)", borderRadius: 20, padding: "6px 12px" }}>
+                  <Icon name="TrendingUp" size={13} style={{ color: TEAL }} />
+                  <span style={{ fontSize: 12, color: TEAL, fontWeight: 700 }}>+7 за месяц</span>
+                </div>
+              </div>
+              {SCORE_ITEMS.map(({ label, val, color }) => (
+                <div key={label} style={{ marginBottom: 14, position: "relative" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                    <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.65)" }}>{label}</span>
+                    <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.5)" }}>{val}</span>
+                  </div>
+                  <div style={{ height: 6, background: "rgba(255,255,255,0.08)", borderRadius: 10 }}>
+                    <div style={{ height: "100%", width: `${val}%`, background: color, borderRadius: 10 }} />
+                  </div>
+                </div>
+              ))}
+              <div style={{ marginTop: 18, fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
+                Чем дольше вы пользуетесь навигатором, тем точнее ИИ понимает именно ваш салон — и тем сильнее растёт индекс.
+              </div>
+            </div>
+          </div>
+        </div>
+        <style>{`@media(max-width:900px){.score-grid{grid-template-columns:1fr!important;}}`}</style>
       </section>
 
       {/* ── КАК НАЧАТЬ ──────────────────────────────────────────────────────── */}
@@ -308,9 +491,9 @@ export default function Diagnostika() {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "2px", marginBottom: 8 }}>Без оплаты</div>
-              <h3 style={{ fontFamily: SERIF, fontSize: "clamp(22px,2.5vw,32px)", fontWeight: 500, color: "#fff", margin: "0 0 8px", lineHeight: 1.2 }}>Получить план — бесплатно</h3>
+              <h3 style={{ fontFamily: SERIF, fontSize: "clamp(22px,2.5vw,32px)", fontWeight: 500, color: "#fff", margin: "0 0 8px", lineHeight: 1.2 }}>Подключить AI-навигатор — бесплатно</h3>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, margin: 0, maxWidth: 520 }}>
-                Пройдите диагностику и получите план роста дохода без оплаты — дальше можно пополнить баланс энергии для других инструментов: скрипты для администратора, ответы на отзывы, контент для соцсетей и многое другое.
+                Пройдите диагностику и получите первый план роста дохода без оплаты — дальше ИИ продолжит вести салон к цели каждый день. Инструменты платформы (скрипты, ответы на отзывы, контент) доступны через баланс энергии.
               </p>
             </div>
             <Link to="/cabinet?tab=register" style={{
@@ -339,10 +522,10 @@ export default function Diagnostika() {
               <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" as const }}>Бесплатно · Без карты</span>
             </div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(38px,5vw,64px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", lineHeight: 1.08 }}>
-              Узнайте потенциал<br />вашего салона сейчас
+              Поставьте цель —<br />получите навигатор к ней
             </h2>
             <p style={{ fontSize: "clamp(15px,1.5vw,17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.75, margin: "0 0 40px", fontWeight: 300 }}>
-              Зарегистрируйтесь, добавьте салон — и через 10 минут получите математически точную картину: где потенциал роста и что делать первым.
+              Зарегистрируйтесь, добавьте салон и цель — через 10 минут получите диагностику и первый план. Дальше ИИ каждый день будет подсказывать следующий шаг к результату.
             </p>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" as const, marginBottom: 40 }}>
               <Link to="/cabinet?tab=register" style={{
@@ -353,11 +536,11 @@ export default function Diagnostika() {
                 textDecoration: "none", boxShadow: "0 12px 40px rgba(45,212,191,0.4)",
               }}>
                 <Icon name="Zap" size={20} />
-                Пройти диагностику бесплатно
+                Начать бесплатную диагностику
               </Link>
             </div>
             <div style={{ display: "flex", gap: 32, flexWrap: "wrap" as const }}>
-              {[["Бесплатно","навсегда"],["Без карты","и обязательств"],["10 минут","до результата"]].map(([v, l], i) => (
+              {[["Бесплатно","навсегда"],["Каждый день","новый шаг от ИИ"],["10 минут","до первого плана"]].map(([v, l], i) => (
                 <div key={i}>
                   <div style={{ fontSize: 14, color: "#fff", fontWeight: 600 }}>{v}</div>
                   <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{l}</div>
