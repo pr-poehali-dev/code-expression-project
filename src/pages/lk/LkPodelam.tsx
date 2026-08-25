@@ -6,7 +6,7 @@ import SalonAIAgent from "./SalonAIAgent";
 import { ACCENT, ACCENT_DARK, PODELAM_URL, PODELAM_FAST_URL, sid, PodelamData, StatsData, fmt, TOPIC_KEY_BY_NAV } from "./podelamShared";
 import DiagnosticForm from "./PodelamDiagnosticForm";
 import InfoModal from "./PodelamInfoModal";
-import { DailyIncomeCard, StatsSection } from "./PodelamWidgets";
+import { DailyIncomeCard, StatsSection, SalonGoalsCard } from "./PodelamWidgets";
 import { isPodelamTrial, getPodelamTrialData, clearPodelamTrial } from "@/lib/podelamTrial";
 
 // ── Главный экран ПоДелам ──────────────────────────────────────────────────────
@@ -141,7 +141,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
     );
   }
 
-  const { profile, growth_points = [], gap_amount = 0, plan, task_log = {}, salon_profile_filled } = data;
+  const { profile, growth_points = [], gap_amount = 0, plan, task_log = {}, salon_profile_filled, salon_goals, goals_progress } = data;
   const showSalonReminder = salon_profile_filled === false;
   const progress = profile ? Math.min(100, Math.round((profile.current_revenue / profile.target_revenue) * 100)) : 0;
   const tasks = plan?.tasks || [];
@@ -271,6 +271,16 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
             </div>
           )}
         </div>
+      )}
+
+      {/* Цели салона и прогресс по ним */}
+      {salon_goals && salon_goals.length > 0 && (
+        <SalonGoalsCard
+          goals={salon_goals}
+          progress={goals_progress}
+          addressedToday={plan?.addressed_goals || []}
+          onNav={onNav}
+        />
       )}
 
       {/* Доход за сегодня */}

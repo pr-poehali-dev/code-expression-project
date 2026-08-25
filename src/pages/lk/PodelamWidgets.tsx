@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
-import { ACCENT, ACCENT_DARK, StatsData, fmt } from "./podelamShared";
+import { ACCENT, ACCENT_DARK, StatsData, GoalProgress, fmt } from "./podelamShared";
 
 interface DailyIncomeCardProps {
   savedAmount: number | null | undefined;
@@ -118,6 +118,93 @@ export function DailyIncomeCard({ savedAmount, savedNewClients, savedReturnedCli
           .podelam-income-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
+    </div>
+  );
+}
+
+// ── Карточка «Цели салона» — выбранные цели + прогресс по ним за 14 дней ────────
+const GOAL_ICON: Record<string, string> = {
+  "Увеличить выручку": "TrendingUp",
+  "Увеличить средний чек": "Receipt",
+  "Привлечь новых клиентов": "UserPlus",
+  "Удержать и вернуть клиентов": "Heart",
+  "Снизить текучку мастеров": "Users",
+  "Масштабировать сеть / открыть филиал": "Building2",
+  "Навести порядок в управлении": "ClipboardCheck",
+};
+
+interface SalonGoalsCardProps {
+  goals: string[];
+  progress: GoalProgress[] | null | undefined;
+  addressedToday: string[];
+  onNav: (t: string) => void;
+}
+
+export function SalonGoalsCard({ goals, progress, addressedToday, onNav }: SalonGoalsCardProps) {
+  if (!goals.length) return null;
+  const progressByGoal = new Map((progress || []).map(p => [p.goal, p]));
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Icon name="Flag" size={16} style={{ color: ACCENT }} />
+          <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>Цели салона</span>
+        </div>
+        <button
+          onClick={() => onNav("salon")}
+          style={{ fontSize: 11.5, fontWeight: 600, color: "#94A3B8", background: "none", border: "none", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+        >
+          Изменить
+        </button>
+      </div>
+      <div style={{ fontSize: 13, color: "#64748B", marginBottom: 16, lineHeight: 1.6 }}>
+        План на сегодня строится с учётом этих целей — отмечены те, на которые работают сегодняшние дела.
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {goals.map(goal => {
+          const gp = progressByGoal.get(goal);
+          const days = gp?.days_addressed ?? 0;
+          const period = gp?.period_days ?? 14;
+          const pct = Math.min(100, Math.round((days / period) * 100));
+          const activeToday = addressedToday.includes(goal);
+          return (
+            <div
+              key={goal}
+              style={{
+                padding: "12px 14px", borderRadius: 12,
+                background: activeToday ? "hsl(185,85%,96%)" : "#F8FAFC",
+                border: `1px solid ${activeToday ? "hsl(185,85%,80%)" : "#E8ECF0"}`,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <div style={{
+                  width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                  background: activeToday ? `hsla(185,85%,32%,0.14)` : "#EEF2F6",
+                }}>
+                  <Icon name={GOAL_ICON[goal] || "Target"} size={15} style={{ color: activeToday ? ACCENT : "#94A3B8" }} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 700, color: "#0F172A" }}>{goal}</div>
+                {activeToday && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10.5, fontWeight: 700, color: ACCENT, background: "#fff", border: `1px solid ${ACCENT}`, borderRadius: 20, padding: "3px 9px", flexShrink: 0, whiteSpace: "nowrap" }}>
+                    <Icon name="Check" size={10} />
+                    В плане сегодня
+                  </div>
+                )}
+              </div>
+              <div style={{ height: 6, borderRadius: 3, background: "#E2E8F0", overflow: "hidden", marginBottom: 6 }}>
+                <div style={{ height: "100%", width: `${pct}%`, borderRadius: 3, background: `linear-gradient(90deg,${ACCENT},${ACCENT_DARK})` }} />
+              </div>
+              <div style={{ fontSize: 11, color: "#94A3B8" }}>
+                {days > 0
+                  ? `Затронута в плане ${days} из последних ${period} дней`
+                  : "Пока не встречалась в плане за последние 14 дней"}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

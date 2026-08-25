@@ -59,17 +59,26 @@ export interface SalonFocusStaff {
   return_pct?: number | null;
 }
 
+export interface GoalProgress {
+  goal: string;
+  days_addressed: number;
+  period_days: number;
+  last_addressed_date: string | null;
+}
+
 export interface PodelamData {
   has_profile: boolean;
   profile?: Profile;
   growth_points?: GrowthPoint[];
   gap_amount?: number;
-  plan?: { tasks: Task[]; main_task_key: string | null; gap_amount: number; tomorrow_preview?: string; source?: string; salon_focus?: SalonFocusStaff | null } | null;
+  plan?: { tasks: Task[]; main_task_key: string | null; gap_amount: number; tomorrow_preview?: string; source?: string; salon_focus?: SalonFocusStaff | null; addressed_goals?: string[] } | null;
   task_log?: Record<string, { done: boolean; actual_amount: number | null }>;
   today_income?: number | null;
   today_new_clients?: number | null;
   today_returned_clients?: number | null;
   salon_profile_filled?: boolean | null;
+  salon_goals?: string[] | null;
+  goals_progress?: GoalProgress[] | null;
   energy_insufficient?: boolean;
   energy_balance?: number;
   energy_needed?: number;

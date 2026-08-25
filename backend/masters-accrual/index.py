@@ -128,6 +128,51 @@ def is_salon_profile_filled(conn, salon_id: int | None) -> bool:
     return bool(row and row[0] is not None and row[1] is not None)
 
 
+def get_salon_goals(conn, salon_id: int | None) -> list | None:
+    """Возвращает список стратегических целей салона (раздел «Мой салон»), если заполнены."""
+    if not salon_id:
+        return None
+    cur = conn.cursor()
+    cur.execute(f"SELECT goals FROM {SCHEMA}.salons WHERE id = %s", (salon_id,))
+    row = cur.fetchone()
+    if not row or not row[0]:
+        return None
+    goals = row[0]
+    if isinstance(goals, str):
+        try:
+            goals = json.loads(goals)
+        except (TypeError, ValueError):
+            return None
+    return goals if isinstance(goals, list) and goals else None
+
+
+# Эвристика, которой конкретные дела плана (по key/nav) соответствуют каждой цели салона —
+# используется как fallback, когда план строит не ИИ (ИИ сам явно указывает addressed_goals).
+GOAL_TASK_RULES = {
+    "Увеличить выручку": lambda t: (t.get("potential") or 0) > 0,
+    "Увеличить средний чек": lambda t: t.get("key") == "upsell" or t.get("nav") == "agent",
+    "Привлечь новых клиентов": lambda t: t.get("key") in ("content", "audience", "offers")
+        or str(t.get("nav") or "").startswith("marketing:"),
+    "Удержать и вернуть клиентов": lambda t: t.get("key") == "return_clients" or t.get("nav") == "clientmsg",
+    "Снизить текучку мастеров": lambda t: t.get("key") == "skill_up" or t.get("nav") == "employees",
+    "Масштабировать сеть / открыть филиал": lambda t: t.get("nav") == "employees",
+    "Навести порядок в управлении": lambda t: t.get("nav") in ("employees", "tools", "academy"),
+}
+
+
+def heuristic_addressed_goals(goals: list | None, tasks: list) -> list:
+    """Fallback-разметка: из выбранных целей салона возвращает те, на которые похоже
+    работает сегодняшний набор дел, судя по их key/nav."""
+    if not goals:
+        return []
+    result = []
+    for g in goals:
+        rule = GOAL_TASK_RULES.get(g)
+        if rule and any(rule(t) for t in tasks):
+            result.append(g)
+    return result
+
+
 # ── «ПоДелам» — навигатор дохода ────────────────────────────────────────────
 
 def extract_service_names(niche: str, addon_text: str, salon_services: list | None = None) -> list[str]:
@@ -496,6 +541,9 @@ PODELAM_SALON_MODE_PROMPT = """
 дело на nav: tools или academy про мотивацию/обучение команды; при цели «Масштабировать сеть» — дела про выстраивание \
 процессов и стандартов, а не разовые акции). Если целей несколько — за один день выбери 1-2 наиболее релевантные дню \
 цели, не пытайся закрыть все сразу. Если goals пуст — ориентируйся только на gap_amount и рост выручки, как обычно.
+- Заполни поле верхнего уровня "addressed_goals" — массив СТРОК, СТРОГО дословно взятых из salon_context.salon.goals, \
+на которые реально работает сегодняшний набор tasks (обычно 1-2 из выбранных владельцем целей). Если goals пуст — \
+верни пустой массив [].
 ════════════════════════════════════════════════
 """
 
@@ -591,7 +639,8 @@ new_clients — сколько пришло новых клиентов, returne
     {{"key": "тот_же_слаг_что_в_growth_points_или_content_или_skill_up_или_course", "title": "Название дела (2-4 слова)", "action_text": "Развёрнутая мини-инструкция 2-4 предложения с примером/вариантом и на что обратить внимание, с цифрами из диагностики (для tools/academy — назови конкретный тест или курс)", "button": "Текст кнопки перехода (2-4 слова)", "nav": "раздел_из_списка", "minutes": число_минут_на_выполнение, "potential": число_рублей_или_0, "topic_options": ["тема 1", "тема 2", "тема 3"] или null если nav не контентный, "why": "почему важно, 1-2 предложения" или null если nav не tools/academy}}
   ],
   "main_task_key": "key дела с наибольшим приоритетом на сегодня",
-  "tomorrow_preview": "Тёплый анонс на завтра, 2-3 предложения"
+  "tomorrow_preview": "Тёплый анонс на завтра, 2-3 предложения",
+  "addressed_goals": ["строки дословно из salon_context.salon.goals, на которые работает план сегодня, или [] если salon_context не передан либо goals пуст"]
 }}
 
 Правила по числам: potential — целые рубли, реалистичные исходя из среднего чека и базы клиентов, никогда не превышай \
@@ -701,8 +750,10 @@ def handle_podelam_get(event: dict, conn) -> dict:
     # именно эти данные подмешиваются в план. Проверяем только для владельца/администратора,
     # чтобы показать напоминание заполнить профиль, пока план строится по анкете ПоДелам.
     salon_profile_filled = None
+    salon_goals = None
     if role in ("owner", "admin") and salon_id:
         salon_profile_filled = is_salon_profile_filled(conn, salon_id)
+        salon_goals = get_salon_goals(conn, salon_id)
 
     gap = float(profile["target_revenue"]) - float(profile["current_revenue"])
     fallback_points = build_growth_points(profile)
@@ -821,6 +872,14 @@ def handle_podelam_get(event: dict, conn) -> dict:
             main_key = ai_result.get("main_task_key") or (tasks[0]["key"] if tasks else None)
             tomorrow_preview = ai_result.get("tomorrow_preview") or default_preview
             source = "ai"
+            addressed_goals = ai_result.get("addressed_goals") or []
+            if not isinstance(addressed_goals, list):
+                addressed_goals = []
+            # Подстраховка: оставляем только те цели, которые реально есть в списке владельца,
+            # и если ИИ ничего не вернул — считаем эвристикой по key/nav дел.
+            addressed_goals = [g for g in addressed_goals if salon_goals and g in salon_goals]
+            if not addressed_goals:
+                addressed_goals = heuristic_addressed_goals(salon_goals, tasks)
         else:
             points = fallback_points
             tasks = build_today_tasks(points, day_seed=today.toordinal(), profile=dict(profile), is_first_plan=is_first_plan,
@@ -828,19 +887,21 @@ def handle_podelam_get(event: dict, conn) -> dict:
             main_key = tasks[0]["key"] if tasks else None
             tomorrow_preview = default_preview
             source = "rules"
+            addressed_goals = heuristic_addressed_goals(salon_goals, tasks)
 
         salon_focus = salon_context.get("focus_staff") if salon_context else None
 
         cur2 = conn.cursor()
         cur2.execute(
             f"""INSERT INTO {SCHEMA}.podelam_daily_plans
-                (user_id, plan_date, main_task_key, gap_amount, tasks, tomorrow_preview, source, growth_points, salon_focus)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (user_id, plan_date, main_task_key, gap_amount, tasks, tomorrow_preview, source, growth_points, salon_focus, addressed_goals)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (user_id, plan_date) DO NOTHING
                 RETURNING *""",
             (user["id"], today, main_key, gap, json.dumps(tasks, ensure_ascii=False),
              tomorrow_preview, source, json.dumps(points, ensure_ascii=False),
-             json.dumps(salon_focus, ensure_ascii=False) if salon_focus else None)
+             json.dumps(salon_focus, ensure_ascii=False) if salon_focus else None,
+             json.dumps(addressed_goals, ensure_ascii=False) if addressed_goals else None)
         )
         cur2.fetchone()
         if salon_id and not is_first_plan:
@@ -849,13 +910,15 @@ def handle_podelam_get(event: dict, conn) -> dict:
         plan = {
             "tasks": tasks, "main_task_key": main_key, "gap_amount": gap,
             "plan_date": str(today), "tomorrow_preview": tomorrow_preview, "source": source,
-            "salon_focus": salon_focus,
+            "salon_focus": salon_focus, "addressed_goals": addressed_goals,
         }
         growth_points = points
     else:
         plan = dict(plan_row)
         saved_points = plan.get("growth_points")
         growth_points = saved_points if saved_points else fallback_points
+        if plan.get("addressed_goals") is None:
+            plan["addressed_goals"] = []
         if not plan.get("tomorrow_preview"):
             plan["tomorrow_preview"] = default_preview
             cur_fix = conn.cursor()
@@ -880,6 +943,36 @@ def handle_podelam_get(event: dict, conn) -> dict:
     today_new_clients = income_row["new_clients"] if income_row else None
     today_returned_clients = income_row["returned_clients"] if income_row else None
 
+    # Прогресс по целям салона за последние 14 дней: по скольким дням план явно работал
+    # на каждую выбранную цель (addressed_goals каждого дня) — простая, наглядная метрика.
+    goals_progress = None
+    if salon_goals:
+        cur.execute(
+            f"""SELECT plan_date, addressed_goals FROM {SCHEMA}.podelam_daily_plans
+                WHERE user_id = %s AND plan_date >= %s AND plan_date <= %s""",
+            (user["id"], today - timedelta(days=13), today)
+        )
+        rows = cur.fetchall()
+        counts = {g: 0 for g in salon_goals}
+        last_dates: dict = {}
+        for r in rows:
+            ag = r["addressed_goals"]
+            if ag and not isinstance(ag, list):
+                try:
+                    ag = json.loads(ag)
+                except (TypeError, ValueError):
+                    ag = []
+            for g in (ag or []):
+                if g in counts:
+                    counts[g] += 1
+                    d = str(r["plan_date"])
+                    if g not in last_dates or d > last_dates[g]:
+                        last_dates[g] = d
+        goals_progress = [
+            {"goal": g, "days_addressed": counts[g], "period_days": 14, "last_addressed_date": last_dates.get(g)}
+            for g in salon_goals
+        ]
+
     return ok({
         "has_profile": True,
         "profile": dict(profile),
@@ -891,6 +984,8 @@ def handle_podelam_get(event: dict, conn) -> dict:
         "today_new_clients": today_new_clients,
         "today_returned_clients": today_returned_clients,
         "salon_profile_filled": salon_profile_filled,
+        "salon_goals": salon_goals,
+        "goals_progress": goals_progress,
     })
 
 
