@@ -1599,6 +1599,9 @@ def handle_content_daily_post(event: dict, conn) -> dict:
     return ok({"post": dict(row), "created": True})
 
 
+KNOWN_ACTIONS = {"podelam_get", "podelam_notify", "content_daily_post"}
+
+
 def handler(event: dict, context) -> dict:
     """«ПоДелам» — построение ИИ-плана дня в личном кабинете + автопубликация ежедневного поста в блог.
     Быстрые операции (сохранение диагностики, отметка дел, статистика, доход за день) вынесены
@@ -1608,6 +1611,13 @@ def handler(event: dict, context) -> dict:
 
     qs = event.get("queryStringParameters") or {}
     route_action = qs.get("action", "")
+
+    # Кто-то (внешний health-check/пинг) регулярно дёргает эту функцию без action или с
+    # неизвестным action — раньше в этом случае ВСЁ РАВНО открывалось подключение к БД
+    # ДО проверки route_action, впустую тратя вычислительное время на каждый такой запрос.
+    # Теперь для неизвестного action подключение к БД не открывается вообще.
+    if route_action not in KNOWN_ACTIONS:
+        return err("Неизвестное действие", 404)
 
     conn = get_db()
     try:
@@ -1620,7 +1630,5 @@ def handler(event: dict, context) -> dict:
         # ── Автопубликация ежедневного поста в блог ───────────────────────────
         if route_action == "content_daily_post":
             return handle_content_daily_post(event, conn)
-
-        return err("Неизвестное действие", 404)
     finally:
         conn.close()
