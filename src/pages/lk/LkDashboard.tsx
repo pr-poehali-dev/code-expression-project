@@ -118,7 +118,7 @@ export default function LkDashboard() {
         {tab === "shop"       && <LkEnergy />}
         {tab === "employees" && <LkTeam />}
         {tab === "purchases" && <LkEnergy />}
-        {tab === "salon"     && <LkSalonProfile onSaved={() => handleTabChange("home")} onGoToSeo={() => handleTabChange("marketing")} />}
+        {tab === "salon"     && <LkSalonProfile onSaved={() => handleTabChange("home")} onGoToSeo={() => handleTabChange("marketing")} onOpenDiagnostic={() => { sessionStorage.setItem("lk_ai_tool_pending", "salon-diag"); handleTabChange("ai"); }} />}
         {tab === "profile"   && <LkProfile />}
         {tab === "support"   && <LkSupport />}
         {tab === "body"      && <LkBodyMap />}

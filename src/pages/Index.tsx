@@ -3,6 +3,7 @@ import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import IndexHero from "@/pages/index/IndexHero";
 import IndexDemoForm from "@/pages/index/IndexDemoForm";
+import IndexDiagBanner from "@/pages/index/IndexDiagBanner";
 import IndexPlatform from "@/pages/index/IndexPlatform";
 import IndexBottom from "@/pages/index/IndexBottom";
 
@@ -31,6 +32,7 @@ export default function Index() {
       <BizNavbar />
       <IndexHero />
       <IndexDemoForm />
+      <IndexDiagBanner />
       <IndexPlatform />
       <IndexBottom />
       <BizFooter />

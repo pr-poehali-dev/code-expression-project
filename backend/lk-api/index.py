@@ -1946,6 +1946,9 @@ def handle_salon_profile_save(event: dict) -> dict:
 
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
+        goals = body.get("goals")
+        goals_json = json.dumps(goals, ensure_ascii=False) if goals else None
+
         salon_id = user.get("salon_id")
         if salon_id:
             cur.execute(
@@ -1954,7 +1957,7 @@ def handle_salon_profile_save(event: dict) -> dict:
                     avg_check=%s, monthly_revenue=%s, clients_count=%s, masters_count=%s,
                     target_audience=%s, tone_of_voice=%s,
                     social_instagram=%s, social_vk=%s, social_telegram=%s, main_goal=%s,
-                    has_medical_license=%s, website_url=%s,
+                    has_medical_license=%s, website_url=%s, goals=%s,
                     updated_at=NOW()
                 WHERE id=%s""",
                 (
@@ -1967,6 +1970,7 @@ def handle_salon_profile_save(event: dict) -> dict:
                     body.get("main_goal"),
                     bool(body.get("has_medical_license", False)),
                     body.get("website_url") or None,
+                    goals_json,
                     salon_id,
                 )
             )
@@ -1977,8 +1981,8 @@ def handle_salon_profile_save(event: dict) -> dict:
                      avg_check, monthly_revenue, clients_count, masters_count,
                      target_audience, tone_of_voice,
                      social_instagram, social_vk, social_telegram, main_goal,
-                     has_medical_license, website_url)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
+                     has_medical_license, website_url, goals)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id""",
                 (
                     user["id"], name,
                     body.get("city"), body.get("address"), body.get("description"),
@@ -1989,6 +1993,7 @@ def handle_salon_profile_save(event: dict) -> dict:
                     body.get("main_goal"),
                     bool(body.get("has_medical_license", False)),
                     body.get("website_url") or None,
+                    goals_json,
                 )
             )
             salon_id = cur.fetchone()["id"]

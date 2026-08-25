@@ -1,5 +1,5 @@
 import Icon from "@/components/ui/icon";
-import { ACCENT, TONE_OPTIONS, SalonForm, Service, Section, Field, inputStyle } from "./SalonProfileTypes";
+import { ACCENT, TONE_OPTIONS, GOAL_OPTIONS, SalonForm, Service, Section, Field, inputStyle } from "./SalonProfileTypes";
 
 // ── Логотип ───────────────────────────────────────────────────────────────────
 
@@ -157,8 +157,40 @@ interface MarketingSectionProps {
 }
 
 export function MarketingSection({ form, f, setForm, seoStatus, seoScore, onGoToSeo }: MarketingSectionProps) {
+  function toggleGoal(goal: string) {
+    setForm(p => ({
+      ...p,
+      goals: p.goals.includes(goal) ? p.goals.filter(g => g !== goal) : [...p.goals, goal],
+    }));
+  }
+
   return (
     <Section title="Маркетинг и позиционирование" icon="Megaphone">
+      <Field label="Цели салона" hint="Можно выбрать несколько — ИИ «ПоДелам» будет строить план с учётом этих целей">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {GOAL_OPTIONS.map(goal => {
+            const active = form.goals.includes(goal);
+            return (
+              <button
+                key={goal}
+                type="button"
+                onClick={() => toggleGoal(goal)}
+                style={{
+                  fontSize: 12, padding: "7px 13px", borderRadius: 8,
+                  border: `1.5px solid ${active ? ACCENT : "#e0e0db"}`,
+                  background: active ? `hsla(185,85%,32%,0.08)` : "#fff",
+                  color: active ? ACCENT : "#666",
+                  fontWeight: active ? 700 : 400, cursor: "pointer", fontFamily: "Montserrat,sans-serif",
+                  display: "flex", alignItems: "center", gap: 6,
+                }}
+              >
+                {active && <Icon name="Check" size={12} />}
+                {goal}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
       <Field label="Целевая аудитория" hint="Кто ваши клиенты? Возраст, стиль жизни, ценности">
         <textarea style={{ ...inputStyle, resize: "vertical", minHeight: 68 }} value={form.target_audience} onChange={e => f("target_audience", e.target.value)} placeholder="Женщины 25-45 лет, средний+ и премиум сегмент, ценят качество и индивидуальный подход..." />
       </Field>

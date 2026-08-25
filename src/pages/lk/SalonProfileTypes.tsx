@@ -5,6 +5,16 @@ export const ACCENT_DARK = "hsl(185,85%,24%)";
 
 export const TONE_OPTIONS = ["Тёплый и дружелюбный", "Профессиональный и экспертный", "Люксовый и статусный", "Молодёжный и энергичный"];
 
+export const GOAL_OPTIONS = [
+  "Увеличить выручку",
+  "Увеличить средний чек",
+  "Привлечь новых клиентов",
+  "Удержать и вернуть клиентов",
+  "Снизить текучку мастеров",
+  "Масштабировать сеть / открыть филиал",
+  "Навести порядок в управлении",
+];
+
 export interface Service { id?: number; name: string; price_min: string; price_max: string; duration_min: string; }
 
 export interface SalonForm {
@@ -14,6 +24,7 @@ export interface SalonForm {
   social_instagram: string; social_vk: string; social_telegram: string; main_goal: string;
   has_medical_license: boolean;
   website_url: string;
+  goals: string[];
 }
 
 export const EMPTY_FORM: SalonForm = {
@@ -23,6 +34,7 @@ export const EMPTY_FORM: SalonForm = {
   social_instagram: "", social_vk: "", social_telegram: "", main_goal: "",
   has_medical_license: false,
   website_url: "",
+  goals: [],
 };
 
 export function draftKey(userId: number) { return `lk_salon_draft_${userId}`; }

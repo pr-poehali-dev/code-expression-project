@@ -345,7 +345,7 @@ def build_salon_context(conn, salon_id: int, day_seed: int) -> dict | None:
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         f"""SELECT name, city, avg_check, monthly_revenue, clients_count, masters_count,
-                   target_audience, main_goal
+                   target_audience, main_goal, goals
             FROM {SCHEMA}.salons WHERE id = %s""",
         (salon_id,)
     )
@@ -400,6 +400,13 @@ def build_salon_context(conn, salon_id: int, day_seed: int) -> dict | None:
             "service_score": focus_row["service_score"], "has_sales_script": focus_row["has_sales_script"],
         }
 
+    raw_goals = salon["goals"]
+    if raw_goals and not isinstance(raw_goals, list):
+        try:
+            raw_goals = json.loads(raw_goals)
+        except (TypeError, ValueError):
+            raw_goals = None
+
     return {
         "salon": {
             "name": salon["name"], "city": salon["city"],
@@ -407,6 +414,7 @@ def build_salon_context(conn, salon_id: int, day_seed: int) -> dict | None:
             "monthly_revenue": float(salon["monthly_revenue"]) if salon["monthly_revenue"] else None,
             "clients_count": salon["clients_count"], "masters_count": salon["masters_count"],
             "target_audience": salon["target_audience"] or None, "main_goal": salon["main_goal"] or None,
+            "goals": raw_goals or None,
         },
         "services": services,
         "staff_list": staff_list,
@@ -482,6 +490,12 @@ PODELAM_SALON_MODE_PROMPT = """
 в staff_list.
 - Приоритет данных: если salon_context.salon содержит monthly_revenue/avg_check — используй их как более точные \
 и актуальные, чем ручная диагностика профиля, но саму цель (target_revenue) и разрыв (gap_amount) бери из диагностики.
+- Если salon_context.salon.goals заполнен (список стратегических целей владельца, например «Увеличить средний чек», \
+«Снизить текучку мастеров», «Масштабировать сеть») — это ПРИОРИТЕТ при выборе, какие дела включать в план. Выбирай \
+и формулируй дела так, чтобы они явно работали на эти цели (например, при цели «Снизить текучку мастеров» уместно \
+дело на nav: tools или academy про мотивацию/обучение команды; при цели «Масштабировать сеть» — дела про выстраивание \
+процессов и стандартов, а не разовые акции). Если целей несколько — за один день выбери 1-2 наиболее релевантные дню \
+цели, не пытайся закрыть все сразу. Если goals пуст — ориентируйся только на gap_amount и рост выручки, как обычно.
 ════════════════════════════════════════════════
 """
 

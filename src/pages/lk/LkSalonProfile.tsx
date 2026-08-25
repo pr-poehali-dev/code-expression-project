@@ -4,11 +4,11 @@ import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
 import { ACCENT, ACCENT_DARK, SalonForm, Service, EMPTY_FORM, loadDraft, saveDraft, clearDraft } from "./SalonProfileTypes";
 import { LogoSection, BasicSection, ServicesSection, FinanceSection, MarketingSection } from "./SalonProfileSections";
-import { GiftBanner, DraftRestoredBanner } from "./SalonProfileBanners";
+import { GiftBanner, DraftRestoredBanner, DiagnosticBanner } from "./SalonProfileBanners";
 
 const SEO_ANALYZER_URL = "https://functions.poehali.dev/3603658f-6f23-4de6-b671-73bb1832b4e0";
 
-export default function LkSalonProfile({ onSaved, onGoToSeo }: { onSaved?: () => void; onGoToSeo?: () => void }) {
+export default function LkSalonProfile({ onSaved, onGoToSeo, onOpenDiagnostic }: { onSaved?: () => void; onGoToSeo?: () => void; onOpenDiagnostic?: () => void }) {
   const { user } = useLkAuth();
   const uid = user?.id ?? 0;
   const draft = loadDraft(uid);
@@ -50,6 +50,7 @@ export default function LkSalonProfile({ onSaved, onGoToSeo }: { onSaved?: () =>
           main_goal:       String(s.main_goal || ""),
           has_medical_license: Boolean(s.has_medical_license),
           website_url:     String(s.website_url || ""),
+          goals:           Array.isArray(s.goals) ? s.goals as string[] : [],
         });
         setLogoUrl(s.logo_url ? String(s.logo_url) : null);
       }
@@ -199,6 +200,14 @@ export default function LkSalonProfile({ onSaved, onGoToSeo }: { onSaved?: () =>
           <span style={{ fontSize: 11, color: "#aaa" }}>Данные профиля используются только внутри вашего кабинета и не передаются третьим лицам.</span>
         </div>
       </div>
+
+      {/* Диагностика роста салона PRO — доступна, если заполнены ключевые показатели */}
+      {onOpenDiagnostic && (
+        <DiagnosticBanner
+          ready={!!(form.name.trim() && form.avg_check && form.monthly_revenue)}
+          onOpen={onOpenDiagnostic}
+        />
+      )}
 
       {/* Баннер подарка для нового пользователя */}
       {isNew && !hasDraft && <GiftBanner />}

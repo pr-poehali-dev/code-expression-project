@@ -1,6 +1,56 @@
 import { SalonForm, EMPTY_FORM, clearDraft } from "./SalonProfileTypes";
 import Icon from "@/components/ui/icon";
 
+// ── Баннер бесплатной диагностики роста салона ───────────────────────────────
+
+const DIAG_ACCENT = "hsl(335,80%,50%)";
+const DIAG_ACCENT_DARK = "hsl(335,80%,38%)";
+
+export function DiagnosticBanner({ ready, onOpen }: { ready: boolean; onOpen: () => void }) {
+  if (!ready) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 20px", borderRadius: 16, background: "#F8FAFC", border: "1.5px dashed #CBD5E1", marginBottom: 24 }}>
+        <div style={{ width: 40, height: 40, borderRadius: 10, background: "#E2E8F0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Icon name="Scissors" size={18} style={{ color: "#94A3B8" }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: "#334155" }}>Диагностика роста салона PRO — бесплатно</div>
+          <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>
+            Заполните название, средний чек и выручку ниже — и диагностика откроется автоматически.
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 16, padding: "20px 24px", borderRadius: 16,
+      background: `linear-gradient(135deg, ${DIAG_ACCENT}, ${DIAG_ACCENT_DARK})`, marginBottom: 24,
+      boxShadow: `0 10px 30px ${DIAG_ACCENT}33`, flexWrap: "wrap",
+    }}>
+      <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Icon name="Scissors" size={22} style={{ color: "#fff" }} />
+      </div>
+      <div style={{ flex: 1, minWidth: 200 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>Диагностика роста салона PRO</div>
+          <span style={{ fontSize: 9, fontWeight: 700, background: "rgba(255,255,255,0.2)", color: "#fff", borderRadius: 4, padding: "2px 7px", letterSpacing: 0.5, textTransform: "uppercase" }}>бесплатно</span>
+        </div>
+        <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>
+          Поймите, где салон теряет деньги — и какие шаги приведут к вашим целям.
+        </div>
+      </div>
+      <button
+        onClick={onOpen}
+        style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 8, background: "#fff", color: DIAG_ACCENT_DARK, border: "none", borderRadius: 10, padding: "11px 20px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}
+      >
+        <Icon name="Sparkles" size={14} />
+        Открыть
+      </button>
+    </div>
+  );
+}
+
 // ── Баннер подарка для нового пользователя ───────────────────────────────────
 
 export function GiftBanner() {
