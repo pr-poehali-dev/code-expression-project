@@ -30,6 +30,10 @@ export default function DlyaShkol() {
         @media (max-width: 768px) {
           .compare-grid { grid-template-columns: 1fr !important; }
           .school-form-grid { grid-template-columns: 1fr !important; }
+          .championships-grid { grid-template-columns: repeat(3, 1fr) !important; }
+        }
+        @media (max-width: 480px) {
+          .championships-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
         @media (max-width: 640px) {
           .chain-flow > div > div { max-width: 100% !important; }

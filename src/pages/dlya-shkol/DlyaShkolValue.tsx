@@ -199,11 +199,13 @@ export default function DlyaShkolValue() {
             Выпускники могут представлять вашу школу в чемпионатах
           </h2>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 40 }}>
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${CHAMPIONSHIPS.length}, 1fr)`, gap: 14, marginBottom: 40 }} className="championships-grid">
             {CHAMPIONSHIPS.map(c => (
-              <div key={c} style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 6, padding: "20px 18px", display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 20 }}>🏆</span>
-                <span style={{ fontSize: 14, fontWeight: 600, color: DARK, textAlign: "left" }}>{c}</span>
+              <div key={c.title} style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 6, padding: "22px 16px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, textAlign: "center" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 4, background: "rgba(45,212,191,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon name={c.icon} size={19} style={{ color: TEAL }} />
+                </div>
+                <span style={{ fontSize: 13.5, fontWeight: 600, color: DARK, lineHeight: 1.4 }}>{c.title}</span>
               </div>
             ))}
           </div>
