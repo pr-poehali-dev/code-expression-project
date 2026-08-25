@@ -117,7 +117,7 @@ export default function DlyaShkolHero() {
 
       {/* ── 3. ЧТО ПРОИСХОДИТ ПОСЛЕ ОБУЧЕНИЯ ── */}
       <section style={{ padding: "88px 32px", background: "#F8FAFC" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", textAlign: "center" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 500, color: DARK, margin: "0 0 40px", lineHeight: 1.1 }}>
             Диплом — это только начало
           </h2>
@@ -143,7 +143,7 @@ export default function DlyaShkolHero() {
       {/* ── 4. ЧТО ПОЛУЧАЕТ ВЫПУСКНИК ── */}
       <section style={{ padding: "88px 32px", background: "#fff" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 56 }}>
+          <div style={{ marginBottom: 56 }}>
             <SectionLabel>Ценность для выпускника</SectionLabel>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,46px)", fontWeight: 500, color: DARK, margin: 0, lineHeight: 1.1 }}>Что получает выпускник</h2>
           </div>
@@ -165,18 +165,18 @@ export default function DlyaShkolHero() {
       {/* ── 5. КАК РАБОТАЕТ ИИ-НАВИГАТОР ── */}
       <section style={{ padding: "88px 32px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <div style={{ marginBottom: 48 }}>
             <SectionLabel>Не набор нейросетей, а система</SectionLabel>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 500, color: DARK, margin: "0 0 16px", lineHeight: 1.1 }}>
               Пользователю не нужно искать нужный инструмент
             </h2>
-            <p style={{ fontSize: 16, color: GRAY, maxWidth: 620, margin: "0 auto", lineHeight: 1.7 }}>
+            <p style={{ fontSize: 16, color: GRAY, maxWidth: 620, margin: 0, lineHeight: 1.7 }}>
               Например: «Хочу увеличить количество клиентов». ИИ анализирует профиль, цель, текущую ситуацию, предыдущие действия и точки роста.
             </p>
           </div>
 
           <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, padding: "40px 28px" }}>
-            <div style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 24, textAlign: "center" }}>После этого формирует маршрут</div>
+            <div style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 24 }}>После этого формирует маршрут</div>
             <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 0 }} className="navigator-steps">
               {NAVIGATOR_STEPS.map((s, i) => (
                 <div key={s} style={{ display: "flex", alignItems: "center" }}>

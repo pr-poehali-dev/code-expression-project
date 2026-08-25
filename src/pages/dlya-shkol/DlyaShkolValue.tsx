@@ -12,12 +12,12 @@ export default function DlyaShkolValue() {
       <section style={{ padding: "96px 32px", background: `linear-gradient(135deg, ${DARK} 0%, #0F2A30 100%)`, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: "-20%", right: "-10%", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.08) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ maxWidth: 900, margin: "0 auto", position: "relative" }}>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <div style={{ marginBottom: 48 }}>
             <div style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 20 }}>Главное преимущество</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(26px,3.5vw,42px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", lineHeight: 1.2 }}>
               Ваш курс может быть рекомендован именно тогда, когда он нужен выпускнику
             </h2>
-            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.55)", maxWidth: 620, margin: "0 auto", lineHeight: 1.7 }}>
+            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.55)", maxWidth: 620, margin: 0, lineHeight: 1.7 }}>
               Промт Диалог отслеживает цели и задачи пользователя. Когда для следующего этапа развития ему требуется новый навык, система может предложить подходящий курс партнерской школы.
             </p>
           </div>
@@ -58,13 +58,13 @@ export default function DlyaShkolValue() {
 
       {/* ── 7. ЭТО НЕ ПРОСТО РЕКЛАМА ── */}
       <section style={{ padding: "88px 32px", background: "#fff" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <SectionLabel>Целевой спрос, а не размещение</SectionLabel>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(26px,3.5vw,42px)", fontWeight: 500, color: DARK, margin: "0 0 40px", lineHeight: 1.1 }}>
             Не просто размещение. Целевой спрос
           </h2>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 40, textAlign: "left" }} className="compare-grid">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 40 }} className="compare-grid">
             <div style={{ background: "#FEF2F2", border: "1px solid #FECDD3", borderRadius: 6, padding: "28px 26px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
                 <Icon name="X" size={18} style={{ color: "#DC2626" }} />
@@ -81,7 +81,7 @@ export default function DlyaShkolValue() {
             </div>
           </div>
 
-          <div style={{ fontFamily: SERIF, fontSize: "clamp(19px,2.2vw,26px)", fontWeight: 500, color: DARK, lineHeight: 1.5, maxWidth: 680, margin: "0 auto" }}>
+          <div style={{ fontFamily: SERIF, fontSize: "clamp(19px,2.2vw,26px)", fontWeight: 500, color: DARK, lineHeight: 1.5, maxWidth: 680 }}>
             Мы не хотим просто показывать ваши курсы. Мы хотим приводить к ним пользователя тогда, когда у него возникает соответствующая потребность.
           </div>
         </div>
@@ -90,7 +90,7 @@ export default function DlyaShkolValue() {
       {/* ── 8. ВИТРИНА ШКОЛЫ ── */}
       <section style={{ padding: "88px 32px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <div style={{ marginBottom: 48 }}>
             <SectionLabel>Каталог обучения</SectionLabel>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 500, color: DARK, margin: 0, lineHeight: 1.1 }}>
               Ваша школа — внутри экосистемы Промт Диалог
@@ -138,7 +138,7 @@ export default function DlyaShkolValue() {
       {/* ── 9. СТАТИСТИКА ── */}
       <section style={{ padding: "88px 32px", background: "#fff" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <div style={{ marginBottom: 48 }}>
             <SectionLabel>Прозрачная аналитика</SectionLabel>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 500, color: DARK, margin: 0, lineHeight: 1.1 }}>
               Вы видите, что происходит с вашими выпускниками
@@ -170,14 +170,14 @@ export default function DlyaShkolValue() {
 
       {/* ── 10. РЕЙТИНГ ШКОЛ ── */}
       <section style={{ padding: "88px 32px", background: "#F8FAFC" }}>
-        <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
-          <div style={{ width: 56, height: 56, borderRadius: 14, background: "rgba(45,212,191,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
+        <div style={{ maxWidth: 800, margin: "0 auto" }}>
+          <div style={{ width: 56, height: 56, borderRadius: 14, background: "rgba(45,212,191,0.1)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
             <Icon name="Award" size={26} style={{ color: TEAL }} />
           </div>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 500, color: DARK, margin: "0 0 20px", lineHeight: 1.1 }}>
             Станьте частью рейтинга образовательных партнеров
           </h2>
-          <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 28, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 10, marginBottom: 28, flexWrap: "wrap" }}>
             {["14 дней", "30 дней", "90 дней"].map(p => (
               <div key={p} style={{ padding: "8px 20px", borderRadius: 100, fontSize: 13, fontWeight: 600, background: "#fff", border: "1px solid #E2E8F0", color: GRAY }}>{p}</div>
             ))}
@@ -193,7 +193,7 @@ export default function DlyaShkolValue() {
 
       {/* ── 11. ЧЕМПИОНАТЫ ── */}
       <section style={{ padding: "88px 32px", background: "#fff" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", textAlign: "center" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
           <SectionLabel>Соревновательный элемент</SectionLabel>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 500, color: DARK, margin: "0 0 40px", lineHeight: 1.1 }}>
             Выпускники могут представлять вашу школу в чемпионатах
@@ -210,11 +210,11 @@ export default function DlyaShkolValue() {
             ))}
           </div>
 
-          <p style={{ fontSize: 15, color: GRAY, lineHeight: 1.8, maxWidth: 560, margin: "0 auto 32px" }}>
+          <p style={{ fontSize: 15, color: GRAY, lineHeight: 1.8, maxWidth: 560, marginBottom: 32 }}>
             Победы и достижения выпускников создают дополнительную узнаваемость школы.
           </p>
 
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, flexWrap: "wrap" }} className="championship-flow">
+          <div style={{ display: "flex", alignItems: "center", gap: 0, flexWrap: "wrap" }} className="championship-flow">
             {["Школа", "Выпускник", "Участие", "Результат", "Рейтинг школы"].map((s, i, arr) => (
               <div key={s} style={{ display: "flex", alignItems: "center" }}>
                 <div style={{ background: "rgba(45,212,191,0.08)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 100, padding: "9px 18px", fontSize: 13, fontWeight: 600, color: DARK, whiteSpace: "nowrap" }}>

@@ -12,7 +12,7 @@ export default function DlyaShkolConnect() {
       {/* ── 12. ЧТО ПОЛУЧАЕТ ШКОЛА ── */}
       <section style={{ padding: "88px 32px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 56 }}>
+          <div style={{ marginBottom: 56 }}>
             <SectionLabel>Итог для партнера</SectionLabel>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,46px)", fontWeight: 500, color: DARK, margin: 0, lineHeight: 1.1 }}>Что получает школа</h2>
           </div>
@@ -32,7 +32,7 @@ export default function DlyaShkolConnect() {
       {/* ── 13. КАК ПОДКЛЮЧИТЬСЯ ── */}
       <section style={{ padding: "88px 32px", background: "#fff" }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <div style={{ marginBottom: 48 }}>
             <SectionLabel>Простой процесс</SectionLabel>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 500, color: DARK, margin: 0, lineHeight: 1.1 }}>
               Подключение занимает несколько шагов
@@ -62,7 +62,7 @@ export default function DlyaShkolConnect() {
       {/* ── 14. ЧТО НУЖНО ОТ ШКОЛЫ ── */}
       <section style={{ padding: "88px 32px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <div style={{ marginBottom: 48 }}>
             <SectionLabel>Никакой сложной интеграции</SectionLabel>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 500, color: DARK, margin: 0, lineHeight: 1.1 }}>
               От школы не требуется сложной интеграции
@@ -98,7 +98,7 @@ export default function DlyaShkolConnect() {
 
       {/* ── 15. ПИЛОТ ── */}
       <section style={{ padding: "88px 32px", background: "#fff" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 28 }}>
             <Icon name="Rocket" size={14} style={{ color: TEAL }} />
             <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Без рисков</span>
@@ -106,11 +106,11 @@ export default function DlyaShkolConnect() {
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 500, color: DARK, margin: "0 0 20px", lineHeight: 1.1 }}>
             Начните с пилотного запуска
           </h2>
-          <p style={{ fontSize: 16, color: GRAY, lineHeight: 1.8, maxWidth: 560, margin: "0 auto 40px" }}>
+          <p style={{ fontSize: 16, color: GRAY, lineHeight: 1.8, maxWidth: 560, margin: "0 0 40px" }}>
             Не нужно сразу подключать всех выпускников. Можно начать с одного ближайшего потока и посмотреть реальные результаты.
           </p>
 
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 0, flexWrap: "wrap" }}>
             {["1 поток", "промокод", "регистрации", "рекомендации курсов", "переходы на сайт школы"].map((s, i, arr) => (
               <div key={s} style={{ display: "flex", alignItems: "center", margin: "4px 0" }}>
                 <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 100, padding: "9px 16px", fontSize: 12.5, fontWeight: 600, color: DARK, whiteSpace: "nowrap" }}>
