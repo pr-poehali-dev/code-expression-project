@@ -164,7 +164,7 @@ export default function DlyaShkolHero() {
 
       {/* ── 5. КАК РАБОТАЕТ ИИ-НАВИГАТОР ── */}
       <section style={{ padding: "88px 32px", background: "#F8FAFC" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 48 }}>
             <SectionLabel>Не набор нейросетей, а система</SectionLabel>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 500, color: DARK, margin: "0 0 16px", lineHeight: 1.1 }}>
@@ -175,15 +175,15 @@ export default function DlyaShkolHero() {
             </p>
           </div>
 
-          <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, padding: "40px 36px" }}>
+          <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 6, padding: "40px 28px" }}>
             <div style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 24, textAlign: "center" }}>После этого формирует маршрут</div>
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 0 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 0 }} className="navigator-steps">
               {NAVIGATOR_STEPS.map((s, i) => (
                 <div key={s} style={{ display: "flex", alignItems: "center" }}>
-                  <div style={{ background: "rgba(45,212,191,0.08)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 100, padding: "10px 20px", fontSize: 13, fontWeight: 600, color: DARK, whiteSpace: "nowrap" }}>
+                  <div style={{ background: "rgba(45,212,191,0.08)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 100, padding: "9px 14px", fontSize: 13, fontWeight: 600, color: DARK, whiteSpace: "nowrap" }}>
                     {s}
                   </div>
-                  {i < NAVIGATOR_STEPS.length - 1 && <Icon name="ArrowRight" size={16} style={{ color: "#CBD5E1", margin: "0 10px" }} />}
+                  {i < NAVIGATOR_STEPS.length - 1 && <Icon name="ArrowRight" size={16} style={{ color: "#CBD5E1", margin: "0 6px" }} />}
                 </div>
               ))}
             </div>

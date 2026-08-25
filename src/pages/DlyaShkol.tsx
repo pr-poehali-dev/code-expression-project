@@ -34,6 +34,11 @@ export default function DlyaShkol() {
         @media (max-width: 640px) {
           .chain-flow > div > div { max-width: 100% !important; }
         }
+        @media (max-width: 900px) {
+          .navigator-steps { flex-direction: column !important; }
+          .navigator-steps > div { flex-direction: column !important; }
+          .navigator-steps > div > svg { transform: rotate(90deg); margin: 4px 0 !important; }
+        }
         @media (max-width: 600px) {
           .hero-badge {
             padding: 8px 12px !important;
