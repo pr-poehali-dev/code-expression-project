@@ -43,7 +43,7 @@ const NAVIGATOR_STEPS = ["Позиционирование", "Предложен
 
 const SCHOOL_GETS = [
   { n: "01", title: "Дополнительная ценность обучения", desc: "Выпускник получает поддержку после окончания курса" },
-  { n: "02", title: "Лояльность выпускников", desc: "Школа остаётся частью профессионального пути ученика" },
+  { n: "02", title: "Лояльность выпускников", desc: "Школа остается частью профессионального пути ученика" },
   { n: "03", title: "Дополнительная аудитория", desc: "Курсы школы представлены пользователям Промт Диалог" },
   { n: "04", title: "Персональные рекомендации", desc: "ИИ рекомендует обучение по текущей потребности" },
   { n: "05", title: "Статистика", desc: "Школа видит активность своих пользователей" },
@@ -51,11 +51,11 @@ const SCHOOL_GETS = [
 ];
 
 const CONNECT_STEPS = [
-  "Школа становится партнёром",
-  "Мы создаём карточку школы",
+  "Школа становится партнером",
+  "Мы создаем карточку школы",
   "Генерируем уникальный промокод",
   "Добавляем курсы школы",
-  "Школа передаёт промокод выпускникам",
+  "Школа передает промокод выпускникам",
   "Выпускники получают +200 энергии",
   "Начинается работа Промт Диалог",
 ];
@@ -133,7 +133,7 @@ function PartnerForm() {
         body: JSON.stringify(form),
       });
       if (res.ok) setSent(true);
-      else setSubmitError("Не удалось отправить. Попробуйте ещё раз.");
+      else setSubmitError("Не удалось отправить. Попробуйте еще раз.");
     } catch {
       setSubmitError("Ошибка сети. Проверьте подключение.");
     } finally {
@@ -245,7 +245,7 @@ function PartnerForm() {
       }}>
         {loading
           ? <><Icon name="Loader" size={15} style={{ animation: "spin 1s linear infinite" }} /> Отправляю...</>
-          : <>Стать партнёром</>
+          : <>Стать партнером</>
         }
       </button>
       <p style={{ fontSize: 12, color: GRAY, textAlign: "center", margin: 0, fontWeight: 300 }}>
@@ -258,9 +258,9 @@ function PartnerForm() {
 
 export default function DlyaShkol() {
   useEffect(() => {
-    document.title = "Партнёрство для школ — Промт Диалог | ИИ для развития мастеров";
+    document.title = "Партнерство для школ — Промт Диалог | ИИ для развития мастеров";
     const desc = document.querySelector("meta[name='description']");
-    if (desc) desc.setAttribute("content", "Партнёрская программа Промт Диалог для школ мастеров, массажистов и специалистов индустрии красоты. ИИ-навигатор, развитие выпускников, рекомендации курсов, статистика и чемпионаты.");
+    if (desc) desc.setAttribute("content", "Партнерская программа Промт Диалог для школ мастеров, массажистов и специалистов индустрии красоты. ИИ-навигатор, развитие выпускников, рекомендации курсов, статистика и чемпионаты.");
   }, []);
 
   return (
@@ -279,11 +279,11 @@ export default function DlyaShkol() {
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 32 }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
-              <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Партнёрство для школ</span>
+              <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Партнерство для школ</span>
             </div>
 
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(38px,5vw,64px)", fontWeight: 500, color: "#fff", lineHeight: 1.06, margin: "0 0 24px", letterSpacing: "-0.5px" }}>
-              Партнёрство для школ
+              Партнерство для школ
             </h1>
 
             <p style={{ fontSize: "clamp(15px,1.5vw,18px)", color: "rgba(255,255,255,0.6)", lineHeight: 1.7, margin: "0 0 20px" }}>
@@ -310,7 +310,7 @@ export default function DlyaShkol() {
                 padding: "14px 32px", borderRadius: 2, fontSize: 15,
                 fontWeight: 500, textDecoration: "none", background: "transparent",
               }}>
-                Стать партнёром
+                Стать партнером
               </a>
             </div>
           </div>
@@ -320,7 +320,7 @@ export default function DlyaShkol() {
               <div style={{ position: "absolute", inset: -1, borderRadius: 6, background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))", pointerEvents: "none", zIndex: 2 }} />
               <img
                 src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/85d5b2f9-64af-45fd-9ef7-f5375d6353e1.png"
-                alt="Партнёрство школ и Промт Диалог — обучение и развитие мастеров"
+                alt="Партнерство школ и Промт Диалог — обучение и развитие мастеров"
                 fetchpriority="high"
                 decoding="async"
                 style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
@@ -396,8 +396,8 @@ export default function DlyaShkol() {
           </div>
 
           <div style={{ fontFamily: SERIF, fontSize: "clamp(22px,2.8vw,34px)", fontWeight: 500, color: DARK, lineHeight: 1.4 }}>
-            Школа даёт профессию.<br />
-            <span style={{ color: TEAL }}>Промт Диалог помогает выпускнику реализовать её.</span>
+            Школа дает профессию.<br />
+            <span style={{ color: TEAL }}>Промт Диалог помогает выпускнику реализовать ее.</span>
           </div>
         </div>
       </section>
@@ -463,7 +463,7 @@ export default function DlyaShkol() {
               Ваш курс может быть рекомендован именно тогда, когда он нужен выпускнику
             </h2>
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.55)", maxWidth: 620, margin: "0 auto", lineHeight: 1.7 }}>
-              Промт Диалог отслеживает цели и задачи пользователя. Когда для следующего этапа развития ему требуется новый навык, система может предложить подходящий курс партнёрской школы.
+              Промт Диалог отслеживает цели и задачи пользователя. Когда для следующего этапа развития ему требуется новый навык, система может предложить подходящий курс партнерской школы.
             </p>
           </div>
 
@@ -574,7 +574,7 @@ export default function DlyaShkol() {
               </div>
             </div>
             <p style={{ fontSize: 12, color: GRAY, marginTop: 16, marginBottom: 0, fontWeight: 300, textAlign: "center" }}>
-              Кнопка ведёт на сайт вашей школы, а не на стороннюю страницу
+              Кнопка ведет на сайт вашей школы, а не на стороннюю страницу
             </p>
           </div>
         </div>
@@ -620,7 +620,7 @@ export default function DlyaShkol() {
             <Icon name="Award" size={26} style={{ color: TEAL }} />
           </div>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 500, color: DARK, margin: "0 0 20px", lineHeight: 1.1 }}>
-            Станьте частью рейтинга образовательных партнёров
+            Станьте частью рейтинга образовательных партнеров
           </h2>
           <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 28, flexWrap: "wrap" }}>
             {["14 дней", "30 дней", "90 дней"].map(p => (
@@ -628,7 +628,7 @@ export default function DlyaShkol() {
             ))}
           </div>
           <p style={{ fontSize: 14, color: GRAY, lineHeight: 1.8, marginBottom: 28 }}>
-            Показатели учитывают активность выпускников, количество пользователей, использование инструментов, участие в чемпионатах и вовлечённость.
+            Показатели учитывают активность выпускников, количество пользователей, использование инструментов, участие в чемпионатах и вовлеченность.
           </p>
           <p style={{ fontFamily: SERIF, fontSize: 19, color: DARK, fontWeight: 500, lineHeight: 1.5 }}>
             Ваши выпускники становятся частью репутации школы внутри профессионального сообщества.
@@ -674,7 +674,7 @@ export default function DlyaShkol() {
       <section style={{ padding: "88px 32px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
-            <SectionLabel>Итог для партнёра</SectionLabel>
+            <SectionLabel>Итог для партнера</SectionLabel>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,46px)", fontWeight: 500, color: DARK, margin: 0, lineHeight: 1.1 }}>Что получает школа</h2>
           </div>
 
@@ -794,11 +794,11 @@ export default function DlyaShkol() {
             Хотите узнать подробнее?
           </h2>
           <p style={{ fontSize: 16, color: "rgba(255,255,255,0.55)", lineHeight: 1.7, margin: "0 0 28px" }}>
-            Мы подготовили расширенную презентацию о партнёрской программе Промт Диалог — 20 слайдов.
+            Мы подготовили расширенную презентацию о партнерской программе Промт Диалог — 20 слайдов.
           </p>
 
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 10, marginBottom: 36 }}>
-            {["Модель партнёрства", "Возможности для школы", "Возможности для выпускников", "ИИ-рекомендации", "Статистика", "Рейтинги", "Чемпионаты", "Запуск пилота"].map(t => (
+            {["Модель партнерства", "Возможности для школы", "Возможности для выпускников", "ИИ-рекомендации", "Статистика", "Рейтинги", "Чемпионаты", "Запуск пилота"].map(t => (
               <div key={t} style={{ padding: "7px 16px", borderRadius: 100, fontSize: 12.5, color: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.15)" }}>
                 {t}
               </div>
@@ -822,9 +822,9 @@ export default function DlyaShkol() {
       <section id="partner-form" style={{ padding: "96px 32px", background: "#F8FAFC" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 40 }}>
-            <SectionLabel>Начнём сотрудничество</SectionLabel>
+            <SectionLabel>Начнем сотрудничество</SectionLabel>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,40px)", fontWeight: 500, color: DARK, margin: 0, lineHeight: 1.15 }}>
-              Обсудить партнёрство
+              Обсудить партнерство
             </h2>
           </div>
           <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 8, padding: "40px 36px", boxShadow: "0 4px 24px rgba(0,0,0,0.04)" }} className="school-form-wrap">
@@ -838,8 +838,8 @@ export default function DlyaShkol() {
         <div style={{ position: "absolute", top: "-30%", left: "50%", transform: "translateX(-50%)", width: 700, height: 700, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.07) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ maxWidth: 680, margin: "0 auto", position: "relative" }}>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(26px,3.2vw,38px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", lineHeight: 1.35 }}>
-            Школа даёт профессию.<br />
-            <span style={{ color: TEAL }}>Промт Диалог помогает превратить её в развитие.</span>
+            Школа дает профессию.<br />
+            <span style={{ color: TEAL }}>Промт Диалог помогает превратить ее в развитие.</span>
           </h2>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 0 40px" }}>
             Вместе мы можем дать выпускнику не только знания, но и понятный следующий шаг.
@@ -860,7 +860,7 @@ export default function DlyaShkol() {
               padding: "14px 32px", borderRadius: 2, fontSize: 15,
               fontWeight: 500, textDecoration: "none",
             }}>
-              Стать партнёром
+              Стать партнером
             </a>
           </div>
         </div>
