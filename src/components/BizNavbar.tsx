@@ -6,6 +6,7 @@ import BrandLogo from "@/components/BrandLogo";
 const NAV_LINKS = [
   { label: "Возможности", href: "/vozmozhnosti" },
   { label: "Для кого", href: "/dlya-kogo" },
+  { label: "Для школ", href: "/dlya-shkol" },
   { label: "Тарифы", href: "/tseny" },
   { label: "Полезная лента", href: "/blog" },
 ];

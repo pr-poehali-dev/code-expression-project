@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET not allowed",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 405
+    },
+    {
+      "name": "POST without required fields — 400",
+      "method": "POST",
+      "path": "/",
+      "body": {"school_name": ""},
+      "expectedStatus": 400
+    },
+    {
+      "name": "POST valid lead — 200",
+      "method": "POST",
+      "path": "/",
+      "body": {"school_name": "Тестовая школа", "contact_name": "Иван Иванов", "phone": "+79990000000"},
+      "expectedStatus": 200
+    }
+  ]
+}

@@ -7,6 +7,7 @@ const COLS = [
     links: [
       { label: "Возможности", href: "/vozmozhnosti" },
       { label: "Для кого", href: "/dlya-kogo" },
+      { label: "Для школ", href: "/dlya-shkol" },
       { label: "Тарифы", href: "/tseny" },
       { label: "Академия", href: "/akademiya" },
       { label: "Аудит салона", href: "/diagnostika" },
