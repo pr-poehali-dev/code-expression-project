@@ -33,7 +33,12 @@ export default function DlyaShkol() {
           .championships-grid { grid-template-columns: repeat(3, 1fr) !important; }
         }
         @media (max-width: 480px) {
-          .championships-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .championships-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 560px) {
+          .championship-flow { flex-direction: column !important; }
+          .championship-flow > div { flex-direction: column !important; }
+          .championship-flow-arrow { transform: rotate(90deg); margin: 4px 0 !important; }
         }
         @media (max-width: 640px) {
           .chain-flow > div > div { max-width: 100% !important; }

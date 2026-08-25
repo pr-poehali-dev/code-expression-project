@@ -214,13 +214,13 @@ export default function DlyaShkolValue() {
             Победы и достижения выпускников создают дополнительную узнаваемость школы.
           </p>
 
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, flexWrap: "wrap" }} className="championship-flow">
             {["Школа", "Выпускник", "Участие", "Результат", "Рейтинг школы"].map((s, i, arr) => (
               <div key={s} style={{ display: "flex", alignItems: "center" }}>
                 <div style={{ background: "rgba(45,212,191,0.08)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 100, padding: "9px 18px", fontSize: 13, fontWeight: 600, color: DARK, whiteSpace: "nowrap" }}>
                   {s}
                 </div>
-                {i < arr.length - 1 && <Icon name="ArrowRight" size={15} style={{ color: "#CBD5E1", margin: "0 8px" }} />}
+                {i < arr.length - 1 && <Icon name="ArrowRight" size={15} className="championship-flow-arrow" style={{ color: "#CBD5E1", margin: "0 8px" }} />}
               </div>
             ))}
           </div>
