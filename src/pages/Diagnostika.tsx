@@ -83,7 +83,7 @@ export default function Diagnostika() {
               </p>
 
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap" as const, marginBottom: 48 }}>
-                <Link to="/cabinet" style={{
+                <Link to="/cabinet?tab=register" style={{
                   display: "inline-flex", alignItems: "center", gap: 10,
                   padding: "16px 32px", borderRadius: 2,
                   background: `linear-gradient(135deg,${TEAL},${TEAL2})`,
@@ -187,7 +187,7 @@ export default function Diagnostika() {
               <p style={{ fontSize: 16, color: "#475569", lineHeight: 1.75, margin: "0 0 28px", fontWeight: 300 }}>
                 Вы вводите реальные показатели. Алгоритм применяет проверенные экономические формулы и возвращает точные числа: потенциал роста и что именно его раскроет. <strong style={{ color: DARK }}>ИИ интерпретирует результат</strong> — но не считает его.
               </p>
-              <Link to="/cabinet" style={{
+              <Link to="/cabinet?tab=register" style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
                 padding: "14px 28px", borderRadius: 2,
                 background: `linear-gradient(135deg,${TEAL},${TEAL2})`,
@@ -313,7 +313,7 @@ export default function Diagnostika() {
                 Пройдите диагностику и получите план роста дохода без оплаты — дальше можно пополнить баланс энергии для других инструментов: скрипты для администратора, ответы на отзывы, контент для соцсетей и многое другое.
               </p>
             </div>
-            <Link to="/cabinet" style={{
+            <Link to="/cabinet?tab=register" style={{
               display: "inline-flex", alignItems: "center", gap: 10,
               padding: "14px 24px", borderRadius: 2,
               background: `linear-gradient(135deg,${TEAL},${TEAL2})`,
@@ -345,7 +345,7 @@ export default function Diagnostika() {
               Зарегистрируйтесь, добавьте салон — и через 10 минут получите математически точную картину: где потенциал роста и что делать первым.
             </p>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" as const, marginBottom: 40 }}>
-              <Link to="/cabinet" style={{
+              <Link to="/cabinet?tab=register" style={{
                 display: "inline-flex", alignItems: "center", gap: 10,
                 padding: "18px 36px", borderRadius: 2,
                 background: `linear-gradient(135deg,${TEAL},${TEAL2})`,
