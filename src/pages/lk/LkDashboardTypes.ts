@@ -7,17 +7,17 @@ export type Tab =
   | "home" | "tools" | "academy" | "ai" | "shop"
   | "employees" | "purchases" | "profile" | "salon"
   | "admin" | "support" | "more" | "clientmsg" | "marketing"
-  | "championship" | "blog" | "packages";
+  | "championship" | "blog" | "packages" | "referral";
 
 // Чемпионат временно отключён (не проводится) — вкладка убрана из меню, чтобы cron-функция
 // не расходовала вычислительное время впустую. Чтобы вернуть, добавить "championship" обратно
 // в нужные роли ниже и в MOBILE_PRIMARY.
 export const ROLE_TABS: Record<string, Tab[]> = {
-  owner:          ["home", "packages", "tools", "academy", "ai", "clientmsg", "marketing", "shop", "employees", "purchases", "salon", "blog", "profile", "support"],
-  admin:          ["home", "packages", "tools", "academy", "ai", "clientmsg", "marketing", "blog", "profile", "support"],
-  master:         ["home", "packages", "tools", "academy", "ai", "blog", "profile", "support"],
-  body_specialist:["home", "packages", "tools", "academy", "ai", "blog", "profile", "support"],
-  solo_master:    ["home", "packages", "tools", "academy", "clientmsg", "marketing", "shop", "purchases", "blog", "profile", "support"],
+  owner:          ["home", "packages", "tools", "academy", "ai", "clientmsg", "marketing", "shop", "employees", "purchases", "salon", "referral", "blog", "profile", "support"],
+  admin:          ["home", "packages", "tools", "academy", "ai", "clientmsg", "marketing", "referral", "blog", "profile", "support"],
+  master:         ["home", "packages", "tools", "academy", "ai", "referral", "blog", "profile", "support"],
+  body_specialist:["home", "packages", "tools", "academy", "ai", "referral", "blog", "profile", "support"],
+  solo_master:    ["home", "packages", "tools", "academy", "clientmsg", "marketing", "shop", "purchases", "referral", "blog", "profile", "support"],
 };
 
 export function getAllowedTabs(role: string, isAdmin: boolean): Tab[] {
@@ -45,6 +45,7 @@ export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string; 
   { id: "academy",   icon: "GraduationCap",  label: "Академия"            },
   { id: "tools",     icon: "Wrench",         label: "Развитие персонала"  },
   { id: "salon",         icon: "Building2",      label: "Моя компания"        },
+  { id: "referral",      icon: "Gift",           label: "Партнёрская программа" },
   { id: "championship",  icon: "Trophy",         label: "Чемпионат"           },
   { id: "blog",      icon: "Newspaper",      label: "Блог",                external: "/blog" },
   { id: "purchases",     icon: "Receipt",        label: "Покупки"             },

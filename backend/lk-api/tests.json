@@ -169,6 +169,12 @@
       "path": "/?action=autopay_check",
       "body": {},
       "expectedStatus": 401
+    },
+    {
+      "name": "referral_info без сессии — 401",
+      "method": "GET",
+      "path": "/?action=referral_info",
+      "expectedStatus": 401
     }
   ]
 }

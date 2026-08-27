@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
 import { lkApi, saveSession, clearSession, AuthError } from "@/lib/lkApi";
+import { getStoredRefCode, clearStoredRefCode } from "@/lib/referralLink";
 
 export interface LkSalon {
   id: number;
@@ -20,6 +21,7 @@ export interface LkUser {
   salon_id: number | null;
   salon: LkSalon | null;
   course_ids: number[];
+  ref_code?: string;
 }
 
 interface PromoResult { applied: boolean; error?: string; bonus_energy?: number; school_name?: string; }
@@ -100,7 +102,9 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (full_name: string, email: string, password: string, userType: "salon" | "solo_master" | "psychologist" | "body_psychologist" = "salon", source?: string, promoCode?: string) => {
     sessionStorage.removeItem("lk_tab");
-    const data = await lkApi.register(full_name, email, password, userType, source, promoCode);
+    const refCode = getStoredRefCode();
+    const data = await lkApi.register(full_name, email, password, userType, source, promoCode, refCode || undefined);
+    clearStoredRefCode();
     saveSession(data.session_id);
     // После регистрации показываем экран подтверждения email, не пускаем в кабинет
     setPendingEmail(email);

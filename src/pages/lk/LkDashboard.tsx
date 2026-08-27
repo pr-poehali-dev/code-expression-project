@@ -16,6 +16,7 @@ import LkMarketing from "./LkMarketing";
 import { PodelamTab } from "./LkPodelam";
 import LkPackages from "./LkPackages";
 import LkChampionship from "./LkChampionship";
+import LkReferral from "./LkReferral";
 import { LkSidebar, LkMobileHeader, LkBottomBar, PodelamReminderBanner } from "./LkDashboardSidebar";
 import { isFittingTrial } from "@/lib/fittingTrial";
 import {
@@ -121,6 +122,7 @@ export default function LkDashboard() {
         {tab === "employees" && <LkTeam />}
         {tab === "purchases" && <LkEnergy />}
         {tab === "salon"     && <LkSalonProfile onSaved={() => handleTabChange("home")} onGoToSeo={() => handleTabChange("marketing")} onOpenDiagnostic={() => { sessionStorage.setItem("lk_ai_tool_pending", "salon-diag"); handleTabChange("ai"); }} />}
+        {tab === "referral"  && <LkReferral />}
         {tab === "profile"   && <LkProfile />}
         {tab === "support"   && <LkSupport />}
         {tab === "body"      && <LkBodyMap />}

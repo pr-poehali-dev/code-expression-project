@@ -102,6 +102,7 @@ def handle_login(event: dict) -> dict:
             f"INSERT INTO {tbl('lk_sessions')} (id, user_id, user_agent) VALUES (%s, %s, %s)",
             (session_id, user["id"], ua)
         )
+        ref_code = _ensure_ref_code(cur, user)
         conn.commit()
 
         salon = None
@@ -131,6 +132,7 @@ def handle_login(event: dict) -> dict:
                 "salon_id": user.get("salon_id"),
                 "salon": salon,
                 "course_ids": course_ids,
+                "ref_code": ref_code,
             }
         })
     finally:
@@ -149,10 +151,39 @@ def _hash_val(v: str) -> str:
     return hashlib.sha256(v.encode()).hexdigest()[:64] if v else ""
 
 
+def _gen_ref_code(cur) -> str:
+    """Генерирует уникальный короткий реферальный код вида A1B2C3D4 для реферальной ссылки
+    вида /cabinet?ref=CODE. Есть у каждого пользователя (в т.ч. у школ-партнёров — им
+    реферальная программа доступна на общих основаниях, без отдельных условий)."""
+    import random
+    import string
+    alphabet = string.ascii_uppercase + string.digits
+    for _ in range(20):
+        code = "".join(random.choices(alphabet, k=8))
+        cur.execute(f"SELECT 1 FROM {tbl('lk_users')} WHERE ref_code=%s", (code,))
+        if not cur.fetchone():
+            return code
+    raise RuntimeError("Не удалось сгенерировать уникальный реферальный код")
+
+
+def _ensure_ref_code(cur, user: dict) -> str:
+    """Пользователи, созданные до появления реферальной программы, ещё не имеют ref_code —
+    генерируем и сохраняем при первом обращении (login/me), дальше он уже в БД."""
+    if user.get("ref_code"):
+        return user["ref_code"]
+    code = _gen_ref_code(cur)
+    cur.execute(f"UPDATE {tbl('lk_users')} SET ref_code=%s WHERE id=%s", (code, user["id"]))
+    user["ref_code"] = code
+    return code
+
+
 def handle_register(event: dict) -> dict:
     """Самостоятельная регистрация нового пользователя: владелец салона или независимый мастер.
     Мастер может указать промокод школы-партнёра — разово начисляется бонусная энергия
-    (см. _apply_partner_promo_code), для салонов промокод не действует."""
+    (см. _apply_partner_promo_code), для салонов промокод не действует.
+    Отдельно и независимо от промокода школы — реферальная ссылка (?ref=CODE любого
+    пользователя, включая школы): при первой оплате приглашённого рефереру начисляется
+    разово 300 энергии (см. _credit_referral_bonus, вызывается из вебхуков оплаты)."""
     body = json.loads(event.get("body") or "{}")
     full_name = (body.get("full_name") or "").strip()
     email = (body.get("email") or "").strip().lower()
@@ -163,6 +194,7 @@ def handle_register(event: dict) -> dict:
     user_type = body.get("user_type") or "salon"
     source = (body.get("source") or "").strip()  # напр. "podelam_demo" — регистрация после демо-формы на главной
     promo_code = (body.get("promo_code") or "").strip()
+    ref_code = (body.get("ref_code") or "").strip()
 
     if not full_name:
         return err("Укажите ваше имя")
@@ -198,6 +230,14 @@ def handle_register(event: dict) -> dict:
             if not school:
                 return err("Промокод не найден или больше не действует")
 
+        # Реферальная ссылка (?ref=CODE) — необязательна, независима от промокода школы.
+        # Некорректный код тихо игнорируем (не блокируем регистрацию), чтобы старая/битая
+        # ссылка не мешала человеку зарегистрироваться.
+        referrer = None
+        if ref_code:
+            cur.execute(f"SELECT id, full_name FROM {tbl('lk_users')} WHERE ref_code=%s", (ref_code,))
+            referrer = cur.fetchone()
+
         # Проверяем уникальность email
         cur.execute(f"SELECT id FROM {tbl('lk_users')} WHERE email = %s", (email,))
         if cur.fetchone():
@@ -214,10 +254,12 @@ def handle_register(event: dict) -> dict:
 
         pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
         verify_token = secrets.token_urlsafe(40)
+        my_ref_code = _gen_ref_code(cur)
         cur.execute(
-            f"INSERT INTO {tbl('lk_users')} (username, email, password_hash, full_name, is_active, segment, role, specialization, welcome_bonus_given, email_verified, email_verify_token, email_verify_sent_at) "
-            f"VALUES (%s,%s,%s,%s,TRUE,%s,%s,%s,FALSE,FALSE,%s,NOW()) RETURNING id",
-            (username, email, pw_hash, full_name, segment, role, specialization, verify_token)
+            f"INSERT INTO {tbl('lk_users')} (username, email, password_hash, full_name, is_active, segment, role, specialization, welcome_bonus_given, email_verified, email_verify_token, email_verify_sent_at, ref_code, referred_by) "
+            f"VALUES (%s,%s,%s,%s,TRUE,%s,%s,%s,FALSE,FALSE,%s,NOW(),%s,%s) RETURNING id",
+            (username, email, pw_hash, full_name, segment, role, specialization, verify_token,
+             my_ref_code, referrer["id"] if referrer else None)
         )
         user_id = cur.fetchone()["id"]
 
@@ -275,6 +317,7 @@ def handle_register(event: dict) -> dict:
                 "salon_id": salon_id,
                 "salon": salon_data,
                 "email_verified": False,
+                "ref_code": my_ref_code,
             }
         }
         if promo_result:
@@ -333,6 +376,47 @@ def _apply_partner_promo_code(cur, event: dict, school: dict, user_id: int, salo
     return {"applied": True, "bonus_energy": bonus, "school_name": school["name"]}
 
 
+REFERRAL_BONUS_ENERGY = 300
+
+
+def _credit_referral_bonus(cur, referred_user_id: int, amount_rub: int | None = None) -> None:
+    """Начисляет рефереру разовый бонус 300 энергии при ПЕРВОЙ успешной оплате приглашённого
+    им пользователя (пополнение энергии ИЛИ покупка пакета — любой платёж). Вызывается из
+    вебхуков payment_webhook (lk-api) и package_webhook (packages-api). UNIQUE(referred_id)
+    в referral_bonuses защищает от повторного начисления при последующих оплатах того же
+    приглашённого. Энергия зачисляется на баланс салона/контейнера реферера, использовать
+    её можно только внутри платформы — вывода нет."""
+    cur.execute(f"SELECT referred_by FROM {tbl('lk_users')} WHERE id=%s", (referred_user_id,))
+    row = cur.fetchone()
+    referrer_id = row[0] if row else None
+    if not referrer_id:
+        return
+    cur.execute(f"SELECT 1 FROM {tbl('referral_bonuses')} WHERE referred_id=%s", (referred_user_id,))
+    if cur.fetchone():
+        return  # бонус уже начислен за этого приглашённого ранее
+
+    cur.execute(f"SELECT id, salon_id FROM {tbl('lk_users')} WHERE id=%s", (referrer_id,))
+    referrer = cur.fetchone()
+    if not referrer or not referrer[1]:
+        return  # у реферера почему-то нет контейнера для баланса — пропускаем без ошибки
+
+    referrer_salon_id = referrer[1]
+    cur.execute(
+        f"UPDATE {tbl('salons')} SET credits_balance = credits_balance + %s WHERE id=%s",
+        (REFERRAL_BONUS_ENERGY, referrer_salon_id)
+    )
+    cur.execute(
+        f"INSERT INTO {tbl('credit_transactions')} (salon_id, user_id, action, amount, tool_key, type) "
+        f"VALUES (%s,%s,'Бонус за приглашённого пользователя',%s,'referral','credit')",
+        (referrer_salon_id, referrer_id, REFERRAL_BONUS_ENERGY)
+    )
+    cur.execute(
+        f"INSERT INTO {tbl('referral_bonuses')} (referrer_id, referred_id, bonus_energy, amount_rub) "
+        f"VALUES (%s,%s,%s,%s)",
+        (referrer_id, referred_user_id, REFERRAL_BONUS_ENERGY, amount_rub)
+    )
+
+
 def handle_logout(event: dict) -> dict:
     session_id = (event.get("headers") or {}).get("X-Session-Id", "")
     if not session_id:
@@ -365,6 +449,8 @@ def handle_me(event: dict) -> dict:
             (user["id"],)
         )
         course_ids = [r["course_id"] for r in cur.fetchall()]
+        ref_code = _ensure_ref_code(cur, user)
+        conn.commit()
         return ok({
             "id": user["id"],
             "username": user["username"],
@@ -378,6 +464,7 @@ def handle_me(event: dict) -> dict:
             "salon_id": user.get("salon_id"),
             "salon": salon,
             "course_ids": course_ids,
+            "ref_code": ref_code,
         })
     finally:
         conn.close()
@@ -3924,6 +4011,58 @@ def handle_energy_history(event: dict) -> dict:
         conn.close()
 
 
+def handle_referral_info(event: dict) -> dict:
+    """Данные для вкладки «Партнёрская программа»: реферальный код/ссылка пользователя,
+    список приглашённых (только имя, дата регистрации, статус оплаты и начисленный бонус —
+    без прочих персональных данных) и итоговая сумма заработанной энергии. Доступно
+    любому авторизованному пользователю (включая школы-партнёры — участвуют на общих
+    основаниях, без отдельных условий)."""
+    conn = get_db()
+    try:
+        user = get_session_user(event, conn)
+        if not user:
+            return err("Не авторизован", 401)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        ref_code = _ensure_ref_code(cur, user)
+        conn.commit()
+
+        cur.execute(
+            f"SELECT u.id, u.full_name, u.created_at, "
+            f"rb.bonus_energy, rb.amount_rub, rb.created_at AS paid_at "
+            f"FROM {tbl('lk_users')} u "
+            f"LEFT JOIN {tbl('referral_bonuses')} rb ON rb.referred_id = u.id "
+            f"WHERE u.referred_by = %s ORDER BY u.created_at DESC",
+            (user["id"],)
+        )
+        rows = cur.fetchall()
+        invited = []
+        total_earned = 0
+        for r in rows:
+            paid = r["bonus_energy"] is not None
+            if paid:
+                total_earned += r["bonus_energy"]
+            invited.append({
+                "full_name": r["full_name"],
+                "registered_at": r["created_at"],
+                "paid": paid,
+                "amount_rub": r.get("amount_rub"),
+                "bonus_energy": r.get("bonus_energy"),
+                "paid_at": r.get("paid_at"),
+            })
+
+        return ok({
+            "ref_code": ref_code,
+            "ref_link": f"{SITE_URL}/cabinet?ref={ref_code}",
+            "bonus_per_referral": REFERRAL_BONUS_ENERGY,
+            "invited": invited,
+            "total_invited": len(invited),
+            "total_paid": sum(1 for i in invited if i["paid"]),
+            "total_earned_energy": total_earned,
+        })
+    finally:
+        conn.close()
+
+
 def handle_energy_topup(event: dict) -> dict:
     """Администратор: ручное пополнение баланса (для тестирования до ЮКассы)."""
     body = json.loads(event.get("body") or "{}")
@@ -4234,6 +4373,12 @@ def handle_payment_webhook(event: dict) -> dict:
             f"VALUES (%s,%s,'Покупка пакета энергии',%s,NULL,'credit')",
             (int(salon_id), int(user_id), int(energy_amount))
         )
+
+        # Реферальная программа: если оплативший был приглашён по ссылке — рефереру
+        # разово начисляется бонус (только за первую оплату приглашённого).
+        amount_rub_val = payment_obj.get("amount", {}).get("value")
+        _credit_referral_bonus(cur, int(user_id), int(float(amount_rub_val)) if amount_rub_val else None)
+
         conn.commit()
 
         if enable_autopay and payment_method_saved and payment_method_id and package_code:
@@ -4953,6 +5098,7 @@ ROUTES = {
     ("GET",  "admin_salons"): handle_admin_salons,
     ("GET",  "energy_balance"): handle_energy_balance,
     ("GET",  "energy_history"): handle_energy_history,
+    ("GET",  "referral_info"): handle_referral_info,
     ("POST", "energy_topup"): handle_energy_topup,
     ("GET",  "tool_costs"): handle_tool_costs_list,
     ("POST", "tool_costs_update"): handle_tool_costs_update,

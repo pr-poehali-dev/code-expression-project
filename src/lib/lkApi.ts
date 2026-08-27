@@ -55,11 +55,14 @@ export const lkApi = {
   login: (username: string, password: string) =>
     request("POST", "login", { username, password }),
 
-  register: (full_name: string, email: string, password: string, user_type: "salon" | "solo_master" | "psychologist" | "body_psychologist" = "salon", source?: string, promo_code?: string) =>
-    request("POST", "register", { full_name, email, password, user_type, source, promo_code }),
+  register: (full_name: string, email: string, password: string, user_type: "salon" | "solo_master" | "psychologist" | "body_psychologist" = "salon", source?: string, promo_code?: string, ref_code?: string) =>
+    request("POST", "register", { full_name, email, password, user_type, source, promo_code, ref_code }),
 
   promoCodeCheck: (code: string) =>
     request("GET", "promo_code_check", undefined, `&code=${encodeURIComponent(code)}`),
+
+  // Партнёрская программа (реферальная ссылка) — доступна любому пользователю
+  referralInfo: () => request("GET", "referral_info"),
 
   // Школы-партнёры (админ)
   adminSchoolsList: () => request("GET", "admin_schools_list"),

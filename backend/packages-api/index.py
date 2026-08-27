@@ -338,6 +338,45 @@ def _activate_package(conn, user_id: int, salon_id: int, plan_code: str, period_
     conn.commit()
 
 
+REFERRAL_BONUS_ENERGY = 300
+
+
+def _credit_referral_bonus(cur, referred_user_id: int, amount_rub: int | None = None) -> None:
+    """Дублирует логику lk-api._credit_referral_bonus (отдельный деплой функции, общий код
+    недоступен между Cloud Functions) — разово начисляет рефереру 300 энергии при первой
+    оплате приглашённого им пользователя. UNIQUE(referred_id) в referral_bonuses защищает
+    от повторного начисления."""
+    cur.execute(f"SELECT referred_by FROM {tbl('lk_users')} WHERE id=%s", (referred_user_id,))
+    row = cur.fetchone()
+    referrer_id = row["referred_by"] if row else None
+    if not referrer_id:
+        return
+    cur.execute(f"SELECT 1 FROM {tbl('referral_bonuses')} WHERE referred_id=%s", (referred_user_id,))
+    if cur.fetchone():
+        return
+
+    cur.execute(f"SELECT id, salon_id FROM {tbl('lk_users')} WHERE id=%s", (referrer_id,))
+    referrer = cur.fetchone()
+    if not referrer or not referrer.get("salon_id"):
+        return
+
+    referrer_salon_id = referrer["salon_id"]
+    cur.execute(
+        f"UPDATE {tbl('salons')} SET credits_balance = credits_balance + %s WHERE id=%s",
+        (REFERRAL_BONUS_ENERGY, referrer_salon_id)
+    )
+    cur.execute(
+        f"INSERT INTO {tbl('credit_transactions')} (salon_id, user_id, action, amount, tool_key, type) "
+        f"VALUES (%s,%s,'Бонус за приглашённого пользователя',%s,'referral','credit')",
+        (referrer_salon_id, referrer_id, REFERRAL_BONUS_ENERGY)
+    )
+    cur.execute(
+        f"INSERT INTO {tbl('referral_bonuses')} (referrer_id, referred_id, bonus_energy, amount_rub) "
+        f"VALUES (%s,%s,%s,%s)",
+        (referrer_id, referred_user_id, REFERRAL_BONUS_ENERGY, amount_rub)
+    )
+
+
 def handle_package_webhook(event: dict) -> dict:
     """Вебхук ЮКассы для платежей за пакеты (kind=package в metadata)."""
     body = json.loads(event.get("body") or "{}")
@@ -381,6 +420,11 @@ def handle_package_webhook(event: dict) -> dict:
             payment_method_id if (enable_autorenew and payment_method_saved) else None,
             yookassa_id,
         )
+
+        # Реферальная программа: если оплативший пакет был приглашён по ссылке — рефереру
+        # разово начисляется бонус (только за первую оплату приглашённого, любого типа).
+        _credit_referral_bonus(cur, int(user_id), payment.get("amount_rub"))
+        conn.commit()
 
         cur.execute(f"SELECT email, full_name FROM {tbl('lk_users')} WHERE id=%s", (int(user_id),))
         u = cur.fetchone()
