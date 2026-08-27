@@ -8,6 +8,12 @@
 POST ?action=podelam_save_profile — сохранить диагностику дохода (X-Session-Id). Поле conversion_rate (опционально,
                                       % обращений, доходящих до первой консультации/записи) актуально в первую очередь
                                       для частной практики (психологи/телесные психологи, см. lk_users.specialization).
+                                      Доп. поля (все опциональны): about_me (свободный текст — образование, опыт),
+                                      personal_goals (массив кодов немонетарных целей — new_skill/certification/
+                                      confidence/personal_brand/public_speaking/team_growth/burnout/networking/
+                                      work_life_balance/other, см. PERSONAL_GOAL_OPTIONS на фронте), personal_goals_other
+                                      (текст, если выбран код "other"). Используются ИИ для более точных рекомендаций
+                                      курсов/тренингов Академии — не только на основе финансового разрыва.
 POST ?action=podelam_task_done    — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
 GET  ?action=podelam_stats        — статистика выполненных дел, дохода и новых/вернувшихся клиентов за неделю/месяц (X-Session-Id)
 POST ?action=podelam_set_income   — прибавить фактический доход за день и опционально кол-во новых/вернувшихся клиентов
@@ -71,13 +77,20 @@ def handle_podelam_save_profile(event: dict, conn) -> dict:
     conversion_rate = body.get("conversion_rate")
     conversion_rate = int(conversion_rate) if conversion_rate not in (None, "") else None
 
+    about_me = (body.get("about_me") or "").strip()[:800] or None
+    personal_goals = body.get("personal_goals") or []
+    if not isinstance(personal_goals, list):
+        personal_goals = []
+    personal_goals = [str(g)[:50] for g in personal_goals][:10]
+    personal_goals_other = (body.get("personal_goals_other") or "").strip()[:300] or None
+
     cur = conn.cursor()
     cur.execute(
         f"""INSERT INTO {SCHEMA}.podelam_profiles
             (user_id, salon_id, niche, avg_check, current_revenue, target_revenue,
              clients_per_month, base_size, repeat_rate, free_slots_per_week, has_addon_services,
-             addon_services_text, lead_source, conversion_rate, updated_at)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW())
+             addon_services_text, lead_source, conversion_rate, about_me, personal_goals, personal_goals_other, updated_at)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW())
             ON CONFLICT (user_id) DO UPDATE SET
                 salon_id=EXCLUDED.salon_id, niche=EXCLUDED.niche, avg_check=EXCLUDED.avg_check,
                 current_revenue=EXCLUDED.current_revenue, target_revenue=EXCLUDED.target_revenue,
@@ -85,6 +98,8 @@ def handle_podelam_save_profile(event: dict, conn) -> dict:
                 repeat_rate=EXCLUDED.repeat_rate, free_slots_per_week=EXCLUDED.free_slots_per_week,
                 has_addon_services=EXCLUDED.has_addon_services, addon_services_text=EXCLUDED.addon_services_text,
                 lead_source=EXCLUDED.lead_source, conversion_rate=EXCLUDED.conversion_rate,
+                about_me=EXCLUDED.about_me, personal_goals=EXCLUDED.personal_goals,
+                personal_goals_other=EXCLUDED.personal_goals_other,
                 updated_at=NOW()""",
         (
             user["id"], user.get("salon_id"), body.get("niche", ""),
@@ -93,6 +108,7 @@ def handle_podelam_save_profile(event: dict, conn) -> dict:
             int(body.get("repeat_rate") or 0), int(body.get("free_slots_per_week") or 0),
             bool(body.get("has_addon_services") or False), (body.get("addon_services_text") or "").strip() or None,
             body.get("lead_source", ""), conversion_rate,
+            about_me, personal_goals, personal_goals_other,
         )
     )
     # Сбрасываем план на сегодня, чтобы пересчитать с новыми данными

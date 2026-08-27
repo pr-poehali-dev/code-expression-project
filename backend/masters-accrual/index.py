@@ -622,11 +622,50 @@ PODELAM_PSYCH_MODE_PROMPT = """
 """
 
 
+PODELAM_PERSONAL_GROWTH_PROMPT = """
+════════════════════════════════════════════════
+ЛИЧНОЕ РАЗВИТИЕ (payload.about_me и payload.personal_goals)
+════════════════════════════════════════════════
+Кроме финансовых показателей, в payload может быть passed about_me (свободный текст: образование, опыт, бэкграунд \
+специалиста) и personal_goals (список кодов немонетарных целей человека — чего он хочет для СЕБЯ, не только про доход) \
+и personal_goals_other (уточнение, если среди целей есть "other"). Расшифровка кодов personal_goals:
+- new_skill — освоить новый метод/технику
+- certification — получить сертификацию/диплом
+- confidence — увереннее вести приём/консультацию
+- personal_brand — развить личный бренд, стать заметнее
+- public_speaking — научиться выступать, вести эфиры/лекции
+- team_growth — вырасти в руководителя, открыть команду
+- burnout — справиться с выгоранием, восстановить силы
+- networking — найти единомышленников, сообщество
+- work_life_balance — меньше работать, не теряя в доходе
+- other — см. personal_goals_other
+
+Используй about_me, чтобы точнее оценить уровень человека (новичок/опытный) — не рекомендуй базовый курс опытному \
+специалисту с 10-летним стажем, и не рекомендуй продвинутый курс новичку без подготовки.
+
+Используй personal_goals, чтобы минимум РАЗ В 2-3 ДНЯ (не обязательно каждый день, чтобы не перегружать план) \
+включать в план дело из блока «Академия» (academy), которое явно работает на личную цель человека, а не только на \
+закрытие финансового разрыва — например: цель certification → ищи в course_catalog курс, дающий сертификат/диплом; \
+цель public_speaking → курс или тренинг про самопрезентацию/выступления; цель networking → offline-мероприятие \
+(format = offline_event в course_catalog) — там человек может познакомиться с другими специалистами вживую, это \
+ценнее, чем онлайн-курс, для этой конкретной цели; цель burnout → мягко, без давления, предложи курс/материал на \
+тему восстановления и профессионального выгорания, если такой есть в каталоге; цель team_growth → курс/тренинг про \
+управление и построение команды. Если подходящего курса под конкретную цель в course_catalog НЕТ — не выдумывай его, \
+просто не включай дело этого типа сегодня, попробуй в другой день (в course_catalog могут появиться новые курсы).
+
+Когда предлагаешь дело из personal_goals в поле why объясни связь именно с личной целью человека (а не только с \
+доходом) — например: "Вы отметили цель — увереннее вести приём. Этот курс разбирает ровно то, с чем сталкиваются \
+специалисты в первый год практики".
+════════════════════════════════════════════════
+"""
+
+
 def build_podelam_system_prompt(is_first_plan: bool = False, specialization: str | None = None) -> str:
     """Собирает системный промпт для генерации плана. При первом плане (is_first_plan=True)
     добавляет отдельный блок инструкций про изучение ЦА и создание офферов первым делом.
     Для психологов/телесных психологов (specialization) добавляет блок с другой терминологией
-    и логикой точек роста — см. PODELAM_PSYCH_MODE_PROMPT."""
+    и логикой точек роста — см. PODELAM_PSYCH_MODE_PROMPT. Плюс блок PODELAM_PERSONAL_GROWTH_PROMPT
+    про рекомендацию курсов/тренингов/мероприятий на основе личных (не только денежных) целей."""
     return f"""Ты — экспертный бизнес-консультант и маркетолог-стратег, встроенный в сервис «ПоДелам» \
 внутри платформы «Промт Диалог» — для мастеров и владельцев салонов красоты (парикмахеры, мастера маникюра, массажисты), \
 а также для психологов и телесных психологов в частной практике (см. payload.specialization).
@@ -652,8 +691,10 @@ def build_podelam_system_prompt(is_first_plan: bool = False, specialization: str
 5. ВАЖНО — РАЗНООБРАЗИЕ: план из 3-4 дел НЕ должен состоять только из маркетинговых разделов. Как правило включай: \
 1-2 дела из блока «Маркетинг и клиенты», РОВНО 1 дело из блока «Развитие персонала» (tools) — конкретный тест из \
 списка, подходящий под ситуацию, и когда есть подходящий курс в course_catalog — 1 дело из блока «Академия» (academy) \
-с названием конкретного курса. Если сегодня уже был другой набор — не повторяй вчерашние формулировки и разделы \
-(смотри yesterday_tasks в payload), чередуй их день ото дня.
+с названием конкретного курса. Если у пользователя заполнены personal_goals — периодически (см. отдельный блок \
+ЛИЧНОЕ РАЗВИТИЕ ниже) вместо обычного курса выбирай тот, что явно работает на личную цель человека, а не только на \
+доход. Если сегодня уже был другой набор — не повторяй вчерашние формулировки и разделы (смотри yesterday_tasks в \
+payload), чередуй их день ото дня.
 6. Если lead_source указывает на конкретный канал (Instagram, Директ, сарафанное радио и т.д.) — учитывай это при \
 выборе маркетинговых действий (например, если реклама не настроена, а доход не дотягивает до цели — предложи \
 семантику/объявления/бюджет для Директа; если упор на контент — Reels/посты/визуалы).
@@ -711,6 +752,7 @@ new_clients — сколько пришло новых клиентов, returne
 величину разрыва между текущим и целевым доходом суммарно по всем tasks (у дел из tools/academy potential = 0). \
 Дел должно быть 3-4, каждое выполнимо за 10-30 минут.
 {PODELAM_PSYCH_MODE_PROMPT if specialization in ("psychologist", "body_psychologist") else ""}
+{PODELAM_PERSONAL_GROWTH_PROMPT}
 {PODELAM_SALON_MODE_PROMPT}"""
 
 
@@ -741,6 +783,9 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
         "has_addon_services": bool(profile.get("has_addon_services")),
         "addon_services_text": profile.get("addon_services_text") or "не указан",
         "lead_source": profile.get("lead_source") or "не указан",
+        "about_me": profile.get("about_me") or "не указано",
+        "personal_goals": profile.get("personal_goals") or [],
+        "personal_goals_other": profile.get("personal_goals_other") or "",
         "course_catalog": courses or [],
         "yesterday_tasks": yesterday_tasks or [],
         "is_first_plan": is_first_plan,
@@ -869,18 +914,28 @@ def handle_podelam_get(event: dict, conn) -> dict:
             })
 
         cur.execute(
-            f"""SELECT title, category, categories, description FROM {SCHEMA}.courses
-                WHERE is_published = TRUE ORDER BY sort_order LIMIT 20"""
+            f"""SELECT title, category, categories, description, type, event_date, is_partner
+                FROM {SCHEMA}.courses
+                WHERE is_published = TRUE ORDER BY sort_order LIMIT 30"""
         )
         role_map = {"owner": "owner", "admin": "admin", "master": "master",
                     "solo_master": "master", "body_specialist": "body"}
         role_cat = role_map.get(role, "body")
         all_courses = cur.fetchall()
+        # format: "online" (курс в своём темпе) / "offline" (живое мероприятие/тренинг с датой) —
+        # ИИ должен различать это при рекомендации (курс для развития навыка ИЛИ мероприятие для
+        # нетворкинга/живого опыта — второе особенно уместно, если у человека есть цель "networking").
         courses_for_role = [
-            {"title": c["title"], "description": c["description"] or ""}
+            {
+                "title": c["title"],
+                "description": c["description"] or "",
+                "format": "offline_event" if c["type"] == "offline" else "online_course",
+                "event_date": str(c["event_date"]) if c.get("event_date") else None,
+                "is_partner_school": bool(c.get("is_partner")),
+            }
             for c in all_courses
             if role_cat in (c.get("categories") or [c.get("category")])
-        ][:8]
+        ][:12]
 
         cur.execute(
             f"""SELECT tasks FROM {SCHEMA}.podelam_daily_plans

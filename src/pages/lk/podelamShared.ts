@@ -49,7 +49,26 @@ export interface Profile {
   addon_services_text?: string;
   lead_source: string;
   conversion_rate?: number | null;
+  about_me?: string;
+  personal_goals?: string[];
+  personal_goals_other?: string;
 }
+
+// ── Личные цели развития (не про деньги — про рост человека как специалиста) ──
+// Используются для более точных рекомендаций курсов/тренингов/мероприятий Академии,
+// а не только шагов из финансового разрыва.
+export const PERSONAL_GOAL_OPTIONS: { code: string; label: string }[] = [
+  { code: "new_skill",        label: "Освоить новый метод/технику" },
+  { code: "certification",    label: "Получить сертификацию/диплом" },
+  { code: "confidence",       label: "Увереннее вести приём/консультацию" },
+  { code: "personal_brand",   label: "Развить личный бренд, стать заметнее" },
+  { code: "public_speaking",  label: "Научиться выступать, вести эфиры/лекции" },
+  { code: "team_growth",      label: "Вырасти в руководителя / открыть команду" },
+  { code: "burnout",          label: "Справиться с выгоранием, восстановить силы" },
+  { code: "networking",       label: "Найти единомышленников, сообщество" },
+  { code: "work_life_balance",label: "Меньше работать, но не терять в доходе" },
+  { code: "other",            label: "Другое" },
+];
 
 // ── Терминология ПоДелам по специализации ──────────────────────────────────
 // Психолог/телесный психолог работают с "обращениями" и "консультациями", а не с
@@ -78,6 +97,8 @@ export interface PodelamTerms {
   conversionLabel: string;
   conversionPlaceholder: string;
   baseWordGen: string;
+  aboutMeLabel: string;
+  aboutMePlaceholder: string;
 }
 
 export function getPodelamTerms(specialization?: PodelamSpecialization): PodelamTerms {
@@ -99,6 +120,8 @@ export function getPodelamTerms(specialization?: PodelamSpecialization): Podelam
       conversionLabel: "% обращений, доходящих до первой консультации",
       conversionPlaceholder: "60",
       baseWordGen: "обращений",
+      aboutMeLabel: "Образование и опыт",
+      aboutMePlaceholder: "Например: психфак СПбГУ 2018, 5 лет практики, доп. образование по КПТ, прошла супервизию у...",
     };
   }
   return {
@@ -118,6 +141,8 @@ export function getPodelamTerms(specialization?: PodelamSpecialization): Podelam
     conversionLabel: "",
     conversionPlaceholder: "",
     baseWordGen: "клиентов",
+    aboutMeLabel: "Образование и опыт",
+    aboutMePlaceholder: "Например: колледж по специальности, 6 лет опыта, курсы повышения квалификации по колористике...",
   };
 }
 

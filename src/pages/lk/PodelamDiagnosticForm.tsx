@@ -1,9 +1,9 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
-import { ACCENT, ACCENT_DARK, PODELAM_FAST_URL, sid, getPodelamTerms, isPsychSpecialization } from "./podelamShared";
+import { ACCENT, ACCENT_DARK, PODELAM_FAST_URL, sid, getPodelamTerms, isPsychSpecialization, PERSONAL_GOAL_OPTIONS } from "./podelamShared";
 
-// ── Форма диагностики (8-12 вопросов) ─────────────────────────────────────────
+// ── Форма диагностики (8-12 вопросов + доп. блок «О себе и цели развития») ──────
 export default function DiagnosticForm({ onSaved }: { onSaved: () => void }) {
   const { user } = useLkAuth();
   const terms = getPodelamTerms(user?.specialization);
@@ -12,11 +12,20 @@ export default function DiagnosticForm({ onSaved }: { onSaved: () => void }) {
     niche: "", avg_check: "", current_revenue: "", target_revenue: "",
     clients_per_month: "", base_size: "", repeat_rate: "", free_slots_per_week: "",
     conversion_rate: "", has_addon_services: false, addon_services_text: "", lead_source: "",
+    about_me: "", personal_goals: [] as string[], personal_goals_other: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const set = (k: string, v: string | boolean) => setForm(p => ({ ...p, [k]: v }));
+
+  const toggleGoal = (code: string) => {
+    setForm(p => {
+      const has = p.personal_goals.includes(code);
+      const next = has ? p.personal_goals.filter(g => g !== code) : [...p.personal_goals, code];
+      return { ...p, personal_goals: next, personal_goals_other: next.includes("other") ? p.personal_goals_other : "" };
+    });
+  };
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "11px 14px", borderRadius: 10, border: "1.5px solid #E2E8F0",
@@ -49,6 +58,9 @@ export default function DiagnosticForm({ onSaved }: { onSaved: () => void }) {
           has_addon_services: form.has_addon_services,
           addon_services_text: form.addon_services_text.trim(),
           lead_source: form.lead_source,
+          about_me: form.about_me.trim(),
+          personal_goals: form.personal_goals,
+          personal_goals_other: form.personal_goals_other.trim(),
         }),
       });
       const data = await res.json();
@@ -156,13 +168,72 @@ export default function DiagnosticForm({ onSaved }: { onSaved: () => void }) {
           )}
         </div>
 
+        {/* ── Блок «О себе и цели развития» — необязателен, но повышает точность рекомендаций ── */}
+        <div style={{ borderTop: "1px solid #F1F5F9", paddingTop: 18, marginTop: 2 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <Icon name="UserRound" size={15} style={{ color: ACCENT }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>О себе и цели развития</span>
+            <span style={{ fontSize: 10.5, fontWeight: 600, color: "#94A3B8", background: "#F1F5F9", borderRadius: 20, padding: "2px 8px" }}>Необязательно</span>
+          </div>
+          <p style={{ fontSize: 12.5, color: "#94A3B8", margin: "0 0 14px", lineHeight: 1.6 }}>
+            Чем больше ИИ знает о вас — тем точнее подберёт не только шаги для дохода, но и подходящие курсы,
+            тренинги и мероприятия Академии для вашего личного роста.
+          </p>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={label}>{terms.aboutMeLabel}</label>
+            <textarea
+              style={{ ...inputStyle, minHeight: 76, resize: "vertical", fontFamily: "Montserrat,sans-serif" }}
+              value={form.about_me}
+              onChange={e => set("about_me", e.target.value)}
+              placeholder={terms.aboutMePlaceholder}
+              maxLength={800}
+            />
+          </div>
+
+          <div>
+            <label style={label}>Что хотите для себя, кроме дохода?</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+              {PERSONAL_GOAL_OPTIONS.map(opt => {
+                const active = form.personal_goals.includes(opt.code);
+                return (
+                  <button
+                    key={opt.code}
+                    type="button"
+                    onClick={() => toggleGoal(opt.code)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 20,
+                      border: `1.5px solid ${active ? ACCENT : "#E2E8F0"}`,
+                      background: active ? "hsl(185,85%,96%)" : "#fff",
+                      color: active ? ACCENT : "#475569",
+                      fontSize: 12.5, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif",
+                    }}
+                  >
+                    {active && <Icon name="Check" size={12} />}
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            {form.personal_goals.includes("other") && (
+              <input
+                style={{ ...inputStyle, marginTop: 10 }}
+                value={form.personal_goals_other}
+                onChange={e => set("personal_goals_other", e.target.value)}
+                placeholder="Расскажите, что именно"
+              />
+            )}
+          </div>
+        </div>
+
         {error && <div style={{ fontSize: 13, color: "#DC2626", background: "#FEF2F2", borderRadius: 8, padding: "8px 12px" }}>{error}</div>}
 
         <button
           onClick={submit}
           disabled={saving}
           style={{
-            padding: "13px 0", borderRadius: 12, border: "none",
+            padding: "13px 0", borderRadius: 12,
+            border: "none",
             background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`,
             color: "#fff", fontSize: 15, fontWeight: 700, cursor: saving ? "default" : "pointer",
             fontFamily: "Montserrat,sans-serif", opacity: saving ? 0.7 : 1,
