@@ -1,6 +1,5 @@
 import Icon from "@/components/ui/icon";
 import { useEnergy } from "@/contexts/EnergyContext";
-import { useLkAuth } from "@/contexts/LkAuthContext";
 import { ACCENT, CHAIN_PREREQ, TOOLS_CONTENT, TOOLS_DIRECT } from "./LkMarketingTypes";
 import { ToolCard, hasCachedResult } from "./LkMarketingShared";
 
@@ -11,7 +10,6 @@ interface Props {
 
 export default function LkMarketingDashboard({ salonId, onOpenTool }: Props) {
   const { hasPaid, loading: energyLoading } = useEnergy();
-  const { user } = useLkAuth();
 
   return (
     <div>
@@ -101,21 +99,6 @@ export default function LkMarketingDashboard({ salonId, onOpenTool }: Props) {
           Открыть
         </div>
       </a>
-      {user?.is_admin && (
-        <div style={{ marginBottom: 16 }}>
-          <button
-            onClick={() => {
-              sessionStorage.setItem("lk_ai_tool_pending", "landing-guide");
-              sessionStorage.setItem("lk_tab", "ai");
-              window.location.reload();
-            }}
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 8, background: "rgba(45,212,191,0.1)", color: "#2DD4BF", fontSize: 12, fontWeight: 600, border: "1px solid rgba(45,212,191,0.3)", cursor: "pointer", fontFamily: "Montserrat, sans-serif" }}
-          >
-            <Icon name="LayoutTemplate" size={13} />
-            Открыть конструктор (админ)
-          </button>
-        </div>
-      )}
 
       {/* Яндекс.Директ */}
       <div style={{ marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
