@@ -7,6 +7,7 @@ import { ACCENT, ACCENT_DARK, PODELAM_URL, PODELAM_FAST_URL, sid, PodelamData, S
 import DiagnosticForm from "./PodelamDiagnosticForm";
 import InfoModal from "./PodelamInfoModal";
 import { DailyIncomeCard, StatsSection, SalonGoalsCard } from "./PodelamWidgets";
+import { PodelamAnalyticsCard } from "./PodelamAnalyticsCard";
 import { isPodelamTrial, getPodelamTrialData, clearPodelamTrial } from "@/lib/podelamTrial";
 
 // ── Главный экран ПоДелам ──────────────────────────────────────────────────────
@@ -213,6 +214,9 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
       </div>
 
       {showInfo && <InfoModal onClose={() => setShowInfo(false)} />}
+
+      {/* Платная расширенная аналитика — Пульс бизнеса, прогноз, точки роста */}
+      <PodelamAnalyticsCard onNav={onNav} />
 
       {/* Экран 1: Цель и прогресс */}
       {profile && (

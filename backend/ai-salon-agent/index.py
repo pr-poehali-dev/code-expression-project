@@ -201,6 +201,34 @@ def increment_free(conn, user_id: int):
         (user_id,)
     )
 
+def package_covers_usage(conn, user_id: int, tool_key: str) -> bool:
+    """Если у пользователя активен пакет развития и лимит использований этого инструмента
+    в сутки (скользящее окно 24ч) не исчерпан — использование бесплатное, логируем и
+    возвращаем True (энергия при этом не списывается)."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT pp.daily_limit_per_tool FROM {SCHEMA}.user_packages up
+            JOIN {SCHEMA}.package_plans pp ON pp.code = up.plan_code
+            WHERE up.user_id=%s AND up.status='active' AND up.expires_at > NOW()
+            ORDER BY up.expires_at DESC LIMIT 1""",
+        (user_id,)
+    )
+    pkg = cur.fetchone()
+    if not pkg:
+        return False
+    cur2 = conn.cursor()
+    cur2.execute(
+        f"SELECT COUNT(*) FROM {SCHEMA}.tool_usage_log WHERE user_id=%s AND tool_key=%s AND used_at > NOW() - INTERVAL '24 hours'",
+        (user_id, tool_key)
+    )
+    used = cur2.fetchone()[0] or 0
+    if used >= pkg["daily_limit_per_tool"]:
+        return False
+    cur2.execute(f"INSERT INTO {SCHEMA}.tool_usage_log (user_id, tool_key) VALUES (%s,%s)", (user_id, tool_key))
+    conn.commit()
+    return True
+
+
 def get_salon_balance(conn, salon_id: int) -> int:
     cur = conn.cursor()
     cur.execute(f"SELECT credits_balance FROM {tbl('salons')} WHERE id = %s", (salon_id,))
@@ -398,12 +426,14 @@ def handler(event: dict, context) -> dict:
             free_used = get_free_used(conn, user_id)
             is_free = free_used < FREE_MESSAGES
             balance = get_salon_balance(conn, salon_id) if salon_id else 0
+            pkg_covered = False
 
             # Проверка оплаты
             if not is_free:
                 if not salon_id:
                     return err("Заполните профиль салона для использования агента", 402)
-                if balance < ENERGY_PER_MESSAGE:
+                pkg_covered = package_covers_usage(conn, user_id, TOOL_KEY)
+                if not pkg_covered and balance < ENERGY_PER_MESSAGE:
                     return ok({
                         "error": "no_energy",
                         "energy_balance": balance,
@@ -461,7 +491,7 @@ def handler(event: dict, context) -> dict:
             # Списание / счётчик
             if is_free:
                 increment_free(conn, user_id)
-            else:
+            elif not pkg_covered:
                 deduct_energy(conn, salon_id, user_id, ENERGY_PER_MESSAGE, AGENT_NAME)
 
             cur.execute(
@@ -477,7 +507,7 @@ def handler(event: dict, context) -> dict:
             conn.commit()
 
             new_free_used = free_used + 1 if is_free else free_used
-            new_balance = balance if is_free else balance - ENERGY_PER_MESSAGE
+            new_balance = balance if (is_free or pkg_covered) else balance - ENERGY_PER_MESSAGE
 
             return ok({
                 "reply": reply,

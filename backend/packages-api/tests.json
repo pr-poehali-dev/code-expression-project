@@ -1,0 +1,49 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Unknown action — 404",
+      "method": "GET",
+      "path": "/?action=unknown_action",
+      "expectedStatus": 404
+    },
+    {
+      "name": "GET packages_list без сессии — список тарифов без активного пакета",
+      "method": "GET",
+      "path": "/?action=packages_list",
+      "expectedStatus": 200,
+      "expectedBody": {"active_package": null},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET package_status без сессии — 401",
+      "method": "GET",
+      "path": "/?action=package_status",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST package_create_payment без сессии — 401",
+      "method": "POST",
+      "path": "/?action=package_create_payment",
+      "body": {"plan_code": "start", "period_months": 1},
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET admin_packages_list без сессии — 403",
+      "method": "GET",
+      "path": "/?action=admin_packages_list",
+      "expectedStatus": 403
+    },
+    {
+      "name": "GET package_autorenew_check без ключа — 403",
+      "method": "GET",
+      "path": "/?action=package_autorenew_check",
+      "expectedStatus": 403
+    }
+  ]
+}

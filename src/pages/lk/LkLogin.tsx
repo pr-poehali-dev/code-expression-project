@@ -43,7 +43,7 @@ export default function LkLogin() {
   const [email, setEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
-  const [userType, setUserType] = useState<"salon" | "solo_master">(fittingTrial ? "solo_master" : "salon");
+  const [userType, setUserType] = useState<"salon" | "solo_master" | "psychologist" | "body_psychologist">(fittingTrial ? "solo_master" : "salon");
   const [promoCode, setPromoCode] = useState("");
   const [promoCheck, setPromoCheck] = useState<{ status: "idle" | "checking" | "valid" | "invalid"; schoolName?: string; bonus?: number }>({ status: "idle" });
   const promoCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -57,9 +57,9 @@ export default function LkLogin() {
   const onFocus = (k: string) => setFocus(p => ({ ...p, [k]: true }));
   const onBlur = (k: string) => setFocus(p => ({ ...p, [k]: false }));
 
-  // Промокод школы-партнёра доступен только мастерам — при переключении на «Салон» сбрасываем
+  // Промокод школы-партнёра доступен только мастерам — при переключении на другой тип сбрасываем
   useEffect(() => {
-    if (userType === "salon") { setPromoCode(""); setPromoCheck({ status: "idle" }); }
+    if (userType !== "solo_master") { setPromoCode(""); setPromoCheck({ status: "idle" }); }
   }, [userType]);
 
   // Живая проверка промокода с задержкой, чтобы не дёргать сервер на каждый символ
@@ -155,7 +155,7 @@ export default function LkLogin() {
             {/* Tab: Login */}
             {tab === "login" && (
               <form onSubmit={handleLogin}>
-                <div style={{ marginBottom: 4, fontFamily: SERIF, fontSize: 24, fontWeight: 600, color: DARK, marginBottom: 6 }}>
+                <div style={{ fontFamily: SERIF, fontSize: 24, fontWeight: 600, color: DARK, marginBottom: 6 }}>
                   Личный кабинет
                 </div>
                 <p style={{ fontSize: 13, color: GRAY, margin: "0 0 28px", fontWeight: 300 }}>
@@ -232,10 +232,33 @@ export default function LkLogin() {
                   <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.8px" }}>
                     Я регистрируюсь как
                   </label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+                    {([
+                      { key: "salon", icon: "Building2", title: "Компания", desc: "Салон, студия, центр" },
+                      { key: "solo_master", icon: "User", title: "Мастер", desc: "Работаю сам" },
+                    ] as const).map(opt => (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        onClick={() => setUserType(opt.key)}
+                        style={{
+                          display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                          padding: "14px 10px", borderRadius: 6, cursor: "pointer",
+                          border: `1.5px solid ${userType === opt.key ? TEAL : "#E2E8F0"}`,
+                          background: userType === opt.key ? "rgba(45,212,191,0.08)" : "#fff",
+                          transition: "all 0.2s",
+                        }}
+                      >
+                        <Icon name={opt.icon} size={18} style={{ color: userType === opt.key ? TEAL : GRAY }} />
+                        <span style={{ fontSize: 13, fontWeight: 600, color: DARK }}>{opt.title}</span>
+                        <span style={{ fontSize: 11, color: GRAY, fontWeight: 300 }}>{opt.desc}</span>
+                      </button>
+                    ))}
+                  </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     {([
-                      { key: "salon", icon: "Building2", title: "Салон", desc: "Владелец салона" },
-                      { key: "solo_master", icon: "User", title: "Мастер", desc: "Работаю сам" },
+                      { key: "psychologist", icon: "Brain", title: "Психолог", desc: "Частная практика" },
+                      { key: "body_psychologist", icon: "HeartHandshake", title: "Телесный психолог", desc: "Частная практика" },
                     ] as const).map(opt => (
                       <button
                         key={opt.key}

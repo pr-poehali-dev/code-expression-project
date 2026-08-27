@@ -100,6 +100,28 @@ export interface StatsData {
   month: PeriodStats;
 }
 
+export interface PodelamAnalysis {
+  pulse_score: number;
+  pulse_trend: "up" | "down" | "flat";
+  summary: string;
+  main_problem: string | null;
+  main_opportunity: string | null;
+  losses_estimate: string | null;
+  forecast: string | null;
+  forecast_confidence: "высокий" | "средний" | "низкий" | null;
+  main_action: string;
+  extra_actions: string[];
+}
+
+export interface PodelamAnalyticsResponse {
+  has_package: boolean;
+  has_profile?: boolean;
+  pulse_score?: number;
+  analysis?: PodelamAnalysis;
+  computed_at?: string;
+  cached?: boolean;
+}
+
 export function fmt(n: number) {
   return Math.round(n).toLocaleString("ru-RU");
 }

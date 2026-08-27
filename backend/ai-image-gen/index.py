@@ -79,6 +79,34 @@ def get_session_user(event, conn):
     return cur.fetchone()
 
 
+def package_covers_usage(conn, user_id: int, tool_key: str) -> bool:
+    """Если у пользователя активен пакет развития и лимит использований этого инструмента
+    в сутки (скользящее окно 24ч) не исчерпан — использование бесплатное, логируем и
+    возвращаем True (энергия при этом не списывается)."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT pp.daily_limit_per_tool FROM {SCHEMA}.user_packages up
+            JOIN {SCHEMA}.package_plans pp ON pp.code = up.plan_code
+            WHERE up.user_id=%s AND up.status='active' AND up.expires_at > NOW()
+            ORDER BY up.expires_at DESC LIMIT 1""",
+        (user_id,)
+    )
+    pkg = cur.fetchone()
+    if not pkg:
+        return False
+    cur2 = conn.cursor()
+    cur2.execute(
+        f"SELECT COUNT(*) FROM {SCHEMA}.tool_usage_log WHERE user_id=%s AND tool_key=%s AND used_at > NOW() - INTERVAL '24 hours'",
+        (user_id, tool_key)
+    )
+    used = cur2.fetchone()[0] or 0
+    if used >= pkg["daily_limit_per_tool"]:
+        return False
+    cur2.execute(f"INSERT INTO {SCHEMA}.tool_usage_log (user_id, tool_key) VALUES (%s,%s)", (user_id, tool_key))
+    conn.commit()
+    return True
+
+
 def get_tool_cost(conn, tool_key=TOOL_KEY, default=5) -> int:
     cur = conn.cursor()
     cur.execute(
@@ -296,12 +324,14 @@ def handle_fitting(event, conn):
         )
 
     cost = get_tool_cost(conn, FITTING_TOOL_KEY, default=45)
-    ok_deduct, balance = check_and_deduct_energy(
-        salon_id, user["id"], cost, conn,
-        tool_key=FITTING_TOOL_KEY, action="Виртуальная примерка"
-    )
-    if not ok_deduct:
-        return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
+    balance = 0
+    if not package_covers_usage(conn, user["id"], FITTING_TOOL_KEY):
+        ok_deduct, balance = check_and_deduct_energy(
+            salon_id, user["id"], cost, conn,
+            tool_key=FITTING_TOOL_KEY, action="Виртуальная примерка"
+        )
+        if not ok_deduct:
+            return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
 
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
@@ -559,9 +589,10 @@ def handler(event: dict, context) -> dict:
         aspect_gpt15 = ASPECT_MAP_GPT15[aspect_raw]
 
         cost = get_tool_cost(conn)
-        ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, conn)
-        if not ok_deduct:
-            return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
+        if not package_covers_usage(conn, user["id"], TOOL_KEY):
+            ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, conn)
+            if not ok_deduct:
+                return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
 
         use_salon_context = body.get("use_salon_context", False)
         include_logo_text = body.get("include_logo_text", False)

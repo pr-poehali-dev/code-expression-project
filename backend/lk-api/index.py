@@ -157,7 +157,10 @@ def handle_register(event: dict) -> dict:
     full_name = (body.get("full_name") or "").strip()
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
-    user_type = body.get("user_type") or "salon"  # "salon" (владелец) или "solo_master" (независимый мастер)
+    # "salon" (владелец компании), "solo_master" (независимый мастер), "psychologist"/"body_psychologist"
+    # (частная практика — психолог/телесный психолог). Последние два — тот же контейнер-"салон"
+    # (баланс энергии/пакетов), что и у мастера, но с явной специализацией в профиле.
+    user_type = body.get("user_type") or "salon"
     source = (body.get("source") or "").strip()  # напр. "podelam_demo" — регистрация после демо-формы на главной
     promo_code = (body.get("promo_code") or "").strip()
 
@@ -167,11 +170,12 @@ def handle_register(event: dict) -> dict:
         return err("Укажите корректный email")
     if len(password) < 6:
         return err("Пароль должен содержать минимум 6 символов")
-    if user_type not in ("salon", "solo_master"):
+    if user_type not in ("salon", "solo_master", "psychologist", "body_psychologist"):
         return err("Некорректный тип аккаунта")
 
     segment = "salon" if user_type == "salon" else "specialist"
     role = "owner" if user_type == "salon" else "solo_master"
+    specialization = user_type if user_type in ("psychologist", "body_psychologist") else None
 
     # username = email до @
     username = email.split("@")[0]
@@ -211,19 +215,19 @@ def handle_register(event: dict) -> dict:
         pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
         verify_token = secrets.token_urlsafe(40)
         cur.execute(
-            f"INSERT INTO {tbl('lk_users')} (username, email, password_hash, full_name, is_active, segment, role, welcome_bonus_given, email_verified, email_verify_token, email_verify_sent_at) "
-            f"VALUES (%s,%s,%s,%s,TRUE,%s,%s,FALSE,FALSE,%s,NOW()) RETURNING id",
-            (username, email, pw_hash, full_name, segment, role, verify_token)
+            f"INSERT INTO {tbl('lk_users')} (username, email, password_hash, full_name, is_active, segment, role, specialization, welcome_bonus_given, email_verified, email_verify_token, email_verify_sent_at) "
+            f"VALUES (%s,%s,%s,%s,TRUE,%s,%s,%s,FALSE,FALSE,%s,NOW()) RETURNING id",
+            (username, email, pw_hash, full_name, segment, role, specialization, verify_token)
         )
         user_id = cur.fetchone()["id"]
 
         salon_id = None
         salon_data = None
-        if user_type == "solo_master":
-            # Независимому мастеру создаём личный "салон" — это внутренний контейнер
-            # для баланса энергии, платежей и покупок, устройство не отличается от салона.
-            # Приветственный бонус энергии БОЛЬШЕ НЕ начисляется — баланс стартует с нуля,
-            # первый план «ПоДелам» бесплатен отдельной логикой (см. handle_podelam_get).
+        if user_type in ("solo_master", "psychologist", "body_psychologist"):
+            # Независимому специалисту (мастер, психолог, телесный психолог) создаём личный
+            # "салон" — это внутренний контейнер для баланса энергии, пакетов и покупок,
+            # устройство не отличается от салона. Приветственный бонус энергии не начисляется —
+            # баланс стартует с нуля, первый план «ПоДелам» бесплатен отдельной логикой.
             cur.execute(
                 f"INSERT INTO {tbl('salons')} (owner_id, name, credits_balance) "
                 f"VALUES (%s,%s,0) RETURNING id",
@@ -267,6 +271,7 @@ def handle_register(event: dict) -> dict:
                 "access_expires_at": None,
                 "segment": segment,
                 "role": role,
+                "specialization": specialization,
                 "salon_id": salon_id,
                 "salon": salon_data,
                 "email_verified": False,
@@ -369,6 +374,7 @@ def handle_me(event: dict) -> dict:
             "access_expires_at": user["access_expires_at"],
             "segment": user.get("segment", "specialist"),
             "role": user.get("role", "body_specialist"),
+            "specialization": user.get("specialization"),
             "salon_id": user.get("salon_id"),
             "salon": salon,
             "course_ids": course_ids,
@@ -3748,9 +3754,41 @@ def _spend_energy(conn, salon_id: int, user_id: int, tool_key: str, amount: int,
 FREE_LIMIT_TOOLS = {"post_gen": 3, "image_gen": 3}
 
 
+def _get_active_package_plan(conn, user_id: int) -> dict | None:
+    """Активный пакет развития пользователя + его тарифный план (лимит инструментов в сутки).
+    Дублирует логику packages-api — оба backend-а читают одни и те же таблицы независимо,
+    т.к. это разные облачные функции (см. паттерн дублирования energy-логики в проекте)."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT up.plan_code, pp.daily_limit_per_tool FROM {tbl('user_packages')} up
+            JOIN {tbl('package_plans')} pp ON pp.code = up.plan_code
+            WHERE up.user_id=%s AND up.status='active' AND up.expires_at > NOW()
+            ORDER BY up.expires_at DESC LIMIT 1""",
+        (user_id,)
+    )
+    return cur.fetchone()
+
+
+def _get_tool_usage_24h(conn, user_id: int, tool_key: str) -> int:
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT COUNT(*) FROM {tbl('tool_usage_log')} WHERE user_id=%s AND tool_key=%s AND used_at > NOW() - INTERVAL '24 hours'",
+        (user_id, tool_key)
+    )
+    return cur.fetchone()[0] or 0
+
+
+def _log_tool_usage(conn, user_id: int, tool_key: str):
+    cur = conn.cursor()
+    cur.execute(f"INSERT INTO {tbl('tool_usage_log')} (user_id, tool_key) VALUES (%s,%s)", (user_id, tool_key))
+
+
 def check_and_spend_energy(event: dict, conn, tool_key: str) -> dict | None:
     """
     Проверяет баланс и лимиты, списывает энергию.
+    Если у пользователя есть активный пакет развития и лимит использований этого инструмента
+    в сутки (скользящее окно 24ч) ещё не исчерпан — использование БЕСПЛАТНОЕ (в рамках пакета),
+    энергия не списывается. Лимит исчерпан — обычная проверка и списание энергии, как раньше.
     Возвращает None если всё ок, или err-ответ если недостаточно энергии.
     """
     user = get_session_user(event, conn)
@@ -3765,6 +3803,14 @@ def check_and_spend_energy(event: dict, conn, tool_key: str) -> dict | None:
     tool = _get_tool_cost(conn, tool_key)
     if not tool or tool["is_free"] or tool["energy_cost"] == 0:
         return None  # Бесплатный инструмент
+
+    package = _get_active_package_plan(conn, user["id"])
+    if package:
+        used_24h = _get_tool_usage_24h(conn, user["id"], tool_key)
+        if used_24h < package["daily_limit_per_tool"]:
+            _log_tool_usage(conn, user["id"], tool_key)
+            conn.commit()
+            return None  # В рамках лимита пакета — бесплатно, энергия не тратится
 
     free_limit = FREE_LIMIT_TOOLS.get(tool_key)
     if free_limit is not None:

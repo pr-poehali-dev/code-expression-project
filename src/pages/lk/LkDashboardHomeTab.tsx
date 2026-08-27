@@ -1,6 +1,6 @@
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
-import { Tab, ACCENT, ROLE_LABELS } from "./LkDashboardTypes";
+import { Tab, ACCENT, getRoleLabel } from "./LkDashboardTypes";
 
 // ── Заглушка для будущих разделов ─────────────────────────────────────────────
 export function ComingSoonTab({ title, description, icon }: { title: string; description: string; icon: string }) {
@@ -43,7 +43,7 @@ export function HomeTab({ onNav, role, hasSalon }: HomeTabProps) {
     ] : []),
     // Чемпионат временно отключён (не проводится) — плитка убрана, см. LkDashboardTypes.ts
     ...(role === "owner" ? [
-      { tab: "salon" as Tab,     icon: "Building2", color: "hsl(145,60%,40%)", bg: "hsl(145,60%,95%)", title: "Мой салон", desc: hasSalon ? "Профиль заполнен" : "Заполните профиль салона" },
+      { tab: "salon" as Tab,     icon: "Building2", color: "hsl(145,60%,40%)", bg: "hsl(145,60%,95%)", title: "Моя компания", desc: hasSalon ? "Профиль заполнен" : "Заполните профиль компании" },
       { tab: "employees" as Tab, icon: "Users",     color: "hsl(185,85%,32%)", bg: "hsl(185,85%,95%)", title: "Команда",   desc: "Пригласить и управлять сотрудниками" },
     ] : []),
   ];
@@ -53,7 +53,7 @@ export function HomeTab({ onNav, role, hasSalon }: HomeTabProps) {
       {/* Приветствие */}
       <div style={{ marginBottom: 32 }}>
         <div style={{ fontSize: 12, fontWeight: 600, color: ACCENT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-          {ROLE_LABELS[role] || "Специалист"} · Промт Диалог
+          {getRoleLabel(role, user?.specialization)} · Промт Диалог
         </div>
         <h1 style={{ fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px", letterSpacing: "-0.3px" }}>
           Добро пожаловать{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}!

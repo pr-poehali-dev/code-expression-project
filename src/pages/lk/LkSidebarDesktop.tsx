@@ -1,7 +1,7 @@
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
 import {
-  Tab, NAV_ITEMS, ROLE_TABS, SALON_REQUIRED, ROLE_LABELS, TEAL_BRIGHT, ACCENT,
+  Tab, NAV_ITEMS, ROLE_TABS, SALON_REQUIRED, getRoleLabel, TEAL_BRIGHT, ACCENT,
 } from "./LkDashboardTypes";
 import { usePodelamUnseen, useBlogUnseen, useRequestsCount, EnergyBadge } from "./LkSidebarShared";
 import { markBlogSeen } from "./blogNotice";
@@ -57,7 +57,7 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
           }
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.salon.name}</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{ROLE_LABELS[role]}</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{getRoleLabel(role, user?.specialization)}</div>
           </div>
         </div>
       )}

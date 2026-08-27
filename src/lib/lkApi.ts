@@ -55,7 +55,7 @@ export const lkApi = {
   login: (username: string, password: string) =>
     request("POST", "login", { username, password }),
 
-  register: (full_name: string, email: string, password: string, user_type: "salon" | "solo_master" = "salon", source?: string, promo_code?: string) =>
+  register: (full_name: string, email: string, password: string, user_type: "salon" | "solo_master" | "psychologist" | "body_psychologist" = "salon", source?: string, promo_code?: string) =>
     request("POST", "register", { full_name, email, password, user_type, source, promo_code }),
 
   promoCodeCheck: (code: string) =>

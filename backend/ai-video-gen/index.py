@@ -56,6 +56,34 @@ def get_tool_cost(conn, duration: str) -> int:
     return 180 if duration == "10s" else 105
 
 
+def package_covers_usage(conn, user_id: int, tool_key: str) -> bool:
+    """Если у пользователя активен пакет развития и лимит использований этого инструмента
+    в сутки (скользящее окно 24ч) не исчерпан — использование бесплатное, логируем и
+    возвращаем True (энергия при этом не списывается)."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT pp.daily_limit_per_tool FROM {SCHEMA}.user_packages up
+            JOIN {SCHEMA}.package_plans pp ON pp.code = up.plan_code
+            WHERE up.user_id=%s AND up.status='active' AND up.expires_at > NOW()
+            ORDER BY up.expires_at DESC LIMIT 1""",
+        (user_id,)
+    )
+    pkg = cur.fetchone()
+    if not pkg:
+        return False
+    cur2 = conn.cursor()
+    cur2.execute(
+        f"SELECT COUNT(*) FROM {SCHEMA}.tool_usage_log WHERE user_id=%s AND tool_key=%s AND used_at > NOW() - INTERVAL '24 hours'",
+        (user_id, tool_key)
+    )
+    used = cur2.fetchone()[0] or 0
+    if used >= pkg["daily_limit_per_tool"]:
+        return False
+    cur2.execute(f"INSERT INTO {SCHEMA}.tool_usage_log (user_id, tool_key) VALUES (%s,%s)", (user_id, tool_key))
+    conn.commit()
+    return True
+
+
 def has_paid_at_least_once(salon_id, conn) -> bool:
     cur = conn.cursor()
     cur.execute(f"SELECT COUNT(*) FROM {SCHEMA}.payments WHERE salon_id = %s AND status = 'succeeded'", (salon_id,))
@@ -192,9 +220,11 @@ def handler(event: dict, context) -> dict:
 
         tool_key = "video_gen_10s" if duration == "10s" else "video_gen_5s"
         cost = get_tool_cost(conn, duration)
-        ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, tool_key, conn)
-        if not ok_deduct:
-            return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
+        pkg_covered = package_covers_usage(conn, user["id"], tool_key)
+        if not pkg_covered:
+            ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, tool_key, conn)
+            if not ok_deduct:
+                return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
 
         conn.close()
 
@@ -237,30 +267,33 @@ def handler(event: dict, context) -> dict:
             body_text = e.read().decode("utf-8", errors="ignore")
             print(f"[polza.ai video] HTTP {e.code}: {body_text[:300]}")
             if e.code in (502, 503):
+                if not pkg_covered:
+                    try:
+                        conn_r = get_db()
+                        refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
+                        conn_r.close()
+                    except Exception:
+                        pass
+                return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
+            if not pkg_covered:
                 try:
                     conn_r = get_db()
                     refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
                     conn_r.close()
                 except Exception:
                     pass
-                return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
-            try:
-                conn_r = get_db()
-                refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
-                conn_r.close()
-            except Exception:
-                pass
             return err(f"Ошибка сервиса генерации: {body_text[:150]}", 502)
         except Exception as e:
             msg = str(e)
             print(f"[polza.ai video] err: {msg}")
             if is_provider_error(e):
-                try:
-                    conn_r = get_db()
-                    refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
-                    conn_r.close()
-                except Exception:
-                    pass
+                if not pkg_covered:
+                    try:
+                        conn_r = get_db()
+                        refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
+                        conn_r.close()
+                    except Exception:
+                        pass
                 return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
             if "timed out" in msg.lower() or "timeout" in msg.lower():
                 return err("Видео генерируется дольше обычного — проверьте раздел «Мои видео» через минуту.", 504)
@@ -271,12 +304,13 @@ def handler(event: dict, context) -> dict:
         if result.get("status") == "failed":
             provider_msg = (result.get("error") or {}).get("message", "")
             print(f"[polza.ai video] generation failed: {provider_msg}")
-            try:
-                conn_r = get_db()
-                refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
-                conn_r.close()
-            except Exception:
-                pass
+            if not pkg_covered:
+                try:
+                    conn_r = get_db()
+                    refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
+                    conn_r.close()
+                except Exception:
+                    pass
             if "sensitive" in provider_msg.lower() or "audio" in provider_msg.lower():
                 return err(
                     "Сервис отклонил генерацию: описание могло привести к недопустимому контенту (например, звуку/голосу). "
@@ -300,12 +334,13 @@ def handler(event: dict, context) -> dict:
                         break
 
         if not video_url:
-            try:
-                conn_r = get_db()
-                refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
-                conn_r.close()
-            except Exception:
-                pass
+            if not pkg_covered:
+                try:
+                    conn_r = get_db()
+                    refund_energy(salon_id, user["id"], cost, tool_key, conn_r)
+                    conn_r.close()
+                except Exception:
+                    pass
             return err("Сервис не вернул видео. Энергия возвращена. Попробуйте ещё раз.", 502)
 
         try:

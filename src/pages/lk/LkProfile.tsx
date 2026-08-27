@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { lkApi } from "@/lib/lkApi";
 import Icon from "@/components/ui/icon";
+import { getRoleLabel } from "./LkDashboardTypes";
 
 const ACCENT = "hsl(185,85%,32%)";
 const SERIF = "'Cormorant Garamond', serif";
@@ -85,11 +86,6 @@ export default function LkProfile() {
     } finally { setSavingPw(false); }
   };
 
-  const ROLE_LABELS: Record<string, string> = {
-    owner: "Владелец", admin: "Администратор",
-    master: "Мастер красоты", body_specialist: "Специалист по телу",
-  };
-
   return (
     <div style={{ maxWidth: 600 }}>
 
@@ -111,7 +107,7 @@ export default function LkProfile() {
         <div>
           <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", marginBottom: 3 }}>{user?.full_name || user?.username}</div>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>{user?.email}</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 3 }}>{ROLE_LABELS[user?.role || ""] || "Пользователь"} · @{user?.username}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 3 }}>{getRoleLabel(user?.role || "", user?.specialization)} · @{user?.username}</div>
         </div>
       </div>
 
@@ -273,7 +269,7 @@ export default function LkProfile() {
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {[
             { label: "Логин", value: `@${user?.username}` },
-            { label: "Роль", value: ROLE_LABELS[user?.role || ""] || "Пользователь" },
+            { label: "Роль", value: getRoleLabel(user?.role || "", user?.specialization) },
             { label: "Сегмент", value: user?.segment === "salon" ? "Салон красоты" : "Специалист" },
           ].map(row => (
             <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid #f5f5f2" }}>

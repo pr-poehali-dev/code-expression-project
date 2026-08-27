@@ -16,6 +16,7 @@ export interface LkUser {
   access_expires_at: string | null;
   segment: "specialist" | "salon";
   role: "owner" | "admin" | "master" | "body_specialist" | "solo_master";
+  specialization: "psychologist" | "body_psychologist" | null;
   salon_id: number | null;
   salon: LkSalon | null;
   course_ids: number[];
@@ -30,7 +31,7 @@ interface LkAuthCtx {
   pendingEmail: string;
   pendingPromo: PromoResult | null;
   login: (username: string, password: string) => Promise<void>;
-  register: (full_name: string, email: string, password: string, userType?: "salon" | "solo_master", source?: string, promoCode?: string) => Promise<{ promo?: PromoResult }>;
+  register: (full_name: string, email: string, password: string, userType?: "salon" | "solo_master" | "psychologist" | "body_psychologist", source?: string, promoCode?: string) => Promise<{ promo?: PromoResult }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   markEmailVerified: () => void;
@@ -97,7 +98,7 @@ export function LkAuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   };
 
-  const register = async (full_name: string, email: string, password: string, userType: "salon" | "solo_master" = "salon", source?: string, promoCode?: string) => {
+  const register = async (full_name: string, email: string, password: string, userType: "salon" | "solo_master" | "psychologist" | "body_psychologist" = "salon", source?: string, promoCode?: string) => {
     sessionStorage.removeItem("lk_tab");
     const data = await lkApi.register(full_name, email, password, userType, source, promoCode);
     saveSession(data.session_id);

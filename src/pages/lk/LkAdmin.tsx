@@ -11,8 +11,9 @@ import { PaymentsSection } from "./LkAdminPayments";
 import { TrainingGeneratorSection, TrainingImageGenSection } from "./LkAdminTrainingGenerator";
 import { ChampionshipSection } from "./LkAdminChampionship";
 import { SchoolsSection } from "./LkAdminSchools";
+import { PackagesSection } from "./LkAdminPackages";
 
-type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments" | "training" | "training-img" | "championship" | "schools";
+type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments" | "training" | "training-img" | "championship" | "schools" | "packages";
 
 export default function LkAdmin() {
   const [section, setSection] = useState<Section>("ai");
@@ -33,6 +34,7 @@ export default function LkAdmin() {
           { id: "candidates" as Section, icon: "UserCheck",    label: "Кандидаты"    },
           { id: "body"       as Section, icon: "User",         label: "Схема тела"   },
           { id: "energy"     as Section, icon: "Zap",          label: "Энергия"      },
+          { id: "packages"   as Section, icon: "Rocket",       label: "Пакеты развития" },
           { id: "schools"    as Section, icon: "School",       label: "Школы-партнёры" },
           { id: "payments"      as Section, icon: "CreditCard",   label: "Платежи"      },
           { id: "championship"  as Section, icon: "Trophy",       label: "Чемпионат"    },
@@ -60,6 +62,7 @@ export default function LkAdmin() {
       {section === "candidates" && <CandidatesSection />}
       {section === "body"       && <BodySection />}
       {section === "energy"     && <EnergySection />}
+      {section === "packages"   && <PackagesSection />}
       {section === "schools"    && <SchoolsSection />}
       {section === "payments"      && <PaymentsSection />}
       {section === "championship"  && <ChampionshipSection />}

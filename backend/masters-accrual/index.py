@@ -29,6 +29,15 @@ GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет е
                                        owner → admin → master → massage (см. CONTENT_ROLES/CONTENT_ROLE_GUIDANCE) — один
                                        пост пишется строго для одной роли, а не «для всех». ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ
                                        НЕ МЕНЕЕ 60с.
+GET  ?action=podelam_analytics&refresh=1 — платная расширенная аналитика (доступна только с активным пакетом
+                                       развития из user_packages): Пульс бизнеса (0-100), тренд, главная проблема,
+                                       главная возможность, оценка потерь, прогноз с уровнем уверенности, главное
+                                       действие. Backend СНАЧАЛА считает агрегаты (доход/клиенты/% выполнения шагов
+                                       за 7/14/30/90 дней и % изменения к предыдущему периоду) — ИИ (Terra через
+                                       Polza AI) получает уже подготовленный компактный контекст, а не сырую историю.
+                                       Результат кэшируется в podelam_analytics_cache на 24ч, ?refresh=1 форсирует
+                                       пересчёт. Без пакета — {"has_package": false}, без диагностики ПоДелам —
+                                       {"has_package": true, "has_profile": false}. ТАЙМАУТ НЕ МЕНЕЕ 60с.
 
 Публичные быстрые эндпоинты блога (лента, sitemap, комментарии) вынесены в отдельную функцию
 blog-public — там низкий таймаут (25с), не завышенный ради ИИ-действий ПоДелам/контента.
@@ -989,6 +998,230 @@ def handle_podelam_get(event: dict, conn) -> dict:
     })
 
 
+# ── Платная расширенная аналитика ПоДелам (Пульс бизнеса, прогноз, точки роста) ──
+# Доступна только пользователям с активным пакетом развития (t_p84565078_code_expression_proj.user_packages).
+# Backend сначала считает агрегаты по накопленной истории (доход/клиенты/выполнение шагов за
+# 7/14/30/90 дней), затем отправляет ИИ уже подготовленный компактный контекст — не сырую историю
+# целиком — экономия токенов и времени. Результат кэшируется в podelam_analytics_cache и
+# пересчитывается не чаще раза в сутки (или когда явно запрошен пересчёт).
+
+def _get_active_package_for_analytics(conn, user_id: int) -> dict | None:
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT up.plan_code, pp.name AS plan_name, pp.has_deep_analysis FROM {SCHEMA}.user_packages up
+            JOIN {SCHEMA}.package_plans pp ON pp.code = up.plan_code
+            WHERE up.user_id=%s AND up.status='active' AND up.expires_at > NOW()
+            ORDER BY up.expires_at DESC LIMIT 1""",
+        (user_id,)
+    )
+    return cur.fetchone()
+
+
+def _period_stats(conn, user_id: int, days: int) -> dict:
+    """Агрегаты за период: доход, новые/вернувшиеся клиенты, % выполнения шагов — считает
+    Backend по накопленным данным (не ИИ), чтобы не отправлять модели сырую историю."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    since = date.today() - timedelta(days=days - 1)
+    cur.execute(
+        f"""SELECT COALESCE(SUM(amount),0) AS income, COALESCE(SUM(new_clients),0) AS new_clients,
+                   COALESCE(SUM(returned_clients),0) AS returned_clients
+            FROM {SCHEMA}.podelam_daily_income WHERE user_id=%s AND income_date >= %s""",
+        (user_id, since)
+    )
+    income_row = cur.fetchone()
+    cur.execute(
+        f"""SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE done) AS done
+            FROM {SCHEMA}.podelam_task_log WHERE user_id=%s AND plan_date >= %s""",
+        (user_id, since)
+    )
+    tasks_row = cur.fetchone()
+    total = tasks_row["total"] or 0
+    done = tasks_row["done"] or 0
+    return {
+        "days": days,
+        "income": float(income_row["income"] or 0),
+        "new_clients": int(income_row["new_clients"] or 0),
+        "returned_clients": int(income_row["returned_clients"] or 0),
+        "tasks_total": total,
+        "tasks_done": done,
+        "completion_rate": round(done / total * 100) if total else None,
+    }
+
+
+def _pct_change(current: float, previous: float) -> float | None:
+    if previous <= 0:
+        return None
+    return round((current - previous) / previous * 100)
+
+
+def call_podelam_analytics_ai(profile: dict, agg: dict, role: str) -> dict | None:
+    """Запрашивает у Terra (через Polza AI) расширенный ежедневный анализ на основе уже
+    посчитанных backend'ом агрегатов (не сырых данных). Возвращает None при ошибке ИИ —
+    тогда используется fallback без интерпретации (только цифры)."""
+    api_key = os.environ.get("POLZA_AI_API_KEY", "")
+    if not api_key:
+        return None
+
+    system_prompt = """Ты — аналитик-консультант платформы «Промт Диалог», раздел «ПоДелам». Тебе дан \
+УЖЕ ПОДГОТОВЛЕННЫЙ агрегированный контекст показателей мастера/салона за разные периоды (7/14/30/90 дней) — \
+рост/падение дохода, новых и вернувшихся клиентов, % выполнения ежедневных шагов. Считать самому НИЧЕГО не нужно, \
+цифры уже точные — не изменяй факты и не придумывай показателей, которых нет в контексте.
+
+Твоя задача — вернуть СТРОГО JSON без markdown-обёртки:
+{
+  "pulse_score": целое_число_0_100 (индекс здоровья бизнеса: рост дохода, стабильность клиентской базы, дисциплина выполнения шагов — взвешенная оценка),
+  "pulse_trend": "up" | "down" | "flat",
+  "summary": "1-2 предложения — что сейчас происходит с бизнесом простыми словами",
+  "main_problem": "главная проблема на текущем этапе, конкретно, 1-2 предложения, или null если данных недостаточно",
+  "main_opportunity": "что даст наибольший эффект прямо сейчас, конкретно, 1-2 предложения, или null",
+  "losses_estimate": "оценка потенциально недополученного дохода в рублях с кратким объяснением откуда цифра, или null если данных недостаточно для расчёта — тогда напиши null, НЕ придумывай число",
+  "forecast": "прогноз на конец периода при сохранении текущей динамики, с конкретной суммой, или null если истории меньше 14 дней",
+  "forecast_confidence": "высокий" | "средний" | "низкий" | null,
+  "main_action": "одно главное действие на сегодня, конкретное",
+  "extra_actions": ["ещё 1-2 доп. рекомендации"]
+}
+Пиши по-деловому, конкретно, без общих фраз вроде "работайте усерднее". Если по какому-то полю данных объективно недостаточно — верни null, а не выдумку."""
+
+    user_payload = {
+        "role": role,
+        "niche": profile.get("niche") or "не указана",
+        "target_revenue": float(profile["target_revenue"]),
+        "current_revenue_at_diagnostic": float(profile["current_revenue"]),
+        "periods": agg["periods"],
+        "changes": agg["changes"],
+    }
+
+    payload = json.dumps({
+        "model": PODELAM_MODEL,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": json.dumps(user_payload, ensure_ascii=False, indent=2)},
+        ],
+        "temperature": 0.5,
+        "max_tokens": 1200,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        PODELAM_AI_URL, data=payload,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        content = data["choices"][0]["message"]["content"].strip()
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            content = content.strip()
+        return json.loads(content)
+    except (urllib.error.URLError, TimeoutError, KeyError, ValueError, json.JSONDecodeError):
+        return None
+
+
+def handle_podelam_analytics(event: dict, conn) -> dict:
+    """Расширенный ежедневный ИИ-анализ ПоДелам — доступен только с активным пакетом развития.
+    GET ?action=podelam_analytics&refresh=1 — принудительный пересчёт (по умолчанию кэш держится 24ч)."""
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+    if not session_id:
+        return err("Не авторизован", 401)
+    user = get_lk_user_by_session(session_id, conn)
+    if not user:
+        return err("Сессия истекла", 401)
+
+    package = _get_active_package_for_analytics(conn, user["id"])
+    if not package:
+        return ok({"has_package": False})
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT * FROM {SCHEMA}.podelam_profiles WHERE user_id = %s", (user["id"],))
+    profile = cur.fetchone()
+    if not profile:
+        return ok({"has_package": True, "has_profile": False})
+
+    qs = event.get("queryStringParameters") or {}
+    force_refresh = qs.get("refresh") == "1"
+
+    cur.execute(f"SELECT * FROM {SCHEMA}.podelam_analytics_cache WHERE user_id = %s", (user["id"],))
+    cached = cur.fetchone()
+    if cached and not force_refresh and cached["computed_at"] > datetime.now(cached["computed_at"].tzinfo) - timedelta(hours=24):
+        return ok({
+            "has_package": True, "has_profile": True,
+            "pulse_score": cached["pulse_score"],
+            "analysis": cached["analysis"],
+            "period_stats": cached["period_stats"],
+            "computed_at": cached["computed_at"],
+            "cached": True,
+        })
+
+    periods = {f"d{d}": _period_stats(conn, user["id"], d) for d in (7, 14, 30, 90)}
+    changes = {
+        "income_7_vs_prev7": None,
+        "income_30_vs_prev30": None,
+    }
+    # Доход за предыдущие 7/30 дней ДО текущего периода — для расчёта % изменения без повторного похода в БД за сырыми строками
+    cur.execute(
+        f"""SELECT COALESCE(SUM(amount),0) FROM {SCHEMA}.podelam_daily_income
+            WHERE user_id=%s AND income_date >= %s AND income_date < %s""",
+        (user["id"], date.today() - timedelta(days=13), date.today() - timedelta(days=6))
+    )
+    prev7 = float(cur.fetchone()[0] or 0)
+    changes["income_7_vs_prev7"] = _pct_change(periods["d7"]["income"], prev7)
+
+    cur.execute(
+        f"""SELECT COALESCE(SUM(amount),0) FROM {SCHEMA}.podelam_daily_income
+            WHERE user_id=%s AND income_date >= %s AND income_date < %s""",
+        (user["id"], date.today() - timedelta(days=59), date.today() - timedelta(days=29))
+    )
+    prev30 = float(cur.fetchone()[0] or 0)
+    changes["income_30_vs_prev30"] = _pct_change(periods["d30"]["income"], prev30)
+
+    role = user.get("role") or "body_specialist"
+    agg = {"periods": periods, "changes": changes}
+    ai_result = call_podelam_analytics_ai(dict(profile), agg, role)
+
+    if ai_result:
+        pulse_score = int(ai_result.get("pulse_score") or 50)
+        analysis = ai_result
+    else:
+        # Fallback без ИИ-интерпретации — только то, что реально можно посчитать по цифрам
+        d30 = periods["d30"]
+        pulse_score = 50
+        if changes["income_30_vs_prev30"] is not None:
+            pulse_score = max(0, min(100, 50 + changes["income_30_vs_prev30"]))
+        analysis = {
+            "pulse_score": round(pulse_score),
+            "pulse_trend": "up" if (changes["income_30_vs_prev30"] or 0) > 0 else "down" if (changes["income_30_vs_prev30"] or 0) < 0 else "flat",
+            "summary": "Расширенный анализ временно недоступен — показаны только посчитанные показатели без интерпретации ИИ.",
+            "main_problem": None, "main_opportunity": None, "losses_estimate": None,
+            "forecast": None, "forecast_confidence": None,
+            "main_action": "Продолжайте выполнять ежедневные шаги — это основа для точного анализа.",
+            "extra_actions": [],
+        }
+
+    cur2 = conn.cursor()
+    cur2.execute(
+        f"""INSERT INTO {SCHEMA}.podelam_analytics_cache (user_id, pulse_score, analysis, period_stats, computed_at)
+            VALUES (%s,%s,%s,%s,NOW())
+            ON CONFLICT (user_id) DO UPDATE SET
+                pulse_score=EXCLUDED.pulse_score, analysis=EXCLUDED.analysis,
+                period_stats=EXCLUDED.period_stats, computed_at=NOW()""",
+        (user["id"], round(analysis.get("pulse_score") or 50), json.dumps(analysis, ensure_ascii=False),
+         json.dumps(periods, ensure_ascii=False))
+    )
+    conn.commit()
+
+    return ok({
+        "has_package": True, "has_profile": True,
+        "pulse_score": round(analysis.get("pulse_score") or 50),
+        "analysis": analysis,
+        "period_stats": periods,
+        "computed_at": datetime.now(timezone.utc),
+        "cached": False,
+    })
+
+
 def _send_podelam_notify_email(to_email: str, full_name: str, main_task: dict | None, gap_amount: float) -> None:
     """Письмо о новых шагах ПоДелам на сегодня."""
     smtp_password = os.environ.get("SMTP_PASSWORD", "")
@@ -1708,7 +1941,7 @@ def handle_content_daily_post(event: dict, conn) -> dict:
     return ok({"post": dict(row), "created": True})
 
 
-KNOWN_ACTIONS = {"podelam_get", "podelam_notify", "content_daily_post"}
+KNOWN_ACTIONS = {"podelam_get", "podelam_notify", "content_daily_post", "podelam_analytics"}
 
 
 def handler(event: dict, context) -> dict:
@@ -1740,6 +1973,8 @@ def handler(event: dict, context) -> dict:
             return handle_podelam_get(event, conn)
         if route_action == "podelam_notify":
             return handle_podelam_notify(event, conn)
+        if route_action == "podelam_analytics":
+            return handle_podelam_analytics(event, conn)
 
         # ── Автопубликация ежедневного поста в блог ───────────────────────────
         if route_action == "content_daily_post":

@@ -54,6 +54,34 @@ def get_salon_balance(conn, salon_id: int) -> int:
     row = cur.fetchone()
     return row[0] if row else 0
 
+def package_covers_usage(conn, user_id: int, tool_key: str) -> bool:
+    """Если у пользователя активен пакет развития и лимит использований этого инструмента
+    в сутки (скользящее окно 24ч) не исчерпан — использование бесплатное, логируем и
+    возвращаем True (энергия при этом не списывается)."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT pp.daily_limit_per_tool FROM {SCHEMA}.user_packages up
+            JOIN {SCHEMA}.package_plans pp ON pp.code = up.plan_code
+            WHERE up.user_id=%s AND up.status='active' AND up.expires_at > NOW()
+            ORDER BY up.expires_at DESC LIMIT 1""",
+        (user_id,)
+    )
+    pkg = cur.fetchone()
+    if not pkg:
+        return False
+    cur2 = conn.cursor()
+    cur2.execute(
+        f"SELECT COUNT(*) FROM {SCHEMA}.tool_usage_log WHERE user_id=%s AND tool_key=%s AND used_at > NOW() - INTERVAL '24 hours'",
+        (user_id, tool_key)
+    )
+    used = cur2.fetchone()[0] or 0
+    if used >= pkg["daily_limit_per_tool"]:
+        return False
+    cur2.execute(f"INSERT INTO {SCHEMA}.tool_usage_log (user_id, tool_key) VALUES (%s,%s)", (user_id, tool_key))
+    conn.commit()
+    return True
+
+
 def deduct_energy(conn, salon_id: int, user_id: int, amount: int, action: str):
     cur = conn.cursor()
     cur.execute(
@@ -143,9 +171,11 @@ def handler(event: dict, context) -> dict:
         if not salon_id:
             return err("no_salon", 400)
 
-        balance = get_salon_balance(conn, salon_id)
-        if balance < ENERGY_FILE:
-            return err("no_energy", 402)
+        pkg_covered = package_covers_usage(conn, user["id"], "agent_file")
+        if not pkg_covered:
+            balance = get_salon_balance(conn, salon_id)
+            if balance < ENERGY_FILE:
+                return err("no_energy", 402)
 
         body = json.loads(event.get("body") or "{}")
         file_b64 = body.get("file_base64", "")
@@ -174,7 +204,8 @@ def handler(event: dict, context) -> dict:
         if not extracted or not extracted.strip():
             return err("empty_file", 400)
 
-        deduct_energy(conn, salon_id, user["id"], ENERGY_FILE, "file_upload")
+        if not pkg_covered:
+            deduct_energy(conn, salon_id, user["id"], ENERGY_FILE, "file_upload")
         conn.commit()
 
         balance_after = get_salon_balance(conn, salon_id)

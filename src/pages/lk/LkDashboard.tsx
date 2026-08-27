@@ -14,6 +14,7 @@ import LkMemberAcademy from "./LkMemberAcademy";
 import LkClientMsg from "./LkClientMsg";
 import LkMarketing from "./LkMarketing";
 import { PodelamTab } from "./LkPodelam";
+import LkPackages from "./LkPackages";
 import LkChampionship from "./LkChampionship";
 import { LkSidebar, LkMobileHeader, LkBottomBar, PodelamReminderBanner } from "./LkDashboardSidebar";
 import { isFittingTrial } from "@/lib/fittingTrial";
@@ -106,6 +107,7 @@ export default function LkDashboard() {
 
       <main className="lk-main">
         {tab === "home"      && <PodelamTab onNav={handleTabChange} />}
+        {tab === "packages"  && <LkPackages onNav={handleTabChange} />}
         {tab === "tools"     && <LkTests onNavigate={handleTabChange} />}
         {tab === "academy"   && (
           role === "owner" ? <LkAcademy onNavigate={handleTabChange} />

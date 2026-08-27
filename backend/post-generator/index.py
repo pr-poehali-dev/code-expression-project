@@ -75,6 +75,34 @@ def check_free_limit(salon_id, conn) -> tuple[bool, int]:
     return used < FREE_LIMIT, used
 
 
+def package_covers_usage(conn, user_id: int, tool_key: str) -> bool:
+    """Если у пользователя активен пакет развития и лимит использований этого инструмента
+    в сутки (скользящее окно 24ч) не исчерпан — использование бесплатное, логируем и
+    возвращаем True (энергия при этом не списывается)."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT pp.daily_limit_per_tool FROM {SCHEMA}.user_packages up
+            JOIN {SCHEMA}.package_plans pp ON pp.code = up.plan_code
+            WHERE up.user_id=%s AND up.status='active' AND up.expires_at > NOW()
+            ORDER BY up.expires_at DESC LIMIT 1""",
+        (user_id,)
+    )
+    pkg = cur.fetchone()
+    if not pkg:
+        return False
+    cur2 = conn.cursor()
+    cur2.execute(
+        f"SELECT COUNT(*) FROM {SCHEMA}.tool_usage_log WHERE user_id=%s AND tool_key=%s AND used_at > NOW() - INTERVAL '24 hours'",
+        (user_id, tool_key)
+    )
+    used = cur2.fetchone()[0] or 0
+    if used >= pkg["daily_limit_per_tool"]:
+        return False
+    cur2.execute(f"INSERT INTO {SCHEMA}.tool_usage_log (user_id, tool_key) VALUES (%s,%s)", (user_id, tool_key))
+    conn.commit()
+    return True
+
+
 def get_salon_balance(salon_id, conn) -> int:
     cur = conn.cursor()
     cur.execute(
@@ -209,9 +237,11 @@ def handle_text(event, user, conn):
         )
 
     cost = get_tool_cost(conn)
-    balance = get_salon_balance(salon_id, conn)
-    if balance < cost:
-        return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
+    pkg_covered = package_covers_usage(conn, user["id"], TOOL_KEY)
+    if not pkg_covered:
+        balance = get_salon_balance(salon_id, conn)
+        if balance < cost:
+            return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
 
     body  = json.loads(event.get("body") or "{}")
     title = (body.get("title") or "").strip()
@@ -223,7 +253,8 @@ def handle_text(event, user, conn):
         return err("Заголовок не передан")
 
     # Списываем ДО вызова ИИ
-    deduct_energy(salon_id, user["id"], cost, "Генерация поста", conn)
+    if not pkg_covered:
+        deduct_energy(salon_id, user["id"], cost, "Генерация поста", conn)
 
     salon = get_salon_context(user, conn)
     conn.close()
