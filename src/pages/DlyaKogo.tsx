@@ -63,6 +63,19 @@ const ROLES = [
       { icon: "PenLine", name: "Контент о практике", desc: "Посты для личного профессионального бренда." },
     ],
   },
+  {
+    id: "psychologist",
+    icon: "Brain",
+    title: "Психологу",
+    subtitle: "Устойчивая частная практика без давления и допродаж",
+    pain: "Обращения приходят нестабильно. Сложно рассказать о себе так, чтобы вызывать доверие, а не выглядеть навязчиво.",
+    tools: [
+      { icon: "Compass", name: "Навигатор дохода", desc: "План на день с учётом специфики частной практики." },
+      { icon: "Users", name: "Портрет аудитории", desc: "Понимание, кому и с каким запросом вы можете быть полезны." },
+      { icon: "PenLine", name: "Генератор постов", desc: "Экспертный контент о практике без раскрытия деталей клиентов." },
+      { icon: "MessageSquare", name: "Сообщения клиентам", desc: "Корректные напоминания и предложения продолжения работы." },
+    ],
+  },
 ];
 
 export default function DlyaKogo() {
@@ -72,12 +85,12 @@ export default function DlyaKogo() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
-        <title>Для кого платформа — владельцы, администраторы, мастера | Промт Диалог</title>
-        <meta name="description" content="Промт Диалог помогает владельцам салонов, администраторам и мастерам: инструменты под каждую роль. Маркетинг, управление, скрипты продаж и обучение." />
-        <meta name="keywords" content="платформа для владельца салона, инструменты для администратора, обучение мастеров, управление салоном красоты" />
+        <title>Для кого платформа — владельцы, администраторы, мастера, психологи | Промт Диалог</title>
+        <meta name="description" content="Промт Диалог помогает владельцам компаний, администраторам, мастерам и психологам в частной практике: инструменты под каждую роль. Маркетинг, управление, скрипты и обучение." />
+        <meta name="keywords" content="платформа для владельца салона, инструменты для администратора, обучение мастеров, платформа для психолога, частная практика психолога" />
         <link rel="canonical" href="https://promtdialog.ru/dlya-kogo" />
-        <meta property="og:title" content="Для кого Промт Диалог — инструменты под каждую роль в салоне" />
-        <meta property="og:description" content="Владельцы, администраторы, мастера — у каждого свои инструменты для роста и развития." />
+        <meta property="og:title" content="Для кого Промт Диалог — инструменты под каждую роль" />
+        <meta property="og:description" content="Владельцы, администраторы, мастера, психологи — у каждого свои инструменты для роста и развития." />
         <meta property="og:url" content="https://promtdialog.ru/dlya-kogo" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -99,13 +112,13 @@ export default function DlyaKogo() {
             </div>
 
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(40px,5.5vw,70px)", fontWeight: 500, color: "#fff", lineHeight: 1.05, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
-              Инструменты под каждую роль в вашем салоне
+              Инструменты под каждую роль в вашем деле
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 520 }}>
               Каждый получает именно то, что нужно для роста его результата.
             </p>
             <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: TEAL, lineHeight: 1.6, margin: "0", fontWeight: 500, letterSpacing: "0.5px" }}>
-              Владелец · Администратор · Мастер · Специалист по телу
+              Владелец · Администратор · Мастер · Специалист по телу · Психолог
             </p>
           </div>
 
@@ -114,7 +127,7 @@ export default function DlyaKogo() {
               <div style={{ position: "absolute", inset: -1, borderRadius: 6, background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))", pointerEvents: "none", zIndex: 2 }} />
               <img
                 src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/5ffa6a5a-2302-4912-b402-5b27c2920f6c.png"
-                alt="Для кого Промт Диалог — владельцы, администраторы и мастера салона красоты"
+                alt="Для кого Промт Диалог — владельцы, администраторы, мастера и психологи в частной практике"
                 decoding="async"
                 style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
               />
@@ -204,7 +217,7 @@ export default function DlyaKogo() {
             Получите план роста дохода бесплатно
           </h2>
           <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 40px", fontWeight: 300, position: "relative" }}>
-            Создайте профиль салона и получите доступ ко всем инструментам платформы. Без карты и обязательств.
+            Создайте профиль и получите доступ ко всем инструментам платформы. Без карты и обязательств.
           </p>
           <Link to="/cabinet" style={{ display: "inline-block", padding: "16px 44px", borderRadius: 2, background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, textDecoration: "none", letterSpacing: "0.3px", position: "relative" }}>
             Создать профиль

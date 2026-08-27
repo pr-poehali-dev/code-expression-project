@@ -149,7 +149,7 @@ export default function IndexDemoForm() {
                 </div>
                 <div style={{ marginBottom: 16 }}>
                   <label style={label}>Ниша / услуга</label>
-                  <input style={inputStyle} value={form.niche} onChange={e => set("niche", e.target.value)} placeholder="Например: массаж, маникюр, стрижки" />
+                  <input style={inputStyle} value={form.niche} onChange={e => set("niche", e.target.value)} placeholder="Например: массаж, маникюр, консультации психолога" />
                 </div>
                 <div style={{ marginBottom: 18 }}>
                   <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>

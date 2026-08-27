@@ -9,7 +9,7 @@ const SERIF = "'Cormorant Garamond', serif";
 const DIAG_POINTS = [
   { icon: "TrendingDown", text: "Где главный финансовый провал" },
   { icon: "Users", text: "Почему клиенты не возвращаются" },
-  { icon: "DollarSign", text: "Расчёт скрытых денег салона" },
+  { icon: "DollarSign", text: "Расчёт скрытых денег в базе клиентов" },
   { icon: "Rocket", text: "Потенциал роста без нового трафика" },
 ];
 
@@ -25,14 +25,14 @@ export default function IndexDiagBanner() {
           <div style={{ position: "absolute", top: "-20%", right: "-5%", width: 420, height: 420, borderRadius: "50%", background: "rgba(255,255,255,0.08)", pointerEvents: "none" }} />
           <div style={{ position: "relative" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 100, padding: "6px 16px", marginBottom: 20 }}>
-              <Icon name="Scissors" size={13} style={{ color: "#fff" }} />
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: 1 }}>Для салонов красоты · бесплатно</span>
+              <Icon name="Sparkles" size={13} style={{ color: "#fff" }} />
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: 1 }}>Для специалистов и команд · бесплатно</span>
             </div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.5vw,42px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", lineHeight: 1.15, letterSpacing: "-0.5px" }}>
-              Пройдите бесплатную диагностику салона
+              Пройдите бесплатную диагностику бизнеса
             </h2>
             <p style={{ fontSize: 15.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.7, margin: "0 0 28px", fontWeight: 300, maxWidth: 480 }}>
-              Узнайте, где именно теряются деньги, и какие конкретные шаги приведут салон к вашим целям — без оплаты и без обязательств.
+              Узнайте, где именно теряются деньги, и какие конкретные шаги приведут к вашим целям — без оплаты и без обязательств.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32 }}>
               {DIAG_POINTS.map((p, i) => (

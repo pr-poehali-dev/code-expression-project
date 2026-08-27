@@ -39,7 +39,7 @@ export default function BrandLogo({ variant = "light", size = "md", showText = t
             ПРОМТ ДИАЛОГ
           </div>
           <div style={{ fontSize: subSize, color: subColor, letterSpacing: "3px", textTransform: "uppercase", fontWeight: 500, marginTop: 2 }}>
-            Платформа роста салона
+            Платформа роста дохода
           </div>
         </div>
       )}

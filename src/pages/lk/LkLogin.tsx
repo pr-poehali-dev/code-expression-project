@@ -415,7 +415,7 @@ export default function LkLogin() {
 
         {/* Footer note */}
         <p style={{ textAlign: "center", fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 24, fontWeight: 300 }}>
-          © 2026 Промт Диалог. Платформа роста салона.
+          © 2026 Промт Диалог. Платформа роста дохода.
         </p>
       </div>
     </div>

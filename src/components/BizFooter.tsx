@@ -42,7 +42,7 @@ export default function BizFooter() {
               <BrandLogo variant="light" size="md" />
             </div>
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.42)", lineHeight: 1.8, margin: "0 0 28px", maxWidth: 300, fontWeight: 300 }}>
-              Платформа роста салона через коммуникацию, персонал, обучение и искусственный интеллект.
+              Платформа роста дохода через коммуникацию, команду, обучение и искусственный интеллект.
             </p>
             <Link to="/cabinet" style={{
               display: "inline-block", padding: "12px 28px", borderRadius: 2,
