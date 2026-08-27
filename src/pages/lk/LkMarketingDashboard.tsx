@@ -74,26 +74,33 @@ export default function LkMarketingDashboard({ salonId, onOpenTool }: Props) {
       </div>
 
       {/* Конструктор лендингов */}
-      <div style={{ marginBottom: 16, padding: "18px 20px", background: "#F8FAFC", borderRadius: 14, border: "1.5px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", opacity: 0.75 }}>
+      <a
+        href="https://poehali.dev?ref=111665171855702968814"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ marginBottom: 16, padding: "18px 20px", background: "#F8FAFC", borderRadius: 14, border: `1.5px solid ${ACCENT}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", textDecoration: "none", cursor: "pointer", transition: "box-shadow 0.2s" }}
+        onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)"; }}
+        onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; }}
+      >
         <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: "#E2E8F0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Icon name="LayoutTemplate" size={20} style={{ color: "#94A3B8" }} />
+          <div style={{ width: 40, height: 40, borderRadius: 10, background: `hsla(185,85%,32%,0.1)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="LayoutTemplate" size={20} style={{ color: ACCENT }} />
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#64748B", marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
               Конструктор лендингов
-              <span style={{ fontSize: 10, fontWeight: 700, background: "#E2E8F0", color: "#94A3B8", padding: "2px 8px", borderRadius: 20, letterSpacing: 0.5 }}>СКОРО</span>
+              <span style={{ fontSize: 10, fontWeight: 700, background: "hsl(145,60%,94%)", color: "hsl(145,60%,35%)", padding: "2px 8px", borderRadius: 20, letterSpacing: 0.5 }}>ДОСТУПНО</span>
             </div>
-            <div style={{ fontSize: 13, color: "#94A3B8", lineHeight: 1.5, maxWidth: 420 }}>
+            <div style={{ fontSize: 13, color: "#64748B", lineHeight: 1.5, maxWidth: 420 }}>
               Создайте продающую страницу для услуги или акции за несколько минут — без дизайнера и верстальщика.
             </div>
           </div>
         </div>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 8, background: "#E2E8F0", color: "#94A3B8", fontSize: 13, fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap" }}>
-          <Icon name="Clock" size={14} />
-          В разработке
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 8, background: `linear-gradient(135deg,${ACCENT},hsl(185,85%,24%))`, color: "#fff", fontSize: 13, fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap" }}>
+          <Icon name="ExternalLink" size={14} />
+          Открыть
         </div>
-      </div>
+      </a>
       {user?.is_admin && (
         <div style={{ marginBottom: 16 }}>
           <button
