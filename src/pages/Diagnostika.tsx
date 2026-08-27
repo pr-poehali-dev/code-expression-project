@@ -10,10 +10,10 @@ const DARK = "#0F172A";
 const SERIF = "'Cormorant Garamond', serif";
 
 const WHAT_YOU_GET = [
-  { icon: "TrendingUp",  title: "Прогноз роста выручки",         desc: "Математическая модель покажет конкретные цифры: на сколько вырастет выручка при улучшении каждого показателя." },
-  { icon: "Target",      title: "Точки роста без новых клиентов", desc: "Как увеличить доход на 20–40% за счёт текущей базы и загрузки мастеров." },
-  { icon: "BarChart3",   title: "Карта потенциала салона",        desc: "Видите, какие направления недораскрыты и где сосредоточен основной резерв роста." },
-  { icon: "Lightbulb",   title: "Конкретный план действий",       desc: "Пошаговые рекомендации под ваш салон с расчётом экономического эффекта каждого шага." },
+  { icon: "TrendingUp",  title: "Прогноз роста дохода",           desc: "Математическая модель покажет конкретные цифры: на сколько вырастет доход при улучшении каждого показателя." },
+  { icon: "Target",      title: "Точки роста без новых клиентов", desc: "Как увеличить доход на 20–40% за счёт текущей базы клиентов и загрузки расписания." },
+  { icon: "BarChart3",   title: "Карта потенциала бизнеса",       desc: "Видите, какие направления недораскрыты и где сосредоточен основной резерв роста." },
+  { icon: "Lightbulb",   title: "Конкретный план действий",       desc: "Пошаговые рекомендации под ваш бизнес или практику с расчётом экономического эффекта каждого шага." },
   { icon: "Activity",    title: "Сценарный прогноз",              desc: "Три варианта развития на 3–6 месяцев: консервативный, оптимальный и максимальный." },
   { icon: "Brain",       title: "ИИ-интерпретация",               desc: "ИИ объяснит паттерны и даст контекст — поверх математических расчётов, не вместо них." },
 ];
@@ -27,15 +27,15 @@ const FEELINGS = [
 
 const STEPS = [
   { num: "01", title: "Регистрация",     desc: "Аккаунт за 1 минуту. Без карты.",                                                          icon: "UserPlus"   },
-  { num: "02", title: "Поставьте цель",  desc: "Название салона, показатели и цель по прибыли — займёт 3 минуты.",                          icon: "Target"     },
-  { num: "03", title: "Пройдите диагностику", desc: "8–12 вопросов о бизнесе — ИИ построит карту точек роста.",                             icon: "PlayCircle" },
+  { num: "02", title: "Поставьте цель",  desc: "Название дела, показатели и цель по доходу — займёт 3 минуты.",                             icon: "Target"     },
+  { num: "03", title: "Пройдите диагностику", desc: "8–12 вопросов о вашей практике или бизнесе — ИИ построит карту точек роста.",          icon: "PlayCircle" },
   { num: "04", title: "Получайте план каждый день", desc: "Не разовый отчёт — ИИ ежедневно подсказывает следующий шаг к цели.",             icon: "RefreshCw"  },
 ];
 
 const MATH_POINTS = [
-  { icon: "Calculator", text: "Индекс загрузки мастеров по часовым ставкам и проходимости" },
-  { icon: "TrendingUp", text: "LTV клиента с учётом частоты визитов и среднего чека" },
-  { icon: "PieChart",   text: "Структура выручки: где сосредоточено 80% дохода" },
+  { icon: "Calculator", text: "Индекс загрузки расписания по времени и стоимости часа" },
+  { icon: "TrendingUp", text: "LTV клиента с учётом частоты обращений и стоимости услуги" },
+  { icon: "PieChart",   text: "Структура дохода: где сосредоточено 80% выручки" },
   { icon: "Activity",   text: "Прогноз оттока клиентов по сегментам (Чурн-рейт)" },
   { icon: "Percent",    text: "ROI каждого улучшения: сколько рублей принесёт каждый шаг" },
   { icon: "GitBranch",  text: "Сценарный анализ: три варианта развития на 3–6 месяцев" },
@@ -43,7 +43,7 @@ const MATH_POINTS = [
 
 const SCORE_ITEMS = [
   { label: "Клиенты",   val: 81, color: "#2DD4BF" },
-  { label: "Персонал",  val: 64, color: "#f59e0b" },
+  { label: "Загрузка",  val: 64, color: "#f59e0b" },
   { label: "Продажи",   val: 72, color: "#2DD4BF" },
   { label: "Маркетинг", val: 58, color: "#ef4444" },
   { label: "Финансы",   val: 75, color: "#2DD4BF" },
@@ -51,7 +51,7 @@ const SCORE_ITEMS = [
 
 const CYCLE_STEPS = [
   { icon: "Target",      title: "Цель",         desc: "Указываете, куда хотите прийти — конкретную цифру и срок." },
-  { icon: "ScanEye",     title: "Диагностика",  desc: "ИИ анализирует показатели салона и находит разрывы." },
+  { icon: "ScanEye",     title: "Диагностика",  desc: "ИИ анализирует показатели бизнеса или практики и находит разрывы." },
   { icon: "ListChecks",  title: "План",         desc: "Формируется точный маршрут действий к вашей цели." },
   { icon: "Zap",         title: "Действие",     desc: "Выполняете шаги сами или доверяете AI-инструментам." },
   { icon: "BarChart2",   title: "Результат",    desc: "Фиксируете, что реально изменилось в цифрах." },
@@ -62,9 +62,9 @@ export default function Diagnostika() {
   return (
     <>
       <Helmet>
-        <title>AI-навигатор роста салона красоты — бесплатная диагностика и ежедневный план | Промт Диалог</title>
-        <meta name="description" content="Узнайте, что мешает вашему салону расти — и получите персональный план действий. Бесплатный AI-анализ показателей и целей салона, ежедневные рекомендации и отслеживание прогресса. Не разовый тест, а навигатор, который ведёт салон к цели." />
-        <meta name="keywords" content="диагностика салона красоты, AI навигатор роста салона, бесплатный аудит салона красоты, план роста выручки салона, индекс здоровья салона, управление салоном красоты ИИ, аналитика салона красоты, рост прибыли салона, промт диалог диагностика" />
+        <title>AI-навигатор роста дохода — бесплатная диагностика и ежедневный план | Промт Диалог</title>
+        <meta name="description" content="Узнайте, что мешает расти вашему бизнесу или частной практике — и получите персональный план действий. Бесплатный AI-анализ показателей и целей, ежедневные рекомендации и отслеживание прогресса. Для салонов красоты, психологов и других специалистов. Не разовый тест, а навигатор, который ведёт к цели." />
+        <meta name="keywords" content="диагностика салона красоты, диагностика частной практики психолога, AI навигатор роста дохода, бесплатный аудит бизнеса, план роста выручки, индекс здоровья бизнеса, аналитика для психолога, рост дохода специалиста, промт диалог диагностика" />
       </Helmet>
 
       <BizNavbar />
@@ -88,12 +88,12 @@ export default function Diagnostika() {
 
               <h1 style={{ fontFamily: SERIF, fontSize: "clamp(40px,5vw,64px)", fontWeight: 500, color: "#fff", lineHeight: 1.1, margin: "0 0 28px", letterSpacing: "-0.5px" }}>
                 Узнайте, что мешает<br />
-                салону расти — и получите<br />
+                расти — и получите<br />
                 <span style={{ color: TEAL }}>персональный план</span> действий
               </h1>
 
               <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.75, margin: "0 0 12px", fontWeight: 300, maxWidth: 520 }}>
-                Бесплатно подключите <strong style={{ color: "#fff", fontWeight: 600 }}>AI-анализ салона</strong>. Он изучит показатели, вашу цель и текущую ситуацию, определит точки роста — и <strong style={{ color: "#fff", fontWeight: 600 }}>каждый день будет подсказывать, что делать дальше</strong>.
+                Бесплатно подключите <strong style={{ color: "#fff", fontWeight: 600 }}>AI-анализ бизнеса или практики</strong>. Он изучит показатели, вашу цель и текущую ситуацию, определит точки роста — и <strong style={{ color: "#fff", fontWeight: 600 }}>каждый день будет подсказывать, что делать дальше</strong>.
               </p>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.38)", lineHeight: 1.7, margin: "0 0 40px", fontWeight: 300 }}>
                 Расчёты строятся на математических формулах, ИИ — интерпретирует и ведёт вас к цели.
@@ -154,7 +154,7 @@ export default function Diagnostika() {
                       <div style={{ fontFamily: SERIF, fontSize: 34, fontWeight: 600, color: TEAL, lineHeight: 1 }}>34%</div>
                     </div>
                     <div style={{ textAlign: "right" as const }}>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Индекс салона</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>Индекс бизнеса</div>
                       <div style={{ fontFamily: SERIF, fontSize: 24, color: "#f59e0b", fontWeight: 600 }}>67<span style={{ fontSize: 14, color: "rgba(255,255,255,0.3)" }}>/100</span></div>
                       <div style={{ fontSize: 10.5, color: TEAL }}>📈 +4 за 14 дней</div>
                     </div>
@@ -165,9 +165,9 @@ export default function Diagnostika() {
 
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: 12 }}>Сегодня ИИ рекомендует</div>
                   {[
-                    { title: "Вернуть 27 клиентов без записи 60+ дней", effect: "+85 000 ₽" },
-                    { title: "Перераспределить загрузку двух мастеров", effect: "+42 000 ₽" },
-                    { title: "Изменить сценарий администратора", effect: "+8–12% повторных" },
+                    { title: "Вернуть 27 клиентов без обращений 60+ дней", effect: "+85 000 ₽" },
+                    { title: "Заполнить свободные окна в расписании", effect: "+42 000 ₽" },
+                    { title: "Изменить сценарий первого контакта", effect: "+8–12% повторных" },
                   ].map(({ title, effect }, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
                       <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 11, fontWeight: 700, color: TEAL }}>{i + 1}</div>
@@ -196,7 +196,7 @@ export default function Diagnostika() {
               ИИ работает над вашей целью каждый день
             </h2>
             <p style={{ fontSize: 15.5, color: "#64748B", lineHeight: 1.75, margin: 0, fontWeight: 300 }}>
-              Диагностика — это точка входа, а не разовый отчёт. Дальше запускается замкнутый цикл: салон движется к цели, а ИИ каждый день сверяет результат и подсказывает следующий шаг.
+              Диагностика — это точка входа, а не разовый отчёт. Дальше запускается замкнутый цикл: бизнес или практика движется к цели, а ИИ каждый день сверяет результат и подсказывает следующий шаг.
             </p>
           </div>
 
@@ -345,7 +345,7 @@ export default function Diagnostika() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 24, alignItems: "center" }} className="do-grid">
             <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, padding: "22px 24px" }}>
               <div style={{ fontSize: 11, color: TEAL, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 10 }}>Рекомендация</div>
-              <div style={{ fontSize: 15, color: DARK, fontWeight: 600, lineHeight: 1.5 }}>Нужно вернуть 27 клиентов, которые не были 60+ дней</div>
+              <div style={{ fontSize: 15, color: DARK, fontWeight: 600, lineHeight: 1.5 }}>Нужно вернуть 27 клиентов, которые не обращались 60+ дней</div>
             </div>
             <div style={{ display: "flex", justifyContent: "center" }}>
               <Icon name="ArrowRight" size={22} style={{ color: TEAL }} className="do-arrow" />
@@ -353,7 +353,7 @@ export default function Diagnostika() {
             <div style={{ background: DARK, borderRadius: 12, padding: "22px 24px" }}>
               <div style={{ fontSize: 11, color: TEAL, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: 1, marginBottom: 10 }}>Promt Dialog делает сам</div>
               <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
-                {["Сегментирует клиентов", "Готовит предложение и несколько вариантов", "Пишет сообщения и сценарий администратора", "Формирует задачу и отслеживает результат"].map((t, i) => (
+                {["Сегментирует клиентов", "Готовит предложение и несколько вариантов", "Пишет сообщения и сценарий обращения", "Формирует задачу и отслеживает результат"].map((t, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <Icon name="Check" size={13} style={{ color: TEAL, flexShrink: 0 }} />
                     <span style={{ fontSize: 13, color: "rgba(255,255,255,0.75)" }}>{t}</span>
@@ -411,9 +411,9 @@ export default function Diagnostika() {
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "center" }} className="score-grid">
             <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase" as const, letterSpacing: "2.5px", marginBottom: 20 }}>Индекс здоровья салона</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase" as const, letterSpacing: "2.5px", marginBottom: 20 }}>Индекс здоровья бизнеса</div>
               <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,4vw,46px)", fontWeight: 500, color: DARK, margin: "0 0 20px", lineHeight: 1.15 }}>
-                Один показатель — вся картина бизнеса
+                Один показатель — вся картина дела
               </h2>
               <p style={{ fontSize: 16, color: "#475569", lineHeight: 1.75, margin: "0 0 20px", fontWeight: 300 }}>
                 Не десятки графиков, а единый <strong style={{ color: DARK }}>PROMT SCORE</strong> из пяти составляющих. ИИ прямо говорит, что сейчас ограничивает рост, и как индекс меняется со временем.
@@ -448,7 +448,7 @@ export default function Diagnostika() {
                 </div>
               ))}
               <div style={{ marginTop: 18, fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
-                Чем дольше вы пользуетесь навигатором, тем точнее ИИ понимает именно ваш салон — и тем сильнее растёт индекс.
+                Чем дольше вы пользуетесь навигатором, тем точнее ИИ понимает именно ваш бизнес или практику — и тем сильнее растёт индекс.
               </div>
             </div>
           </div>
@@ -493,7 +493,7 @@ export default function Diagnostika() {
               <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "2px", marginBottom: 8 }}>Без оплаты</div>
               <h3 style={{ fontFamily: SERIF, fontSize: "clamp(22px,2.5vw,32px)", fontWeight: 500, color: "#fff", margin: "0 0 8px", lineHeight: 1.2 }}>Подключить AI-навигатор — бесплатно</h3>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, margin: 0, maxWidth: 520 }}>
-                Пройдите диагностику и получите первый план роста дохода без оплаты — дальше ИИ продолжит вести салон к цели каждый день. Инструменты платформы (скрипты, ответы на отзывы, контент) доступны через баланс энергии.
+                Пройдите диагностику и получите первый план роста дохода без оплаты — дальше ИИ продолжит вести ваш бизнес или практику к цели каждый день. Инструменты платформы (сообщения клиентам, контент, скрипты) доступны через баланс энергии.
               </p>
             </div>
             <Link to="/cabinet?tab=register" style={{
@@ -525,7 +525,7 @@ export default function Diagnostika() {
               Поставьте цель —<br />получите навигатор к ней
             </h2>
             <p style={{ fontSize: "clamp(15px,1.5vw,17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.75, margin: "0 0 40px", fontWeight: 300 }}>
-              Зарегистрируйтесь, добавьте салон и цель — через 10 минут получите диагностику и первый план. Дальше ИИ каждый день будет подсказывать следующий шаг к результату.
+              Зарегистрируйтесь, заполните профиль и цель — через 10 минут получите диагностику и первый план. Дальше ИИ каждый день будет подсказывать следующий шаг к результату.
             </p>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" as const, marginBottom: 40 }}>
               <Link to="/cabinet?tab=register" style={{
