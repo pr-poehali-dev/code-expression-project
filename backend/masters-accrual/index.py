@@ -1235,20 +1235,21 @@ def handle_podelam_analytics(event: dict, conn) -> dict:
         "income_30_vs_prev30": None,
     }
     # Доход за предыдущие 7/30 дней ДО текущего периода — для расчёта % изменения без повторного похода в БД за сырыми строками
+    # ВАЖНО: cur — RealDictCursor, обращаться к результату нужно по имени алиаса, не по числовому индексу.
     cur.execute(
-        f"""SELECT COALESCE(SUM(amount),0) FROM {SCHEMA}.podelam_daily_income
+        f"""SELECT COALESCE(SUM(amount),0) AS total FROM {SCHEMA}.podelam_daily_income
             WHERE user_id=%s AND income_date >= %s AND income_date < %s""",
         (user["id"], date.today() - timedelta(days=13), date.today() - timedelta(days=6))
     )
-    prev7 = float(cur.fetchone()[0] or 0)
+    prev7 = float(cur.fetchone()["total"] or 0)
     changes["income_7_vs_prev7"] = _pct_change(periods["d7"]["income"], prev7)
 
     cur.execute(
-        f"""SELECT COALESCE(SUM(amount),0) FROM {SCHEMA}.podelam_daily_income
+        f"""SELECT COALESCE(SUM(amount),0) AS total FROM {SCHEMA}.podelam_daily_income
             WHERE user_id=%s AND income_date >= %s AND income_date < %s""",
         (user["id"], date.today() - timedelta(days=59), date.today() - timedelta(days=29))
     )
-    prev30 = float(cur.fetchone()[0] or 0)
+    prev30 = float(cur.fetchone()["total"] or 0)
     changes["income_30_vs_prev30"] = _pct_change(periods["d30"]["income"], prev30)
 
     role = user.get("role") or "body_specialist"
