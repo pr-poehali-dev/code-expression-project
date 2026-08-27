@@ -3,7 +3,7 @@ import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { markPodelamSeen } from "./podelamNotice";
 import SalonAIAgent from "./SalonAIAgent";
-import { ACCENT, ACCENT_DARK, PODELAM_URL, PODELAM_FAST_URL, sid, PodelamData, StatsData, fmt, TOPIC_KEY_BY_NAV } from "./podelamShared";
+import { ACCENT, ACCENT_DARK, PODELAM_URL, PODELAM_FAST_URL, sid, PodelamData, StatsData, fmt, TOPIC_KEY_BY_NAV, getPodelamTerms, isPsychSpecialization } from "./podelamShared";
 import DiagnosticForm from "./PodelamDiagnosticForm";
 import InfoModal from "./PodelamInfoModal";
 import { DailyIncomeCard, StatsSection, SalonGoalsCard } from "./PodelamWidgets";
@@ -13,6 +13,8 @@ import { isPodelamTrial, getPodelamTrialData, clearPodelamTrial } from "@/lib/po
 // ── Главный экран ПоДелам ──────────────────────────────────────────────────────
 export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   const { user } = useLkAuth();
+  const isPsych = isPsychSpecialization(user?.specialization);
+  const terms = getPodelamTerms(user?.specialization);
   const [data, setData] = useState<PodelamData | null>(null);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -106,7 +108,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
           Собираем ваши данные…
         </div>
         <div style={{ fontSize: 13.5, color: "#64748B", maxWidth: 320, lineHeight: 1.6 }}>
-          ИИ анализирует ваш доход, чек и базу клиентов и формирует шаги на сегодня. Обычно это занимает до минуты.
+          ИИ анализирует ваш доход, {isPsych ? "стоимость консультации" : "чек"} и базу {terms.baseWordGen} и формирует шаги на сегодня. Обычно это занимает до минуты.
         </div>
         <style>{`
           @keyframes podelam-pulse {
@@ -293,6 +295,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
         savedNewClients={data.today_new_clients}
         savedReturnedClients={data.today_returned_clients}
         onSave={saveIncome}
+        terms={terms}
       />
 
       {/* Экран 2: Главное дело дня */}
@@ -442,7 +445,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
       </div>
 
       {/* Статистика за неделю/месяц */}
-      <StatsSection stats={stats} />
+      <StatsSection stats={stats} terms={terms} />
 
       {/* Экран 4: Точки роста / потери */}
       {growth_points.length > 0 && (

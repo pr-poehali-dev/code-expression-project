@@ -242,14 +242,17 @@ def build_fallback_content_topics(services: list[str], day_seed: int) -> list[st
     return topics
 
 
-def build_growth_points(profile: dict) -> list:
-    """Раскладывает разрыв между текущим и целевым доходом на 3 точки роста с потенциалом в рублях."""
+def build_growth_points(profile: dict, specialization: str | None = None) -> list:
+    """Раскладывает разрыв между текущим и целевым доходом на 3 точки роста с потенциалом в рублях.
+    Для психологов/телесных психологов (specialization) использует терминологию «обращения»/
+    «консультации» вместо «клиенты»/«визиты» — сама логика расчёта не меняется."""
     avg_check = float(profile["avg_check"])
     base_size = int(profile["base_size"])
     repeat_rate = int(profile["repeat_rate"])
     free_slots = int(profile["free_slots_per_week"])
     has_addon = bool(profile["has_addon_services"])
     addon_text = (profile.get("addon_services_text") or "").strip()
+    is_psych = specialization in ("psychologist", "body_psychologist")
 
     points = []
 
@@ -259,8 +262,9 @@ def build_growth_points(profile: dict) -> list:
     if to_return > 0:
         potential = round(to_return * avg_check * 0.7)
         points.append({
-            "key": "return_clients", "title": "Вернуть клиентов из базы",
-            "action": f"Написать {to_return} клиентам, которые давно не были",
+            "key": "return_clients",
+            "title": "Вернуть клиентов на консультацию" if is_psych else "Вернуть клиентов из базы",
+            "action": f"Написать {to_return} {'клиентам, которые не были на повторной консультации' if is_psych else 'клиентам, которые давно не были'}",
             "potential": potential, "count": to_return,
         })
 
@@ -270,8 +274,9 @@ def build_growth_points(profile: dict) -> list:
     if to_fill > 0:
         potential = round(to_fill * avg_check)
         points.append({
-            "key": "fill_slots", "title": "Заполнить свободные окна",
-            "action": f"Заполнить {to_fill} окон в этом месяце спецпредложением",
+            "key": "fill_slots",
+            "title": "Заполнить свободные часы записи" if is_psych else "Заполнить свободные окна",
+            "action": f"Заполнить {to_fill} {'часов записи' if is_psych else 'окон'} в этом месяце спецпредложением",
             "potential": potential, "count": to_fill,
         })
 
@@ -282,9 +287,11 @@ def build_growth_points(profile: dict) -> list:
         addon_count = max(3, round(base_size * 0.08))
     addon_check = round(avg_check * 0.3)
     potential = addon_count * addon_check
-    action = f"Предложить {addon_text} {addon_count} клиентам" if addon_text else f"Предложить допуслугу {addon_count} клиентам"
+    default_offer = "дополнительный формат работы" if is_psych else "допуслугу"
+    action = f"Предложить {addon_text} {addon_count} клиентам" if addon_text else f"Предложить {default_offer} {addon_count} клиентам"
     points.append({
-        "key": "upsell", "title": "Поднять средний чек",
+        "key": "upsell",
+        "title": "Поднять доход дополнительными форматами" if is_psych else "Поднять средний чек",
         "action": action,
         "potential": potential, "count": addon_count,
     })
@@ -306,32 +313,46 @@ DEVELOPMENT_TOOLS = [
 ]
 
 def build_today_tasks(points: list, day_seed: int = 0, profile: dict | None = None, is_first_plan: bool = False,
-                       salon_services: list | None = None) -> list:
+                       salon_services: list | None = None, specialization: str | None = None) -> list:
     """Из точек роста собирает 3-4 конкретных дела на сегодня со ссылкой на инструмент ЛК.
     Используется как резервный вариант, когда ИИ недоступен — чередует маркетинг, контент
     и развитие персонала (тесты), чтобы план не был однообразным день за днём. При первом
     плане (is_first_plan) вместо контента включает изучение ЦА и создание офферов. Темы контента
-    строятся строго на реальных услугах из диагностики/«Мой салон» (salon_services)."""
+    строятся строго на реальных услугах из диагностики/«Мой салон» (salon_services). Для психологов/
+    телесных психологов (specialization) использует терминологию «обращения»/«консультации»."""
     addon_text = ((profile or {}).get("addon_services_text") or "").strip()
     niche_raw = ((profile or {}).get("niche") or "").strip()
     services = extract_service_names(niche_raw, addon_text, salon_services)
     niche = niche_raw or services[0]
+    is_psych = specialization in ("psychologist", "body_psychologist")
 
     task_map = {
         "return_clients": {
-            "title": "Вернуть клиентов", "button": "Создать сообщения", "nav": "clientmsg", "minutes": 20,
+            "title": "Вернуть на консультацию" if is_psych else "Вернуть клиентов", "button": "Создать сообщения", "nav": "clientmsg", "minutes": 20,
         },
         "fill_slots": {
-            "title": "Заполнить окна", "button": "Создать оффер", "nav": "marketing:offers", "minutes": 15,
+            "title": "Заполнить часы записи" if is_psych else "Заполнить окна", "button": "Создать оффер", "nav": "marketing:offers", "minutes": 15,
         },
         "upsell": {
-            "title": "Поднять чек", "button": "Получить скрипт", "nav": "agent", "minutes": 10,
+            "title": "Поднять доход" if is_psych else "Поднять чек", "button": "Получить скрипт", "nav": "agent", "minutes": 10,
         },
     }
     action_hints = {
-        "return_clients": " Пример сообщения: «Здравствуйте! Давно вас не видели — соскучились 🙂 Если актуально, у меня есть удобное время на этой неделе». Пишите тепло, без давления, и указывайте конкретный срок записи.",
-        "fill_slots": " Сформулируйте предложение с чёткой выгодой и сроком действия — например, скидка 15% при записи на свободные часы буднего дня. Разместите его там, где его увидят именно те, кто уже давно у вас не был.",
-        "upsell": f" Предлагайте{f' {addon_text}' if addon_text else ' дополнительную услугу'} не как навязывание, а как решение конкретной задачи клиента — спросите о его цели и предложите то, что реально её закрывает.",
+        "return_clients": (
+            " Пример сообщения: «Здравствуйте! Давно не виделись — если тема ещё актуальна, у меня есть удобное время на этой неделе, буду рада продолжить работу». Пишите тепло, без давления, с конкретным сроком записи."
+            if is_psych else
+            " Пример сообщения: «Здравствуйте! Давно вас не видели — соскучились 🙂 Если актуально, у меня есть удобное время на этой неделе». Пишите тепло, без давления, и указывайте конкретный срок записи."
+        ),
+        "fill_slots": (
+            " Сформулируйте предложение с чёткой выгодой и сроком действия — например, скидка на консультацию при записи на свободные часы буднего дня. Разместите его там, где его увидят те, кто интересовался, но не записался."
+            if is_psych else
+            " Сформулируйте предложение с чёткой выгодой и сроком действия — например, скидка 15% при записи на свободные часы буднего дня. Разместите его там, где его увидят именно те, кто уже давно у вас не был."
+        ),
+        "upsell": (
+            f" Предлагайте{f' {addon_text}' if addon_text else ' дополнительный формат работы'} не как навязывание, а как решение конкретного запроса клиента — уточните его цель и предложите формат, который реально её закрывает."
+            if is_psych else
+            f" Предлагайте{f' {addon_text}' if addon_text else ' дополнительную услугу'} не как навязывание, а как решение конкретной задачи клиента — спросите о его цели и предложите то, что реально её закрывает."
+        ),
     }
     tasks = []
     for p in points:
@@ -572,17 +593,51 @@ Reels) — их полезно делать ПОСЛЕ того как ауди�
 ════════════════════════════════════════════════
 """
 
-def build_podelam_system_prompt(is_first_plan: bool = False) -> str:
-    """Собирает системный промпт для генерации плана. При первом плане (is_first_plan=True)
-    добавляет отдельный блок инструкций про изучение ЦА и создание офферов первым делом."""
-    return f"""Ты — экспертный бизнес-консультант и маркетолог-стратег, встроенный в сервис «ПоДелам» \
-внутри платформы «Промт Диалог» для мастеров и владельцев салонов красоты (парикмахеры, мастера маникюра, массажисты и т.п.).
+PODELAM_PSYCH_MODE_PROMPT = """
+════════════════════════════════════════════════
+РЕЖИМ ЧАСТНОЙ ПРАКТИКИ — ПСИХОЛОГ / ТЕЛЕСНЫЙ ПСИХОЛОГ (payload.specialization = psychologist или body_psychologist)
+════════════════════════════════════════════════
+Пользователь — психолог или телесный психолог в частной практике, а НЕ мастер бьюти-услуг. Это меняет терминологию \
+и логику плана:
+- Используй термины «обращения» (не «клиенты»/«записи»), «консультации»/«сессии» (не «визиты»/«процедуры»), \
+«клиенты практики» или «постоянные клиенты» (не «база клиентов» в контексте продаж услуг). avg_check в payload — это \
+стоимость ОДНОЙ консультации. clients_per_month — количество обращений в месяц.
+- Если передан conversion_rate (% обращений, доходящих до первой консультации) — это важная точка роста: низкая \
+конверсия обращения в запись часто означает проблему в первом контакте (медленный ответ, неудобный формат записи, \
+неубедительное описание того, как проходит первая встреча), а не в качестве специалиста. Если conversion_rate низкий \
+(ниже 50%) или не указан — обязательно включи дело, направленное на улучшение первого контакта с обратившимся \
+(например, скрипт ответа на первое сообщение через nav: agent, или сообщение-приглашение через nav: clientmsg).
+- НИКОГДА не предлагай контент/маркетинг с бьюти-тематикой (стрижки, маникюр, массаж тела как процедура красоты) — \
+темы постов и Reels должны быть СТРОГО про психологическую/телесную работу: как распознать проблему, с чем можно \
+обратиться, разбор частых запросов, объяснение метода работы, истории трансформации (без нарушения конфиденциальности \
+клиентов — только обобщённые, обезличенные примеры, не конкретные кейсы с деталями).
+- НЕ упоминай "средний чек", "запись", "процедуру" — используй "стоимость консультации", "обращение", "сессию".
+- Точки роста для психолога типично: 1) вернуть клиентов на повторную консультацию/супервизию (если разовые \
+консультации не переходят в постоянную работу), 2) улучшить конверсию обращения в первую консультацию, \
+3) заполнить свободные часы записи, 4) поднять доход через дополнительные форматы (пакеты консультаций, \
+работа с парами/семьями, супервизия, если addon_services_text указывает на это).
+- Фокус платформы для психолога — развитие практики, поток обращений, маркетинг и профессиональное развитие. \
+НЕ анализируй и не упоминай содержание терапевтических сессий, диагнозы или детали работы с конкретными клиентами.
+════════════════════════════════════════════════
+"""
 
-Твоя задача — на основе диагностики конкретного мастера/салона построить ЧЁТКИЙ, ПРИЧИННО-СЛЕДСТВЕННЫЙ план роста дохода:
-1. Учти АБСОЛЮТНО ВСЕ данные из диагностики (ниша, средний чек, текущий и целевой доход, клиентов в месяц, \
-размер базы, % повторных визитов, свободные окна, есть ли допуслуги и их конкретный список/цены, откуда приходят записи, \
-роль пользователя role, доступные курсы Академии course_catalog). Если в payload передан salon_context — это владелец/\
-администратор салона с реальными данными из раздела «Мой салон», действуй согласно отдельной инструкции ниже \
+
+def build_podelam_system_prompt(is_first_plan: bool = False, specialization: str | None = None) -> str:
+    """Собирает системный промпт для генерации плана. При первом плане (is_first_plan=True)
+    добавляет отдельный блок инструкций про изучение ЦА и создание офферов первым делом.
+    Для психологов/телесных психологов (specialization) добавляет блок с другой терминологией
+    и логикой точек роста — см. PODELAM_PSYCH_MODE_PROMPT."""
+    return f"""Ты — экспертный бизнес-консультант и маркетолог-стратег, встроенный в сервис «ПоДелам» \
+внутри платформы «Промт Диалог» — для мастеров и владельцев салонов красоты (парикмахеры, мастера маникюра, массажисты), \
+а также для психологов и телесных психологов в частной практике (см. payload.specialization).
+
+Твоя задача — на основе диагностики конкретного специалиста построить ЧЁТКИЙ, ПРИЧИННО-СЛЕДСТВЕННЫЙ план роста дохода:
+1. Учти АБСОЛЮТНО ВСЕ данные из диагностики (ниша/специализация, стоимость услуги, текущий и целевой доход, клиентов \
+в месяц, размер базы, % повторных визитов, свободные окна, есть ли допуслуги и их конкретный список/цены, откуда \
+приходят обращения, роль пользователя role, специализацию specialization, доступные курсы Академии course_catalog). \
+Если specialization = psychologist или body_psychologist — действуй согласно РЕЖИМУ ЧАСТНОЙ ПРАКТИКИ ниже (другая \
+терминология и логика точек роста). Если в payload передан salon_context — это владелец/администратор салона с \
+реальными данными из раздела «Мой салон» («Моя компания»), действуй согласно отдельной инструкции ниже \
 (РЕЖИМ ВЛАДЕЛЬЦА/АДМИНИСТРАТОРА САЛОНА).
 2. Если указан конкретный список допуслуг/пакетов (addon_services_text) — используй ИМЕННО ЭТИ названия в действиях \
 и рекомендациях по допродажам вместо общих формулировок вроде "предложить допуслугу". Учитывай их ориентировочную \
@@ -655,20 +710,24 @@ new_clients — сколько пришло новых клиентов, returne
 Правила по числам: potential — целые рубли, реалистичные исходя из среднего чека и базы клиентов, никогда не превышай \
 величину разрыва между текущим и целевым доходом суммарно по всем tasks (у дел из tools/academy potential = 0). \
 Дел должно быть 3-4, каждое выполнимо за 10-30 минут.
+{PODELAM_PSYCH_MODE_PROMPT if specialization in ("psychologist", "body_psychologist") else ""}
 {PODELAM_SALON_MODE_PROMPT}"""
 
 
 def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | None = None,
                      yesterday_tasks: list | None = None, salon_context: dict | None = None,
                      is_first_plan: bool = False, recent_content_topics: list | None = None,
-                     yesterday_result: dict | None = None) -> dict | None:
-    """Запрашивает у модели terra (polza.ai) персональный план роста дохода. Возвращает None при ошибке."""
+                     yesterday_result: dict | None = None, specialization: str | None = None) -> dict | None:
+    """Запрашивает у модели terra (polza.ai) персональный план роста дохода. Возвращает None при ошибке.
+    specialization — "psychologist"/"body_psychologist" для частной практики психолога (другая терминология
+    и логика точек роста, см. PODELAM_PSYCH_MODE_PROMPT), None/иное — обычный режим мастера/салона."""
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
         return None
 
     user_payload = {
         "role": role or "не указана",
+        "specialization": specialization or "не указана",
         "niche": profile.get("niche") or "не указана",
         "avg_check": float(profile["avg_check"]),
         "current_revenue": float(profile["current_revenue"]),
@@ -678,6 +737,7 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
         "base_size": int(profile.get("base_size") or 0),
         "repeat_rate": int(profile.get("repeat_rate") or 0),
         "free_slots_per_week": int(profile.get("free_slots_per_week") or 0),
+        "conversion_rate": profile.get("conversion_rate"),
         "has_addon_services": bool(profile.get("has_addon_services")),
         "addon_services_text": profile.get("addon_services_text") or "не указан",
         "lead_source": profile.get("lead_source") or "не указан",
@@ -704,8 +764,8 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
     payload = json.dumps({
         "model": PODELAM_MODEL,
         "messages": [
-            {"role": "system", "content": build_podelam_system_prompt(is_first_plan)},
-            {"role": "user", "content": f"Диагностика мастера/салона:\n{json.dumps(user_payload, ensure_ascii=False, indent=2)}"},
+            {"role": "system", "content": build_podelam_system_prompt(is_first_plan, specialization)},
+            {"role": "user", "content": f"Диагностика специалиста:\n{json.dumps(user_payload, ensure_ascii=False, indent=2)}"},
         ],
         "temperature": 0.7,
         "max_tokens": 2600 if salon_context else 2400,
@@ -765,7 +825,7 @@ def handle_podelam_get(event: dict, conn) -> dict:
         salon_goals = get_salon_goals(conn, salon_id)
 
     gap = float(profile["target_revenue"]) - float(profile["current_revenue"])
-    fallback_points = build_growth_points(profile)
+    fallback_points = build_growth_points(profile, specialization=user.get("specialization"))
     default_preview = (
         "Завтра здесь появится новый набор дел — ИИ пересчитает план с учётом того, что вы выполните сегодня. "
         "Регулярные небольшие шаги дают самый устойчивый рост дохода."
@@ -874,7 +934,7 @@ def handle_podelam_get(event: dict, conn) -> dict:
         ai_result = call_podelam_ai(dict(profile), gap, role=role, courses=courses_for_role,
                                      yesterday_tasks=yesterday_tasks, salon_context=salon_context,
                                      is_first_plan=is_first_plan, recent_content_topics=recent_content_topics,
-                                     yesterday_result=yesterday_result)
+                                     yesterday_result=yesterday_result, specialization=user.get("specialization"))
         if ai_result:
             points = ai_result["growth_points"]
             tasks = ai_result["tasks"]
@@ -892,7 +952,8 @@ def handle_podelam_get(event: dict, conn) -> dict:
         else:
             points = fallback_points
             tasks = build_today_tasks(points, day_seed=today.toordinal(), profile=dict(profile), is_first_plan=is_first_plan,
-                                       salon_services=salon_context.get("services") if salon_context else None)
+                                       salon_services=salon_context.get("services") if salon_context else None,
+                                       specialization=user.get("specialization"))
             main_key = tasks[0]["key"] if tasks else None
             tomorrow_preview = default_preview
             source = "rules"
@@ -1054,7 +1115,7 @@ def _pct_change(current: float, previous: float) -> float | None:
     return round((current - previous) / previous * 100)
 
 
-def call_podelam_analytics_ai(profile: dict, agg: dict, role: str) -> dict | None:
+def call_podelam_analytics_ai(profile: dict, agg: dict, role: str, specialization: str | None = None) -> dict | None:
     """Запрашивает у Terra (через Polza AI) расширенный ежедневный анализ на основе уже
     посчитанных backend'ом агрегатов (не сырых данных). Возвращает None при ошибке ИИ —
     тогда используется fallback без интерпретации (только цифры)."""
@@ -1062,16 +1123,27 @@ def call_podelam_analytics_ai(profile: dict, agg: dict, role: str) -> dict | Non
     if not api_key:
         return None
 
-    system_prompt = """Ты — аналитик-консультант платформы «Промт Диалог», раздел «ПоДелам». Тебе дан \
-УЖЕ ПОДГОТОВЛЕННЫЙ агрегированный контекст показателей мастера/салона за разные периоды (7/14/30/90 дней) — \
-рост/падение дохода, новых и вернувшихся клиентов, % выполнения ежедневных шагов. Считать самому НИЧЕГО не нужно, \
-цифры уже точные — не изменяй факты и не придумывай показателей, которых нет в контексте.
+    is_psych = specialization in ("psychologist", "body_psychologist")
+    domain_line = (
+        "Пользователь — психолог/телесный психолог в частной практике: используй термины «обращения» "
+        "(не «клиенты»), «консультации»/«сессии» (не «визиты»), стоимость консультации (не «средний чек»). "
+        "Не анализируй содержание терапевтических сессий — фокус только на потоке обращений, доходе и дисциплине шагов."
+        if is_psych else
+        "Пользователь — мастер/владелец салона красоты: используй термины «клиенты», «визиты», «средний чек» как обычно."
+    )
+
+    system_prompt = f"""Ты — аналитик-консультант платформы «Промт Диалог», раздел «ПоДелам». Тебе дан \
+УЖЕ ПОДГОТОВЛЕННЫЙ агрегированный контекст показателей специалиста за разные периоды (7/14/30/90 дней) — \
+рост/падение дохода, новых и вернувшихся клиентов/обращений, % выполнения ежедневных шагов. Считать самому НИЧЕГО \
+не нужно, цифры уже точные — не изменяй факты и не придумывай показателей, которых нет в контексте.
+
+{domain_line}
 
 Твоя задача — вернуть СТРОГО JSON без markdown-обёртки:
-{
-  "pulse_score": целое_число_0_100 (индекс здоровья бизнеса: рост дохода, стабильность клиентской базы, дисциплина выполнения шагов — взвешенная оценка),
+{{
+  "pulse_score": целое_число_0_100 (индекс здоровья бизнеса/практики: рост дохода, стабильность потока клиентов, дисциплина выполнения шагов — взвешенная оценка),
   "pulse_trend": "up" | "down" | "flat",
-  "summary": "1-2 предложения — что сейчас происходит с бизнесом простыми словами",
+  "summary": "1-2 предложения — что сейчас происходит простыми словами",
   "main_problem": "главная проблема на текущем этапе, конкретно, 1-2 предложения, или null если данных недостаточно",
   "main_opportunity": "что даст наибольший эффект прямо сейчас, конкретно, 1-2 предложения, или null",
   "losses_estimate": "оценка потенциально недополученного дохода в рублях с кратким объяснением откуда цифра, или null если данных недостаточно для расчёта — тогда напиши null, НЕ придумывай число",
@@ -1079,14 +1151,16 @@ def call_podelam_analytics_ai(profile: dict, agg: dict, role: str) -> dict | Non
   "forecast_confidence": "высокий" | "средний" | "низкий" | null,
   "main_action": "одно главное действие на сегодня, конкретное",
   "extra_actions": ["ещё 1-2 доп. рекомендации"]
-}
+}}
 Пиши по-деловому, конкретно, без общих фраз вроде "работайте усерднее". Если по какому-то полю данных объективно недостаточно — верни null, а не выдумку."""
 
     user_payload = {
         "role": role,
+        "specialization": specialization or "не указана",
         "niche": profile.get("niche") or "не указана",
         "target_revenue": float(profile["target_revenue"]),
         "current_revenue_at_diagnostic": float(profile["current_revenue"]),
+        "conversion_rate": profile.get("conversion_rate"),
         "periods": agg["periods"],
         "changes": agg["changes"],
     }
@@ -1179,7 +1253,7 @@ def handle_podelam_analytics(event: dict, conn) -> dict:
 
     role = user.get("role") or "body_specialist"
     agg = {"periods": periods, "changes": changes}
-    ai_result = call_podelam_analytics_ai(dict(profile), agg, role)
+    ai_result = call_podelam_analytics_ai(dict(profile), agg, role, specialization=user.get("specialization"))
 
     if ai_result:
         pulse_score = int(ai_result.get("pulse_score") or 50)

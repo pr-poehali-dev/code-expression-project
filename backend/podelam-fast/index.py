@@ -5,7 +5,9 @@
 плана дня, генерация поста в блог) — те остались в masters-accrual с таймаутом 60-100с.
 Публичного контракта action'ов не меняли — фронт бьёт по тем же именам, что и раньше.
 
-POST ?action=podelam_save_profile — сохранить диагностику дохода (X-Session-Id)
+POST ?action=podelam_save_profile — сохранить диагностику дохода (X-Session-Id). Поле conversion_rate (опционально,
+                                      % обращений, доходящих до первой консультации/записи) актуально в первую очередь
+                                      для частной практики (психологи/телесные психологи, см. lk_users.specialization).
 POST ?action=podelam_task_done    — отметить дело выполненным, опционально с фактической суммой (X-Session-Id)
 GET  ?action=podelam_stats        — статистика выполненных дел, дохода и новых/вернувшихся клиентов за неделю/месяц (X-Session-Id)
 POST ?action=podelam_set_income   — прибавить фактический доход за день и опционально кол-во новых/вернувшихся клиентов
@@ -66,20 +68,23 @@ def handle_podelam_save_profile(event: dict, conn) -> dict:
         if body.get(f) in (None, ""):
             return err(f"Заполните поле: {f}")
 
+    conversion_rate = body.get("conversion_rate")
+    conversion_rate = int(conversion_rate) if conversion_rate not in (None, "") else None
+
     cur = conn.cursor()
     cur.execute(
         f"""INSERT INTO {SCHEMA}.podelam_profiles
             (user_id, salon_id, niche, avg_check, current_revenue, target_revenue,
              clients_per_month, base_size, repeat_rate, free_slots_per_week, has_addon_services,
-             addon_services_text, lead_source, updated_at)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW())
+             addon_services_text, lead_source, conversion_rate, updated_at)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NOW())
             ON CONFLICT (user_id) DO UPDATE SET
                 salon_id=EXCLUDED.salon_id, niche=EXCLUDED.niche, avg_check=EXCLUDED.avg_check,
                 current_revenue=EXCLUDED.current_revenue, target_revenue=EXCLUDED.target_revenue,
                 clients_per_month=EXCLUDED.clients_per_month, base_size=EXCLUDED.base_size,
                 repeat_rate=EXCLUDED.repeat_rate, free_slots_per_week=EXCLUDED.free_slots_per_week,
                 has_addon_services=EXCLUDED.has_addon_services, addon_services_text=EXCLUDED.addon_services_text,
-                lead_source=EXCLUDED.lead_source,
+                lead_source=EXCLUDED.lead_source, conversion_rate=EXCLUDED.conversion_rate,
                 updated_at=NOW()""",
         (
             user["id"], user.get("salon_id"), body.get("niche", ""),
@@ -87,7 +92,7 @@ def handle_podelam_save_profile(event: dict, conn) -> dict:
             int(body.get("clients_per_month") or 0), int(body.get("base_size") or 0),
             int(body.get("repeat_rate") or 0), int(body.get("free_slots_per_week") or 0),
             bool(body.get("has_addon_services") or False), (body.get("addon_services_text") or "").strip() or None,
-            body.get("lead_source", ""),
+            body.get("lead_source", ""), conversion_rate,
         )
     )
     # Сбрасываем план на сегодня, чтобы пересчитать с новыми данными

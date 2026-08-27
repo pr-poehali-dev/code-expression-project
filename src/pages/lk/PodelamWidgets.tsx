@@ -1,16 +1,17 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
-import { ACCENT, ACCENT_DARK, StatsData, GoalProgress, fmt } from "./podelamShared";
+import { ACCENT, ACCENT_DARK, StatsData, GoalProgress, PodelamTerms, fmt } from "./podelamShared";
 
 interface DailyIncomeCardProps {
   savedAmount: number | null | undefined;
   savedNewClients: number | null | undefined;
   savedReturnedClients: number | null | undefined;
   onSave: (amount: number, newClients: number, returnedClients: number) => Promise<void>;
+  terms: PodelamTerms;
 }
 
-// ── Карточка «Доход за сегодня» — сумма + новые/вернувшиеся клиенты ─────────
-export function DailyIncomeCard({ savedAmount, savedNewClients, savedReturnedClients, onSave }: DailyIncomeCardProps) {
+// ── Карточка «Доход за сегодня» — сумма + новые/вернувшиеся клиенты (или обращения/консультации) ─
+export function DailyIncomeCard({ savedAmount, savedNewClients, savedReturnedClients, onSave, terms }: DailyIncomeCardProps) {
   const [value, setValue] = useState("");
   const [newClients, setNewClients] = useState("");
   const [returnedClients, setReturnedClients] = useState("");
@@ -47,7 +48,7 @@ export function DailyIncomeCard({ savedAmount, savedNewClients, savedReturnedCli
         <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>Итоги дня</span>
       </div>
       <div style={{ fontSize: 13, color: "#64748B", marginBottom: 14, lineHeight: 1.6 }}>
-        Укажите доход и сколько было новых/вернувшихся клиентов — данные прибавляются к уже указанным за сегодня и ИИ учитывает их при составлении завтрашнего плана.
+        Укажите доход и сколько было {terms.newClientsLabel.toLowerCase()}/{terms.returnedClientsLabel.toLowerCase()} — данные прибавляются к уже указанным за сегодня и ИИ учитывает их при составлении завтрашнего плана.
       </div>
 
       {(savedAmount != null && savedAmount > 0) || savedNewClients || savedReturnedClients ? (
@@ -56,10 +57,10 @@ export function DailyIncomeCard({ savedAmount, savedNewClients, savedReturnedCli
             <div style={{ fontSize: 13, color: "#334155" }}>Доход: <b style={{ color: "#0F172A" }}>{fmt(savedAmount)} ₽</b></div>
           )}
           {!!savedNewClients && (
-            <div style={{ fontSize: 13, color: "#334155" }}>Новых клиентов: <b style={{ color: "#0F172A" }}>{savedNewClients}</b></div>
+            <div style={{ fontSize: 13, color: "#334155" }}>{terms.newClientsLabel}: <b style={{ color: "#0F172A" }}>{savedNewClients}</b></div>
           )}
           {!!savedReturnedClients && (
-            <div style={{ fontSize: 13, color: "#334155" }}>Вернулось: <b style={{ color: "#0F172A" }}>{savedReturnedClients}</b></div>
+            <div style={{ fontSize: 13, color: "#334155" }}>{terms.returnedClientsLabel}: <b style={{ color: "#0F172A" }}>{savedReturnedClients}</b></div>
           )}
         </div>
       ) : null}
@@ -79,7 +80,7 @@ export function DailyIncomeCard({ savedAmount, savedNewClients, savedReturnedCli
           </div>
         </div>
         <div>
-          <label style={{ fontSize: 11, fontWeight: 600, color: "#94A3B8", marginBottom: 5, display: "block" }}>Новых клиентов</label>
+          <label style={{ fontSize: 11, fontWeight: 600, color: "#94A3B8", marginBottom: 5, display: "block" }}>{terms.newClientsLabel}</label>
           <input
             type="number" min={0} value={newClients}
             onChange={e => setNewClients(e.target.value)}
@@ -89,7 +90,7 @@ export function DailyIncomeCard({ savedAmount, savedNewClients, savedReturnedCli
           />
         </div>
         <div>
-          <label style={{ fontSize: 11, fontWeight: 600, color: "#94A3B8", marginBottom: 5, display: "block" }}>Вернулось клиентов</label>
+          <label style={{ fontSize: 11, fontWeight: 600, color: "#94A3B8", marginBottom: 5, display: "block" }}>{terms.returnedClientsLabel}</label>
           <input
             type="number" min={0} value={returnedClients}
             onChange={e => setReturnedClients(e.target.value)}
@@ -210,7 +211,7 @@ export function SalonGoalsCard({ goals, progress, addressedToday, onNav }: Salon
 }
 
 // ── Раздел статистики за неделю/месяц ───────────────────────────────────────────
-export function StatsSection({ stats }: { stats: StatsData | null }) {
+export function StatsSection({ stats, terms }: { stats: StatsData | null; terms: PodelamTerms }) {
   const [period, setPeriod] = useState<"week" | "month">("week");
 
   if (!stats) return null;
@@ -260,11 +261,11 @@ export function StatsSection({ stats }: { stats: StatsData | null }) {
         {!!(s.new_clients_total || s.returned_clients_total) && (
           <>
             <div>
-              <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>Новых клиентов</div>
+              <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{terms.newClientsLabel}</div>
               <div style={{ fontSize: 22, fontWeight: 700, color: "#0F172A" }}>{s.new_clients_total ?? 0}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>Вернулось клиентов</div>
+              <div style={{ fontSize: 11, color: "#94A3B8", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{terms.returnedClientsLabel}</div>
               <div style={{ fontSize: 22, fontWeight: 700, color: "#0F172A" }}>{s.returned_clients_total ?? 0}</div>
             </div>
           </>

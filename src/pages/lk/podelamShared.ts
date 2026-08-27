@@ -48,6 +48,77 @@ export interface Profile {
   has_addon_services: boolean;
   addon_services_text?: string;
   lead_source: string;
+  conversion_rate?: number | null;
+}
+
+// ── Терминология ПоДелам по специализации ──────────────────────────────────
+// Психолог/телесный психолог работают с "обращениями" и "консультациями", а не с
+// "клиентами" и "визитами" — тексты формы диагностики и виджетов подстраиваются под это,
+// не меняя саму механику (одни и те же поля БД, просто разные подписи и формулировки.
+export type PodelamSpecialization = "psychologist" | "body_psychologist" | null | undefined;
+
+export function isPsychSpecialization(s: PodelamSpecialization): boolean {
+  return s === "psychologist" || s === "body_psychologist";
+}
+
+export interface PodelamTerms {
+  nicheLabel: string;
+  nichePlaceholder: string;
+  clientsPerMonthLabel: string;
+  clientsPerMonthPlaceholder: string;
+  baseSizeLabel: string;
+  baseSizePlaceholder: string;
+  repeatRateLabel: string;
+  repeatRatePlaceholder: string;
+  freeSlotsLabel: string;
+  freeSlotsPlaceholder: string;
+  newClientsLabel: string;
+  returnedClientsLabel: string;
+  hasConversion: boolean;
+  conversionLabel: string;
+  conversionPlaceholder: string;
+  baseWordGen: string;
+}
+
+export function getPodelamTerms(specialization?: PodelamSpecialization): PodelamTerms {
+  if (isPsychSpecialization(specialization)) {
+    return {
+      nicheLabel: "Специализация",
+      nichePlaceholder: "Например: семейный психолог, работа с тревожностью",
+      clientsPerMonthLabel: "Обращений в месяц",
+      clientsPerMonthPlaceholder: "20",
+      baseSizeLabel: "Размер базы клиентов",
+      baseSizePlaceholder: "60",
+      repeatRateLabel: "% повторных консультаций",
+      repeatRatePlaceholder: "35",
+      freeSlotsLabel: "Свободных часов в неделю",
+      freeSlotsPlaceholder: "5",
+      newClientsLabel: "Новых обращений",
+      returnedClientsLabel: "Повторных консультаций",
+      hasConversion: true,
+      conversionLabel: "% обращений, доходящих до первой консультации",
+      conversionPlaceholder: "60",
+      baseWordGen: "обращений",
+    };
+  }
+  return {
+    nicheLabel: "Ниша / услуга",
+    nichePlaceholder: "Например: массаж, маникюр, стрижки",
+    clientsPerMonthLabel: "Клиентов в месяц",
+    clientsPerMonthPlaceholder: "44",
+    baseSizeLabel: "Размер базы клиентов",
+    baseSizePlaceholder: "120",
+    repeatRateLabel: "% повторных визитов",
+    repeatRatePlaceholder: "35",
+    freeSlotsLabel: "Свободных окон в неделю",
+    freeSlotsPlaceholder: "7",
+    newClientsLabel: "Новых клиентов",
+    returnedClientsLabel: "Вернулось клиентов",
+    hasConversion: false,
+    conversionLabel: "",
+    conversionPlaceholder: "",
+    baseWordGen: "клиентов",
+  };
 }
 
 export interface SalonFocusStaff {
