@@ -119,26 +119,29 @@ export function PodelamReminderBanner({ onNav }: { onNav: (t: string) => void })
 
 // ── Виджет баланса энергии ─────────────────────────────────────────────────────
 export function EnergyBadge({ onNav, sidebar }: { onNav: (t: string) => void; sidebar?: boolean }) {
-  const { balance } = useEnergy();
+  const { balance, hasPaid } = useEnergy();
   const low   = balance < 50;
   const empty = balance === 0;
-  const color = empty ? "hsl(0,85%,68%)"  : low ? "hsl(40,95%,60%)"  : "#2DD4BF";
-  const bg    = empty ? "hsl(0,75%,97%)"  : low ? "hsl(40,90%,96%)"  : "hsl(185,85%,96%)";
+  // Пользователь ещё ни разу не платил и баланс 0 — это ожидаемое бесплатное состояние
+  // (ПоДелам и часть функций доступны бесплатно), а не "закончились деньги". Показываем
+  // спокойным нейтральным цветом с мягким приглашением, а не тревожным красным.
+  const freeTier = empty && !hasPaid;
+  const color = freeTier ? "#2DD4BF" : empty ? "hsl(0,85%,68%)" : low ? "hsl(40,95%,60%)" : "#2DD4BF";
 
   if (sidebar) return (
-    <button onClick={() => onNav("shop")} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: `1px solid ${empty ? "rgba(248,113,113,0.3)" : low ? "rgba(251,191,36,0.3)" : "rgba(45,212,191,0.25)"}`, background: empty ? "rgba(248,113,113,0.08)" : low ? "rgba(251,191,36,0.08)" : "rgba(45,212,191,0.1)", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
-      <span style={{ fontSize: 18 }}>⚡</span>
+    <button onClick={() => onNav("shop")} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: `1px solid ${freeTier ? "rgba(45,212,191,0.25)" : empty ? "rgba(248,113,113,0.3)" : low ? "rgba(251,191,36,0.3)" : "rgba(45,212,191,0.25)"}`, background: freeTier ? "rgba(45,212,191,0.1)" : empty ? "rgba(248,113,113,0.08)" : low ? "rgba(251,191,36,0.08)" : "rgba(45,212,191,0.1)", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+      <span style={{ fontSize: 18 }}>{freeTier ? "🎁" : "⚡"}</span>
       <div style={{ flex: 1, textAlign: "left" }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color }}>{balance.toLocaleString()} энергий</div>
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{empty ? "Пополните баланс" : low ? "Заканчивается" : "Баланс салона"}</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color }}>{freeTier ? "Бесплатный доступ" : `${balance.toLocaleString()} энергий`}</div>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{freeTier ? "Докупить энергию" : empty ? "Пополните баланс" : low ? "Заканчивается" : "Баланс салона"}</div>
       </div>
     </button>
   );
 
   return (
-    <button onClick={() => onNav("shop")} style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 8, border: `1.5px solid ${empty ? "rgba(248,113,113,0.35)" : low ? "rgba(251,191,36,0.35)" : "rgba(45,212,191,0.3)"}`, background: empty ? "rgba(248,113,113,0.1)" : low ? "rgba(251,191,36,0.1)" : "rgba(45,212,191,0.12)", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
-      <span style={{ fontSize: 14 }}>⚡</span>
-      <span style={{ fontSize: 12, fontWeight: 700, color }}>{balance}</span>
+    <button onClick={() => onNav("shop")} style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 8, border: `1.5px solid ${freeTier ? "rgba(45,212,191,0.3)" : empty ? "rgba(248,113,113,0.35)" : low ? "rgba(251,191,36,0.35)" : "rgba(45,212,191,0.3)"}`, background: freeTier ? "rgba(45,212,191,0.12)" : empty ? "rgba(248,113,113,0.1)" : low ? "rgba(251,191,36,0.1)" : "rgba(45,212,191,0.12)", cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}>
+      <span style={{ fontSize: 14 }}>{freeTier ? "🎁" : "⚡"}</span>
+      <span style={{ fontSize: 12, fontWeight: 700, color }}>{freeTier ? "Free" : balance}</span>
     </button>
   );
 }
