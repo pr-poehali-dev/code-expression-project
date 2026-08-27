@@ -81,12 +81,13 @@ CONTENT_ROLES = {
     "admin": "Администратор салона",
     "master": "Мастер",
     "massage": "Массажист",
+    "psych": "Психолог",
 }
 
 
 def handle_content_list(event: dict, conn) -> dict:
     """Список опубликованных постов для ленты на сайте, с пагинацией (?page, ?limit) и фильтрами
-    по ?category=marketing|upsell|clients|tools и ?role=owner|admin|master|massage (можно оба
+    по ?category=marketing|upsell|clients|tools и ?role=owner|admin|master|massage|psych (можно оба
     одновременно). Список НЕ содержит полного текста (body) — только заголовок/анонс, чтобы лента
     оставалась лёгкой. Посты категории «tools» дополнительно содержат tool_link (заметная
     карточка-ссылка на инструмент/курс Академии, которому посвящён пост) — в формате

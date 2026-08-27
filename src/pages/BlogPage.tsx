@@ -43,6 +43,7 @@ const ROLES: { key: string; label: string }[] = [
   { key: "admin", label: "Администратор" },
   { key: "master", label: "Мастер" },
   { key: "massage", label: "Массажист" },
+  { key: "psych", label: "Психолог" },
 ];
 
 function formatDate(iso: string) {
