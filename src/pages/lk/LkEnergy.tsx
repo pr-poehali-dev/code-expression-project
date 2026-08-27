@@ -20,7 +20,7 @@ const PKG_COLORS: Record<string, { color: string; bg: string; border: string }> 
 
 export default function LkEnergy() {
   const { user } = useLkAuth();
-  const { balance, refresh } = useEnergy();
+  const { balance, hasPaid, refresh } = useEnergy();
   const isOwner = user?.role === "owner" || user?.role === "solo_master" || user?.is_admin;
 
   const [packages, setPackages]       = useState<Package[]>([]);
@@ -102,7 +102,10 @@ export default function LkEnergy() {
   }, [isOwner]);
 
   const lowBalance = balance < 50 && balance > 0;
-  const noBalance = balance === 0;
+  // Баланс 0 у того, кто ещё ни разу не платил — это ожидаемый бесплатный старт, а не
+  // «деньги кончились». Тревожную плашку показываем только тем, кто уже платил и израсходовал.
+  const noBalance = balance === 0 && hasPaid;
+  const freeTier = balance === 0 && !hasPaid;
 
   return (
     <div style={{ maxWidth: 680 }}>
@@ -159,6 +162,12 @@ export default function LkEnergy() {
         {noBalance && (
           <div style={{ marginTop: 18, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "10px 16px", fontSize: 13, color: "hsl(0,85%,70%)", fontWeight: 500 }}>
             Баланс исчерпан — пополните счёт для продолжения работы
+          </div>
+        )}
+        {freeTier && (
+          <div style={{ marginTop: 18, background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 10, padding: "10px 16px", fontSize: 13, color: "hsl(185,85%,70%)", fontWeight: 500, display: "flex", alignItems: "center", gap: 8 }}>
+            <Icon name="Gift" size={14} />
+            Вы на бесплатном старте — часть инструментов уже доступна. Пополните счёт, когда захотите открыть остальные.
           </div>
         )}
       </div>
