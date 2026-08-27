@@ -28,6 +28,18 @@ const FEATURES = [
   "Все ИИ-инструменты платформы",
 ];
 
+const FREE_INCLUDED = [
+  "Диагностика и ежедневные шаги ПоДелам",
+  "Базовый прогресс и статистика",
+  "Часть ИИ-инструментов — по несколько бесплатных генераций",
+];
+
+const FREE_NOT_INCLUDED = [
+  "Ежедневный ИИ-анализ (Пульс бизнеса)",
+  "Прогноз и точки роста",
+  "Все инструменты без ограничений по количеству",
+];
+
 export default function LkPackages({ onNav }: { onNav?: (t: string) => void }) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [active, setActive] = useState<ActivePackage | null>(null);
@@ -93,7 +105,7 @@ export default function LkPackages({ onNav }: { onNav?: (t: string) => void }) {
         плюс все ИИ-инструменты платформы с увеличенным лимитом использований в сутки.
       </p>
 
-      {active && (
+      {active ? (
         <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 20px", borderRadius: 14, background: "hsl(185,85%,96%)", border: "1.5px solid hsl(185,85%,80%)", marginBottom: 28 }}>
           <Icon name="BadgeCheck" size={22} style={{ color: ACCENT, flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
@@ -103,6 +115,18 @@ export default function LkPackages({ onNav }: { onNav?: (t: string) => void }) {
             <div style={{ fontSize: 12.5, color: "#64748B", marginTop: 2 }}>
               Действует до {new Date(active.expires_at).toLocaleDateString("ru-RU")}
               {active.auto_renew ? " · автопродление включено" : ""}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 20px", borderRadius: 14, background: "#F8FAFC", border: "1.5px solid #E2E8F0", marginBottom: 28 }}>
+          <Icon name="Gift" size={22} style={{ color: "#94A3B8", flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>
+              Сейчас вы на бесплатном тарифе
+            </div>
+            <div style={{ fontSize: 12.5, color: "#64748B", marginTop: 2 }}>
+              Доступна диагностика, ежедневные шаги и часть инструментов. Расширенный анализ и все инструменты без ограничений — в платных пакетах ниже.
             </div>
           </div>
         </div>
@@ -128,6 +152,62 @@ export default function LkPackages({ onNav }: { onNav?: (t: string) => void }) {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 16, marginBottom: 32 }}>
+        {/* Бесплатный тариф — активен, когда нет платного пакета (при регистрации или после окончания оплаченного) */}
+        <div style={{
+          background: "#fff", borderRadius: 16, border: `1.5px solid ${!active ? "#94A3B8" : "#E8ECF0"}`,
+          padding: "24px 22px", display: "flex", flexDirection: "column", position: "relative",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+        }}>
+          {!active && (
+            <div style={{ position: "absolute", top: 14, right: 14, display: "flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, color: "#64748B" }}>
+              <Icon name="CheckCircle2" size={13} /> Активен
+            </div>
+          )}
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
+            Бесплатный
+          </div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 2 }}>
+            <div style={{ fontSize: 30, fontWeight: 700, color: "#0F172A", lineHeight: 1 }}>0 <span style={{ fontSize: 15, fontWeight: 500, color: "#64748B" }}>₽</span></div>
+          </div>
+          <div style={{ fontSize: 12, color: "#94A3B8", marginBottom: 16 }}>
+            навсегда — доступен всем при регистрации
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, padding: "8px 10px", background: "#F1F5F9", borderRadius: 9 }}>
+            <Icon name="Sparkles" size={14} style={{ color: "#94A3B8" }} />
+            <span style={{ fontSize: 11.5, color: "#64748B" }}>Ограниченный доступ к инструментам</span>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 10, flex: 1 }}>
+            {FREE_INCLUDED.map(f => (
+              <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
+                <Icon name="Check" size={13} style={{ color: "hsl(145,60%,40%)", flexShrink: 0, marginTop: 2 }} />
+                <span style={{ fontSize: 12, color: "#334155", lineHeight: 1.5 }}>{f}</span>
+              </div>
+            ))}
+            {FREE_NOT_INCLUDED.map(f => (
+              <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
+                <Icon name="X" size={13} style={{ color: "#CBD5E1", flexShrink: 0, marginTop: 2 }} />
+                <span style={{ fontSize: 12, color: "#94A3B8", lineHeight: 1.5 }}>{f}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ height: 32, marginBottom: 12 }} />
+
+          <button
+            disabled
+            style={{
+              width: "100%", padding: "12px", borderRadius: 10, border: "none",
+              background: "#F1F5F9", color: "#94A3B8",
+              fontSize: 13, fontWeight: 700, cursor: "default",
+              fontFamily: "Montserrat,sans-serif",
+            }}
+          >
+            {!active ? "Ваш текущий тариф" : "Базовый уровень"}
+          </button>
+        </div>
+
         {plans.map((plan) => {
           const c = PLAN_COLORS[plan.code] || PLAN_COLORS.start;
           const price = priceFor(plan);
