@@ -120,6 +120,34 @@ def get_salon_balance(conn, salon_id: int) -> int:
     return row[0] if row else 0
 
 
+def package_covers_usage(conn, user_id: int) -> bool:
+    """Если у пользователя активен пакет развития и суточный лимит использований (общий на
+    все инструменты, скользящее окно 24ч) не исчерпан — использование бесплатное, логируем
+    и возвращаем True (энергия при этом не списывается)."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT pp.daily_limit_per_tool FROM {SCHEMA}.user_packages up
+            JOIN {SCHEMA}.package_plans pp ON pp.code = up.plan_code
+            WHERE up.user_id=%s AND up.status='active' AND up.expires_at > NOW()
+            ORDER BY up.expires_at DESC LIMIT 1""",
+        (user_id,)
+    )
+    pkg = cur.fetchone()
+    if not pkg:
+        return False
+    cur2 = conn.cursor()
+    cur2.execute(
+        f"SELECT COUNT(*) FROM {SCHEMA}.tool_usage_log WHERE user_id=%s AND tool_key=%s AND used_at > NOW() - INTERVAL '24 hours'",
+        (user_id, PODELAM_TOOL_KEY)
+    )
+    used = cur2.fetchone()[0] or 0
+    if used >= pkg["daily_limit_per_tool"]:
+        return False
+    cur2.execute(f"INSERT INTO {SCHEMA}.tool_usage_log (user_id, tool_key) VALUES (%s,%s)", (user_id, PODELAM_TOOL_KEY))
+    conn.commit()
+    return True
+
+
 def deduct_podelam_energy(conn, salon_id: int, user_id: int, amount: int):
     cur = conn.cursor()
     cur.execute(
@@ -904,8 +932,11 @@ def handle_podelam_get(event: dict, conn) -> dict:
         # Проверяем баланс ДО дорогих запросов (курсы/данные салона/вызов ИИ), чтобы не тратить
         # вычисления, если энергии не хватает. Первый план у пользователя пропускает эту проверку.
         podelam_cost = PODELAM_COST_SALON if role in ("owner", "admin") else PODELAM_COST_MASTER
+        # Пакет развития покрывает построение плана в рамках суточного лимита — тогда энергия
+        # не списывается вовсе (и баланс проверять не нужно).
+        pkg_covered = (not is_first_plan) and package_covers_usage(conn, user["id"])
         balance = get_salon_balance(conn, salon_id) if salon_id else 0
-        if not is_first_plan and salon_id and balance < podelam_cost:
+        if not is_first_plan and not pkg_covered and salon_id and balance < podelam_cost:
             return ok({
                 "has_profile": True,
                 "profile": dict(profile),
@@ -1036,7 +1067,7 @@ def handle_podelam_get(event: dict, conn) -> dict:
              json.dumps(addressed_goals, ensure_ascii=False) if addressed_goals else None)
         )
         cur2.fetchone()
-        if salon_id and not is_first_plan:
+        if salon_id and not is_first_plan and not pkg_covered:
             deduct_podelam_energy(conn, salon_id, user["id"], podelam_cost)
         conn.commit()
         plan = {

@@ -29,6 +29,34 @@ def err(msg, status=400):
             "body": json.dumps({"error": msg}, ensure_ascii=False)}
 
 
+def package_covers_usage(conn, user_id: int) -> bool:
+    """Если у пользователя активен пакет развития и суточный лимит использований (общий на
+    все инструменты, скользящее окно 24ч) не исчерпан — использование бесплатное, логируем
+    и возвращаем True (энергия при этом не списывается)."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT pp.daily_limit_per_tool FROM {SCHEMA}.user_packages up
+            JOIN {SCHEMA}.package_plans pp ON pp.code = up.plan_code
+            WHERE up.user_id=%s AND up.status='active' AND up.expires_at > NOW()
+            ORDER BY up.expires_at DESC LIMIT 1""",
+        (user_id,)
+    )
+    pkg = cur.fetchone()
+    if not pkg:
+        return False
+    cur2 = conn.cursor()
+    cur2.execute(
+        f"SELECT COUNT(*) FROM {SCHEMA}.tool_usage_log WHERE user_id=%s AND tool_key='landing_lead' AND used_at > NOW() - INTERVAL '24 hours'",
+        (user_id,)
+    )
+    used = cur2.fetchone()[0] or 0
+    if used >= pkg["daily_limit_per_tool"]:
+        return False
+    cur2.execute(f"INSERT INTO {SCHEMA}.tool_usage_log (user_id, tool_key) VALUES (%s,'landing_lead')", (user_id,))
+    conn.commit()
+    return True
+
+
 def handler(event: dict, context) -> dict:
     """Приём заявок с форм скачанных лендингов: списание 2 энергий, сохранение в БД, отправка email"""
     if event.get("httpMethod") == "OPTIONS":
@@ -60,9 +88,13 @@ def handler(event: dict, context) -> dict:
         to_email = user["notification_email"] or user["email"]
         fields_json = json.dumps(fields, ensure_ascii=False)
 
+        # Пакет развития покрывает уведомление о заявке в рамках суточного лимита — тогда
+        # энергия не списывается вовсе.
+        pkg_covered = bool(salon_id) and package_covers_usage(conn, user_id)
+
         # Проверяем баланс
-        has_energy = False
-        if salon_id:
+        has_energy = pkg_covered
+        if salon_id and not pkg_covered:
             cur.execute(f"SELECT credits_balance FROM {SCHEMA}.salons WHERE id = %s", (salon_id,))
             row = cur.fetchone()
             balance = row["credits_balance"] if row else 0
@@ -81,16 +113,17 @@ def handler(event: dict, context) -> dict:
             conn.commit()
             return ok({"ok": True, "saved": True, "email_sent": False})
 
-        # Списываем энергию
-        cur.execute(
-            f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s",
-            (LEAD_COST, salon_id)
-        )
-        cur.execute(
-            f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
-            f"VALUES (%s, %s, %s, %s, %s, 'debit')",
-            (salon_id, user_id, "Заявка с лендинга", LEAD_COST, "landing_lead")
-        )
+        # Списываем энергию (если не покрыто пакетом)
+        if not pkg_covered:
+            cur.execute(
+                f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s",
+                (LEAD_COST, salon_id)
+            )
+            cur.execute(
+                f"INSERT INTO {SCHEMA}.credit_transactions (salon_id, user_id, action, amount, tool_key, type) "
+                f"VALUES (%s, %s, %s, %s, %s, 'debit')",
+                (salon_id, user_id, "Заявка с лендинга", LEAD_COST, "landing_lead")
+            )
         conn.commit()
 
         # Формируем письмо

@@ -45,6 +45,34 @@ def get_balance(salon_id, conn) -> int:
     return cur.fetchone()[0]
 
 
+def package_covers_usage(conn, user_id: int) -> bool:
+    """Если у пользователя активен пакет развития и суточный лимит использований (общий на
+    все инструменты, скользящее окно 24ч) не исчерпан — использование бесплатное, логируем
+    и возвращаем True (энергия при этом не списывается)."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT pp.daily_limit_per_tool FROM {SCHEMA}.user_packages up
+            JOIN {SCHEMA}.package_plans pp ON pp.code = up.plan_code
+            WHERE up.user_id=%s AND up.status='active' AND up.expires_at > NOW()
+            ORDER BY up.expires_at DESC LIMIT 1""",
+        (user_id,)
+    )
+    pkg = cur.fetchone()
+    if not pkg:
+        return False
+    cur2 = conn.cursor()
+    cur2.execute(
+        f"SELECT COUNT(*) FROM {SCHEMA}.tool_usage_log WHERE user_id=%s AND tool_key=%s AND used_at > NOW() - INTERVAL '24 hours'",
+        (user_id, TOOL_KEY)
+    )
+    used = cur2.fetchone()[0] or 0
+    if used >= pkg["daily_limit_per_tool"]:
+        return False
+    cur2.execute(f"INSERT INTO {SCHEMA}.tool_usage_log (user_id, tool_key) VALUES (%s,%s)", (user_id, TOOL_KEY))
+    conn.commit()
+    return True
+
+
 def deduct(salon_id, user_id, cost, conn):
     cur = conn.cursor()
     cur.execute(f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s", (cost, salon_id))
@@ -239,7 +267,7 @@ def handler(event: dict, context) -> dict:
                 return {"statusCode": 200, "headers": CORS, "body": json.dumps(cached, ensure_ascii=False)}
 
             salon_id = user.get("salon_id")
-            if salon_id:
+            if salon_id and not package_covers_usage(conn, user["id"]):
                 cost = get_tool_cost(conn)
                 balance = get_balance(salon_id, conn)
                 if balance < cost:
@@ -247,6 +275,8 @@ def handler(event: dict, context) -> dict:
                             "body": json.dumps({"error": f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить."})}
                 # Списываем ДО вызова AI
                 deduct(salon_id, user["id"], cost, conn)
+            elif salon_id:
+                cost = 0
     finally:
         conn.close()
 

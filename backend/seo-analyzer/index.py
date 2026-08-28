@@ -50,6 +50,33 @@ def deduct(conn, salon_id, user_id, amount, action):
         (salon_id, user_id, action, amount, "seo_analyzer")
     )
 
+def package_covers_usage(conn, user_id: int) -> bool:
+    """Если у пользователя активен пакет развития и суточный лимит использований (общий на
+    все инструменты, скользящее окно 24ч) не исчерпан — использование бесплатное, логируем
+    и возвращаем True (энергия при этом не списывается)."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT pp.daily_limit_per_tool FROM {tbl('user_packages')} up
+            JOIN {tbl('package_plans')} pp ON pp.code = up.plan_code
+            WHERE up.user_id=%s AND up.status='active' AND up.expires_at > NOW()
+            ORDER BY up.expires_at DESC LIMIT 1""",
+        (user_id,)
+    )
+    pkg = cur.fetchone()
+    if not pkg:
+        return False
+    cur2 = conn.cursor()
+    cur2.execute(
+        f"SELECT COUNT(*) FROM {tbl('tool_usage_log')} WHERE user_id=%s AND tool_key='seo_analyzer' AND used_at > NOW() - INTERVAL '24 hours'",
+        (user_id,)
+    )
+    used = cur2.fetchone()[0] or 0
+    if used >= pkg["daily_limit_per_tool"]:
+        return False
+    cur2.execute(f"INSERT INTO {tbl('tool_usage_log')} (user_id, tool_key) VALUES (%s,'seo_analyzer')", (user_id,))
+    conn.commit()
+    return True
+
 def fetch_page(url: str) -> dict:
     """Загружает HTML страницы, замеряет скорость и извлекает SEO-данные."""
     import time
@@ -447,6 +474,12 @@ def handler(event: dict, context) -> dict:
 
             # Фоновый режим (при добавлении сайта) — бесплатно
             if is_background:
+                cost = 0
+
+            # Пакет развития покрывает использование в рамках суточного лимита — тогда энергия
+            # не списывается вовсе (cost обнуляем, но uses_package помним для метки в ответе)
+            uses_package = cost > 0 and package_covers_usage(conn, user["id"])
+            if uses_package:
                 cost = 0
 
             balance = get_balance(conn, salon_id)
