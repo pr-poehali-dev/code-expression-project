@@ -210,7 +210,7 @@ export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVid
           }
         </button>
         <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
-          <ToolUsageBadge toolKey={duration === "10s" ? "video_gen_10s" : "video_gen_5s"} />
+          <ToolUsageBadge toolKey="video_gen" />
         </div>
       </div>
 

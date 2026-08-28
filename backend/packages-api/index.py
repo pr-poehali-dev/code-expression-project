@@ -174,8 +174,28 @@ def get_package_daily_limit(conn, user_id: int) -> int | None:
     return plan["daily_limit_per_tool"]
 
 
+VIDEO_GEN_TOOL_KEYS = ("video_gen_5s", "video_gen_10s")
+
+
+def get_tool_daily_usage_multi(conn, user_id: int, tool_keys: tuple) -> int:
+    """Сколько раз суммарно использована ЛЮБАЯ из перечисленных tool_key за последние 24 часа —
+    нужно для инструментов, у которых несколько вариантов (например видео 5с/10с) делят один
+    общий суточный лимит пакета вместо раздельных."""
+    cur = conn.cursor()
+    placeholders = ",".join(["%s"] * len(tool_keys))
+    cur.execute(
+        f"SELECT COUNT(*) FROM {tbl('tool_usage_log')} WHERE user_id=%s AND tool_key IN ({placeholders}) "
+        f"AND used_at > NOW() - INTERVAL '24 hours'",
+        (user_id, *tool_keys)
+    )
+    return cur.fetchone()[0] or 0
+
+
 def handle_package_status(event: dict) -> dict:
-    """Текущий активный пакет пользователя + сколько раз сегодня использован каждый инструмент."""
+    """Текущий активный пакет пользователя + сколько раз сегодня использован каждый инструмент.
+    Инструменты категории 'landing' (конструктор лендингов) исключены — это внешний сервис по
+    реферальной ссылке, он не расходует энергию и не покрывается пакетом. Генерация видео на 5 и
+    10 секунд считается ОДНИМ общим счётчиком (video_gen_5s + video_gen_10s вместе), а не раздельно."""
     conn = get_db()
     try:
         user = get_session_user(event, conn)
@@ -185,13 +205,21 @@ def handle_package_status(event: dict) -> dict:
         if not pkg:
             return ok({"has_package": False})
         plan = _get_plan_by_code(conn, pkg["plan_code"])
+        limit = plan["daily_limit_per_tool"] if plan else 0
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        cur.execute(f"SELECT tool_key, name FROM {tbl('tool_costs')} WHERE is_free=FALSE ORDER BY name")
+        cur.execute(
+            f"SELECT tool_key, name FROM {tbl('tool_costs')} "
+            f"WHERE is_free=FALSE AND category != 'landing' AND tool_key NOT IN %s ORDER BY name",
+            (VIDEO_GEN_TOOL_KEYS,)
+        )
         tools = cur.fetchall()
         usage = []
         for t in tools:
             used = get_tool_daily_usage(conn, user["id"], t["tool_key"])
-            usage.append({"tool_key": t["tool_key"], "name": t["name"], "used": used, "limit": plan["daily_limit_per_tool"] if plan else 0})
+            usage.append({"tool_key": t["tool_key"], "name": t["name"], "used": used, "limit": limit})
+        video_used = get_tool_daily_usage_multi(conn, user["id"], VIDEO_GEN_TOOL_KEYS)
+        usage.append({"tool_key": "video_gen", "name": "Генерация видео", "used": video_used, "limit": limit})
+        usage.sort(key=lambda u: u["name"])
         days_left = (pkg["expires_at"] - datetime.now(timezone.utc)).days
         return ok({
             "has_package": True,

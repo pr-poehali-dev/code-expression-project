@@ -56,10 +56,14 @@ def get_tool_cost(conn, duration: str) -> int:
     return 180 if duration == "10s" else 105
 
 
+VIDEO_GEN_TOOL_KEYS = ("video_gen_5s", "video_gen_10s")
+
+
 def package_covers_usage(conn, user_id: int, tool_key: str) -> bool:
-    """Если у пользователя активен пакет развития и лимит использований этого инструмента
-    в сутки (скользящее окно 24ч) не исчерпан — использование бесплатное, логируем и
-    возвращаем True (энергия при этом не списывается)."""
+    """Если у пользователя активен пакет развития и лимит использований в сутки (скользящее
+    окно 24ч) не исчерпан — использование бесплатное, логируем и возвращаем True (энергия при
+    этом не списывается). Для видео 5с и 10с лимит ОБЩИЙ — считаем оба варианта вместе, чтобы
+    нельзя было получить в 2 раза больше бесплатных роликов, чередуя длительность."""
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         f"""SELECT pp.daily_limit_per_tool FROM {SCHEMA}.user_packages up
@@ -72,10 +76,17 @@ def package_covers_usage(conn, user_id: int, tool_key: str) -> bool:
     if not pkg:
         return False
     cur2 = conn.cursor()
-    cur2.execute(
-        f"SELECT COUNT(*) FROM {SCHEMA}.tool_usage_log WHERE user_id=%s AND tool_key=%s AND used_at > NOW() - INTERVAL '24 hours'",
-        (user_id, tool_key)
-    )
+    if tool_key in VIDEO_GEN_TOOL_KEYS:
+        cur2.execute(
+            f"SELECT COUNT(*) FROM {SCHEMA}.tool_usage_log WHERE user_id=%s AND tool_key IN %s "
+            f"AND used_at > NOW() - INTERVAL '24 hours'",
+            (user_id, VIDEO_GEN_TOOL_KEYS)
+        )
+    else:
+        cur2.execute(
+            f"SELECT COUNT(*) FROM {SCHEMA}.tool_usage_log WHERE user_id=%s AND tool_key=%s AND used_at > NOW() - INTERVAL '24 hours'",
+            (user_id, tool_key)
+        )
     used = cur2.fetchone()[0] or 0
     if used >= pkg["daily_limit_per_tool"]:
         return False
