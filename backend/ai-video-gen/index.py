@@ -127,13 +127,30 @@ def is_provider_error(e: Exception) -> bool:
     return any(x in msg for x in ("502", "503", "service_unavailable", "temporarily", "bad gateway"))
 
 
-def save_history(user_id, salon_id, url, prompt, resolution, duration, cost, conn):
+def create_running_job(user_id, salon_id, prompt, resolution, duration, cost, conn) -> str:
+    """Создаёт запись задачи со статусом 'running' ДО вызова polza.ai — это позволяет
+    отследить и заблокировать повторный запуск, если предыдущий запрос ещё выполняется
+    (например пользователь нажал «Сгенерировать» второй раз, не дождавшись ответа)."""
     cur = conn.cursor()
     cur.execute(
-        f"INSERT INTO {SCHEMA}.video_jobs (user_id, salon_id, prompt, resolution, duration, status, result_url, cost) "
-        f"VALUES (%s, %s, %s, %s, %s, 'done', %s, %s)",
-        (user_id, salon_id, prompt, resolution, duration, url, cost)
+        f"INSERT INTO {SCHEMA}.video_jobs (user_id, salon_id, prompt, resolution, duration, status, cost) "
+        f"VALUES (%s, %s, %s, %s, %s, 'running', %s) RETURNING id",
+        (user_id, salon_id, prompt, resolution, duration, cost)
     )
+    job_id = cur.fetchone()[0]
+    conn.commit()
+    return job_id
+
+
+def finish_job_done(job_id, url, conn):
+    cur = conn.cursor()
+    cur.execute(f"UPDATE {SCHEMA}.video_jobs SET status='done', result_url=%s, updated_at=NOW() WHERE id=%s", (url, job_id))
+    conn.commit()
+
+
+def finish_job_error(job_id, msg, conn):
+    cur = conn.cursor()
+    cur.execute(f"UPDATE {SCHEMA}.video_jobs SET status='error', error_msg=%s, updated_at=NOW() WHERE id=%s", (msg[:200], job_id))
     conn.commit()
 
 
@@ -204,6 +221,19 @@ def handler(event: dict, context) -> dict:
         if not has_paid_at_least_once(salon_id, conn):
             return err("Инструмент доступен только после пополнения баланса. Бонусные 100 энергий сюда не распространяются.", 403)
 
+        # Защита от двойного запуска: если у пользователя уже есть задача в статусе 'running',
+        # созданная недавно (функция может выполняться до 300с), новую генерацию не запускаем —
+        # именно повторное нажатие «Сгенерировать» после долгого ожидания приводило к тому, что
+        # у polza.ai создавалось два ролика и энергия списывалась дважды.
+        cur_check = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur_check.execute(
+            f"SELECT id FROM {SCHEMA}.video_jobs WHERE user_id=%s AND status='running' "
+            f"AND created_at > NOW() - INTERVAL '6 minutes' LIMIT 1",
+            (user["id"],)
+        )
+        if cur_check.fetchone():
+            return err("Предыдущее видео ещё генерируется. Дождитесь результата — он появится в «Мои видео», прежде чем запускать новое.", 409)
+
         body = json.loads(event.get("body") or "{}")
         prompt = (body.get("prompt") or "").strip()
         if not prompt:
@@ -225,6 +255,8 @@ def handler(event: dict, context) -> dict:
             ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, tool_key, conn)
             if not ok_deduct:
                 return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
+
+        job_id = create_running_job(user["id"], salon_id, prompt, resolution, duration, cost, conn)
 
         conn.close()
 
@@ -272,6 +304,12 @@ def handler(event: dict, context) -> dict:
         except urllib.error.HTTPError as e:
             body_text = e.read().decode("utf-8", errors="ignore")
             print(f"[polza.ai video] HTTP {e.code}: {body_text[:300]}")
+            try:
+                conn_j = get_db()
+                finish_job_error(job_id, body_text, conn_j)
+                conn_j.close()
+            except Exception:
+                pass
             if e.code in (502, 503):
                 if not pkg_covered:
                     try:
@@ -292,6 +330,18 @@ def handler(event: dict, context) -> dict:
         except Exception as e:
             msg = str(e)
             print(f"[polza.ai video] err: {msg}")
+            # При таймауте job специально ОСТАВЛЯЕМ в статусе 'running' — сама генерация
+            # у polza.ai продолжает выполняться на их стороне и может завершиться позже,
+            # чем ответит наша функция. Снимаем блокировку только когда джоб протухнет
+            # (см. проверку "created_at > NOW() - INTERVAL '6 minutes'" при запуске).
+            is_timeout = "timed out" in msg.lower() or "timeout" in msg.lower()
+            if not is_timeout:
+                try:
+                    conn_j = get_db()
+                    finish_job_error(job_id, msg, conn_j)
+                    conn_j.close()
+                except Exception:
+                    pass
             if is_provider_error(e):
                 if not pkg_covered:
                     try:
@@ -301,8 +351,8 @@ def handler(event: dict, context) -> dict:
                     except Exception:
                         pass
                 return err("ИИ-сервис временно недоступен, энергия возвращена. Попробуйте через минуту.", 503)
-            if "timed out" in msg.lower() or "timeout" in msg.lower():
-                return err("Видео генерируется дольше обычного — проверьте раздел «Мои видео» через минуту.", 504)
+            if is_timeout:
+                return err("Видео генерируется дольше обычного — проверьте раздел «Мои видео» через пару минут, прежде чем запускать новое.", 504)
             return err(f"Ошибка соединения: {msg}", 502)
 
         # Провайдер может ответить HTTP 200, но с status='failed' внутри тела
@@ -310,6 +360,12 @@ def handler(event: dict, context) -> dict:
         if result.get("status") == "failed":
             provider_msg = (result.get("error") or {}).get("message", "")
             print(f"[polza.ai video] generation failed: {provider_msg}")
+            try:
+                conn_j = get_db()
+                finish_job_error(job_id, provider_msg or "failed", conn_j)
+                conn_j.close()
+            except Exception:
+                pass
             if not pkg_covered:
                 try:
                     conn_r = get_db()
@@ -340,6 +396,12 @@ def handler(event: dict, context) -> dict:
                         break
 
         if not video_url:
+            try:
+                conn_j = get_db()
+                finish_job_error(job_id, "Сервис не вернул видео", conn_j)
+                conn_j.close()
+            except Exception:
+                pass
             if not pkg_covered:
                 try:
                     conn_r = get_db()
@@ -351,7 +413,7 @@ def handler(event: dict, context) -> dict:
 
         try:
             conn3 = get_db()
-            save_history(user["id"], salon_id, video_url, prompt, resolution, duration, cost, conn3)
+            finish_job_done(job_id, video_url, conn3)
             conn3.close()
         except Exception as e:
             print(f"[ai-video-gen] history save error: {e}")
