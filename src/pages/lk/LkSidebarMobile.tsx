@@ -119,8 +119,9 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
       {moreOpen && (
         <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 200 }} onClick={() => setMoreOpen(false)}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.35)" }} />
-          <div onClick={e => e.stopPropagation()} style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "#fff", borderRadius: "20px 20px 0 0", padding: "8px 0 calc(72px + env(safe-area-inset-bottom,0px))", boxShadow: "0 -4px 24px rgba(0,0,0,0.12)" }}>
-            <div style={{ width: 36, height: 4, borderRadius: 2, background: "#e0e0e0", margin: "0 auto 16px" }} />
+          <div onClick={e => e.stopPropagation()} style={{ position: "absolute", bottom: 0, left: 0, right: 0, maxHeight: "80vh", display: "flex", flexDirection: "column", background: "#fff", borderRadius: "20px 20px 0 0", boxShadow: "0 -4px 24px rgba(0,0,0,0.12)" }}>
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: "#e0e0e0", margin: "8px auto 12px", flexShrink: 0 }} />
+            <div style={{ overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "0 0 calc(72px + env(safe-area-inset-bottom,0px))" }}>
             {moreItems.map(item => {
               const locked = !hasSalon && role !== "solo_master" && SALON_REQUIRED.includes(item.id);
               const showBadge = item.id === "employees" && requestsCount > 0;
@@ -159,6 +160,7 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
                 </button>
               );
             })}
+            </div>
           </div>
         </div>
       )}
