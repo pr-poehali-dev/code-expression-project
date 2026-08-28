@@ -8,6 +8,7 @@ import {
 import { calcProfile } from "./profile.logic";
 import { lkApi } from "@/lib/lkApi";
 import ProfileResult from "./ProfileResult";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const G  = PROFILE_ACCENT;
 const GL = PROFILE_ACCENT_LIGHT;
@@ -218,6 +219,9 @@ export default function ProfileBot({ onBack }: Props) {
         >
           Начать диагностику →
         </button>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+          <ToolUsageBadge toolKey="profile_analysis" />
+        </div>
       </div>
     );
   }

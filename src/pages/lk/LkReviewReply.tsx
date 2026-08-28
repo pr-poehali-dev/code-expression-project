@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const ACCENT = "hsl(185,85%,32%)";
 const LK_URL = "https://functions.poehali.dev/1c0ad024-179b-4644-9621-377174bbeba3";
@@ -223,6 +224,9 @@ export default function LkReviewReply() {
               : <><Icon name="Sparkles" size={16} />Составить ответ</>
             }
           </button>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+            <ToolUsageBadge toolKey="review_reply" />
+          </div>
         </div>
       )}
 

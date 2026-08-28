@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { useEnergy } from "@/contexts/EnergyContext";
 import Icon from "@/components/ui/icon";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -208,6 +209,9 @@ export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVid
             : <><Icon name="Clapperboard" size={17} /> Сгенерировать видео</>
           }
         </button>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+          <ToolUsageBadge toolKey={duration === "10s" ? "video_gen_10s" : "video_gen_5s"} />
+        </div>
       </div>
 
       {/* Результат */}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { EnergyComplexityNote } from "./LkMarketingShared";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const ACCENT = "hsl(185,85%,32%)";
 const API_URL = "https://functions.poehali.dev/b11b2ac2-de43-4758-b3c1-f512fe449a65";
@@ -338,6 +339,9 @@ export default function LkMarketingBudget({ onBack }: Props) {
             : <><Icon name="Calculator" size={16} /> Рассчитать медиаплан</>
           }
         </button>
+        <div style={{ marginTop: 10 }}>
+          <ToolUsageBadge toolKey="mkt_budget" />
+        </div>
       </div>
 
       {/* Результаты */}

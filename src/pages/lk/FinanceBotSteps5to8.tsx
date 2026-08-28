@@ -2,6 +2,7 @@ import Icon from "@/components/ui/icon";
 import { FinanceData, FinanceStep, EnergyData, MoneyMindset } from "./finance.types";
 import { calcMPD, calcFR, formatMoney } from "./finance.logic";
 import { G, GL, GD, StepShell, SectionCard, NextBtn } from "./FinanceBotShared";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 interface StepProps {
   step: FinanceStep;
@@ -91,6 +92,9 @@ export function FinanceIntro({ onBack, onStart }: { onBack: () => void; onStart:
           fontFamily: "Montserrat, sans-serif", boxShadow: `0 6px 20px ${G}44`,
         }}
       >Начать расчёт →</button>
+      <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+        <ToolUsageBadge toolKey="finance_analysis" />
+      </div>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { EnergyComplexityNote } from "./LkMarketingShared";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const ACCENT = "hsl(185,85%,32%)";
 const API_URL = "https://functions.poehali.dev/00357dca-9825-4cc7-9c1c-eb32b635afc4";
@@ -358,6 +359,9 @@ export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
                 Сбросить
               </button>
             </div>
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <ToolUsageBadge toolKey="mkt_semantics" />
           </div>
 
           {/* Фильтр по частотности */}

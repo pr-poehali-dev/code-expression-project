@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { lkApi } from "@/lib/lkApi";
 import Icon from "@/components/ui/icon";
 import { backBtn, ACCENT } from "./LkTestsTypes";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const DemoShareBlock = lazy(() => import("@/pages/demo/DemoShareBlock"));
 
@@ -431,6 +432,9 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
               {p.name}
             </button>
           ))}
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 14 }}>
+          <ToolUsageBadge toolKey="ms_analyze" />
         </div>
       </div>
     );

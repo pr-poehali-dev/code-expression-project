@@ -1,5 +1,6 @@
 import Icon from "@/components/ui/icon";
 import { ACCENT, ACCENT_DARK, BLOCKS, LK_URL, Answers, HistoryItem, sid } from "./salon-audit.types";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const inp: React.CSSProperties = {
   width: "100%", padding: "10px 13px", borderRadius: 10, border: "1.5px solid #E2E8F0",
@@ -130,6 +131,11 @@ export default function SalonAuditForm({
           </button>
         )}
       </div>
+      {isLastBlock && (
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+          <ToolUsageBadge toolKey="salon_audit" />
+        </div>
+      )}
 
       {/* История */}
       {history.length > 0 && (

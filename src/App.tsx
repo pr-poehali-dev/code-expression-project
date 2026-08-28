@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { LkAuthProvider } from "./contexts/LkAuthContext";
 import { EnergyProvider } from "./contexts/EnergyContext";
+import { PackageUsageProvider } from "./contexts/PackageUsageContext";
 import EnergyGate from "./components/EnergyGate";
 import ScrollToTop from "./components/ScrollToTop";
 import CookieBanner from "./components/CookieBanner";
@@ -81,6 +82,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <LkAuthProvider>
     <EnergyProvider>
+    <PackageUsageProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -138,6 +140,7 @@ const App = () => (
         </Suspense>
       </BrowserRouter>
     </TooltipProvider>
+    </PackageUsageProvider>
     </EnergyProvider>
     </LkAuthProvider>
   </QueryClientProvider>

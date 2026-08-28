@@ -5,6 +5,7 @@ import { calcBarrierIndexes, calcIIB, getBarrierType } from "./barriers.logic";
 import { BotShell, MiniIndexBar, ACCENT, ACCENT_LIGHT } from "./MindsetShared";
 import { lkApi } from "@/lib/lkApi";
 import BarriersResult from "./BarriersResult";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const WARM = "hsl(20,85%,50%)";
 const WARM_LIGHT = "hsl(20,85%,96%)";
@@ -156,6 +157,9 @@ export default function BarriersBot({ onBack, onRetake, showShare = false }: Pro
           >
             Начать диагностику →
           </button>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+            <ToolUsageBadge toolKey="barriers_analysis" />
+          </div>
         </div>
       </BotShell>
     );

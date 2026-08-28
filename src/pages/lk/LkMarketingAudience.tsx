@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
 import { EnergyComplexityNote } from "./LkMarketingShared";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const ACCENT = "hsl(185,85%,32%)";
 const API_URL = "https://functions.poehali.dev/d0fa3230-e537-441c-b7eb-ef239f7377e4";
@@ -236,6 +237,7 @@ export default function LkMarketingAudience({ onBack, onPortraitsReady, onGoToOf
               : <><Icon name="Sparkles" size={16} />Создать портреты ЦА</>
             }
           </button>
+          <ToolUsageBadge toolKey="mkt_audience" />
           {error && (
             <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 10, padding: "10px 16px", fontSize: 13, color: "#DC2626", display: "flex", alignItems: "center", gap: 8, width: "100%", maxWidth: 400 }}>
               <Icon name="AlertCircle" size={15} />

@@ -2,6 +2,7 @@ import { useRef } from "react";
 import Icon from "@/components/ui/icon";
 import { backBtn } from "./LkTestsTypes";
 import { COLOR, Symptom } from "./DiagnosticTypes";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 interface Props {
   onBack: () => void;
@@ -78,6 +79,9 @@ export default function DiagnosticSearch({
           >
             {loading ? "..." : "Найти"}
           </button>
+        </div>
+        <div style={{ marginTop: 10 }}>
+          <ToolUsageBadge toolKey="diagnostic" />
         </div>
 
         {/* Дропдаун */}

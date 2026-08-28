@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const ACCENT = "hsl(145,60%,35%)";
 const ACCENT_DARK = "hsl(145,60%,25%)";
@@ -174,6 +175,9 @@ export default function LkClientScripts() {
               : <><Icon name="Sparkles" size={16} />Написать скрипт</>
             }
           </button>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+            <ToolUsageBadge toolKey="client_scripts" />
+          </div>
         </div>
       )}
 

@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import LkMarketingAudience from "./LkMarketingAudience";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { EnergyComplexityNote } from "./LkMarketingShared";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const ACCENT = "hsl(185,85%,32%)";
 const API_URL = "https://functions.poehali.dev/62a82e41-522d-46c2-902b-4caeb0e47880";
@@ -285,6 +286,11 @@ export default function LkMarketingOffers({ onBack, initialPortraits, initialSal
                 <Icon name="Sparkles" size={15} />
                 Создать офферы
               </button>
+            </div>
+          )}
+          {portraits && (
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <ToolUsageBadge toolKey="mkt_offers" />
             </div>
           )}
 

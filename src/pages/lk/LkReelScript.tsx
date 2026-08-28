@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import Icon from "@/components/ui/icon";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -249,6 +250,9 @@ export default function LkReelScript({ onGoToVideoGen }: LkReelScriptProps = {})
               : <><Icon name="Sparkles" size={16} /> Придумать идеи для рилса</>
             }
           </button>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+            <ToolUsageBadge toolKey="reel_script" />
+          </div>
         </div>
       )}
 

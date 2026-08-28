@@ -5,6 +5,7 @@ import { calcIndexes, calcIGP, getType } from "./mindset.logic";
 import { BotShell, MiniIndexBar, ACCENT, ACCENT_LIGHT } from "./MindsetShared";
 import { lkApi } from "@/lib/lkApi";
 import MindsetResult from "./MindsetResult";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 type Phase = "intro" | "quiz" | "block-end" | "result";
 
@@ -118,6 +119,9 @@ export default function MindsetBot({ onBack }: Props) {
           >
             Начать диагностику
           </button>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+            <ToolUsageBadge toolKey="mindset_analysis" />
+          </div>
         </div>
       </BotShell>
     );

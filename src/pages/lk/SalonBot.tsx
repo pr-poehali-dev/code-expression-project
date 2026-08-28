@@ -9,6 +9,7 @@ import { calcSalon } from "./salon.logic";
 import { lkApi } from "@/lib/lkApi";
 import { SalonHistoryItem } from "./LkTestsTypes";
 import SalonResult from "./SalonResult";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const G  = SALON_ACCENT;
 const GL = SALON_ACCENT_LIGHT;
@@ -288,6 +289,9 @@ export default function SalonBot({ onBack, previousResult }: Props) {
         }}>
           Начать диагностику →
         </button>
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+          <ToolUsageBadge toolKey="salon_diag" />
+        </div>
       </div>
     );
   }

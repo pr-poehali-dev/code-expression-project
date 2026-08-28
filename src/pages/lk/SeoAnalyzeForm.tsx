@@ -1,6 +1,7 @@
 import Icon from "@/components/ui/icon";
 import { ACCENT, ACCENT_BG, ACCENT_BORDER, AnalysisListItem, cardStyle, labelStyle } from "./SeoTypes";
 import { EnergyComplexityNote } from "./LkMarketingShared";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 interface Props {
   onBack: () => void;
@@ -78,6 +79,9 @@ export default function SeoAnalyzeForm({
               : <><Icon name="Search" size={15} /> Запустить анализ</>
             }
           </button>
+        </div>
+        <div style={{ marginTop: 10 }}>
+          <ToolUsageBadge toolKey="seo_analyzer" />
         </div>
 
         {error && (

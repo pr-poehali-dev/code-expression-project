@@ -3,6 +3,7 @@ import { useLkAuth } from "@/contexts/LkAuthContext";
 import { useEnergy } from "@/contexts/EnergyContext";
 import Icon from "@/components/ui/icon";
 import { renderMarkdown } from "@/utils/markdown";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -289,6 +290,9 @@ export default function LkClientMsg() {
               : <><Icon name="Wand2" size={16} />Сгенерировать сообщение</>
             }
           </button>
+          <div style={{ marginTop: 8 }}>
+            <ToolUsageBadge toolKey="client_msg_gen" />
+          </div>
 
           {/* Ошибка */}
           {genError && (

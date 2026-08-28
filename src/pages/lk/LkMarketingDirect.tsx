@@ -4,6 +4,7 @@ import { useLkAuth } from "@/contexts/LkAuthContext";
 import { ACCENT, DIRECT_COLOR, API_URL, CACHE_VERSION, AdGroup, KeywordGroup } from "./LkMarketingDirect.types";
 import { AdGroupCard, CampaignMinusBlock } from "./LkMarketingDirectGroupCard";
 import { EnergyComplexityNote } from "./LkMarketingShared";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 interface Props {
   onBack: () => void;
@@ -149,6 +150,9 @@ export default function LkMarketingDirect({ onBack, initialGroups }: Props) {
                 Сбросить
               </button>
             </div>
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <ToolUsageBadge toolKey="mkt_direct" />
           </div>
 
           {/* Легенда символов */}

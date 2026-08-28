@@ -8,6 +8,7 @@ import {
 } from "./staffAuditTypes";
 import { AuditResultView } from "./StaffAuditResultView";
 import { MemberForm } from "./StaffMemberForm";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 export default function LkStaffAudit() {
   const { user } = useLkAuth();
@@ -211,6 +212,9 @@ export default function LkStaffAudit() {
         <Icon name="BarChart2" size={16} />
         Провести анализ персонала
       </button>
+      <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+        <ToolUsageBadge toolKey="staff_audit" />
+      </div>
 
       {/* История */}
       {history.length > 0 && (

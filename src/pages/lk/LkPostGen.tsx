@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { showEnergyGate } from "@/components/EnergyGate";
 import Icon from "@/components/ui/icon";
+import ToolUsageBadge from "@/components/ToolUsageBadge";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -262,6 +263,9 @@ export default function LkPostGen() {
               : <><Icon name="Sparkles" size={16} /> Создать заголовки</>
             }
           </button>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+            <ToolUsageBadge toolKey="post_gen" />
+          </div>
         </div>
       )}
 
