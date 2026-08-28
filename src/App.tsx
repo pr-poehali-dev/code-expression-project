@@ -41,6 +41,7 @@ const FreeTarif = lazy(() => import("./pages/FreeTarif"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 const DlyaSalonov = lazy(() => import("./pages/DlyaSalonov"));
 const DlyaShkol = lazy(() => import("./pages/DlyaShkol"));
+const DlyaPsihologov = lazy(() => import("./pages/DlyaPsihologov"));
 const FreeTrenings = lazy(() => import("./pages/FreeTrenings"));
 const Diagnostika = lazy(() => import("./pages/Diagnostika"));
 const ChampionshipPage = lazy(() => import("./pages/championship/ChampionshipPage"));
@@ -123,6 +124,7 @@ const App = () => (
             <Route path="/coming-soon" element={<ComingSoon />} />
             <Route path="/dlya-salonov" element={<DlyaSalonov />} />
             <Route path="/dlya-shkol" element={<DlyaShkol />} />
+            <Route path="/dlya-psihologov" element={<DlyaPsihologov />} />
             <Route path="/free-trenings" element={<FreeTrenings />} />
 
             <Route path="/diagnostika" element={<Diagnostika />} />

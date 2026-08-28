@@ -26,12 +26,18 @@ const inputStyle = (focused: boolean): React.CSSProperties => ({
   transition: "border-color 0.2s",
 });
 
+const TYPE_PARAM_MAP: Record<string, "salon" | "solo_master" | "psychologist" | "body_psychologist"> = {
+  salon: "salon", solo_master: "solo_master", psychologist: "psychologist", body_psychologist: "body_psychologist",
+};
+
 export default function LkLogin() {
   const { login, register } = useLkAuth();
   const fittingTrial = isFittingTrial();
   const podelamTrial = isPodelamTrial();
-  const wantsRegister = fittingTrial || podelamTrial
-    || new URLSearchParams(window.location.search).get("tab") === "register";
+  const urlParams = new URLSearchParams(window.location.search);
+  const typeParam = TYPE_PARAM_MAP[urlParams.get("type") || ""];
+  const wantsRegister = fittingTrial || podelamTrial || !!typeParam
+    || urlParams.get("tab") === "register";
   const [tab, setTab] = useState<"login" | "register">(wantsRegister ? "register" : "login");
 
   // Login fields
@@ -43,7 +49,7 @@ export default function LkLogin() {
   const [email, setEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
-  const [userType, setUserType] = useState<"salon" | "solo_master" | "psychologist" | "body_psychologist">(fittingTrial ? "solo_master" : "salon");
+  const [userType, setUserType] = useState<"salon" | "solo_master" | "psychologist" | "body_psychologist">(typeParam || (fittingTrial ? "solo_master" : "salon"));
   const [promoCode, setPromoCode] = useState("");
   const [promoCheck, setPromoCheck] = useState<{ status: "idle" | "checking" | "valid" | "invalid"; schoolName?: string; bonus?: number }>({ status: "idle" });
   const promoCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -99,9 +105,10 @@ export default function LkLogin() {
     setLoading(true);
     try {
       const code = userType === "solo_master" ? promoCode.trim() : "";
+      const source = podelamTrial ? "podelam_demo" : typeParam ? `landing_${typeParam}` : undefined;
       // Результат применения промокода (начислено / уже использован) показывается
       // на следующем экране подтверждения email — см. LkEmailVerify.
-      await register(fullName, email, regPassword, userType, podelamTrial ? "podelam_demo" : undefined, code || undefined);
+      await register(fullName, email, regPassword, userType, source, code || undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ошибка регистрации");
     } finally {
