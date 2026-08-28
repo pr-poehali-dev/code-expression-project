@@ -10,6 +10,7 @@ function sid() { return localStorage.getItem("lk_session") || ""; }
 interface PlanPrice { period_months: number; price_rub: number; }
 interface Plan { code: string; name: string; description: string; daily_limit_per_tool: number; prices: PlanPrice[]; }
 interface ActivePackage { plan_code: string; period_months: number; expires_at: string; auto_renew: boolean }
+interface ToolUsage { tool_key: string; name: string; used: number; limit: number; }
 
 const PERIOD_LABELS: Record<number, string> = { 1: "1 месяц", 3: "3 месяца", 6: "6 месяцев", 12: "12 месяцев" };
 
@@ -47,6 +48,8 @@ export default function LkPackages({ onNav }: { onNav?: (t: string) => void }) {
   const [period, setPeriod] = useState<number>(1);
   const [autorenew, setAutorenew] = useState<Record<string, boolean>>({});
   const [paying, setPaying] = useState<string | null>(null);
+  const [usage, setUsage] = useState<ToolUsage[]>([]);
+  const [usageOpen, setUsageOpen] = useState(false);
 
   const load = () => {
     fetch(`${PACKAGES_URL}?action=packages_list`, { headers: { "X-Session-Id": sid() } })
@@ -56,7 +59,14 @@ export default function LkPackages({ onNav }: { onNav?: (t: string) => void }) {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  const loadUsage = () => {
+    fetch(`${PACKAGES_URL}?action=package_status`, { headers: { "X-Session-Id": sid() } })
+      .then(r => r.json())
+      .then(d => { if (d.has_package) setUsage(d.usage || []); })
+      .catch(() => {});
+  };
+
+  useEffect(() => { load(); loadUsage(); }, []);
 
   const handleBuy = async (code: string) => {
     setPaying(code);
@@ -129,6 +139,50 @@ export default function LkPackages({ onNav }: { onNav?: (t: string) => void }) {
               Доступна диагностика, ежедневные шаги и часть инструментов. Расширенный анализ и все инструменты без ограничений — в платных пакетах ниже.
             </div>
           </div>
+        </div>
+      )}
+
+      {active && usage.length > 0 && (
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", marginBottom: 28, overflow: "hidden" }}>
+          <button
+            onClick={() => setUsageOpen(o => !o)}
+            style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "14px 20px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
+          >
+            <Icon name="Gauge" size={16} style={{ color: ACCENT }} />
+            <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: "#0F172A" }}>Бесплатные использования сегодня</span>
+            <span style={{ fontSize: 12, color: "#aaa", marginRight: 6 }}>
+              {usage.filter(u => u.used < u.limit).length} из {usage.length} доступно
+            </span>
+            <Icon name={usageOpen ? "ChevronUp" : "ChevronDown"} size={16} style={{ color: "#aaa" }} />
+          </button>
+          {usageOpen && (
+            <div style={{ borderTop: "1px solid #F1F5F9", padding: "16px 20px" }}>
+              <div style={{ fontSize: 12, color: "#94A3B8", marginBottom: 14, lineHeight: 1.5 }}>
+                По пакету «{plans.find(p => p.code === active.plan_code)?.name || active.plan_code}» каждый инструмент бесплатен {plans.find(p => p.code === active.plan_code)?.daily_limit_per_tool ?? "?"} раз(а) в сутки — счётчик обновляется скользящим окном 24 часа.
+                Свыше лимита — оплата с баланса энергии.
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
+                {usage.map(u => {
+                  const left = Math.max(0, u.limit - u.used);
+                  const exhausted = left === 0;
+                  const pct = u.limit > 0 ? Math.min(100, Math.round((u.used / u.limit) * 100)) : 0;
+                  return (
+                    <div key={u.tool_key} style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid #F1F5F9", background: exhausted ? "hsl(0,70%,98%)" : "#F8FAFC" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                        <span style={{ fontSize: 12.5, fontWeight: 600, color: "#0F172A" }}>{u.name}</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: exhausted ? "hsl(0,70%,50%)" : ACCENT, flexShrink: 0, marginLeft: 8 }}>
+                          {left} из {u.limit}
+                        </span>
+                      </div>
+                      <div style={{ height: 5, borderRadius: 3, background: "#E2E8F0", overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${pct}%`, borderRadius: 3, background: exhausted ? "hsl(0,70%,55%)" : ACCENT, transition: "width .2s" }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
