@@ -241,12 +241,17 @@ def handler(event: dict, context) -> dict:
             + " Люди в кадре не говорят и не издают звуков, без диалогов и закадрового голоса — только фоновая музыка."
         )
 
+        # polza.ai ожидает duration числом секунд (5 или 10), а не строкой вида "5s" —
+        # внутри функции строковый формат "5s"/"10s" используется для сравнения с
+        # ALLOWED_DURATIONS и подбора tool_key, поэтому конвертируем только в payload.
+        duration_seconds = int(duration.rstrip("s"))
+
         payload = json.dumps({
             "model": "bytedance/seedance-2-mini",
             "input": {
                 "prompt": final_prompt,
                 "resolution": resolution,
-                "duration": duration,
+                "duration": duration_seconds,
                 "multi_shots": False,
             }
         }).encode("utf-8")
