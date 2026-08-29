@@ -187,6 +187,12 @@ export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVid
               </div>
             </button>
           )}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 7, marginTop: 10, padding: "8px 12px", background: "hsl(40,90%,97%)", border: "1px solid hsl(40,90%,88%)", borderRadius: 10 }}>
+            <Icon name="Info" size={13} style={{ color: "hsl(40,80%,45%)", flexShrink: 0, marginTop: 1 }} />
+            <div style={{ fontSize: 11, color: "#78716C", lineHeight: 1.5 }}>
+              Для точного результата: лицо крупным планом и хорошо освещено, ракурс — анфас или лёгкий поворот, фон — светлый и без лишних людей.
+            </div>
+          </div>
         </div>
 
         <div style={{ marginBottom: 18 }}>
