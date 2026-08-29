@@ -1,10 +1,17 @@
 """
 Генерация видео-роликов через polza.ai (модель bytedance/seedance-2-mini). ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ 300с.
 Результат возвращается по URL от polza.ai (файл хранится на их стороне некоторое время).
+Опционально можно приложить фото мастера (base64) — оно загружается в S3 и передаётся модели
+как референсное изображение (параметр input.images), чтобы человек в ролике был похож на мастера.
+Без фото генерация работает как раньше — обычное текстовое описание.
 Маршруты: POST / — генерация, GET / — история, DELETE / — удалить запись истории.
 """
+import base64
 import json
 import os
+import uuid
+from datetime import datetime
+import boto3
 import psycopg2
 import psycopg2.extras
 import urllib.request
@@ -19,6 +26,26 @@ CORS = {
 
 ALLOWED_DURATIONS = {"5s", "10s"}
 ALLOWED_RESOLUTIONS = {"720p"}
+REFERENCE_PHOTO_SURCHARGE = 5  # доплата в энергии, если генерация идёт с фото мастера как референсом
+
+
+def upload_reference_photo(photo_b64: str, user_id: int) -> str:
+    """Декодирует фото мастера из base64 (в т.ч. data:URL) и загружает в S3, возвращая CDN-ссылку
+    для передачи модели в параметре input.images."""
+    if photo_b64.startswith("data:"):
+        photo_b64 = photo_b64.split(",", 1)[-1]
+    data = base64.b64decode(photo_b64)
+    ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    uid = uuid.uuid4().hex[:8]
+    key = f"video-jobs/reference/{user_id}/{ts}_{uid}.jpg"
+    s3 = boto3.client(
+        "s3",
+        endpoint_url="https://bucket.poehali.dev",
+        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+    )
+    s3.put_object(Bucket="files", Key=key, Body=data, ContentType="image/jpeg")
+    return f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
 
 
 def get_db():
@@ -138,15 +165,15 @@ def is_provider_error(e: Exception) -> bool:
     return any(x in msg for x in ("502", "503", "service_unavailable", "temporarily", "bad gateway"))
 
 
-def create_running_job(user_id, salon_id, prompt, resolution, duration, cost, conn) -> str:
+def create_running_job(user_id, salon_id, prompt, resolution, duration, cost, conn, reference_photo_url=None) -> str:
     """Создаёт запись задачи со статусом 'running' ДО вызова polza.ai — это позволяет
     отследить и заблокировать повторный запуск, если предыдущий запрос ещё выполняется
     (например пользователь нажал «Сгенерировать» второй раз, не дождавшись ответа)."""
     cur = conn.cursor()
     cur.execute(
-        f"INSERT INTO {SCHEMA}.video_jobs (user_id, salon_id, prompt, resolution, duration, status, cost) "
-        f"VALUES (%s, %s, %s, %s, %s, 'running', %s) RETURNING id",
-        (user_id, salon_id, prompt, resolution, duration, cost)
+        f"INSERT INTO {SCHEMA}.video_jobs (user_id, salon_id, prompt, resolution, duration, status, cost, reference_photo_url) "
+        f"VALUES (%s, %s, %s, %s, %s, 'running', %s, %s) RETURNING id",
+        (user_id, salon_id, prompt, resolution, duration, cost, reference_photo_url)
     )
     job_id = cur.fetchone()[0]
     conn.commit()
@@ -175,7 +202,7 @@ def handle_history(event, conn):
     )
     conn.commit()
     cur.execute(
-        f"SELECT id, result_url AS url, prompt, resolution, duration, created_at "
+        f"SELECT id, result_url AS url, prompt, resolution, duration, reference_photo_url, created_at "
         f"FROM {SCHEMA}.video_jobs WHERE user_id=%s AND status='done' AND result_url IS NOT NULL "
         f"ORDER BY created_at DESC LIMIT 30",
         (user["id"],)
@@ -259,15 +286,27 @@ def handler(event: dict, context) -> dict:
         if resolution not in ALLOWED_RESOLUTIONS:
             resolution = "720p"
 
+        # Необязательное фото мастера — если приложено, генерация идёт с ним как с референсом
+        # (модель встраивает похожего человека в кадр), иначе видео создаётся как раньше.
+        photo_b64 = (body.get("reference_photo_base64") or "").strip()
+        reference_photo_url = None
+        if photo_b64:
+            try:
+                reference_photo_url = upload_reference_photo(photo_b64, user["id"])
+            except Exception as e:
+                return err(f"Не удалось загрузить фото: {e}", 400)
+
         tool_key = "video_gen_10s" if duration == "10s" else "video_gen_5s"
         cost = get_tool_cost(conn, duration)
+        if reference_photo_url:
+            cost += REFERENCE_PHOTO_SURCHARGE
         pkg_covered = package_covers_usage(conn, user["id"], tool_key)
         if not pkg_covered:
             ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, tool_key, conn)
             if not ok_deduct:
                 return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
 
-        job_id = create_running_job(user["id"], salon_id, prompt, resolution, duration, cost, conn)
+        job_id = create_running_job(user["id"], salon_id, prompt, resolution, duration, cost, conn, reference_photo_url)
 
         conn.close()
 
@@ -283,6 +322,10 @@ def handler(event: dict, context) -> dict:
             + ". Без текста на экране, без надписей, без субтитров, без вывесок с читаемыми словами."
             + " Люди в кадре не говорят и не издают звуков, без диалогов и закадрового голоса — только фоновая музыка."
         )
+        if reference_photo_url:
+            # Просим модель сохранить внешность человека с референсного фото — без этого
+            # уточнения модель может просто проигнорировать images и сгенерировать случайное лицо.
+            final_prompt += " Человек в кадре должен выглядеть точно как на приложенном референсном фото — сохрани его лицо и внешность."
 
         # polza.ai (модель seedance-2-mini) ожидает input.duration СТРОКОЙ с числом секунд
         # БЕЗ суффикса "s" (например "5", не "5s" и не число 5) — внутри функции строковый
@@ -290,14 +333,20 @@ def handler(event: dict, context) -> dict:
         # tool_key, поэтому суффикс убираем исключительно в payload.
         duration_str = duration.rstrip("s")
 
+        video_input = {
+            "prompt": final_prompt,
+            "resolution": resolution,
+            "duration": duration_str,
+            "multi_shots": False,
+        }
+        if reference_photo_url:
+            # Модель seedance-2-mini поддерживает до 9 референсных изображений в input.images —
+            # передаём фото мастера, чтобы человек в ролике был похож на него.
+            video_input["images"] = [reference_photo_url]
+
         payload = json.dumps({
             "model": "bytedance/seedance-2-mini",
-            "input": {
-                "prompt": final_prompt,
-                "resolution": resolution,
-                "duration": duration_str,
-                "multi_shots": False,
-            }
+            "input": video_input,
         }).encode("utf-8")
 
         req = urllib.request.Request(
@@ -429,7 +478,7 @@ def handler(event: dict, context) -> dict:
         except Exception as e:
             print(f"[ai-video-gen] history save error: {e}")
 
-        return ok({"video": {"url": video_url}, "energy_spent": cost})
+        return ok({"video": {"url": video_url}, "energy_spent": cost, "used_reference_photo": bool(reference_photo_url)})
 
     finally:
         try:

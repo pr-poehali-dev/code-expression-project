@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { useEnergy } from "@/contexts/EnergyContext";
 import Icon from "@/components/ui/icon";
 import ToolUsageBadge from "@/components/ToolUsageBadge";
+
+const REFERENCE_PHOTO_SURCHARGE = 5;
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -16,7 +18,7 @@ const DURATION_OPTIONS = [
 function sid() { return localStorage.getItem("lk_session") || ""; }
 
 interface HistoryItem {
-  id: number; url: string; prompt: string; resolution: string; duration: string; created_at: string;
+  id: number; url: string; prompt: string; resolution: string; duration: string; created_at: string; reference_photo_url?: string | null;
 }
 
 interface LkAiVideoGenProps {
@@ -28,12 +30,16 @@ export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVid
   const { user } = useLkAuth();
   const { refresh: refreshBalance } = useEnergy();
   void user;
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const [prompt, setPrompt]     = useState(initialPrompt || "");
   const [duration, setDuration] = useState(initialDuration || "5s");
   const [loading, setLoading]   = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError]       = useState("");
+
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoBase64, setPhotoBase64]   = useState<string | null>(null);
 
   const [history, setHistory]               = useState<HistoryItem[]>([]);
   const [historyOpen, setHistoryOpen]       = useState(true);
@@ -49,6 +55,26 @@ export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVid
       .finally(() => setHistoryLoading(false));
   };
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) { setError("Файл слишком большой (максимум 8 МБ)"); return; }
+    setError("");
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setPhotoPreview(result);
+      setPhotoBase64(result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removePhoto() {
+    setPhotoPreview(null);
+    setPhotoBase64(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
   async function handleGenerate() {
     if (!prompt.trim()) { setError("Введите описание видео"); return; }
     if (loading) return;
@@ -62,6 +88,7 @@ export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVid
           prompt: prompt.trim(),
           resolution: "720p",
           duration,
+          reference_photo_base64: photoBase64 || undefined,
         }),
       });
       const data = await res.json();
@@ -125,6 +152,42 @@ export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVid
 
       {/* Форма */}
       <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 22px", marginBottom: 16, boxShadow: "0 1px 3px rgba(15,23,42,0.05)" }}>
+
+        {/* Фото мастера (опционально) */}
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <label style={{ fontSize: 12, fontWeight: 700, color: "#555" }}>Фото мастера (необязательно)</label>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "hsl(335,80%,50%)", background: "hsl(335,80%,96%)", borderRadius: 20, padding: "2px 8px" }}>
+              +{REFERENCE_PHOTO_SURCHARGE} энергии
+            </div>
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} disabled={loading} style={{ display: "none" }} />
+          {photoPreview ? (
+            <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: "1px solid #E2E8F0", maxWidth: 220 }}>
+              <img src={photoPreview} alt="Фото мастера" style={{ width: "100%", maxHeight: 200, objectFit: "contain", display: "block", background: "#f8fafc" }} />
+              {!loading && (
+                <button
+                  onClick={removePhoto}
+                  style={{ position: "absolute", top: 8, right: 8, display: "flex", alignItems: "center", gap: 5, background: "rgba(15,23,42,0.75)", color: "#fff", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+                >
+                  <Icon name="X" size={12} /> Убрать
+                </button>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={loading}
+              style={{ width: "100%", padding: "18px 16px", borderRadius: 12, border: "1.5px dashed #CBD5E1", background: "#F8FAFC", cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", gap: 10, fontFamily: "Montserrat,sans-serif" }}
+            >
+              <Icon name="Upload" size={18} style={{ color: "#94A3B8" }} />
+              <div style={{ textAlign: "left" }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Загрузить фото — видео будет с этим человеком</div>
+                <div style={{ fontSize: 10, color: "#94A3B8" }}>JPG, PNG до 8 МБ. Без фото — как обычно, случайные лица</div>
+              </div>
+            </button>
+          )}
+        </div>
 
         <div style={{ marginBottom: 18 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
