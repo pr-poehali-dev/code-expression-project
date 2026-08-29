@@ -314,6 +314,11 @@ export default function LkAiImageGen() {
           <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
             <Icon name="CheckCircle" size={15} style={{ color: "hsl(145,60%,40%)" }} />
             Изображение готово
+            {photoBase64 && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, fontWeight: 700, color: "hsl(335,80%,50%)", background: "hsl(335,80%,96%)", borderRadius: 20, padding: "2px 8px" }}>
+                <Icon name="UserCheck" size={10} /> с фото мастера
+              </span>
+            )}
           </div>
           <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #F1F5F9", marginBottom: 14 }}>
             <img src={imageUrl} alt="Результат" style={{ width: "100%", display: "block" }} />
@@ -368,7 +373,7 @@ export default function LkAiImageGen() {
                           style={{ width: "100%", display: "block", aspectRatio: item.aspect_ratio === "1024x1792" || item.aspect_ratio === "2:3" ? "2/3" : item.aspect_ratio === "1792x1024" || item.aspect_ratio === "3:2" ? "3/2" : "1/1", objectFit: "cover" }}
                         />
                         {/* оверлей при наведении */}
-                        <div className="img-overlay" style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", opacity: 0, transition: "opacity 0.18s" }}
+                        <div className="img-overlay"
                           onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
                           onMouseLeave={e => (e.currentTarget.style.opacity = "0")}
                           onClick={() => triggerDownload(item.url)}
@@ -376,6 +381,15 @@ export default function LkAiImageGen() {
                         >
                           <Icon name="Download" size={28} style={{ color: "#fff" }} />
                         </div>
+                        {/* Миниатюра референс-фото, если генерация делалась с фото мастера */}
+                        {item.reference_photo_url && (
+                          <div
+                            title="Сгенерировано с фото мастера"
+                            style={{ position: "absolute", top: 6, left: 6, width: 28, height: 28, borderRadius: 8, overflow: "hidden", border: "2px solid #fff", boxShadow: "0 1px 4px rgba(0,0,0,0.35)" }}
+                          >
+                            <img src={item.reference_photo_url} alt="Референс" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                          </div>
+                        )}
                       </div>
                       <div style={{ padding: "8px 10px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
                         <button

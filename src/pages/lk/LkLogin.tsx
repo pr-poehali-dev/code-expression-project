@@ -30,6 +30,11 @@ const TYPE_PARAM_MAP: Record<string, "salon" | "solo_master" | "psychologist" | 
   salon: "salon", solo_master: "solo_master", psychologist: "psychologist", body_psychologist: "body_psychologist",
 };
 
+// Промокод школы-партнёра доступен независимым специалистам (мастер, психолог, телесный
+// психолог) — все они регистрируются как один и тот же "личный салон"-контейнер, но не владельцу
+// компании (salon), для которого промокод не действует.
+const PROMO_ELIGIBLE_TYPES = ["solo_master", "psychologist", "body_psychologist"] as const;
+
 export default function LkLogin() {
   const { login, register } = useLkAuth();
   const fittingTrial = isFittingTrial();
@@ -63,9 +68,9 @@ export default function LkLogin() {
   const onFocus = (k: string) => setFocus(p => ({ ...p, [k]: true }));
   const onBlur = (k: string) => setFocus(p => ({ ...p, [k]: false }));
 
-  // Промокод школы-партнёра доступен только мастерам — при переключении на другой тип сбрасываем
+  // Промокод школы-партнёра доступен независимым специалистам — при переключении на салон сбрасываем
   useEffect(() => {
-    if (userType !== "solo_master") { setPromoCode(""); setPromoCheck({ status: "idle" }); }
+    if (!PROMO_ELIGIBLE_TYPES.includes(userType as typeof PROMO_ELIGIBLE_TYPES[number])) { setPromoCode(""); setPromoCheck({ status: "idle" }); }
   }, [userType]);
 
   // Живая проверка промокода с задержкой, чтобы не дёргать сервер на каждый символ
@@ -104,7 +109,7 @@ export default function LkLogin() {
     setError("");
     setLoading(true);
     try {
-      const code = userType === "solo_master" ? promoCode.trim() : "";
+      const code = PROMO_ELIGIBLE_TYPES.includes(userType as typeof PROMO_ELIGIBLE_TYPES[number]) ? promoCode.trim() : "";
       const source = podelamTrial ? "podelam_demo" : typeParam ? `landing_${typeParam}` : undefined;
       // Результат применения промокода (начислено / уже использован) показывается
       // на следующем экране подтверждения email — см. LkEmailVerify.
@@ -287,7 +292,7 @@ export default function LkLogin() {
                   </div>
                 </div>
 
-                {userType === "solo_master" && (
+                {PROMO_ELIGIBLE_TYPES.includes(userType as typeof PROMO_ELIGIBLE_TYPES[number]) && (
                   <div style={{ marginBottom: 22 }}>
                     <label style={{ fontSize: 12, fontWeight: 600, color: GRAY, display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.8px" }}>
                       Промокод школы <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(необязательно)</span>
