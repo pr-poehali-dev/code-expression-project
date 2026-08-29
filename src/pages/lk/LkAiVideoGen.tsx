@@ -17,6 +17,40 @@ const DURATION_OPTIONS = [
 
 function sid() { return localStorage.getItem("lk_session") || ""; }
 
+// Прокси-сервер обрывает запрос с ошибкой 413, если тело больше ~3.5 МБ — а обычное фото с
+// телефона после кодирования в base64 легко превышает лимит, даже уложившись в 8 МБ на выбор
+// файла. Поэтому перед отправкой сжимаем фото через canvas: уменьшаем сторону и подбираем
+// качество JPEG, пока base64-строка не станет безопасного размера.
+function compressPhoto(dataUrl: string, maxSide = 1280, maxBase64Bytes = 1_500_000): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxSide || height > maxSide) {
+        const scale = maxSide / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { reject(new Error("canvas not supported")); return; }
+      ctx.drawImage(img, 0, 0, width, height);
+
+      let quality = 0.85;
+      let result = canvas.toDataURL("image/jpeg", quality);
+      while (result.length > maxBase64Bytes && quality > 0.3) {
+        quality -= 0.15;
+        result = canvas.toDataURL("image/jpeg", quality);
+      }
+      resolve(result);
+    };
+    img.onerror = () => reject(new Error("Не удалось прочитать изображение"));
+    img.src = dataUrl;
+  });
+}
+
 interface HistoryItem {
   id: number; url: string; prompt: string; resolution: string; duration: string; created_at: string; reference_photo_url?: string | null;
 }
@@ -38,8 +72,9 @@ export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVid
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError]       = useState("");
 
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [photoBase64, setPhotoBase64]   = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview]   = useState<string | null>(null);
+  const [photoBase64, setPhotoBase64]     = useState<string | null>(null);
+  const [photoProcessing, setPhotoProcessing] = useState(false);
 
   const [history, setHistory]               = useState<HistoryItem[]>([]);
   const [historyOpen, setHistoryOpen]       = useState(true);
@@ -60,12 +95,21 @@ export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVid
     if (!file) return;
     if (file.size > 8 * 1024 * 1024) { setError("Файл слишком большой (максимум 8 МБ)"); return; }
     setError("");
+    setPhotoProcessing(true);
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       const result = reader.result as string;
-      setPhotoPreview(result);
-      setPhotoBase64(result);
+      try {
+        const compressed = await compressPhoto(result);
+        setPhotoPreview(compressed);
+        setPhotoBase64(compressed);
+      } catch {
+        setError("Не удалось обработать фото. Попробуйте другой файл.");
+      } finally {
+        setPhotoProcessing(false);
+      }
     };
+    reader.onerror = () => { setPhotoProcessing(false); setError("Не удалось прочитать файл"); };
     reader.readAsDataURL(file);
   }
 
@@ -95,6 +139,8 @@ export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVid
       if (!res.ok) {
         if (res.status === 403) {
           setError(data.error || "Инструмент доступен только после пополнения баланса.");
+        } else if (res.status === 413) {
+          setError("Фото слишком большое для отправки. Попробуйте другое фото или уберите его.");
         } else {
           setError(data.error || "Ошибка генерации");
         }
@@ -161,8 +207,13 @@ export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVid
               +{REFERENCE_PHOTO_SURCHARGE} энергии
             </div>
           </div>
-          <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} disabled={loading} style={{ display: "none" }} />
-          {photoPreview ? (
+          <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} disabled={loading || photoProcessing} style={{ display: "none" }} />
+          {photoProcessing ? (
+            <div style={{ width: "100%", padding: "18px 16px", borderRadius: 12, border: "1.5px dashed #CBD5E1", background: "#F8FAFC", display: "flex", alignItems: "center", gap: 10, fontFamily: "Montserrat,sans-serif" }}>
+              <Icon name="Loader" size={18} style={{ color: "#94A3B8", animation: "spin 1s linear infinite" }} />
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Обрабатываю фото...</div>
+            </div>
+          ) : photoPreview ? (
             <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: "1px solid #E2E8F0", maxWidth: 220 }}>
               <img src={photoPreview} alt="Фото мастера" style={{ width: "100%", maxHeight: 200, objectFit: "contain", display: "block", background: "#f8fafc" }} />
               {!loading && (
@@ -270,8 +321,8 @@ export default function LkAiVideoGen({ initialPrompt, initialDuration }: LkAiVid
 
         <button
           onClick={handleGenerate}
-          disabled={loading}
-          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: loading ? "#bbb" : `linear-gradient(135deg,hsl(335,80%,50%),hsl(320,85%,50%))`, color: "#fff", border: "none", borderRadius: 12, padding: "14px 24px", fontSize: 15, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: loading ? "none" : "0 4px 18px hsla(335,80%,50%,0.35)" }}
+          disabled={loading || photoProcessing}
+          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: (loading || photoProcessing) ? "#bbb" : `linear-gradient(135deg,hsl(335,80%,50%),hsl(320,85%,50%))`, color: "#fff", border: "none", borderRadius: 12, padding: "14px 24px", fontSize: 15, fontWeight: 700, cursor: (loading || photoProcessing) ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: (loading || photoProcessing) ? "none" : "0 4px 18px hsla(335,80%,50%,0.35)" }}
         >
           {loading
             ? <><Icon name="Loader" size={17} style={{ animation: "spin 1s linear infinite" }} /> Генерирую... подождите</>
