@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 
 const TEAL = "#2DD4BF";
@@ -30,6 +31,7 @@ const AUDIENCE = [
     desc: "Мастера, массажисты, остеопаты, косметологи, психологи и другие специалисты, которые работают самостоятельно.",
     fit: ["Работы много, доход не растёт", "Пробелы в расписании", "Поднять цену страшно"],
     get: ["Цель, разложенную на понятные шаги", "План на день, неделю и месяц", "Готовые сообщения и скрипты"],
+    link: { href: "/dlya-psihologov", label: "Отдельно для психологов" },
   },
   {
     icon: "Building2",
@@ -211,6 +213,12 @@ export default function IndexHero() {
                     ))}
                   </div>
                 </div>
+                {a.link && (
+                  <Link to={a.link.href} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600, color: a.color, textDecoration: "none" }}>
+                    {a.link.label}
+                    <Icon name="ArrowRight" size={13} />
+                  </Link>
+                )}
               </div>
             ))}
           </div>
