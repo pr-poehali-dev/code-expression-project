@@ -2,6 +2,9 @@
 Генерация изображений через polza.ai (модель openai/gpt-image-1.5). ТАЙМАУТ ФУНКЦИИ ДОЛЖЕН БЫТЬ 300с.
 Результат временно сохраняется в S3 и возвращается URL для скачивания.
 После скачивания пользователем файлы не удаляются автоматически — хранятся 24ч (для MVP).
+Опционально можно приложить фото мастера (base64) — оно загружается в S3 и передаётся модели
+как референсное изображение (параметр input.images), чтобы человек на изображении был похож
+на мастера. Без фото генерация работает как раньше — обычное текстовое описание.
 Маршруты:
   POST /                      — генерация изображения с нуля
   POST /?action=fitting       — «Примерочная»: редактирование фото клиента (стрижка/макияж/ногти/фигура) + текстовая рекомендация
@@ -42,6 +45,8 @@ ASPECT_MAP_DALLE = {
 TOOL_KEY = "image_gen"
 FITTING_TOOL_KEY = "photo_fitting"
 FITTING_FREE_LIMIT = 1
+REFERENCE_PHOTO_TOOL_KEY = "image_gen_reference_photo"
+REFERENCE_PHOTO_SURCHARGE_DEFAULT = 3
 
 FITTING_SCENARIOS = {
     "haircut":  "стрижку и укладку волос",
@@ -192,12 +197,12 @@ def is_provider_error(e: Exception) -> bool:
     return any(x in msg for x in ("502", "503", "service_unavailable", "temporarily", "bad gateway"))
 
 
-def save_image_history(user_id, url, prompt, aspect_ratio, conn):
+def save_image_history(user_id, url, prompt, aspect_ratio, conn, reference_photo_url=None):
     cur = conn.cursor()
     cur.execute(
-        f"INSERT INTO {SCHEMA}.ai_generated_images (user_id, url, prompt, aspect_ratio) "
-        f"VALUES (%s, %s, %s, %s)",
-        (user_id, url, prompt, aspect_ratio)
+        f"INSERT INTO {SCHEMA}.ai_generated_images (user_id, url, prompt, aspect_ratio, reference_photo_url) "
+        f"VALUES (%s, %s, %s, %s, %s)",
+        (user_id, url, prompt, aspect_ratio, reference_photo_url)
     )
     conn.commit()
 
@@ -229,6 +234,25 @@ def upload_to_s3(image_b64: str, ext: str, user_id: int) -> str:
     s3.put_object(Bucket="files", Key=key, Body=data, ContentType=f"image/{ext}")
     cdn_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
     return cdn_url
+
+
+def upload_reference_photo(photo_b64: str, user_id: int) -> str:
+    """Декодирует фото мастера из base64 (в т.ч. data:URL) и загружает в S3, возвращая CDN-ссылку
+    для передачи модели в параметре input.images."""
+    if photo_b64.startswith("data:"):
+        photo_b64 = photo_b64.split(",", 1)[-1]
+    data = base64.b64decode(photo_b64)
+    ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    uid = uuid.uuid4().hex[:8]
+    key = f"ai-images/reference/{user_id}/{ts}_{uid}.jpg"
+    s3 = boto3.client(
+        "s3",
+        endpoint_url="https://bucket.poehali.dev",
+        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+    )
+    s3.put_object(Bucket="files", Key=key, Body=data, ContentType="image/jpeg")
+    return f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
 
 
 def save_fitting_record(user_id, scenario, source_url, conn) -> int:
@@ -487,7 +511,7 @@ def handle_history(event, conn):
     )
     conn.commit()
     cur.execute(
-        f"SELECT id, url, prompt, aspect_ratio, created_at "
+        f"SELECT id, url, prompt, aspect_ratio, reference_photo_url, created_at "
         f"FROM {SCHEMA}.ai_generated_images WHERE user_id=%s AND url != 'pending' ORDER BY created_at DESC LIMIT 50",
         (user["id"],)
     )
@@ -589,10 +613,36 @@ def handler(event: dict, context) -> dict:
         aspect_gpt15 = ASPECT_MAP_GPT15[aspect_raw]
 
         cost = get_tool_cost(conn)
+        base_deducted = False
         if not package_covers_usage(conn, user["id"], TOOL_KEY):
             ok_deduct, balance = check_and_deduct_energy(salon_id, user["id"], cost, conn)
             if not ok_deduct:
                 return err(f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить.", 402)
+            base_deducted = True
+
+        # Необязательное фото мастера — если приложено, генерация идёт с ним как с референсом
+        # (модель встраивает похожего человека в кадр), иначе изображение создаётся как раньше.
+        # Доплата за референс-фото НЕ покрывается пакетом развития и списывается энергиями
+        # с баланса всегда, отдельно от базовой стоимости генерации.
+        photo_b64 = (body.get("reference_photo_base64") or "").strip()
+        reference_photo_url = None
+        reference_cost = 0
+        if photo_b64:
+            try:
+                reference_photo_url = upload_reference_photo(photo_b64, user["id"])
+            except Exception as e:
+                if base_deducted:
+                    refund_energy(salon_id, user["id"], cost, conn)
+                return err(f"Не удалось загрузить фото: {e}", 400)
+            reference_cost = get_tool_cost(conn, REFERENCE_PHOTO_TOOL_KEY, default=REFERENCE_PHOTO_SURCHARGE_DEFAULT)
+            ok_ref, ref_balance = check_and_deduct_energy(
+                salon_id, user["id"], reference_cost, conn,
+                tool_key=REFERENCE_PHOTO_TOOL_KEY, action="Доплата: фото мастера для изображения"
+            )
+            if not ok_ref:
+                if base_deducted:
+                    refund_energy(salon_id, user["id"], cost, conn)
+                return err(f"Недостаточно энергии для доплаты за фото. Доступно {ref_balance}. Пополните баланс.", 402)
 
         use_salon_context = body.get("use_salon_context", False)
         include_logo_text = body.get("include_logo_text", False)
@@ -623,13 +673,22 @@ def handler(event: dict, context) -> dict:
         if not api_key:
             return err("API ключ не настроен.", 500)
 
+        if reference_photo_url:
+            # Просим модель сохранить внешность человека с референсного фото — без этого
+            # уточнения модель может просто проигнорировать images и сгенерировать случайное лицо.
+            final_prompt += " Человек на изображении должен выглядеть точно как на приложенном референсном фото — сохрани его лицо и внешность."
+
+        image_input = {
+            "prompt": final_prompt,
+            "aspect_ratio": aspect_gpt15,
+            "max_images": 1,
+        }
+        if reference_photo_url:
+            image_input["images"] = [reference_photo_url]
+
         payload = json.dumps({
             "model": "openai/gpt-image-1.5",
-            "input": {
-                "prompt": final_prompt,
-                "aspect_ratio": aspect_gpt15,
-                "max_images": 1,
-            }
+            "input": image_input,
         }).encode("utf-8")
 
         req = urllib.request.Request(
@@ -651,6 +710,8 @@ def handler(event: dict, context) -> dict:
                 try:
                     conn_r = get_db()
                     refund_energy(salon_id, user["id"], cost, conn_r)
+                    if reference_photo_url:
+                        refund_energy(salon_id, user["id"], reference_cost, conn_r, tool_key=REFERENCE_PHOTO_TOOL_KEY)
                     conn_r.close()
                 except Exception:
                     pass
@@ -663,6 +724,8 @@ def handler(event: dict, context) -> dict:
                 try:
                     conn_r = get_db()
                     refund_energy(salon_id, user["id"], cost, conn_r)
+                    if reference_photo_url:
+                        refund_energy(salon_id, user["id"], reference_cost, conn_r, tool_key=REFERENCE_PHOTO_TOOL_KEY)
                     conn_r.close()
                 except Exception:
                     pass
@@ -689,6 +752,8 @@ def handler(event: dict, context) -> dict:
             try:
                 conn_r = get_db()
                 refund_energy(salon_id, user["id"], cost, conn_r)
+                if reference_photo_url:
+                    refund_energy(salon_id, user["id"], reference_cost, conn_r, tool_key=REFERENCE_PHOTO_TOOL_KEY)
                 conn_r.close()
             except Exception:
                 pass
@@ -700,12 +765,17 @@ def handler(event: dict, context) -> dict:
         # Сохраняем в историю
         try:
             conn3 = get_db()
-            save_image_history(user["id"], image_url, prompt, aspect_gpt15, conn3)
+            save_image_history(user["id"], image_url, prompt, aspect_gpt15, conn3, reference_photo_url)
             conn3.close()
         except Exception as e:
             print(f"[ai-image-gen] history save error: {e}")
 
-        return ok({"images": [{"url": image_url}], "prompt_used": final_prompt, "energy_spent": cost})
+        return ok({
+            "images": [{"url": image_url}],
+            "prompt_used": final_prompt,
+            "energy_spent": cost + reference_cost,
+            "used_reference_photo": bool(reference_photo_url),
+        })
 
     finally:
         try:

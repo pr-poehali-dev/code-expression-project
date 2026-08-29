@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { useEnergy } from "@/contexts/EnergyContext";
 import { showEnergyGate } from "@/components/EnergyGate";
 import Icon from "@/components/ui/icon";
 import ToolUsageBadge from "@/components/ToolUsageBadge";
+import { compressPhoto } from "@/lib/compressPhoto";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
 const AI_IMAGE_URL = "https://functions.poehali.dev/4b0ee2e5-a98e-40b8-bb9a-8a11d39d6e5a";
+const REFERENCE_PHOTO_SURCHARGE = 3;
 
 const ASPECT_OPTIONS = [
   { value: "1024x1024", label: "Квадрат",  sub: "1:1 — для постов",      icon: "Square"     },
@@ -18,13 +20,14 @@ const ASPECT_OPTIONS = [
 function sid() { return localStorage.getItem("lk_session") || ""; }
 
 interface HistoryItem {
-  id: number; url: string; prompt: string; aspect_ratio: string; created_at: string;
+  id: number; url: string; prompt: string; aspect_ratio: string; created_at: string; reference_photo_url?: string | null;
 }
 
 export default function LkAiImageGen() {
   const { user } = useLkAuth();
   const { refresh: refreshBalance } = useEnergy();
   const hasSalon = !!user?.salon_id;
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const [prompt, setPrompt]           = useState("");
   const [aspect, setAspect]           = useState("1024x1024");
@@ -33,6 +36,10 @@ export default function LkAiImageGen() {
   const [imageUrl, setImageUrl]       = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [error, setError]             = useState("");
+
+  const [photoPreview, setPhotoPreview]       = useState<string | null>(null);
+  const [photoBase64, setPhotoBase64]         = useState<string | null>(null);
+  const [photoProcessing, setPhotoProcessing] = useState(false);
 
   const [history, setHistory]               = useState<HistoryItem[]>([]);
   const [historyOpen, setHistoryOpen]       = useState(true);
@@ -48,6 +55,35 @@ export default function LkAiImageGen() {
       .finally(() => setHistoryLoading(false));
   };
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) { setError("Файл слишком большой (максимум 8 МБ)"); return; }
+    setError("");
+    setPhotoProcessing(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const result = reader.result as string;
+      try {
+        const compressed = await compressPhoto(result);
+        setPhotoPreview(compressed);
+        setPhotoBase64(compressed);
+      } catch {
+        setError("Не удалось обработать фото. Попробуйте другой файл.");
+      } finally {
+        setPhotoProcessing(false);
+      }
+    };
+    reader.onerror = () => { setPhotoProcessing(false); setError("Не удалось прочитать файл"); };
+    reader.readAsDataURL(file);
+  }
+
+  function removePhoto() {
+    setPhotoPreview(null);
+    setPhotoBase64(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
   async function handleGenerate() {
     if (!prompt.trim()) { setError("Введите описание изображения"); return; }
     if (loading) return;
@@ -61,12 +97,15 @@ export default function LkAiImageGen() {
           prompt: prompt.trim(),
           aspect_ratio: aspect,
           use_salon_context: useSalonCtx,
+          reference_photo_base64: photoBase64 || undefined,
         }),
       });
       const data = await res.json();
       if (!res.ok) {
         if (res.status === 403) {
           showEnergyGate({ message: data.error || "Бесплатный лимит исчерпан. Пополните баланс, чтобы продолжить." });
+        } else if (res.status === 413) {
+          setError("Фото слишком большое для отправки. Попробуйте другое фото или уберите его.");
         } else {
           setError(data.error || "Ошибка генерации");
         }
@@ -150,6 +189,47 @@ export default function LkAiImageGen() {
           </div>
         )}
 
+        {/* Фото мастера (опционально) */}
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <label style={{ fontSize: 12, fontWeight: 700, color: "#555" }}>Фото мастера (необязательно)</label>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "hsl(335,80%,50%)", background: "hsl(335,80%,96%)", borderRadius: 20, padding: "2px 8px" }}>
+              +{REFERENCE_PHOTO_SURCHARGE} энергии
+            </div>
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} disabled={loading || photoProcessing} style={{ display: "none" }} />
+          {photoProcessing ? (
+            <div style={{ width: "100%", padding: "18px 16px", borderRadius: 12, border: "1.5px dashed #CBD5E1", background: "#F8FAFC", display: "flex", alignItems: "center", gap: 10, fontFamily: "Montserrat,sans-serif" }}>
+              <Icon name="Loader" size={18} style={{ color: "#94A3B8", animation: "spin 1s linear infinite" }} />
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Обрабатываю фото...</div>
+            </div>
+          ) : photoPreview ? (
+            <div style={{ position: "relative", borderRadius: 12, overflow: "hidden", border: "1px solid #E2E8F0", maxWidth: 220 }}>
+              <img src={photoPreview} alt="Фото мастера" style={{ width: "100%", maxHeight: 200, objectFit: "contain", display: "block", background: "#f8fafc" }} />
+              {!loading && (
+                <button
+                  onClick={removePhoto}
+                  style={{ position: "absolute", top: 8, right: 8, display: "flex", alignItems: "center", gap: 5, background: "rgba(15,23,42,0.75)", color: "#fff", border: "none", borderRadius: 8, padding: "6px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+                >
+                  <Icon name="X" size={12} /> Убрать
+                </button>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={loading}
+              style={{ width: "100%", padding: "18px 16px", borderRadius: 12, border: "1.5px dashed #CBD5E1", background: "#F8FAFC", cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", gap: 10, fontFamily: "Montserrat,sans-serif" }}
+            >
+              <Icon name="Upload" size={18} style={{ color: "#94A3B8" }} />
+              <div style={{ textAlign: "left" }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Загрузить фото — изображение будет с этим человеком</div>
+                <div style={{ fontSize: 10, color: "#94A3B8" }}>JPG, PNG до 8 МБ. Без фото — как обычно, случайные лица</div>
+              </div>
+            </button>
+          )}
+        </div>
+
         <div style={{ marginBottom: 18 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
             <label style={{ fontSize: 12, fontWeight: 700, color: "#555" }}>Описание изображения *</label>
@@ -215,8 +295,8 @@ export default function LkAiImageGen() {
 
         <button
           onClick={handleGenerate}
-          disabled={loading}
-          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: loading ? "#bbb" : `linear-gradient(135deg,hsl(40,90%,50%),hsl(30,95%,50%))`, color: "#fff", border: "none", borderRadius: 12, padding: "14px 24px", fontSize: 15, fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: loading ? "none" : "0 4px 18px hsla(40,90%,50%,0.35)" }}
+          disabled={loading || photoProcessing}
+          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: (loading || photoProcessing) ? "#bbb" : `linear-gradient(135deg,hsl(40,90%,50%),hsl(30,95%,50%))`, color: "#fff", border: "none", borderRadius: 12, padding: "14px 24px", fontSize: 15, fontWeight: 700, cursor: (loading || photoProcessing) ? "not-allowed" : "pointer", fontFamily: "Montserrat,sans-serif", boxShadow: (loading || photoProcessing) ? "none" : "0 4px 18px hsla(40,90%,50%,0.35)" }}
         >
           {loading
             ? <><Icon name="Loader" size={17} style={{ animation: "spin 1s linear infinite" }} /> Генерирую... подождите</>
