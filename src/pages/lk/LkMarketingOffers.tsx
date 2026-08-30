@@ -4,6 +4,7 @@ import LkMarketingAudience from "./LkMarketingAudience";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { EnergyComplexityNote } from "./LkMarketingShared";
 import ToolUsageBadge from "@/components/ToolUsageBadge";
+import { OFFERS_SEGMENT_PENDING_KEY } from "./podelamShared";
 
 const ACCENT = "hsl(185,85%,32%)";
 const API_URL = "https://functions.poehali.dev/62a82e41-522d-46c2-902b-4caeb0e47880";
@@ -180,6 +181,18 @@ export default function LkMarketingOffers({ onBack, initialPortraits, initialSal
   const sessionId = localStorage.getItem("lk_session") || "";
   const cacheKey = `mkt_offers_${CACHE_VERSION}_${user?.salon_id ?? ""}`;
 
+  // Один конкретный сегмент, переданный из «Карты привлечения клиентов» (Пульс бизнеса) —
+  // читаем один раз и сразу убираем из sessionStorage, чтобы повторное открытие раздела
+  // маркетинга уже показывало обычный сценарий с общими портретами/кэшем.
+  const segmentFromPulse = (() => {
+    try {
+      const raw = sessionStorage.getItem(OFFERS_SEGMENT_PENDING_KEY);
+      if (!raw) return null;
+      sessionStorage.removeItem(OFFERS_SEGMENT_PENDING_KEY);
+      return JSON.parse(raw) as Portrait;
+    } catch { return null; }
+  })();
+
   const loadCache = () => {
     try {
       const raw = localStorage.getItem(cacheKey);
@@ -188,9 +201,9 @@ export default function LkMarketingOffers({ onBack, initialPortraits, initialSal
     return null;
   };
 
-  const cached = loadCache();
+  const cached = segmentFromPulse ? null : loadCache();
   const [step, setStep] = useState<"choose" | "loading" | "result">(cached ? "result" : "choose");
-  const [portraits, setPortraits] = useState<Portrait[] | null>(initialPortraits || null);
+  const [portraits, setPortraits] = useState<Portrait[] | null>(segmentFromPulse ? [segmentFromPulse] : (initialPortraits || null));
   const [offers, setOffers] = useState<SegmentOffers[] | null>(cached?.offers ?? null);
   const [salonName, setSalonName] = useState(cached?.salonName || initialSalonName || "");
   const [error, setError] = useState<string | null>(null);
@@ -228,11 +241,13 @@ export default function LkMarketingOffers({ onBack, initialPortraits, initialSal
     }
   }
 
-  // Автозапуск если портреты переданы снаружи и нет кэша
+  // Автозапуск если портреты переданы снаружи (из «Портрета ЦА» или из конкретного сегмента
+  // «Карты привлечения клиентов») и нет кэша
   useEffect(() => {
-    if (initialPortraits && !autoStarted && !cached) {
+    const toGenerate = segmentFromPulse ? [segmentFromPulse] : initialPortraits;
+    if (toGenerate && !autoStarted && !cached) {
       setAutoStarted(true);
-      generateOffers(initialPortraits);
+      generateOffers(toGenerate);
     }
   }, []);
 

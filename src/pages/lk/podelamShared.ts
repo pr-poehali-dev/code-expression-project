@@ -36,6 +36,25 @@ export const TOPIC_KEY_BY_NAV: Record<string, string> = {
   "marketing:reel-script": "lk_reelscript_topic_pending",
 };
 
+// Ключ, через который карточка сегмента ЦА (Карта привлечения клиентов, «Пульс бизнеса»)
+// передаёт готовый «портрет» сегмента в генератор офферов (LkMarketingOffers) — тот при
+// монтировании читает и сразу запускает генерацию, минуя выбор/повторное использование ЦА.
+export const OFFERS_SEGMENT_PENDING_KEY = "lk_offers_segment_pending";
+
+// Форма портрета сегмента, ожидаемая генератором офферов (см. Portrait в LkMarketingOffers.tsx) —
+// вынесена сюда отдельным типом, чтобы не тащить приватный интерфейс из одного файла в другой.
+export interface OffersPendingPortrait {
+  archetype: string;
+  age_range: string;
+  occupation: string;
+  income: string;
+  pains: string[];
+  motivations: string[];
+  services_interest: string[];
+  channels: string[];
+  hook: string;
+}
+
 export interface Profile {
   niche: string;
   avg_check: number;

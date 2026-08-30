@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
-import { PodelamAnalyticsResponse, AudienceSegment, TrafficChannel, TOPIC_KEY_BY_NAV } from "./podelamShared";
+import { PodelamAnalyticsResponse, AudienceSegment, TrafficChannel, TOPIC_KEY_BY_NAV, OFFERS_SEGMENT_PENDING_KEY, OffersPendingPortrait } from "./podelamShared";
 import func2url from "../../../backend/func2url.json";
 
 const PODELAM_URL = (func2url as Record<string, string>)["masters-accrual"] || "";
@@ -35,6 +35,23 @@ function segmentToTopic(s: AudienceSegment): string {
   return parts.join(". ");
 }
 
+// Генератор офферов (LkMarketingOffers) ждёт «портрет» ЦА в своём формате (archetype, pains,
+// motivations и т.д.) — переупаковываем поля сегмента карты привлечения клиентов в этот формат,
+// не теряя смысл: наши текстовые поля превращаются в односоставные списки там, где ожидается массив.
+function segmentToOffersPortrait(s: AudienceSegment): OffersPendingPortrait {
+  return {
+    archetype: s.name,
+    age_range: s.who,
+    occupation: "",
+    income: "",
+    pains: [s.problem, s.objections].filter(Boolean),
+    motivations: [s.desired_result].filter(Boolean),
+    services_interest: [],
+    channels: [s.where_looks].filter(Boolean),
+    hook: s.offer,
+  };
+}
+
 function SegmentCard({ s, onNav }: { s: AudienceSegment; onNav?: (t: string) => void }) {
   const [open, setOpen] = useState(false);
   const rt = ROLE_TYPE_LABEL[s.role_type] || ROLE_TYPE_LABEL.secondary;
@@ -45,6 +62,13 @@ function SegmentCard({ s, onNav }: { s: AudienceSegment; onNav?: (t: string) => 
     const key = TOPIC_KEY_BY_NAV[nav];
     if (key) sessionStorage.setItem(key, segmentToTopic(s));
     onNav(nav);
+  };
+
+  const openOffers = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onNav) return;
+    sessionStorage.setItem(OFFERS_SEGMENT_PENDING_KEY, JSON.stringify(segmentToOffersPortrait(s)));
+    onNav("marketing:offers");
   };
 
   return (
@@ -88,6 +112,12 @@ function SegmentCard({ s, onNav }: { s: AudienceSegment; onNav?: (t: string) => 
                 style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(45,212,191,0.12)", border: "1px solid rgba(45,212,191,0.3)", borderRadius: 8, padding: "7px 12px", cursor: "pointer", fontSize: 11.5, fontWeight: 700, color: "#2DD4BF", fontFamily: "Montserrat,sans-serif" }}
               >
                 <Icon name="Clapperboard" size={12} /> Сценарий рилса
+              </button>
+              <button
+                onClick={openOffers}
+                style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(139,92,246,0.14)", border: "1px solid rgba(139,92,246,0.35)", borderRadius: 8, padding: "7px 12px", cursor: "pointer", fontSize: 11.5, fontWeight: 700, color: "hsl(260,70%,75%)", fontFamily: "Montserrat,sans-serif" }}
+              >
+                <Icon name="Gift" size={12} /> Оффер под сегмент
               </button>
             </div>
           )}

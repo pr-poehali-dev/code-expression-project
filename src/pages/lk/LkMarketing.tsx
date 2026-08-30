@@ -18,6 +18,7 @@ import { AudienceData, SemanticGroups, CHAIN_PREREQ, TOOLS_DIRECT, TOOLS_CONTENT
 import { ComingSoonPlaceholder, StepBlocker, hasCachedResult } from "./LkMarketingShared";
 import LkMarketingDashboard from "./LkMarketingDashboard";
 import { isFittingTrial } from "@/lib/fittingTrial";
+import { OFFERS_SEGMENT_PENDING_KEY } from "./podelamShared";
 
 export default function LkMarketing({ initialTool }: { initialTool?: string } = {}) {
   const [active, setActive] = useState<string | null>(initialTool || null);
@@ -50,8 +51,12 @@ export default function LkMarketing({ initialTool }: { initialTool?: string } = 
     window.scrollTo({ top: 0, behavior: "instant" });
   };
 
+  // Сегмент ЦА, переданный из «Карты привлечения клиентов» (Пульс бизнеса) — в этом случае
+  // портрет уже готов и передан напрямую, требование пройти инструмент «Портрет ЦА» не нужно.
+  const hasSegmentFromPulse = active === "offers" && !!sessionStorage.getItem(OFFERS_SEGMENT_PENDING_KEY);
+
   // Проверка цепочки — показываем заглушку если предыдущий шаг не выполнен
-  if (hasPaid && active && CHAIN_PREREQ[active]) {
+  if (hasPaid && active && CHAIN_PREREQ[active] && !hasSegmentFromPulse) {
     const prereq = CHAIN_PREREQ[active];
     if (!hasCachedResult(prereq.key + salonId)) {
       return (
