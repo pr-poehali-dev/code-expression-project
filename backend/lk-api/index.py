@@ -841,6 +841,106 @@ def handle_admin_school_usages(event: dict) -> dict:
         conn.close()
 
 
+def handle_admin_traffic_sources_list(event: dict) -> dict:
+    """Список источников трафика (площадок) для управления в админке — используются
+    ИИ в «Карте привлечения клиентов» блока «Пульс бизнеса» ПоДелам."""
+    conn = get_db()
+    try:
+        if not require_admin(event, conn):
+            return err("Нет доступа", 403)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(f"SELECT * FROM {tbl('traffic_sources')} ORDER BY priority = 'high' DESC, priority = 'medium' DESC, name")
+        return ok([dict(r) for r in cur.fetchall()])
+    finally:
+        conn.close()
+
+
+def handle_admin_traffic_source_create(event: dict) -> dict:
+    body = json.loads(event.get("body") or "{}")
+    name = (body.get("name") or "").strip()
+    category = (body.get("category") or "").strip()
+    if not name:
+        return err("Укажите название площадки")
+    if category not in ("search", "social", "specialized_site", "paid", "own_resource", "partner"):
+        return err("Некорректная категория")
+    conn = get_db()
+    try:
+        if not require_admin(event, conn):
+            return err("Нет доступа", 403)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"INSERT INTO {tbl('traffic_sources')} "
+            f"(name, url, category, audience, categories_target, content_types, is_paid, allowed_in_russia, priority, notes, status) "
+            f"VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING *",
+            (name, (body.get("url") or "").strip() or None, category, (body.get("audience") or "").strip() or None,
+             body.get("categories_target") or [], body.get("content_types") or [],
+             bool(body.get("is_paid", False)), bool(body.get("allowed_in_russia", True)),
+             body.get("priority") or "medium", (body.get("notes") or "").strip() or None,
+             body.get("status") or "active")
+        )
+        row = cur.fetchone()
+        conn.commit()
+        return ok(dict(row))
+    finally:
+        conn.close()
+
+
+def handle_admin_traffic_source_update(event: dict) -> dict:
+    body = json.loads(event.get("body") or "{}")
+    source_id = body.get("id")
+    if not source_id:
+        return err("id обязателен")
+    conn = get_db()
+    try:
+        if not require_admin(event, conn):
+            return err("Нет доступа", 403)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        fields = {
+            "name": (body.get("name") or "").strip(),
+            "url": (body.get("url") or "").strip() or None,
+            "category": body.get("category"),
+            "audience": (body.get("audience") or "").strip() or None,
+            "categories_target": body.get("categories_target") or [],
+            "content_types": body.get("content_types") or [],
+            "is_paid": bool(body.get("is_paid", False)),
+            "allowed_in_russia": bool(body.get("allowed_in_russia", True)),
+            "priority": body.get("priority") or "medium",
+            "notes": (body.get("notes") or "").strip() or None,
+            "status": body.get("status") or "active",
+        }
+        if not fields["name"]:
+            return err("Укажите название площадки")
+        sets = ", ".join(f"{k}=%s" for k in fields)
+        cur.execute(
+            f"UPDATE {tbl('traffic_sources')} SET {sets}, updated_at=NOW() WHERE id=%s RETURNING *",
+            list(fields.values()) + [source_id]
+        )
+        row = cur.fetchone()
+        if not row:
+            return err("Площадка не найдена", 404)
+        conn.commit()
+        return ok(dict(row))
+    finally:
+        conn.close()
+
+
+def handle_admin_traffic_source_delete(event: dict) -> dict:
+    body = json.loads(event.get("body") or "{}")
+    source_id = body.get("id")
+    if not source_id:
+        return err("id обязателен")
+    conn = get_db()
+    try:
+        if not require_admin(event, conn):
+            return err("Нет доступа", 403)
+        cur = conn.cursor()
+        cur.execute(f"DELETE FROM {tbl('traffic_sources')} WHERE id=%s", (source_id,))
+        conn.commit()
+        return ok({"ok": True})
+    finally:
+        conn.close()
+
+
 def handle_admin_schools_stats(event: dict) -> dict:
     """Сводная статистика по школам-партнёрам для админки: регистрации по дням за последние
     N дней (?days=, по умолчанию 30), суммарно потраченная (начисленная ученикам) энергия и
@@ -5148,6 +5248,11 @@ ROUTES = {
     ("POST", "admin_school_delete"): handle_admin_school_delete,
     ("GET",  "admin_school_usages"): handle_admin_school_usages,
     ("GET",  "admin_schools_stats"): handle_admin_schools_stats,
+    # Источники трафика (площадки) — управляемый список для «Карты привлечения клиентов» ПоДелам
+    ("GET",  "admin_traffic_sources_list"): handle_admin_traffic_sources_list,
+    ("POST", "admin_traffic_source_create"): handle_admin_traffic_source_create,
+    ("POST", "admin_traffic_source_update"): handle_admin_traffic_source_update,
+    ("POST", "admin_traffic_source_delete"): handle_admin_traffic_source_delete,
 }
 
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
-import { PodelamAnalyticsResponse } from "./podelamShared";
+import { PodelamAnalyticsResponse, AudienceSegment, TrafficChannel } from "./podelamShared";
 import func2url from "../../../backend/func2url.json";
 
 const PODELAM_URL = (func2url as Record<string, string>)["masters-accrual"] || "";
@@ -11,6 +11,72 @@ const TREND_ICON: Record<string, { icon: string; color: string }> = {
   down: { icon: "TrendingDown", color: "hsl(0,75%,55%)" },
   flat: { icon: "Minus", color: "#94A3B8" },
 };
+
+const ROLE_TYPE_LABEL: Record<string, { label: string; color: string }> = {
+  primary: { label: "Основная ЦА", color: "#2DD4BF" },
+  secondary: { label: "Вторичная ЦА", color: "hsl(260,70%,70%)" },
+  potential: { label: "Перспективная ЦА", color: "hsl(40,90%,60%)" },
+};
+
+const PRIORITY_LABEL: Record<string, { label: string; color: string }> = {
+  high: { label: "Высокий приоритет", color: "hsl(145,60%,45%)" },
+  medium: { label: "Средний приоритет", color: "hsl(40,90%,55%)" },
+  low: { label: "Низкий приоритет", color: "#94A3B8" },
+};
+
+function SegmentCard({ s }: { s: AudienceSegment }) {
+  const [open, setOpen] = useState(false);
+  const rt = ROLE_TYPE_LABEL[s.role_type] || ROLE_TYPE_LABEL.secondary;
+  return (
+    <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "12px 14px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6, cursor: "pointer" }} onClick={() => setOpen(o => !o)}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+          <span style={{ fontSize: 9.5, fontWeight: 700, color: rt.color, background: "rgba(255,255,255,0.06)", borderRadius: 20, padding: "2px 8px", flexShrink: 0, whiteSpace: "nowrap" }}>{rt.label}</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</span>
+        </div>
+        <Icon name={open ? "ChevronUp" : "ChevronDown"} size={14} style={{ color: "rgba(255,255,255,0.4)", flexShrink: 0 }} />
+      </div>
+      {!open && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>{s.problem}</div>}
+      {open && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 7, marginTop: 4 }}>
+          {[
+            ["Кто", s.who], ["Проблема", s.problem], ["Хочет получить", s.desired_result],
+            ["Почему выбирает", s.why_chooses], ["Что останавливает", s.objections],
+            ["Где ищет решение", s.where_looks], ["Интересный контент", s.content_interest],
+            ["Предложение", s.offer],
+          ].map(([label, value]) => value ? (
+            <div key={label}>
+              <div style={{ fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>{label}</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>{value}</div>
+            </div>
+          ) : null)}
+          {s.data_basis === "inference" && (
+            <div style={{ fontSize: 10.5, color: "hsl(40,80%,60%)", display: "flex", alignItems: "center", gap: 5, marginTop: 2 }}>
+              <Icon name="Info" size={11} /> Гипотеза ИИ — стоит проверить на практике
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChannelRow({ c }: { c: TrafficChannel }) {
+  const pr = PRIORITY_LABEL[c.priority] || PRIORITY_LABEL.medium;
+  return (
+    <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{c.source_name}</span>
+        <span style={{ fontSize: 9.5, fontWeight: 700, color: pr.color, whiteSpace: "nowrap" }}>{pr.label}</span>
+      </div>
+      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.5, marginBottom: 4 }}>{c.why_fits}</div>
+      <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
+        <b style={{ color: "rgba(255,255,255,0.7)" }}>Что разместить:</b> {c.what_to_post}
+      </div>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 3, fontStyle: "italic" }}>{c.expected_result}</div>
+    </div>
+  );
+}
 
 // ── Платная карточка «Пульс бизнеса» — расширенный ИИ-анализ (только с активным пакетом) ──
 export function PodelamAnalyticsCard({ onNav }: { onNav: (t: string) => void }) {
@@ -161,7 +227,7 @@ export function PodelamAnalyticsCard({ onNav }: { onNav: (t: string) => void }) 
         )}
       </div>
 
-      <div style={{ background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 12, padding: "14px 16px" }}>
+      <div style={{ background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 12, padding: "14px 16px", marginBottom: a.audience_map ? 18 : 0 }}>
         <div style={{ fontSize: 10.5, fontWeight: 700, color: "#2DD4BF", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Главное действие сегодня</div>
         <div style={{ fontSize: 13.5, color: "#fff", fontWeight: 600, lineHeight: 1.5 }}>{a.main_action}</div>
         {a.extra_actions.length > 0 && (
@@ -175,7 +241,82 @@ export function PodelamAnalyticsCard({ onNav }: { onNav: (t: string) => void }) 
         )}
       </div>
 
+      {a.audience_map && <AudienceMapBlock map={a.audience_map} />}
+
       <style>{`@keyframes podelam-spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+}
+
+// ── Карта привлечения клиентов ──────────────────────────────────────────────
+function AudienceMapBlock({ map }: { map: NonNullable<PodelamAnalyticsResponse["analysis"]>["audience_map"] }) {
+  const [open, setOpen] = useState(true);
+  if (!map) return null;
+  return (
+    <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: 18 }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", background: "none", border: "none", cursor: "pointer", padding: 0, marginBottom: open ? 14 : 0 }}
+      >
+        <Icon name="Compass" size={15} style={{ color: "#2DD4BF" }} />
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#2DD4BF", textTransform: "uppercase", letterSpacing: 1, flex: 1, textAlign: "left" }}>Карта привлечения клиентов</span>
+        <Icon name={open ? "ChevronUp" : "ChevronDown"} size={15} style={{ color: "rgba(255,255,255,0.4)" }} />
+      </button>
+
+      {open && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          {map.top3_channels_today.length > 0 && (
+            <div style={{ background: "rgba(45,212,191,0.08)", border: "1px solid rgba(45,212,191,0.2)", borderRadius: 10, padding: "12px 14px" }}>
+              <div style={{ fontSize: 10.5, fontWeight: 700, color: "#2DD4BF", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>ТОП-3 канала на сейчас</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {map.top3_channels_today.map((c, i) => (
+                  <div key={i} style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)", display: "flex", gap: 8 }}>
+                    <span style={{ fontWeight: 700, color: "#2DD4BF" }}>{i + 1}.</span><span>{c}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {map.segments.length > 0 && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>МОЯ ЦА</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {map.segments.map((s, i) => <SegmentCard key={i} s={s} />)}
+              </div>
+            </div>
+          )}
+
+          {map.traffic_channels.length > 0 && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>ГДЕ НАХОДЯТСЯ МОИ КЛИЕНТЫ</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {map.traffic_channels.map((c, i) => <ChannelRow key={i} c={c} />)}
+              </div>
+            </div>
+          )}
+
+          {map.own_resources_note && (
+            <div style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.22)", borderRadius: 10, padding: "12px 14px", display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <Icon name="Sparkles" size={13} style={{ color: "hsl(260,70%,70%)", flexShrink: 0, marginTop: 1 }} />
+              <div>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: "hsl(260,70%,75%)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>Недоиспользуемый ресурс</div>
+                <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>{map.own_resources_note}</div>
+              </div>
+            </div>
+          )}
+
+          {map.what_not_to_do && (
+            <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.22)", borderRadius: 10, padding: "12px 14px", display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <Icon name="Ban" size={13} style={{ color: "hsl(40,90%,55%)", flexShrink: 0, marginTop: 1 }} />
+              <div>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: "hsl(40,90%,60%)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>Что делать не нужно</div>
+                <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.8)", lineHeight: 1.5 }}>{map.what_not_to_do}</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -39,12 +39,18 @@ GET/POST ?action=content_daily_post&key=ADMIN_TOKEN — cron: ИИ пишет е
 GET  ?action=podelam_analytics&refresh=1 — платная расширенная аналитика (доступна только с активным пакетом
                                        развития из user_packages): Пульс бизнеса (0-100), тренд, главная проблема,
                                        главная возможность, оценка потерь, прогноз с уровнем уверенности, главное
-                                       действие. Backend СНАЧАЛА считает агрегаты (доход/клиенты/% выполнения шагов
+                                       действие, а также «Карта привлечения клиентов» (audience_map) — 3-5 сегментов
+                                       ЦА с полным профилем (кто/проблема/возражения/где ищет/оффер) и приоритетные
+                                       источники трафика СТРОГО из управляемого в админке списка traffic_sources
+                                       (только активные и allowed_in_russia=TRUE площадки, отфильтрованные по
+                                       категории пользователя — salon/solo_master/psychologist/body_psychologist).
+                                       Backend СНАЧАЛА считает агрегаты (доход/клиенты/% выполнения шагов
                                        за 7/14/30/90 дней и % изменения к предыдущему периоду) — ИИ (Terra через
                                        Polza AI) получает уже подготовленный компактный контекст, а не сырую историю.
                                        Результат кэшируется в podelam_analytics_cache на 24ч, ?refresh=1 форсирует
                                        пересчёт. Без пакета — {"has_package": false}, без диагностики ПоДелам —
-                                       {"has_package": true, "has_profile": false}. ТАЙМАУТ НЕ МЕНЕЕ 60с.
+                                       {"has_package": true, "has_profile": false}. ТАЙМАУТ НЕ МЕНЕЕ 70с (ответ ИИ
+                                       вырос из-за audience_map).
 
 Публичные быстрые эндпоинты блога (лента, sitemap, комментарии) вынесены в отдельную функцию
 blog-public — там низкий таймаут (25с), не завышенный ради ИИ-действий ПоДелам/контента.
@@ -1171,6 +1177,48 @@ def _get_active_package_for_analytics(conn, user_id: int) -> dict | None:
     return cur.fetchone()
 
 
+def _get_salon_audience_context(conn, salon_id: int | None) -> dict:
+    """Доп. контекст о бизнесе для «Карты привлечения клиентов»: город, ссылки на уже
+    существующие соцсети/сайт (чтобы ИИ мог отметить недоиспользуемый ресурс), цель.
+    Если «Мой салон» не заполнен — возвращает пустые значения, ИИ работает без этих данных."""
+    if not salon_id:
+        return {}
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT city, social_instagram, social_vk, social_telegram, website_url, main_goal
+            FROM {SCHEMA}.salons WHERE id=%s""",
+        (salon_id,)
+    )
+    row = cur.fetchone()
+    if not row:
+        return {}
+    return {
+        "city": row.get("city") or None,
+        "has_vk": bool(row.get("social_vk")),
+        "has_telegram": bool(row.get("social_telegram")),
+        "has_instagram": bool(row.get("social_instagram")),
+        "has_website": bool(row.get("website_url")),
+        "main_goal": row.get("main_goal") or None,
+    }
+
+
+def _get_allowed_traffic_sources(conn, category: str) -> list[dict]:
+    """Читает управляемый из админки список источников трафика (traffic_sources), отфильтрованный
+    по: активен (status='active'), разрешён в РФ (allowed_in_russia=TRUE) и подходит категории
+    пользователя (categories_target содержит category). Список подмешивается ИИ как единственно
+    допустимый набор площадок для рекомендаций — модель не должна предлагать площадки от себя,
+    чтобы исключить рекомендацию запрещённых в РФ или сомнительных ресурсов."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT name, url, category, audience, content_types, is_paid, priority, notes
+            FROM {SCHEMA}.traffic_sources
+            WHERE status='active' AND allowed_in_russia=TRUE AND %s = ANY(categories_target)
+            ORDER BY priority = 'high' DESC, priority = 'medium' DESC, name""",
+        (category,)
+    )
+    return [dict(r) for r in cur.fetchall()]
+
+
 def _period_stats(conn, user_id: int, days: int) -> dict:
     """Агрегаты за период: доход, новые/вернувшиеся клиенты, % выполнения шагов — считает
     Backend по накопленным данным (не ИИ), чтобы не отправлять модели сырую историю."""
@@ -1208,10 +1256,27 @@ def _pct_change(current: float, previous: float) -> float | None:
     return round((current - previous) / previous * 100)
 
 
-def call_podelam_analytics_ai(profile: dict, agg: dict, role: str, specialization: str | None = None) -> dict | None:
+def _audience_category(role: str, specialization: str | None) -> str:
+    """Категория пользователя для фильтрации traffic_sources и адаптации промпта:
+    salon | solo_master | psychologist | body_psychologist."""
+    if specialization in ("psychologist", "body_psychologist"):
+        return specialization
+    if role in ("owner", "admin"):
+        return "salon"
+    return "solo_master"
+
+
+def call_podelam_analytics_ai(profile: dict, agg: dict, role: str, specialization: str | None = None,
+                               audience_context: dict | None = None, traffic_sources: list[dict] | None = None,
+                               include_audience_map: bool = False) -> dict | None:
     """Запрашивает у Terra (через Polza AI) расширенный ежедневный анализ на основе уже
     посчитанных backend'ом агрегатов (не сырых данных). Возвращает None при ошибке ИИ —
-    тогда используется fallback без интерпретации (только цифры)."""
+    тогда используется fallback без интерпретации (только цифры).
+    Если include_audience_map=True (доступно в платном пакете) — дополнительно просит ИИ
+    построить «Карту привлечения клиентов»: сегменты ЦА и приоритетные источники трафика
+    СТРОГО из переданного списка traffic_sources (площадки уже проверены на допустимость
+    в РФ и отфильтрованы по категории пользователя админкой) — модель не придумывает
+    площадки от себя."""
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
         return None
@@ -1225,6 +1290,61 @@ def call_podelam_analytics_ai(profile: dict, agg: dict, role: str, specializatio
         "Пользователь — мастер/владелец салона красоты: используй термины «клиенты», «визиты», «средний чек» как обычно."
     )
 
+    base_fields = """  "pulse_score": целое_число_0_100 (индекс здоровья бизнеса/практики: рост дохода, стабильность потока клиентов, дисциплина выполнения шагов — взвешенная оценка),
+  "pulse_trend": "up" | "down" | "flat",
+  "summary": "1-2 предложения — что сейчас происходит простыми словами",
+  "main_problem": "главная проблема на текущем этапе, конкретно, 1-2 предложения, или null если данных недостаточно",
+  "main_opportunity": "что даст наибольший эффект прямо сейчас, конкретно, 1-2 предложения, или null",
+  "losses_estimate": "оценка потенциально недополученного дохода в рублях с кратким объяснением откуда цифра, или null если данных недостаточно для расчёта — тогда напиши null, НЕ придумывай число",
+  "forecast": "прогноз на конец периода при сохранении текущей динамики, с конкретной суммой, или null если истории меньше 14 дней",
+  "forecast_confidence": "высокий" | "средний" | "низкий" | null,
+  "main_action": "одно главное действие на сегодня, конкретное",
+  "extra_actions": ["ещё 1-2 доп. рекомендации"]"""
+
+    audience_map_instructions = ""
+    audience_map_field = ""
+    if include_audience_map:
+        audience_map_field = """,
+  "audience_map": {
+    "segments": [
+      {
+        "name": "короткое название сегмента, например «Женщины 30-45, семейные конфликты»",
+        "role_type": "primary" | "secondary" | "potential",
+        "who": "возраст/пол/география/образ жизни — ТОЛЬКО если известно из данных или логически обосновано из ниши",
+        "problem": "какую проблему хочет решить",
+        "desired_result": "что хочет получить в итоге",
+        "why_chooses": "по каким критериям выбирает специалиста",
+        "objections": "что может остановить: цена/доверие/страх/отсутствие информации",
+        "where_looks": "где ищет решение — источники информации",
+        "content_interest": "какие темы контента интересны",
+        "offer": "конкретное предложение/оффер для этого сегмента",
+        "data_basis": "data" | "inference" — "data" если основано на данных пользователя, "inference" если это гипотеза ИИ
+      }
+    ],
+    "traffic_channels": [
+      {
+        "source_name": "название площадки СТРОГО из предоставленного списка allowed_traffic_sources, ничего от себя не добавляй",
+        "why_fits": "почему подходит именно этой ЦА, коротко",
+        "what_to_post": "что конкретно разместить: экспертная статья/кейс/комментарий/профиль/пост и т.д.",
+        "expected_result": "не обещай количество клиентов — пиши в духе «может помочь повысить узнаваемость и привлечь целевые переходы»",
+        "priority": "high" | "medium" | "low"
+      }
+    ],
+    "own_resources_note": "если в audience_context видно, что есть недоиспользуемый свой ресурс (соцсеть/сайт без регулярной активности) — короткая рекомендация об этом, иначе null",
+    "top3_channels_today": ["название канала №1 — с чего начать", "канал №2", "канал №3"],
+    "what_not_to_do": "иногда полезно сказать, что НЕ стоит делать сейчас и почему (например не распылять на новый канал, пока не используется существующая база) — или null"
+  }"""
+        audience_map_instructions = """
+
+ДОПОЛНИТЕЛЬНО — «Карта привлечения клиентов» (поле audience_map), доступна только в платном пакете:
+Раздели 3-5 сегментов ЦА: 1 основной (primary), 1-2 вторичных (secondary), при желании 1 перспективный (potential).
+НЕ пиши абстрактно «женщины 25-45» — составь полноценный профиль по всем полям сегмента.
+СТРОГО различай факты и гипотезы: если данных о ЦА нет — это гипотеза (data_basis="inference"), не выдавай её за факт.
+Каналы трафика (traffic_channels) выбирай ТОЛЬКО из списка allowed_traffic_sources в user payload — это единственные
+проверенные и разрешённые в РФ площадки для этой категории пользователя. Если список пуст — верни traffic_channels: [].
+Не рекомендуй дорогой платный канал (is_paid=true), если экономика услуги пользователя (средний чек, доход) этого не позволяет.
+top3_channels_today — не более 3 приоритетных направлений, с которых стоит начать именно сейчас."""
+
     system_prompt = f"""Ты — аналитик-консультант платформы «Промт Диалог», раздел «ПоДелам». Тебе дан \
 УЖЕ ПОДГОТОВЛЕННЫЙ агрегированный контекст показателей специалиста за разные периоды (7/14/30/90 дней) — \
 рост/падение дохода, новых и вернувшихся клиентов/обращений, % выполнения ежедневных шагов. Считать самому НИЧЕГО \
@@ -1234,17 +1354,9 @@ def call_podelam_analytics_ai(profile: dict, agg: dict, role: str, specializatio
 
 Твоя задача — вернуть СТРОГО JSON без markdown-обёртки:
 {{
-  "pulse_score": целое_число_0_100 (индекс здоровья бизнеса/практики: рост дохода, стабильность потока клиентов, дисциплина выполнения шагов — взвешенная оценка),
-  "pulse_trend": "up" | "down" | "flat",
-  "summary": "1-2 предложения — что сейчас происходит простыми словами",
-  "main_problem": "главная проблема на текущем этапе, конкретно, 1-2 предложения, или null если данных недостаточно",
-  "main_opportunity": "что даст наибольший эффект прямо сейчас, конкретно, 1-2 предложения, или null",
-  "losses_estimate": "оценка потенциально недополученного дохода в рублях с кратким объяснением откуда цифра, или null если данных недостаточно для расчёта — тогда напиши null, НЕ придумывай число",
-  "forecast": "прогноз на конец периода при сохранении текущей динамики, с конкретной суммой, или null если истории меньше 14 дней",
-  "forecast_confidence": "высокий" | "средний" | "низкий" | null,
-  "main_action": "одно главное действие на сегодня, конкретное",
-  "extra_actions": ["ещё 1-2 доп. рекомендации"]
+{base_fields}{audience_map_field}
 }}
+{audience_map_instructions}
 Пиши по-деловому, конкретно, без общих фраз вроде "работайте усерднее". Если по какому-то полю данных объективно недостаточно — верни null, а не выдумку."""
 
     user_payload = {
@@ -1257,6 +1369,9 @@ def call_podelam_analytics_ai(profile: dict, agg: dict, role: str, specializatio
         "periods": agg["periods"],
         "changes": agg["changes"],
     }
+    if include_audience_map:
+        user_payload["audience_context"] = audience_context or {}
+        user_payload["allowed_traffic_sources"] = traffic_sources or []
 
     payload = json.dumps({
         "model": PODELAM_MODEL,
@@ -1265,7 +1380,7 @@ def call_podelam_analytics_ai(profile: dict, agg: dict, role: str, specializatio
             {"role": "user", "content": json.dumps(user_payload, ensure_ascii=False, indent=2)},
         ],
         "temperature": 0.5,
-        "max_tokens": 1200,
+        "max_tokens": 1200 if not include_audience_map else 3000,
     }).encode("utf-8")
 
     req = urllib.request.Request(
@@ -1274,7 +1389,7 @@ def call_podelam_analytics_ai(profile: dict, agg: dict, role: str, specializatio
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=45) as resp:
+        with urllib.request.urlopen(req, timeout=55 if include_audience_map else 45) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         content = data["choices"][0]["message"]["content"].strip()
         if content.startswith("```"):
@@ -1312,7 +1427,11 @@ def handle_podelam_analytics(event: dict, conn) -> dict:
 
     cur.execute(f"SELECT * FROM {SCHEMA}.podelam_analytics_cache WHERE user_id = %s", (user["id"],))
     cached = cur.fetchone()
-    if cached and not force_refresh and cached["computed_at"] > datetime.now(cached["computed_at"].tzinfo) - timedelta(hours=24):
+    # Кэш валиден 24ч. Дополнительно: если в кэше ещё нет "audience_map" (например, запись
+    # посчитана до появления этой фичи) — считаем кэш устаревшим и пересчитываем один раз,
+    # чтобы пользователи с пакетом сразу увидели новый блок, не дожидаясь суточного протухания.
+    cache_has_audience_map = bool(cached and isinstance(cached.get("analysis"), dict) and "audience_map" in cached["analysis"])
+    if cached and not force_refresh and cache_has_audience_map and cached["computed_at"] > datetime.now(cached["computed_at"].tzinfo) - timedelta(hours=24):
         return ok({
             "has_package": True, "has_profile": True,
             "pulse_score": cached["pulse_score"],
@@ -1347,7 +1466,22 @@ def handle_podelam_analytics(event: dict, conn) -> dict:
 
     role = user.get("role") or "body_specialist"
     agg = {"periods": periods, "changes": changes}
-    ai_result = call_podelam_analytics_ai(dict(profile), agg, role, specialization=user.get("specialization"))
+
+    # «Карта привлечения клиентов» — расширение платного пакета: доступна с тем же пакетом
+    # развития, что и остальной «Пульс бизнеса» (has_deep_analysis), отдельного тарифа нет.
+    include_audience_map = bool(package.get("has_deep_analysis"))
+    audience_context = None
+    traffic_sources = None
+    if include_audience_map:
+        audience_category = _audience_category(role, user.get("specialization"))
+        audience_context = _get_salon_audience_context(conn, user.get("salon_id"))
+        traffic_sources = _get_allowed_traffic_sources(conn, audience_category)
+
+    ai_result = call_podelam_analytics_ai(
+        dict(profile), agg, role, specialization=user.get("specialization"),
+        audience_context=audience_context, traffic_sources=traffic_sources,
+        include_audience_map=include_audience_map,
+    )
 
     if ai_result:
         pulse_score = int(ai_result.get("pulse_score") or 50)

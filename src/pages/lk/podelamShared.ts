@@ -196,6 +196,37 @@ export interface StatsData {
   month: PeriodStats;
 }
 
+// ── Карта привлечения клиентов (расширение «Пульса бизнеса» в платном пакете) ──────────────
+export interface AudienceSegment {
+  name: string;
+  role_type: "primary" | "secondary" | "potential";
+  who: string;
+  problem: string;
+  desired_result: string;
+  why_chooses: string;
+  objections: string;
+  where_looks: string;
+  content_interest: string;
+  offer: string;
+  data_basis: "data" | "inference";
+}
+
+export interface TrafficChannel {
+  source_name: string;
+  why_fits: string;
+  what_to_post: string;
+  expected_result: string;
+  priority: "high" | "medium" | "low";
+}
+
+export interface AudienceMap {
+  segments: AudienceSegment[];
+  traffic_channels: TrafficChannel[];
+  own_resources_note: string | null;
+  top3_channels_today: string[];
+  what_not_to_do: string | null;
+}
+
 export interface PodelamAnalysis {
   pulse_score: number;
   pulse_trend: "up" | "down" | "flat";
@@ -207,6 +238,7 @@ export interface PodelamAnalysis {
   forecast_confidence: "высокий" | "средний" | "низкий" | null;
   main_action: string;
   extra_actions: string[];
+  audience_map?: AudienceMap | null;
 }
 
 export interface PodelamAnalyticsResponse {

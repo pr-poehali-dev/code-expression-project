@@ -72,6 +72,12 @@ export const lkApi = {
   adminSchoolUsages: (schoolId: number) => request("GET", "admin_school_usages", undefined, `&school_id=${schoolId}`),
   adminSchoolsStats: (days = 30) => request("GET", "admin_schools_stats", undefined, `&days=${days}`),
 
+  // Источники трафика (площадки) для «Карты привлечения клиентов» ПоДелам (админ)
+  adminTrafficSourcesList: () => request("GET", "admin_traffic_sources_list"),
+  adminTrafficSourceCreate: (data: object) => request("POST", "admin_traffic_source_create", data),
+  adminTrafficSourceUpdate: (data: object) => request("POST", "admin_traffic_source_update", data),
+  adminTrafficSourceDelete: (id: number) => request("POST", "admin_traffic_source_delete", { id }),
+
   logout: () => request("POST", "logout"),
 
   me: () => request("GET", "me"),

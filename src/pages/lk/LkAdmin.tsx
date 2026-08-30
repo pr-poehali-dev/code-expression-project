@@ -12,8 +12,9 @@ import { TrainingGeneratorSection, TrainingImageGenSection } from "./LkAdminTrai
 import { ChampionshipSection } from "./LkAdminChampionship";
 import { SchoolsSection } from "./LkAdminSchools";
 import { PackagesSection } from "./LkAdminPackages";
+import { TrafficSourcesSection } from "./LkAdminTrafficSources";
 
-type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments" | "training" | "training-img" | "championship" | "schools" | "packages";
+type Section = "users" | "body" | "ai" | "candidates" | "energy" | "courses" | "payments" | "training" | "training-img" | "championship" | "schools" | "packages" | "traffic";
 
 export default function LkAdmin() {
   const [section, setSection] = useState<Section>("ai");
@@ -36,6 +37,7 @@ export default function LkAdmin() {
           { id: "energy"     as Section, icon: "Zap",          label: "Энергия"      },
           { id: "packages"   as Section, icon: "Rocket",       label: "Пакеты развития" },
           { id: "schools"    as Section, icon: "School",       label: "Школы-партнёры" },
+          { id: "traffic"    as Section, icon: "Compass",      label: "Источники трафика" },
           { id: "payments"      as Section, icon: "CreditCard",   label: "Платежи"      },
           { id: "championship"  as Section, icon: "Trophy",       label: "Чемпионат"    },
         ].map(s => (
@@ -64,6 +66,7 @@ export default function LkAdmin() {
       {section === "energy"     && <EnergySection />}
       {section === "packages"   && <PackagesSection />}
       {section === "schools"    && <SchoolsSection />}
+      {section === "traffic"    && <TrafficSourcesSection />}
       {section === "payments"      && <PaymentsSection />}
       {section === "championship"  && <ChampionshipSection />}
 
