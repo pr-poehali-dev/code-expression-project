@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
-import { PodelamAnalyticsResponse, AudienceSegment, TrafficChannel } from "./podelamShared";
+import { PodelamAnalyticsResponse, AudienceSegment, TrafficChannel, TOPIC_KEY_BY_NAV } from "./podelamShared";
 import func2url from "../../../backend/func2url.json";
 
 const PODELAM_URL = (func2url as Record<string, string>)["masters-accrual"] || "";
@@ -24,9 +24,29 @@ const PRIORITY_LABEL: Record<string, { label: string; color: string }> = {
   low: { label: "Низкий приоритет", color: "#94A3B8" },
 };
 
-function SegmentCard({ s }: { s: AudienceSegment }) {
+// Формирует готовую тему для генератора контента на основе профиля сегмента ЦА —
+// подставляется в поле ввода поста/сценария через тот же sessionStorage-механизм,
+// что и темы из ежедневных шагов ПоДелам (см. TOPIC_KEY_BY_NAV).
+function segmentToTopic(s: AudienceSegment): string {
+  const parts = [`Аудитория: ${s.name}`];
+  if (s.who) parts.push(`Кто это: ${s.who}`);
+  if (s.problem) parts.push(`Проблема: ${s.problem}`);
+  if (s.offer) parts.push(`Предложение: ${s.offer}`);
+  return parts.join(". ");
+}
+
+function SegmentCard({ s, onNav }: { s: AudienceSegment; onNav?: (t: string) => void }) {
   const [open, setOpen] = useState(false);
   const rt = ROLE_TYPE_LABEL[s.role_type] || ROLE_TYPE_LABEL.secondary;
+
+  const openGenerator = (nav: "marketing:post-gen" | "marketing:reel-script") => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onNav) return;
+    const key = TOPIC_KEY_BY_NAV[nav];
+    if (key) sessionStorage.setItem(key, segmentToTopic(s));
+    onNav(nav);
+  };
+
   return (
     <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "12px 14px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6, cursor: "pointer" }} onClick={() => setOpen(o => !o)}>
@@ -53,6 +73,22 @@ function SegmentCard({ s }: { s: AudienceSegment }) {
           {s.data_basis === "inference" && (
             <div style={{ fontSize: 10.5, color: "hsl(40,80%,60%)", display: "flex", alignItems: "center", gap: 5, marginTop: 2 }}>
               <Icon name="Info" size={11} /> Гипотеза ИИ — стоит проверить на практике
+            </div>
+          )}
+          {onNav && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+              <button
+                onClick={openGenerator("marketing:post-gen")}
+                style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(45,212,191,0.12)", border: "1px solid rgba(45,212,191,0.3)", borderRadius: 8, padding: "7px 12px", cursor: "pointer", fontSize: 11.5, fontWeight: 700, color: "#2DD4BF", fontFamily: "Montserrat,sans-serif" }}
+              >
+                <Icon name="FileText" size={12} /> Сгенерировать пост
+              </button>
+              <button
+                onClick={openGenerator("marketing:reel-script")}
+                style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(45,212,191,0.12)", border: "1px solid rgba(45,212,191,0.3)", borderRadius: 8, padding: "7px 12px", cursor: "pointer", fontSize: 11.5, fontWeight: 700, color: "#2DD4BF", fontFamily: "Montserrat,sans-serif" }}
+              >
+                <Icon name="Clapperboard" size={12} /> Сценарий рилса
+              </button>
             </div>
           )}
         </div>
@@ -250,7 +286,7 @@ export function PodelamAnalyticsCard({ onNav }: { onNav: (t: string) => void }) 
         )}
       </div>
 
-      {a.audience_map && <AudienceMapBlock map={a.audience_map} />}
+      {a.audience_map && <AudienceMapBlock map={a.audience_map} onNav={onNav} />}
 
       <style>{`@keyframes podelam-spin{to{transform:rotate(360deg)}}`}</style>
     </div>
@@ -258,7 +294,7 @@ export function PodelamAnalyticsCard({ onNav }: { onNav: (t: string) => void }) 
 }
 
 // ── Карта привлечения клиентов ──────────────────────────────────────────────
-function AudienceMapBlock({ map }: { map: NonNullable<PodelamAnalyticsResponse["analysis"]>["audience_map"] }) {
+function AudienceMapBlock({ map, onNav }: { map: NonNullable<PodelamAnalyticsResponse["analysis"]>["audience_map"]; onNav: (t: string) => void }) {
   const [open, setOpen] = useState(true);
   if (!map) return null;
   return (
@@ -291,7 +327,7 @@ function AudienceMapBlock({ map }: { map: NonNullable<PodelamAnalyticsResponse["
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>МОЯ ЦА</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {map.segments.map((s, i) => <SegmentCard key={i} s={s} />)}
+                {map.segments.map((s, i) => <SegmentCard key={i} s={s} onNav={onNav} />)}
               </div>
             </div>
           )}
