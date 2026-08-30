@@ -114,9 +114,18 @@ export function PodelamAnalyticsCard({ onNav }: { onNav: (t: string) => void }) 
         <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 8, lineHeight: 1.5 }}>
           ИИ уже видит дополнительные возможности в ваших данных
         </div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.65, marginBottom: 18, maxWidth: 480 }}>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.65, marginBottom: 14, maxWidth: 480 }}>
           В расширенном анализе вы увидите: что сейчас тормозит развитие, где вы теряете клиентов и деньги, где находится
           ближайшая точка роста, прогноз достижения цели — и что делать дальше.
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "rgba(45,212,191,0.08)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 12, padding: "12px 14px", marginBottom: 18, maxWidth: 480 }}>
+          <Icon name="Compass" size={16} style={{ color: "#2DD4BF", flexShrink: 0, marginTop: 1 }} />
+          <div>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", marginBottom: 3 }}>Новое: карта привлечения клиентов</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", lineHeight: 1.55 }}>
+              ИИ определит портрет вашей ЦА и покажет, на каких площадках её искать и что именно там разместить.
+            </div>
+          </div>
         </div>
         <button
           onClick={() => onNav("packages")}
