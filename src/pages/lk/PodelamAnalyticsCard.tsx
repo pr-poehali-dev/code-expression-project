@@ -127,8 +127,24 @@ function SegmentCard({ s, onNav }: { s: AudienceSegment; onNav?: (t: string) => 
   );
 }
 
-function ChannelRow({ c }: { c: TrafficChannel }) {
+// Формирует тему поста-приглашения под конкретный канал трафика — что разместить и почему
+// это подходит именно этой площадке, подставляется в генератор постов через sessionStorage.
+function channelToTopic(c: TrafficChannel): string {
+  const parts = [`Площадка: ${c.source_name}`, `Что разместить: ${c.what_to_post}`];
+  if (c.why_fits) parts.push(`Почему подходит: ${c.why_fits}`);
+  return parts.join(". ");
+}
+
+function ChannelRow({ c, onNav }: { c: TrafficChannel; onNav?: (t: string) => void }) {
   const pr = PRIORITY_LABEL[c.priority] || PRIORITY_LABEL.medium;
+
+  const openPostGen = () => {
+    if (!onNav) return;
+    const key = TOPIC_KEY_BY_NAV["marketing:post-gen"];
+    if (key) sessionStorage.setItem(key, channelToTopic(c));
+    onNav("marketing:post-gen");
+  };
+
   return (
     <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, padding: "10px 12px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
@@ -139,7 +155,17 @@ function ChannelRow({ c }: { c: TrafficChannel }) {
       <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}>
         <b style={{ color: "rgba(255,255,255,0.7)" }}>Что разместить:</b> {c.what_to_post}
       </div>
-      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 3, fontStyle: "italic" }}>{c.expected_result}</div>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 3, fontStyle: "italic", marginBottom: onNav ? 8 : 0 }}>{c.expected_result}</div>
+      {onNav && (
+        <div style={{ paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <button
+            onClick={openPostGen}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(45,212,191,0.12)", border: "1px solid rgba(45,212,191,0.3)", borderRadius: 8, padding: "7px 12px", cursor: "pointer", fontSize: 11.5, fontWeight: 700, color: "#2DD4BF", fontFamily: "Montserrat,sans-serif" }}
+          >
+            <Icon name="FileText" size={12} /> Пост-приглашение для «{c.source_name}»
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -366,7 +392,7 @@ function AudienceMapBlock({ map, onNav }: { map: NonNullable<PodelamAnalyticsRes
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: 8 }}>ГДЕ НАХОДЯТСЯ МОИ КЛИЕНТЫ</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {map.traffic_channels.map((c, i) => <ChannelRow key={i} c={c} />)}
+                {map.traffic_channels.map((c, i) => <ChannelRow key={i} c={c} onNav={onNav} />)}
               </div>
             </div>
           )}
