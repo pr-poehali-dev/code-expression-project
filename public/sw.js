@@ -1,4 +1,4 @@
-const CACHE = "prodialog-v2";
+const CACHE = "prodialog-v3";
 const STATIC = ["/", "/cabinet"];
 
 self.addEventListener("install", e => {
@@ -19,6 +19,16 @@ self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   if (url.origin !== location.origin) return;
   if (url.pathname.startsWith("/api") || url.pathname.startsWith("/?")) return;
+
+  // Файлы сборки (JS/CSS-чанки) уже версионируются хэшем в имени и после каждого
+  // обновления сайта старые файлы удаляются с сервера. Если отдавать их из кэша
+  // при неудачной сети, браузер может получить смесь старой и новой версии кода
+  // и не суметь отрисовать страницу (белый экран). Поэтому такие файлы отдаём
+  // только напрямую из сети, без подстраховки кэшем.
+  if (url.pathname.startsWith("/assets/")) {
+    e.respondWith(fetch(e.request));
+    return;
+  }
 
   e.respondWith(
     fetch(e.request)
