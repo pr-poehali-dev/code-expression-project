@@ -73,6 +73,29 @@ function copyToClipboard(text: string, setCopied: (v: boolean) => void) {
   });
 }
 
+// Находит первую markdown-таблицу в ответе (| ячейка | ячейка |) и превращает её в строки для CSV.
+// Возвращает null, если в тексте таблицы нет — тогда кнопка «Скачать таблицу» не показывается.
+function extractMarkdownTable(text: string): string[][] | null {
+  const lines = text.split("\n").map(l => l.trim()).filter(l => l.startsWith("|") && l.endsWith("|"));
+  if (lines.length < 2) return null;
+  const rows = lines
+    .filter(l => !/^\|[\s:|-]+\|$/.test(l)) // выкидываем строку-разделитель |---|---|
+    .map(l => l.slice(1, -1).split("|").map(c => c.trim()));
+  return rows.length >= 2 ? rows : null;
+}
+
+function downloadCsv(rows: string[][]) {
+  const esc = (cell: string) => `"${cell.replace(/"/g, '""')}"`;
+  const csv = "\uFEFF" + rows.map(r => r.map(esc).join(";")).join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `таблица-${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function SimpleMarkdown({ text }: { text: string }) {
   const lines = text.split("\n");
   const elements: React.ReactNode[] = [];
@@ -144,6 +167,7 @@ function MessageBubble({ msg }: { msg: Message }) {
   const [copied, setCopied] = useState(false);
   const isUser = msg.role === "user";
   const role = ROLES.find(r => r.id === msg.roleId);
+  const tableRows = !isUser ? extractMarkdownTable(msg.content) : null;
 
   return (
     <div style={{ display: "flex", flexDirection: isUser ? "row-reverse" : "row", gap: 10, alignItems: "flex-start" }}>
@@ -176,23 +200,44 @@ function MessageBubble({ msg }: { msg: Message }) {
         </div>
 
         {!isUser && (
-          <button
-            onClick={() => copyToClipboard(msg.content, setCopied)}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 5,
-              marginTop: 6, padding: "4px 10px",
-              background: copied ? `${ACCENT}18` : "transparent",
-              border: `1px solid ${copied ? ACCENT : "#e0e0da"}`,
-              borderRadius: 7, cursor: "pointer",
-              fontSize: 12, fontWeight: 600,
-              color: copied ? ACCENT : "#999",
-              fontFamily: "Montserrat, sans-serif",
-              transition: "all 0.2s",
-            }}
-          >
-            <Icon name={copied ? "Check" : "Copy"} size={12} />
-            {copied ? "Скопировано!" : "Скопировать"}
-          </button>
+          <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+            <button
+              onClick={() => copyToClipboard(msg.content, setCopied)}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                padding: "4px 10px",
+                background: copied ? `${ACCENT}18` : "transparent",
+                border: `1px solid ${copied ? ACCENT : "#e0e0da"}`,
+                borderRadius: 7, cursor: "pointer",
+                fontSize: 12, fontWeight: 600,
+                color: copied ? ACCENT : "#999",
+                fontFamily: "Montserrat, sans-serif",
+                transition: "all 0.2s",
+              }}
+            >
+              <Icon name={copied ? "Check" : "Copy"} size={12} />
+              {copied ? "Скопировано!" : "Скопировать"}
+            </button>
+            {tableRows && (
+              <button
+                onClick={() => downloadCsv(tableRows)}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  padding: "4px 10px",
+                  background: "transparent",
+                  border: "1px solid #e0e0da",
+                  borderRadius: 7, cursor: "pointer",
+                  fontSize: 12, fontWeight: 600,
+                  color: "#999",
+                  fontFamily: "Montserrat, sans-serif",
+                  transition: "all 0.2s",
+                }}
+              >
+                <Icon name="Download" size={12} />
+                Скачать таблицу (CSV)
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
