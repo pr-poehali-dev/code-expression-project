@@ -368,6 +368,15 @@ def handler(event: dict, context) -> dict:
     if body.get("token") != ADMIN_TOKEN:
         return {"statusCode": 403, "headers": CORS, "body": json.dumps({"error": "Forbidden"})}
 
+    # Отладочный маршрут: прямой вызов инструмента Вордстата в обход ИИ — чтобы диагностировать
+    # точную ошибку ответа Яндекса (без искажения через модель). Убрать после проверки токена.
+    if body.get("debug_tool") == "yandex_wordstat_stats":
+        return {
+            "statusCode": 200,
+            "headers": CORS,
+            "body": json.dumps(tool_yandex_wordstat_stats(body.get("args") or {}), ensure_ascii=False, default=str),
+        }
+
     role = body.get("role", "marketer")
     model_key = body.get("model", "gpt-4.1")
     messages = body.get("messages", [])
