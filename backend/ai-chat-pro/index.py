@@ -1,8 +1,25 @@
+"""
+Продвинутый ИИ-чат с выбором роли (маркетолог, блогер, финансист, философ, программист,
+бизнесмен, психолог, сценарист, политик, юрист). Только для администратора (ADMIN_TOKEN).
+
+Роль «Маркетолог» умеет вызывать функции (function calling):
+- get_blog_posts — читает ВСЕ посты блога проекта (content_posts), чтобы делать промо-объявления,
+  анонсы и рассылки на основе реального контента, а не выдумок.
+- yandex_wordstat_stats — дёргает реальный Яндекс.Вордстат (тот же YANDEX_DIRECT_TOKEN, что и
+  marketing-semantics) для оценки спроса по фразам при составлении объявлений Директа.
+Из-за возможных нескольких кругов «модель → инструмент → модель» и внешних HTTP-запросов
+(БД + Вордстат) таймаут функции увеличен. Таймаут функции: 120 секунд.
+"""
 import json
 import os
 import urllib.request
+import urllib.error
+import urllib.parse
+import psycopg2
+import psycopg2.extras
 
 ADMIN_TOKEN = "Sss07011974ssS"
+SCHEMA = "t_p84565078_code_expression_proj"
 
 PROJECT_KNOWLEDGE = """ПРОЕКТ «ПРОМТ ДИАЛОГ» (promtdialog.ru)
 Автор: Сергей Водопьянов, 17+ лет практики.
@@ -21,7 +38,12 @@ PROJECT_KNOWLEDGE = """ПРОЕКТ «ПРОМТ ДИАЛОГ» (promtdialog.ru)
 ROLE_PROMPTS = {
     "marketer": """Ты — маркетолог с 15-летним опытом в digital и офлайн.
 Компетенции: стратегии, воронки (AIDA/JTBD), анализ ЦА, Яндекс.Директ/ВКонтакте/Telegram, контент, брендинг, УТП, unit-экономика (CAC/LTV/ROAS).
-Стиль: конкретные цифры, практические шаги, уточняющие вопросы при недостатке данных, мышление результатами.""",
+Стиль: конкретные цифры, практические шаги, уточняющие вопросы при недостатке данных, мышление результатами.
+
+У тебя есть доступ к двум инструментам (вызывай их сам, без спроса, когда это нужно по задаче):
+1. get_blog_posts — доступ ко ВСЕМ постам блога проекта (заголовок, анонс, категория, дата, а по post_id — полный текст). Используй, чтобы: найти нужную статью по теме/ключевым словам через search или category, взять из неё тезисы/факты/цифры и на их основе составить промо-объявление, анонс в соцсети, письмо рассылки, рекламный текст для Директа или ВК. Никогда не выдумывай содержание постов — сначала запроси их через инструмент.
+2. yandex_wordstat_stats — реальная статистика показов Яндекс.Вордстат (сколько раз в месяц ищут фразу в Яндексе, можно с городом). Используй, чтобы проверить спрос по ключевым фразам перед тем как советовать их для Яндекс.Директ, подобрать более частотные формулировки заголовков объявлений или оценить конкурентность ниши. Не придумывай цифры частотности — бери их из инструмента.
+Если пользователь просит «сделай промо-пост/объявление по статье» — сначала вызови get_blog_posts, чтобы получить материал. Если просит «составь объявления/проверь запросы для Директа» — вызови yandex_wordstat_stats по релевантным фразам.""",
 
     "blogger": """Ты — блогер-эксперт с аудиторией 500K+, автор вирусного контента Instagram/Telegram/YouTube.
 Компетенции: посты/сторис/Reels, контент-планы, алгоритмы без рекламы, сторителлинг, хуки, вовлечённость, монетизация.
@@ -73,31 +95,249 @@ ROLE_NAMES = {
     "lawyer": "Юрист",
 }
 
-
 MODELS = {
     "gpt-4.1": "openai/gpt-4.1",
     "terra": "openai/gpt-5.6-terra",
 }
 
+WORDSTAT_API = "https://api.wordstat.yandex.net/v1/topRequests"
 
-def call_ai(system_prompt: str, messages: list, model_key: str) -> str:
+CITY_GEO_MAP = {
+    "москва": 213, "санкт-петербург": 2, "спб": 2, "петербург": 2,
+    "новосибирск": 65, "екатеринбург": 54, "казань": 43,
+    "нижний новгород": 47, "челябинск": 56, "самара": 51,
+    "уфа": 172, "ростов-на-дону": 39, "краснодар": 35,
+    "пермь": 50, "воронеж": 193, "волгоград": 38,
+    "красноярск": 62, "саратов": 194, "тюмень": 55,
+    "тольятти": 239, "ижевск": 44, "барнаул": 197,
+    "ульяновск": 195, "иркутск": 63, "хабаровск": 76,
+    "ярославль": 16, "владивосток": 75, "махачкала": 28,
+    "томск": 67, "оренбург": 48, "кемерово": 66,
+    "новокузнецк": 237, "рязань": 10, "астрахань": 37,
+    "пенза": 49, "липецк": 9, "тула": 15,
+    "киров": 46, "чебоксары": 45, "калининград": 22,
+    "брянск": 191, "иваново": 5, "магнитогорск": 235,
+}
+
+# ─── Инструменты (function calling) для роли «Маркетолог» ───────────────────
+
+MARKETER_TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_blog_posts",
+            "description": (
+                "Получить посты блога проекта «Промт Диалог». Без post_id возвращает список "
+                "последних постов (заголовок, анонс, категория, дата) с фильтрами search/category. "
+                "С post_id — возвращает ОДИН пост целиком, включая полный текст (body), чтобы на его "
+                "основе составить промо-объявление, анонс в соцсети или рекламный текст."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "post_id": {"type": "integer", "description": "ID поста, чтобы получить его полный текст."},
+                    "search": {"type": "string", "description": "Поиск по заголовку/анонсу/тексту поста (частичное совпадение)."},
+                    "category": {"type": "string", "description": "Фильтр по категории: marketing, upsell, clients, tools."},
+                    "limit": {"type": "integer", "description": "Сколько постов вернуть в списке (макс. 50, по умолчанию 20)."},
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "yandex_wordstat_stats",
+            "description": (
+                "Получить реальную статистику Яндекс.Вордстат — сколько раз в месяц ищут фразу в "
+                "Яндексе (Россия), опционально с учётом конкретного города. Используется для оценки "
+                "спроса и частотности при подборе ключевых фраз и составлении объявлений Яндекс.Директ."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "phrases": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Список поисковых фраз (до 10 за раз), например [\"массаж спины\", \"массаж спины москва\"].",
+                    },
+                    "city": {"type": "string", "description": "Город для геотаргетинга статистики (необязательно)."},
+                },
+                "required": ["phrases"],
+            },
+        },
+    },
+]
+
+
+def get_db():
+    return psycopg2.connect(os.environ["DATABASE_URL"])
+
+
+def tool_get_blog_posts(args: dict) -> dict:
+    conn = get_db()
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        post_id = args.get("post_id")
+        if post_id:
+            cur.execute(
+                f"SELECT id, slug, title, excerpt, body, category, role, hashtags, post_date "
+                f"FROM {SCHEMA}.content_posts WHERE id = %s",
+                (int(post_id),),
+            )
+            row = cur.fetchone()
+            if not row:
+                return {"error": f"Пост с id={post_id} не найден"}
+            return {"post": dict(row)}
+
+        conditions = []
+        params: list = []
+        search = (args.get("search") or "").strip()
+        if search:
+            like = f"%{search}%"
+            conditions.append("(title ILIKE %s OR excerpt ILIKE %s OR body ILIKE %s)")
+            params += [like, like, like]
+        category = (args.get("category") or "").strip()
+        if category:
+            conditions.append("category = %s")
+            params.append(category)
+        where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+        try:
+            limit = min(max(int(args.get("limit") or 20), 1), 50)
+        except (TypeError, ValueError):
+            limit = 20
+
+        cur.execute(
+            f"SELECT id, slug, title, excerpt, category, role, hashtags, post_date "
+            f"FROM {SCHEMA}.content_posts {where} ORDER BY post_date DESC LIMIT %s",
+            params + [limit],
+        )
+        rows = [dict(r) for r in cur.fetchall()]
+        return {"posts": rows, "count": len(rows)}
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        conn.close()
+
+
+def tool_yandex_wordstat_stats(args: dict) -> dict:
+    """Официальный API Яндекс.Вордстат: POST, Authorization: Bearer <oauth-token>,
+    body {"phrase", "regions": [geoId,...], "devices": [...]}.
+    Ответ: requestPhrase, totalCount (общая частотность фразы за 30 дней),
+    topRequests — топ похожих запросов с их count."""
+    token = os.environ.get("YANDEX_DIRECT_TOKEN", "")
+    if not token:
+        return {"error": "YANDEX_DIRECT_TOKEN не настроен на сервере"}
+
+    phrases = args.get("phrases") or []
+    if not isinstance(phrases, list) or not phrases:
+        return {"error": "Нужен непустой список phrases"}
+
+    city = (args.get("city") or "").strip()
+    geo_id = CITY_GEO_MAP.get(city.lower(), 0) if city else 0
+    regions = [geo_id] if geo_id else []
+
+    results = []
+    for phrase in phrases[:10]:
+        try:
+            payload: dict = {"phrase": str(phrase)}
+            if regions:
+                payload["regions"] = regions
+            req = urllib.request.Request(
+                WORDSTAT_API,
+                data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json; charset=utf-8",
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                top = data.get("topRequests") or []
+                results.append({
+                    "phrase": phrase,
+                    "shows_per_month": data.get("totalCount", 0),
+                    "similar_top_requests": [
+                        {"phrase": t.get("phrase"), "count": t.get("count")} for t in top[:8]
+                    ],
+                })
+        except urllib.error.HTTPError as e:
+            try:
+                err_body = e.read().decode("utf-8")
+            except Exception:
+                err_body = str(e)
+            results.append({"phrase": phrase, "error": f"HTTP {e.code}: {err_body}"})
+        except Exception as e:
+            results.append({"phrase": phrase, "error": str(e)})
+
+    return {"results": results, "city": city or "вся Россия"}
+
+
+TOOL_EXECUTORS = {
+    "get_blog_posts": tool_get_blog_posts,
+    "yandex_wordstat_stats": tool_yandex_wordstat_stats,
+}
+
+
+# ─── Вызов ИИ (с опциональным function calling) ──────────────────────────────
+
+def call_ai(system_prompt: str, messages: list, model_key: str, tools: list | None = None) -> str:
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     model = MODELS.get(model_key, MODELS["gpt-4.1"])
-    payload = json.dumps({
-        "model": model,
-        "messages": [{"role": "system", "content": system_prompt}] + messages[-8:],
-        "temperature": 0.8,
-        "max_tokens": 1200,
-    }).encode("utf-8")
-    req = urllib.request.Request(
-        "https://polza.ai/api/v1/chat/completions",
-        data=payload,
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=55) as resp:
-        data = json.loads(resp.read().decode("utf-8"))
-    return data["choices"][0]["message"]["content"].strip()
+    convo = [{"role": "system", "content": system_prompt}] + messages[-8:]
+
+    max_rounds = 4 if tools else 1
+    last_content = ""
+
+    for round_i in range(max_rounds):
+        payload_dict = {
+            "model": model,
+            "messages": convo,
+            "temperature": 0.8,
+            "max_tokens": 1200,
+        }
+        if tools:
+            payload_dict["tools"] = tools
+            payload_dict["tool_choice"] = "auto"
+
+        req = urllib.request.Request(
+            "https://polza.ai/api/v1/chat/completions",
+            data=json.dumps(payload_dict).encode("utf-8"),
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=45) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            if tools:
+                # Модель/провайдер могли не принять параметр tools — отступаем на обычный вызов.
+                return call_ai(system_prompt, messages, model_key, tools=None)
+            raise
+
+        msg = data["choices"][0]["message"]
+        last_content = (msg.get("content") or "").strip()
+        tool_calls = msg.get("tool_calls")
+
+        if not tool_calls:
+            return last_content
+
+        convo.append(msg)
+        for tc in tool_calls:
+            fn_name = (tc.get("function") or {}).get("name", "")
+            try:
+                fn_args = json.loads((tc.get("function") or {}).get("arguments") or "{}")
+            except Exception:
+                fn_args = {}
+            executor = TOOL_EXECUTORS.get(fn_name)
+            result = executor(fn_args) if executor else {"error": f"Неизвестный инструмент {fn_name}"}
+            convo.append({
+                "role": "tool",
+                "tool_call_id": tc.get("id", ""),
+                "content": json.dumps(result, ensure_ascii=False, default=str),
+            })
+
+    return last_content
 
 
 CORS = {
@@ -129,7 +369,8 @@ def handler(event: dict, context) -> dict:
 
     role_prompt = ROLE_PROMPTS.get(role, ROLE_PROMPTS["marketer"])
     system_prompt = PROJECT_KNOWLEDGE + "\n\n" + role_prompt
-    reply = call_ai(system_prompt, messages, model_key)
+    tools = MARKETER_TOOLS if role == "marketer" else None
+    reply = call_ai(system_prompt, messages, model_key, tools=tools)
 
     return {
         "statusCode": 200,
