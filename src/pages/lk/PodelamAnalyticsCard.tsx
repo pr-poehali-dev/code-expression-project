@@ -189,8 +189,19 @@ export function PodelamAnalyticsCard({ onNav }: { onNav: (t: string) => void }) 
 
   if (loading) {
     return (
-      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)", textAlign: "center", color: "#94A3B8", fontSize: 13 }}>
-        Загружаем расширенный анализ…
+      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)", textAlign: "center" }}>
+        <div style={{ color: "#94A3B8", fontSize: 13, marginBottom: 12 }}>Загружаем расширенный анализ…</div>
+        <div style={{
+          display: "flex", alignItems: "flex-start", gap: 8,
+          padding: "10px 14px", maxWidth: 420, margin: "0 auto",
+          background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 10,
+          textAlign: "left",
+        }}>
+          <Icon name="WifiOff" size={15} style={{ color: "#D97706", flexShrink: 0, marginTop: 1 }} />
+          <div style={{ fontSize: 12, color: "#92400E", lineHeight: 1.55 }}>
+            Включённый VPN или нестабильный интернет могут замедлить загрузку. Если результат долго не появляется — отключите VPN и обновите страницу.
+          </div>
+        </div>
       </div>
     );
   }

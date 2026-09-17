@@ -110,6 +110,17 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
         <div style={{ fontSize: 13.5, color: "#64748B", maxWidth: 320, lineHeight: 1.6 }}>
           ИИ анализирует ваш доход, {isPsych ? "стоимость консультации" : "чек"} и базу {terms.baseWordGen} и формирует шаги на сегодня. Обычно это занимает до минуты.
         </div>
+        <div style={{
+          display: "flex", alignItems: "flex-start", gap: 8,
+          marginTop: 18, padding: "10px 14px", maxWidth: 360,
+          background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 10,
+          textAlign: "left",
+        }}>
+          <Icon name="WifiOff" size={15} style={{ color: "#D97706", flexShrink: 0, marginTop: 1 }} />
+          <div style={{ fontSize: 12, color: "#92400E", lineHeight: 1.55 }}>
+            Включённый VPN или нестабильный интернет могут замедлить загрузку. Если результат долго не появляется — отключите VPN и обновите страницу.
+          </div>
+        </div>
         <style>{`
           @keyframes podelam-pulse {
             0%, 100% { transform: scale(1); opacity: 1; }
