@@ -320,12 +320,19 @@ export function AISection() {
     setLoading(true);
     setError("");
 
+    // Маркетолог с инструментами (посты блога/Вордстат) может отвечать дольше обычного —
+    // даём запросу до 170с (чуть меньше таймаута бэкенда в 180с), чтобы браузер не обрывал
+    // соединение раньше сервера и не показывал голый "Failed to fetch".
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 170_000);
+
     try {
       const apiMessages = newMessages.map(m => ({ role: m.role, content: m.content }));
       const res = await fetch(AI_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: ADMIN_TOKEN, role, model, messages: apiMessages }),
+        signal: controller.signal,
       });
 
       const data = await res.json();
@@ -336,8 +343,15 @@ export function AISection() {
       setMessages(withAi);
       saveHistory(withAi);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Не удалось получить ответ");
+      if (e instanceof DOMException && e.name === "AbortError") {
+        setError("ИИ отвечает слишком долго (>170с). Попробуйте сузить запрос — например, попросите объявления по меньшему числу постов.");
+      } else if (e instanceof TypeError) {
+        setError("Не удалось связаться с сервером — проверьте интернет-соединение и попробуйте ещё раз.");
+      } else {
+        setError(e instanceof Error ? e.message : "Не удалось получить ответ");
+      }
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   }
