@@ -1266,6 +1266,31 @@ def _get_salon_audience_context(conn, salon_id: int | None) -> dict:
     }
 
 
+def _get_user_resources(conn, user_id: int) -> list[dict]:
+    """Чек-лист «Мои ресурсы» пользователя (заполняется в podelam-fast) — какие площадки уже
+    подключены (со ссылкой), а какие ещё нет. Подмешивается ИИ, чтобы «Пульс бизнеса» не советовал
+    завести то, что уже подключено, а вместо этого подсказывал, ЧТО размещать на уже занятых
+    площадках — и явно предлагал подключить то, чего в списке ещё нет."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT resource_key, connected, url, note FROM {SCHEMA}.podelam_resources WHERE user_id=%s",
+        (user_id,)
+    )
+    return [dict(r) for r in cur.fetchall()]
+
+
+def _get_recent_pulse_actions(conn, user_id: int, limit: int = 20) -> list[str]:
+    """Тексты недавно выполненных рекомендаций «Пульса бизнеса» — чтобы ИИ не повторял совет,
+    который пользователь уже отметил выполненным, а предлагал следующий логичный шаг."""
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"""SELECT action_text FROM {SCHEMA}.podelam_pulse_action_log
+            WHERE user_id=%s AND done=TRUE ORDER BY created_at DESC LIMIT %s""",
+        (user_id, limit)
+    )
+    return [r["action_text"] for r in cur.fetchall()]
+
+
 def _get_allowed_traffic_sources(conn, category: str) -> list[dict]:
     """Читает управляемый из админки список источников трафика (traffic_sources), отфильтрованный
     по: активен (status='active'), разрешён в РФ (allowed_in_russia=TRUE) и подходит категории
@@ -1330,9 +1355,29 @@ def _audience_category(role: str, specialization: str | None) -> str:
     return "solo_master"
 
 
+PERSONAL_GOAL_LABELS = {
+    "new_skill": "освоить новый метод/технику",
+    "certification": "получить сертификацию/диплом",
+    "confidence": "увереннее вести приём/консультацию",
+    "personal_brand": "развить личный бренд, стать заметнее",
+    "public_speaking": "научиться выступать, вести эфиры/лекции",
+    "team_growth": "вырасти в руководителя / открыть команду",
+    "burnout": "справиться с выгоранием, восстановить силы",
+    "networking": "найти единомышленников, сообщество",
+    "work_life_balance": "меньше работать, но не терять в доходе",
+}
+
+ROLE_LABELS = {
+    "owner": "владелец салона", "admin": "администратор салона",
+    "master": "мастер в салоне", "solo_master": "независимый мастер/специалист",
+    "body_specialist": "специалист телесных практик",
+}
+
+
 def call_podelam_analytics_ai(profile: dict, agg: dict, role: str, specialization: str | None = None,
                                audience_context: dict | None = None, traffic_sources: list[dict] | None = None,
-                               include_audience_map: bool = False) -> dict | None:
+                               include_audience_map: bool = False, resources: list[dict] | None = None,
+                               recent_done_actions: list[str] | None = None) -> dict | None:
     """Запрашивает у Terra (через Polza AI) расширенный ежедневный анализ на основе уже
     посчитанных backend'ом агрегатов (не сырых данных). Возвращает None при ошибке ИИ —
     тогда используется fallback без интерпретации (только цифры).
@@ -1340,7 +1385,10 @@ def call_podelam_analytics_ai(profile: dict, agg: dict, role: str, specializatio
     построить «Карту привлечения клиентов»: сегменты ЦА и приоритетные источники трафика
     СТРОГО из переданного списка traffic_sources (площадки уже проверены на допустимость
     в РФ и отфильтрованы по категории пользователя админкой) — модель не придумывает
-    площадки от себя."""
+    площадки от себя.
+    resources — чек-лист «Мои ресурсы» (что уже подключено, со ссылкой) — не путать с
+    traffic_sources (общий справочник площадок): resources это ЛИЧНЫЙ статус пользователя.
+    recent_done_actions — тексты недавно выполненных рекомендаций Пульса, чтобы не повторяться."""
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
     if not api_key:
         return None
@@ -1353,6 +1401,21 @@ def call_podelam_analytics_ai(profile: dict, agg: dict, role: str, specializatio
         if is_psych else
         "Пользователь — мастер/владелец салона красоты: используй термины «клиенты», «визиты», «средний чек» как обычно."
     )
+
+    # Персонализация от роли и личных (немонетарных) целей развития — влияет на ТОН и ФОКУС
+    # рекомендаций: например, если человек отметил "burnout" — не подгонять темпом, если
+    # "team_growth" — уместно предлагать шаги, связанные с ростом роли, а не только доход.
+    role_label = ROLE_LABELS.get(role, role)
+    goal_codes = profile.get("personal_goals") or []
+    goal_labels = [PERSONAL_GOAL_LABELS[g] for g in goal_codes if g in PERSONAL_GOAL_LABELS]
+    personalization_line = f"Роль пользователя: {role_label}."
+    if goal_labels:
+        personalization_line += (
+            f" Личные (немонетарные) цели развития, которые важны пользователю: {', '.join(goal_labels)}. "
+            "Учитывай это в тоне и содержании summary/main_action/extra_actions — не только доход, но и то, "
+            "что реально важно этому человеку сейчас (например, если среди целей «справиться с выгоранием» — "
+            "не дави темпом и объёмом задач; если «вырасти в руководителя» — уместны шаги про делегирование/команду)."
+        )
 
     base_fields = """  "pulse_score": целое_число_0_100 (индекс здоровья бизнеса/практики: рост дохода, стабильность потока клиентов, дисциплина выполнения шагов — взвешенная оценка),
   "pulse_trend": "up" | "down" | "flat",
@@ -1394,7 +1457,7 @@ def call_podelam_analytics_ai(profile: dict, agg: dict, role: str, specializatio
         "priority": "high" | "medium" | "low"
       }
     ],
-    "own_resources_note": "если в audience_context видно, что есть недоиспользуемый свой ресурс (соцсеть/сайт без регулярной активности) — короткая рекомендация об этом, иначе null",
+    "own_resources_note": "если видно недоиспользуемый ресурс (в my_resources статус connected=false, или connected=true но давно без активности) — короткая рекомендация об этом, иначе null",
     "top3_channels_today": ["название канала №1 — с чего начать", "канал №2", "канал №3"],
     "what_not_to_do": "иногда полезно сказать, что НЕ стоит делать сейчас и почему (например не распылять на новый канал, пока не используется существующая база) — или null"
   }"""
@@ -1407,7 +1470,33 @@ def call_podelam_analytics_ai(profile: dict, agg: dict, role: str, specializatio
 Каналы трафика (traffic_channels) выбирай ТОЛЬКО из списка allowed_traffic_sources в user payload — это единственные
 проверенные и разрешённые в РФ площадки для этой категории пользователя. Если список пуст — верни traffic_channels: [].
 Не рекомендуй дорогой платный канал (is_paid=true), если экономика услуги пользователя (средний чек, доход) этого не позволяет.
-top3_channels_today — не более 3 приоритетных направлений, с которых стоит начать именно сейчас."""
+top3_channels_today — не более 3 приоритетных направлений, с которых стоит начать именно сейчас.
+
+ВАЖНО про my_resources (личный чек-лист пользователя, ЧТО он реально подключил, со ссылками) — это НЕ то же самое,
+что allowed_traffic_sources (общий справочник площадок): my_resources — статус конкретного человека.
+Если ресурс уже connected=true — НЕ советуй "завести" его снова, вместо этого предложи, ЧТО конкретно там разместить
+или как улучшить (used url можно упомянуть в what_to_post/why_fits, если это уместно). Если ресурс connected=false
+и он входит в top3_channels_today или явно приоритетен для этой ЦА — прямо предложи его подключить в main_action
+или extra_actions."""
+
+    resources_line = ""
+    if resources:
+        connected = [r for r in resources if r.get("connected")]
+        not_connected = [r for r in resources if not r.get("connected")]
+        if connected or not_connected:
+            resources_line = (
+                f"\n\nСТАТУС РЕСУРСОВ ПОЛЬЗОВАТЕЛЯ (my_resources в user payload): уже подключено — "
+                f"{', '.join(r['resource_key'] for r in connected) or 'ничего'}; ещё НЕ подключено — "
+                f"{', '.join(r['resource_key'] for r in not_connected) or 'всё подключено'}. "
+                "Не советуй заводить то, что уже подключено — предлагай, что там размещать, или предлагай подключить то, чего нет."
+            )
+
+    recent_actions_line = ""
+    if recent_done_actions:
+        recent_actions_line = (
+            "\n\nПОЛЬЗОВАТЕЛЬ УЖЕ ВЫПОЛНИЛ эти рекомендации Пульса ранее (не повторяй их дословно, предложи следующий "
+            f"логичный шаг): {'; '.join(recent_done_actions[:15])}"
+        )
 
     system_prompt = f"""Ты — аналитик-консультант платформы «Промт Диалог», раздел «ПоДелам». Тебе дан \
 УЖЕ ПОДГОТОВЛЕННЫЙ агрегированный контекст показателей специалиста за разные периоды (7/14/30/90 дней) — \
@@ -1415,6 +1504,8 @@ top3_channels_today — не более 3 приоритетных направ�
 не нужно, цифры уже точные — не изменяй факты и не придумывай показателей, которых нет в контексте.
 
 {domain_line}
+
+{personalization_line}{resources_line}{recent_actions_line}
 
 Твоя задача — вернуть СТРОГО JSON без markdown-обёртки:
 {{
@@ -1430,8 +1521,10 @@ top3_channels_today — не более 3 приоритетных направ�
         "target_revenue": float(profile["target_revenue"]),
         "current_revenue_at_diagnostic": float(profile["current_revenue"]),
         "conversion_rate": profile.get("conversion_rate"),
+        "personal_goals": goal_labels,
         "periods": agg["periods"],
         "changes": agg["changes"],
+        "my_resources": resources or [],
     }
     if include_audience_map:
         user_payload["audience_context"] = audience_context or {}
@@ -1536,6 +1629,8 @@ def handle_podelam_analytics(event: dict, conn) -> dict:
     include_audience_map = bool(package.get("has_deep_analysis"))
     audience_context = None
     traffic_sources = None
+    resources = _get_user_resources(conn, user["id"])
+    recent_done_actions = _get_recent_pulse_actions(conn, user["id"])
     if include_audience_map:
         audience_category = _audience_category(role, user.get("specialization"))
         audience_context = _get_salon_audience_context(conn, user.get("salon_id"))
@@ -1544,7 +1639,8 @@ def handle_podelam_analytics(event: dict, conn) -> dict:
     ai_result = call_podelam_analytics_ai(
         dict(profile), agg, role, specialization=user.get("specialization"),
         audience_context=audience_context, traffic_sources=traffic_sources,
-        include_audience_map=include_audience_map,
+        include_audience_map=include_audience_map, resources=resources,
+        recent_done_actions=recent_done_actions,
     )
 
     if ai_result:

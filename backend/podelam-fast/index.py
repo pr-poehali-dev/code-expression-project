@@ -18,6 +18,18 @@ POST ?action=podelam_task_done    — отметить дело выполнен
 GET  ?action=podelam_stats        — статистика выполненных дел, дохода и новых/вернувшихся клиентов за неделю/месяц (X-Session-Id)
 POST ?action=podelam_set_income   — прибавить фактический доход за день и опционально кол-во новых/вернувшихся клиентов
                                       (amount, опц. new_clients, returned_clients, date, mode="add"|"replace") (X-Session-Id)
+GET  ?action=podelam_resources_get  — постоянный чек-лист «Мои ресурсы» (Яндекс Бизнес/Карты, сайт, соцсети и т.п.,
+                                      см. RESOURCE_DEFS) — статус подключён/не подключён + опциональная ссылка на профиль.
+                                      Не привязан к конкретному дню/плану — используется «Пульсом бизнеса», чтобы ИИ не
+                                      советовал завести то, что уже подключено, и подсказывал, что размещать там, где
+                                      пользователь уже присутствует (X-Session-Id).
+POST ?action=podelam_resources_save — сохранить статус ресурса: {resource_key, connected, url?, note?} (X-Session-Id)
+POST ?action=podelam_pulse_action_done — отметить рекомендацию «Пульса бизнеса» (главное действие/доп. рекомендацию/
+                                      канал из карты привлечения клиентов) выполненной — {action_key, action_text} (X-Session-Id).
+                                      Ключ действия и текст сохраняются вместе, т.к. Пульс пересчитывается раз в сутки
+                                      и не имеет постоянных task_key как обычный план дня — ИИ получает историю по тексту.
+GET  ?action=podelam_pulse_actions_done — список action_key уже отмеченных выполненными рекомендаций Пульса (для
+                                      восстановления состояния кнопок "Выполнено" после перезагрузки страницы) (X-Session-Id)
 """
 import json
 import os
@@ -26,6 +38,21 @@ import psycopg2
 import psycopg2.extras
 
 SCHEMA = "t_p84565078_code_expression_proj"
+
+# «Мои ресурсы» — фиксированный список площадок, которые пользователь может отметить как
+# подключённые (со ссылкой на свой профиль/страницу). Общий список для всех, фронт показывает
+# только те, что подходят категории пользователя (см. categories аналогично traffic_sources).
+RESOURCE_DEFS = [
+    {"key": "yandex_maps",   "label": "Яндекс Карты / Яндекс Бизнес", "categories": ["salon", "solo_master"]},
+    {"key": "yandex_search", "label": "Сайт (для поиска в Яндексе)",  "categories": ["salon", "solo_master", "psychologist", "body_psychologist"]},
+    {"key": "vk",            "label": "VK",                           "categories": ["salon", "solo_master", "psychologist", "body_psychologist"]},
+    {"key": "telegram",      "label": "Telegram-канал",                "categories": ["salon", "solo_master", "psychologist", "body_psychologist"]},
+    {"key": "instagram",     "label": "Instagram*",                    "categories": ["salon", "solo_master", "psychologist", "body_psychologist"]},
+    {"key": "dzen",          "label": "Дзен",                          "categories": ["salon", "solo_master", "psychologist", "body_psychologist"]},
+    {"key": "yandex_uslugi", "label": "Яндекс Услуги",                 "categories": ["salon", "solo_master"]},
+    {"key": "profi_ru",      "label": "Профи.ру",                      "categories": ["solo_master", "psychologist", "body_psychologist"]},
+    {"key": "b17",           "label": "B17.ru",                        "categories": ["psychologist", "body_psychologist"]},
+]
 
 CORS = {
     "Access-Control-Allow-Origin": "*",
@@ -219,6 +246,120 @@ def handle_podelam_set_income(event: dict, conn) -> dict:
     })
 
 
+def handle_podelam_resources_get(event: dict, conn) -> dict:
+    """Чек-лист «Мои ресурсы»: фиксированный список площадок (RESOURCE_DEFS) + сохранённый
+    статус пользователя (подключён/нет, ссылка). Площадки без сохранённой записи возвращаются
+    со значением connected=false — фронт всегда получает полный список, а не только то, что
+    пользователь уже сохранил."""
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+    if not session_id:
+        return err("Не авторизован", 401)
+    user = get_lk_user_by_session(session_id, conn)
+    if not user:
+        return err("Сессия истекла", 401)
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(
+        f"SELECT resource_key, connected, url, note FROM {SCHEMA}.podelam_resources WHERE user_id=%s",
+        (user["id"],)
+    )
+    saved = {r["resource_key"]: r for r in cur.fetchall()}
+
+    resources = []
+    for d in RESOURCE_DEFS:
+        s = saved.get(d["key"])
+        resources.append({
+            "key": d["key"], "label": d["label"], "categories": d["categories"],
+            "connected": bool(s["connected"]) if s else False,
+            "url": s["url"] if s else None,
+            "note": s["note"] if s else None,
+        })
+    return ok({"resources": resources})
+
+
+def handle_podelam_resources_save(event: dict, conn) -> dict:
+    """Сохраняет статус одного ресурса (подключён/не подключён, опциональная ссылка/заметка)."""
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+    if not session_id:
+        return err("Не авторизован", 401)
+    user = get_lk_user_by_session(session_id, conn)
+    if not user:
+        return err("Сессия истекла", 401)
+
+    body = json.loads(event.get("body") or "{}")
+    resource_key = (body.get("resource_key") or "").strip()
+    if not resource_key or resource_key not in {d["key"] for d in RESOURCE_DEFS}:
+        return err("Некорректный ресурс")
+    connected = bool(body.get("connected", True))
+    url = (body.get("url") or "").strip()[:500] or None
+    note = (body.get("note") or "").strip()[:300] or None
+
+    cur = conn.cursor()
+    cur.execute(
+        f"""INSERT INTO {SCHEMA}.podelam_resources (user_id, resource_key, connected, url, note, updated_at)
+            VALUES (%s,%s,%s,%s,%s,NOW())
+            ON CONFLICT (user_id, resource_key) DO UPDATE SET
+                connected=EXCLUDED.connected, url=EXCLUDED.url, note=EXCLUDED.note, updated_at=NOW()""",
+        (user["id"], resource_key, connected, url, note)
+    )
+    conn.commit()
+    return ok({"ok": True})
+
+
+def handle_podelam_pulse_action_done(event: dict, conn) -> dict:
+    """Отмечает рекомендацию «Пульса бизнеса» (главное действие/доп. рекомендацию/канал из
+    карты привлечения клиентов) выполненной. action_key — стабильный короткий хэш текста
+    рекомендации (считается на фронте), чтобы одна и та же рекомендация не задваивалась в логе,
+    если ИИ вернул её снова в следующем пересчёте."""
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+    if not session_id:
+        return err("Не авторизован", 401)
+    user = get_lk_user_by_session(session_id, conn)
+    if not user:
+        return err("Сессия истекла", 401)
+
+    body = json.loads(event.get("body") or "{}")
+    action_key = (body.get("action_key") or "").strip()[:64]
+    action_text = (body.get("action_text") or "").strip()[:1000]
+    if not action_key or not action_text:
+        return err("Нужны action_key и action_text")
+    done = bool(body.get("done", True))
+
+    cur = conn.cursor()
+    if done:
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.podelam_pulse_action_log (user_id, action_key, action_text, done)
+                VALUES (%s,%s,%s,TRUE)
+                ON CONFLICT (user_id, action_key) DO UPDATE SET done=TRUE, action_text=EXCLUDED.action_text""",
+            (user["id"], action_key, action_text)
+        )
+    else:
+        cur.execute(
+            f"DELETE FROM {SCHEMA}.podelam_pulse_action_log WHERE user_id=%s AND action_key=%s",
+            (user["id"], action_key)
+        )
+    conn.commit()
+    return ok({"ok": True})
+
+
+def handle_podelam_pulse_actions_done(event: dict, conn) -> dict:
+    """Список action_key уже отмеченных выполненными рекомендаций Пульса — фронт восстанавливает
+    состояние кнопок "Выполнено" после перезагрузки страницы."""
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+    if not session_id:
+        return err("Не авторизован", 401)
+    user = get_lk_user_by_session(session_id, conn)
+    if not user:
+        return err("Сессия истекла", 401)
+
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT action_key FROM {SCHEMA}.podelam_pulse_action_log WHERE user_id=%s AND done=TRUE",
+        (user["id"],)
+    )
+    return ok({"done_keys": [r[0] for r in cur.fetchall()]})
+
+
 def _compute_period_stats(conn, user_id: int, days: int) -> dict:
     """Считает статистику по выполненным делам и потенциалу/факту за последние N дней."""
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -305,6 +446,14 @@ def handler(event: dict, context) -> dict:
             return handle_podelam_stats(event, conn)
         if route_action == "podelam_set_income":
             return handle_podelam_set_income(event, conn)
+        if route_action == "podelam_resources_get":
+            return handle_podelam_resources_get(event, conn)
+        if route_action == "podelam_resources_save":
+            return handle_podelam_resources_save(event, conn)
+        if route_action == "podelam_pulse_action_done":
+            return handle_podelam_pulse_action_done(event, conn)
+        if route_action == "podelam_pulse_actions_done":
+            return handle_podelam_pulse_actions_done(event, conn)
 
         return err("Неизвестное действие", 404)
     finally:

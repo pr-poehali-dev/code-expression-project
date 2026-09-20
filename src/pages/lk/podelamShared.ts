@@ -271,6 +271,25 @@ export interface PodelamAnalyticsResponse {
   cached?: boolean;
 }
 
+// ── «Мои ресурсы» — постоянный чек-лист площадок (для карточки «Пульс бизнеса») ────────────
+export interface PodelamResource {
+  key: string;
+  label: string;
+  categories: string[];
+  connected: boolean;
+  url: string | null;
+  note: string | null;
+}
+
+// Простой стабильный хэш текста рекомендации — ключ для отметки выполнения (без зависимостей).
+export function hashActionText(text: string): string {
+  let h = 0;
+  for (let i = 0; i < text.length; i++) {
+    h = (h * 31 + text.charCodeAt(i)) | 0;
+  }
+  return "a" + Math.abs(h).toString(36);
+}
+
 export function fmt(n: number) {
   return Math.round(n).toLocaleString("ru-RU");
 }
