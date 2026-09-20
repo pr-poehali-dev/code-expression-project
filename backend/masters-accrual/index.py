@@ -118,6 +118,34 @@ PODELAM_TOOL_KEY = "podelam_daily_plan"
 PODELAM_COST_SALON = 3   # владелец/администратор салона (owner/admin)
 PODELAM_COST_MASTER = 1  # мастер-одиночка и остальные роли
 
+# ── Бесплатный пробный период ПоДелам ────────────────────────────────────────
+# Первые 30 дней с момента регистрации шаги ПоДелам доступны бесплатно (с учётом обычной
+# логики энергии ниже — первый план бесплатен всегда, дальше по энергии/лимиту пакета).
+# По истечении 30 дней доступ к построению НОВОГО плана на день требует любого активного
+# платного пакета (в т.ч. минимального «Шаги ПоДелам» — code='steps'), иначе баланс энергии
+# больше не спасает — построение полностью блокируется до оплаты (см. trial_expired в ответе).
+TRIAL_DAYS = 30
+
+
+def get_trial_status(created_at) -> dict:
+    now = datetime.now(timezone.utc)
+    created = created_at if created_at.tzinfo else created_at.replace(tzinfo=timezone.utc)
+    trial_ends_at = created + timedelta(days=TRIAL_DAYS)
+    return {
+        "trial_active": now < trial_ends_at,
+        "trial_ends_at": trial_ends_at,
+        "days_left": max(0, (trial_ends_at - now).days),
+    }
+
+
+def has_any_active_package(conn, user_id: int) -> bool:
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT 1 FROM {SCHEMA}.user_packages WHERE user_id=%s AND status='active' AND expires_at > NOW() LIMIT 1",
+        (user_id,)
+    )
+    return cur.fetchone() is not None
+
 
 def get_salon_balance(conn, salon_id: int) -> int:
     cur = conn.cursor()
@@ -127,9 +155,12 @@ def get_salon_balance(conn, salon_id: int) -> int:
 
 
 def package_covers_usage(conn, user_id: int) -> bool:
-    """Если у пользователя активен пакет развития и суточный лимит использований (общий на
-    все инструменты, скользящее окно 24ч) не исчерпан — использование бесплатное, логируем
-    и возвращаем True (энергия при этом не списывается)."""
+    """Если у пользователя активен ЛЮБОЙ пакет развития (включая минимальный «Шаги ПоДелам»,
+    у которого daily_limit_per_tool=0 — это поле относится к ДРУГИМ инструментам, не к самому
+    построению плана дня) — построение плана на сегодня бесплатное. Лимит показов в сутки для
+    самого ПоДелам берём как max(1, daily_limit_per_tool), чтобы пакет с нулевым лимитом всё
+    равно покрывал свою прямую задачу — 1 раз в сутки. Логируем использование и возвращаем True
+    (энергия при этом не списывается)."""
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
         f"""SELECT pp.daily_limit_per_tool FROM {SCHEMA}.user_packages up
@@ -141,13 +172,14 @@ def package_covers_usage(conn, user_id: int) -> bool:
     pkg = cur.fetchone()
     if not pkg:
         return False
+    limit = max(1, pkg["daily_limit_per_tool"])
     cur2 = conn.cursor()
     cur2.execute(
         f"SELECT COUNT(*) FROM {SCHEMA}.tool_usage_log WHERE user_id=%s AND tool_key=%s AND used_at > NOW() - INTERVAL '24 hours'",
         (user_id, PODELAM_TOOL_KEY)
     )
     used = cur2.fetchone()[0] or 0
-    if used >= pkg["daily_limit_per_tool"]:
+    if used >= limit:
         return False
     cur2.execute(f"INSERT INTO {SCHEMA}.tool_usage_log (user_id, tool_key) VALUES (%s,%s)", (user_id, PODELAM_TOOL_KEY))
     conn.commit()
@@ -917,12 +949,37 @@ def handle_podelam_get(event: dict, conn) -> dict:
         "Регулярные небольшие шаги дают самый устойчивый рост дохода."
     )
 
+    # Бесплатный пробный период ПоДелам — 30 дней с момента регистрации. Если он истёк и
+    # нет ни одного активного платного пакета (в т.ч. минимального «Шаги ПоДелам») — построение
+    # НОВОГО плана на день блокируется полностью (не помогает даже энергия), пользователь видит
+    # экран предложения оплатить. Уже построенный СЕГОДНЯ план продолжает открываться свободно.
+    trial = get_trial_status(user["created_at"])
     today = date.today()
     cur.execute(
-        f"SELECT * FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s AND plan_date = %s",
+        f"SELECT 1 FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s AND plan_date = %s",
         (user["id"], today)
     )
-    plan_row = cur.fetchone()
+    plan_exists_today = cur.fetchone() is not None
+    if not trial["trial_active"] and not plan_exists_today and not has_any_active_package(conn, user["id"]):
+        return ok({
+            "has_profile": True,
+            "profile": dict(profile),
+            "growth_points": fallback_points,
+            "gap_amount": gap,
+            "plan": None,
+            "task_log": {},
+            "today_income": None,
+            "trial_expired": True,
+            "salon_profile_filled": salon_profile_filled,
+        })
+
+    plan_row = None
+    if plan_exists_today:
+        cur.execute(
+            f"SELECT * FROM {SCHEMA}.podelam_daily_plans WHERE user_id = %s AND plan_date = %s",
+            (user["id"], today)
+        )
+        plan_row = cur.fetchone()
     if not plan_row:
         # Первый ли это план вообще у пользователя — если раньше планов не было, ИИ сперва
         # предложит изучить ЦА и собрать офферы, прежде чем звать публиковать контент. ПЕРВЫЙ
@@ -1142,6 +1199,12 @@ def handle_podelam_get(event: dict, conn) -> dict:
             for g in salon_goals
         ]
 
+    # Показываем плашку "пробный период скоро закончится" за 3 дня до конца — только если
+    # активного пакета ещё нет (иначе он уже покрывает шаги, беспокоиться не о чем).
+    trial_warning = None
+    if trial["trial_active"] and trial["days_left"] <= 3 and not has_any_active_package(conn, user["id"]):
+        trial_warning = {"days_left": trial["days_left"], "trial_ends_at": trial["trial_ends_at"]}
+
     return ok({
         "has_profile": True,
         "profile": dict(profile),
@@ -1149,6 +1212,7 @@ def handle_podelam_get(event: dict, conn) -> dict:
         "gap_amount": gap,
         "plan": plan,
         "task_log": log,
+        "trial_warning": trial_warning,
         "today_income": today_income,
         "today_new_clients": today_new_clients,
         "today_returned_clients": today_returned_clients,

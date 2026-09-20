@@ -197,6 +197,8 @@ export interface PodelamData {
   energy_insufficient?: boolean;
   energy_balance?: number;
   energy_needed?: number;
+  trial_expired?: boolean;
+  trial_warning?: { days_left: number; trial_ends_at: string } | null;
 }
 
 export interface PeriodStats {

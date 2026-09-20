@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useEnergy } from "@/contexts/EnergyContext";
+import { usePackageUsage } from "@/contexts/PackageUsageContext";
 import Icon from "@/components/ui/icon";
 import { ACCENT, ACCENT_DARK } from "./LkDashboardTypes";
 import { isPodelamSeenToday, PODELAM_SEEN_EVENT } from "./podelamNotice";
@@ -113,6 +114,47 @@ export function PodelamReminderBanner({ onNav }: { onNav: (t: string) => void })
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Тонкая полоса-предупреждение: бесплатный период ПоДелам скоро закончится ──
+// Показывается за 3 дня до конца 30-дневного бесплатного периода (и пока он не истёк совсем —
+// после истечения пользователь и так упрётся в экран оплаты внутри самого ПоДелам).
+// Ненавязчива, видна на всех вкладках ЛК, не перекрывает контент, можно закрыть до конца сессии.
+export function PodelamTrialBanner({ onNav }: { onNav: (t: string) => void }) {
+  const { podelamTrial } = usePackageUsage();
+  const [dismissed, setDismissed] = useState(false);
+
+  if (!podelamTrial || !podelamTrial.show_warning || !podelamTrial.trial_active || dismissed) return null;
+
+  const days = podelamTrial.days_left;
+  const dayLabel = days === 1 ? "1 день" : days === 0 ? "сегодня" : `${days} дня`;
+
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
+      background: "linear-gradient(90deg, hsl(40,95%,52%), hsl(30,90%,50%))",
+      color: "#fff", padding: "12px 18px", fontSize: 12.5, fontWeight: 600,
+      borderRadius: 12, marginBottom: 20,
+    }}>
+      <Icon name="Clock" size={15} style={{ flexShrink: 0 }} />
+      <span style={{ flex: 1, minWidth: 200 }}>
+        Бесплатный период ПоДелам заканчивается через {dayLabel}. Оплатите заранее, чтобы не потерять шаги и не начинать с начала.
+      </span>
+      <button
+        onClick={() => onNav("packages")}
+        style={{ flexShrink: 0, background: "rgba(255,255,255,0.2)", border: "none", borderRadius: 8, padding: "7px 16px", color: "#fff", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif", whiteSpace: "nowrap" }}
+      >
+        Оплатить
+      </button>
+      <button
+        onClick={() => setDismissed(true)}
+        aria-label="Закрыть"
+        style={{ flexShrink: 0, background: "none", border: "none", color: "rgba(255,255,255,0.85)", cursor: "pointer", padding: 4, display: "flex" }}
+      >
+        <Icon name="X" size={15} />
+      </button>
     </div>
   );
 }

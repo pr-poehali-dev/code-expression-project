@@ -15,6 +15,7 @@ export interface LkUser {
   email: string;
   is_admin: boolean;
   access_expires_at: string | null;
+  created_at: string;
   segment: "specialist" | "salon";
   role: "owner" | "admin" | "master" | "body_specialist" | "solo_master";
   specialization: "psychologist" | "body_psychologist" | null;

@@ -17,7 +17,7 @@ import { PodelamTab } from "./LkPodelam";
 import LkPackages from "./LkPackages";
 import LkChampionship from "./LkChampionship";
 import LkReferral from "./LkReferral";
-import { LkSidebar, LkMobileHeader, LkBottomBar, PodelamReminderBanner } from "./LkDashboardSidebar";
+import { LkSidebar, LkMobileHeader, LkBottomBar, PodelamReminderBanner, PodelamTrialBanner } from "./LkDashboardSidebar";
 import { isFittingTrial } from "@/lib/fittingTrial";
 import {
   Tab, BG, NAV_ITEMS, MOBILE_PRIMARY, SALON_REQUIRED,
@@ -107,6 +107,7 @@ export default function LkDashboard() {
       {tab !== "home" && <PodelamReminderBanner onNav={handleTabChange} />}
 
       <main className="lk-main">
+        {tab !== "packages" && <PodelamTrialBanner onNav={handleTabChange} />}
         {tab === "home"      && <PodelamTab onNav={handleTabChange} />}
         {tab === "packages"  && <LkPackages onNav={handleTabChange} />}
         {tab === "tools"     && <LkTests onNavigate={handleTabChange} />}

@@ -15,6 +15,7 @@ interface ToolUsage { tool_key: string; name: string; used: number; limit: numbe
 const PERIOD_LABELS: Record<number, string> = { 1: "1 месяц", 3: "3 месяца", 6: "6 месяцев", 12: "12 месяцев" };
 
 const PLAN_COLORS: Record<string, { color: string; bg: string; border: string }> = {
+  steps:  { color: "#64748B", bg: "#F1F5F9", border: "#CBD5E1" },
   start:  { color: "hsl(185,85%,32%)", bg: "hsl(185,85%,96%)", border: "hsl(185,85%,80%)" },
   growth: { color: "hsl(280,60%,50%)", bg: "hsl(280,60%,96%)", border: "hsl(280,60%,80%)" },
   pro:    { color: "hsl(40,90%,42%)",  bg: "hsl(40,90%,96%)",  border: "hsl(40,90%,78%)" },
@@ -27,6 +28,18 @@ const FEATURES = [
   "Анализ динамики за 7/14/30/90 дней",
   "Персональные рекомендации",
   "Все ИИ-инструменты платформы",
+];
+
+// «Шаги ПоДелам» — минимальный тариф: только продление ежедневных шагов после бесплатного
+// периода, без расширенной аналитики и без лимита на другие инструменты (в отличие от
+// start/growth/pro/max, которые дают ВСЁ это разом).
+const STEPS_FEATURES = [
+  "Ежедневные шаги и диагностика ПоДелам",
+  "Продолжение истории и прогресса — ничего не сбрасывается",
+];
+const STEPS_NOT_INCLUDED = [
+  "Ежедневный ИИ-анализ (Пульс бизнеса)",
+  "Лимит бесплатных использований других инструментов",
 ];
 
 const FREE_INCLUDED = [
@@ -68,7 +81,7 @@ export default function LkPackages({ onNav }: { onNav?: (t: string) => void }) {
 
   useEffect(() => { load(); loadUsage(); }, []);
 
-  const handleBuy = async (code: string) => {
+  const handleBuy = async (code: string, periodMonths: number = period) => {
     setPaying(code);
     try {
       const res = await fetch(`${PACKAGES_URL}?action=package_create_payment`, {
@@ -76,7 +89,7 @@ export default function LkPackages({ onNav }: { onNav?: (t: string) => void }) {
         headers: { "Content-Type": "application/json", "X-Session-Id": sid() },
         body: JSON.stringify({
           plan_code: code,
-          period_months: period,
+          period_months: periodMonths,
           enable_autorenew: !!autorenew[code],
           return_url: window.location.href,
         }),
@@ -93,8 +106,6 @@ export default function LkPackages({ onNav }: { onNav?: (t: string) => void }) {
       setPaying(null);
     }
   };
-
-  const priceFor = (plan: Plan) => plan.prices.find(p => p.period_months === period);
 
   if (loading) {
     return (
@@ -263,11 +274,16 @@ export default function LkPackages({ onNav }: { onNav?: (t: string) => void }) {
         </div>
 
         {plans.map((plan) => {
+          const isSteps = plan.code === "steps";
           const c = PLAN_COLORS[plan.code] || PLAN_COLORS.start;
-          const price = priceFor(plan);
+          // «Шаги ПоДелам» — фиксированный период 1 месяц независимо от общего переключателя,
+          // у остальных тарифов цена берётся по выбранному периоду.
+          const planPeriod = isSteps ? 1 : period;
+          const price = plan.prices.find(p => p.period_months === planPeriod);
           const isPopular = plan.code === "growth";
           const isActivePlan = active?.plan_code === plan.code;
-          const monthlyEq = price ? Math.round(price.price_rub / period) : 0;
+          const monthlyEq = price ? Math.round(price.price_rub / planPeriod) : 0;
+          const features = isSteps ? STEPS_FEATURES : FEATURES;
           return (
             <div key={plan.code} style={{
               background: isPopular ? `linear-gradient(160deg, ${c.bg}, #fff)` : "#fff",
@@ -294,20 +310,33 @@ export default function LkPackages({ onNav }: { onNav?: (t: string) => void }) {
                 </div>
               </div>
               <div style={{ fontSize: 12, color: "#94A3B8", marginBottom: 16 }}>
-                {period === 1 ? "в месяц" : `за ${PERIOD_LABELS[period].toLowerCase()} · ≈${monthlyEq.toLocaleString("ru-RU")} ₽/мес`}
+                {planPeriod === 1 ? "в месяц" : `за ${PERIOD_LABELS[planPeriod].toLowerCase()} · ≈${monthlyEq.toLocaleString("ru-RU")} ₽/мес`}
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, padding: "8px 10px", background: c.bg, borderRadius: 9 }}>
-                <Icon name="Zap" size={14} style={{ color: c.color }} />
-                <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0F172A" }}>{plan.daily_limit_per_tool}×</span>
-                <span style={{ fontSize: 11.5, color: "#64748B" }}>каждый инструмент в сутки</span>
-              </div>
+              {isSteps ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, padding: "8px 10px", background: c.bg, borderRadius: 9 }}>
+                  <Icon name="ListChecks" size={14} style={{ color: c.color }} />
+                  <span style={{ fontSize: 11.5, color: "#64748B" }}>Только продление шагов ПоДелам</span>
+                </div>
+              ) : (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, padding: "8px 10px", background: c.bg, borderRadius: 9 }}>
+                  <Icon name="Zap" size={14} style={{ color: c.color }} />
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0F172A" }}>{plan.daily_limit_per_tool}×</span>
+                  <span style={{ fontSize: 11.5, color: "#64748B" }}>каждый инструмент в сутки</span>
+                </div>
+              )}
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16, flex: 1 }}>
-                {FEATURES.map(f => (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: isSteps ? 10 : 16, flex: 1 }}>
+                {features.map(f => (
                   <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
                     <Icon name="Check" size={13} style={{ color: c.color, flexShrink: 0, marginTop: 2 }} />
                     <span style={{ fontSize: 12, color: "#334155", lineHeight: 1.5 }}>{f}</span>
+                  </div>
+                ))}
+                {isSteps && STEPS_NOT_INCLUDED.map(f => (
+                  <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
+                    <Icon name="X" size={13} style={{ color: "#CBD5E1", flexShrink: 0, marginTop: 2 }} />
+                    <span style={{ fontSize: 12, color: "#94A3B8", lineHeight: 1.5 }}>{f}</span>
                   </div>
                 ))}
               </div>
@@ -328,7 +357,7 @@ export default function LkPackages({ onNav }: { onNav?: (t: string) => void }) {
               </label>
 
               <button
-                onClick={() => handleBuy(plan.code)}
+                onClick={() => handleBuy(plan.code, planPeriod)}
                 disabled={!!paying}
                 style={{
                   width: "100%", padding: "12px", borderRadius: 10, border: "none",

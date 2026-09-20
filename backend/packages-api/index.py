@@ -195,15 +195,20 @@ def handle_package_status(event: dict) -> dict:
     """Текущий активный пакет пользователя + сколько раз сегодня использован каждый инструмент.
     Инструменты категории 'landing' (конструктор лендингов) исключены — это внешний сервис по
     реферальной ссылке, он не расходует энергию и не покрывается пакетом. Генерация видео на 5 и
-    10 секунд считается ОДНИМ общим счётчиком (video_gen_5s + video_gen_10s вместе), а не раздельно."""
+    10 секунд считается ОДНИМ общим счётчиком (video_gen_5s + video_gen_10s вместе), а не раздельно.
+    Дополнительно возвращает podelam_trial — статус бесплатного 30-дневного пробного периода
+    шагов ПоДелам (дублирует расчёт из masters-accrual.get_trial_status — общий код между Cloud
+    Functions недоступен), чтобы плашка-предупреждение об окончании пробного периода могла
+    показываться глобально в личном кабинете, а не только на вкладке «ПоДелам»."""
     conn = get_db()
     try:
         user = get_session_user(event, conn)
         if not user:
             return err("Не авторизован", 401)
+        podelam_trial = _get_podelam_trial_status(conn, user)
         pkg = _get_active_package(conn, user["id"])
         if not pkg:
-            return ok({"has_package": False})
+            return ok({"has_package": False, "podelam_trial": podelam_trial})
         plan = _get_plan_by_code(conn, pkg["plan_code"])
         limit = plan["daily_limit_per_tool"] if plan else 0
         cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -229,9 +234,36 @@ def handle_package_status(event: dict) -> dict:
             "days_left": max(0, days_left),
             "auto_renew": pkg["auto_renew"],
             "usage": usage,
+            "podelam_trial": podelam_trial,
         })
     finally:
         conn.close()
+
+
+PODELAM_TRIAL_DAYS = 30
+
+
+def _get_podelam_trial_status(conn, user: dict) -> dict:
+    """Статус бесплатного 30-дневного пробного периода шагов ПоДелам, считая с даты регистрации.
+    Если у пользователя уже есть активный платный пакет (любой, включая минимальный «Шаги
+    ПоДелам») — предупреждение показывать не нужно, он уже оплатил продолжение."""
+    created_at = user.get("created_at")
+    if not created_at:
+        return {"trial_active": True, "days_left": PODELAM_TRIAL_DAYS, "show_warning": False}
+    now = datetime.now(timezone.utc)
+    created = created_at if created_at.tzinfo else created_at.replace(tzinfo=timezone.utc)
+    trial_ends_at = created + timedelta(days=PODELAM_TRIAL_DAYS)
+    trial_active = now < trial_ends_at
+    days_left = max(0, (trial_ends_at - now).days)
+    has_package = _get_active_package(conn, user["id"]) is not None
+    return {
+        "trial_active": trial_active,
+        "days_left": days_left,
+        "trial_ends_at": trial_ends_at,
+        # Плашка показывается только за 3 дня до конца (или после конца), и только если
+        # пользователь ещё не купил ни один платный пакет.
+        "show_warning": (not has_package) and (days_left <= 3),
+    }
 
 
 def check_package_tool_limit(conn, user_id: int, tool_key: str) -> tuple[bool, int, int | None]:

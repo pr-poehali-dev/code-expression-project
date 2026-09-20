@@ -4,6 +4,6 @@
 // - LkSidebarShared.tsx — общие хуки/виджеты (напоминание «ПоДелам», баланс энергии)
 // - LkSidebarDesktop.tsx — боковой сайдбар (десктоп)
 // - LkSidebarMobile.tsx  — мобильный хедер и нижняя панель навигации
-export { PodelamReminderBanner, EnergyBadge } from "./LkSidebarShared";
+export { PodelamReminderBanner, PodelamTrialBanner, EnergyBadge } from "./LkSidebarShared";
 export { LkSidebar } from "./LkSidebarDesktop";
 export { LkMobileHeader, LkBottomBar } from "./LkSidebarMobile";

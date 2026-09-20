@@ -135,6 +135,29 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
     return <DiagnosticForm onSaved={() => { setEditing(false); load(); }} />;
   }
 
+  if (data.trial_expired) {
+    return (
+      <div style={{ maxWidth: 480, margin: "60px auto", textAlign: "center", padding: "0 20px" }}>
+        <div style={{ width: 56, height: 56, borderRadius: 16, background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+          <Icon name="CalendarClock" size={26} style={{ color: "#fff" }} />
+        </div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A", marginBottom: 8 }}>
+          Бесплатный период ПоДелам закончился
+        </div>
+        <div style={{ fontSize: 13.5, color: "#64748B", lineHeight: 1.6, marginBottom: 24 }}>
+          30 дней бесплатного доступа к ежедневным шагам истекли. Оформите тариф «Шаги ПоДелам» за 1 290 ₽/мес,
+          чтобы продолжить получать план на день, — вся история и прогресс сохранены и не потеряются.
+        </div>
+        <button
+          onClick={() => onNav("packages")}
+          style={{ padding: "12px 28px", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
+        >
+          Оформить тариф
+        </button>
+      </div>
+    );
+  }
+
   if (data.energy_insufficient) {
     return (
       <div style={{ maxWidth: 480, margin: "60px auto", textAlign: "center", padding: "0 20px" }}>
