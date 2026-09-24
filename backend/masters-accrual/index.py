@@ -5,7 +5,7 @@
 ИИ-операции, которым нужен большой таймаут. Раньше всё жило в одной функции — из-за завышенного
 таймаута (60-100с) даже мгновенные запросы (открыть кабинет, отметить дело) тарифицировались по
 цене долгих ИИ-действий, это и разделили.
-GET  ?action=podelam_get           — профиль дохода + план на сегодня, план строит ИИ (модель terra через polza.ai) (X-Session-Id).
+GET  ?action=podelam_get           — профиль дохода + план на сегодня, план строит ИИ (модель GPT-4.1 через polza.ai) (X-Session-Id).
                                        Для владельцев/администраторов салона с заполненным «Мой салон» (указаны средний чек и
                                        выручка) дополнительно подмешиваются реальные данные салона и сотрудников (salon_staff),
                                        с ротацией фокус-сотрудника по дням — сегодня один специалист, завтра другой. Пока «Мой
@@ -570,9 +570,9 @@ def build_salon_context(conn, salon_id: int, day_seed: int) -> dict | None:
     }
 
 
-# ── Генерация плана «ПоДелам» через ИИ (модель terra, polza.ai) ────────────
+# ── Генерация плана «ПоДелам» через ИИ (модель GPT-4.1, polza.ai) ────────────
 
-PODELAM_MODEL = "openai/gpt-5.6-terra"
+PODELAM_MODEL = "openai/gpt-4.1"
 PODELAM_AI_URL = "https://polza.ai/api/v1/chat/completions"
 
 # Разделы ЛК, куда ИИ может направить пользователя для выполнения дела
@@ -833,7 +833,7 @@ def call_podelam_ai(profile: dict, gap: float, role: str = "", courses: list | N
                      yesterday_tasks: list | None = None, salon_context: dict | None = None,
                      is_first_plan: bool = False, recent_content_topics: list | None = None,
                      yesterday_result: dict | None = None, specialization: str | None = None) -> dict | None:
-    """Запрашивает у модели terra (polza.ai) персональный план роста дохода. Возвращает None при ошибке.
+    """Запрашивает у модели GPT-4.1 (polza.ai) персональный план роста дохода. Возвращает None при ошибке.
     specialization — "psychologist"/"body_psychologist" для частной практики психолога (другая терминология
     и логика точек роста, см. PODELAM_PSYCH_MODE_PROMPT), None/иное — обычный режим мастера/салона."""
     api_key = os.environ.get("POLZA_AI_API_KEY", "")
