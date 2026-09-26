@@ -65,7 +65,7 @@ export default function IndexHero() {
             </div>
 
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(38px,5vw,64px)", fontWeight: 500, color: "#fff", lineHeight: 1.08, margin: "0 0 24px", letterSpacing: "-0.5px" }}>
-              Рост дохода для специалистов и команд
+              Маркетинг, который понимает ваш бизнес
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 28px", fontWeight: 300, maxWidth: 520 }}>
               «ПоДелам» анализирует доход, цену услуги, базу клиентов, загрузку — показывает действия на результат:
