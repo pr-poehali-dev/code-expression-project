@@ -46,6 +46,9 @@ export default function Index() {
         }
         @media (max-width: 520px) {
           .tarif-cards-grid { grid-template-columns: 1fr !important; }
+          .hero-h1 { font-size: 30px !important; line-height: 1.18 !important; }
+          .hero-subtitle { font-size: 14px !important; line-height: 1.55 !important; }
+          .hero-subtitle-break { display: none; }
         }
       `}</style>
     </div>

@@ -64,11 +64,11 @@ export default function IndexHero() {
               <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", lineHeight: 1 }}>AI-навигатор «ПоДелам»</span>
             </div>
 
-            <h1 style={{ fontFamily: SERIF, fontSize: "clamp(38px,5vw,64px)", fontWeight: 500, color: "#fff", lineHeight: 1.08, margin: "0 0 24px", letterSpacing: "-0.5px" }}>
+            <h1 className="hero-h1" style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,64px)", fontWeight: 500, color: "#fff", lineHeight: 1.12, margin: "0 0 20px", letterSpacing: "-0.5px" }}>
               Маркетинг, который понимает ваш бизнес
             </h1>
-            <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 28px", fontWeight: 300, maxWidth: 520 }}>
-              Для салонов, частных специалистов и практиков — от мастеров и массажистов до психологов. <br />
+            <p className="hero-subtitle" style={{ fontSize: "clamp(14.5px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.6, margin: "0 0 28px", fontWeight: 300, maxWidth: 520 }}>
+              Для салонов, частных специалистов и практиков — от мастеров и массажистов до психологов. <br className="hero-subtitle-break" />
               Анализируем вашу ситуацию и подсказываем конкретные маркетинговые шаги для привлечения клиентов и развития бизнеса.
             </p>
 
