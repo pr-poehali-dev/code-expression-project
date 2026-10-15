@@ -1,7 +1,7 @@
 """
-Медиапланировщик для Яндекс.Директ.
+Медиапланировщик для контекстной рекламы.
 ИИ рассчитывает ДРР, сравнивает стратегии (CPC / CPA / ДРР),
-даёт рекомендацию и прогноз по бюджету — без API Директа,
+даёт рекомендацию и прогноз по бюджету — без API рекламных систем,
 на основе средних показателей beauty-ниши и данных салона.
 Стоимость: 1 энергия.
 """
@@ -105,7 +105,7 @@ def deduct_energy(salon_id, user_id, conn):
     cur.execute(
         f"INSERT INTO {SCHEMA}.credit_transactions (salon_id,user_id,action,amount,tool_key,type) "
         f"VALUES (%s,%s,%s,%s,%s,'debit')",
-        (salon_id, user_id, "Медиаплан Директ", cost, TOOL_KEY)
+        (salon_id, user_id, "Медиаплан контекстной рекламы", cost, TOOL_KEY)
     )
     conn.commit()
     return True, cost
@@ -138,7 +138,7 @@ def build_prompt(salon, services, avg_check: int, target_clients: int, budget: i
         for s in services
     ] if services else ["не указаны"]
 
-    return f"""Ты — эксперт по контекстной рекламе для салонов красоты и велнес в России. Делаешь медиаплан для Яндекс.Директ.
+    return f"""Ты — эксперт по контекстной рекламе для салонов красоты и велнес в России. Делаешь медиаплан для контекстной рекламы.
 
 Данные салона:
 - Название: {salon_name}
@@ -248,7 +248,7 @@ def build_prompt(salon, services, avg_check: int, target_clients: int, budget: i
 
 
 def handler(event: dict, context) -> dict:
-    """Медиаплан для Яндекс.Директ: ДРР, стратегии, прогноз бюджета без API. Стоимость: 1 энергия."""
+    """Медиаплан для контекстной рекламы: ДРР, стратегии, прогноз бюджета без API. Стоимость: 1 энергия."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 

@@ -100,7 +100,7 @@ export default function LkMarketingDashboard({ salonId, onOpenTool }: Props) {
         </div>
       </a>
 
-      {/* Яндекс.Директ */}
+      {/* контекстная реклама */}
       <div style={{ marginBottom: 10, display: "flex", alignItems: "center", gap: 8 }}>
         <Icon name="Target" size={15} style={{ color: ACCENT }} />
         <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>Контекстная реклама</span>

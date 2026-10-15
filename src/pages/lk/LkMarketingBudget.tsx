@@ -58,7 +58,7 @@ export default function LkMarketingBudget({ onBack }: Props) {
     const r = result;
     const strat = r.strategies.find(s => s.id === r.recommendation.best_strategy);
     const text = [
-      `МЕДИАПЛАН ЯНДЕКС.ДИРЕКТ — ${r.salon_name}`,
+      `МЕДИАПЛАН КОНТЕКСТНОЙ РЕКЛАМЫ — ${r.salon_name}`,
       `Бюджет: ${fmt(r.inputs.budget)} ₽/мес | Чек: ${fmt(r.inputs.avg_check)} ₽ | Цель: ${r.inputs.target_clients} клиентов`,
       ``,
       `ДРР: ${r.drr_analysis.current_drr}% (${r.drr_analysis.drr_comment})`,

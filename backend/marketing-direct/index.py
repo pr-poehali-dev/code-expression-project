@@ -1,5 +1,5 @@
 """
-Генерирует объявления для Яндекс.Директ: заголовок ≤56 символов, текст ≤81 символ.
+Генерирует объявления для контекстной рекламы: заголовок ≤56 символов, текст ≤81 символ.
 POST / — принимает группы семантики, возвращает объявления. Бесплатно.
 """
 import json
@@ -98,7 +98,7 @@ def deduct_energy(salon_id, user_id, conn) -> tuple[bool, int]:
     if not bal or int(bal[0]) < cost:
         return False, int(bal[0]) if bal else 0
     cur.execute(f"UPDATE {SCHEMA}.salons SET credits_balance=credits_balance-%s WHERE id=%s", (cost, salon_id))
-    cur.execute(f"INSERT INTO {SCHEMA}.credit_transactions (salon_id,user_id,action,amount,tool_key,type) VALUES (%s,%s,%s,%s,%s,'debit')", (salon_id, user_id, "Объявления Директ", cost, TOOL_KEY_MKT))
+    cur.execute(f"INSERT INTO {SCHEMA}.credit_transactions (salon_id,user_id,action,amount,tool_key,type) VALUES (%s,%s,%s,%s,%s,'debit')", (salon_id, user_id, "Объявления контекстной рекламы", cost, TOOL_KEY_MKT))
     conn.commit()
     return True, cost
 
@@ -141,7 +141,7 @@ def build_prompt(salon, groups, has_license):
         kws = [k["query"] for k in g.get("keywords", [])]
         groups_text += f"\nГруппа: {g['group']}\nКлючевые запросы: {', '.join(kws[:5])}\n"
 
-    return f"""Ты — специалист по контекстной рекламе Яндекс.Директ.
+    return f"""Ты — специалист по контекстной рекламе.
 
 Салон: «{salon_name}»{f', {city}' if city else ''}
 {f'Средний чек: {avg_check}' if avg_check else ''}
@@ -194,7 +194,7 @@ def build_prompt(salon, groups, has_license):
 
 
 def handler(event: dict, context) -> dict:
-    """Генерирует объявления для Яндекс.Директ по группам семантического ядра. Стоимость: 1 энергия."""
+    """Генерирует объявления для контекстной рекламы по группам семантического ядра. Стоимость: 1 энергия."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
 
@@ -227,7 +227,7 @@ def handler(event: dict, context) -> dict:
 
     prompt = build_prompt(salon, groups, has_license)
     raw = call_ai([
-        {"role": "system", "content": "Ты специалист Яндекс.Директ. Строго соблюдаешь лимиты символов. Отвечаешь только валидным JSON."},
+        {"role": "system", "content": "Ты специалист по контекстной рекламе. Строго соблюдаешь лимиты символов. Отвечаешь только валидным JSON."},
         {"role": "user", "content": prompt},
     ])
 

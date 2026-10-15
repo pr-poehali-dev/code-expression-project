@@ -15,7 +15,7 @@ export function LenBadge({ len, max }: { len: number; max: number }) {
   );
 }
 
-// ── Превью объявления Яндекс.Директ ──────────────────────────────────────────
+// ── Превью объявления контекстная реклама ──────────────────────────────────────────
 export function AdPreview({ ad, idx, salonName }: { ad: Ad; idx: number; salonName: string }) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -48,7 +48,7 @@ export function AdPreview({ ad, idx, salonName }: { ad: Ad; idx: number; salonNa
         </button>
       </div>
 
-      {/* Превью как в Директе */}
+      {/* Превью как в контекстной рекламе */}
       <div style={{ padding: "14px 16px", background: "#FAFBFF", borderBottom: "1px solid #E8ECF0" }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: "#1a73e8", lineHeight: 1.3, marginBottom: 2 }}>
           {ad.title1}{ad.title2 ? ` | ${ad.title2}` : ""}
