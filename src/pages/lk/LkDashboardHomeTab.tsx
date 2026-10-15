@@ -39,7 +39,7 @@ export function HomeTab({ onNav, role, hasSalon }: HomeTabProps) {
     ] : []),
     ...((role === "owner" || role === "admin" || role === "solo_master") && hasSalon ? [
       { tab: "agent" as Tab,     icon: "BotMessageSquare", color: "hsl(200,70%,38%)", bg: "hsl(200,70%,94%)", title: "ИИ-Агент",  desc: "Бизнес, сервис, маркетинг, скрипты" },
-      { tab: "marketing" as Tab, icon: "BarChart3",        color: "hsl(220,80%,50%)", bg: "hsl(220,80%,95%)", title: "Маркетинг", desc: "ЦА, офферы, реклама в Яндекс.Директ" },
+      { tab: "marketing" as Tab, icon: "BarChart3",        color: "hsl(220,80%,50%)", bg: "hsl(220,80%,95%)", title: "Маркетинг", desc: "ЦА, офферы, контекстная реклама" },
     ] : []),
     // Чемпионат временно отключён (не проводится) — плитка убрана, см. LkDashboardTypes.ts
     ...(role === "owner" ? [

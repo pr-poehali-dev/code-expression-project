@@ -76,7 +76,7 @@ export default function LkMarketingDirect({ onBack, initialGroups }: Props) {
           Маркетинг · Контекстная реклама
         </div>
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
-          Объявления для Яндекс.Директ
+          Объявления для контекстной рекламы
         </h2>
         <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6, maxWidth: 520 }}>
           Готовые объявления по требованиям Яндекса: заголовок 1 (≤35 симв.), заголовок 2 (≤30 симв.), текст (≤81 симв.).
@@ -188,8 +188,8 @@ export default function LkMarketingDirect({ onBack, initialGroups }: Props) {
           <div style={{ marginTop: 16, background: "#F8FAFC", borderRadius: 14, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, border: "1px solid #E8ECF0" }}>
             <Icon name="CheckCircle" size={20} style={{ color: "hsl(145,60%,38%)", flexShrink: 0 }} />
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 2 }}>Готово к загрузке в Яндекс.Директ</div>
-              <div style={{ fontSize: 12, color: "#64748B" }}>Скопируйте тексты в интерфейс Директа или выгрузите через Excel-шаблон вручную.</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginBottom: 2 }}>Готово к загрузке в контекстную рекламу</div>
+              <div style={{ fontSize: 12, color: "#64748B" }}>Скопируйте тексты в рекламный кабинет или выгрузите через Excel-шаблон вручную.</div>
             </div>
           </div>
         </div>

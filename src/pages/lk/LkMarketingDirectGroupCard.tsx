@@ -72,7 +72,7 @@ export function KeywordsBlock({ keywords, minusWords }: { keywords: string[]; mi
             ))}
           </div>
           <div style={{ marginTop: 8, fontSize: 11, color: "#94A3B8" }}>
-            Формат для Директа: через запятую
+            Формат для контекстной рекламы: через запятую
           </div>
         </div>
       )}
@@ -133,7 +133,7 @@ export function CampaignMinusBlock({ minusWords }: { minusWords: string[] }) {
 
       <div style={{ marginTop: 10, fontSize: 11, color: "#94A3B8", display: "flex", alignItems: "center", gap: 5 }}>
         <Icon name="Info" size={11} />
-        Вставьте в настройки кампании в Директе → «Минус-слова» — через запятую
+        Вставьте в настройки кампании контекстной рекламы → «Минус-слова» — через запятую
       </div>
     </div>
   );

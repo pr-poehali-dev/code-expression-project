@@ -266,7 +266,7 @@ export default function LkMarketingBudget({ onBack }: Props) {
           Маркетинг · Медиаплан
         </div>
         <h2 style={{ fontSize: "clamp(20px,2.5vw,26px)", fontWeight: 700, color: "#0F172A", margin: "0 0 8px" }}>
-          Медиаплан для Яндекс.Директ
+          Медиаплан контекстной рекламы
         </h2>
         <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6, maxWidth: 540 }}>
           Введите три параметра — ИИ рассчитает ДРР, сравнит стратегии рекламы, даст рекомендацию и прогноз по бюджету на основе реальных показателей beauty-ниши.
@@ -318,7 +318,7 @@ export default function LkMarketingBudget({ onBack }: Props) {
               placeholder="Например: 30000"
               style={inputStyle(budget)}
             />
-            <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 4 }}>Планируемые расходы на Директ</div>
+            <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 4 }}>Планируемые расходы на контекстную рекламу</div>
           </div>
         </div>
 

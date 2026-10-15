@@ -134,7 +134,7 @@ export function ImageGenButton({ groupName, keywords, ads }: { groupName: string
     <div style={{ marginTop: 14, borderRadius: 12, overflow: "hidden", border: "1.5px solid #E8ECF0" }}>
       <img src={imageUrl} alt="Рекламное изображение" style={{ width: "100%", display: "block", maxHeight: 320, objectFit: "cover" }} />
       <div style={{ padding: "10px 14px", background: "#F8FAFC", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-        <span style={{ fontSize: 11, color: "#64748B" }}>1024×1024 · Яндекс.Директ</span>
+        <span style={{ fontSize: 11, color: "#64748B" }}>1024×1024 · Контекстная реклама</span>
         <div style={{ display: "flex", gap: 8 }}>
           <a href={imageUrl} download="ad-image.png" target="_blank" rel="noreferrer"
             style={{ display: "flex", alignItems: "center", gap: 5, background: ACCENT, color: "#fff", borderRadius: 7, padding: "6px 12px", fontSize: 11, fontWeight: 700, textDecoration: "none", fontFamily: "Montserrat,sans-serif" }}>

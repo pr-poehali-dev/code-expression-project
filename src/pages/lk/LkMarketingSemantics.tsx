@@ -284,13 +284,13 @@ export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
           Семантическое ядро
         </h2>
         <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 12px", lineHeight: 1.6, maxWidth: 520 }}>
-          Поисковые запросы для Яндекс.Директ, сгруппированные по услугам и частотности. Готовы для загрузки в кампанию.
+          Поисковые запросы для контекстной рекламы, сгруппированные по услугам и частотности. Готовы для загрузки в кампанию.
         </p>
         <div style={{ padding: "12px 16px", background: "hsl(145,55%,97%)", borderRadius: 12, border: "1px solid hsl(145,55%,85%)", marginBottom: 4 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 6 }}>Как пользоваться и почему это выгодно</div>
           <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.7 }}>
             Нажмите «Собрать семантику» — ИИ подберёт поисковые запросы по всем вашим услугам и разобьёт их по группам и частотности.<br />
-            Подбор ключевых слов вручную занимает часы и требует опыта. Готовое семантическое ядро можно сразу загрузить в Яндекс.Директ — реклама начнёт показываться именно тем, кто ищет ваши услуги.
+            Подбор ключевых слов вручную занимает часы и требует опыта. Готовое семантическое ядро можно сразу загрузить в контекстную рекламу — реклама начнёт показываться именно тем, кто ищет ваши услуги.
           </div>
         </div>
         <EnergyComplexityNote />
@@ -424,7 +424,7 @@ export default function LkMarketingSemantics({ onBack, onGoToDirect }: Props) {
           >
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 2 }}>Следующий шаг</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Создайте готовые объявления для Яндекс.Директ на основе этих запросов.</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}>Создайте готовые объявления для контекстной рекламы на основе этих запросов.</div>
             </div>
             {onGoToDirect && (
               <div style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(255,255,255,0.2)", borderRadius: 9, padding: "8px 14px", flexShrink: 0 }}>

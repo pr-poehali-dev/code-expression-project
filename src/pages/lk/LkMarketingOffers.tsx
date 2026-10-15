@@ -393,7 +393,7 @@ export default function LkMarketingOffers({ onBack, initialPortraits, initialSal
           >
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 2 }}>Следующий шаг</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)" }}>Перейдите в «Семантическое ядро» — ИИ подберёт поисковые запросы для продвижения этих офферов в Яндекс.Директ.</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.8)" }}>Перейдите в «Семантическое ядро» — ИИ подберёт поисковые запросы для продвижения этих офферов в контекстной рекламе.</div>
             </div>
             {onGoToSemantics && (
               <div style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(255,255,255,0.2)", borderRadius: 9, padding: "8px 14px", flexShrink: 0 }}>

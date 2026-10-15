@@ -135,14 +135,14 @@ export const TOOLS_CATALOG: ToolInfo[] = [
   {
     slug: "semantics",
     name: "Семантическое ядро",
-    description: "Подбор ключевых слов для Яндекс.Директ на основе услуг салона.",
+    description: "Подбор ключевых слов для контекстной рекламы на основе услуг салона.",
     icon: "Search",
     tab: "marketing",
     category: "marketing",
   },
   {
     slug: "direct",
-    name: "Объявления для Яндекс.Директ",
+    name: "Объявления для контекстной рекламы",
     description: "Готовые объявления по ключевым словам и офферам.",
     icon: "MousePointer",
     tab: "marketing",
@@ -150,7 +150,7 @@ export const TOOLS_CATALOG: ToolInfo[] = [
   },
   {
     slug: "budget",
-    name: "Медиаплан для Директа",
+    name: "Медиаплан контекстной рекламы",
     description: "Расчёт бюджета и прогноз результатов рекламной кампании.",
     icon: "PieChart",
     tab: "marketing",
