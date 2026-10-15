@@ -14,7 +14,7 @@ const TOOL_NAMES: Record<string, string> = {
   "image-generation":   "Генерация изображений",
   "fitting-room":       "Примерочная",
   "landing-builder":    "Конструктор лендингов и сайта",
-  "ad-campaigns":       "Создание рекламных кампаний",
+  "ad-campaigns":       "Контекстная реклама",
   "seo-optimization":   "SEO-оптимизация сайта",
   "audience-analysis":  "Подбор ЦА и её анализ",
   "staff-analysis":     "Анализ персонала",
