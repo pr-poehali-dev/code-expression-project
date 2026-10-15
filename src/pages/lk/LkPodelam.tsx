@@ -3,12 +3,16 @@ import Icon from "@/components/ui/icon";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { markPodelamSeen } from "./podelamNotice";
 import SalonAIAgent from "./SalonAIAgent";
-import { ACCENT, ACCENT_DARK, PODELAM_URL, PODELAM_FAST_URL, sid, PodelamData, StatsData, fmt, TOPIC_KEY_BY_NAV, getPodelamTerms, isPsychSpecialization } from "./podelamShared";
+import { ACCENT, PODELAM_URL, PODELAM_FAST_URL, sid, PodelamData, StatsData, fmt, TOPIC_KEY_BY_NAV, getPodelamTerms, isPsychSpecialization } from "./podelamShared";
 import DiagnosticForm from "./PodelamDiagnosticForm";
 import InfoModal from "./PodelamInfoModal";
 import { DailyIncomeCard, StatsSection, SalonGoalsCard } from "./PodelamWidgets";
 import { PodelamAnalyticsCard } from "./PodelamAnalyticsCard";
 import { isPodelamTrial, getPodelamTrialData, clearPodelamTrial } from "@/lib/podelamTrial";
+import { PodelamLoading, PodelamTrialExpired, PodelamNoEnergy } from "./podelam-tab/PodelamStates";
+import PodelamGoalCard from "./podelam-tab/PodelamGoalCard";
+import { PodelamMainTask, PodelamDayPlan } from "./podelam-tab/PodelamTasks";
+import { PodelamGrowthPoints, PodelamTomorrowPreview } from "./podelam-tab/PodelamGrowth";
 
 // ── Главный экран ПоДелам ──────────────────────────────────────────────────────
 export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
@@ -94,41 +98,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   };
 
   if (loading) {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 24px", textAlign: "center" }}>
-        <div style={{
-          width: 56, height: 56, borderRadius: 16, marginBottom: 20,
-          background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          animation: "podelam-pulse 1.6s ease-in-out infinite",
-        }}>
-          <Icon name="Compass" size={26} style={{ color: "#fff" }} />
-        </div>
-        <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 8 }}>
-          Собираем ваши данные…
-        </div>
-        <div style={{ fontSize: 13.5, color: "#64748B", maxWidth: 320, lineHeight: 1.6 }}>
-          ИИ анализирует ваш доход, {isPsych ? "стоимость консультации" : "чек"} и базу {terms.baseWordGen} и формирует шаги на сегодня. Обычно это занимает до минуты.
-        </div>
-        <div style={{
-          display: "flex", alignItems: "flex-start", gap: 8,
-          marginTop: 18, padding: "10px 14px", maxWidth: 360,
-          background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 10,
-          textAlign: "left",
-        }}>
-          <Icon name="WifiOff" size={15} style={{ color: "#D97706", flexShrink: 0, marginTop: 1 }} />
-          <div style={{ fontSize: 12, color: "#92400E", lineHeight: 1.55 }}>
-            Включённый VPN или нестабильный интернет могут замедлить загрузку. Если результат долго не появляется — отключите VPN и обновите страницу.
-          </div>
-        </div>
-        <style>{`
-          @keyframes podelam-pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.08); opacity: 0.8; }
-          }
-        `}</style>
-      </div>
-    );
+    return <PodelamLoading isPsych={isPsych} terms={terms} />;
   }
 
   if (!data?.has_profile || editing) {
@@ -136,46 +106,11 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
   }
 
   if (data.trial_expired) {
-    return (
-      <div style={{ maxWidth: 480, margin: "60px auto", textAlign: "center", padding: "0 20px" }}>
-        <div style={{ width: 56, height: 56, borderRadius: 16, background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-          <Icon name="CalendarClock" size={26} style={{ color: "#fff" }} />
-        </div>
-        <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A", marginBottom: 8 }}>
-          Бесплатный период ПоДелам закончился
-        </div>
-        <div style={{ fontSize: 13.5, color: "#64748B", lineHeight: 1.6, marginBottom: 24 }}>
-          30 дней бесплатного доступа к ежедневным шагам истекли. Оформите тариф «Шаги ПоДелам» за 1 290 ₽/мес,
-          чтобы продолжить получать план на день, — вся история и прогресс сохранены и не потеряются.
-        </div>
-        <button
-          onClick={() => onNav("packages")}
-          style={{ padding: "12px 28px", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-        >
-          Оформить тариф
-        </button>
-      </div>
-    );
+    return <PodelamTrialExpired onNav={onNav} />;
   }
 
   if (data.energy_insufficient) {
-    return (
-      <div style={{ maxWidth: 480, margin: "60px auto", textAlign: "center", padding: "0 20px" }}>
-        <div style={{ width: 56, height: 56, borderRadius: 16, background: "linear-gradient(135deg,#f59e0b,#d97706)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-          <Icon name="Zap" size={26} style={{ color: "#fff" }} />
-        </div>
-        <div style={{ fontSize: 18, fontWeight: 700, color: "#0F172A", marginBottom: 8 }}>Недостаточно энергии для нового плана</div>
-        <div style={{ fontSize: 13.5, color: "#64748B", lineHeight: 1.6, marginBottom: 24 }}>
-          Построение нового плана на день стоит {data.energy_needed ?? ""} ⚡, доступно {data.energy_balance ?? 0} ⚡. Пополните баланс, чтобы ИИ собрал сегодняшние шаги.
-        </div>
-        <button
-          onClick={() => onNav("shop")}
-          style={{ padding: "12px 28px", borderRadius: 12, border: "none", background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-        >
-          Пополнить энергию
-        </button>
-      </div>
-    );
+    return <PodelamNoEnergy data={data} onNav={onNav} />;
   }
 
   const { profile, growth_points = [], gap_amount = 0, plan, task_log = {}, salon_profile_filled, salon_goals, goals_progress } = data;
@@ -256,61 +191,7 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
 
       {/* Экран 1: Цель и прогресс */}
       {profile && (
-        <div style={{ background: "linear-gradient(135deg,#0F172A,#112B3C)", borderRadius: 16, padding: "24px 28px", marginBottom: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 20, marginBottom: 16 }}>
-            <div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>Цель месяца</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: "#fff" }}>{fmt(profile.target_revenue)} ₽</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>Сейчас</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: "#2DD4BF" }}>{fmt(profile.current_revenue)} ₽</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 4, textTransform: "uppercase", letterSpacing: 1 }}>Не хватает</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: "hsl(40,90%,60%)" }}>{fmt(Math.max(0, gap_amount))} ₽</div>
-            </div>
-          </div>
-          <div style={{ height: 8, borderRadius: 4, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${progress}%`, borderRadius: 4, background: "linear-gradient(90deg,#2DD4BF,#14B8A6)" }} />
-          </div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>{progress}% от цели</div>
-
-          {/* Промежуточные цели по неделям */}
-          {gap_amount > 0 && (
-            <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 12, textTransform: "uppercase", letterSpacing: 1 }}>
-                Промежуточные цели на неделю
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }} className="podelam-weeks-grid">
-                {[1, 2, 3, 4].map(week => {
-                  const weekTarget = profile.current_revenue + (gap_amount * week) / 4;
-                  const reached = profile.current_revenue >= weekTarget;
-                  return (
-                    <div key={week} style={{
-                      background: reached ? "rgba(45,212,191,0.12)" : "rgba(255,255,255,0.04)",
-                      border: `1px solid ${reached ? "rgba(45,212,191,0.35)" : "rgba(255,255,255,0.08)"}`,
-                      borderRadius: 10, padding: "10px 12px",
-                    }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                        {reached && <Icon name="CheckCircle2" size={12} style={{ color: "#2DD4BF" }} />}
-                        <div style={{ fontSize: 10.5, color: reached ? "#2DD4BF" : "rgba(255,255,255,0.45)", fontWeight: 600 }}>
-                          Неделя {week}
-                        </div>
-                      </div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{fmt(weekTarget)} ₽</div>
-                    </div>
-                  );
-                })}
-              </div>
-              <style>{`
-                @media (max-width: 640px) {
-                  .podelam-weeks-grid { grid-template-columns: repeat(2,1fr) !important; }
-                }
-              `}</style>
-            </div>
-          )}
-        </div>
+        <PodelamGoalCard profile={profile} gap_amount={gap_amount} progress={progress} />
       )}
 
       {/* Цели салона и прогресс по ним */}
@@ -334,144 +215,20 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
 
       {/* Экран 2: Главное дело дня */}
       {mainTask && (
-        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: 24, marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <Icon name="Target" size={16} style={{ color: ACCENT }} />
-            <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1 }}>Сегодня главное</span>
-          </div>
-          <div style={{ fontSize: 19, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>{mainTask.title}</div>
-          <div style={{ fontSize: 14, color: "#64748B", marginBottom: 14, lineHeight: 1.6 }}>{mainTask.action_text}</div>
-          {mainTask.why && (
-            <div style={{ display: "flex", gap: 8, alignItems: "flex-start", background: "hsl(40,90%,97%)", border: "1px solid hsl(40,90%,88%)", borderRadius: 10, padding: "10px 12px", marginBottom: 14 }}>
-              <Icon name="Lightbulb" size={14} style={{ color: "hsl(40,90%,40%)", flexShrink: 0, marginTop: 1 }} />
-              <div style={{ fontSize: 12.5, color: "#78350F", lineHeight: 1.55 }}>{mainTask.why}</div>
-            </div>
-          )}
-          {mainTask.topic_options && mainTask.topic_options.length > 0 && (
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Готовые темы на выбор</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {mainTask.topic_options.map((topic, i) => {
-                  const active = selectedTopic[mainTask.key] === topic;
-                  return (
-                    <button
-                      key={i}
-                      onClick={() => setSelectedTopic(p => ({ ...p, [mainTask.key]: topic }))}
-                      style={{
-                        textAlign: "left", padding: "9px 12px", borderRadius: 9, cursor: "pointer",
-                        border: `1.5px solid ${active ? ACCENT : "#E2E8F0"}`,
-                        background: active ? "hsl(185,85%,96%)" : "#fff",
-                        color: active ? ACCENT_DARK : "#334155",
-                        fontSize: 13, fontWeight: active ? 700 : 500, fontFamily: "Montserrat,sans-serif",
-                      }}
-                    >
-                      {topic}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-          {mainTask.potential > 0 && (
-            <div style={{ fontSize: 13, fontWeight: 600, color: "hsl(145,60%,35%)", marginBottom: 16 }}>
-              Потенциал: до {fmt(mainTask.potential)} ₽
-            </div>
-          )}
-          <button
-            onClick={() => goTo(mainTask.nav, selectedTopic[mainTask.key])}
-            style={{ padding: "11px 22px", borderRadius: 10, border: "none", background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", fontFamily: "Montserrat,sans-serif" }}
-          >
-            {mainTask.button}
-          </button>
-        </div>
+        <PodelamMainTask mainTask={mainTask} selectedTopic={selectedTopic} setSelectedTopic={setSelectedTopic} goTo={goTo} />
       )}
 
       {/* Экран 3: План на день */}
-      <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: 16 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", letterSpacing: 1.5, textTransform: "uppercase" }}>План на сегодня</div>
-          {salonFocus && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", background: "hsl(185,85%,96%)", borderRadius: 20 }}>
-              <Icon name="UserRound" size={13} style={{ color: ACCENT }} />
-              <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT }}>Фокус дня: {salonFocus.name}</span>
-              <span style={{ fontSize: 11, color: "#64748B" }}>· {salonFocus.role}</span>
-            </div>
-          )}
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {tasks.map((t, i) => {
-            const done = task_log[t.key]?.done;
-            const hasTopics = !done && t.topic_options && t.topic_options.length > 0;
-            return (
-              <div key={t.key + i} className="podelam-task-card" style={{ padding: "14px 16px", borderRadius: 12, background: done ? "hsl(145,60%,97%)" : "#F8FAFC", border: `1px solid ${done ? "hsl(145,60%,85%)" : "#E8ECF0"}` }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  <button
-                    onClick={() => !done && markDone(t.key)}
-                    disabled={marking === t.key}
-                    style={{
-                      width: 26, height: 26, marginTop: 1, borderRadius: "50%", flexShrink: 0, border: `2px solid ${done ? "hsl(145,60%,45%)" : "#CBD5E1"}`,
-                      background: done ? "hsl(145,60%,45%)" : "#fff", cursor: done ? "default" : "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}
-                  >
-                    {done && <Icon name="Check" size={14} style={{ color: "#fff" }} />}
-                  </button>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14.5, fontWeight: 700, color: done ? "#64748B" : "#0F172A", textDecoration: done ? "line-through" : "none", marginBottom: 5 }}>{t.title}</div>
-                    <div style={{ fontSize: 13, color: "#64748B", lineHeight: 1.6 }}>{t.action_text}</div>
-                    <div style={{ fontSize: 11.5, color: "#94A3B8", fontWeight: 600, marginTop: 6 }}>~{t.minutes} мин{t.potential > 0 ? ` · до ${fmt(t.potential)} ₽` : ""}</div>
-
-                    {!done && t.why && (
-                      <div style={{ display: "flex", gap: 7, alignItems: "flex-start", marginTop: 10, background: "hsl(40,90%,97%)", border: "1px solid hsl(40,90%,88%)", borderRadius: 9, padding: "8px 10px" }}>
-                        <Icon name="Lightbulb" size={12} style={{ color: "hsl(40,90%,40%)", flexShrink: 0, marginTop: 2 }} />
-                        <div style={{ fontSize: 11.5, color: "#78350F", lineHeight: 1.5 }}>{t.why}</div>
-                      </div>
-                    )}
-                    {hasTopics && (
-                      <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 5 }}>
-                        {t.topic_options!.map((topic, ti) => {
-                          const active = selectedTopic[t.key] === topic;
-                          return (
-                            <button
-                              key={ti}
-                              onClick={() => setSelectedTopic(p => ({ ...p, [t.key]: topic }))}
-                              style={{
-                                textAlign: "left", padding: "7px 10px", borderRadius: 8, cursor: "pointer",
-                                border: `1.5px solid ${active ? ACCENT : "#E2E8F0"}`,
-                                background: active ? "hsl(185,85%,96%)" : "#fff",
-                                color: active ? ACCENT_DARK : "#475569",
-                                fontSize: 12, fontWeight: active ? 700 : 500, fontFamily: "Montserrat,sans-serif",
-                              }}
-                            >
-                              {topic}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {!done && (
-                      <button
-                        onClick={() => goTo(t.nav, selectedTopic[t.key])}
-                        className="podelam-task-btn"
-                        style={{ marginTop: 12, fontSize: 12.5, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${ACCENT},${ACCENT_DARK})`, border: "none", borderRadius: 9, padding: "9px 16px", cursor: "pointer", fontFamily: "Montserrat,sans-serif", display: "inline-flex", alignItems: "center", gap: 6 }}
-                      >
-                        {t.button}
-                        <Icon name="ArrowRight" size={13} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <style>{`
-          @media (max-width: 480px) {
-            .podelam-task-btn { width: 100%; justify-content: center; }
-          }
-        `}</style>
-      </div>
+      <PodelamDayPlan
+        tasks={tasks}
+        salonFocus={salonFocus}
+        task_log={task_log}
+        marking={marking}
+        markDone={markDone}
+        selectedTopic={selectedTopic}
+        setSelectedTopic={setSelectedTopic}
+        goTo={goTo}
+      />
 
       {/* ИИ-Агент — общение по развитию бизнеса */}
       <div ref={agentRef} style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)", scrollMarginTop: 20 }}>
@@ -483,34 +240,12 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
 
       {/* Экран 4: Точки роста / потери */}
       {growth_points.length > 0 && (
-        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", boxShadow: "0 1px 3px rgba(15,23,42,0.04)" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#94A3B8", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16 }}>Где лежат деньги</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {growth_points.map(p => (
-              <div key={p.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, paddingBottom: 12, borderBottom: "1px solid #F1F5F9" }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#0F172A" }}>{p.title}</div>
-                  <div style={{ fontSize: 12, color: "#94A3B8" }}>{p.action}</div>
-                </div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "hsl(145,60%,35%)", whiteSpace: "nowrap" }}>+{fmt(p.potential)} ₽</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ fontSize: 11, color: "#B0B8C1", marginTop: 12, lineHeight: 1.5 }}>
-            Расчёт ориентировочный и основан на ваших данных. Реальный результат зависит от спроса, цены, качества услуг и выполнения действий.
-          </div>
-        </div>
+        <PodelamGrowthPoints growth_points={growth_points} />
       )}
 
       {/* Анонс на завтра */}
       {plan?.tomorrow_preview && (
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 12, background: "hsl(185,85%,96%)", borderRadius: 14, padding: "16px 20px", marginTop: 20 }}>
-          <Icon name="Sunrise" size={18} style={{ color: ACCENT, flexShrink: 0, marginTop: 2 }} />
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4 }}>Завтра новые шаги</div>
-            <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.6 }}>{plan.tomorrow_preview}</div>
-          </div>
-        </div>
+        <PodelamTomorrowPreview text={plan.tomorrow_preview} />
       )}
     </div>
   );
