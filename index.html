@@ -1,13 +1,35 @@
 <!DOCTYPE html>
 <html lang="ru" translate="no">
 <head>
+    <script>
+      (function () {
+        var shown = false;
+        function appReady() {
+          var root = document.getElementById("root");
+          return !!root && root.children.length > 0 && !document.querySelector("[data-page-fallback]");
+        }
+        setTimeout(function () {
+          if (shown || appReady()) return;
+          shown = true;
+          var box = document.createElement("div");
+          box.id = "vpn-notice";
+          box.setAttribute("style", "position:fixed;left:0;top:0;right:0;bottom:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:24px;background:#0F172A;font-family:Inter,Arial,sans-serif;");
+          box.innerHTML = '<div style="max-width:420px;text-align:center;color:#fff"><div style="font-size:20px;font-weight:700;margin-bottom:12px">Сайт долго загружается</div><div style="font-size:15px;line-height:1.6;color:#CBD5E1;margin-bottom:20px">Если у вас включён VPN, отключите его и обновите страницу.</div><button onclick="location.reload()" style="background:#2DD4BF;color:#0F172A;border:none;border-radius:10px;padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer">Обновить страницу</button></div>';
+          document.documentElement.appendChild(box);
+          var timer = setInterval(function () {
+            if (appReady()) { clearInterval(timer); var n = document.getElementById("vpn-notice"); if (n) n.remove(); }
+          }, 500);
+        }, 6000);
+      })();
+    </script>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Навигатор роста дохода салона красоты и мастеров</title>
     <meta name="description" content="AI-анализ дохода, чека, базы клиентов и загрузки — показывает, какие действия дадут результат именно вам.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
     <meta name="author" content="poehali.dev"/>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="icon" type="image/svg+xml" sizes="32x32" href="/favicon.svg">
