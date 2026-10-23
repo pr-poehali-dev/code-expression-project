@@ -282,7 +282,7 @@ export default function Vozmozhnosti() {
                     onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = si % 2 === 0 ? "#fff" : "#F8FAFC"; }}
                   >
                     {TOOL_IMAGES[t.slug] && (
-                      <img src={TOOL_IMAGES[t.slug]} alt={t.name} loading="lazy" decoding="async" style={{ width: "calc(100% + 64px)", maxWidth: "none", margin: "-40px -32px 28px", aspectRatio: "16 / 9", objectFit: "cover", display: "block" }} />
+                      <img src={TOOL_IMAGES[t.slug]} alt={t.name} loading="lazy" decoding="async" style={{ width: "calc(100% + 64px)", maxWidth: "none", margin: "-40px -32px 28px", aspectRatio: "16 / 9", objectFit: "cover", display: "block", borderRadius: "16px 16px 0 0" }} />
                     )}
                     <div style={{ width: 48, height: 48, borderRadius: 2, border: "1px solid #EAEEF3", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
                       <Icon name={t.icon} size={22} style={{ color: TEAL }} />
