@@ -270,13 +270,13 @@ export default function DlyaSalonov() {
           <p style={{ fontSize: 16, color: "#475569", lineHeight: 1.75, margin: "0 0 32px", fontWeight: 300 }}>
             Читайте, разбирайте знакомые ситуации и находите идеи, которые можно адаптировать к своему салону.
           </p>
-          <button
-            type="button"
-            disabled
-            style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "15px 36px", borderRadius: 2, fontSize: 15, fontWeight: 600, background: "#E2E8F0", color: "#475569", border: "none", cursor: "not-allowed" }}
+          <Link
+            to="/blog?role=owner"
+            style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "15px 36px", borderRadius: 2, fontSize: 15, fontWeight: 600, background: DARK, color: "#fff", textDecoration: "none" }}
           >
             Полезные материалы для владельцев
-          </button>
+            <Icon name="ArrowRight" size={16} />
+          </Link>
         </div>
       </section>
 

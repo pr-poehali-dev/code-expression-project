@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
@@ -59,8 +59,12 @@ export default function BlogPage() {
   const { user } = useLkAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
   const [category, setCategory] = useState("");
-  const [role, setRole] = useState("");
+  const initialRole = searchParams.get("role") || "";
+  const [role, setRole] = useState(
+    ROLES.some(r => r.key === initialRole) ? initialRole : ""
+  );
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
