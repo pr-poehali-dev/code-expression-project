@@ -255,9 +255,9 @@ export default function Vozmozhnosti() {
             </div>
 
             {s.tools.length > 0 && (
-              <div className="tools-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }}>
+              <div className="tools-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(280px,100%),1fr))", gap: 24 }}>
                 {s.tools.map((t, ti) => (
-                  <div key={ti} style={{ background: si % 2 === 0 ? "#fff" : "#F8FAFC", padding: "40px 32px", transition: "all 0.3s", cursor: "default", display: "flex", flexDirection: "column" }}
+                  <div key={ti} style={{ background: si % 2 === 0 ? "#fff" : "#F8FAFC", padding: "40px 32px", transition: "all 0.3s", cursor: "default", display: "flex", flexDirection: "column", border: "1px solid #E2E8F0", borderRadius: 16, overflow: "hidden" }}
                     onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.05)"}
                     onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = si % 2 === 0 ? "#fff" : "#F8FAFC"; }}
                   >
@@ -267,7 +267,7 @@ export default function Vozmozhnosti() {
                     <div style={{ width: 48, height: 48, borderRadius: 2, border: "1px solid #EAEEF3", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
                       <Icon name={t.icon} size={22} style={{ color: TEAL }} />
                     </div>
-                    <h3 style={{ fontFamily: SERIF, fontSize: 23, fontWeight: 600, color: DARK, margin: "0 0 10px" }}>{t.name}</h3>
+                    <h3 style={{ fontFamily: SERIF, fontSize: 23, fontWeight: 600, color: DARK, margin: "0 0 10px", lineHeight: 1.25 }}>{t.name}</h3>
                     <p style={{ fontSize: 14, color: GRAY, margin: "0 0 20px", lineHeight: 1.7, fontWeight: 300, minHeight: 72 }}>{t.desc}</p>
                     <Link
                       to={`/instrumenty/${t.slug}`}
