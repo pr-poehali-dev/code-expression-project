@@ -2,6 +2,7 @@ import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import IndexDemoForm from "@/pages/index/IndexDemoForm";
+import { IndexClientView } from "@/pages/index/IndexClientView";
 import { IndexHeroMain, IndexSegments, IndexHowItWorks, IndexResults, IndexHowToStart, IndexFinal } from "@/pages/index/IndexMain";
 
 export default function Index() {
@@ -32,6 +33,7 @@ export default function Index() {
       </Helmet>
       <BizNavbar />
       <IndexHeroMain />
+      <IndexClientView />
       <IndexSegments />
       <IndexHowItWorks />
       <IndexResults />
