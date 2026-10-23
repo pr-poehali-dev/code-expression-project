@@ -3,6 +3,12 @@ import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
+import ToolHero from "./tool-landings/ToolHero";
+import { ToolSections, ToolFinalCta } from "./tool-landings/ToolSections";
+import { MARKETING_TOOLS } from "./tool-landings/configsMarketing";
+import { MANAGEMENT_TOOLS } from "./tool-landings/configsManagement";
+import { SALES_TOOLS, SPECIALIST_TOOLS } from "./tool-landings/configsSalesAndSpecialists";
+import type { ToolConfig } from "./tool-landings/types";
 
 const TEAL = "#2DD4BF";
 const DARK = "#0F172A";
@@ -29,8 +35,46 @@ const TOOL_NAMES: Record<string, string> = {
   "development-tests":  "Тесты и диагностики развития",
 };
 
+const CONFIGS: Record<string, ToolConfig> = Object.fromEntries(
+  [...MARKETING_TOOLS, ...MANAGEMENT_TOOLS, ...SALES_TOOLS, ...SPECIALIST_TOOLS].map(c => [c.slug, c])
+);
+
+function ReadyToolLanding({ cfg }: { cfg: ToolConfig }) {
+  return (
+    <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", minHeight: "100vh" }}>
+      <Helmet>
+        <title>{cfg.seo.title}</title>
+        <meta name="description" content={cfg.seo.description} />
+        <meta name="keywords" content={cfg.seo.keywords} />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={`https://promtdialog.ru/instrumenty/${cfg.slug}`} />
+        <meta property="og:title" content={cfg.seo.title} />
+        <meta property="og:description" content={cfg.seo.description} />
+        <meta property="og:url" content={`https://promtdialog.ru/instrumenty/${cfg.slug}`} />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
+      <BizNavbar />
+      <ToolHero cfg={cfg} />
+      <ToolSections cfg={cfg} />
+      <ToolFinalCta cfg={cfg} />
+      <BizFooter />
+      <style>{`
+        @media (max-width: 860px) {
+          .tl-hero-grid { grid-template-columns: 1fr !important; gap: 36px !important; padding: 56px 20px !important; }
+          .tl-example { grid-template-columns: 1fr !important; gap: 28px !important; }
+          .tl-bento { grid-template-columns: 1fr !important; }
+          .tl-bento > div { grid-column: span 1 !important; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function ToolLanding() {
   const { slug } = useParams<{ slug: string }>();
+  const cfg = slug ? CONFIGS[slug] : undefined;
+  if (cfg) return <ReadyToolLanding cfg={cfg} />;
   const toolName = (slug && TOOL_NAMES[slug]) || "Инструмент платформы";
 
   return (
