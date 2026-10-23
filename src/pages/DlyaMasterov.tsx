@@ -270,13 +270,13 @@ export default function DlyaMasterov() {
           <p style={{ fontSize: 16, color: "#475569", lineHeight: 1.75, margin: "0 0 32px", fontWeight: 300 }}>
             Читайте практические материалы для частных мастеров и массажистов, знакомьтесь с разными подходами и выбирайте идеи, которые подходят вашей ситуации.
           </p>
-          <button
-            type="button"
-            disabled
-            style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "15px 36px", borderRadius: 2, fontSize: 15, fontWeight: 600, background: "#E2E8F0", color: "#475569", border: "none", cursor: "not-allowed" }}
+          <Link
+            to="/blog?role=master"
+            style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "15px 36px", borderRadius: 2, fontSize: 15, fontWeight: 600, background: DARK, color: "#fff", textDecoration: "none" }}
           >
             Полезные материалы для мастеров
-          </button>
+            <Icon name="ArrowRight" size={16} />
+          </Link>
         </div>
       </section>
 
