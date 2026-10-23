@@ -13,6 +13,7 @@ interface Props {
   showSalon?: boolean;
   hasUnlimited?: boolean;
   showBodyTools?: boolean;
+  isOtherSpecialist?: boolean;
   onOpenDiag: () => void;
   onOpenMindsetSpec: () => void;
   onOpenMindset: () => void;
@@ -25,15 +26,17 @@ interface Props {
   onNavigateToAcademy?: () => void;
 }
 
-export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, hasUnlimited = false, showBodyTools = false, onOpenDiag, onOpenMindsetSpec, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenBodyMap, onOpenTest, onNavigateToAcademy }: Props) {
+export default function LkTestsList({ tests, barriersHistory, financeHistory, profileHistory, salonHistory, showSalon = false, hasUnlimited = false, showBodyTools = false, isOtherSpecialist = false, onOpenDiag, onOpenMindsetSpec, onOpenMindset, onOpenBarriers, onOpenFinance, onOpenProfile, onOpenSalon, onOpenBodyMap, onOpenTest, onNavigateToAcademy }: Props) {
   const COURSE_NAME = "«Техники, за которые платят и возвращаются клиенты»";
   return (
     <div>
       <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(24px,3vw,32px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 8px" }}>
-        Развитие персонала
+        {isOtherSpecialist ? "Развитие специалиста" : "Развитие персонала"}
       </h1>
       <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 16px", lineHeight: 1.6, maxWidth: 560 }}>
-        Сильная команда — главный актив салона. Здесь собраны инструменты, которые помогают специалистам расти профессионально, избавляться от ограничивающих убеждений и выходить на новый уровень дохода.
+        {isOtherSpecialist
+          ? "Ваш опыт и состояние — главный ресурс вашего дела. Здесь собраны инструменты, которые помогают расти профессионально, работать с ограничивающими убеждениями и выходить на новый уровень дохода"
+          : "Сильная команда — главный актив салона. Здесь собраны инструменты, которые помогают специалистам расти профессионально"}, избавляться от ограничивающих убеждений и выходить на новый уровень дохода.
       </p>
       <div style={{
         display: "flex", alignItems: "flex-start", gap: 16,
@@ -50,7 +53,7 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
             Каждый инструмент — это методология, которую коучи и бизнес-тренеры применяют на личных сессиях
             стоимостью <span style={{ fontWeight: 700, color: "#0F172A" }}>от 25 000 ₽</span>.
             Здесь вы получаете тот же результат: персональный разбор, работу с ограничениями и
-            конкретный план — для внутренней устойчивости и профессионального роста каждого специалиста команды.
+            конкретный план — для внутренней устойчивости и профессионального роста{isOtherSpecialist ? " специалиста" : " каждого специалиста команды"}.
           </div>
         </div>
       </div>

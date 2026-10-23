@@ -124,6 +124,19 @@ SYSTEM_PROMPT = """Ты — финансовый ментор для масте�
 Объём: 250-320 слов суммарно. Начинай сразу с блока — никаких вводных."""
 
 
+OTHER_SPECIALIST_CONTEXT = """
+
+ВАЖНО ПРО ПОЛЬЗОВАТЕЛЯ: это частный специалист, который работает с людьми и сам отвечает за поиск клиентов \
+(например, репетитор, тренер, фотограф, консультант, организатор мероприятий, косметолог, специалист по уходу, \
+бытовым или семейным услугам — точная профессия может быть не указана). Это НЕ мастер бьюти-услуг. \
+Не называй его «мастером красоты» и «мастером», не используй бьюти-примеры (стрижки, маникюр, окрашивание, \
+салонные процедуры) и не упоминай салон и премиум-клиентов салона. Говори о нём как о «специалисте», о его \
+«клиентах», «заказчиках» или «учениках» — нейтрально. Примеры и шаги делай универсальными для услуг, \
+оказываемых людям напрямую: заполнение расписания, понятное объяснение ценности услуг, повторные обращения, \
+рекомендации, стабильность дохода. Не обещай гарантированного числа клиентов и точного дохода.
+"""
+
+
 def build_user_prompt(data: dict) -> str:
     norm = data.get("norm", {})
     ifl = data.get("ifl", 0)
@@ -156,10 +169,10 @@ def build_user_prompt(data: dict) -> str:
     return "\n".join(lines)
 
 
-def call_openai(user_prompt: str, api_key: str) -> str:
+def call_openai(user_prompt: str, api_key: str, system_prompt: str = SYSTEM_PROMPT) -> str:
     payload = json.dumps({
         "model": "openai/gpt-4o-mini",
-        "messages": [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user_prompt}],
+        "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
         "max_tokens": 700, "temperature": 0.75,
     }).encode("utf-8")
     req = urllib.request.Request(
@@ -218,7 +231,10 @@ def handler(event: dict, context) -> dict:
         return {"statusCode": 503, "headers": CORS, "body": json.dumps({"error": "no api key"})}
 
     user_prompt = build_user_prompt(data)
-    text = call_openai(user_prompt, api_key)
+    system_prompt = SYSTEM_PROMPT
+    if user and user.get("specialization") == "other_specialist":
+        system_prompt += OTHER_SPECIALIST_CONTEXT
+    text = call_openai(user_prompt, api_key, system_prompt)
     sections = parse_sections(text)
     result = {"text": text, "sections": sections}
 

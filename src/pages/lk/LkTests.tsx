@@ -199,6 +199,7 @@ export default function LkTests({ onNavigate }: { onNavigate?: (tab: string) => 
         showSalon={isSalon}
         hasUnlimited={hasUnlimited}
         showBodyTools={isBodySpec}
+        isOtherSpecialist={user?.specialization === "other_specialist"}
         onNavigateToAcademy={() => {
           sessionStorage.setItem("lk_open_course_id", "3");
           onNavigate?.("academy");

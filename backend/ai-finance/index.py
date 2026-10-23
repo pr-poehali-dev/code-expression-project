@@ -21,6 +21,13 @@ def get_user_id(session_id: str, conn) -> int | None:
     return row[0] if row else None
 
 
+def get_specialization(user_id: int, conn):
+    cur = conn.cursor()
+    cur.execute(f"SELECT specialization FROM {SCHEMA}.lk_users WHERE id = %s", (user_id,))
+    row = cur.fetchone()
+    return row[0] if row else None
+
+
 def get_cached_ai(user_id: int, conn) -> dict | None:
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(
@@ -60,6 +67,19 @@ SYSTEM_PROMPT = """Ты — финансовый наставник для сп�
 1-2 предложения: что изменится в доходе или нагрузке, если исправить главную точку. Пиши конкретно — «+20-30% к выручке за 2 месяца», «выход на X ₽ без увеличения часов». Опирайся на цифры из диагностики (текущий доход, нужный чек, разрыв).
 
 Объём: 270-340 слов суммарно. Начинай сразу с блока, без вступлений."""
+
+
+OTHER_SPECIALIST_CONTEXT = """
+
+ВАЖНО ПРО ПОЛЬЗОВАТЕЛЯ: это частный специалист, который работает с людьми и сам отвечает за поиск клиентов \
+(например, репетитор, тренер, фотограф, консультант, организатор мероприятий, косметолог, специалист по уходу, \
+бытовым или семейным услугам — точная профессия может быть не указана). Это НЕ мастер бьюти-услуг. \
+Не называй его «мастером красоты» и «мастером», не используй бьюти-примеры (стрижки, маникюр, окрашивание, \
+салонные процедуры) и не упоминай салон и премиум-клиентов салона. Говори о нём как о «специалисте», о его \
+«клиентах», «заказчиках» или «учениках» — нейтрально. Примеры и шаги делай универсальными для услуг, \
+оказываемых людям напрямую: заполнение расписания, понятное объяснение ценности услуг, повторные обращения, \
+рекомендации, стабильность дохода. Не обещай гарантированного числа клиентов и точного дохода.
+"""
 
 
 def fmt(n: float) -> str:
@@ -264,6 +284,14 @@ def handler(event: dict, context) -> dict:
     finally:
         conn_cat.close()
     system_prompt = SYSTEM_PROMPT + catalog
+    if session_id:
+        conn_sp = get_db()
+        try:
+            uid_sp = get_user_id(session_id, conn_sp)
+            if uid_sp and get_specialization(uid_sp, conn_sp) == "other_specialist":
+                system_prompt += OTHER_SPECIALIST_CONTEXT
+        finally:
+            conn_sp.close()
     text = call_openai(user_prompt, api_key, system_prompt)
     sections = parse_sections(text)
     result = {"text": text, "sections": sections}
