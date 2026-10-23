@@ -13,6 +13,8 @@ const SERIF = "'Cormorant Garamond', serif";
 const ROLES = [
   {
     id: "owner",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/5fb90ff8-8bc7-48d4-a24e-3f4d5a9781ff.jpg",
+    alt: "Владелица салона анализирует данные бизнеса",
     icon: "Crown",
     title: "Владельцу салона",
     subtitle: "Управление бизнесом на основе данных, а не интуиции",
@@ -26,6 +28,8 @@ const ROLES = [
   },
   {
     id: "admin",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/1a634897-9c79-4052-840a-feffd2e0f67d.jpg",
+    alt: "Администратор салона общается с клиенткой",
     icon: "Briefcase",
     title: "Администратору",
     subtitle: "Больше продаж без давления и скриптов в голове",
@@ -39,6 +43,8 @@ const ROLES = [
   },
   {
     id: "master",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/53ad077b-2b8e-48c2-8369-838b1f57db8c.jpg",
+    alt: "Мастер красоты фотографирует свою работу",
     icon: "Scissors",
     title: "Мастеру",
     subtitle: "Рост личного дохода и базы постоянных клиентов",
@@ -52,6 +58,8 @@ const ROLES = [
   },
   {
     id: "specialist",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/a073ff10-6855-4d31-b87d-0b9ec16a8113.jpg",
+    alt: "Специалист по телу заполняет анкету клиента",
     icon: "HandHeart",
     title: "Специалисту по телу",
     subtitle: "Работа глубже — с контекстом каждого клиента",
@@ -65,6 +73,8 @@ const ROLES = [
   },
   {
     id: "psychologist",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/0d7b186f-b669-4702-8df5-631c483ae07c.jpg",
+    alt: "Психолог в своём кабинете",
     icon: "Brain",
     title: "Психологу",
     subtitle: "Устойчивая частная практика без давления и допродаж",
@@ -168,6 +178,7 @@ export default function DlyaKogo() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }} className="role-grid">
             {/* Left: description */}
             <div style={{ background: "#fff", padding: "48px 44px" }}>
+              <img src={active.img} alt={active.alt} loading="lazy" decoding="async" style={{ width: "100%", aspectRatio: "3 / 2", objectFit: "cover", objectPosition: "top", borderRadius: 4, display: "block", marginBottom: 28 }} />
               <div style={{ width: 64, height: 64, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 28 }}>
                 <Icon name={active.icon} size={30} style={{ color: TEAL }} />
               </div>
