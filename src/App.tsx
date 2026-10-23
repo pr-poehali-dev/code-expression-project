@@ -43,6 +43,7 @@ const DlyaSalonov = lazy(() => import("./pages/DlyaSalonov"));
 const DlyaMasterov = lazy(() => import("./pages/DlyaMasterov"));
 const DlyaShkol = lazy(() => import("./pages/DlyaShkol"));
 const DlyaPsihologov = lazy(() => import("./pages/DlyaPsihologov"));
+const DlyaSpecialistov = lazy(() => import("./pages/DlyaSpecialistov"));
 const FreeTrenings = lazy(() => import("./pages/FreeTrenings"));
 const Diagnostika = lazy(() => import("./pages/Diagnostika"));
 const ChampionshipPage = lazy(() => import("./pages/championship/ChampionshipPage"));
@@ -127,6 +128,7 @@ const App = () => (
             <Route path="/dlya-masterov" element={<DlyaMasterov />} />
             <Route path="/dlya-shkol" element={<DlyaShkol />} />
             <Route path="/dlya-psihologov" element={<DlyaPsihologov />} />
+            <Route path="/dlya-specialistov" element={<DlyaSpecialistov />} />
             <Route path="/free-trenings" element={<FreeTrenings />} />
 
             <Route path="/diagnostika" element={<Diagnostika />} />
