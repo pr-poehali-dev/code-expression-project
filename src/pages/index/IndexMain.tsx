@@ -264,11 +264,11 @@ export function IndexHowToStart() {
 export function IndexFinal() {
   return (
     <section style={{ background: "#F8FAFC", padding: "110px 32px" }}>
-      <div style={{ maxWidth: 820, margin: "0 auto", textAlign: "center" }}>
-        <h2 style={{ ...h2Style, fontSize: "clamp(32px,4.5vw,52px)", marginBottom: 24 }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <h2 style={{ ...h2Style, fontSize: "clamp(32px,4.5vw,52px)", marginBottom: 24, maxWidth: 820 }}>
           Ваше дело заслуживает большего, чем случайные решения
         </h2>
-        <p style={{ fontSize: 16, color: "#475569", lineHeight: 1.75, margin: "0 auto 36px", fontWeight: 300, maxWidth: 700 }}>
+        <p style={{ fontSize: 16, color: "#475569", lineHeight: 1.75, margin: "0 0 36px", fontWeight: 300, maxWidth: 700 }}>
           Необязательно пробовать всё подряд, постоянно искать новые советы и самостоятельно разбираться во всех вопросах продвижения. Начните с анализа своей ситуации. Определите точки роста и получите рекомендации, которые помогут выбрать следующие шаги для развития вашей практики или бизнеса.
         </p>
         <a href="#demo-form" onClick={scrollToForm} style={ctaStyle}>
