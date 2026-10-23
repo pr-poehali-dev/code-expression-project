@@ -126,7 +126,7 @@ export default function OProekte() {
             <div style={{ position: "relative", width: "100%" }}>
               <div style={{ position: "absolute", inset: -1, borderRadius: 6, background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))", pointerEvents: "none", zIndex: 2 }} />
               <img
-                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/16edf254-fb50-4c63-acd4-3698e0ff2eb7.png"
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/37847a85-f552-4a9f-ac51-d5a68bf31a97.jpg"
                 alt="О проекте Промт Диалог — команда профессионалов индустрии красоты"
                 decoding="async"
                 style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
