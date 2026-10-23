@@ -147,7 +147,7 @@ export function IndexSegments() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="dir-grid">
           {SEGMENTS.map((s, i) => (
             <div key={i} style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-              <img src={s.img} alt={s.alt} loading="lazy" decoding="async" style={{ width: "100%", height: "auto", aspectRatio: "1 / 1", objectFit: "contain", background: "#F1F5F9", display: "block" }} />
+              <img src={s.img} alt={s.alt} loading="lazy" decoding="async" style={{ width: "100%", aspectRatio: "3 / 2", objectFit: "cover", objectPosition: "top", display: "block" }} />
               <div style={{ padding: "28px 28px 32px", display: "flex", flexDirection: "column", flexGrow: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
                 <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
