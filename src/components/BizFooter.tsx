@@ -9,7 +9,7 @@ const COLS = [
       { label: "Для кого", href: "/dlya-kogo" },
       { label: "Для школ", href: "/dlya-shkol" },
       { label: "Тарифы", href: "/tseny" },
-      { label: "Академия", href: "/akademiya" },
+      { label: "Академия", href: "/free-trenings" },
       { label: "Аудит салона", href: "/diagnostika" },
       { label: "Полезная лента", href: "/blog" },
     ],
