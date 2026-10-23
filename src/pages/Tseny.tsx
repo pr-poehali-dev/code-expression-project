@@ -9,43 +9,26 @@ const DARK = "#0F172A";
 const GRAY = "#64748B";
 const SERIF = "'Cormorant Garamond', serif";
 
+const BASE_PRICE_PER_ENERGY = 990 / 150;
+
 const PACKAGES = [
-  {
-    code: "start",
-    name: "Старт",
-    price: 990,
-    energy: 150,
-    desc: "Знакомство с платформой",
-    features: ["150 энергий", "Все инструменты", "Техническая поддержка"],
-    popular: false,
-  },
-  {
-    code: "business",
-    name: "Бизнес",
-    price: 2990,
-    energy: 550,
-    desc: "Для активного использования",
-    features: ["550 энергий", "Все инструменты", "Приоритетная поддержка", "Экономия 15%"],
-    popular: true,
-  },
-  {
-    code: "growth",
-    name: "Рост",
-    price: 4990,
-    energy: 1200,
-    desc: "Для всей команды салона",
-    features: ["1200 энергий", "Все инструменты", "Приоритетная поддержка", "Экономия 33%"],
-    popular: false,
-  },
-  {
-    code: "premium",
-    name: "Премиум",
-    price: 9990,
-    energy: 3000,
-    desc: "Максимальная мощность",
-    features: ["3000 энергий", "Все инструменты", "VIP-поддержка", "Экономия 50%", "Личный менеджер"],
-    popular: false,
-  },
+  { code: "start", name: "Старт", price: 990, energy: 150, desc: "Знакомство с платформой", features: ["Все инструменты", "Техническая поддержка"], popular: false },
+  { code: "business", name: "Бизнес", price: 2990, energy: 550, desc: "Для активного использования", features: ["Все инструменты", "Приоритетная поддержка"], popular: true },
+  { code: "growth", name: "Рост", price: 4990, energy: 1200, desc: "Для регулярной работы", features: ["Все инструменты", "Приоритетная поддержка"], popular: false },
+  { code: "premium", name: "Премиум", price: 9990, energy: 3000, desc: "Максимальная выгода", features: ["Все инструменты", "VIP-поддержка", "Личный менеджер"], popular: false },
+].map(p => ({
+  ...p,
+  perEnergy: p.price / p.energy,
+  saving: Math.round((1 - p.price / p.energy / BASE_PRICE_PER_ENERGY) * 100),
+}));
+
+const MIN_REQUEST_PRICE = Math.min(...PACKAGES.map(p => p.perEnergy));
+const fmtRub = (n: number) => n.toLocaleString("ru-RU", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+const FREE_STEPS = [
+  { icon: "UserPlus", title: "Зарегистрируйтесь", desc: "Расскажите о своей практике или бизнесе — это займёт несколько минут." },
+  { icon: "Compass", title: "Пользуйтесь бесплатно", desc: "Платформа анализирует ваши данные и формирует ежедневные шаги развития." },
+  { icon: "Zap", title: "Подключайте инструменты", desc: "Когда понадобятся сообщения, посты и аналитика — расходуйте энергию по мере необходимости." },
 ];
 
 const EXPLAINER = [
@@ -66,7 +49,7 @@ export default function Tseny() {
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
         <title>Цены и тарифы — энергия для работы с платформой | Промт Диалог</title>
-        <meta name="description" content="Гибкая система энергии: платите только за то, что используете. Пакеты от 500 до 5000 энергий. Получить план роста дохода — бесплатно." />
+        <meta name="description" content="Гибкая система энергии: платите только за то, что используете. Стоимость запроса от 3,3 ₽. Получить план роста дохода — бесплатно." />
         <meta name="keywords" content="цены Промт Диалог, тарифы для салона, стоимость платформы для салона красоты" />
         <link rel="canonical" href="https://promtdialog.ru/tseny" />
         <meta property="og:title" content="Цены и тарифы Промт Диалог — платите только за результат" />
@@ -146,12 +129,62 @@ export default function Tseny() {
       {/* ── ПАКЕТЫ ── */}
       <section style={{ padding: "120px 32px", background: "#fff" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ textAlign: "left", marginBottom: 72, maxWidth: 600 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Пакеты</div>
+          <div style={{ textAlign: "left", marginBottom: 48, maxWidth: 720 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Стоимость</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-              Выберите пакет
+              Платите только за то, что используете
             </h2>
-            <p style={{ fontSize: 17, color: GRAY, margin: 0, fontWeight: 300 }}>Оплата через ЮKassa — будет доступна в ближайшее время</p>
+            <p style={{ fontSize: 17, color: GRAY, margin: 0, fontWeight: 300, lineHeight: 1.6 }}>
+              Каждое действие в платформе стоит несколько энергий. Чем больше энергии вы берёте за раз, тем дешевле каждая из них.
+            </p>
+          </div>
+
+          <div className="price-hero" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 56 }}>
+            <div style={{ background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "40px 40px", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", right: -60, top: -60, width: 240, height: 240, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.16) 0%, transparent 70%)", pointerEvents: "none" }} />
+              <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, textTransform: "uppercase", letterSpacing: "2px", marginBottom: 14, position: "relative" }}>Минимальная стоимость запроса</div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", position: "relative" }}>
+                <span style={{ fontSize: 18, color: "rgba(255,255,255,0.6)" }}>от</span>
+                <span style={{ fontFamily: SERIF, fontSize: "clamp(56px,7vw,84px)", fontWeight: 600, color: "#fff", lineHeight: 1 }}>{fmtRub(MIN_REQUEST_PRICE)}</span>
+                <span style={{ fontSize: 28, color: TEAL, fontWeight: 500 }}>₽</span>
+              </div>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", margin: "16px 0 0", lineHeight: 1.7, position: "relative" }}>
+                за один запрос: сообщение клиенту, пост, ответ на отзыв, идея для акции. Самые частые действия стоят всего 1 энергию.
+              </p>
+            </div>
+            <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 6, padding: "40px 40px" }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(45,212,191,0.12)", border: "1px solid rgba(45,212,191,0.35)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+                <Icon name="Gift" size={24} style={{ color: "#0F766E" }} />
+              </div>
+              <h3 style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 600, color: DARK, margin: "0 0 12px", lineHeight: 1.2 }}>
+                Начните без оплаты
+              </h3>
+              <p style={{ fontSize: 15, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>
+                После регистрации вы пользуетесь платформой бесплатно и сразу получаете ежедневные шаги развития под вашу ситуацию. Без привязки карты.
+              </p>
+            </div>
+          </div>
+
+          <div className="free-steps" style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20, marginBottom: 72 }}>
+            {FREE_STEPS.map((f, i) => (
+              <div key={i} style={{ border: "1px solid #E2E8F0", borderRadius: 6, padding: "28px 26px", background: "#fff" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Icon name={f.icon} size={19} style={{ color: "#0F766E" }} />
+                  </div>
+                  <span style={{ fontFamily: SERIF, fontSize: 32, fontWeight: 600, color: TEAL, lineHeight: 1 }}>{i + 1}</span>
+                </div>
+                <h3 style={{ fontSize: 17, fontWeight: 700, color: DARK, margin: "0 0 8px" }}>{f.title}</h3>
+                <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.65, fontWeight: 300 }}>{f.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ maxWidth: 640, marginBottom: 32 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 16 }}>Пакеты энергии</div>
+            <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.6vw,42px)", fontWeight: 500, color: DARK, margin: 0, lineHeight: 1.15 }}>
+              Чем больше энергии, тем дешевле каждая
+            </h2>
           </div>
 
           {/* ── ГАРАНТИЯ РЕЗУЛЬТАТА ── */}
@@ -196,19 +229,27 @@ export default function Tseny() {
                 )}
                 <div style={{ padding: "32px 28px", display: "flex", flexDirection: "column", flex: 1 }}>
                   <h3 style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 600, color: DARK, margin: "0 0 6px" }}>{pkg.name}</h3>
-                  <p style={{ fontSize: 13, color: GRAY, margin: "0 0 28px", fontWeight: 300 }}>{pkg.desc}</p>
+                  <p style={{ fontSize: 13, color: GRAY, margin: "0 0 24px", fontWeight: 300 }}>{pkg.desc}</p>
 
-                  <div style={{ marginBottom: 12 }}>
-                    <span style={{ fontFamily: SERIF, fontSize: 44, fontWeight: 600, color: DARK, lineHeight: 1 }}>{pkg.price.toLocaleString("ru-RU")}</span>
-                    <span style={{ fontSize: 18, color: GRAY, fontWeight: 300, marginLeft: 4 }}>₽</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <Icon name="Zap" size={26} style={{ color: TEAL }} />
+                    <span style={{ fontFamily: SERIF, fontSize: 44, fontWeight: 600, color: DARK, lineHeight: 1 }}>{pkg.energy.toLocaleString("ru-RU")}</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 28 }}>
-                    <Icon name="Zap" size={18} style={{ color: TEAL }} />
-                    <span style={{ fontSize: 18, fontWeight: 500, color: DARK }}>{pkg.energy.toLocaleString("ru-RU")}</span>
-                    <span style={{ fontSize: 14, color: GRAY, fontWeight: 300 }}>энергий</span>
+                  <div style={{ fontSize: 14, color: GRAY, fontWeight: 300, marginBottom: 20 }}>энергий в пакете</div>
+
+                  <div style={{ background: pkg.popular ? "rgba(45,212,191,0.12)" : "#F1F5F9", borderRadius: 10, padding: "14px 16px", marginBottom: 12 }}>
+                    <div style={{ fontSize: 12, color: GRAY, marginBottom: 4 }}>Стоимость 1 энергии</div>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: DARK }}>{fmtRub(pkg.perEnergy)} ₽</div>
+                  </div>
+                  <div style={{ minHeight: 28, marginBottom: 20 }}>
+                    {pkg.saving > 0 && (
+                      <span style={{ display: "inline-block", fontSize: 12, fontWeight: 600, color: "#0F766E", background: "rgba(45,212,191,0.14)", borderRadius: 20, padding: "4px 12px" }}>
+                        Выгоднее на {pkg.saving}%
+                      </span>
+                    )}
                   </div>
 
-                  <div style={{ borderTop: "1px solid #EAEEF3", paddingTop: 24, marginBottom: 28, display: "flex", flexDirection: "column", gap: 12, flex: 1 }}>
+                  <div style={{ borderTop: "1px solid #EAEEF3", paddingTop: 22, marginBottom: 28, display: "flex", flexDirection: "column", gap: 12, flex: 1 }}>
                     {pkg.features.map((f, fi) => (
                       <div key={fi} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                         <Icon name="Check" size={16} style={{ color: TEAL, flexShrink: 0, marginTop: 2 }} />
@@ -227,7 +268,7 @@ export default function Tseny() {
                     onMouseEnter={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.opacity = "0.85"; }}
                     onMouseLeave={e => { const el = e.currentTarget as HTMLAnchorElement; el.style.opacity = "1"; }}
                   >
-                    Получить энергию в подарок
+                    Начать бесплатно
                   </a>
                 </div>
               </div>
@@ -289,6 +330,8 @@ export default function Tseny() {
         @media (max-width: 880px) {
           .energy-grid { grid-template-columns: 1fr !important; }
           .pkg-grid { grid-template-columns: repeat(2,1fr) !important; }
+          .price-hero { grid-template-columns: 1fr !important; }
+          .free-steps { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 700px) {
           .guarantee-block { flex-direction: column !important; align-items: flex-start !important; padding: 32px 28px !important; }
