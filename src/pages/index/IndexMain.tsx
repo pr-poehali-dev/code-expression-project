@@ -120,8 +120,8 @@ export function IndexHeroMain() {
           <div style={{ position: "relative", width: "100%" }}>
             <div style={{ position: "absolute", inset: -1, borderRadius: 6, background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))", pointerEvents: "none", zIndex: 2 }} />
             <img
-              src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/17441cfe-b66d-4a86-ad10-5a1fca3bfed4.png"
-              alt="Промт Диалог — AI-навигатор «ПоДелам»"
+              src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/1894504a-4291-4c6d-84d6-e13db764c6ad.jpg"
+              alt="Специалист получает ежедневные шаги развития в AI-навигаторе «ПоДелам»"
               fetchpriority="high"
               decoding="async"
               style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
