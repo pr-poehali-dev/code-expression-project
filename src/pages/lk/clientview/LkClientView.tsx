@@ -11,8 +11,21 @@ const GRAY = "#64748B";
 
 type Mode = "form" | "result" | "retest";
 
+const DRAFT_NEW = "cv_draft_new";
+const DRAFT_RETEST = "cv_draft_retest";
+const STATE_KEY = "cv_state";
+
+function loadState(): { mode: Mode; testId: number | null } {
+  try {
+    const s = JSON.parse(sessionStorage.getItem(STATE_KEY) || "");
+    if (s && (s.mode === "form" || s.mode === "result" || s.mode === "retest")) return s;
+  } catch { /* ignore */ }
+  return { mode: "form", testId: null };
+}
+
 export default function LkClientView({ onTopUp }: { onTopUp?: () => void }) {
-  const [mode, setMode] = useState<Mode>("form");
+  const saved = loadState();
+  const [mode, setMode] = useState<Mode>(saved.testId ? saved.mode : "form");
   const [test, setTest] = useState<ViewTest | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -23,11 +36,22 @@ export default function LkClientView({ onTopUp }: { onTopUp?: () => void }) {
 
   useEffect(() => { loadHistory(); }, []);
 
+  useEffect(() => {
+    if (saved.testId && !test) {
+      clientViewApi.get(saved.testId).then(setTest).catch(() => setMode("form"));
+    }
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem(STATE_KEY, JSON.stringify({ mode, testId: test?.id ?? null }));
+  }, [mode, test]);
+
   const submit = async (v: FormValues, parentId?: number) => {
     setLoading(true);
     setError("");
     try {
       const res = await clientViewApi.analyze({ ...v, parent_id: parentId ?? null });
+      localStorage.removeItem(parentId ? `${DRAFT_RETEST}_${parentId}` : DRAFT_NEW);
       setTest(res);
       setMode("result");
       loadHistory();
@@ -65,14 +89,16 @@ export default function LkClientView({ onTopUp }: { onTopUp?: () => void }) {
         </div>
       )}
 
-      {mode === "form" && <ClientViewForm loading={loading} onSubmit={v => submit(v)} onTopUp={onTopUp} />}
+      {mode === "form" && <ClientViewForm draftKey={DRAFT_NEW} loading={loading} onSubmit={v => submit(v)} onTopUp={onTopUp} />}
 
+      {mode === "retest" && !test && <div style={{ color: GRAY, fontSize: 14 }}>Загружаю…</div>}
       {mode === "retest" && test && (
         <div>
           <div style={{ fontSize: 14, color: GRAY, marginBottom: 12 }}>
             Вставь исправленную версию. Я сравню её с предыдущей и покажу, что изменилось в восприятии.
           </div>
           <ClientViewForm
+            draftKey={`${DRAFT_RETEST}_${test.id}`}
             loading={loading}
             initial={{ subject: test.subject, goal: test.goal, material: test.material }}
             submitLabel="Сравнить с предыдущей версией"
@@ -85,6 +111,7 @@ export default function LkClientView({ onTopUp }: { onTopUp?: () => void }) {
         </div>
       )}
 
+      {mode === "result" && !test && <div style={{ color: GRAY, fontSize: 14 }}>Загружаю…</div>}
       {mode === "result" && test && (
         <ClientViewResult key={test.id} test={test} onTopUp={onTopUp} onRetest={() => setMode("retest")} onNew={() => { setTest(null); setMode("form"); }} />
       )}

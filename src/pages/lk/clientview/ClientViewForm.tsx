@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { SUBJECTS, GOALS } from "./types";
 import { CostBadge, BalanceHint } from "./EnergyHint";
@@ -21,6 +21,7 @@ interface Props {
   submitLabel?: string;
   onSubmit: (v: FormValues) => void;
   onTopUp?: () => void;
+  draftKey: string;
 }
 
 const field: React.CSSProperties = {
@@ -36,14 +37,26 @@ function StepLabel({ n, text }: { n: number; text: string }) {
   );
 }
 
-export default function ClientViewForm({ initial, loading, submitLabel, onSubmit, onTopUp }: Props) {
-  const [v, setV] = useState<FormValues>({
-    subject: initial?.subject || "offer",
-    goal: initial?.goal || "bookings",
-    material: initial?.material || "",
-    city: initial?.city || "",
-    audience: initial?.audience || "",
+export default function ClientViewForm({ initial, loading, submitLabel, onSubmit, onTopUp, draftKey }: Props) {
+  const [v, setV] = useState<FormValues>(() => {
+    const base: FormValues = {
+      subject: initial?.subject || "offer",
+      goal: initial?.goal || "bookings",
+      material: initial?.material || "",
+      city: initial?.city || "",
+      audience: initial?.audience || "",
+    };
+    try {
+      const saved = localStorage.getItem(draftKey);
+      if (saved) return { ...base, ...JSON.parse(saved) };
+    } catch { /* ignore */ }
+    return base;
   });
+
+  useEffect(() => {
+    try { localStorage.setItem(draftKey, JSON.stringify(v)); } catch { /* ignore */ }
+  }, [v, draftKey]);
+
   const set = (k: keyof FormValues, val: string) => setV(p => ({ ...p, [k]: val }));
   const ready = v.material.trim().length >= 20 && !loading;
 
