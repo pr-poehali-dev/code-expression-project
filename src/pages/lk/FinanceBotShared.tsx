@@ -1,3 +1,4 @@
+import { adaptText, useIsOtherSpecialist } from "./otherSpecialistText";
 import Icon from "@/components/ui/icon";
 import {
   FINANCE_ACCENT, FINANCE_ACCENT_LIGHT, FINANCE_ACCENT_DARK,
@@ -70,6 +71,9 @@ interface NumInputProps {
 }
 
 export function NumInput({ label, value, onChange, prefix, suffix, placeholder, hint }: NumInputProps) {
+  const other = useIsOtherSpecialist();
+  label = adaptText(label, other);
+  hint = hint ? adaptText(hint, other) : hint;
   return (
     <div style={{ marginBottom: 16 }}>
       <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#444", marginBottom: 6 }}>{label}</label>

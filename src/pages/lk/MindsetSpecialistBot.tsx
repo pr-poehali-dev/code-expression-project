@@ -3,6 +3,7 @@ import { lkApi } from "@/lib/lkApi";
 import Icon from "@/components/ui/icon";
 import { backBtn, ACCENT } from "./LkTestsTypes";
 import ToolUsageBadge from "@/components/ToolUsageBadge";
+import { adaptText, useIsOtherSpecialist } from "./otherSpecialistText";
 
 const DemoShareBlock = lazy(() => import("@/pages/demo/DemoShareBlock"));
 
@@ -91,6 +92,8 @@ function TrackBlock({ text }: { text: string }) {
 interface Props { onBack: () => void; onRetake?: () => void; showShare?: boolean; }
 
 export default function MindsetSpecialistBot({ onBack, onRetake, showShare = false }: Props) {
+  const other = useIsOtherSpecialist();
+  const t = (x: string) => adaptText(x, other);
   const [data, setData] = useState<{ categories: Category[]; problems: Problem[]; questions: Question[]; options: Option[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -213,14 +216,14 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
     const mainCause    = ai?.["ЧТО Я ВИЖУ"]           || ai?.["ГЛАВНАЯ ПРИЧИНА"]      || scenario.main_cause;
     const obstacle     = ai?.["ГЛАВНОЕ ПРЕПЯТСТВИЕ"]   || ai?.["ЧТО ПРОИСХОДИТ ВНУТРИ"] || scenario.inner_state;
     const clientView   = ai?.["КАК ЭТО ВИДИТ КЛИЕНТ"] || scenario.client_view;
-    const whatToChange = ai?.["ЧТО ИЗМЕНИТЬ"]          || scenario.what_to_change;
+    const whatToChange = t(ai?.["ЧТО ИЗМЕНИТЬ"]          || scenario.what_to_change);
     const actionPlan   = ai?.["ПЛАН НА ЭТУ НЕДЕЛЮ"]   || scenario.action_plan;
     const exerciseRaw  = ai?.["УПРАЖНЕНИЕ"]            || null;
     const growthPoint  = ai?.["ТОЧКА РОСТА"]           || null;
 
     // Парсим упражнение из AI: первая строка — название, остальное — описание
     let exerciseName = scenario.exercise_name;
-    let exerciseText = scenario.exercise_text;
+    let exerciseText = t(scenario.exercise_text);
     if (exerciseRaw) {
       const lines = exerciseRaw.split("\n").filter(Boolean);
       if (lines.length > 1) {
@@ -325,7 +328,7 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
 
         <div style={{ background: "#fff", borderRadius: 20, padding: "28px 24px", boxShadow: "0 2px 12px rgba(0,0,0,0.05)", marginBottom: 16 }}>
           <p style={{ fontSize: "clamp(15px,2.5vw,18px)", fontWeight: 700, color: "#0F172A", lineHeight: 1.5, margin: 0 }}>
-            {currentQuestion.text}
+            {t(currentQuestion.text)}
           </p>
         </div>
 
@@ -350,7 +353,7 @@ export default function MindsetSpecialistBot({ onBack, onRetake, showShare = fal
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = COLOR; (e.currentTarget as HTMLElement).style.background = COLOR_BG; (e.currentTarget as HTMLElement).style.color = COLOR; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E2E8F0"; (e.currentTarget as HTMLElement).style.background = "#fff"; (e.currentTarget as HTMLElement).style.color = "#333"; }}
               >
-                {opt.text}
+                {t(opt.text)}
               </button>
             ))}
 

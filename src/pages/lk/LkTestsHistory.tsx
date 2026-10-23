@@ -4,6 +4,7 @@ import { IndexMap } from "./MindsetResult";
 import { BarrierIndexMap } from "./barriers.logic";
 import { FinanceData } from "./finance.types";
 import { formatMoney } from "./finance.logic";
+import { adaptText, useIsOtherSpecialist } from "./otherSpecialistText";
 
 interface Props {
   mindsetHistory: MindsetHistoryItem[];
@@ -150,11 +151,12 @@ function HistorySection({ title, children, onDelete }: { title: string; children
 // ─── Главный компонент ────────────────────────────────────────────────────────
 
 export default function LkTestsHistory({ mindsetHistory, barriersHistory, financeHistory, profileHistory, salonHistory, onViewMindset, onViewBarriers, onViewFinance, onViewProfile, onRetakeMindset, onRetakeBarriers, onRetakeFinance, onRetakeProfile, onRetakeSalon, onDeleteMindset, onDeleteBarriers, onDeleteFinance, onDeleteProfile, onDeleteSalon }: Props) {
+  const other = useIsOtherSpecialist();
   return (
     <>
       {/* Мышление с премиум-клиентами */}
       {mindsetHistory.length > 0 && (
-        <HistorySection title="История · Мышление с премиум-клиентами" onDelete={onDeleteMindset}>
+        <HistorySection title={adaptText("История · Мышление с премиум-клиентами", other)} onDelete={onDeleteMindset}>
           {mindsetHistory.map((item, i) => {
             const date = new Date(item.completed_at).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
             const time = new Date(item.completed_at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });

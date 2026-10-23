@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import { ACCENT, TOOL_COLORS, Test, BarriersHistoryItem, FinanceHistoryItem, ProfileHistoryItem, SalonHistoryItem } from "./LkTestsTypes";
 import { formatMoney } from "./finance.logic";
 import { formatMoneySalon } from "./salon.logic";
+import { adaptText } from "./otherSpecialistText";
 
 interface Props {
   tests: Test[];
@@ -143,8 +144,8 @@ export default function LkTestsList({ tests, barriersHistory, financeHistory, pr
               icon={test.icon}
               color={colors.color}
               bg={colors.bg}
-              title={test.title}
-              description={test.description}
+              title={adaptText(test.title, isOtherSpecialist)}
+              description={adaptText(test.description, isOtherSpecialist)}
               completed={test.completed}
               completedLabel={test.completed ? `Пройден · ${test.score} баллов` : undefined}
               onStart={handleClick}

@@ -1,4 +1,5 @@
 import { useLkAuth } from "@/contexts/LkAuthContext";
+import { adaptNavLabel } from "./otherSpecialistText";
 import Icon from "@/components/ui/icon";
 import {
   Tab, NAV_ITEMS, SALON_REQUIRED, TEAL_BRIGHT, ACCENT,
@@ -83,7 +84,7 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
                 )}
               </div>
               {locked && <Icon name="Lock" size={9} style={{ position: "absolute", top: 5, right: "calc(50% - 14px)", color: "rgba(255,255,255,0.3)" }} />}
-              {item.label}
+              {adaptNavLabel(item.id, item.label, user?.specialization === "other_specialist")}
             </>
           );
           if (item.external) {
@@ -139,7 +140,7 @@ export function LkBottomBar({ tab, hasSalon, mobileNav, moreItems, moreOpen, set
                     {showBadge && <span style={{ position: "absolute", top: -4, right: -4, fontSize: 9, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 8, padding: "1px 5px", minWidth: 14, textAlign: "center", lineHeight: "14px" }}>{requestsCount}</span>}
                     {showBlogDotMore && <span style={{ position: "absolute", top: -2, right: -2, width: 8, height: 8, borderRadius: "50%", background: "hsl(0,80%,60%)", border: "1.5px solid #fff" }} />}
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: tab === item.id ? 700 : 500, color: tab === item.id ? ACCENT : "#1a1a1a" }}>{item.label}</span>
+                  <span style={{ fontSize: 14, fontWeight: tab === item.id ? 700 : 500, color: tab === item.id ? ACCENT : "#1a1a1a" }}>{adaptNavLabel(item.id, item.label, user?.specialization === "other_specialist")}</span>
                   {!locked && showBadge && <span style={{ fontSize: 11, fontWeight: 700, background: "hsl(0,80%,60%)", color: "#fff", borderRadius: 6, padding: "2px 8px", marginLeft: "auto" }}>{requestsCount} запроса</span>}
                   {!locked && showBlogDotMore && <span style={{ fontSize: 11, fontWeight: 700, color: "hsl(0,80%,55%)", marginLeft: "auto" }}>Новое</span>}
                   {locked && <span style={{ fontSize: 11, color: "#bbb", marginLeft: "auto" }}>Нужен салон</span>}

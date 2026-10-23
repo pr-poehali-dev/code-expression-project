@@ -5,6 +5,7 @@ import { calcIGP, getScaleLabel, getType } from "./mindset.logic";
 import { ACCENT, ACCENT_LIGHT, MiniIndexBar } from "./MindsetShared";
 import { useState, useEffect } from "react";
 import func2url from "../../../backend/func2url.json";
+import { adaptText, useIsOtherSpecialist } from "./otherSpecialistText";
 
 export type IndexMap = Record<IndexKey, number>;
 
@@ -126,6 +127,8 @@ function AiAnalysisBlock({ idx, igp, typeTitle }: { idx: IndexMap; igp: number; 
 // ─── Основной компонент ───────────────────────────────────────────────────────
 
 export default function MindsetResult({ idx, date, onRetake, onBack, backLabel = "К инструментам" }: Props) {
+  const other = useIsOtherSpecialist();
+  const t = (x: string) => adaptText(x, other);
   const igp = calcIGP(idx);
   const scale = getScaleLabel(igp);
   const type = getType(idx);
@@ -173,7 +176,7 @@ export default function MindsetResult({ idx, date, onRetake, onBack, backLabel =
         boxShadow: `0 12px 40px hsla(185,85%,32%,0.35)`,
       }}>
         <div style={{ fontSize: 11, opacity: 0.7, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6 }}>
-          Индекс готовности к премиум-клиентам
+          {t("Индекс готовности к премиум-клиентам")}
         </div>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 16, marginBottom: 16 }}>
           <div style={{ fontSize: "clamp(52px,6vw,72px)", fontWeight: 900, lineHeight: 1, letterSpacing: -2 }}>
@@ -248,7 +251,7 @@ export default function MindsetResult({ idx, date, onRetake, onBack, backLabel =
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
             <Icon name="AlertTriangle" size={18} style={{ color: "#f97316" }} />
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>Что мешает работать с премиум-клиентами</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a1a1a" }}>{t("Что мешает работать с премиум-клиентами")}</div>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {type.weakZones.map(z => (

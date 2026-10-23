@@ -6,6 +6,7 @@ import { BotShell, MiniIndexBar, ACCENT, ACCENT_LIGHT } from "./MindsetShared";
 import { lkApi } from "@/lib/lkApi";
 import MindsetResult from "./MindsetResult";
 import ToolUsageBadge from "@/components/ToolUsageBadge";
+import { adaptText, useIsOtherSpecialist } from "./otherSpecialistText";
 
 type Phase = "intro" | "quiz" | "block-end" | "result";
 
@@ -14,6 +15,8 @@ interface Props {
 }
 
 export default function MindsetBot({ onBack }: Props) {
+  const other = useIsOtherSpecialist();
+  const t = (x: string) => adaptText(x, other);
   const [phase, setPhase] = useState<Phase>("intro");
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -78,7 +81,7 @@ export default function MindsetBot({ onBack }: Props) {
             <Icon name="Brain" size={36} style={{ color: "#fff" }} />
           </div>
           <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, color: "#1a1a1a", margin: "0 0 12px" }}>
-            Мышление с премиум-клиентами
+            {t("Мышление с премиум-клиентами")}
           </h1>
           <p style={{ fontSize: 15, color: "#666", lineHeight: 1.75, marginBottom: 16 }}>
             12 вопросов · 7 блоков · ~5 минут<br />
@@ -87,8 +90,8 @@ export default function MindsetBot({ onBack }: Props) {
           <div style={{ padding: "12px 16px", background: "hsl(185,85%,97%)", borderRadius: 12, border: "1px solid hsl(185,85%,85%)", marginBottom: 32 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: "#0F172A", marginBottom: 4 }}>Как пользоваться и почему это выгодно</div>
             <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.65 }}>
-              Пройдите тест из 12 вопросов — ИИ определит ваш тип мышления и выдаст конкретные точки роста в работе с клиентами высокого сегмента.<br />
-              Большинство специалистов теряют премиум-клиентов не из-за недостатка навыков, а из-за внутренней неуверенности. Тест помогает увидеть это и начать работу над собой.
+              {t("Пройдите тест из 12 вопросов — ИИ определит ваш тип мышления и выдаст конкретные точки роста в работе с клиентами высокого сегмента.")}<br />
+              {t("Большинство специалистов теряют премиум-клиентов не из-за недостатка навыков, а из-за внутренней неуверенности. Тест помогает увидеть это и начать работу над собой.")}
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 36 }}>
@@ -143,10 +146,10 @@ export default function MindsetBot({ onBack }: Props) {
               Блок {completedBlock} завершён
             </div>
             <h2 style={{ fontFamily: "Cormorant, serif", fontSize: 22, fontWeight: 700, color: "#1a1a1a", margin: "0 0 14px" }}>
-              {blockEndData.blockTitle}
+              {t(blockEndData.blockTitle)}
             </h2>
             <p style={{ fontSize: 14, color: "#555", lineHeight: 1.75, margin: "0 0 20px" }}>
-              {BLOCK_COMMENTS[completedBlock]}
+              {t(BLOCK_COMMENTS[completedBlock])}
             </p>
             <MiniIndexBar label="Уверенность" value={partialIdx.IU} color="hsl(280,60%,55%)" />
             <MiniIndexBar label="Границы" value={partialIdx.IPG} color={ACCENT} />
@@ -185,14 +188,14 @@ export default function MindsetBot({ onBack }: Props) {
     <BotShell onBack={onBack} progress={progress} step={current + 1} total={total}>
       <div style={{ maxWidth: 520, margin: "0 auto" }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6 }}>
-          Блок {q.block} · {q.blockTitle}
+          Блок {q.block} · {t(q.blockTitle)}
         </div>
 
         <h2 style={{
           fontFamily: "Cormorant, serif", fontSize: "clamp(20px,2.5vw,28px)",
           fontWeight: 700, color: "#1a1a1a", margin: "0 0 28px", lineHeight: 1.3,
         }}>
-          {q.text}
+          {t(q.text)}
         </h2>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
@@ -223,7 +226,7 @@ export default function MindsetBot({ onBack }: Props) {
                 }}>
                   {String.fromCharCode(65 + i)}
                 </span>
-                {opt.text}
+                {t(opt.text)}
               </button>
             );
           })}

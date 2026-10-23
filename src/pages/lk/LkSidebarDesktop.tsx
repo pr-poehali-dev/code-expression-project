@@ -1,4 +1,5 @@
 import { useLkAuth } from "@/contexts/LkAuthContext";
+import { adaptNavLabel } from "./otherSpecialistText";
 import Icon from "@/components/ui/icon";
 import {
   Tab, NAV_ITEMS, ROLE_TABS, SALON_REQUIRED, getRoleLabel, TEAL_BRIGHT, ACCENT,
@@ -88,7 +89,7 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
                   <span style={{ position: "absolute", top: -2, right: -2, width: 8, height: 8, borderRadius: "50%", background: "hsl(0,80%,60%)", border: "1.5px solid #0F172A" }} />
                 )}
               </span>
-              <span style={{ flex: 1 }}>{item.label}</span>
+              <span style={{ flex: 1 }}>{adaptNavLabel(item.id, item.label, user?.specialization === "other_specialist")}</span>
               {locked
                 ? <Icon name="Lock" size={12} style={{ color: "rgba(255,255,255,0.25)" }} />
                 : item.id === "employees" && requestsCount > 0
