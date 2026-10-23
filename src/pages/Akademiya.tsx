@@ -145,8 +145,8 @@ export default function Akademiya() {
             <div style={{ position: "relative", width: "100%" }}>
               <div style={{ position: "absolute", inset: -1, borderRadius: 6, background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))", pointerEvents: "none", zIndex: 2 }} />
               <img
-                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/a13d552d-2660-4c12-833d-56b1d288471f.png"
-                alt="Прокачка навыков с ИИ-агентом — тренинги Промт Диалог"
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/0421ec3c-6fcf-42ef-b235-b6683ce71184.jpg"
+                alt="Тренер и специалисты на тренинге с ИИ-помощником — Академия Промт Диалог"
                 decoding="async"
                 style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
               />
