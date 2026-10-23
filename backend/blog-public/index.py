@@ -132,9 +132,11 @@ def handle_content_list(event: dict, conn) -> dict:
         if category and category in CONTENT_CATEGORIES:
             conditions.append("category = %s")
             params += (category,)
-        if role_filter and role_filter in CONTENT_ROLES:
-            conditions.append("role = %s")
-            params += (role_filter,)
+        roles_selected = [r for r in role_filter.split(",") if r in CONTENT_ROLES]
+        if roles_selected:
+            placeholders = ", ".join(["%s"] * len(roles_selected))
+            conditions.append(f"role IN ({placeholders})")
+            params += tuple(roles_selected)
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
 
     cur.execute(f"SELECT COUNT(*) AS total FROM {SCHEMA}.content_posts {where_clause}", params)

@@ -61,10 +61,11 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const [category, setCategory] = useState("");
-  const initialRole = searchParams.get("role") || "";
-  const [role, setRole] = useState(
-    ROLES.some(r => r.key === initialRole) ? initialRole : ""
-  );
+  const initialRoles = (searchParams.get("role") || "")
+    .split(",")
+    .filter(k => k && ROLES.some(r => r.key === k));
+  const [roles, setRoles] = useState<string[]>(initialRoles);
+  const role = roles.join(",");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -153,11 +154,15 @@ export default function BlogPage() {
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 40 }}>
             <span style={{ fontSize: 13, color: GRAY, fontWeight: 400, marginRight: 2 }}>Ваша роль:</span>
             {ROLES.map(r => {
-              const active = role === r.key;
+              const active = r.key === "" ? roles.length === 0 : roles.includes(r.key);
               return (
                 <button
                   key={r.key}
-                  onClick={() => setRole(r.key)}
+                  onClick={() =>
+                    setRoles(prev =>
+                      r.key === "" ? [] : prev.includes(r.key) ? prev.filter(k => k !== r.key) : [...prev, r.key]
+                    )
+                  }
                   style={{
                     fontFamily: "Inter, sans-serif", fontSize: 13, fontWeight: 500, cursor: "pointer",
                     padding: "7px 16px", borderRadius: 20, whiteSpace: "nowrap",

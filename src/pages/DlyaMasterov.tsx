@@ -271,7 +271,7 @@ export default function DlyaMasterov() {
             Читайте практические материалы для частных мастеров и массажистов, знакомьтесь с разными подходами и выбирайте идеи, которые подходят вашей ситуации.
           </p>
           <Link
-            to="/blog?role=master"
+            to="/blog?role=master,massage"
             style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "15px 36px", borderRadius: 2, fontSize: 15, fontWeight: 600, background: DARK, color: "#fff", textDecoration: "none" }}
           >
             Полезные материалы для мастеров
