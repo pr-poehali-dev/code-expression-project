@@ -126,8 +126,8 @@ export default function DlyaKogo() {
             <div style={{ position: "relative", width: "100%" }}>
               <div style={{ position: "absolute", inset: -1, borderRadius: 6, background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))", pointerEvents: "none", zIndex: 2 }} />
               <img
-                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/5ffa6a5a-2302-4912-b402-5b27c2920f6c.png"
-                alt="Для кого Промт Диалог — владельцы, администраторы, мастера и психологи в частной практике"
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/85e5503c-e2ec-48c9-a3d2-49a9244559e3.jpg"
+                alt="Владелец салона, администратор, мастер, массажист и психолог — для кого Промт Диалог"
                 decoding="async"
                 style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
               />
