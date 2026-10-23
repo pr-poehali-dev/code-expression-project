@@ -34,9 +34,10 @@ interface Props {
   testId: number;
   chat: ChatEntry[];
   onChat: (e: ChatEntry) => void;
+  onTopUp?: () => void;
 }
 
-export default function ClientCardView({ card, index, testId, chat, onChat }: Props) {
+export default function ClientCardView({ card, index, testId, chat, onChat, onTopUp }: Props) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
@@ -111,7 +112,7 @@ export default function ClientCardView({ card, index, testId, chat, onChat }: Pr
               background: "#2DD4BF", color: DARK, cursor: "pointer", opacity: busy || q.trim().length < 3 ? 0.5 : 1,
             }}>{busy ? "…" : <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>Спросить <CostBadge /></span>}</button>
           </div>
-          <div style={{ marginTop: 8 }}><BalanceHint /></div>
+          <div style={{ marginTop: 8 }}><BalanceHint onTopUp={onTopUp} /></div>
           {err && <div style={{ color: "#B91C1C", fontSize: 13, marginTop: 8 }}>{err}</div>}
         </div>
       )}

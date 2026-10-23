@@ -15,12 +15,18 @@ export function CostBadge({ dark = true }: { dark?: boolean }) {
   );
 }
 
-export function BalanceHint() {
+export function BalanceHint({ onTopUp }: { onTopUp?: () => void }) {
   const { balance, loading } = useEnergy();
   const low = !loading && balance < CLIENT_VIEW_COST;
   return (
-    <span style={{ fontSize: 12, color: low ? "#B91C1C" : GRAY, fontWeight: low ? 600 : 400 }}>
-      {loading ? "Баланс: …" : `Баланс: ${balance} ⚡${low ? " — нужно пополнить" : ""}`}
+    <span style={{ fontSize: 12, color: low ? "#B91C1C" : GRAY, fontWeight: low ? 600 : 400, display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      <span>{loading ? "Баланс: …" : `Баланс: ${balance} ⚡${low ? " — нужно пополнить" : ""}`}</span>
+      {onTopUp && (
+        <button type="button" onClick={onTopUp} style={{
+          background: "none", border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit",
+          fontSize: 12, fontWeight: 700, color: "hsl(185,85%,32%)", textDecoration: "underline",
+        }}>Пополнить</button>
+      )}
     </span>
   );
 }

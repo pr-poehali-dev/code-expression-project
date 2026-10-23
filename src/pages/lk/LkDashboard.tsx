@@ -90,6 +90,12 @@ export default function LkDashboard() {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [allowedTabs, hasSalon, role]);
 
+  const handleTopUp = useCallback(() => {
+    if (allowedTabs.includes("shop")) handleTabChange("shop");
+    else if (allowedTabs.includes("purchases")) handleTabChange("purchases");
+    else import("@/components/EnergyGate").then(m => m.showEnergyGate({ message: "Пополните баланс энергии, чтобы продолжить" }));
+  }, [allowedTabs, handleTabChange]);
+
   const visibleNav    = NAV_ITEMS.filter(n => allowedTabs.includes(n.id));
   const mobilePrimary = (MOBILE_PRIMARY[role] || MOBILE_PRIMARY["body_specialist"])
     .filter(id => allowedTabs.includes(id));
@@ -127,7 +133,7 @@ export default function LkDashboard() {
         )}
         {tab === "ai"        && <LkAiTools />}
         {tab === "clientmsg"  && <LkClientMsg />}
-        {tab === "clientview" && <LkClientView />}
+        {tab === "clientview" && <LkClientView onTopUp={handleTopUp} />}
         {tab === "marketing"  && <LkMarketing initialTool={marketingTool} />}
         {tab === "shop"       && <LkEnergy />}
         {tab === "employees" && <LkTeam />}

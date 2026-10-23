@@ -11,7 +11,7 @@ const GRAY = "#64748B";
 
 type Mode = "form" | "result" | "retest";
 
-export default function LkClientView() {
+export default function LkClientView({ onTopUp }: { onTopUp?: () => void }) {
   const [mode, setMode] = useState<Mode>("form");
   const [test, setTest] = useState<ViewTest | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -65,7 +65,7 @@ export default function LkClientView() {
         </div>
       )}
 
-      {mode === "form" && <ClientViewForm loading={loading} onSubmit={v => submit(v)} />}
+      {mode === "form" && <ClientViewForm loading={loading} onSubmit={v => submit(v)} onTopUp={onTopUp} />}
 
       {mode === "retest" && test && (
         <div>
@@ -76,6 +76,7 @@ export default function LkClientView() {
             loading={loading}
             initial={{ subject: test.subject, goal: test.goal, material: test.material }}
             submitLabel="Сравнить с предыдущей версией"
+            onTopUp={onTopUp}
             onSubmit={v => submit(v, test.id)}
           />
           <button onClick={() => setMode("result")} style={{ marginTop: 12, background: "none", border: "none", color: GRAY, cursor: "pointer", fontFamily: "inherit", fontSize: 13 }}>
@@ -85,7 +86,7 @@ export default function LkClientView() {
       )}
 
       {mode === "result" && test && (
-        <ClientViewResult key={test.id} test={test} onRetest={() => setMode("retest")} onNew={() => { setTest(null); setMode("form"); }} />
+        <ClientViewResult key={test.id} test={test} onTopUp={onTopUp} onRetest={() => setMode("retest")} onNew={() => { setTest(null); setMode("form"); }} />
       )}
 
       <ClientViewHistory items={history} activeId={test?.id} onOpen={open} />

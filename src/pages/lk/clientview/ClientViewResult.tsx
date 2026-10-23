@@ -27,9 +27,10 @@ interface Props {
   test: ViewTest;
   onRetest: () => void;
   onNew: () => void;
+  onTopUp?: () => void;
 }
 
-export default function ClientViewResult({ test, onRetest, onNew }: Props) {
+export default function ClientViewResult({ test, onRetest, onNew, onTopUp }: Props) {
   const [chat, setChat] = useState<ChatEntry[]>(test.chat || []);
   const [note, setNote] = useState(test.reality_note || "");
   const [saved, setSaved] = useState(false);
@@ -69,7 +70,7 @@ export default function ClientViewResult({ test, onRetest, onNew }: Props) {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(290px,1fr))", gap: 16, alignItems: "start" }}>
         {r.clients.map((c, i) => (
-          <ClientCardView key={i} card={c} index={i} testId={test.id} chat={chat} onChat={e => setChat(p => [...p, e])} />
+          <ClientCardView key={i} card={c} index={i} testId={test.id} chat={chat} onChat={e => setChat(p => [...p, e])} onTopUp={onTopUp} />
         ))}
       </div>
 

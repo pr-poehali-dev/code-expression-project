@@ -20,6 +20,7 @@ interface Props {
   loading: boolean;
   submitLabel?: string;
   onSubmit: (v: FormValues) => void;
+  onTopUp?: () => void;
 }
 
 const field: React.CSSProperties = {
@@ -35,7 +36,7 @@ function StepLabel({ n, text }: { n: number; text: string }) {
   );
 }
 
-export default function ClientViewForm({ initial, loading, submitLabel, onSubmit }: Props) {
+export default function ClientViewForm({ initial, loading, submitLabel, onSubmit, onTopUp }: Props) {
   const [v, setV] = useState<FormValues>({
     subject: initial?.subject || "offer",
     goal: initial?.goal || "bookings",
@@ -106,7 +107,7 @@ export default function ClientViewForm({ initial, loading, submitLabel, onSubmit
           {loading ? "Клиентская группа думает…" : (submitLabel || "Получить реакцию клиентской группы")}
           {!loading && <CostBadge />}
         </button>
-        <BalanceHint />
+        <BalanceHint onTopUp={onTopUp} />
       </div>
       <div style={{ fontSize: 12, color: GRAY, marginTop: 10 }}>
         Система моделирует несколько разных взглядов на одно и то же предложение.
