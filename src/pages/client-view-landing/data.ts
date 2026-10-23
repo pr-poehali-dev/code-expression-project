@@ -6,7 +6,10 @@ export const DESCRIPTION =
 export const KEYWORDS =
   "анализ целевой аудитории, проверка рекламного текста, проверка прайса, возражения клиентов, портрет клиента, как понять клиента, ИИ для мастера, ИИ для психолога, маркетинг для салона красоты, проверить услугу до запуска";
 export const OG_IMAGE =
-  "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/og-image-1792772179107.jpg";
+  "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/b36a007c-5f9e-4162-a887-fd83d0265a65.jpg";
+export const OG_IMAGE_WIDTH = "1360";
+export const OG_IMAGE_HEIGHT = "768";
+export const OG_IMAGE_ALT = "Покажи глазами клиента: три условных клиента смотрят на ваше предложение";
 
 export const PAINS = [
   { icon: "Wallet", title: "Реклама не окупается", text: "Деньги уходят на показы, а записей нет: клиент не понимает, чем вы отличаетесь и за что платить." },
