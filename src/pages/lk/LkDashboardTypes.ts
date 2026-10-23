@@ -7,17 +7,17 @@ export type Tab =
   | "home" | "tools" | "academy" | "ai" | "shop"
   | "employees" | "purchases" | "profile" | "salon"
   | "admin" | "support" | "more" | "clientmsg" | "marketing"
-  | "championship" | "blog" | "packages" | "referral";
+  | "championship" | "blog" | "packages" | "referral" | "clientview";
 
 // Чемпионат временно отключён (не проводится) — вкладка убрана из меню, чтобы cron-функция
 // не расходовала вычислительное время впустую. Чтобы вернуть, добавить "championship" обратно
 // в нужные роли ниже и в MOBILE_PRIMARY.
 export const ROLE_TABS: Record<string, Tab[]> = {
-  owner:          ["home", "packages", "tools", "academy", "ai", "clientmsg", "marketing", "shop", "employees", "purchases", "salon", "referral", "blog", "profile", "support"],
-  admin:          ["home", "packages", "tools", "academy", "ai", "clientmsg", "marketing", "referral", "blog", "profile", "support"],
-  master:         ["home", "packages", "tools", "academy", "ai", "referral", "blog", "profile", "support"],
-  body_specialist:["home", "packages", "tools", "academy", "ai", "referral", "blog", "profile", "support"],
-  solo_master:    ["home", "packages", "tools", "academy", "clientmsg", "marketing", "shop", "purchases", "referral", "blog", "profile", "support"],
+  owner:          ["home", "packages", "tools", "academy", "ai", "clientmsg", "marketing", "clientview", "shop", "employees", "purchases", "salon", "referral", "blog", "profile", "support"],
+  admin:          ["home", "packages", "tools", "academy", "ai", "clientmsg", "marketing", "clientview", "referral", "blog", "profile", "support"],
+  master:         ["home", "packages", "tools", "academy", "ai", "clientview", "referral", "blog", "profile", "support"],
+  body_specialist:["home", "packages", "tools", "academy", "ai", "clientview", "referral", "blog", "profile", "support"],
+  solo_master:    ["home", "packages", "tools", "academy", "clientmsg", "marketing", "clientview", "shop", "purchases", "referral", "blog", "profile", "support"],
 };
 
 export function getAllowedTabs(role: string, isAdmin: boolean): Tab[] {
@@ -40,6 +40,7 @@ export const NAV_ITEMS: { id: Tab; icon: string; label: string; badge?: string; 
   { id: "packages",  icon: "Rocket",         label: "Пакеты развития"     },
   { id: "marketing", icon: "BarChart3",      label: "Маркетинг"           },
   { id: "ai",        icon: "Sparkles",       label: "Развитие салона"     },
+  { id: "clientview", icon: "Eye",            label: "Глазами клиента"     },
   { id: "clientmsg", icon: "MessageSquare",  label: "Сообщения клиентам"  },
   { id: "employees", icon: "Users",          label: "Сотрудники"          },
   { id: "academy",   icon: "GraduationCap",  label: "Академия"            },

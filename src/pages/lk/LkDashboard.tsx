@@ -17,6 +17,7 @@ import { PodelamTab } from "./LkPodelam";
 import LkPackages from "./LkPackages";
 import LkChampionship from "./LkChampionship";
 import LkReferral from "./LkReferral";
+import LkClientView from "./clientview/LkClientView";
 import { LkSidebar, LkMobileHeader, LkBottomBar, PodelamReminderBanner, PodelamTrialBanner } from "./LkDashboardSidebar";
 import { isFittingTrial } from "@/lib/fittingTrial";
 import {
@@ -126,6 +127,7 @@ export default function LkDashboard() {
         )}
         {tab === "ai"        && <LkAiTools />}
         {tab === "clientmsg"  && <LkClientMsg />}
+        {tab === "clientview" && <LkClientView />}
         {tab === "marketing"  && <LkMarketing initialTool={marketingTool} />}
         {tab === "shop"       && <LkEnergy />}
         {tab === "employees" && <LkTeam />}
