@@ -175,7 +175,7 @@ export function IndexHowItWorks() {
           </p>
         </div>
         <div style={{ fontSize: 15, fontWeight: 700, color: DARK, marginBottom: 20 }}>Что анализируется:</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 16, marginBottom: 40 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(300px,100%),1fr))", gap: 16, marginBottom: 40 }}>
           {ANALYZED.map((a, i) => (
             <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 12, padding: "18px 20px" }}>
               <div style={{ width: 36, height: 36, borderRadius: 9, background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -212,7 +212,7 @@ export function IndexResults() {
             Когда задач много, сложно понять, за что браться в первую очередь. «Промт Диалог» помогает посмотреть на свою ситуацию системно и определить следующие шаги.
           </p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(240px,100%),1fr))", gap: 20 }}>
           {RESULTS.map((r, i) => (
             <div key={i} style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: "28px 24px" }}>
               <div style={{ width: 44, height: 44, borderRadius: 11, background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
@@ -235,7 +235,7 @@ export function IndexHowToStart() {
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <div style={{ ...eyebrow }}>Как начать</div>
         <h2 style={{ ...h2Style, color: "#fff", marginBottom: 48 }}>Начните со своей ситуации</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(260px,100%),1fr))", gap: 24 }}>
           {STEPS.map((s) => (
             <div key={s.num} style={{ border: "1px solid rgba(45,212,191,0.25)", borderRadius: 16, padding: "28px 26px", background: "rgba(255,255,255,0.03)" }}>
               <div style={{ fontFamily: SERIF, fontSize: 44, fontWeight: 600, color: TEAL, lineHeight: 1, marginBottom: 14 }}>{s.num}</div>

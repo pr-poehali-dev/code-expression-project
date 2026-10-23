@@ -117,7 +117,7 @@ export default function IndexDemoForm() {
           <div style={{ background: "#fff", borderRadius: 18, padding: "28px 26px", boxShadow: "0 32px 80px rgba(0,0,0,0.4)" }}>
             {!result ? (
               <>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+                <div className="demo-form-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
                   <div>
                     <label style={label}>Средний чек, ₽ *</label>
                     <input style={inputStyle} type="number" value={form.avg_check} onChange={e => set("avg_check", e.target.value)} placeholder="2500" />
@@ -127,7 +127,7 @@ export default function IndexDemoForm() {
                     <input style={inputStyle} type="number" value={form.base_size} onChange={e => set("base_size", e.target.value)} placeholder="120" />
                   </div>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+                <div className="demo-form-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
                   <div>
                     <label style={label}>Доход сейчас, ₽/мес *</label>
                     <input style={inputStyle} type="number" value={form.current_revenue} onChange={e => set("current_revenue", e.target.value)} placeholder="110000" />
@@ -137,7 +137,7 @@ export default function IndexDemoForm() {
                     <input style={inputStyle} type="number" value={form.target_revenue} onChange={e => set("target_revenue", e.target.value)} placeholder="180000" />
                   </div>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
+                <div className="demo-form-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
                   <div>
                     <label style={label}>% повторных визитов</label>
                     <input style={inputStyle} type="number" value={form.repeat_rate} onChange={e => set("repeat_rate", e.target.value)} placeholder="35" />
@@ -271,6 +271,10 @@ export default function IndexDemoForm() {
       <style>{`
         @media (max-width: 768px) {
           .demo-form-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 520px) {
+          .demo-form-row { grid-template-columns: 1fr !important; }
+          #demo-form { padding: 72px 20px !important; }
         }
       `}</style>
     </section>
