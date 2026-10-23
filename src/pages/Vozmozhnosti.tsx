@@ -9,6 +9,27 @@ const DARK = "#0F172A";
 const GRAY = "#64748B";
 const SERIF = "'Cormorant Garamond', serif";
 
+const TOOL_IMAGES: Record<string, string> = {
+  "post-generator": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/40138920-5a07-4734-bb3d-c1b5cb891f3f.jpg",
+  "reels-video": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/0681b35e-fc41-4bd8-b0e1-30eb9b2c9c23.jpg",
+  "image-generation": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/e5188112-f3e5-42ac-8e7b-cb01795780ce.jpg",
+  "fitting-room": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/46a2aff6-c62f-4636-9f50-5f71bc6b51d2.jpg",
+  "ad-campaigns": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/5678dd60-6816-43e0-8442-17de238ca885.jpg",
+  "landing-builder": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/62c14c56-9616-49f6-a2e1-0f4ae1ab8684.jpg",
+  "seo-optimization": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/4b2464a5-533e-4887-b264-80a05cc37100.jpg",
+  "audience-analysis": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/a0a3fb8b-2591-48e9-9fbf-387d289d5103.jpg",
+  "staff-analysis": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/eabe382d-c9de-490c-a443-5200b8d69850.jpg",
+  "business-audit": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/c99490c2-8133-4d40-b84f-5f8f80c34281.jpg",
+  "growth-diagnostics": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/d4f21ead-1143-4ee7-bf4a-53ffd34f1073.jpg",
+  "scripts": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/7b51eb37-be86-498e-80cd-b5d0e7143ea0.jpg",
+  "objection-handling": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/bf5498c9-c443-4b19-99c7-c7fc7143a475.jpg",
+  "repeat-booking": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/c6ee24ed-b45f-439e-9276-f70234cac61e.jpg",
+  "client-diagnostics": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/1f8fb0b4-b51f-4a72-a13c-801cb39bde8e.jpg",
+  "cheat-sheets": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/82d8c0a9-2e3b-432d-a00d-2bf97e4cfcc6.jpg",
+  "recovery-programs": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/271bea72-fed6-4aa7-bddd-d7b9fa59fdd2.jpg",
+  "development-tests": "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/1eefb551-4e4d-4a26-a9c2-015e585a59e3.jpg",
+};
+
 const SECTIONS = [
   {
     tag: "Маркетинг",
@@ -260,6 +281,9 @@ export default function Vozmozhnosti() {
                     onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = "rgba(45,212,191,0.05)"}
                     onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.background = si % 2 === 0 ? "#fff" : "#F8FAFC"; }}
                   >
+                    {TOOL_IMAGES[t.slug] && (
+                      <img src={TOOL_IMAGES[t.slug]} alt={t.name} loading="lazy" decoding="async" style={{ width: "calc(100% + 64px)", maxWidth: "none", margin: "-40px -32px 28px", aspectRatio: "16 / 9", objectFit: "cover", display: "block" }} />
+                    )}
                     <div style={{ width: 48, height: 48, borderRadius: 2, border: "1px solid #EAEEF3", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
                       <Icon name={t.icon} size={22} style={{ color: TEAL }} />
                     </div>
