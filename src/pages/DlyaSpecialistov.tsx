@@ -8,7 +8,7 @@ const TEAL = "#2DD4BF";
 const DARK = "#0F172A";
 const GRAY = "#64748B";
 const SERIF = "'Cormorant Garamond', serif";
-const DIAG_URL = "/diagnostika";
+const DIAG_URL = "/cabinet?type=other_specialist";
 const BLOG_URL = "https://promtdialog.ru/blog";
 const P = "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/";
 
