@@ -104,12 +104,26 @@ export default function DlyaSalonov() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
-        <title>Как привлечь больше клиентов и увеличить загрузку салона — Промт Диалог</title>
-        <meta name="description" content="Промт Диалог — AI-навигатор «ПоДелам» для владельцев салонов красоты: бесплатная диагностика, персональные шаги для привлечения клиентов, загрузки мастеров и повторных визитов. Подключение команды." />
+        <title>Как увеличить загрузку салона красоты и привлечь клиентов | Промт Диалог</title>
+        <meta name="description" content="Бесплатная диагностика для владельцев салонов красоты: AI-навигатор «ПоДелам» поможет определить точки роста, заполнить свободные окна, привлечь новых и вернуть постоянных клиентов. Подключите команду." />
+        <meta name="keywords" content="как увеличить загрузку салона красоты, как привлечь клиентов в салон красоты, продвижение салона красоты, маркетинг для салона красоты, заполнить свободные окна у мастеров, повторные визиты клиентов, развитие салона красоты, ИИ для салона красоты, бесплатная диагностика салона, маркетинг для владельца салона" />
+        <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://promtdialog.ru/dlya-salonov" />
-        <meta property="og:title" content="Как привлечь больше клиентов и увеличить загрузку салона" />
-        <meta property="og:description" content="Бесплатная диагностика и персональные шаги для развития салона красоты и работы команды." />
+        <meta property="og:title" content="Как увеличить загрузку салона красоты и привлечь клиентов — Промт Диалог" />
+        <meta property="og:description" content="Бесплатная диагностика и персональные шаги для владельцев салонов красоты: загрузка мастеров, новые клиенты, повторные визиты, работа команды." />
         <meta property="og:url" content="https://promtdialog.ru/dlya-salonov" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Как увеличить загрузку салона красоты — Промт Диалог" />
+        <meta name="twitter:description" content="Бесплатная диагностика салона и персональные шаги для привлечения клиентов и развития команды." />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Как увеличить загрузку салона красоты и привлечь клиентов",
+          "url": "https://promtdialog.ru/dlya-salonov",
+          "description": "Бесплатная диагностика для владельцев салонов красоты: точки роста, загрузка мастеров, привлечение клиентов, повторные визиты и работа команды.",
+          "isPartOf": { "@type": "WebSite", "name": "Промт Диалог", "url": "https://promtdialog.ru" }
+        })}</script>
       </Helmet>
       <BizNavbar />
 
