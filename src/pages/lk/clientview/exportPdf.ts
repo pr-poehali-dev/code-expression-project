@@ -48,7 +48,7 @@ export function buildReportHtml(test: ViewTest): string {
       ${list("Что вызывает сомнение", c.doubts, "#B45309")}
       <div class="lbl" style="color:#0E7C86">Что стоит проверить</div>
       <p>${esc(c.check)}</p>
-      ${dialog.length ? `<div class="lbl">Вопросы клиенту</div>${dialog.map(m => `<p class="q">Вопрос: ${esc(m.question)}</p><p class="a">${esc(m.answer)}</p>`).join("")}` : ""}
+      ${dialog.length ? `<div class="lbl">Вопросы клиенту</div>${dialog.map(m => `<div class="qa"><p class="q">Вопрос: ${esc(m.question)}</p><p class="a">${esc(m.answer)}</p></div>`).join("")}` : ""}
     </section>`;
   }).join("");
 
@@ -65,22 +65,26 @@ export function buildReportHtml(test: ViewTest): string {
   * { box-sizing: border-box; }
   body { font-family: Arial, Helvetica, sans-serif; color: #0F172A; font-size: 12.5px; line-height: 1.55; margin: 0; }
   h1 { font-size: 22px; margin: 0 0 4px; }
-  h2 { font-size: 16px; margin: 22px 0 10px; }
-  h3 { font-size: 14.5px; margin: 0 0 2px; }
+  h2 { font-size: 16px; margin: 22px 0 10px; break-after: avoid; page-break-after: avoid; }
+  h2 + p.muted { break-after: avoid; page-break-after: avoid; }
+  h3 { font-size: 14.5px; margin: 0 0 2px; break-after: avoid; page-break-after: avoid; }
   p { margin: 4px 0 8px; }
   ul { margin: 2px 0 8px; padding-left: 18px; }
   .muted { color: #64748B; }
   .meta { color: #64748B; margin-bottom: 12px; }
   .note { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: 8px 12px; font-size: 11.5px; margin: 10px 0 16px; }
   .material { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; }
-  .card, .box, .var, .row { break-inside: avoid; page-break-inside: avoid; }
+  .box, .var, .row, blockquote, li, .a, .qa, .note { break-inside: avoid; page-break-inside: avoid; }
+  .lbl, .tag, .muted + .tag { break-after: avoid; page-break-after: avoid; }
+  .card h3, .card .muted, .card .tag { break-after: avoid; page-break-after: avoid; }
+  p { orphans: 3; widows: 3; }
   .card { border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
   .box { border: 1px solid #E2E8F0; border-radius: 10px; padding: 4px 14px 8px; margin-bottom: 12px; }
   .accent { background: #ECFEFF; border-color: #0E7C86; }
   .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; margin: 8px 0 4px; }
   .lbl { font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; margin-top: 10px; color: #64748B; }
   blockquote { margin: 4px 0 6px; padding-left: 10px; border-left: 3px solid #2DD4BF; font-style: italic; }
-  .q { color: #64748B; margin-bottom: 2px; }
+  .q { color: #64748B; margin-bottom: 2px; break-after: avoid; page-break-after: avoid; }
   .a { background: #F8FAFC; border-radius: 8px; padding: 6px 10px; }
   .row { display: flex; gap: 12px; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
   .num { width: 24px; height: 24px; border-radius: 999px; background: #2DD4BF; font-weight: 800; text-align: center; line-height: 24px; flex-shrink: 0; }
