@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { SUBJECTS, GOALS } from "./types";
+import { CostBadge, BalanceHint } from "./EnergyHint";
 
 const ACCENT = "hsl(185,85%,32%)";
 const DARK = "#0F172A";
@@ -95,14 +96,18 @@ export default function ClientViewForm({ initial, loading, submitLabel, onSubmit
         })}
       </div>
 
-      <button disabled={!ready} onClick={() => onSubmit(v)} style={{
-        display: "inline-flex", alignItems: "center", gap: 8, border: "none", borderRadius: 12, padding: "14px 26px",
-        fontSize: 15, fontWeight: 700, fontFamily: "inherit", cursor: ready ? "pointer" : "not-allowed",
-        background: ready ? "#2DD4BF" : "#CBD5E1", color: DARK,
-      }}>
-        <Icon name={loading ? "Loader" : "Users"} size={18} />
-        {loading ? "Клиентская группа думает…" : (submitLabel || "Получить реакцию клиентской группы")}
-      </button>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 14 }}>
+        <button disabled={!ready} onClick={() => onSubmit(v)} style={{
+          display: "inline-flex", alignItems: "center", gap: 8, border: "none", borderRadius: 12, padding: "14px 26px",
+          fontSize: 15, fontWeight: 700, fontFamily: "inherit", cursor: ready ? "pointer" : "not-allowed",
+          background: ready ? "#2DD4BF" : "#CBD5E1", color: DARK,
+        }}>
+          <Icon name={loading ? "Loader" : "Users"} size={18} />
+          {loading ? "Клиентская группа думает…" : (submitLabel || "Получить реакцию клиентской группы")}
+          {!loading && <CostBadge />}
+        </button>
+        <BalanceHint />
+      </div>
       <div style={{ fontSize: 12, color: GRAY, marginTop: 10 }}>
         Система моделирует несколько разных взглядов на одно и то же предложение.
       </div>

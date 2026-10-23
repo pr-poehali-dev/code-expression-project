@@ -4,6 +4,7 @@ import ClientViewResult from "./ClientViewResult";
 import ClientViewHistory from "./ClientViewHistory";
 import { clientViewApi } from "./api";
 import { ViewTest, HistoryItem } from "./types";
+import { useEnergy } from "@/contexts/EnergyContext";
 
 const DARK = "#0F172A";
 const GRAY = "#64748B";
@@ -16,6 +17,7 @@ export default function LkClientView() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { refresh } = useEnergy();
 
   const loadHistory = () => clientViewApi.list().then(d => setHistory(d.items)).catch(() => {});
 
@@ -29,6 +31,7 @@ export default function LkClientView() {
       setTest(res);
       setMode("result");
       loadHistory();
+      refresh();
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка");

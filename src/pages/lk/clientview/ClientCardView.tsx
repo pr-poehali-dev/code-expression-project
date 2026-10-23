@@ -2,6 +2,8 @@ import { useState } from "react";
 import Icon from "@/components/ui/icon";
 import { ClientCard, ChatEntry, QUESTIONS, Interest } from "./types";
 import { clientViewApi } from "./api";
+import { CostBadge, BalanceHint } from "./EnergyHint";
+import { useEnergy } from "@/contexts/EnergyContext";
 
 const DARK = "#0F172A";
 const GRAY = "#64748B";
@@ -39,6 +41,7 @@ export default function ClientCardView({ card, index, testId, chat, onChat }: Pr
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const { refresh } = useEnergy();
   const tag = INTEREST[card.interest];
   const mine = chat.filter(c => c.client_index === index);
 
@@ -50,6 +53,7 @@ export default function ClientCardView({ card, index, testId, chat, onChat }: Pr
       const entry = await clientViewApi.ask(testId, index, text.trim());
       onChat(entry);
       setQ("");
+      refresh();
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Ошибка");
     } finally {
@@ -103,10 +107,11 @@ export default function ClientCardView({ card, index, testId, chat, onChat }: Pr
               placeholder="Твой вопрос" maxLength={400} disabled={busy}
               style={{ flex: 1, minWidth: 0, border: "1px solid #E2E8F0", borderRadius: 10, padding: "10px 12px", fontSize: 14, fontFamily: "inherit", color: DARK }} />
             <button disabled={busy || q.trim().length < 3} onClick={() => ask(q)} style={{
-              border: "none", borderRadius: 10, padding: "0 16px", fontWeight: 700, fontFamily: "inherit", fontSize: 14,
+              border: "none", borderRadius: 10, padding: "10px 14px", fontWeight: 700, fontFamily: "inherit", fontSize: 14,
               background: "#2DD4BF", color: DARK, cursor: "pointer", opacity: busy || q.trim().length < 3 ? 0.5 : 1,
-            }}>{busy ? "…" : "Спросить"}</button>
+            }}>{busy ? "…" : <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>Спросить <CostBadge /></span>}</button>
           </div>
+          <div style={{ marginTop: 8 }}><BalanceHint /></div>
           {err && <div style={{ color: "#B91C1C", fontSize: 13, marginTop: 8 }}>{err}</div>}
         </div>
       )}

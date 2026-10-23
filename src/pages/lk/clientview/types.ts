@@ -76,3 +76,5 @@ export function subjectTitle(id: string) {
 export function goalTitle(id: string) {
   return GOALS.find(g => g.id === id)?.title || id;
 }
+
+export const CLIENT_VIEW_COST = 2;
