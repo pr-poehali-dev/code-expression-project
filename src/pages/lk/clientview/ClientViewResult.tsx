@@ -3,6 +3,7 @@ import Icon from "@/components/ui/icon";
 import ClientCardView from "./ClientCardView";
 import { ViewTest, ChatEntry, subjectTitle, goalTitle } from "./types";
 import { clientViewApi } from "./api";
+import { downloadReportPdf } from "./exportPdf";
 
 const DARK = "#0F172A";
 const GRAY = "#64748B";
@@ -34,6 +35,7 @@ export default function ClientViewResult({ test, onRetest, onNew, onTopUp }: Pro
   const [chat, setChat] = useState<ChatEntry[]>(test.chat || []);
   const [note, setNote] = useState(test.reality_note || "");
   const [saved, setSaved] = useState(false);
+  const [pdfBlocked, setPdfBlocked] = useState(false);
   const r = test.result;
 
   const saveNote = async () => {
@@ -42,12 +44,23 @@ export default function ClientViewResult({ test, onRetest, onNew, onTopUp }: Pro
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const exportPdf = () => {
+    const ok = downloadReportPdf({ ...test, chat, reality_note: note || null });
+    setPdfBlocked(!ok);
+  };
+
   return (
     <div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 6 }}>
         <span style={{ fontSize: 12, fontWeight: 700, background: "#F1F5F9", color: DARK, padding: "5px 11px", borderRadius: 999 }}>{subjectTitle(test.subject)}</span>
         <span style={{ fontSize: 12, fontWeight: 700, background: "#F1F5F9", color: DARK, padding: "5px 11px", borderRadius: 999 }}>{goalTitle(test.goal)}</span>
+        <button onClick={exportPdf} style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 6, border: "1px solid #E2E8F0", background: "#fff", color: DARK, borderRadius: 10, padding: "8px 14px", fontWeight: 600, fontFamily: "inherit", fontSize: 13, cursor: "pointer" }}>
+          <Icon name="FileDown" size={16} /> Скачать PDF
+        </button>
       </div>
+      {pdfBlocked && (
+        <div style={{ fontSize: 13, color: "#B91C1C", marginTop: 6 }}>Браузер заблокировал окно. Разреши всплывающие окна для сайта и нажми кнопку ещё раз.</div>
+      )}
       <div style={{ fontSize: 12, color: GRAY, lineHeight: 1.5, background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 12, padding: "10px 14px", margin: "12px 0 20px" }}>
         Это условные профили, а не реальные опрошенные люди. Реакции — гипотезы для проверки, а не измеренные вероятности покупки.
       </div>
@@ -119,6 +132,9 @@ export default function ClientViewResult({ test, onRetest, onNew, onTopUp }: Pro
         </button>
         <button onClick={onNew} style={{ border: "1px solid #E2E8F0", borderRadius: 12, padding: "13px 22px", background: "#fff", color: DARK, fontWeight: 600, fontFamily: "inherit", fontSize: 14, cursor: "pointer" }}>
           Новая проверка
+        </button>
+        <button onClick={exportPdf} style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1px solid #E2E8F0", borderRadius: 12, padding: "13px 22px", background: "#fff", color: DARK, fontWeight: 600, fontFamily: "inherit", fontSize: 14, cursor: "pointer" }}>
+          <Icon name="FileDown" size={16} /> Скачать PDF
         </button>
       </div>
     </div>
