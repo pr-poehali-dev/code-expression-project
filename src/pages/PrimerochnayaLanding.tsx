@@ -33,10 +33,10 @@ const SCENARIOS = [
 ];
 
 const STEPS = [
-  { num: "01", title: "Фото на консультации", desc: "Мастер фотографирует клиента прямо в кресле — телефоном или через личный кабинет.", icon: "Camera" },
-  { num: "02", title: "Описание пожелания",   desc: "Клиент говорит, что хочет — мастер вводит пожелание в пару слов: цвет, длина, стиль.", icon: "MessageSquareText" },
-  { num: "03", title: "Результат за секунды", desc: "ИИ показывает фото с новым образом — обсуждайте прямо на месте, пока клиент ещё в кресле.", icon: "Wand2" },
-  { num: "04", title: "Подсказка мастеру",    desc: "Вместе с картинкой приходит рекомендация: какая техника и средства дадут такой результат.", icon: "ListChecks" },
+  { num: "01", img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/35b84884-07f5-466c-b96d-8a055f459502.jpg", alt: "Мастер фотографирует клиентку на консультации", title: "Фото на консультации", desc: "Мастер фотографирует клиента прямо в кресле — телефоном или через личный кабинет.", icon: "Camera" },
+  { num: "02", img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/24cf615f-8b1a-4d21-8524-df9faa679d2b.jpg", alt: "Мастер вводит пожелание клиентки в планшет", title: "Описание пожелания",   desc: "Клиент говорит, что хочет — мастер вводит пожелание в пару слов: цвет, длина, стиль.", icon: "MessageSquareText" },
+  { num: "03", img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/b146531c-2e4e-4ec2-8ccb-2a953b9d105b.jpg", alt: "Клиентка смотрит на себя с новым образом на планшете", title: "Результат за секунды", desc: "ИИ показывает фото с новым образом — обсуждайте прямо на месте, пока клиент ещё в кресле.", icon: "Wand2" },
+  { num: "04", img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/38e85a59-54dc-4304-9b85-e1ad2dd08dae.jpg", alt: "Мастер читает подсказку по технике и средствам", title: "Подсказка мастеру",    desc: "Вместе с картинкой приходит рекомендация: какая техника и средства дадут такой результат.", icon: "ListChecks" },
 ];
 
 const REVIEWS = [
@@ -225,8 +225,9 @@ export default function PrimerochnayaLanding() {
             </h2>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 32 }} className="steps-grid">
-            {STEPS.map(({ num, title, desc, icon }, i) => (
+            {STEPS.map(({ num, title, desc, icon, img, alt }, i) => (
               <div key={i}>
+                <img src={img} alt={alt} loading="lazy" decoding="async" style={{ width: "100%", aspectRatio: "4 / 3", objectFit: "cover", objectPosition: "center 25%", borderRadius: 12, display: "block", marginBottom: 20 }} />
                 <div style={{ width: 64, height: 64, borderRadius: "50%", background: i === 0 ? `linear-gradient(135deg,${TEAL},${TEAL2})` : "#F1F5F9", border: i === 0 ? "none" : "1px solid #E2E8F0", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20, boxShadow: i === 0 ? "0 8px 24px rgba(45,212,191,0.3)" : "none" }}>
                   <Icon name={icon} size={24} style={{ color: i === 0 ? DARK : TEAL }} />
                 </div>
