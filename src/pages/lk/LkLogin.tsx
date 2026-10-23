@@ -26,14 +26,14 @@ const inputStyle = (focused: boolean): React.CSSProperties => ({
   transition: "border-color 0.2s",
 });
 
-const TYPE_PARAM_MAP: Record<string, "salon" | "solo_master" | "psychologist" | "body_psychologist"> = {
-  salon: "salon", solo_master: "solo_master", psychologist: "psychologist", body_psychologist: "body_psychologist",
+const TYPE_PARAM_MAP: Record<string, "salon" | "solo_master" | "psychologist" | "body_psychologist" | "other_specialist"> = {
+  salon: "salon", solo_master: "solo_master", psychologist: "psychologist", body_psychologist: "body_psychologist", other_specialist: "other_specialist",
 };
 
 // Промокод школы-партнёра доступен независимым специалистам (мастер, психолог, телесный
 // психолог) — все они регистрируются как один и тот же "личный салон"-контейнер, но не владельцу
 // компании (salon), для которого промокод не действует.
-const PROMO_ELIGIBLE_TYPES = ["solo_master", "psychologist", "body_psychologist"] as const;
+const PROMO_ELIGIBLE_TYPES = ["solo_master", "psychologist", "body_psychologist", "other_specialist"] as const;
 
 export default function LkLogin() {
   const { login, register } = useLkAuth();
@@ -54,7 +54,7 @@ export default function LkLogin() {
   const [email, setEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
-  const [userType, setUserType] = useState<"salon" | "solo_master" | "psychologist" | "body_psychologist">(typeParam || (fittingTrial ? "solo_master" : "salon"));
+  const [userType, setUserType] = useState<"salon" | "solo_master" | "psychologist" | "body_psychologist" | "other_specialist">(typeParam || (fittingTrial ? "solo_master" : "salon"));
   const [promoCode, setPromoCode] = useState("");
   const [promoCheck, setPromoCheck] = useState<{ status: "idle" | "checking" | "valid" | "invalid"; schoolName?: string; bonus?: number }>({ status: "idle" });
   const promoCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -271,6 +271,7 @@ export default function LkLogin() {
                     {([
                       { key: "psychologist", icon: "Brain", title: "Психолог", desc: "Частная практика" },
                       { key: "body_psychologist", icon: "HeartHandshake", title: "Телесный психолог", desc: "Частная практика" },
+                      { key: "other_specialist", icon: "Briefcase", title: "Другой специалист", desc: "Репетитор, тренер, фотограф…" },
                     ] as const).map(opt => (
                       <button
                         key={opt.key}

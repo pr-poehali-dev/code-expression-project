@@ -204,12 +204,12 @@ def handle_register(event: dict) -> dict:
         return err("Укажите корректный email")
     if len(password) < 6:
         return err("Пароль должен содержать минимум 6 символов")
-    if user_type not in ("salon", "solo_master", "psychologist", "body_psychologist"):
+    if user_type not in ("salon", "solo_master", "psychologist", "body_psychologist", "other_specialist"):
         return err("Некорректный тип аккаунта")
 
     segment = "salon" if user_type == "salon" else "specialist"
     role = "owner" if user_type == "salon" else "solo_master"
-    specialization = user_type if user_type in ("psychologist", "body_psychologist") else None
+    specialization = user_type if user_type in ("psychologist", "body_psychologist", "other_specialist") else None
 
     # username = email до @
     username = email.split("@")[0]
@@ -225,7 +225,7 @@ def handle_register(event: dict) -> dict:
         # владельца компании (salon).
         school = None
         if promo_code:
-            if user_type not in ("solo_master", "psychologist", "body_psychologist"):
+            if user_type not in ("solo_master", "psychologist", "body_psychologist", "other_specialist"):
                 return err("Промокод школы действует только при регистрации мастера или частного специалиста")
             cur.execute(
                 f"SELECT * FROM {tbl('partner_schools')} WHERE UPPER(promo_code)=UPPER(%s) AND is_active=TRUE",
@@ -270,7 +270,7 @@ def handle_register(event: dict) -> dict:
 
         salon_id = None
         salon_data = None
-        if user_type in ("solo_master", "psychologist", "body_psychologist"):
+        if user_type in ("solo_master", "psychologist", "body_psychologist", "other_specialist"):
             # Независимому специалисту (мастер, психолог, телесный психолог) создаём личный
             # "салон" — это внутренний контейнер для баланса энергии, пакетов и покупок,
             # устройство не отличается от салона. Приветственный бонус энергии не начисляется —
@@ -2546,7 +2546,7 @@ def _send_admin_new_user_email(full_name: str, email: str, user_type: str, sourc
     if not smtp_password:
         return
 
-    type_label = "Владелец салона" if user_type == "salon" else "Независимый мастер"
+    type_label = {"salon": "Владелец салона", "psychologist": "Психолог", "body_psychologist": "Телесный психолог", "other_specialist": "Другой специалист (работает с людьми)"}.get(user_type, "Независимый мастер")
     source_label = "Демо-форма на главной странице" if source == "podelam_demo" else "Обычная регистрация"
 
     html = f"""<!DOCTYPE html>

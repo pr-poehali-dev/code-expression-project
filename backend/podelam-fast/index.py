@@ -43,14 +43,14 @@ SCHEMA = "t_p84565078_code_expression_proj"
 # подключённые (со ссылкой на свой профиль/страницу). Общий список для всех, фронт показывает
 # только те, что подходят категории пользователя (см. categories аналогично traffic_sources).
 RESOURCE_DEFS = [
-    {"key": "yandex_maps",   "label": "Яндекс Карты / Яндекс Бизнес", "categories": ["salon", "solo_master"]},
-    {"key": "yandex_search", "label": "Сайт (для поиска в Яндексе)",  "categories": ["salon", "solo_master", "psychologist", "body_psychologist"]},
-    {"key": "vk",            "label": "VK",                           "categories": ["salon", "solo_master", "psychologist", "body_psychologist"]},
-    {"key": "telegram",      "label": "Telegram-канал",                "categories": ["salon", "solo_master", "psychologist", "body_psychologist"]},
-    {"key": "instagram",     "label": "Instagram*",                    "categories": ["salon", "solo_master", "psychologist", "body_psychologist"]},
-    {"key": "dzen",          "label": "Дзен",                          "categories": ["salon", "solo_master", "psychologist", "body_psychologist"]},
-    {"key": "yandex_uslugi", "label": "Яндекс Услуги",                 "categories": ["salon", "solo_master"]},
-    {"key": "profi_ru",      "label": "Профи.ру",                      "categories": ["solo_master", "psychologist", "body_psychologist"]},
+    {"key": "yandex_maps",   "label": "Яндекс Карты / Яндекс Бизнес", "categories": ["salon", "solo_master", "other_specialist"]},
+    {"key": "yandex_search", "label": "Сайт (для поиска в Яндексе)",  "categories": ["salon", "solo_master", "psychologist", "body_psychologist", "other_specialist"]},
+    {"key": "vk",            "label": "VK",                           "categories": ["salon", "solo_master", "psychologist", "body_psychologist", "other_specialist"]},
+    {"key": "telegram",      "label": "Telegram-канал",                "categories": ["salon", "solo_master", "psychologist", "body_psychologist", "other_specialist"]},
+    {"key": "instagram",     "label": "Instagram*",                    "categories": ["salon", "solo_master", "psychologist", "body_psychologist", "other_specialist"]},
+    {"key": "dzen",          "label": "Дзен",                          "categories": ["salon", "solo_master", "psychologist", "body_psychologist", "other_specialist"]},
+    {"key": "yandex_uslugi", "label": "Яндекс Услуги",                 "categories": ["salon", "solo_master", "other_specialist"]},
+    {"key": "profi_ru",      "label": "Профи.ру",                      "categories": ["solo_master", "psychologist", "body_psychologist", "other_specialist"]},
     {"key": "b17",           "label": "B17.ru",                        "categories": ["psychologist", "body_psychologist"]},
 ]
 

@@ -93,7 +93,7 @@ export const PERSONAL_GOAL_OPTIONS: { code: string; label: string }[] = [
 // Психолог/телесный психолог работают с "обращениями" и "консультациями", а не с
 // "клиентами" и "визитами" — тексты формы диагностики и виджетов подстраиваются под это,
 // не меняя саму механику (одни и те же поля БД, просто разные подписи и формулировки.
-export type PodelamSpecialization = "psychologist" | "body_psychologist" | null | undefined;
+export type PodelamSpecialization = "psychologist" | "body_psychologist" | "other_specialist" | null | undefined;
 
 export function isPsychSpecialization(s: PodelamSpecialization): boolean {
   return s === "psychologist" || s === "body_psychologist";
@@ -143,9 +143,10 @@ export function getPodelamTerms(specialization?: PodelamSpecialization): Podelam
       aboutMePlaceholder: "Например: психфак СПбГУ 2018, 5 лет практики, доп. образование по КПТ, прошла супервизию у...",
     };
   }
+  const isOther = specialization === "other_specialist";
   return {
-    nicheLabel: "Ниша / услуга",
-    nichePlaceholder: "Например: массаж, маникюр, стрижки",
+    nicheLabel: isOther ? "Профессия / услуга" : "Ниша / услуга",
+    nichePlaceholder: isOther ? "Например: репетитор по математике, фотограф, тренер по йоге" : "Например: массаж, маникюр, стрижки",
     clientsPerMonthLabel: "Клиентов в месяц",
     clientsPerMonthPlaceholder: "44",
     baseSizeLabel: "Размер базы клиентов",

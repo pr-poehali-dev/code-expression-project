@@ -68,6 +68,7 @@ export const ROLE_LABELS: Record<string, string> = {
 export const SPECIALIZATION_LABELS: Record<string, string> = {
   psychologist: "Психолог",
   body_psychologist: "Телесный психолог",
+  other_specialist: "Другой специалист",
 };
 
 // Психолог/телесный психолог технически имеют role="solo_master" (та же логика вкладок и прав),
