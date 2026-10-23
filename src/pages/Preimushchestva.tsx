@@ -13,6 +13,8 @@ const SERIF = "'Cormorant Garamond', serif";
 const ADVANTAGES = [
   {
     num: "01",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/cc633a04-dd65-45bf-b2f3-fa8415e21351.jpg",
+    alt: "Единая платформа вместо набора сервисов",
     icon: "LayoutDashboard",
     color: TEAL,
     bg: "rgba(45,212,191,0.08)",
@@ -23,6 +25,8 @@ const ADVANTAGES = [
   },
   {
     num: "02",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/85f25b88-9e0f-4df6-b41d-49e66fcc1b19.jpg",
+    alt: "ИИ-агент, настроенный под вашу ситуацию",
     icon: "Bot",
     color: "#7c3aed",
     bg: "#faf5ff",
@@ -33,6 +37,8 @@ const ADVANTAGES = [
   },
   {
     num: "03",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/4c77ceaf-d9ce-47b8-8c79-6891b8bc4d0c.jpg",
+    alt: "Рост дохода и измеримый результат",
     icon: "TrendingUp",
     color: "#059669",
     bg: "#f0fdf4",
@@ -43,6 +49,8 @@ const ADVANTAGES = [
   },
   {
     num: "04",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/cdf33dcb-df3b-4c49-9839-cfcb8861dced.jpg",
+    alt: "Энергия как мотивация команды",
     icon: "Zap",
     color: "#d97706",
     bg: "#fffbeb",
@@ -53,6 +61,8 @@ const ADVANTAGES = [
   },
   {
     num: "05",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/d27378a0-1d09-433b-9ac9-dd8ae0b87fbe.jpg",
+    alt: "Быстрый старт и поддержка",
     icon: "Rocket",
     color: "#0369a1",
     bg: "#f0f9ff",
@@ -136,13 +146,17 @@ export default function Preimushchestva() {
             <div key={i} style={{
               border: `1.5px solid ${adv.border}`,
               borderRadius: 20,
-              padding: "44px 48px",
               background: adv.bg,
-              display: "grid",
-              gridTemplateColumns: "72px 1fr",
-              gap: 36,
-              alignItems: "start",
-            }} className="adv-card">
+              overflow: "hidden",
+            }}>
+              <img src={adv.img} alt={adv.alt} loading="lazy" decoding="async" style={{ width: "100%", aspectRatio: "21 / 8", objectFit: "cover", display: "block" }} />
+              <div style={{
+                padding: "44px 48px",
+                display: "grid",
+                gridTemplateColumns: "72px 1fr",
+                gap: 36,
+                alignItems: "start",
+              }} className="adv-card">
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 56, height: 56, borderRadius: 16, background: "#fff", border: `1.5px solid ${adv.border}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 16px ${adv.color}18` }}>
                   <Icon name={adv.icon} size={24} style={{ color: adv.color }} />
@@ -155,6 +169,7 @@ export default function Preimushchestva() {
                 </h2>
                 <p style={{ margin: "0 0 10px", fontSize: 16, fontWeight: 600, color: "#334155", lineHeight: 1.6 }}>{adv.lead}</p>
                 <p style={{ margin: 0, fontSize: 15, color: GRAY, lineHeight: 1.7, fontWeight: 300 }}>{adv.desc}</p>
+              </div>
               </div>
             </div>
           ))}
