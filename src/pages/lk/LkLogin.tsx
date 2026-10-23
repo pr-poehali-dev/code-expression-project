@@ -42,7 +42,8 @@ export default function LkLogin() {
   const urlParams = new URLSearchParams(window.location.search);
   const typeParam = TYPE_PARAM_MAP[urlParams.get("type") || ""];
   const wantsRegister = fittingTrial || podelamTrial || !!typeParam
-    || urlParams.get("tab") === "register";
+    || urlParams.get("tab") === "register"
+    || urlParams.get("open") === "academy";
   const [tab, setTab] = useState<"login" | "register">(wantsRegister ? "register" : "login");
 
   // Login fields

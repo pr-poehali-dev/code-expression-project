@@ -6,6 +6,10 @@ import LkEmailVerify from "./LkEmailVerify";
 export default function LkPage() {
   const { user, loading, needsEmailVerify, pendingEmail, pendingPromo, markEmailVerified } = useLkAuth();
 
+  if (new URLSearchParams(window.location.search).get("open") === "academy") {
+    sessionStorage.setItem("lk_tab", "academy");
+  }
+
   // Токен подтверждения из URL (?verify=TOKEN)
   const verifyToken = new URLSearchParams(window.location.search).get("verify");
 

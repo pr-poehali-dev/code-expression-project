@@ -53,6 +53,14 @@ export default function LkDashboard() {
     return undefined;
   });
 
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("open")) {
+      url.searchParams.delete("open");
+      window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    }
+  }, []);
+
   // Фикс для Chrome/Android: браузерная строка занимает место и скрывает bottom nav
   useEffect(() => {
     const setVh = () => {
