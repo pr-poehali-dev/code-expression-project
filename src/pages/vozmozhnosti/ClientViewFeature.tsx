@@ -99,23 +99,12 @@ export default function ClientViewFeature() {
           </div>
         </div>
 
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 28, background: "rgba(45,212,191,0.08)", border: "1px solid rgba(45,212,191,0.3)", borderRadius: 18, padding: "28px 32px" }}>
-          <div style={{ flex: "1 1 300px" }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
-              <span style={{ fontFamily: SERIF, fontSize: 40, fontWeight: 600, color: "#fff", lineHeight: 1 }}>2 ⚡</span>
-              <span style={{ fontSize: 15, color: "rgba(255,255,255,0.8)" }}>за каждое обращение к ИИ</span>
-            </div>
-            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.58)", lineHeight: 1.65, fontWeight: 300 }}>
-              2 энергии за полный разбор и 2 энергии за каждый вопрос клиенту. Оплачивается энергией с баланса и не входит в пакеты развития. Если ИИ не ответил, энергия возвращается.
-            </div>
-          </div>
-          <Link to="/cabinet" onClick={openClientView} style={{
-            display: "inline-flex", alignItems: "center", gap: 10, padding: "17px 38px", borderRadius: 2, fontSize: 15, fontWeight: 700,
-            background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: DARK, textDecoration: "none", whiteSpace: "nowrap",
-          }}>
-            Войти в кабинет и проверить <Icon name="ArrowRight" size={16} />
-          </Link>
-        </div>
+        <Link to="/cabinet" onClick={openClientView} className="cv-cta" style={{
+          display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "17px 38px", borderRadius: 2, fontSize: 15, fontWeight: 700,
+          background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: DARK, textDecoration: "none",
+        }}>
+          Попробовать инструмент <Icon name="ArrowRight" size={16} />
+        </Link>
       </div>
     </section>
   );
