@@ -166,7 +166,7 @@ export default function DlyaSalonov() {
             <div style={eyebrow}>Знакомая ситуация</div>
             <h2 style={h2Style}>Знакомо? Салон работает, а точки роста остаются незаметными</h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 20, marginBottom: 40 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(300px,100%),1fr))", gap: 20, marginBottom: 40 }}>
             {SITUATIONS.map((s, i) => (
               <div key={i} style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: "28px 26px" }}>
                 <div style={{ ...iconBox, marginBottom: 18 }}>
@@ -193,7 +193,7 @@ export default function DlyaSalonov() {
             </p>
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, color: DARK, marginBottom: 16 }}>Встроенные алгоритмы анализируют предоставленные вами данные, включая:</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 12, marginBottom: 32 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(300px,100%),1fr))", gap: 12, marginBottom: 32 }}>
             {ANALYZED.map((a, i) => (
               <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 12, padding: "14px 18px" }}>
                 <Icon name="CheckCircle2" size={17} style={{ color: TEAL, flexShrink: 0, marginTop: 2 }} />
@@ -223,7 +223,7 @@ export default function DlyaSalonov() {
               Развивайте салон как единый бизнес и помогайте сотрудникам привлекать клиентов без необходимости контролировать каждый их шаг.
             </p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(310px,1fr))", gap: 24, marginBottom: 40 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(310px,100%),1fr))", gap: 24, marginBottom: 40 }}>
             {TEAM_BLOCKS.map((b, i) => (
               <div key={i} style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: "30px 26px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
@@ -237,7 +237,7 @@ export default function DlyaSalonov() {
               </div>
             ))}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(260px,100%),1fr))", gap: 16 }}>
             {ADVANTAGES.map((a, i) => (
               <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", background: DARK, borderRadius: 12, padding: "18px 20px" }}>
                 <Icon name="Check" size={18} style={{ color: TEAL, flexShrink: 0, marginTop: 2 }} />
@@ -252,7 +252,7 @@ export default function DlyaSalonov() {
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={eyebrow}>Что вы получите</div>
           <h2 style={{ ...h2Style, marginBottom: 48 }}>Больше ясности в развитии салона</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(300px,100%),1fr))", gap: 20 }}>
             {RESULTS.map((r, i) => (
               <div key={i} style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 16, padding: "28px 24px" }}>
                 <div style={{ ...iconBox, marginBottom: 16 }}>
@@ -271,7 +271,7 @@ export default function DlyaSalonov() {
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={eyebrow}>Как начать</div>
           <h2 style={{ ...h2Style, color: "#fff", marginBottom: 48 }}>Начните с диагностики своего салона</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 20, marginBottom: 44 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(240px,100%),1fr))", gap: 20, marginBottom: 44 }}>
             {STEPS.map((s, i) => (
               <div key={i} style={{ border: "1px solid rgba(45,212,191,0.25)", borderRadius: 16, padding: "28px 24px", background: "rgba(255,255,255,0.03)" }}>
                 <div style={{ fontFamily: SERIF, fontSize: 44, fontWeight: 600, color: TEAL, lineHeight: 1, marginBottom: 12 }}>{i + 1}</div>
@@ -331,6 +331,11 @@ export default function DlyaSalonov() {
       <style>{`
         @media (max-width: 860px) {
           .salon-hero-grid { grid-template-columns: 1fr !important; gap: 36px !important; }
+          .salon-hero-img { max-width: 480px; width: 100%; margin: 0 auto; }
+        }
+        @media (max-width: 560px) {
+          section { padding-left: 20px !important; padding-right: 20px !important; }
+          .salon-hero-grid { padding-left: 0 !important; padding-right: 0 !important; padding-top: 48px !important; padding-bottom: 56px !important; }
         }
       `}</style>
     </div>
