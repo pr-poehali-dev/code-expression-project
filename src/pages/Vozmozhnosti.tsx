@@ -4,6 +4,7 @@ import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
 import { TOOL_IMAGES } from "./tool-landings/toolImages";
+import ClientViewFeature from "./vozmozhnosti/ClientViewFeature";
 
 const TEAL = "#2DD4BF";
 const DARK = "#0F172A";
@@ -121,7 +122,7 @@ export default function Vozmozhnosti() {
           "applicationCategory": "BusinessApplication",
           "description": "Платформа роста дохода для салонов красоты, психологов и частной практики: маркетинг, управление, обучение персонала и ИИ-инструменты в одном кабинете.",
           "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB", "description": "Получить план роста дохода — бесплатно" },
-          "featureList": ["Генератор постов", "Конструктор лендингов", "Сценарии и видео для Reels", "SEO-оптимизация", "Анализ персонала", "Скрипты продаж", "Обучение команды"],
+          "featureList": ["Покажи глазами клиента", "Генератор постов", "Конструктор лендингов", "Сценарии и видео для Reels", "SEO-оптимизация", "Анализ персонала", "Скрипты продаж", "Обучение команды"],
           "operatingSystem": "Web"
         })}</script>
       </Helmet>
@@ -177,6 +178,8 @@ export default function Vozmozhnosti() {
           </div>
         </div>
       </section>
+
+      <ClientViewFeature />
 
       {/* ── КАК РАБОТАЮТ ИНСТРУМЕНТЫ ── */}
       <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
@@ -333,6 +336,9 @@ export default function Vozmozhnosti() {
         @media (max-width: 768px) {
           .voz-hero-grid { grid-template-columns: 1fr !important; }
           .voz-hero-img { margin-top: 32px; }
+        }
+        @media (max-width: 900px) {
+          .cv-two-col { grid-template-columns: 1fr !important; gap: 40px !important; }
         }
         @media (max-width: 640px) {
           .how-grid { grid-template-columns: 1fr !important; }
