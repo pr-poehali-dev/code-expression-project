@@ -99,8 +99,8 @@ export default function Tseny() {
             <div style={{ position: "relative", width: "100%" }}>
               <div style={{ position: "absolute", inset: -1, borderRadius: 6, background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))", pointerEvents: "none", zIndex: 2 }} />
               <img
-                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/7e2e1016-046a-471a-bd05-7f4f26cec768.png"
-                alt="Тарифы Промт Диалог — энергия для роста салона"
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/9e10412f-36fd-4008-878d-768ef479ea03.jpg"
+                alt="Специалист работает за ноутбуком — энергия для роста вашего дела"
                 decoding="async"
                 style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
               />
