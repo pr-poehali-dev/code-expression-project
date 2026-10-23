@@ -13,7 +13,7 @@ const SERIF = "'Cormorant Garamond', serif";
 const ROLES = [
   {
     id: "owner",
-    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/5fb90ff8-8bc7-48d4-a24e-3f4d5a9781ff.jpg",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/9ee51e7a-740d-4d59-9aff-5f2e8559bf5c.jpg",
     alt: "Владелица салона анализирует данные бизнеса",
     icon: "Crown",
     title: "Владельцу салона",
@@ -28,7 +28,7 @@ const ROLES = [
   },
   {
     id: "admin",
-    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/1a634897-9c79-4052-840a-feffd2e0f67d.jpg",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/9b015332-e9ba-4f5c-852f-79c3f0fd937d.jpg",
     alt: "Администратор салона общается с клиенткой",
     icon: "Briefcase",
     title: "Администратору",
@@ -43,7 +43,7 @@ const ROLES = [
   },
   {
     id: "master",
-    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/53ad077b-2b8e-48c2-8369-838b1f57db8c.jpg",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/d71aaeab-15a7-49fd-94f5-fcd2f4666862.jpg",
     alt: "Мастер красоты фотографирует свою работу",
     icon: "Scissors",
     title: "Мастеру",
@@ -58,7 +58,7 @@ const ROLES = [
   },
   {
     id: "specialist",
-    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/a073ff10-6855-4d31-b87d-0b9ec16a8113.jpg",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/3f66b499-31aa-4288-ba90-e559729d590a.jpg",
     alt: "Специалист по телу заполняет анкету клиента",
     icon: "HandHeart",
     title: "Специалисту по телу",
