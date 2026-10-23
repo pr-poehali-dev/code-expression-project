@@ -113,12 +113,13 @@ export default function DlyaSalonov() {
 
       <section style={{ background: `radial-gradient(120% 100% at 70% 0%, #1a2e3c 0%, ${DARK} 55%, #060B16 100%)`, minHeight: "80vh", display: "flex", alignItems: "center", paddingTop: 76, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: 0, right: "-5%", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 32px", width: "100%", position: "relative" }}>
+        <div className="salon-hero-grid" style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 32px", width: "100%", position: "relative", display: "grid", gridTemplateColumns: "1.15fr 0.85fr", gap: 56, alignItems: "center" }}>
+          <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 32 }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
             <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", lineHeight: 1 }}>Промт Диалог — AI-навигатор «ПоДелам»</span>
           </div>
-          <h1 style={{ fontFamily: SERIF, fontSize: "clamp(36px,5vw,64px)", fontWeight: 500, color: "#fff", lineHeight: 1.08, margin: "0 0 28px", letterSpacing: "-0.5px", maxWidth: 820 }}>
+          <h1 style={{ fontFamily: SERIF, fontSize: "clamp(36px,5vw,64px)", fontWeight: 500, color: "#fff", lineHeight: 1.15, margin: "0 0 28px", letterSpacing: "-0.5px", paddingBottom: 4 }}>
             Как привлечь больше клиентов и увеличить загрузку салона?
           </h1>
           <p style={{ fontSize: "clamp(15px,1.6vw,17px)", color: "rgba(255,255,255,0.65)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 720 }}>
@@ -129,6 +130,17 @@ export default function DlyaSalonov() {
           </p>
           <CtaButton>Пройти диагностику бесплатно</CtaButton>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 12 }}>Диагностика и персональные шаги — бесплатно.</div>
+          </div>
+          <div className="salon-hero-img" style={{ position: "relative" }}>
+            <div style={{ position: "absolute", inset: -1, borderRadius: 6, background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))", pointerEvents: "none", zIndex: 2 }} />
+            <img
+              src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/97c32278-ee03-4e7d-a76e-e5d5f4a06a81.jpg"
+              alt="Владелица салона красоты и мастер в салоне"
+              fetchPriority="high"
+              decoding="async"
+              style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
+            />
+          </div>
         </div>
       </section>
 
@@ -300,6 +312,11 @@ export default function DlyaSalonov() {
       </section>
 
       <BizFooter />
+      <style>{`
+        @media (max-width: 860px) {
+          .salon-hero-grid { grid-template-columns: 1fr !important; gap: 36px !important; }
+        }
+      `}</style>
     </div>
   );
 }
