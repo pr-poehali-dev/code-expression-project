@@ -59,6 +59,12 @@ export default function ClientViewForm({ initial, loading, submitLabel, onSubmit
 
   const set = (k: keyof FormValues, val: string) => setV(p => ({ ...p, [k]: val }));
   const ready = v.material.trim().length >= 20 && !loading;
+  const dirty = !!(v.material || v.city || v.audience) || v.subject !== "offer" || v.goal !== "bookings";
+
+  const clear = () => {
+    try { localStorage.removeItem(draftKey); } catch { /* ignore */ }
+    setV({ subject: "offer", goal: "bookings", material: "", city: "", audience: "" });
+  };
 
   return (
     <div style={{ background: "#fff", border: "1px solid #E8ECF0", borderRadius: 20, padding: "24px 22px" }}>
@@ -121,6 +127,15 @@ export default function ClientViewForm({ initial, loading, submitLabel, onSubmit
           {!loading && <CostBadge />}
         </button>
         <BalanceHint onTopUp={onTopUp} />
+        {dirty && !loading && (
+          <button type="button" onClick={clear} style={{
+            display: "inline-flex", alignItems: "center", gap: 6, marginLeft: "auto", background: "none",
+            border: "1px solid #E2E8F0", borderRadius: 10, padding: "9px 14px", cursor: "pointer",
+            fontFamily: "inherit", fontSize: 13, fontWeight: 600, color: GRAY,
+          }}>
+            <Icon name="Eraser" size={15} />Очистить форму
+          </button>
+        )}
       </div>
       <div style={{ fontSize: 12, color: GRAY, marginTop: 10 }}>
         Система моделирует несколько разных взглядов на одно и то же предложение.
