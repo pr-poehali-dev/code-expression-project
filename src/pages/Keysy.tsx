@@ -90,8 +90,8 @@ export default function Keysy() {
             <div style={{ position: "relative", width: "100%" }}>
               <div style={{ position: "absolute", inset: -1, borderRadius: 6, background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))", pointerEvents: "none", zIndex: 2 }} />
               <img
-                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/faedd281-82dc-4d06-820f-3062765dba23.png"
-                alt="Кейсы роста салонов красоты с платформой Промт Диалог"
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/472a989d-bf09-4d59-bf07-1c0c44d03a07.jpg"
+                alt="Владелица салона и мастер смотрят на рост показателей — кейсы Промт Диалог"
                 decoding="async"
                 style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
               />
