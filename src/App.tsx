@@ -20,6 +20,7 @@ const ToolLanding = lazy(() => import("./pages/ToolLanding"));
 const PrimerochnayaLanding = lazy(() => import("./pages/PrimerochnayaLanding"));
 const ImagePrimerkaLanding = lazy(() => import("./pages/ImagePrimerkaLanding"));
 const ReelsVideoLanding = lazy(() => import("./pages/ReelsVideoLanding"));
+const ClientViewLanding = lazy(() => import("./pages/client-view-landing/ClientViewLanding"));
 const DlyaKogo = lazy(() => import("./pages/DlyaKogo"));
 const Preimushchestva = lazy(() => import("./pages/Preimushchestva"));
 const Akademiya = lazy(() => import("./pages/Akademiya"));
@@ -101,6 +102,7 @@ const App = () => (
             <Route path="/instrumenty/fitting-room" element={<PrimerochnayaLanding />} />
             <Route path="/ii-primerka-obraza" element={<ImagePrimerkaLanding />} />
             <Route path="/instrumenty/reels-video" element={<ReelsVideoLanding />} />
+            <Route path="/instrumenty/client-view" element={<ClientViewLanding />} />
             <Route path="/instrumenty/:slug" element={<ToolLanding />} />
             <Route path="/dlya-kogo" element={<DlyaKogo />} />
             <Route path="/preimushchestva" element={<Preimushchestva />} />

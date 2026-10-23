@@ -99,12 +99,20 @@ export default function ClientViewFeature() {
           </div>
         </div>
 
-        <Link to="/cabinet" onClick={openClientView} className="cv-cta" style={{
-          display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "17px 38px", borderRadius: 2, fontSize: 15, fontWeight: 700,
-          background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: DARK, textDecoration: "none",
-        }}>
-          Попробовать инструмент <Icon name="ArrowRight" size={16} />
-        </Link>
+        <div className="cv-actions" style={{ display: "flex", flexWrap: "wrap", gap: 14, alignItems: "center" }}>
+          <Link to="/cabinet" onClick={openClientView} className="cv-cta" style={{
+            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "17px 38px", borderRadius: 2, fontSize: 15, fontWeight: 700,
+            background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: DARK, textDecoration: "none",
+          }}>
+            Попробовать инструмент <Icon name="ArrowRight" size={16} />
+          </Link>
+          <Link to="/instrumenty/client-view" className="cv-cta cv-more" style={{
+            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "17px 28px", borderRadius: 2, fontSize: 15, fontWeight: 600,
+            border: "1px solid rgba(255,255,255,0.22)", color: "rgba(255,255,255,0.85)", textDecoration: "none",
+          }}>
+            Подробнее <Icon name="ArrowRight" size={15} />
+          </Link>
+        </div>
       </div>
     </section>
   );

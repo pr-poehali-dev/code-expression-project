@@ -341,6 +341,7 @@ export default function Vozmozhnosti() {
           .cv-two-col { grid-template-columns: 1fr !important; gap: 40px !important; }
         }
         @media (max-width: 640px) {
+          .cv-actions { flex-direction: column; align-items: stretch !important; }
           .cv-cta { display: flex !important; width: 100%; box-sizing: border-box; padding: 16px 20px !important; }
         }
         @media (max-width: 640px) {
