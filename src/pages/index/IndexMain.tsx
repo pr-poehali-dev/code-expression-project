@@ -14,6 +14,8 @@ const SEGMENTS = [
     text: "Свободные окна у мастеров, нестабильная запись, недостаток новых клиентов или слабый возврат постоянных — у каждой ситуации свои причины. Важно понять, на чём сосредоточиться именно сейчас, чтобы развивать салон, а не тратить бюджет и время на случайные действия.",
     button: "Решения для салона",
     href: "/dlya-salonov",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/97c32278-ee03-4e7d-a76e-e5d5f4a06a81.jpg",
+    alt: "Администратор и мастер в салоне красоты",
   },
   {
     icon: "HandHeart",
@@ -22,6 +24,8 @@ const SEGMENTS = [
     text: "Вы хорошо выполняете свою работу, но клиенты не всегда записываются регулярно, новые приходят преимущественно по рекомендациям, а на продвижение постоянно не хватает времени. Как привлекать клиентов, возвращать постоянных и развивать практику без необходимости заниматься всем сразу?",
     button: "Решения для моей практики",
     href: "/dlya-masterov",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/2319b0d6-47ca-40b5-bdab-f081e6c2fdb2.jpg",
+    alt: "Частный мастер и массажист за работой",
   },
   {
     icon: "Brain",
@@ -30,6 +34,8 @@ const SEGMENTS = [
     text: "Вы умеете работать с людьми, но профессиональные навыки сами по себе не гарантируют стабильного потока клиентов. Как понятнее представить свои услуги, найти свою аудиторию, выстроить продвижение и развивать практику без бесконечных экспериментов?",
     button: "Решения для психолога",
     href: "/dlya-psihologov",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/4b1cb1b7-eb02-4473-bbf3-09f3cb9cd4b9.jpg",
+    alt: "Психологи в уютном кабинете",
   },
   {
     icon: "Compass",
@@ -38,6 +44,8 @@ const SEGMENTS = [
     text: "Вы работаете на себя, оказываете услуги или развиваете небольшую практику. Вам нужно привлекать клиентов, повышать загрузку, возвращать постоянных и понимать, какие действия принесут пользу именно вашему делу. «Промт Диалог» поможет разобрать вашу ситуацию и определить приоритетные направления развития с учетом специфики ваших услуг и аудитории.",
     button: "Найти точки роста",
     href: "/dlya-specialistov",
+    img: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/6697fb27-66de-4030-9557-621f5a61598c.jpg",
+    alt: "Специалист, работающий с клиентами",
   },
 ];
 
@@ -138,7 +146,9 @@ export function IndexSegments() {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="dir-grid">
           {SEGMENTS.map((s, i) => (
-            <div key={i} style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: "32px 28px", display: "flex", flexDirection: "column" }}>
+            <div key={i} style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+              <img src={s.img} alt={s.alt} loading="lazy" decoding="async" style={{ width: "100%", aspectRatio: "16 / 9", objectFit: "cover", display: "block" }} />
+              <div style={{ padding: "28px 28px 32px", display: "flex", flexDirection: "column", flexGrow: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
                 <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(45,212,191,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <Icon name={s.icon} fallback="Compass" size={20} style={{ color: "#0F766E" }} />
@@ -155,6 +165,7 @@ export function IndexSegments() {
                 {s.button}
                 <Icon name="ArrowRight" size={15} />
               </Link>
+              </div>
             </div>
           ))}
         </div>
