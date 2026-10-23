@@ -83,6 +83,7 @@ export const MARKETING_TOOLS: ToolConfig[] = [
     },
     hero: {
       variant: "center",
+      image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/6fa81947-ebe8-44bd-9339-20d117c3c9c7.jpg",
       eyebrow: "Визуал без дизайнера",
       title: "Опишите картинку —",
       accent: "получите её",

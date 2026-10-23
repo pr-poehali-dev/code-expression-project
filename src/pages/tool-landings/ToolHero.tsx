@@ -59,21 +59,21 @@ const Lead = ({ text, center }: { text: string; center?: boolean }) => (
 
 export default function ToolHero({ cfg }: { cfg: ToolConfig }) {
   const { hero } = cfg;
-  const img = TOOL_IMAGES[cfg.slug];
+  const img = hero.image || TOOL_IMAGES[cfg.slug];
   const bg = `radial-gradient(120% 100% at 80% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`;
 
   if (hero.variant === "center") {
     return (
       <section style={{ background: bg, paddingTop: 76, position: "relative", overflow: "hidden" }}>
-        <div style={{ maxWidth: 960, margin: "0 auto", padding: "88px 24px 0", textAlign: "center", position: "relative" }}>
+        <div style={{ maxWidth: 960, margin: "0 auto", padding: "88px 24px 80px", textAlign: "center", position: "relative" }}>
           <Eyebrow text={hero.eyebrow} />
           <Title title={hero.title} accent={hero.accent} center />
           <Lead text={hero.lead} center />
           <Actions center />
           <Facts facts={hero.facts} center />
           {img && (
-            <div style={{ marginTop: 56, borderRadius: "16px 16px 0 0", overflow: "hidden", border: "1px solid rgba(45,212,191,0.2)", borderBottom: "none", boxShadow: "0 -20px 80px rgba(45,212,191,0.08)" }}>
-              <img src={img} alt={cfg.name} decoding="async" fetchPriority="high" style={{ width: "100%", aspectRatio: "21 / 9", objectFit: "cover", display: "block" }} />
+            <div style={{ marginTop: 56, borderRadius: 18, overflow: "hidden", border: "1px solid rgba(45,212,191,0.25)", boxShadow: "0 32px 80px rgba(0,0,0,0.45)" }}>
+              <img src={img} alt={cfg.name} decoding="async" fetchPriority="high" style={{ width: "100%", aspectRatio: "16 / 9", objectFit: "cover", display: "block" }} />
             </div>
           )}
         </div>

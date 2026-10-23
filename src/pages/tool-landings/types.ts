@@ -35,6 +35,7 @@ export interface ToolConfig {
   seo: { title: string; description: string; keywords: string };
   hero: {
     variant: "split" | "center" | "mockup";
+    image?: string;
     eyebrow: string;
     title: string;
     accent: string;
