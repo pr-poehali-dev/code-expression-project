@@ -63,6 +63,8 @@ function ReadyToolLanding({ cfg }: { cfg: ToolConfig }) {
         @media (max-width: 860px) {
           .tl-hero-grid { grid-template-columns: 1fr !important; gap: 36px !important; padding: 56px 20px !important; }
           .tl-example { grid-template-columns: 1fr !important; gap: 28px !important; }
+          .tl-strip { grid-template-columns: repeat(2, 1fr) !important; }
+          .tl-strip > div:last-child:nth-child(odd) { grid-column: span 2; }
           .tl-bento { grid-template-columns: 1fr !important; }
           .tl-bento > div { grid-column: span 1 !important; }
         }

@@ -146,15 +146,17 @@ function Example({ s, bg }: { s: Extract<Section, { type: "example" }>; bg: stri
 }
 
 function Strip({ s }: { s: Extract<Section, { type: "strip" }> }) {
+  const n = s.items.length;
   return (
-    <section style={{ background: `linear-gradient(135deg, ${DARK}, #112B3C)`, padding: "72px 24px" }}>
-      <div style={{ maxWidth: 1000, margin: "0 auto", textAlign: "center" }}>
-        <h2 style={{ ...h2Style, color: "#fff", marginBottom: 40, fontSize: "clamp(24px,3.2vw,36px)" }}>{s.title}</h2>
-        <div style={auto(200)}>
+    <section style={{ background: `linear-gradient(135deg, ${DARK}, #112B3C)`, padding: "80px 24px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: "-40%", left: "50%", transform: "translateX(-50%)", width: 640, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center", position: "relative" }}>
+        <h2 style={{ ...h2Style, color: "#fff", marginBottom: 44, fontSize: "clamp(24px,3.2vw,36px)" }}>{s.title}</h2>
+        <div className="tl-strip" style={{ display: "grid", gridTemplateColumns: `repeat(${n},1fr)`, gap: 16 }}>
           {s.items.map((it, i) => (
-            <div key={i}>
-              <div style={{ fontFamily: SERIF, fontSize: "clamp(34px,4vw,48px)", fontWeight: 600, color: TEAL, lineHeight: 1 }}>{it.value}</div>
-              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", marginTop: 8, fontWeight: 300 }}>{it.label}</div>
+            <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(45,212,191,0.22)", borderRadius: 16, padding: "28px 14px 24px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
+              <div style={{ fontFamily: SERIF, fontSize: "clamp(30px,3.4vw,42px)", fontWeight: 600, color: TEAL, lineHeight: 1, width: it.value.length <= 2 ? 56 : "auto", height: it.value.length <= 2 ? 56 : "auto", borderRadius: "50%", background: it.value.length <= 2 ? "rgba(45,212,191,0.12)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>{it.value}</div>
+              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.78)", lineHeight: 1.4, fontWeight: 400 }}>{it.label}</div>
             </div>
           ))}
         </div>
