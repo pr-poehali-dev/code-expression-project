@@ -118,7 +118,7 @@ export default function FreeTrenings() {
             </p>
 
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-              <Link to="/cabinet" style={{
+              <Link to="/cabinet?open=academy" style={{
                 padding: "16px 38px", borderRadius: 2, fontSize: 15, fontWeight: 500, letterSpacing: "0.3px",
                 background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A",
                 textDecoration: "none", transition: "all 0.3s",
@@ -128,7 +128,7 @@ export default function FreeTrenings() {
               >
                 Получить доступ к тренингам
               </Link>
-              <Link to="/akademiya" style={{
+              <Link to="/cabinet?open=academy" style={{
                 padding: "16px 38px", borderRadius: 2, fontSize: 15, fontWeight: 400, letterSpacing: "0.3px",
                 border: "1px solid rgba(255,255,255,0.22)", color: "#fff",
                 textDecoration: "none", display: "flex", alignItems: "center", gap: 10, transition: "all 0.3s",
@@ -232,7 +232,7 @@ export default function FreeTrenings() {
                 <div style={{ fontSize: 16, fontWeight: 600, color: DARK, marginBottom: 6 }}>И другие бесплатные тренинги</div>
                 <div style={{ fontSize: 14, color: "#64748b", lineHeight: 1.6 }}>Полный список курсов доступен после регистрации в разделе «Академия»</div>
               </div>
-              <Link to="/cabinet" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500, color: ACCENT, textDecoration: "none" }}>
+              <Link to="/cabinet?open=academy" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500, color: ACCENT, textDecoration: "none" }}>
                 Смотреть все <Icon name="ArrowRight" size={14} />
               </Link>
             </div>
@@ -330,7 +330,7 @@ export default function FreeTrenings() {
             ))}
           </div>
           <div style={{ marginTop: 48 }}>
-            <Link to="/cabinet" style={{
+            <Link to="/cabinet?open=academy" style={{
               display: "inline-flex", alignItems: "center", gap: 10,
               padding: "16px 38px", borderRadius: 2, fontSize: 15, fontWeight: 500, letterSpacing: "0.3px",
               background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A",
