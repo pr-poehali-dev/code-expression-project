@@ -64,30 +64,6 @@ def get_balance(salon_id, conn) -> int:
     return cur.fetchone()[0]
 
 
-def package_covers_usage(conn, user_id: int, tool_key: str) -> bool:
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute(
-        f"""SELECT pp.daily_limit_per_tool FROM {SCHEMA}.user_packages up
-            JOIN {SCHEMA}.package_plans pp ON pp.code = up.plan_code
-            WHERE up.user_id=%s AND up.status='active' AND up.expires_at > NOW()
-            ORDER BY up.expires_at DESC LIMIT 1""", (user_id,)
-    )
-    pkg = cur.fetchone()
-    if not pkg:
-        return False
-    cur2 = conn.cursor()
-    cur2.execute(
-        f"SELECT COUNT(*) FROM {SCHEMA}.tool_usage_log WHERE user_id=%s AND tool_key=%s AND used_at > NOW() - INTERVAL '24 hours'",
-        (user_id, tool_key)
-    )
-    used = cur2.fetchone()[0] or 0
-    if used >= pkg["daily_limit_per_tool"]:
-        return False
-    cur2.execute(f"INSERT INTO {SCHEMA}.tool_usage_log (user_id, tool_key) VALUES (%s,%s)", (user_id, tool_key))
-    conn.commit()
-    return True
-
-
 def deduct(salon_id, user_id, cost, tool_key, title, conn):
     cur = conn.cursor()
     cur.execute(f"UPDATE {SCHEMA}.salons SET credits_balance = credits_balance - %s WHERE id = %s", (cost, salon_id))
@@ -109,18 +85,16 @@ def refund(salon_id, user_id, cost, tool_key, conn):
 
 
 def charge(user: dict, tool_key: str, title: str, default_cost: int):
-    """Списывает энергию до вызова ИИ. Возвращает (cost, error_response)."""
+    """Списывает энергию с баланса до вызова ИИ (пакеты не покрывают). Возвращает (cost, error_response)."""
     salon_id = user.get("salon_id")
     if not salon_id:
-        return 0, None
+        return 0, resp(402, {"error": "Заполните профиль салона или специалиста, чтобы пополнить баланс энергии и пользоваться инструментом."})
     conn = get_db()
     try:
-        if package_covers_usage(conn, user["id"], tool_key):
-            return 0, None
         cost = get_tool_cost(conn, tool_key, default_cost)
         balance = get_balance(salon_id, conn)
         if balance < cost:
-            return 0, resp(402, {"error": f"Недостаточно энергии. Доступно {balance}. Пополните баланс, чтобы продолжить."})
+            return 0, resp(402, {"error": f"Недостаточно энергии. Нужно {cost}, доступно {balance}. Пополните баланс, чтобы продолжить."})
         deduct(salon_id, user["id"], cost, tool_key, title, conn)
         return cost, None
     finally:
@@ -271,7 +245,7 @@ def handle_analyze(user: dict, data: dict) -> dict:
         finally:
             conn.close()
 
-    cost, err = charge(user, "client_view", "Покажи глазами клиента", 3)
+    cost, err = charge(user, "client_view", "Покажи глазами клиента", 2)
     if err:
         return err
 
@@ -344,7 +318,7 @@ def handle_ask(user: dict, data: dict) -> dict:
         return resp(400, {"error": "Не выбран клиент"})
     c = clients[idx]
 
-    cost, err = charge(user, "client_view_ask", "Покажи глазами клиента: вопрос клиенту", 1)
+    cost, err = charge(user, "client_view_ask", "Покажи глазами клиента: вопрос клиенту", 2)
     if err:
         return err
 

@@ -15,7 +15,7 @@ async function call(method: string, action: string, body?: object, extra = "") {
   const data = await res.json().catch(() => ({}));
   if (res.status === 402) {
     const msg = data.error || "Недостаточно энергии";
-    import("@/components/EnergyGate").then(m => m.showEnergyGate({ message: msg }));
+    import("@/components/EnergyGate").then(m => m.showEnergyGate({ message: msg, noSalon: msg.includes("профиль") }));
     throw new Error(msg);
   }
   if (!res.ok) throw new Error(data.error || "Ошибка сервера");
