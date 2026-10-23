@@ -40,6 +40,7 @@ const EkspertTarif = lazy(() => import("./pages/EkspertTarif"));
 const FreeTarif = lazy(() => import("./pages/FreeTarif"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 const DlyaSalonov = lazy(() => import("./pages/DlyaSalonov"));
+const DlyaMasterov = lazy(() => import("./pages/DlyaMasterov"));
 const DlyaShkol = lazy(() => import("./pages/DlyaShkol"));
 const DlyaPsihologov = lazy(() => import("./pages/DlyaPsihologov"));
 const FreeTrenings = lazy(() => import("./pages/FreeTrenings"));
@@ -123,6 +124,7 @@ const App = () => (
             <Route path="/free" element={<FreeTarif />} />
             <Route path="/coming-soon" element={<ComingSoon />} />
             <Route path="/dlya-salonov" element={<DlyaSalonov />} />
+            <Route path="/dlya-masterov" element={<DlyaMasterov />} />
             <Route path="/dlya-shkol" element={<DlyaShkol />} />
             <Route path="/dlya-psihologov" element={<DlyaPsihologov />} />
             <Route path="/free-trenings" element={<FreeTrenings />} />
