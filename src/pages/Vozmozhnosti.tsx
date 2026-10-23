@@ -167,8 +167,8 @@ export default function Vozmozhnosti() {
             <div style={{ position: "relative", width: "100%" }}>
               <div style={{ position: "absolute", inset: -1, borderRadius: 6, background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))", pointerEvents: "none", zIndex: 2 }} />
               <img
-                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/003d1705-274b-4191-a9b4-4256bcb76568.png"
-                alt="Возможности платформы Промт Диалог — ИИ-инструменты для салонов красоты, психологов и частной практики"
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/5f1dfdfc-e598-4beb-82f5-2b42ebbb2809.jpg"
+                alt="Мастер работает с ИИ-инструментами Промт Диалог за ноутбуком в студии"
                 decoding="async"
                 style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
               />
