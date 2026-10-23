@@ -60,8 +60,8 @@ export default function DlyaShkolHero() {
             <div style={{ position: "relative", width: "100%" }}>
               <div style={{ position: "absolute", inset: -1, borderRadius: 6, background: "linear-gradient(135deg, rgba(45,212,191,0.4), transparent 50%, rgba(45,212,191,0.15))", pointerEvents: "none", zIndex: 2 }} />
               <img
-                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/85d5b2f9-64af-45fd-9ef7-f5375d6353e1.png"
-                alt="Партнерство школ и Промт Диалог — обучение и развитие мастеров"
+                src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/91f24b33-546a-4c4e-af06-7a01e43aae3b.jpg"
+                alt="Преподаватель школы и выпускники с сертификатами — развитие после обучения"
                 fetchpriority="high"
                 decoding="async"
                 style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
