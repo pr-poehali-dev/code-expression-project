@@ -48,12 +48,12 @@ export default function Tseny() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
-        <title>Цены и тарифы — энергия для работы с платформой | Промт Диалог</title>
-        <meta name="description" content="Гибкая система энергии: платите только за то, что используете. Стоимость запроса от 3,3 ₽. Получить план роста дохода — бесплатно." />
-        <meta name="keywords" content="цены Промт Диалог, тарифы для салона, стоимость платформы для салона красоты" />
+        <title>Стоимость запроса от 3,3 ₽ — бесплатный старт | Промт Диалог</title>
+        <meta name="description" content="Начните бесплатно: шаги развития после регистрации без оплаты. Дальше платите только за использованную энергию — запрос от 3,3 ₽, без абонентской платы." />
+        <meta name="keywords" content="цены Промт Диалог, стоимость запроса, тарифы Промт Диалог, энергия Промт Диалог, платформа для специалистов, стоимость платформы для салона красоты" />
         <link rel="canonical" href="https://promtdialog.ru/tseny" />
-        <meta property="og:title" content="Цены и тарифы Промт Диалог — платите только за результат" />
-        <meta property="og:description" content="Гибкая система энергии без подписки. Получить план роста дохода — бесплатно." />
+        <meta property="og:title" content="Промт Диалог — бесплатный старт и запрос от 3,3 ₽" />
+        <meta property="og:description" content="Без абонентской платы: платите только за использованную энергию. Шаги развития после регистрации — бесплатно." />
         <meta property="og:url" content="https://promtdialog.ru/tseny" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -61,7 +61,7 @@ export default function Tseny() {
           "@context": "https://schema.org",
           "@type": "PriceSpecification",
           "name": "Тарифы Промт Диалог",
-          "description": "Гибкая система энергии для платформы роста салона. Нет подписки — платите только за использование.",
+          "description": "Бесплатный старт и энергия без подписки: стоимость запроса от 3,3 ₽.",
           "url": "https://promtdialog.ru/tseny"
         })}</script>
       </Helmet>
@@ -81,13 +81,13 @@ export default function Tseny() {
               <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Тарифы</span>
             </div>
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(40px,5.5vw,70px)", fontWeight: 500, color: "#fff", lineHeight: 1.05, margin: "0 0 24px", letterSpacing: "-0.5px" }}>
-              ИИ-аутсорсинг дешевле одного сотрудника
+              Начните бесплатно, а дальше платите только за запросы
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 520 }}>
-              Маркетолог, аналитик, тренер, методист — всё это платформа за фиксированную сумму в месяц. Платите только за то, что используете.
+              Маркетолог, аналитик, тренер и методист в одной платформе. После регистрации вы получаете шаги развития без оплаты, а энергию тратите только на те запросы, которые действительно нужны.
             </p>
             <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: TEAL, lineHeight: 1.6, margin: "0 0 32px", fontWeight: 500, letterSpacing: "0.5px" }}>
-              Без найма · Без абонплаты · Без переплат
+              Без найма · Без абонплаты · Запрос от 3,3 ₽
             </p>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "9px 20px" }}>
               <Icon name="Gift" size={16} style={{ color: TEAL }} />
