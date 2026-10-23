@@ -1,22 +1,19 @@
 import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
-import IndexHero from "@/pages/index/IndexHero";
 import IndexDemoForm from "@/pages/index/IndexDemoForm";
-import IndexDiagBanner from "@/pages/index/IndexDiagBanner";
-import IndexPlatform from "@/pages/index/IndexPlatform";
-import IndexBottom from "@/pages/index/IndexBottom";
+import { IndexHeroMain, IndexSegments, IndexHowItWorks, IndexResults, IndexHowToStart, IndexFinal } from "@/pages/index/IndexMain";
 
 export default function Index() {
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
-        <title>Маркетинг под вашу практику — ИИ-навигатор дохода «ПоДелам»</title>
-        <meta name="description" content="Для салонов, частных специалистов и практиков — от мастеров и массажистов до психологов. Анализируем вашу ситуацию и подсказываем конкретные маркетинговые шаги для привлечения клиентов и развития бизнеса. Получить план роста дохода — бесплатно." />
+        <title>Промт Диалог — маркетинг, который понимает ваш бизнес</title>
+        <meta name="description" content="Промт Диалог — AI-навигатор «ПоДелам»: анализирует ваши услуги, аудиторию, регион и ресурсы и помогает определить конкретные шаги для развития практики или бизнеса. Для салонов, мастеров, массажистов и психологов." />
         <meta name="keywords" content="навигатор дохода, план роста бизнеса, ИИ для салона красоты, ИИ для психолога, увеличение дохода специалиста, маркетинг для частной практики" />
         <link rel="canonical" href="https://promtdialog.ru/" />
-        <meta property="og:title" content="Маркетинг под вашу практику — Промт Диалог" />
-        <meta property="og:description" content="Для салонов, частных специалистов и практиков — от мастеров до психологов. Конкретные маркетинговые шаги на основе ваших реальных данных. Попробуйте бесплатно." />
+        <meta property="og:title" content="Промт Диалог — маркетинг, который понимает ваш бизнес" />
+        <meta property="og:description" content="Анализируем вашу ситуацию и помогаем определить конкретные шаги для привлечения и удержания клиентов." />
         <meta property="og:url" content="https://promtdialog.ru/" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -30,11 +27,13 @@ export default function Index() {
         })}</script>
       </Helmet>
       <BizNavbar />
-      <IndexHero />
+      <IndexHeroMain />
+      <IndexSegments />
+      <IndexHowItWorks />
+      <IndexResults />
+      <IndexHowToStart />
+      <IndexFinal />
       <IndexDemoForm />
-      <IndexDiagBanner />
-      <IndexPlatform />
-      <IndexBottom />
       <BizFooter />
       <style>{`
         @media (max-width: 768px) {
