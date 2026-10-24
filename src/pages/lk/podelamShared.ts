@@ -260,6 +260,7 @@ export interface PodelamAnalysis {
   forecast_confidence: "высокий" | "средний" | "низкий" | null;
   main_action: string;
   extra_actions: string[];
+  client_view_advice?: string | null;
   audience_map?: AudienceMap | null;
 }
 

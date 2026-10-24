@@ -6,6 +6,7 @@ import MarkActionDoneButton from "./podelam-analytics/MarkActionDoneButton";
 import ResourcesChecklist from "./podelam-analytics/ResourcesChecklist";
 import AudienceMapBlock from "./podelam-analytics/AudienceMapBlock";
 import { PulseLoading, PulsePaywall } from "./podelam-analytics/PulseStates";
+import ClientViewAdvice from "./podelam-analytics/ClientViewAdvice";
 
 const PODELAM_URL = (func2url as Record<string, string>)["masters-accrual"] || "";
 const PODELAM_FAST_URL = (func2url as Record<string, string>)["podelam-fast"] || "";
@@ -180,7 +181,7 @@ export function PodelamAnalyticsCard({ onNav }: { onNav: (t: string) => void }) 
         )}
       </div>
 
-      <div style={{ background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 12, padding: "14px 16px", marginBottom: a.audience_map ? 18 : 0 }}>
+      <div style={{ background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 12, padding: "14px 16px", marginBottom: 18 }}>
         <div style={{ fontSize: 10.5, fontWeight: 700, color: "#2DD4BF", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Главное действие сегодня</div>
         <div style={{ fontSize: 13.5, color: "#fff", fontWeight: 600, lineHeight: 1.5 }}>{a.main_action}</div>
         <MarkActionDoneButton text={a.main_action} done={!!doneActions[hashActionText(a.main_action)]} onToggle={toggleActionDone} />
@@ -197,6 +198,8 @@ export function PodelamAnalyticsCard({ onNav }: { onNav: (t: string) => void }) 
           </div>
         )}
       </div>
+
+      <ClientViewAdvice text={a.client_view_advice} onNav={onNav} />
 
       {a.audience_map && <AudienceMapBlock map={a.audience_map} onNav={onNav} doneActions={doneActions} onToggleDone={toggleActionDone} />}
 
