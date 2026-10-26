@@ -72,11 +72,11 @@ export default function FreeTrenings() {
         <title>Бесплатные онлайн-тренинги для мастеров и администраторов | Промт Диалог</title>
         <meta name="description" content="Бесплатные онлайн-тренинги для мастеров, администраторов, массажистов и специалистов бьюти и wellness. Психология общения с клиентом, личный бренд, самопрезентация. Доступны сразу после регистрации." />
         <meta name="keywords" content="бесплатные тренинги для мастеров, онлайн курсы для администраторов салона, обучение для мастеров красоты, тренинг для массажистов, психология общения с клиентом, личный бренд мастера, академия про диалог" />
-        <link rel="canonical" href="https://pro-dialog.ru/free-trenings" />
+        <link rel="canonical" href="https://promtdialog.ru/free-trenings" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://pro-dialog.ru/free-trenings" />
+        <meta property="og:url" content="https://promtdialog.ru/free-trenings" />
         <meta property="og:title" content="Бесплатные онлайн-тренинги для мастеров и администраторов" />
         <meta property="og:description" content="Получите бесплатный доступ к практическим тренингам по психологии общения, личному бренду и самопрезентации. Для специалистов индустрии красоты и здоровья." />
         <meta property="og:image" content="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/courses/covers/16/training-image (1).png" />
