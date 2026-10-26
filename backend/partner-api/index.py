@@ -25,6 +25,7 @@ FROM_EMAIL = "massopro@mail.ru"
 ADMIN_EMAIL = "webmanager5@yandex.ru"
 SITE_URL = "https://promtdialog.ru"
 PERIOD_DAYS = 14
+DOCS_VERSION = "2026-10-27"
 
 CORS = {
     "Access-Control-Allow-Origin": "*",
@@ -258,16 +259,19 @@ def handle_register(event, conn):
         return err("Укажите корректный email")
     if len(pw) < 8:
         return err("Пароль должен быть не короче 8 символов")
-    if not b.get("consent"):
-        return err("Нужно согласиться с правилами партнёрства")
+    if not (b.get("consent_rules") is True and b.get("consent_privacy") is True and b.get("consent_offer") is True):
+        return err("Для создания кабинета нужно принять правила, политику конфиденциальности и договор-оферту")
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(f"SELECT 1 FROM {tbl('partners')} WHERE email=%s", (email,))
     if cur.fetchone():
         return err("Партнёр с таким email уже зарегистрирован")
     code = gen_ref_code(cur)
     h = bcrypt.hashpw(pw.encode(), bcrypt.gensalt()).decode()
-    cur.execute(f"INSERT INTO {tbl('partners')} (email, password_hash, business_name, contact_name, ref_code, consent_at) "
-                f"VALUES (%s,%s,%s,%s,%s,NOW()) RETURNING id", (email, h, name, contact, code))
+    ip = ((event.get("requestContext") or {}).get("identity") or {}).get("sourceIp", "")[:64]
+    cur.execute(f"INSERT INTO {tbl('partners')} (email, password_hash, business_name, contact_name, ref_code, consent_at, "
+                f"consent_rules_at, consent_privacy_at, consent_offer_at, consent_docs_version, consent_ip) "
+                f"VALUES (%s,%s,%s,%s,%s,NOW(),NOW(),NOW(),NOW(),%s,%s) RETURNING id",
+                (email, h, name, contact, code, DOCS_VERSION, ip))
     pid = cur.fetchone()["id"]
     log(cur, pid, "registered", actor="partner", actor_id=pid)
     sid = new_session(cur, pid)

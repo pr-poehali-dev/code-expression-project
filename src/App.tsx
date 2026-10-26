@@ -21,6 +21,7 @@ const PrimerochnayaLanding = lazy(() => import("./pages/PrimerochnayaLanding"));
 const ImagePrimerkaLanding = lazy(() => import("./pages/ImagePrimerkaLanding"));
 const ReelsVideoLanding = lazy(() => import("./pages/ReelsVideoLanding"));
 const ClientViewLanding = lazy(() => import("./pages/client-view-landing/ClientViewLanding"));
+const PartnerRules = lazy(() => import("./pages/partner-rules/PartnerRules"));
 const PartnerPage = lazy(() => import("./pages/partner/PartnerPage"));
 const DlyaKogo = lazy(() => import("./pages/DlyaKogo"));
 const Preimushchestva = lazy(() => import("./pages/Preimushchestva"));
@@ -119,6 +120,7 @@ const App = () => (
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/blog/:slug" element={<BlogPostPage />} />
             <Route path="/partner" element={<PartnerPage />} />
+            <Route path="/partner/rules" element={<PartnerRules />} />
             <Route path="/cabinet" element={<LkPage />} />
             <Route path="/join" element={<LkJoinPage />} />
             <Route path="/join/:token" element={<LkJoinPage />} />

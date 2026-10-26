@@ -1,9 +1,50 @@
 {
   "tests": [
-    {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
-    {"name": "Unknown action", "method": "GET", "path": "/?action=nope", "expectedStatus": 404},
-    {"name": "Me without session", "method": "GET", "path": "/?action=me", "expectedStatus": 401},
-    {"name": "Login without data", "method": "POST", "path": "/?action=login", "body": {}, "expectedStatus": 400},
-    {"name": "Admin without session", "method": "GET", "path": "/?action=admin_overview", "expectedStatus": 403}
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Unknown action",
+      "method": "GET",
+      "path": "/?action=nope",
+      "expectedStatus": 404
+    },
+    {
+      "name": "Me without session",
+      "method": "GET",
+      "path": "/?action=me",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Login without data",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": {},
+      "expectedStatus": 400
+    },
+    {
+      "name": "Admin without session",
+      "method": "GET",
+      "path": "/?action=admin_overview",
+      "expectedStatus": 403
+    },
+    {
+      "name": "Register without consents",
+      "method": "POST",
+      "path": "/?action=register",
+      "body": {
+        "business_name": "Тест",
+        "contact_name": "Тест",
+        "email": "consent-test@example.com",
+        "password": "password123",
+        "consent_rules": true,
+        "consent_privacy": false,
+        "consent_offer": true
+      },
+      "expectedStatus": 400
+    }
   ]
 }
