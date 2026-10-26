@@ -90,11 +90,14 @@ export default function PartnerLanding() {
           <Head eyebrow="Преимущества" title="Почему это может быть выгодно именно вам" />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,480px),1fr))", gap: 20 }}>
             {BENEFITS.map(b => (
-              <div key={b.title} style={{ border: "1px solid #E2E8F0", borderRadius: 18, padding: "30px 28px", background: "#fff" }}>
+              <div key={b.title} style={{ border: "1px solid #E2E8F0", borderRadius: 18, overflow: "hidden", background: "#fff" }}>
+                <img src={b.image} alt={b.title} loading="lazy" style={{ display: "block", width: "100%", aspectRatio: "16 / 9", objectFit: "cover", background: "#F0FDFA" }} />
+                <div style={{ padding: "26px 28px 30px" }}>
                 <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(45,212,191,0.14)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}><Icon name={b.icon} size={24} style={{ color: "#0F766E" }} /></div>
                 <h3 style={{ fontFamily: SERIF, fontSize: 25, fontWeight: 600, color: DARK, margin: "0 0 14px", lineHeight: 1.2 }}>{b.title}</h3>
                 {b.text.map(t => <p key={t} style={{ fontSize: 15, color: GRAY, lineHeight: 1.75, fontWeight: 300, margin: "0 0 12px" }}>{t}</p>)}
                 <p style={{ fontSize: 14.5, color: DARK, lineHeight: 1.65, fontWeight: 500, margin: "6px 0 0", paddingLeft: 14, borderLeft: `3px solid ${TEAL}` }}>{b.accent}</p>
+                </div>
               </div>
             ))}
           </div>
