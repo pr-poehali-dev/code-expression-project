@@ -4,6 +4,7 @@ import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
+import MissionSection from "./MissionSection";
 import { TITLE, DESCRIPTION, URL_FULL, OG_IMAGE, BENEFITS, STATS, STEPS, WHO, EARLY } from "./data";
 
 const TEAL = "#2DD4BF";
@@ -207,6 +208,8 @@ export default function PartnerLanding() {
           </div>
         </div>
       </section>
+
+      <MissionSection />
 
       <section style={section("#F8FAFC")}>
         <div style={{ ...wrap, maxWidth: 900 }}>
