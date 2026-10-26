@@ -66,6 +66,7 @@ import time
 import urllib.request
 import urllib.error
 import psycopg2
+import partner_reco
 import psycopg2.extras
 from datetime import datetime, timedelta, timezone, date
 from email.mime.text import MIMEText
@@ -2709,7 +2710,32 @@ def handle_content_daily_post(event: dict, conn) -> dict:
     return ok({"post": dict(row), "created": True})
 
 
-KNOWN_ACTIONS = {"podelam_get", "podelam_notify", "content_daily_post", "podelam_analytics"}
+KNOWN_ACTIONS = {"podelam_get", "podelam_notify", "content_daily_post", "podelam_analytics",
+                 "partner_recommendation", "partner_rec_shown", "partner_rec_click"}
+
+
+def handle_partner_reco(event: dict, conn, action: str) -> dict:
+    """Партнёрская рекомендация для текущего пользователя: получить / отметить показ / перейти по ссылке."""
+    session_id = (event.get("headers") or {}).get("X-Session-Id", "")
+    if not session_id:
+        return err("Не авторизован", 401)
+    user = get_lk_user_by_session(session_id, conn)
+    if not user:
+        return err("Сессия истекла", 401)
+    qs = event.get("queryStringParameters") or {}
+    if action == "partner_recommendation":
+        return ok({"recommendation": partner_reco.get_recommendation(conn, user, qs.get("source", ""))})
+    try:
+        rec_id = int(qs.get("id") or 0)
+    except ValueError:
+        return err("Некорректный запрос")
+    if action == "partner_rec_shown":
+        partner_reco.mark_shown(conn, user["id"], rec_id)
+        return ok({"ok": True})
+    url = partner_reco.register_click(conn, user["id"], rec_id)
+    if not url:
+        return err("Предложение больше недоступно", 404)
+    return ok({"url": url})
 
 
 def handler(event: dict, context) -> dict:
@@ -2743,6 +2769,8 @@ def handler(event: dict, context) -> dict:
             return handle_podelam_notify(event, conn)
         if route_action == "podelam_analytics":
             return handle_podelam_analytics(event, conn)
+        if route_action in ("partner_recommendation", "partner_rec_shown", "partner_rec_click"):
+            return handle_partner_reco(event, conn, route_action)
 
         # ── Автопубликация ежедневного поста в блог ───────────────────────────
         if route_action == "content_daily_post":

@@ -7,6 +7,7 @@ import ResourcesChecklist from "./podelam-analytics/ResourcesChecklist";
 import AudienceMapBlock from "./podelam-analytics/AudienceMapBlock";
 import { PulseLoading, PulsePaywall } from "./podelam-analytics/PulseStates";
 import ClientViewAdvice from "./podelam-analytics/ClientViewAdvice";
+import PartnerRecommendation from "./PartnerRecommendation";
 
 const PODELAM_URL = (func2url as Record<string, string>)["masters-accrual"] || "";
 const PODELAM_FAST_URL = (func2url as Record<string, string>)["podelam-fast"] || "";
@@ -200,6 +201,8 @@ export function PodelamAnalyticsCard({ onNav }: { onNav: (t: string) => void }) 
       </div>
 
       <ClientViewAdvice text={a.client_view_advice} onNav={onNav} />
+
+      <PartnerRecommendation source="pulse" dark />
 
       {a.audience_map && <AudienceMapBlock map={a.audience_map} onNav={onNav} doneActions={doneActions} onToggleDone={toggleActionDone} />}
 

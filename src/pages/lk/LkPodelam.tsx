@@ -8,6 +8,7 @@ import DiagnosticForm from "./PodelamDiagnosticForm";
 import InfoModal from "./PodelamInfoModal";
 import { DailyIncomeCard, StatsSection, SalonGoalsCard } from "./PodelamWidgets";
 import { PodelamAnalyticsCard } from "./PodelamAnalyticsCard";
+import PartnerRecommendation from "./PartnerRecommendation";
 import { isPodelamTrial, getPodelamTrialData, clearPodelamTrial } from "@/lib/podelamTrial";
 import { PodelamLoading, PodelamTrialExpired, PodelamNoEnergy } from "./podelam-tab/PodelamStates";
 import PodelamGoalCard from "./podelam-tab/PodelamGoalCard";
@@ -229,6 +230,8 @@ export function PodelamTab({ onNav }: { onNav: (t: string) => void }) {
         setSelectedTopic={setSelectedTopic}
         goTo={goTo}
       />
+
+      <PartnerRecommendation source="steps" />
 
       {/* ИИ-Агент — общение по развитию бизнеса */}
       <div ref={agentRef} style={{ background: "#fff", borderRadius: 16, border: "1px solid #E8ECF0", padding: "20px 24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(15,23,42,0.04)", scrollMarginTop: 20 }}>

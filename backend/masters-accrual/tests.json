@@ -29,6 +29,12 @@
       "method": "GET",
       "path": "/?action=content_daily_post",
       "expectedStatus": 403
+    },
+    {
+      "name": "partner_recommendation without session — 401",
+      "method": "GET",
+      "path": "/?action=partner_recommendation&source=pulse",
+      "expectedStatus": 401
     }
   ]
 }
