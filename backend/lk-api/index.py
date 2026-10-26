@@ -243,6 +243,13 @@ def handle_register(event: dict) -> dict:
             cur.execute(f"SELECT id, full_name FROM {tbl('lk_users')} WHERE ref_code=%s", (ref_code,))
             referrer = cur.fetchone()
 
+        # Код партнёра внешней программы (PT-XXXXXX) — только для учёта регистраций, бонусов нет.
+        partner_ref_id = None
+        if ref_code and not referrer and ref_code.upper().startswith("PT-"):
+            cur.execute(f"SELECT id FROM {tbl('partners')} WHERE ref_code=%s", (ref_code.upper(),))
+            prow = cur.fetchone()
+            partner_ref_id = prow["id"] if prow else None
+
         # Проверяем уникальность email
         cur.execute(f"SELECT id FROM {tbl('lk_users')} WHERE email = %s", (email,))
         if cur.fetchone():
@@ -267,6 +274,8 @@ def handle_register(event: dict) -> dict:
              my_ref_code, referrer["id"] if referrer else None)
         )
         user_id = cur.fetchone()["id"]
+        if partner_ref_id:
+            cur.execute(f"UPDATE {tbl('lk_users')} SET referred_by_partner=%s WHERE id=%s", (partner_ref_id, user_id))
 
         salon_id = None
         salon_data = None

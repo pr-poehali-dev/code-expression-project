@@ -1,0 +1,4 @@
+ALTER TABLE t_p84565078_code_expression_proj.partners ADD COLUMN ref_code VARCHAR(20);
+CREATE UNIQUE INDEX idx_partners_ref_code ON t_p84565078_code_expression_proj.partners(ref_code);
+ALTER TABLE t_p84565078_code_expression_proj.lk_users ADD COLUMN referred_by_partner INTEGER;
+CREATE INDEX idx_lk_users_referred_by_partner ON t_p84565078_code_expression_proj.lk_users(referred_by_partner);
