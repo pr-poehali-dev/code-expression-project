@@ -20,6 +20,7 @@ const COLS = [
       { label: "О проекте", href: "/o-proekte" },
       { label: "Почему мы", href: "/preimushchestva" },
       { label: "Кейсы", href: "/keysy" },
+      { label: "Отзывы", href: "/reviews" },
       { label: "Контакты", href: "/kontakty" },
     ],
   },
