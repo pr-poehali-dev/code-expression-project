@@ -5,13 +5,12 @@ import { Btn, Notice, card, fmtDate } from "./ui";
 
 export interface MeData {
   partner: { business_name: string; ref_code: string; status: string };
-  obligation: { state: string; days_left: number | null; shows_until: string | null; shows_allowed: boolean };
+  obligation: { state: string; shows_allowed: boolean };
   offers_total: number;
   offers_counts: Record<string, number>;
   stats: { shown: number; clicked: number; ctr: number; registrations: number };
   ref_link: string;
   notifications: { action: string; comment: string | null; created_at: string }[];
-  period_days: number;
 }
 
 const ACTION_TEXT: Record<string, string> = {
@@ -38,13 +37,9 @@ export default function PartnerHome({ me, go }: { me: MeData; go: (t: string) =>
 
   const banner = (() => {
     if (me.partner.status === "suspended") return <Notice kind="error">Участие приостановлено модератором. Причину смотрите в уведомлениях ниже или напишите нам.</Notice>;
-    if (o.state === "not_started") return <Notice kind="info">Показы включатся, когда первое предложение пройдёт модерацию. После этого у вас будет {me.period_days} дней до первого подтверждения размещения.</Notice>;
-    if (o.state === "active" || o.state === "active_pending") {
-      const warn = (o.days_left ?? 99) <= 3;
-      return <Notice kind={warn ? "warn" : "success"}>Показы активны ещё <b>{o.days_left} дн.</b> (до {fmtDate(o.shows_until)}). {warn ? "Опубликуйте материал о «Промт Диалог» и подтвердите размещение, чтобы показы не остановились." : "Подтвердить размещение можно заранее: срок продлится на 14 дней."}</Notice>;
-    }
-    if (o.state === "awaiting_review") return <Notice kind="info">Подтверждение на проверке. Пока оно проверяется, показы продолжаются.</Notice>;
-    return <Notice kind="warn">Срок вышел, показы приостановлены. Отправьте новую публикацию о «Промт Диалог», и показы вернутся сразу после подтверждения.</Notice>;
+    if (o.state === "done") return <Notice kind="success">Размещение подтверждено, показы ваших одобренных предложений включены. Повторно публиковать материалы не нужно.</Notice>;
+    if (o.state === "awaiting_review") return <Notice kind="info">Размещение на проверке. Как только модератор его подтвердит, показы включатся.</Notice>;
+    return <Notice kind="info">Для запуска показов один раз расскажите о «Промт Диалог» на своей площадке и отправьте ссылку в разделе «Продвижение». После подтверждения публикации показы включатся и больше ничего подтверждать не нужно.</Notice>;
   })();
 
   const copy = async () => {

@@ -66,7 +66,7 @@ export default function PartnerAuth({ onDone }: { onDone: () => void }) {
             {mode === "register" && (
               <div style={{ display: "grid", gap: 10, background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: "12px 14px" }}>
                 <Check value={f.consent_rules} onChange={v => set("consent_rules", v)}>
-                  Прочитал и принимаю <a href="/partner/rules" target="_blank" rel="noopener noreferrer" style={lnk}>Правила партнёрской программы</a>: раз в 14 дней публикую материал о «Промт Диалог», а все предложения проходят модерацию
+                  Прочитал и принимаю <a href="/partner/rules" target="_blank" rel="noopener noreferrer" style={lnk}>Правила партнёрской программы</a>: один раз публикую материал о «Промт Диалог» для запуска показов, а все предложения проходят модерацию
                 </Check>
                 <Check value={f.consent_privacy} onChange={v => set("consent_privacy", v)}>
                   Ознакомлен с <a href="/privacy" target="_blank" rel="noopener noreferrer" style={lnk}>Политикой конфиденциальности</a> и даю согласие на обработку моих персональных данных

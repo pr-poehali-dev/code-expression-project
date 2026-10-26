@@ -24,8 +24,8 @@ export default function PartnerPromo({ me, reload }: { me: MeData; reload: () =>
     setBusy(true); setRes(null);
     try {
       const r = await partnerRequest<{ result: string; reason?: string }>("submission_create", { body: f });
-      if (r.result === "accepted") setRes({ kind: "success", text: `Размещение подтверждено. Показы продлены на ${me.period_days} дней.` });
-      else if (r.result === "pending") setRes({ kind: "info", text: `Отправлено на проверку модератору. ${r.reason || ""} Пока идёт проверка, показы продолжаются.` });
+      if (r.result === "accepted") setRes({ kind: "success", text: `Размещение подтверждено. Показы ваших предложений включены.` });
+      else if (r.result === "pending") setRes({ kind: "info", text: `Отправлено на проверку модератору. ${r.reason || ""} После подтверждения показы включатся.` });
       else setRes({ kind: "error", text: `Автопроверка не подтвердила размещение: ${r.reason}. Исправьте публикацию и отправьте снова.` });
       setF(x => ({ ...x, publication_url: "", partner_comment: "", manual: false }));
       load(); reload();
@@ -33,14 +33,12 @@ export default function PartnerPromo({ me, reload }: { me: MeData; reload: () =>
     finally { setBusy(false); }
   };
 
-  const o = me.obligation;
   return (
     <div style={{ display: "grid", gap: 18, maxWidth: 760 }}>
       <div style={card}>
         <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, margin: "0 0 6px" }}>Продвижение «Промт Диалог»</h2>
         <p style={{ fontSize: 13.5, color: GRAY, lineHeight: 1.6, margin: "0 0 14px" }}>
-          Раз в {me.period_days} дней опубликуйте материал о платформе и отправьте ссылку. Так ваши показы продлеваются.
-          {o.shows_until && <> Сейчас показы {o.shows_allowed ? "активны" : "остановлены"}, срок до <b>{fmtDate(o.shows_until)}</b>.</>}
+          Один раз опубликуйте материал о платформе и отправьте ссылку. После подтверждения показы включаются, и повторять это не нужно. Дальше вы можете рассказывать о «Промт Диалог» по желанию, без отчёта.
         </p>
         <Notice kind="info">
           <b>Что должно быть в материале:</b> содержательный рассказ о «Промт Диалог» (чем полезна платформа вашей аудитории) и ваша персональная ссылка:<br />
@@ -57,7 +55,7 @@ export default function PartnerPromo({ me, reload }: { me: MeData; reload: () =>
           <Field hint={H("Где опубликовано", "Выберите площадку. От неё зависит, сможет ли система проверить страницу автоматически.")}>
             <select style={inputCss} value={f.platform} onChange={e => set("platform", e.target.value)}>{PLATFORMS.map(p => <option key={p}>{p}</option>)}</select>
           </Field>
-          <Field hint={H("Дата публикации", "Публикация должна быть не старше 14 дней.", undefined, false)}>
+          <Field hint={H("Дата публикации", "Необязательно. Укажите, когда вышла публикация.", undefined, false)}>
             <input type="date" style={inputCss} value={f.publication_date} onChange={e => set("publication_date", e.target.value)} />
           </Field>
         </div>

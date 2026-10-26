@@ -108,12 +108,12 @@ export function PartnersSection() {
       <div style={{ ...box, overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5, minWidth: 720 }}>
           <thead><tr style={{ textAlign: "left", color: "#64748B" }}>
-            {["Партнёр", "Показы до", "Предложений", "Показы / клики", "Регистрации", ""].map(h => <th key={h} style={{ padding: "6px 8px", fontWeight: 600 }}>{h}</th>)}
+            {["Партнёр", "Показы", "Предложений", "Показы / клики", "Регистрации", ""].map(h => <th key={h} style={{ padding: "6px 8px", fontWeight: 600 }}>{h}</th>)}
           </tr></thead>
           <tbody>{d.partners.map((p: any) => (
             <tr key={p.id} style={{ borderTop: "1px solid #F1F5F9" }}>
               <td style={{ padding: "8px" }}><b>{p.business_name}</b><div style={{ color: "#64748B", fontSize: 12 }}>{p.email}</div></td>
-              <td style={{ padding: "8px" }}>{p.status === "suspended" ? <span style={{ color: "#B91C1C", fontWeight: 700 }}>заблокирован</span> : <span style={{ color: p.shows_active ? "#166534" : "#92400E" }}>{p.shows_until ? fd(p.shows_until) : "не начато"}{p.shows_until && !p.shows_active ? " (истёк)" : ""}</span>}</td>
+              <td style={{ padding: "8px" }}>{p.status === "suspended" ? <span style={{ color: "#B91C1C", fontWeight: 700 }}>заблокирован</span> : <span style={{ color: p.shows_active ? "#166534" : "#92400E" }}>{p.shows_active ? "включены" : "ждут размещения"}</span>}</td>
               <td style={{ padding: "8px" }}>{p.approved_offers} / {p.offers}</td>
               <td style={{ padding: "8px" }}>{p.shown} / {p.clicked}</td>
               <td style={{ padding: "8px" }}>{p.registrations}</td>

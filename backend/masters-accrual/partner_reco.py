@@ -53,8 +53,8 @@ def _candidates(conn, user_id: int, segment: str) -> list[dict]:
             JOIN {SCHEMA}.partner_offer_versions v ON v.id = o.approved_version_id
             JOIN {SCHEMA}.partners p ON p.id = o.partner_id
             WHERE o.status = 'approved' AND p.status <> 'suspended'
-              AND (p.shows_until > NOW() OR EXISTS (
-                    SELECT 1 FROM {SCHEMA}.partner_submissions s WHERE s.partner_id = p.id AND s.status = 'pending'))
+              AND EXISTS (
+                    SELECT 1 FROM {SCHEMA}.partner_submissions s WHERE s.partner_id = p.id AND s.status = 'accepted')
               AND v.data->'audience_segments' @> %s::jsonb
               AND NOT EXISTS (
                     SELECT 1 FROM {SCHEMA}.partner_recommendations r

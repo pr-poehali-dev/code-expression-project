@@ -1,7 +1,7 @@
 """Партнёрский кабинет «Промт Диалог»: регистрация и вход партнёров, профиль, предложения услуг,
 подтверждение размещения о платформе (автопроверка страницы), статистика и модерация для администратора.
 Партнёр входит по X-Session-Id из таблицы partner_sessions, администратор — по обычной сессии кабинета (lk_sessions).
-Показы партнёра разрешены, пока shows_until в будущем или есть подтверждение на проверке — планировщик не нужен."""
+Показы партнёра включаются после одного подтверждённого размещения о платформе и далее не ограничены по сроку."""
 import json
 import os
 import re
@@ -24,7 +24,6 @@ S = "t_p84565078_code_expression_proj"
 FROM_EMAIL = "massopro@mail.ru"
 ADMIN_EMAIL = "webmanager5@yandex.ru"
 SITE_URL = "https://promtdialog.ru"
-PERIOD_DAYS = 14
 DOCS_VERSION = "2026-10-27"
 
 CORS = {
@@ -316,23 +315,18 @@ def handle_logout(event, conn):
 # ── Сроки и показы ──────────────────────────────────────────────────────────
 
 def obligation(cur, p) -> dict:
-    cur.execute(f"SELECT COUNT(*) AS c FROM {tbl('partner_submissions')} WHERE partner_id=%s AND status='pending'", (p["id"],))
-    pending = cur.fetchone()["c"] > 0
-    su = p["shows_until"]
+    cur.execute(f"SELECT COUNT(*) FILTER (WHERE status='accepted') AS acc, COUNT(*) FILTER (WHERE status='pending') AS pend "
+                f"FROM {tbl('partner_submissions')} WHERE partner_id=%s", (p["id"],))
+    r = cur.fetchone()
     if p["status"] == "suspended":
-        state, days = "blocked", None
-    elif su is None:
-        state, days = "not_started", None
-    elif su > now():
-        state, days = "active", max(0, (su - now()).days + (1 if (su - now()).seconds > 0 else 0))
-    elif pending:
-        state, days = "awaiting_review", 0
+        state = "blocked"
+    elif r["acc"] > 0:
+        state = "done"
+    elif r["pend"] > 0:
+        state = "awaiting_review"
     else:
-        state, days = "overdue", 0
-    if state == "active" and pending:
-        state = "active_pending"
-    return {"state": state, "days_left": days, "shows_until": su, "pending_submission": pending,
-            "shows_allowed": state in ("active", "active_pending", "awaiting_review")}
+        state = "required"
+    return {"state": state, "pending_submission": r["pend"] > 0, "shows_allowed": state == "done"}
 
 
 def partner_public(p) -> dict:
@@ -367,7 +361,6 @@ def handle_me(event, conn):
                   "registrations": registrations},
         "ref_link": f"{SITE_URL}/?ref={p['ref_code']}",
         "notifications": notes,
-        "period_days": PERIOD_DAYS,
     })
 
 
@@ -562,9 +555,10 @@ def handle_submission_create(event, conn):
             return err("Дата указана некорректно")
         if pub_date > now().date():
             return err("Дата публикации не может быть в будущем")
-        if pub_date < now().date() - timedelta(days=PERIOD_DAYS):
-            return err(f"Публикация должна быть не старше {PERIOD_DAYS} дней")
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT 1 FROM {tbl('partner_submissions')} WHERE partner_id=%s AND status='accepted'", (p["id"],))
+    if cur.fetchone():
+        return err("Размещение уже подтверждено. Повторно отправлять публикации не нужно")
     cur.execute(f"SELECT COUNT(*) AS c FROM {tbl('partner_submissions')} WHERE partner_id=%s AND submitted_at > NOW() - INTERVAL '1 day'", (p["id"],))
     if cur.fetchone()["c"] >= 6:
         return err("Слишком много попыток за сутки. Попробуйте завтра", 429)
@@ -594,14 +588,13 @@ def handle_submission_create(event, conn):
                  "Принято автоматически" if status == "accepted" else reason, now() if status == "accepted" else None))
     sid = cur.fetchone()["id"]
     if status == "accepted":
-        cur.execute(f"UPDATE {tbl('partners')} SET shows_until = NOW() + INTERVAL '{PERIOD_DAYS} days', updated_at=NOW() WHERE id=%s", (p["id"],))
         log(cur, p["id"], "submission_auto_accepted", submission_id=sid, actor="system")
     else:
         log(cur, p["id"], "submission_pending", reason, submission_id=sid, actor="partner", actor_id=p["id"])
     conn.commit()
     if status == "accepted":
         send_mail(p["email"], "Размещение подтверждено", mail_html("Размещение подтверждено",
-                  f"Спасибо! Показы ваших предложений продлены на {PERIOD_DAYS} дней."))
+                  "Спасибо! Размещение подтверждено, показы ваших предложений включены. Повторно публиковать материалы не требуется."))
         return ok({"result": "accepted"})
     send_mail(ADMIN_EMAIL, "Подтверждение размещения на проверку", mail_html("Нужна проверка", f"{p['business_name']}\n{url}\n{reason}"))
     return ok({"result": "pending", "reason": reason})
@@ -634,7 +627,8 @@ def handle_admin_overview(event, conn):
     if not a:
         return err("Нет доступа", 403)
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute(f"SELECT p.id, p.business_name, p.contact_name, p.email, p.website, p.status, p.shows_until, p.ref_code, p.created_at, "
+    cur.execute(f"SELECT p.id, p.business_name, p.contact_name, p.email, p.website, p.status, p.ref_code, p.created_at, "
+                f"(SELECT COUNT(*) FROM {tbl('partner_submissions')} s WHERE s.partner_id=p.id AND s.status='accepted') AS placements, "
                 f"(SELECT COUNT(*) FROM {tbl('partner_offers')} o WHERE o.partner_id=p.id AND o.status='approved') AS approved_offers, "
                 f"(SELECT COUNT(*) FROM {tbl('partner_offers')} o WHERE o.partner_id=p.id AND o.status <> 'archived') AS offers, "
                 f"(SELECT COUNT(*) FROM {tbl('lk_users')} u WHERE u.referred_by_partner=p.id) AS registrations, "
@@ -643,7 +637,7 @@ def handle_admin_overview(event, conn):
                 f"FROM {tbl('partners')} p ORDER BY p.id DESC LIMIT 300")
     partners = rows(cur)
     for x in partners:
-        x["shows_active"] = bool(x["shows_until"] and x["shows_until"] > now()) and x["status"] != "suspended"
+        x["shows_active"] = x["placements"] > 0 and x["status"] != "suspended"
     cur.execute(f"SELECT v.id AS version_id, v.version_no, v.data, v.created_at, o.id AS offer_id, o.title, o.status AS offer_status, "
                 f"o.approved_version_id, p.id AS partner_id, p.business_name, p.status AS partner_status "
                 f"FROM {tbl('partner_offer_versions')} v JOIN {tbl('partner_offers')} o ON o.id=v.offer_id "
@@ -686,9 +680,8 @@ def handle_admin_offer_decide(event, conn):
     if decision == "approve":
         cur.execute(f"UPDATE {tbl('partner_offers')} SET status='approved', approved_version_id=%s, pending_version_id=NULL, "
                     f"approved_at=NOW(), last_admin_comment=NULL, title=%s, updated_at=NOW() WHERE id=%s", (vid, title, v["offer_id"]))
-        if partner["shows_until"] is None:
-            cur.execute(f"UPDATE {tbl('partners')} SET shows_until = NOW() + INTERVAL '{PERIOD_DAYS} days', first_approved_at=NOW(), "
-                        f"updated_at=NOW() WHERE id=%s", (partner["id"],))
+        if partner["first_approved_at"] is None:
+            cur.execute(f"UPDATE {tbl('partners')} SET first_approved_at=NOW(), updated_at=NOW() WHERE id=%s", (partner["id"],))
     else:
         st = "approved" if v["approved_version_id"] else new_v_status
         cur.execute(f"UPDATE {tbl('partner_offers')} SET status=%s, pending_version_id=NULL, last_admin_comment=%s, updated_at=NOW() WHERE id=%s",
@@ -752,13 +745,11 @@ def handle_admin_submission_decide(event, conn):
     status = "accepted" if decision == "approve" else "rejected"
     cur.execute(f"UPDATE {tbl('partner_submissions')} SET status=%s, admin_comment=%s, reviewed_at=NOW(), reviewed_by=%s WHERE id=%s",
                 (status, comment or None, a["id"], sid))
-    if decision == "approve":
-        cur.execute(f"UPDATE {tbl('partners')} SET shows_until = NOW() + INTERVAL '{PERIOD_DAYS} days', updated_at=NOW() WHERE id=%s", (partner["id"],))
     log(cur, partner["id"], "submission_" + status, comment or None, submission_id=sid, actor="admin", actor_id=a["id"])
     conn.commit()
     if decision == "approve":
         send_mail(partner["email"], "Размещение подтверждено", mail_html("Размещение подтверждено",
-                  f"Спасибо! Показы ваших предложений продлены на {PERIOD_DAYS} дней."))
+                  "Спасибо! Размещение подтверждено, показы ваших предложений включены. Повторно публиковать материалы не требуется."))
     else:
         send_mail(partner["email"], "Подтверждение не принято", mail_html("Подтверждение не принято",
                   f"Причина:\n{comment}\n\nОтправьте другую публикацию в кабинете.", "Открыть кабинет", f"{SITE_URL}/partner"))
