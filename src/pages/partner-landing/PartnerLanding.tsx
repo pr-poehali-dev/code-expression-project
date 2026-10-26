@@ -163,9 +163,12 @@ export default function PartnerLanding() {
           <p style={{ fontSize: 16, color: GRAY, lineHeight: 1.75, fontWeight: 300, textAlign: "center", maxWidth: 680, margin: "-18px auto 36px" }}>Мы приглашаем тех, кто помогает предпринимателям и специалистам развивать своё дело.</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,320px),1fr))", gap: 16 }}>
             {WHO.map(w => (
-              <div key={w.title} style={{ display: "flex", gap: 16, border: "1px solid #E2E8F0", borderRadius: 16, padding: "22px 22px", alignItems: "flex-start" }}>
-                <div style={{ width: 44, height: 44, borderRadius: 11, background: "rgba(45,212,191,0.14)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon name={w.icon} size={21} style={{ color: "#0F766E" }} /></div>
-                <div><div style={{ fontFamily: SERIF, fontSize: 21, fontWeight: 600, color: DARK, marginBottom: 4, lineHeight: 1.2 }}>{w.title}</div><div style={{ fontSize: 14, color: GRAY, lineHeight: 1.6, fontWeight: 300 }}>{w.text}</div></div>
+              <div key={w.title} style={{ border: "1px solid #E2E8F0", borderRadius: 16, overflow: "hidden", background: "#fff" }}>
+                <img src={w.image} alt={w.title} loading="lazy" style={{ display: "block", width: "100%", aspectRatio: "16 / 9", objectFit: "cover", background: "#F0FDFA" }} />
+                <div style={{ display: "flex", gap: 14, padding: "20px 22px 22px", alignItems: "flex-start" }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 11, background: "rgba(45,212,191,0.14)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon name={w.icon} size={21} style={{ color: "#0F766E" }} /></div>
+                  <div><div style={{ fontFamily: SERIF, fontSize: 21, fontWeight: 600, color: DARK, marginBottom: 4, lineHeight: 1.2 }}>{w.title}</div><div style={{ fontSize: 14, color: GRAY, lineHeight: 1.6, fontWeight: 300 }}>{w.text}</div></div>
+                </div>
               </div>
             ))}
           </div>

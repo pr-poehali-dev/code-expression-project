@@ -55,12 +55,12 @@ export const STEPS = [
 ];
 
 export const WHO = [
-  { icon: "GraduationCap", title: "Школы и преподаватели", text: "обучение, повышение квалификации, профессиональные программы" },
-  { icon: "Briefcase", title: "Консультанты и эксперты", text: "маркетинг, продажи, управление, развитие бизнеса" },
-  { icon: "Scissors", title: "Специалисты индустрии красоты", text: "услуги и решения для салонов и частных мастеров" },
-  { icon: "HeartHandshake", title: "Массажисты и телесные практики", text: "профессиональные услуги и обучение в рамках своей компетенции" },
-  { icon: "Brain", title: "Психологи и помогающие практики", text: "консультации и программы, соответствующие запросам аудитории" },
-  { icon: "Users", title: "Профессиональные сообщества", text: "образовательные проекты и полезные ресурсы для своей аудитории" },
+  { icon: "GraduationCap", image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/6f36fb52-b3f6-42a6-bcba-01b15ad26964.jpg", title: "Школы и преподаватели", text: "обучение, повышение квалификации, профессиональные программы" },
+  { icon: "Briefcase", image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/219166bb-a440-4ddb-9797-4343513b397f.jpg", title: "Консультанты и эксперты", text: "маркетинг, продажи, управление, развитие бизнеса" },
+  { icon: "Scissors", image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/41511278-5528-4e6f-a12a-8944f0dd0f8c.jpg", title: "Специалисты индустрии красоты", text: "услуги и решения для салонов и частных мастеров" },
+  { icon: "HeartHandshake", image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/4fb682be-da31-4b43-9836-e2c6bcf25a8a.jpg", title: "Массажисты и телесные практики", text: "профессиональные услуги и обучение в рамках своей компетенции" },
+  { icon: "Brain", image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/2fea5fa0-9eac-4a62-9622-870a16922f7b.jpg", title: "Психологи и помогающие практики", text: "консультации и программы, соответствующие запросам аудитории" },
+  { icon: "Users", image: "https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/files/84ae7a8f-3f96-4f1b-b54f-4be266699a04.jpg", title: "Профессиональные сообщества", text: "образовательные проекты и полезные ресурсы для своей аудитории" },
 ];
 
 export const EARLY = [
