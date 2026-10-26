@@ -26,6 +26,15 @@ export default function PartnerPage() {
   const [view, setView] = useState("home");
   const [offerId, setOfferId] = useState<number | undefined>();
 
+  const [viewMode] = useState(() => {
+    const v = new URLSearchParams(window.location.search).get("view");
+    if (v) {
+      partnerSession.setView(v);
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+    return partnerSession.isView();
+  });
+
   const load = useCallback(async () => {
     if (!partnerSession.get()) { setAuth("out"); return; }
     try { setMe(await partnerRequest<MeData>("me")); setAuth("in"); }
@@ -41,6 +50,7 @@ export default function PartnerPage() {
   };
 
   const logout = async () => {
+    if (viewMode) { partnerSession.clearView(); window.close(); setMe(null); setAuth("out"); return; }
     await partnerRequest("logout", { method: "POST", body: {} }).catch(() => {});
     partnerSession.clear(); setMe(null); setAuth("out");
   };
@@ -60,9 +70,14 @@ export default function PartnerPage() {
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 13.5 }}>
           <span style={{ color: "rgba(255,255,255,0.7)" }}>{me.partner.business_name}</span>
-          <button onClick={logout} style={{ background: "none", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 13 }}>Выйти</button>
+          <button onClick={logout} style={{ background: "none", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 13 }}>{viewMode ? "Закрыть" : "Выйти"}</button>
         </div>
       </header>
+      {viewMode && (
+        <div style={{ background: "#FEF3C7", borderBottom: "1px solid #FDE68A", color: "#78350F", padding: "10px 20px", fontSize: 13.5, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
+          <Icon name="Eye" size={16} />Режим просмотра: вы видите кабинет глазами партнёра, изменения недоступны.
+        </div>
+      )}
       <nav style={{ background: "#fff", borderBottom: `1px solid ${LINE}`, padding: "0 12px", display: "flex", gap: 4, overflowX: "auto" }}>
         {NAV.map(n => (
           <button key={n.id} onClick={() => go(n.id)} style={{
@@ -72,7 +87,8 @@ export default function PartnerPage() {
           }}><Icon name={n.icon} size={16} />{n.label}</button>
         ))}
       </nav>
-      <main style={{ maxWidth: 980, margin: "0 auto", padding: "24px 16px 60px" }}>
+      {viewMode && <style>{`.partner-view input, .partner-view textarea, .partner-view select { pointer-events: none; background: #F8FAFC !important; }`}</style>}
+      <main className={viewMode ? "partner-view" : undefined} style={{ maxWidth: 980, margin: "0 auto", padding: "24px 16px 60px" }}>
         {view === "home" && <PartnerHome me={me} go={go} />}
         {view === "offers" && <OffersList go={go} />}
         {view === "offer-new" && <OfferForm go={go} />}

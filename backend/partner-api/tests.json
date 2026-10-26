@@ -45,6 +45,15 @@
         "consent_offer": true
       },
       "expectedStatus": 400
+    },
+    {
+      "name": "Admin view session without admin",
+      "method": "POST",
+      "path": "/?action=admin_view_session",
+      "body": {
+        "partner_id": 1
+      },
+      "expectedStatus": 403
     }
   ]
 }

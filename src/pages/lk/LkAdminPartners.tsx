@@ -28,6 +28,15 @@ export function PartnersSection() {
   const c = (k: string) => comment[k] || "";
   const setC = (k: string, v: string) => setComment(x => ({ ...x, [k]: v }));
 
+  const openCabinet = async (partnerId: number) => {
+    setErr("");
+    const w = window.open("", "_blank");
+    try {
+      const r = await call<{ session: string }>("admin_view_session", { partner_id: partnerId });
+      if (w) { w.opener = null; w.location.href = `/partner?view=${r.session}`; }
+    } catch (e) { w?.close(); setErr((e as Error).message); }
+  };
+
   if (!d) return err ? <div style={{ color: "#B91C1C" }}>{err}</div> : <Spinner />;
 
   return (
@@ -109,6 +118,7 @@ export function PartnersSection() {
               <td style={{ padding: "8px" }}>{p.shown} / {p.clicked}</td>
               <td style={{ padding: "8px" }}>{p.registrations}</td>
               <td style={{ padding: "8px", whiteSpace: "nowrap" }}>
+                <button style={{ ...btn("#E0F2FE", "#075985"), marginRight: 6 }} title="Открыть кабинет партнёра в режиме просмотра" onClick={() => openCabinet(p.id)}>Открыть кабинет</button>
                 <button style={{ ...btn("#F1F5F9", "#334155"), marginRight: 6 }} onClick={() => call<{ history: any[] }>("admin_partner_history", undefined, { partner_id: p.id }).then(r => setHist({ id: p.id, rows: r.history }))}><Icon name="History" size={13} /></button>
                 <button style={btn(p.status === "suspended" ? "#DCFCE7" : "#FEE2E2", p.status === "suspended" ? "#166534" : "#991B1B")}
                   onClick={() => confirm(p.status === "suspended" ? "Снять блокировку?" : "Заблокировать партнёра? Все его предложения перестанут показываться.") && act(() => call("admin_partner_block", { partner_id: p.id, blocked: p.status !== "suspended" }))}>

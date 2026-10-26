@@ -790,6 +790,36 @@ def handle_admin_partner_history(event, conn):
     return ok({"history": rows(cur)})
 
 
+def handle_admin_view_session(event, conn):
+    """Выдаёт администратору временную сессию партнёра ТОЛЬКО для просмотра (2 часа, без права изменений)."""
+    a = get_admin(event, conn)
+    if not a:
+        return err("Нет доступа", 403)
+    pid = int(body_of(event).get("partner_id") or 0)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT id FROM {tbl('partners')} WHERE id=%s", (pid,))
+    if not cur.fetchone():
+        return err("Партнёр не найден", 404)
+    sid = secrets.token_hex(32)
+    cur.execute(f"INSERT INTO {tbl('partner_sessions')} (id, partner_id, expires_at, view_only, created_by_admin) "
+                f"VALUES (%s,%s,NOW() + INTERVAL '2 hours',TRUE,%s)", (sid, pid, a["id"]))
+    conn.commit()
+    return ok({"session": sid})
+
+
+WRITE_ACTIONS = {"profile_save", "offer_save", "offer_submit", "offer_archive", "submission_create"}
+
+
+def is_view_only(event, conn) -> bool:
+    sid = (event.get("headers") or {}).get("X-Session-Id", "") or (event.get("headers") or {}).get("x-session-id", "")
+    if not sid:
+        return False
+    cur = conn.cursor()
+    cur.execute(f"SELECT view_only FROM {tbl('partner_sessions')} WHERE id=%s AND expires_at > NOW()", (sid,))
+    row = cur.fetchone()
+    return bool(row and row[0])
+
+
 ROUTES = {
     "register": handle_register, "login": handle_login, "logout": handle_logout, "me": handle_me,
     "profile_save": handle_profile_save, "offers_list": handle_offers_list, "offer_get": handle_offer_get,
@@ -798,6 +828,7 @@ ROUTES = {
     "admin_overview": handle_admin_overview, "admin_offer_decide": handle_admin_offer_decide,
     "admin_offer_toggle": handle_admin_offer_toggle, "admin_submission_decide": handle_admin_submission_decide,
     "admin_partner_block": handle_admin_partner_block, "admin_partner_history": handle_admin_partner_history,
+    "admin_view_session": handle_admin_view_session,
 }
 
 
@@ -811,6 +842,8 @@ def handler(event: dict, context) -> dict:
         return err("Неизвестное действие", 404)
     conn = get_db()
     try:
+        if action in WRITE_ACTIONS and is_view_only(event, conn):
+            return err("Режим просмотра: изменения недоступны", 403)
         return fn(event, conn)
     finally:
         conn.close()
