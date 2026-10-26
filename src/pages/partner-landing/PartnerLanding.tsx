@@ -141,7 +141,7 @@ export default function PartnerLanding() {
 
       <section style={{ ...section(darkBg) }}>
         <div style={wrap}>
-          <Head dark eyebrow="Как это работает" title="Партнёрская система в пяти шагах" />
+          <Head dark eyebrow="Как это работает" title="Партнёрская система в шести шагах" />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,300px),1fr))", gap: 16 }}>
             {STEPS.map(s => (
               <div key={s.n} style={{ border: "1px solid rgba(45,212,191,0.25)", borderRadius: 16, padding: "26px 24px", background: "rgba(255,255,255,0.04)" }}>
