@@ -54,6 +54,33 @@
         "partner_id": 1
       },
       "expectedStatus": 403
+    },
+    {
+      "name": "Password forgot without email",
+      "method": "POST",
+      "path": "/?action=password_forgot",
+      "body": {},
+      "expectedStatus": 400
+    },
+    {
+      "name": "Password reset bad token",
+      "method": "POST",
+      "path": "/?action=password_reset",
+      "body": {
+        "token": "x",
+        "password": "longpassword1"
+      },
+      "expectedStatus": 400
+    },
+    {
+      "name": "Password change without session",
+      "method": "POST",
+      "path": "/?action=password_change",
+      "body": {
+        "old_password": "a",
+        "new_password": "longpassword1"
+      },
+      "expectedStatus": 401
     }
   ]
 }

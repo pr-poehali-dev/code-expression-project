@@ -16,7 +16,7 @@ export default function ClientsGetSection() {
   return (
     <section style={{ background: "linear-gradient(180deg,#F0FDFA 0%,#FFFFFF 100%)", padding: "92px 24px" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto 44px", textAlign: "center" }}>
+        <div style={{ maxWidth: 760, margin: "0 0 44px" }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "#0F766E", textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 14 }}>Ценность для вашей аудитории</div>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,4vw,44px)", fontWeight: 500, color: DARK, margin: "0 0 16px", lineHeight: 1.12, letterSpacing: "-0.4px" }}>Что получат ваши клиенты в «Промт Диалог»?</h2>
           <p style={{ fontSize: 18, color: DARK, fontWeight: 600, lineHeight: 1.5, margin: 0 }}>Больше возможностей для развития — бесплатно и в удобном темпе.</p>
@@ -37,7 +37,7 @@ export default function ClientsGetSection() {
           ))}
         </div>
 
-        <div style={{ maxWidth: 760, margin: "44px auto 0", textAlign: "center" }}>
+        <div style={{ maxWidth: 760, margin: "44px 0 0" }}>
           <p style={{ fontSize: 16.5, color: GRAY, lineHeight: 1.75, fontWeight: 300, margin: "0 0 22px" }}>Мы хотим, чтобы каждый пользователь мог не просто получить совет, а найти следующий шаг, лучше понять свои возможности и применить новые знания в своём деле.</p>
           <p style={{ fontFamily: SERIF, fontSize: "clamp(21px,2.6vw,27px)", color: DARK, lineHeight: 1.35, margin: 0, paddingTop: 22, borderTop: `2px solid ${TEAL}`, display: "inline-block", fontWeight: 500 }}>
             Вы делитесь полезным ресурсом со своей аудиторией — ваши клиенты получают новые инструменты для развития.

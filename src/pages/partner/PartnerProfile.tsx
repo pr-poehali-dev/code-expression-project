@@ -7,6 +7,41 @@ interface Props { me: { partner: Record<string, any> }; reload: () => void }
 
 const H = (label: string, hint: string, example?: string, required = false) => ({ label, hint, example, required, limit: 0 });
 
+function PasswordCard() {
+  const [f, setF] = useState({ old_password: "", new_password: "", repeat: "" });
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const set = (k: string, v: string) => { setF(x => ({ ...x, [k]: v })); setMsg(null); };
+  const save = async () => {
+    if (f.new_password.length < 8) { setMsg({ ok: false, text: "Новый пароль должен быть не короче 8 символов" }); return; }
+    if (f.new_password !== f.repeat) { setMsg({ ok: false, text: "Пароли не совпадают" }); return; }
+    setBusy(true);
+    try {
+      await partnerRequest("password_change", { body: { old_password: f.old_password, new_password: f.new_password } });
+      setF({ old_password: "", new_password: "", repeat: "" });
+      setMsg({ ok: true, text: "Пароль изменён. На других устройствах потребуется войти заново." });
+    } catch (e) { setMsg({ ok: false, text: (e as Error).message }); }
+    finally { setBusy(false); }
+  };
+  return (
+    <div style={{ ...card, maxWidth: 720, marginTop: 18 }}>
+      <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, margin: "0 0 4px" }}>Пароль</h2>
+      <p style={{ fontSize: 13.5, color: GRAY, margin: "0 0 20px" }}>Задайте новый пароль для входа в кабинет. Если забыли текущий, на странице входа есть «Забыли пароль?».</p>
+      <Field hint={H("Текущий пароль", "Нужен, чтобы убедиться, что это вы.", undefined, true)}>
+        <input style={inputCss} type="password" autoComplete="current-password" value={f.old_password} onChange={e => set("old_password", e.target.value)} />
+      </Field>
+      <Field hint={H("Новый пароль", "Не короче 8 символов.", undefined, true)}>
+        <input style={inputCss} type="password" autoComplete="new-password" value={f.new_password} onChange={e => set("new_password", e.target.value)} />
+      </Field>
+      <Field hint={H("Повторите новый пароль", "Введите тот же пароль ещё раз.", undefined, true)}>
+        <input style={inputCss} type="password" autoComplete="new-password" value={f.repeat} onChange={e => set("repeat", e.target.value)} />
+      </Field>
+      {msg && <div style={{ marginBottom: 12 }}><Notice kind={msg.ok ? "success" : "error"}>{msg.text}</Notice></div>}
+      <Btn onClick={save} disabled={busy || !f.old_password || !f.new_password}>{busy ? "Сохраняем…" : "Сменить пароль"}</Btn>
+    </div>
+  );
+}
+
 export default function PartnerProfile({ me, reload }: Props) {
   const p = me.partner;
   const [f, setF] = useState({
@@ -28,6 +63,7 @@ export default function PartnerProfile({ me, reload }: Props) {
   };
 
   return (
+    <div>
     <div style={{ ...card, maxWidth: 720 }}>
       <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, margin: "0 0 4px" }}>Профиль партнёра</h2>
       <p style={{ fontSize: 13.5, color: GRAY, margin: "0 0 20px" }}>Эти сведения видит модератор. Не указывайте лишних персональных данных.</p>
@@ -71,6 +107,8 @@ export default function PartnerProfile({ me, reload }: Props) {
       </Field>
       {msg && <div style={{ marginBottom: 12 }}><Notice kind={msg.ok ? "success" : "error"}>{msg.text}</Notice></div>}
       <Btn onClick={save} disabled={busy}>{busy ? "Сохраняем…" : "Сохранить профиль"}</Btn>
+    </div>
+    <PasswordCard />
     </div>
   );
 }

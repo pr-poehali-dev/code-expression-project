@@ -26,7 +26,7 @@ function Cta({ children = "Стать партнёром", light = false }: { ch
 
 function Head({ eyebrow, title, dark = false }: { eyebrow: string; title: string; dark?: boolean }) {
   return (
-    <div style={{ maxWidth: 760, margin: "0 auto 44px", textAlign: "center" }}>
+    <div style={{ maxWidth: 760, margin: "0 0 44px" }}>
       <div style={{ fontSize: 12, fontWeight: 700, color: dark ? TEAL : "#0F766E", textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 14 }}>{eyebrow}</div>
       <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,4vw,44px)", fontWeight: 500, color: dark ? "#fff" : DARK, margin: 0, lineHeight: 1.12, letterSpacing: "-0.4px" }}>{title}</h2>
     </div>
@@ -109,14 +109,14 @@ export default function PartnerLanding() {
       <ClientsGetSection />
 
       <section style={section("#F8FAFC")}>
-        <div style={{ ...wrap, maxWidth: 940 }}>
+        <div style={wrap}>
           <Head eyebrow="Пример" title="Как работает рекомендация" />
           <div style={{ display: "grid", gap: 16 }}>
             <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 16, padding: "22px 26px" }}>
               <div style={{ fontSize: 11.5, fontWeight: 700, color: GRAY, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 8 }}>Задача пользователя</div>
               <div style={{ fontFamily: SERIF, fontSize: 24, color: DARK, fontStyle: "italic", lineHeight: 1.3 }}>«В салоне мало повторных записей. Хочу повысить возвращаемость клиентов».</div>
             </div>
-            <div style={{ textAlign: "center", color: "#0F766E" }}><Icon name="ArrowDown" size={26} /></div>
+            <div style={{ color: "#0F766E" }}><Icon name="ArrowDown" size={26} /></div>
             <div style={{ background: darkBg, borderRadius: 18, padding: "28px 30px", boxShadow: "0 20px 60px rgba(15,23,42,0.18)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, color: TEAL, fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 }}><Icon name="Handshake" size={15} />Персональная рекомендация</div>
               <div style={{ fontFamily: SERIF, fontSize: 26, color: "#fff", fontWeight: 600, lineHeight: 1.2, marginBottom: 12 }}>Возможно, вам поможет специалист по удержанию клиентов</div>
@@ -124,8 +124,8 @@ export default function PartnerLanding() {
               <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.6)", lineHeight: 1.65, margin: "0 0 16px" }}><b style={{ color: TEAL, fontWeight: 600 }}>Почему это может подойти:</b> предложение связано с вашей задачей по повышению повторных записей.</p>
               <span style={{ display: "inline-flex", alignItems: "center", gap: 8, background: `linear-gradient(135deg,${TEAL},${TEAL2})`, color: DARK, fontSize: 13.5, fontWeight: 700, padding: "11px 20px", borderRadius: 9 }}>Подробнее об услуге<Icon name="ArrowRight" size={14} /></span>
             </div>
-            <div style={{ fontSize: 12.5, color: GRAY, textAlign: "center" }}>Это демонстрационный сценарий, а не реальная рекомендация и не обещание результата.</div>
-            <p style={{ fontSize: 15.5, color: DARK, lineHeight: 1.75, textAlign: "center", margin: "10px auto 0", maxWidth: 680 }}>Ваша услуга появляется не просто рядом с другими, а в контексте конкретной потребности потенциального клиента.</p>
+            <div style={{ fontSize: 12.5, color: GRAY }}>Это демонстрационный сценарий, а не реальная рекомендация и не обещание результата.</div>
+            <p style={{ fontSize: 15.5, color: DARK, lineHeight: 1.75, margin: "10px 0 0", maxWidth: 680 }}>Ваша услуга появляется не просто рядом с другими, а в контексте конкретной потребности потенциального клиента.</p>
           </div>
         </div>
       </section>
@@ -142,7 +142,7 @@ export default function PartnerLanding() {
               </div>
             ))}
           </div>
-          <p style={{ fontSize: 15, color: GRAY, lineHeight: 1.75, fontWeight: 300, textAlign: "center", maxWidth: 720, margin: "0 auto" }}>Так вы сможете оценивать интерес аудитории и улучшать описание своей услуги. На старте показатели могут быть небольшими или нулевыми: платформа новая, и аудиторию мы будем развивать вместе с первыми партнёрами.</p>
+          <p style={{ fontSize: 15, color: GRAY, lineHeight: 1.75, fontWeight: 300, maxWidth: 720, margin: 0 }}>Так вы сможете оценивать интерес аудитории и улучшать описание своей услуги. На старте показатели могут быть небольшими или нулевыми: платформа новая, и аудиторию мы будем развивать вместе с первыми партнёрами.</p>
         </div>
       </section>
 
@@ -164,7 +164,7 @@ export default function PartnerLanding() {
       <section style={section("#fff")}>
         <div style={wrap}>
           <Head eyebrow="Для кого" title="Кому подойдёт партнёрство" />
-          <p style={{ fontSize: 16, color: GRAY, lineHeight: 1.75, fontWeight: 300, textAlign: "center", maxWidth: 680, margin: "-18px auto 36px" }}>Мы приглашаем тех, кто помогает предпринимателям и специалистам развивать своё дело.</p>
+          <p style={{ fontSize: 16, color: GRAY, lineHeight: 1.75, fontWeight: 300, maxWidth: 680, margin: "-18px 0 36px" }}>Мы приглашаем тех, кто помогает предпринимателям и специалистам развивать своё дело.</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,320px),1fr))", gap: 16 }}>
             {WHO.map(w => (
               <div key={w.title} style={{ border: "1px solid #E2E8F0", borderRadius: 16, overflow: "hidden", background: "#fff" }}>
@@ -176,7 +176,7 @@ export default function PartnerLanding() {
               </div>
             ))}
           </div>
-          <p style={{ fontSize: 15, color: GRAY, lineHeight: 1.75, fontWeight: 300, textAlign: "center", maxWidth: 700, margin: "28px auto 0" }}>Если ваша услуга помогает решить конкретную задачу бизнеса или профессионального развития, мы готовы рассмотреть её для партнёрской системы.</p>
+          <p style={{ fontSize: 15, color: GRAY, lineHeight: 1.75, fontWeight: 300, maxWidth: 700, margin: "28px 0 0" }}>Если ваша услуга помогает решить конкретную задачу бизнеса или профессионального развития, мы готовы рассмотреть её для партнёрской системы.</p>
         </div>
       </section>
 
@@ -202,12 +202,12 @@ export default function PartnerLanding() {
       </section>
 
       <section style={section("#fff")}>
-        <div style={{ ...wrap, maxWidth: 900 }}>
-          <div style={{ border: `1px solid ${TEAL}`, borderRadius: 22, padding: "44px 42px", background: "linear-gradient(135deg,#F0FDFA,#fff)", textAlign: "center" }}>
+        <div style={wrap}>
+          <div style={{ border: `1px solid ${TEAL}`, borderRadius: 22, padding: "44px 42px", background: "linear-gradient(135deg,#F0FDFA,#fff)" }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: "#0F766E", textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 14 }}>Сколько стоит участие</div>
             <div style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,54px)", color: DARK, fontWeight: 500, lineHeight: 1.05, marginBottom: 18 }}>На старте — бесплатно</div>
-            <p style={{ fontSize: 16, color: GRAY, lineHeight: 1.75, fontWeight: 300, margin: "0 auto 14px", maxWidth: 680 }}>Вместо оплаты за размещение мы просим один раз рассказать о «Промт Диалог» своей аудитории: публикация в профессиональном сообществе, пост в соцсети, статья, материал в Telegram-канале или другой проверяемый формат.</p>
-            <p style={{ fontSize: 16, color: GRAY, lineHeight: 1.75, fontWeight: 300, margin: "0 auto", maxWidth: 680 }}>Вы отправляете ссылку на публикацию через партнёрский кабинет, и после проверки участие продолжается без повторных подтверждений. Дальше вы можете рассказывать о нас по желанию, отчитываться не нужно. Партнёрство взаимное: вы помогаете развивать аудиторию платформы, а платформа создаёт новые возможности для знакомства клиентов с вашими услугами.</p>
+            <p style={{ fontSize: 16, color: GRAY, lineHeight: 1.75, fontWeight: 300, margin: "0 0 14px", maxWidth: 680 }}>Вместо оплаты за размещение мы просим один раз рассказать о «Промт Диалог» своей аудитории: публикация в профессиональном сообществе, пост в соцсети, статья, материал в Telegram-канале или другой проверяемый формат.</p>
+            <p style={{ fontSize: 16, color: GRAY, lineHeight: 1.75, fontWeight: 300, margin: 0, maxWidth: 680 }}>Вы отправляете ссылку на публикацию через партнёрский кабинет, и после проверки участие продолжается без повторных подтверждений. Дальше вы можете рассказывать о нас по желанию, отчитываться не нужно. Партнёрство взаимное: вы помогаете развивать аудиторию платформы, а платформа создаёт новые возможности для знакомства клиентов с вашими услугами.</p>
           </div>
         </div>
       </section>
@@ -215,7 +215,7 @@ export default function PartnerLanding() {
       <MissionSection />
 
       <section style={section("#F8FAFC")}>
-        <div style={{ ...wrap, maxWidth: 900 }}>
+        <div style={wrap}>
           <div style={{ background: darkBg, borderRadius: 22, padding: "50px 44px", position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 420, height: 420, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.18) 0%, transparent 65%)", pointerEvents: "none" }} />
             <div style={{ position: "relative" }}>
@@ -229,13 +229,13 @@ export default function PartnerLanding() {
         </div>
       </section>
 
-      <section style={{ ...section(darkBg), textAlign: "center" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto" }}>
+      <section style={{ ...section(darkBg) }}>
+        <div style={wrap}>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,4.4vw,50px)", color: "#fff", fontWeight: 500, margin: "0 0 20px", lineHeight: 1.1 }}>Присоединяйтесь к первой партнёрской группе</h2>
           <p style={{ fontSize: 16.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.75, fontWeight: 300, margin: "0 0 12px" }}>Не нужно ждать, пока платформа станет большой. Можно начать с подготовки своего предложения, пройти модерацию и быть готовым к появлению подходящей аудитории.</p>
           <p style={{ fontSize: 16.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.75, fontWeight: 300, margin: "0 0 32px" }}>Если вы предлагаете качественную услугу и понимаете, кому и какую задачу она помогает решить, давайте проверим, как она может работать в системе интеллектуальных рекомендаций.</p>
           <Cta>Стать партнёром «Промт Диалог»</Cta>
-          <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)", lineHeight: 1.7, margin: "30px auto 0", maxWidth: 640 }}>
+          <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)", lineHeight: 1.7, margin: "30px 0 0", maxWidth: 640 }}>
             Участие не гарантирует определённое количество показов, переходов, обращений или продаж. Рекомендации формируются с учётом соответствия предложения контексту пользователя. Подробные условия — в <Link to="/partner/rules" style={{ color: TEAL }}>правилах партнёрской программы</Link>.
           </p>
         </div>

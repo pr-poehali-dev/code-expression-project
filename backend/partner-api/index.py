@@ -6,6 +6,7 @@ import json
 import os
 import re
 import secrets
+import hashlib
 import smtplib
 import socket
 import ipaddress
@@ -301,6 +302,75 @@ def handle_login(event, conn):
     sid = new_session(cur, p["id"])
     conn.commit()
     return ok({"session": sid})
+
+
+def handle_password_forgot(event, conn):
+    b = body_of(event)
+    email = clean(b.get("email"), 255).lower()
+    if "@" not in email:
+        return err("Укажите email, на который зарегистрирован кабинет")
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT id FROM {tbl('partners')} WHERE email=%s", (email,))
+    p = cur.fetchone()
+    if p:
+        cur.execute(f"SELECT COUNT(*) AS c FROM {tbl('partner_password_resets')} WHERE partner_id=%s AND created_at > NOW() - INTERVAL '1 hour'", (p["id"],))
+        if cur.fetchone()["c"] < 3:
+            token = secrets.token_urlsafe(32)
+            th = hashlib.sha256(token.encode()).hexdigest()
+            cur.execute(f"INSERT INTO {tbl('partner_password_resets')} (partner_id, token_hash, expires_at) VALUES (%s,%s,NOW() + INTERVAL '1 hour')", (p["id"], th))
+            log(cur, p["id"], "password_reset_requested", actor="partner", actor_id=p["id"])
+            conn.commit()
+            send_mail(email, "Восстановление пароля в партнёрском кабинете",
+                      mail_html("Восстановление пароля",
+                                "Чтобы задать новый пароль, нажмите на кнопку. Ссылка действует 1 час. Если вы не запрашивали восстановление, просто проигнорируйте письмо.",
+                                "Задать новый пароль", f"{SITE_URL}/partner?reset={token}"))
+    return ok({"ok": True})
+
+
+def handle_password_reset(event, conn):
+    b = body_of(event)
+    token = clean(b.get("token"), 200)
+    pw = b.get("password") or ""
+    if len(pw) < 8:
+        return err("Пароль должен быть не короче 8 символов")
+    th = hashlib.sha256(token.encode()).hexdigest()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT id, partner_id FROM {tbl('partner_password_resets')} WHERE token_hash=%s AND used_at IS NULL AND expires_at > NOW() FOR UPDATE", (th,))
+    r = cur.fetchone()
+    if not r:
+        return err("Ссылка недействительна или устарела. Запросите восстановление ещё раз", 400)
+    h = bcrypt.hashpw(pw.encode(), bcrypt.gensalt()).decode()
+    cur.execute(f"UPDATE {tbl('partners')} SET password_hash=%s, updated_at=NOW() WHERE id=%s", (h, r["partner_id"]))
+    cur.execute(f"UPDATE {tbl('partner_password_resets')} SET used_at=NOW() WHERE partner_id=%s AND used_at IS NULL", (r["partner_id"],))
+    cur.execute(f"UPDATE {tbl('partner_sessions')} SET expires_at=NOW() WHERE partner_id=%s AND expires_at > NOW()", (r["partner_id"],))
+    log(cur, r["partner_id"], "password_reset_done", actor="partner", actor_id=r["partner_id"])
+    sid = new_session(cur, r["partner_id"])
+    conn.commit()
+    return ok({"session": sid})
+
+
+def handle_password_change(event, conn):
+    p = get_partner(event, conn)
+    if not p:
+        return err("Не авторизован", 401)
+    b = body_of(event)
+    old = b.get("old_password") or ""
+    new = b.get("new_password") or ""
+    if len(new) < 8:
+        return err("Новый пароль должен быть не короче 8 символов")
+    try:
+        valid = bcrypt.checkpw(old.encode(), p["password_hash"].encode())
+    except Exception:
+        valid = False
+    if not valid:
+        return err("Текущий пароль указан неверно", 403)
+    h = bcrypt.hashpw(new.encode(), bcrypt.gensalt()).decode()
+    cur = conn.cursor()
+    cur.execute(f"UPDATE {tbl('partners')} SET password_hash=%s, updated_at=NOW() WHERE id=%s", (h, p["id"]))
+    sid = (event.get("headers") or {}).get("X-Session-Id", "") or (event.get("headers") or {}).get("x-session-id", "")
+    cur.execute(f"UPDATE {tbl('partner_sessions')} SET expires_at=NOW() WHERE partner_id=%s AND id<>%s AND expires_at > NOW()", (p["id"], sid))
+    conn.commit()
+    return ok({"ok": True})
 
 
 def handle_logout(event, conn):
@@ -798,7 +868,7 @@ def handle_admin_view_session(event, conn):
     return ok({"session": sid})
 
 
-WRITE_ACTIONS = {"profile_save", "offer_save", "offer_submit", "offer_archive", "submission_create"}
+WRITE_ACTIONS = {"password_change", "profile_save", "offer_save", "offer_submit", "offer_archive", "submission_create"}
 
 
 def is_view_only(event, conn) -> bool:
@@ -812,7 +882,8 @@ def is_view_only(event, conn) -> bool:
 
 
 ROUTES = {
-    "register": handle_register, "login": handle_login, "logout": handle_logout, "me": handle_me,
+    "register": handle_register, "login": handle_login, "password_forgot": handle_password_forgot,
+    "password_reset": handle_password_reset, "password_change": handle_password_change, "logout": handle_logout, "me": handle_me,
     "profile_save": handle_profile_save, "offers_list": handle_offers_list, "offer_get": handle_offer_get,
     "offer_save": handle_offer_save, "offer_submit": handle_offer_submit, "offer_archive": handle_offer_archive,
     "submission_create": handle_submission_create, "submissions_list": handle_submissions_list, "history": handle_history,
