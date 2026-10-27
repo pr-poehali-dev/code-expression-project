@@ -65,11 +65,10 @@ export default function IndexHero() {
             </div>
 
             <h1 className="hero-h1" style={{ fontFamily: SERIF, fontSize: "clamp(38px,5vw,64px)", fontWeight: 500, color: "#fff", lineHeight: 1.08, margin: "0 0 24px", letterSpacing: "-0.5px" }}>
-              Маркетинг под вашу практику
+              Развивайте свое дело уверенно
             </h1>
             <p className="hero-subtitle" style={{ fontSize: "clamp(14.5px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.6, margin: "0 0 28px", fontWeight: 300, maxWidth: 520 }}>
-              Для салонов, частных специалистов и практиков — от мастеров и массажистов до психологов. <br className="hero-subtitle-break" />
-              Анализируем вашу ситуацию и подсказываем конкретные маркетинговые шаги для привлечения клиентов и развития бизнеса.
+              Разберитесь, что мешает развитию вашего бизнеса, найдите возможности для привлечения клиентов и получите конкретные шаги для дальнейших действий.
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 36 }}>
