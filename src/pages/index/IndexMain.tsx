@@ -105,10 +105,10 @@ export function IndexHeroMain() {
             <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase", lineHeight: 1 }}>Промт Диалог — AI-навигатор «ПоДелам»</span>
           </div>
           <h1 className="hero-h1" style={{ fontFamily: SERIF, fontSize: "clamp(38px,5vw,64px)", fontWeight: 500, color: "#fff", lineHeight: 1.08, margin: "0 0 24px", letterSpacing: "-0.5px" }}>
-            Маркетинг, который понимает ваш бизнес
+            Развивайте свое дело уверенно
           </h1>
           <p className="hero-subtitle" style={{ fontSize: "clamp(14.5px,1.6vw,17px)", color: "rgba(255,255,255,0.65)", lineHeight: 1.65, margin: "0 0 36px", fontWeight: 300, maxWidth: 540 }}>
-            Привлекать новых клиентов и удерживать постоянных проще, когда понятно, что делать. «Промт Диалог» анализирует вашу ситуацию и предлагает конкретные шаги.
+            Разберитесь, что мешает развитию вашего бизнеса, найдите возможности для привлечения клиентов и получите конкретные шаги для дальнейших действий.
           </p>
           <a href="#demo-form" onClick={scrollToForm} style={ctaStyle}>
             <Icon name="Compass" size={16} />
