@@ -9,8 +9,8 @@ const SERIF = "'Cormorant Garamond', serif";
 const DIAG_POINTS = [
   { icon: "TrendingDown", text: "Где главный финансовый провал" },
   { icon: "Users", text: "Почему клиенты не возвращаются" },
-  { icon: "DollarSign", text: "Расчёт скрытых денег в базе клиентов" },
-  { icon: "Rocket", text: "Потенциал роста без нового трафика" },
+  { icon: "DollarSign", text: "Расчет скрытых денег в базе клиентов" },
+  { icon: "Rocket", text: "Рост без нового трафика" },
 ];
 
 export default function IndexDiagBanner() {
@@ -32,7 +32,7 @@ export default function IndexDiagBanner() {
               Пройдите бесплатную диагностику бизнеса
             </h2>
             <p style={{ fontSize: 15.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.7, margin: "0 0 28px", fontWeight: 300, maxWidth: 480 }}>
-              Узнайте, где именно теряются деньги, и какие конкретные шаги приведут к вашим целям — без оплаты и без обязательств.
+              Узнайте, где теряются деньги и какие шаги приведут к цели.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32 }}>
               {DIAG_POINTS.map((p, i) => (
@@ -69,7 +69,7 @@ export default function IndexDiagBanner() {
               </div>
               <div style={{ height: 1, background: "rgba(255,255,255,0.15)", marginBottom: 20 }} />
               <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.7, fontWeight: 300 }}>
-                Индекс прибыльности, скрытые деньги в базе клиентов и готовый план приоритетов — сразу после диагностики.
+                После диагностики: индекс прибыльности, скрытые деньги в базе и план приоритетов.
               </div>
             </div>
           </div>

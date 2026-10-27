@@ -96,11 +96,11 @@ export default function IndexDemoForm() {
               Узнайте, где лежат ваши деньги
             </h2>
             <p style={{ fontSize: 15, color: "rgba(255,255,255,0.62)", lineHeight: 1.7, fontWeight: 300, marginBottom: 28 }}>
-              Заполните несколько цифр о своей ситуации — «ПоДелам» посчитает разрыв до цели и покажет точки роста. План действий откроется после регистрации.
+              Введите несколько цифр: «ПоДелам» посчитает разрыв до цели и покажет точки роста. План откроется после регистрации.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {[
-                ["Calculator", "Расчёт по формулам — без затрат на ИИ"],
+                ["Calculator", "Расчет по формулам — без затрат на ИИ"],
                 ["Lock", "Результат закрыт до регистрации"],
                 ["Sparkles", "После входа — уже готовый план в кабинете"],
               ].map(([icon, text], i) => (
@@ -166,7 +166,7 @@ export default function IndexDemoForm() {
                   </label>
                   {form.has_addon_services && (
                     <div style={{ marginTop: 10 }}>
-                      <label style={label}>Какие именно? (название и цена — так ИИ даст точнее рекомендации)</label>
+                      <label style={label}>Какие? Укажите название и цену</label>
                       <textarea
                         style={{ ...inputStyle, minHeight: 60, resize: "vertical" }}
                         value={form.addon_services_text}

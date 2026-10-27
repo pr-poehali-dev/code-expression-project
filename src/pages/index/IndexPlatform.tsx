@@ -7,7 +7,7 @@ const SERIF = "'Cormorant Garamond', serif";
 
 const NAVIGATOR_STACK = [
   { icon: "Database", text: "Ваши реальные данные" },
-  { icon: "Calculator", text: "Финансовые расчёты" },
+  { icon: "Calculator", text: "Финансовые расчеты" },
   { icon: "TrendingUp", text: "Проверенные алгоритмы роста" },
   { icon: "Bot", text: "ИИ-анализ ситуации" },
   { icon: "Wrench", text: "Готовые инструменты платформы" },
@@ -30,7 +30,7 @@ const STEPS = [
   { num: "01", icon: "UserPlus", title: "Регистрация", desc: "Аккаунт за 1 минуту — расскажите о доходе, чеке, базе клиентов и цели" },
   { num: "02", icon: "Target", title: "План на день", desc: "ИИ раскладывает разрыв до цели на понятные дела с оценкой вклада в рублях" },
   { num: "03", icon: "Rocket", title: "Выполняете", desc: "С готовыми инструментами платформы — с гарантией результата, либо самостоятельно" },
-  { num: "04", icon: "BarChart2", title: "Результат", desc: "Фиксируете доход и клиентов — получаете отчёт и точный план на завтра" },
+  { num: "04", icon: "BarChart2", title: "Результат", desc: "Фиксируете доход и клиентов — получаете отчет и точный план на завтра" },
 ];
 
 export default function IndexPlatform() {
@@ -46,7 +46,7 @@ export default function IndexPlatform() {
                 Ваш навигатор по доходу
               </h2>
               <p style={{ fontSize: 15, color: GRAY, lineHeight: 1.7, fontWeight: 300, marginBottom: 28 }}>
-                Не просто чат с ИИ. «ПоДелам» соединяет ваши данные, расчёты и алгоритмы роста — и предлагает действия с понятной логикой: что делать, зачем и на что это повлияет.
+                Не просто чат с ИИ. «ПоДелам» соединяет ваши данные, расчеты и алгоритмы роста — и предлагает действия с понятной логикой: что делать, зачем и на что это повлияет.
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {NAVIGATOR_STACK.map((s, i) => (
@@ -174,7 +174,7 @@ export default function IndexPlatform() {
                   </div>
                 </div>
                 <div style={{ fontSize: 14.5, fontWeight: 700, color: "#fff", marginBottom: 6, lineHeight: 1.3 }}>Результат</div>
-                <p style={{ margin: 0, fontSize: 12.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.55, fontWeight: 300 }}>Фиксируете доход и клиентов — получаете отчёт и точный план на завтра</p>
+                <p style={{ margin: 0, fontSize: 12.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.55, fontWeight: 300 }}>Фиксируете доход и клиентов — получаете отчет и точный план на завтра</p>
               </div>
             </div>
           </div>
