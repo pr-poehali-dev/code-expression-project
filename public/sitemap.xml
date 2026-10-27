@@ -266,12 +266,6 @@
   </url>
 
   <url>
-    <loc>https://promtdialog.ru/dlya-shkol</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
     <loc>https://promtdialog.ru/dlya-psihologov</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
