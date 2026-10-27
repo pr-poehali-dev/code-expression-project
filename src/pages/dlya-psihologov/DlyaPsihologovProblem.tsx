@@ -10,7 +10,7 @@ export default function DlyaPsihologovProblem() {
           <div style={{ textAlign: "center", marginBottom: 56 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL2, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Знакомая ситуация?</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.6vw,44px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.15, maxWidth: 760, marginLeft: "auto", marginRight: "auto" }}>
-              Вы хорошо работаете с людьми. Но развитие практики часто остаётся на втором плане.
+              Вы хорошо работаете с людьми. Но развитие практики часто остается на втором плане.
             </h2>
           </div>
 

@@ -25,7 +25,7 @@ export default function DlyaPsihologovHero() {
           <CtaButton big />
 
           <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 4 }}>
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", fontWeight: 300 }}>Без оплаты. Регистрация займёт несколько минут.</span>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", fontWeight: 300 }}>Без оплаты. Регистрация займет несколько минут.</span>
             <span style={{ fontSize: 13, color: TEAL, fontWeight: 400 }}>После диагностики вы получите персональный анализ и первые шаги развития.</span>
           </div>
         </div>
