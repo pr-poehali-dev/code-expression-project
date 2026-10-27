@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 import { ACCENT, ACCENT_DARK, DARK, VIDEO_SECTIONS, TEXT_REVIEWS } from "./reviews/ReviewsShared";
 import { SectionHeader, TextReviewCard } from "./reviews/ReviewsComponents";
 import ReviewsVideoSection from "./reviews/ReviewsVideoSection";
-import ReviewsPackages from "./reviews/ReviewsPackages";
 
 export default function Reviews() {
   return (
@@ -60,8 +59,6 @@ export default function Reviews() {
       <div style={{ maxWidth: 1100, margin: "64px auto 0", padding: "0 32px" }}>
         <div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
       </div>
-
-      <ReviewsPackages />
 
       <section style={{ padding: "64px 0 100px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px" }}>
@@ -130,12 +127,8 @@ export default function Reviews() {
           .rev-video-desktop { display: none; }
           .rev-video-mob { display: block; }
           .rev-video-wrap { flex-direction: column !important; min-height: unset !important; }
-          .rev-pack-grid { grid-template-columns: 1fr !important; }
           .rev-text-grid { grid-template-columns: 1fr !important; }
           .rev-stats { gap: 28px !important; }
-        }
-        @media (min-width: 641px) and (max-width: 980px) {
-          .rev-pack-grid { grid-template-columns: 1fr 1fr !important; }
         }
         @media (min-width: 641px) and (max-width: 860px) {
           .rev-video-wrap { min-height: 340px !important; }
