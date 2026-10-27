@@ -20,7 +20,7 @@ export default function Reviews() {
 
       {/* Hero */}
       <section style={{ paddingTop: 120, paddingBottom: 60 }}>
-        <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 24px", textAlign: "center" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px", textAlign: "left" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.2)", borderRadius: 20, padding: "6px 18px", marginBottom: 24 }}>
             <Icon name="Star" size={14} style={{ color: ACCENT, fill: ACCENT }} />
             <span style={{ fontSize: 13, fontWeight: 600, color: ACCENT, letterSpacing: "0.5px" }}>Истории специалистов и команд</span>
@@ -28,17 +28,17 @@ export default function Reviews() {
           <h1 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 700, color: "#fff", margin: "0 0 20px", lineHeight: 1.15, letterSpacing: "-0.5px" }}>
             Истории тех, кто изменил<br />подход к практике
           </h1>
-          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", maxWidth: 520, margin: "0 auto 36px", lineHeight: 1.7 }}>
+          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", maxWidth: 520, margin: "0 0 36px", lineHeight: 1.7 }}>
             Специалисты и команды, которые перешли от потоковой работы к более глубокому и ценному формату
           </p>
           {/* Статистика */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 48, flexWrap: "wrap" }} className="rev-stats">
+          <div style={{ display: "flex", justifyContent: "flex-start", gap: 48, flexWrap: "wrap" }} className="rev-stats">
             {[
               { value: "200+", label: "Специалистов" },
               { value: "4.9", label: "Средняя оценка" },
               { value: "12", label: "Видеоотзывов" },
             ].map(s => (
-              <div key={s.label} style={{ textAlign: "center" }}>
+              <div key={s.label} style={{ textAlign: "left" }}>
                 <div style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(28px,4vw,38px)", fontWeight: 700, color: ACCENT, lineHeight: 1 }}>{s.value}</div>
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 4, fontWeight: 400 }}>{s.label}</div>
               </div>
@@ -48,7 +48,7 @@ export default function Reviews() {
       </section>
 
       {/* Divider */}
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 24px" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px" }}>
         <div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
       </div>
 
@@ -56,13 +56,13 @@ export default function Reviews() {
       <ReviewsVideoSection sections={VIDEO_SECTIONS} />
 
       {/* Divider */}
-      <div style={{ maxWidth: 960, margin: "64px auto 0", padding: "0 24px" }}>
+      <div style={{ maxWidth: 1100, margin: "64px auto 0", padding: "0 32px" }}>
         <div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
       </div>
 
       {/* Текстовые отзывы */}
       <section style={{ padding: "64px 0 100px" }}>
-        <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 24px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 44 }}>
             <div style={{ width: 34, height: 34, borderRadius: 8, background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Icon name="Star" size={14} style={{ color: "#f59e0b", fill: "#f59e0b" }} />
@@ -87,18 +87,18 @@ export default function Reviews() {
 
       {/* CTA */}
       <section style={{ padding: "0 0 100px" }}>
-        <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 24px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px" }}>
           <div style={{
             background: "rgba(45,212,191,0.06)", border: "1px solid rgba(45,212,191,0.15)",
-            borderRadius: 24, padding: "48px 40px", textAlign: "center",
+            borderRadius: 24, padding: "48px 40px", textAlign: "left",
           }}>
             <h2 style={{ fontFamily: "Cormorant, serif", fontSize: "clamp(26px,4vw,40px)", fontWeight: 700, color: "#fff", margin: "0 0 14px" }}>
               Хотите такой же результат?
             </h2>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", margin: "0 0 32px", lineHeight: 1.7, maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", margin: "0 0 32px", lineHeight: 1.7, maxWidth: 480 }}>
               Начните с бесплатного доступа и посмотрите, подходит ли вам этот подход
             </p>
-            <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 14, justifyContent: "flex-start", flexWrap: "wrap" }}>
               <Link to="/cabinet" style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
                 padding: "14px 32px", borderRadius: 2,

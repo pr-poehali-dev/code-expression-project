@@ -121,7 +121,7 @@ function VideoBlockMobile({ section }: { section: VideoSection }) {
 export default function ReviewsVideoSection({ sections }: { sections: VideoSection[] }) {
   return (
     <section style={{ padding: "64px 0 0" }}>
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 24px" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 44 }}>
           <div style={{ width: 34, height: 34, borderRadius: 8, background: "rgba(45,212,191,0.12)", border: "1px solid rgba(45,212,191,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon name="Play" size={14} style={{ color: ACCENT }} />

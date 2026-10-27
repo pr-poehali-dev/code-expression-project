@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { label: "Для кого", href: "/dlya-kogo" },
   { label: "Тарифы", href: "/tseny" },
   { label: "Полезная лента", href: "/blog" },
+  { label: "Отзывы", href: "/reviews" },
 ];
 
 export default function BizNavbar() {
