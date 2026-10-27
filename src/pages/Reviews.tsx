@@ -4,7 +4,6 @@ import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
 import { Link } from "react-router-dom";
 import { ACCENT, ACCENT_DARK, DARK, VIDEO_SECTIONS } from "./reviews/ReviewsShared";
-import { SectionHeader } from "./reviews/ReviewsComponents";
 import ReviewsVideoSection from "./reviews/ReviewsVideoSection";
 import ReviewsPackages from "./reviews/ReviewsPackages";
 

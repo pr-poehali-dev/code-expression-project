@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { LkAuthProvider } from "./contexts/LkAuthContext";
 import { EnergyProvider } from "./contexts/EnergyContext";
@@ -30,7 +30,6 @@ const Akademiya = lazy(() => import("./pages/Akademiya"));
 const Tseny = lazy(() => import("./pages/Tseny"));
 const Keysy = lazy(() => import("./pages/Keysy"));
 const OProekte = lazy(() => import("./pages/OProekte"));
-const Tarify = lazy(() => import("./pages/Tarify"));
 const Kontakty = lazy(() => import("./pages/Kontakty"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Offer = lazy(() => import("./pages/Offer"));
@@ -112,7 +111,7 @@ const App = () => (
             <Route path="/tseny" element={<Tseny />} />
             <Route path="/keysy" element={<Keysy />} />
             <Route path="/o-proekte" element={<OProekte />} />
-            <Route path="/tarify" element={<Tarify />} />
+            <Route path="/tarify" element={<Navigate to="/tseny" replace />} />
             <Route path="/kontakty" element={<Kontakty />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/offer" element={<Offer />} />

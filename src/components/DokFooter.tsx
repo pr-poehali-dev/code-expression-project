@@ -14,7 +14,6 @@ function getTelegramLink(): { href: string; label: string } | null {
     path.startsWith("/zakrytaya-praktika") ||
     path.startsWith("/professionalnye-vstrechi") ||
     path.startsWith("/catalog") ||
-    path.startsWith("/tarify") ||
     path.startsWith("/demo")
   ) {
     return { href: "https://t.me/docdialog", label: "✈ Telegram для специалистов" };
@@ -72,7 +71,7 @@ export default function DokFooter() {
             {[
               { label: "Профессиональные встречи", href: "/professionalnye-vstrechi" },
               { label: "Закрытая практика", href: "/zakrytaya-praktika" },
-              { label: "Форматы участия", href: "/tarify" },
+              { label: "Тарифы", href: "/tseny" },
               { label: "Программы", href: "/catalog" },
               { label: "Отзывы", href: "/reviews" },
             ].map(l => (

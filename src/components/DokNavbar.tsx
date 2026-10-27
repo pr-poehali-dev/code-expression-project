@@ -17,8 +17,7 @@ function getTelegramLink(): string | null {
     path.startsWith("/free") ||
     path.startsWith("/zakrytaya-praktika") ||
     path.startsWith("/professionalnye-vstrechi") ||
-    path.startsWith("/catalog") ||
-    path.startsWith("/tarify")
+    path.startsWith("/catalog")
   ) {
     return "https://t.me/docdialog";
   }
