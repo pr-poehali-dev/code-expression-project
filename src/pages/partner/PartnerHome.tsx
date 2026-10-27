@@ -8,7 +8,7 @@ export interface MeData {
   obligation: { state: string; shows_allowed: boolean };
   offers_total: number;
   offers_counts: Record<string, number>;
-  stats: { shown: number; clicked: number; ctr: number; registrations: number };
+  stats: { shown: number; clicked: number; ctr: number; registrations: number; link_visits: number; link_visitors: number };
   ref_link: string;
   notifications: { action: string; comment: string | null; created_at: string }[];
 }
@@ -54,6 +54,7 @@ export default function PartnerHome({ me, go }: { me: MeData; go: (t: string) =>
         <Stat icon="FileText" label="Предложений" value={me.offers_total} note={`активных ${approved}, на модерации ${pending}`} />
         <Stat icon="Eye" label="Показов" value={me.stats.shown} />
         <Stat icon="MousePointerClick" label="Переходов" value={me.stats.clicked} note={`CTR ${me.stats.ctr}%`} />
+        <Stat icon="Link" label="Переходов по ссылке" value={me.stats.link_visits} note={`уникальных ${me.stats.link_visitors}`} />
         <Stat icon="UserPlus" label="Регистраций от вас" value={me.stats.registrations} />
       </div>
 

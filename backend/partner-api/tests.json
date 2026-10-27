@@ -81,6 +81,16 @@
         "new_password": "longpassword1"
       },
       "expectedStatus": 401
+    },
+    {
+      "name": "Ref visit unknown code",
+      "method": "POST",
+      "path": "/?action=ref_visit",
+      "body": {
+        "ref": "PT-XXXXXX",
+        "visitor_id": "abcdefgh12345678"
+      },
+      "expectedStatus": 200
     }
   ]
 }

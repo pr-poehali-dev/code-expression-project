@@ -373,6 +373,25 @@ def handle_password_change(event, conn):
     return ok({"ok": True})
 
 
+def handle_ref_visit(event, conn):
+    b = body_of(event)
+    code = clean(b.get("ref"), 32).upper()
+    vid = re.sub(r"[^A-Za-z0-9_-]", "", str(b.get("visitor_id") or ""))[:64]
+    if not code.startswith("PT-") or len(vid) < 8:
+        return ok({"counted": False})
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT id FROM {tbl('partners')} WHERE ref_code=%s AND status<>'suspended'", (code,))
+    p = cur.fetchone()
+    if not p:
+        return ok({"counted": False})
+    cur.execute(f"SELECT 1 FROM {tbl('partner_ref_visits')} WHERE partner_id=%s AND visitor_id=%s AND created_at > NOW() - INTERVAL '24 hours'", (p["id"], vid))
+    if cur.fetchone():
+        return ok({"counted": False})
+    cur.execute(f"INSERT INTO {tbl('partner_ref_visits')} (partner_id, visitor_id) VALUES (%s,%s)", (p["id"], vid))
+    conn.commit()
+    return ok({"counted": True})
+
+
 def handle_logout(event, conn):
     sid = (event.get("headers") or {}).get("X-Session-Id", "")
     if sid:
@@ -419,6 +438,8 @@ def handle_me(event, conn):
                 f"FROM {tbl('partner_analytics_events')} WHERE partner_id=%s", (p["id"],))
     ev = cur.fetchone()
     shown, clicked = ev["shown"], ev["clicked"]
+    cur.execute(f"SELECT COUNT(*) AS total, COUNT(DISTINCT visitor_id) AS uniq FROM {tbl('partner_ref_visits')} WHERE partner_id=%s", (p["id"],))
+    rv = cur.fetchone()
     cur.execute(f"SELECT action, comment, created_at FROM {tbl('partner_moderation_history')} "
                 f"WHERE partner_id=%s AND actor='admin' ORDER BY id DESC LIMIT 5", (p["id"],))
     notes = rows(cur)
@@ -428,7 +449,7 @@ def handle_me(event, conn):
         "offers_total": sum(counts.values()),
         "offers_counts": counts,
         "stats": {"shown": shown, "clicked": clicked, "ctr": round(clicked * 100 / shown, 1) if shown else 0,
-                  "registrations": registrations},
+                  "registrations": registrations, "link_visits": rv["total"], "link_visitors": rv["uniq"]},
         "ref_link": f"{SITE_URL}/?ref={p['ref_code']}",
         "notifications": notes,
     })
@@ -882,7 +903,7 @@ def is_view_only(event, conn) -> bool:
 
 
 ROUTES = {
-    "register": handle_register, "login": handle_login, "password_forgot": handle_password_forgot,
+    "ref_visit": handle_ref_visit, "register": handle_register, "login": handle_login, "password_forgot": handle_password_forgot,
     "password_reset": handle_password_reset, "password_change": handle_password_change, "logout": handle_logout, "me": handle_me,
     "profile_save": handle_profile_save, "offers_list": handle_offers_list, "offer_get": handle_offer_get,
     "offer_save": handle_offer_save, "offer_submit": handle_offer_submit, "offer_archive": handle_offer_archive,
