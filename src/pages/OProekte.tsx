@@ -12,65 +12,69 @@ const SERIF = "'Cormorant Garamond', serif";
 const WHY_ITEMS = [
   "Клиента не услышали.",
   "Не предложили вернуться.",
-  "Не помогли сделать выбор.",
   "Не объяснили ценность услуги.",
   "Не поддержали внутри команды.",
+];
+
+const AUDIENCE = [
+  { icon: "Building2", title: "Салоны красоты", desc: "Владельцам и администраторам: команда, сервис, повторные визиты." },
+  { icon: "Scissors", title: "Мастера", desc: "Сообщения клиентам, отзывы, продвижение своих услуг." },
+  { icon: "Brain", title: "Психологи и другие специалисты", desc: "Все, кто работает с клиентами один на один: коммуникация, контент, аналитика." },
 ];
 
 const PILLARS = [
   {
     icon: "BookOpen",
     title: "Практический опыт",
-    desc: "17 лет работы в индустрии красоты, обучения специалистов и сопровождения салонов.",
+    desc: "17 лет в индустрии красоты, обучении специалистов и работе с салонами.",
   },
   {
     icon: "Calculator",
     title: "Проверенные алгоритмы",
-    desc: "Математические модели и логика, которые помогают анализировать бизнес, персонал и процессы.",
+    desc: "Математические модели, которые помогают разбирать бизнес, команду и процессы.",
   },
   {
     icon: "Cpu",
     title: "Искусственный интеллект",
-    desc: "Современные технологии, которые превращают данные в персональные рекомендации и помогают быстрее принимать решения.",
+    desc: "Превращает данные в понятные рекомендации и ускоряет решения.",
   },
 ];
 
 const DIALOG_POINTS = [
   "Сообщение в мессенджере.",
   "Ответ на отзыв.",
-  "Разговор администратора.",
-  "Консультация мастера.",
-  "Взаимодействие внутри команды.",
+  "Консультация специалиста.",
+  "Общение внутри команды.",
 ];
 
 const VALUES = [
   {
     icon: "MessageCircle",
     title: "Коммуникация — основа роста",
-    desc: "Большинство бизнес-задач решается через качественное взаимодействие с клиентами и командой.",
+    desc: "Большинство задач решается через общение с клиентами и командой.",
   },
   {
     icon: "Zap",
-    title: "Простые решения для ежедневной работы",
-    desc: "Мы создаём инструменты, которыми можно пользоваться без специальных технических знаний.",
+    title: "Простота",
+    desc: "Инструменты работают без технических знаний.",
   },
   {
     icon: "BarChart2",
-    title: "Решения на основе данных",
-    desc: "Алгоритмы и аналитика помогают увидеть реальные причины проблем, а не бороться с их последствиями.",
+    title: "Данные",
+    desc: "Аналитика показывает причины проблем, а не только последствия.",
   },
   {
     icon: "Users",
-    title: "Рост через развитие команды",
-    desc: "Когда развивается владелец, администратор, мастер и специалист — развивается весь бизнес.",
+    title: "Развитие команды",
+    desc: "Растет команда, растет и бизнес.",
   },
 ];
 
 const TIMELINE = [
   { year: "2008", text: "Начало практической работы в индустрии красоты и обучения специалистов." },
-  { year: "2022", text: "Запуск первых программ по коммуникации и развитию салонов." },
-  { year: "2024", text: "Создание первых аналитических и интеллектуальных инструментов для бизнеса." },
-  { year: "2026", text: "Запуск платформы Промт Диалог — единой экосистемы для роста салонов красоты через команду, аналитику и современные технологии." },
+  { year: "2022", text: "Первые программы по коммуникации и развитию салонов." },
+  { year: "2024", text: "Первые аналитические и ИИ-инструменты для бизнеса." },
+  { year: "2026", text: "Запуск платформы Промт Диалог. К ней подключаются салоны, мастера, а также психологи и другие специалисты." },
 ];
 
 export default function OProekte() {
@@ -78,11 +82,11 @@ export default function OProekte() {
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
         <title>О проекте — команда и философия Промт Диалог</title>
-        <meta name="description" content="Промт Диалог — платформа, созданная практиками индустрии красоты. Узнайте о нашей команде, истории и принципах работы." />
+        <meta name="description" content="Промт Диалог — платформа, созданная практиками индустрии красоты. Ею пользуются салоны, мастера, психологи и другие специалисты." />
         <meta name="keywords" content="о проекте Промт Диалог, команда платформы, история создания, философия развития салона" />
         <link rel="canonical" href="https://promtdialog.ru/o-proekte" />
-        <meta property="og:title" content="О проекте Промт Диалог — платформа роста салона красоты" />
-        <meta property="og:description" content="Создана практиками индустрии: опыт, алгоритмы и ИИ для реального роста вашего салона." />
+        <meta property="og:title" content="О проекте Промт Диалог — платформа роста для салонов и специалистов" />
+        <meta property="og:description" content="Создана практиками: опыт, алгоритмы и ИИ для роста салонов, мастеров и специалистов." />
         <meta property="og:url" content="https://promtdialog.ru/o-proekte" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -91,7 +95,7 @@ export default function OProekte() {
           "@type": "Organization",
           "name": "Промт Диалог",
           "url": "https://promtdialog.ru",
-          "description": "Платформа роста салона красоты, созданная практиками индустрии. Объединяет опыт, алгоритмы и искусственный интеллект.",
+          "description": "Платформа роста для салонов красоты, мастеров и других специалистов. Объединяет опыт, алгоритмы и искусственный интеллект.",
           "foundingDate": "2023",
           "knowsAbout": ["Управление салоном красоты", "Маркетинг для салона", "Обучение персонала", "Искусственный интеллект в бьюти-индустрии"]
         })}</script>
@@ -105,7 +109,7 @@ export default function OProekte() {
       }}>
         <div style={{ position: "absolute", top: "8%", right: "-8%", width: 680, height: 680, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.10) 0%, transparent 65%)", pointerEvents: "none" }} />
 
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "100px 32px", width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 56, alignItems: "center", position: "relative" }} className="oproekte-hero-grid">
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "100px 32px", width: "100%", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 56, alignItems: "center", position: "relative" }} className="oproekte-hero-grid oproekte-hero-pad">
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 10, border: "1px solid rgba(45,212,191,0.3)", borderRadius: 100, padding: "7px 18px", marginBottom: 36 }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: TEAL }} />
@@ -115,7 +119,7 @@ export default function OProekte() {
               17 лет в индустрии — и один честный инструмент
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 520 }}>
-              Мы строили этот инструмент для себя. Он помог нам расти — и мы решили поделиться с коллегами по индустрии.
+              Мы строили инструмент для себя. Он помог нам расти, и теперь им пользуются салоны, мастера, психологи и другие специалисты.
             </p>
             <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: TEAL, lineHeight: 1.6, margin: "0", fontWeight: 500, letterSpacing: "0.5px" }}>
               Опыт · Практика · Результат
@@ -137,18 +141,18 @@ export default function OProekte() {
       </section>
 
       {/* ── ПОЧЕМУ ПОЯВИЛСЯ ── */}
-      <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
+      <section style={{ background: "#F8FAFC", padding: "120px 32px" }} className="oproekte-sec">
         <div style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 80, alignItems: "start" }} className="why-grid">
           <div>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Суть</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,48px)", fontWeight: 500, color: DARK, margin: "0 0 24px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-              За 17 лет работы в индустрии красоты мы увидели одну закономерность
+              За 17 лет мы увидели одну закономерность
             </h2>
             <p style={{ fontSize: 16, color: GRAY, margin: "0 0 20px", lineHeight: 1.8, fontWeight: 300 }}>
-              Большинство салонов теряют прибыль не потому, что плохо делают свою работу. И не потому, что у них слабые специалисты.
+              Бизнес теряет прибыль не из-за слабой работы, а там, где прерывается диалог с клиентом.
             </p>
             <p style={{ fontSize: 18, color: DARK, margin: "0 0 28px", lineHeight: 1.7, fontWeight: 500 }}>
-              Проблемы возникают там, где прерывается диалог.
+              Диалог прерывается, когда:
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
               {WHY_ITEMS.map((item, i) => (
@@ -158,24 +162,18 @@ export default function OProekte() {
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: 15, color: GRAY, margin: "0 0 16px", lineHeight: 1.8, fontWeight: 300 }}>
-              В результате салон теряет доверие, а вместе с ним — постоянных клиентов и прибыль.
-            </p>
             <p style={{ fontSize: 16, color: DARK, margin: 0, lineHeight: 1.8, fontWeight: 400 }}>
-              Именно поэтому появился Промт Диалог.
+              Поэтому и появился Промт Диалог.
             </p>
           </div>
           <div>
             <p style={{ fontSize: 15, color: GRAY, margin: "0 0 28px", lineHeight: 1.8, fontWeight: 300 }}>
-              Мы создаём платформу, которая помогает владельцам и их командам выстраивать сильную систему коммуникации, принимать решения на основе данных и развивать бизнес без лишней сложности.
+              Платформа помогает выстроить общение с клиентами и командой, принимать решения на основе данных и расти без лишней сложности.
             </p>
-            <div style={{ padding: "32px", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 4 }}>
+            <div style={{ padding: "28px 24px", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 4 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2px", marginBottom: 16 }}>Что такое «диалог»</div>
-              <p style={{ fontSize: 15, color: GRAY, margin: "0 0 16px", lineHeight: 1.8, fontWeight: 300 }}>
-                Слово «диалог» происходит от греческого <em>dialogos</em> — разговор двоих.
-              </p>
               <p style={{ fontSize: 15, color: GRAY, margin: "0 0 20px", lineHeight: 1.8, fontWeight: 300 }}>
-                Для салона красоты диалог начинается задолго до визита клиента и продолжается после процедуры. Это:
+                Диалог начинается до визита клиента и продолжается после него. Это:
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
                 {DIALOG_POINTS.map((p, i) => (
@@ -186,29 +184,50 @@ export default function OProekte() {
                 ))}
               </div>
               <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>
-                Каждая такая точка контакта формирует доверие. А доверие становится основой долгосрочных отношений с клиентом и устойчивого роста бизнеса.
+                Каждый контакт формирует доверие, а доверие приводит к постоянным клиентам.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── ОПЫТ + АЛГОРИТМЫ + ИИ ── */}
-      <section style={{ background: "#fff", padding: "120px 32px" }}>
+      {/* ── ДЛЯ КОГО ── */}
+      <section style={{ background: "#fff", padding: "120px 32px" }} className="oproekte-sec">
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ textAlign: "left", marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Аудитория</div>
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+            Платформа выросла за рамки салонов
+          </h2>
+          <p style={{ fontSize: 17, color: GRAY, margin: "0 0 48px", fontWeight: 300, maxWidth: 620, lineHeight: 1.7 }}>
+            Мы делали ее для индустрии красоты, но инструменты оказались нужны и другим специалистам.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0" }} className="pillars-grid">
+            {AUDIENCE.map((a, i) => (
+              <div key={i} style={{ background: "#fff", padding: "36px 28px" }}>
+                <div style={{ width: 48, height: 48, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+                  <Icon name={a.icon} size={22} style={{ color: TEAL }} />
+                </div>
+                <h3 style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: DARK, margin: "0 0 10px", lineHeight: 1.25 }}>{a.title}</h3>
+                <p style={{ fontSize: 14, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>{a.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ОПЫТ + АЛГОРИТМЫ + ИИ ── */}
+      <section style={{ background: "#F8FAFC", padding: "120px 32px" }} className="oproekte-sec">
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ textAlign: "left", marginBottom: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Основа платформы</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
               Опыт, алгоритмы и искусственный интеллект
             </h2>
-            <p style={{ fontSize: 17, color: GRAY, margin: "0 0 12px", fontWeight: 300, maxWidth: 560 }}>
-              Промт Диалог — это не просто набор ИИ-инструментов.
-            </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0", marginTop: 60 }} className="pillars-grid">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 1, background: "#E2E8F0", border: "1px solid #E2E8F0", marginTop: 40 }} className="pillars-grid">
             {PILLARS.map((p, i) => (
-              <div key={i} style={{ background: "#fff", padding: "44px 36px" }}>
+              <div key={i} style={{ background: "#fff", padding: "40px 32px" }}>
                 <div style={{ width: 52, height: 52, borderRadius: 2, border: `1px solid ${TEAL}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
                   <Icon name={p.icon} size={24} style={{ color: TEAL }} />
                 </div>
@@ -218,21 +237,18 @@ export default function OProekte() {
             ))}
           </div>
 
-          <div style={{ marginTop: 48, padding: "32px 40px", background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 4, textAlign: "left" }}>
-            <p style={{ fontSize: 16, color: GRAY, margin: "0 0 8px", lineHeight: 1.7, fontWeight: 300 }}>
-              Мы не заменяем эксперта искусственным интеллектом.
-            </p>
+          <div style={{ marginTop: 48, padding: "28px 32px", background: "#fff", border: "1px solid #E2E8F0", borderRadius: 4, textAlign: "left" }}>
             <p style={{ fontSize: 17, color: DARK, margin: 0, lineHeight: 1.7, fontWeight: 500 }}>
-              Мы усиливаем опыт и системное мышление современными технологиями.
+              ИИ не заменяет эксперта, а усиливает его опыт.
             </p>
           </div>
         </div>
       </section>
 
       {/* ── НАШ ПОДХОД ── */}
-      <section style={{ padding: "120px 32px", background: "#F8FAFC" }}>
+      <section style={{ padding: "120px 32px", background: "#fff" }} className="oproekte-sec">
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div style={{ textAlign: "left", marginBottom: 72, maxWidth: 600 }}>
+          <div style={{ textAlign: "left", marginBottom: 48, maxWidth: 600 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Принципы</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
               Наш подход
@@ -256,9 +272,9 @@ export default function OProekte() {
       </section>
 
       {/* ── ИСТОРИЯ ── */}
-      <section style={{ background: "#fff", padding: "120px 32px" }}>
+      <section style={{ background: "#F8FAFC", padding: "120px 32px" }} className="oproekte-sec">
         <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <div style={{ textAlign: "left", marginBottom: 72 }}>
+          <div style={{ textAlign: "left", marginBottom: 48 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Хронология</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: 0, letterSpacing: "-0.5px", lineHeight: 1.1 }}>
               История проекта
@@ -268,9 +284,9 @@ export default function OProekte() {
             <div style={{ position: "absolute", left: 19, top: 0, bottom: 0, width: 1, background: "#E2E8F0" }} />
             <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
               {TIMELINE.map((item, i) => (
-                <div key={i} style={{ display: "flex", gap: 40, paddingBottom: i < TIMELINE.length - 1 ? 48 : 0 }}>
+                <div key={i} style={{ display: "flex", gap: 24, paddingBottom: i < TIMELINE.length - 1 ? 48 : 0 }}>
                   <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 2, background: i === TIMELINE.length - 1 ? TEAL : "#fff", border: `1px solid ${i === TIMELINE.length - 1 ? TEAL : "#E2E8F0"}`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>
+                    <div style={{ width: 40, height: 40, flexShrink: 0, borderRadius: 2, background: i === TIMELINE.length - 1 ? TEAL : "#fff", border: `1px solid ${i === TIMELINE.length - 1 ? TEAL : "#E2E8F0"}`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>
                       <span style={{ fontSize: 11, fontWeight: 700, color: i === TIMELINE.length - 1 ? DARK : TEAL, letterSpacing: "0.5px" }}>{item.year}</span>
                     </div>
                   </div>
@@ -285,7 +301,7 @@ export default function OProekte() {
       </section>
 
       {/* ── ВО ЧТО МЫ ВЕРИМ ── */}
-      <section style={{ background: "#F8FAFC", padding: "120px 32px" }}>
+      <section style={{ background: "#fff", padding: "120px 32px" }} className="oproekte-sec">
         <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "left" }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Философия</div>
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,4vw,50px)", fontWeight: 500, color: DARK, margin: "0 0 32px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
@@ -294,24 +310,21 @@ export default function OProekte() {
           <p style={{ fontSize: 18, color: GRAY, margin: "0 0 20px", lineHeight: 1.8, fontWeight: 300 }}>
             Технологии не должны усложнять работу.
           </p>
-          <p style={{ fontSize: 16, color: GRAY, margin: "0 0 20px", lineHeight: 1.8, fontWeight: 300 }}>
-            Они должны помогать владельцу видеть бизнес яснее, сотрудникам — работать увереннее, а клиентам — чувствовать внимание и заботу.
-          </p>
           <p style={{ fontSize: 17, color: DARK, margin: 0, lineHeight: 1.8, fontWeight: 500 }}>
-            Именно для этого создан Промт Диалог.
+            Они помогают видеть бизнес яснее, работать увереннее и давать клиентам больше внимания.
           </p>
         </div>
       </section>
 
       {/* ── CTA ── */}
-      <section style={{ background: "#fff", padding: "120px 32px" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "left", position: "relative", overflow: "hidden" }}>
+      <section style={{ background: "#F8FAFC", padding: "120px 32px" }} className="oproekte-sec">
+        <div className="oproekte-cta" style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "left", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
             Присоединяйтесь к платформе
           </h2>
           <p style={{ fontSize: 17, color: "rgba(255,255,255,0.55)", margin: "0 0 44px", fontWeight: 300, position: "relative", maxWidth: 580 }}>
-            Создайте профиль своего салона и получите доступ к инструментам, которые помогают развивать команду, улучшать сервис и находить новые точки роста бизнеса.
+            Создайте профиль салона или свою практику и получите доступ к инструментам для роста.
           </p>
           <Link to="/cabinet" style={{ display: "inline-block", padding: "16px 44px", borderRadius: 2, background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, textDecoration: "none", letterSpacing: "0.3px", position: "relative" }}>
             Попробовать бесплатно
@@ -323,8 +336,10 @@ export default function OProekte() {
 
       <style>{`
         @media (max-width: 768px) {
-          .oproekte-hero-grid { grid-template-columns: 1fr !important; }
-          .oproekte-hero-img { margin-top: 32px; }
+          .oproekte-hero-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .oproekte-hero-pad { padding: 56px 20px !important; }
+          .oproekte-sec { padding: 64px 20px !important; }
+          .oproekte-cta { padding: 48px 24px !important; }
         }
         @media (max-width: 900px) {
           .why-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
@@ -332,6 +347,7 @@ export default function OProekte() {
           .values-grid { grid-template-columns: repeat(2,1fr) !important; }
         }
         @media (max-width: 600px) {
+          .oproekte-cta a { display: block !important; text-align: center; padding: 16px 20px !important; }
           .values-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
