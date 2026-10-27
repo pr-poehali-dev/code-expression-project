@@ -25,7 +25,7 @@ export default function Hero() {
             Покажи глазами клиента: <span style={{ color: TEAL }}>проверьте предложение до рекламы</span>
           </h1>
           <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.66)", lineHeight: 1.7, margin: "0 0 34px", fontWeight: 300, maxWidth: 540 }}>
-            Не зная свою аудиторию и её потребности, легко потратить силы и деньги на неправильный маркетинг. ИИ покажет вашу услугу, цену или текст глазами трёх разных клиентов: что их привлекает, что смущает и что изменить.
+            ИИ покажет услугу, цену или текст глазами трех клиентов: что привлекает, что смущает и что изменить.
           </p>
           <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }} className="cvl-hero-actions">
             <CtaButton />

@@ -77,7 +77,7 @@ export default function ClientViewSeo() {
       <meta property="og:site_name" content="Промт Диалог" />
       <meta property="og:locale" content="ru_RU" />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="Покажи глазами клиента — взгляд на ваше предложение со стороны" />
+      <meta name="twitter:title" content="Покажи глазами клиента — проверка предложения" />
       <meta name="twitter:description" content={DESCRIPTION} />
       <meta name="twitter:image" content={OG_IMAGE} />
       <meta name="twitter:image:alt" content={OG_IMAGE_ALT} />

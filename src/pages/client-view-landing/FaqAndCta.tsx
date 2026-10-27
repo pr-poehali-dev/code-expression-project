@@ -32,10 +32,10 @@ export function FinalCta() {
       <div style={{ ...wrap, position: "relative", maxWidth: 760, textAlign: "center" }}>
         <Eyebrow>Узнайте, что думают клиенты</Eyebrow>
         <h2 style={{ fontFamily: SERIF, fontSize: "clamp(32px,5vw,58px)", fontWeight: 500, color: "#fff", margin: "0 0 18px", lineHeight: 1.08 }}>
-          Проверьте предложение раньше, чем потратите бюджет
+          Проверьте предложение до рекламы
         </h2>
         <p style={{ fontSize: "clamp(15px,1.5vw,17px)", color: "rgba(255,255,255,0.55)", lineHeight: 1.75, margin: "0 0 36px", fontWeight: 300 }}>
-          Вставьте текст услуги, прайса или рекламы и получите взгляд трёх клиентов со стороны.
+          Вставьте текст и получите взгляд трех клиентов.
         </p>
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap", justifyContent: "center" }} className="cvl-hero-actions">
           <CtaButton big />

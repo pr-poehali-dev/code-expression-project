@@ -10,9 +10,9 @@ export function Pains() {
     <section style={{ background: "#fff", padding: "100px 24px" }}>
       <div style={wrap}>
         <Eyebrow light>Зачем это нужно</Eyebrow>
-        <H2>Неправильный маркетинг стоит дорого</H2>
+        <H2>Реклама вслепую стоит дорого</H2>
         <p style={{ fontSize: 17, color: GRAY, maxWidth: 640, lineHeight: 1.7, margin: "0 0 48px", fontWeight: 300 }}>
-          Пока вы не знаете, как предложение выглядит со стороны, любая реклама это ставка вслепую.
+          Пока вы не знаете, как предложение выглядит со стороны, реклама остается ставкой.
         </p>
         <div style={grid(250)}>
           {PAINS.map(p => (
@@ -35,7 +35,7 @@ export function How() {
     <section id="how" style={{ background: "#F8FAFC", padding: "100px 24px", scrollMarginTop: 70 }}>
       <div style={wrap}>
         <Eyebrow light>Как это работает</Eyebrow>
-        <H2>Три шага от текста до понятных правок</H2>
+        <H2>Три шага до правок</H2>
         <div style={{ ...grid(280), marginTop: 44 }}>
           {STEPS.map(s => (
             <div key={s.num} style={{ ...card, position: "relative" }}>
@@ -110,7 +110,7 @@ export function Example() {
           </div>
         </div>
         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: "22px 0 0", lineHeight: 1.6, maxWidth: 760 }}>
-          Это демонстрационный пример. Клиенты в разборе условные, а не реальные опрошенные люди. Реакции помогают найти слабые места и сформулировать гипотезы, а не измеряют вероятность покупки.
+          Пример условный: клиенты не реальные, а реакции не измеряют вероятность покупки.
         </p>
       </div>
     </section>
@@ -122,9 +122,9 @@ export function Features() {
     <section style={{ background: "#fff", padding: "100px 24px" }}>
       <div style={wrap}>
         <Eyebrow light>Возможности</Eyebrow>
-        <H2>Не просто «оценка текста нейросетью»</H2>
+        <H2>Больше, чем оценка текста</H2>
         <p style={{ fontSize: 17, color: GRAY, maxWidth: 640, lineHeight: 1.7, margin: "0 0 48px", fontWeight: 300 }}>
-          Несколько точек зрения, понятные причины реакции и конкретные шаги, что проверить и изменить.
+          Несколько точек зрения, причины реакции и что проверить.
         </p>
         <div style={grid(280)}>
           {FEATURES.map(f => (
@@ -145,7 +145,7 @@ export function ForWhom() {
     <section style={{ background: "#F8FAFC", padding: "100px 24px" }}>
       <div style={wrap}>
         <Eyebrow light>Для кого</Eyebrow>
-        <H2>Кому поможет взгляд со стороны</H2>
+        <H2>Кому подойдет</H2>
         <div style={{ ...grid(250), marginTop: 44 }}>
           {AUDIENCES.map(a => (
             <div key={a.title} style={card}>
