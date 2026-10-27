@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "@/components/ui/icon";
-import { ACCENT, ACCENT_DARK, DARK, TextReview } from "./ReviewsShared";
+import { ACCENT, ACCENT_DARK, DARK } from "./ReviewsShared";
 
 export function PlayIcon({ color }: { color: string }) {
   return (
@@ -31,40 +30,6 @@ export function StarRow() {
       {Array.from({ length: 5 }).map((_, i) => (
         <Icon key={i} name="Star" size={13} style={{ color: "#f59e0b", fill: "#f59e0b" }} />
       ))}
-    </div>
-  );
-}
-
-export function TextReviewCard({ r }: { r: TextReview }) {
-  const [open, setOpen] = useState(false);
-  const isLong = r.text.length > 160;
-  const display = isLong && !open ? r.text.slice(0, 160).trimEnd() + "…" : r.text;
-  return (
-    <div style={{
-      background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: 18, padding: "22px 20px", display: "flex", flexDirection: "column",
-      boxShadow: "0 2px 20px rgba(0,0,0,0.2)", transition: "border-color 0.2s",
-    }}
-      onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(45,212,191,0.25)"}
-      onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.08)"}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-        <img src={r.photo} alt={r.name} style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover", objectPosition: "top center", border: `2px solid rgba(45,212,191,0.3)`, flexShrink: 0 }} />
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 14, color: "#fff", marginBottom: 2 }}>{r.name}</div>
-          <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>{r.city} · {r.experience}</div>
-          <StarRow />
-        </div>
-      </div>
-      <div style={{ color: `rgba(45,212,191,0.15)`, fontSize: 44, lineHeight: 1, marginBottom: -6, fontFamily: "Georgia, serif", fontWeight: 900, userSelect: "none" }}>"</div>
-      <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, flex: 1 }}>
-        {display}
-        {isLong && (
-          <button onClick={() => setOpen(!open)} style={{ all: "unset", cursor: "pointer", color: ACCENT, fontSize: 12.5, fontWeight: 600, marginLeft: 4 }}>
-            {open ? "свернуть" : "читать полностью"}
-          </button>
-        )}
-      </div>
     </div>
   );
 }
