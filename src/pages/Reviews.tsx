@@ -3,7 +3,8 @@ import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
 import { Link } from "react-router-dom";
-import { ACCENT, ACCENT_DARK, DARK, VIDEO_SECTIONS } from "./reviews/ReviewsShared";
+import { ACCENT, ACCENT_DARK, DARK, VIDEO_SECTIONS, TEXT_REVIEWS } from "./reviews/ReviewsShared";
+import { SectionHeader, TextReviewCard } from "./reviews/ReviewsComponents";
 import ReviewsVideoSection from "./reviews/ReviewsVideoSection";
 import ReviewsPackages from "./reviews/ReviewsPackages";
 
@@ -62,6 +63,23 @@ export default function Reviews() {
 
       <ReviewsPackages />
 
+      <section style={{ padding: "64px 0 100px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 44 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 8, background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon name="Star" size={14} style={{ color: "#f59e0b", fill: "#f59e0b" }} />
+            </div>
+            <span style={{ fontFamily: "Cormorant, serif", fontSize: 28, fontWeight: 700, color: "#fff" }}>Письменные отзывы</span>
+          </div>
+          <SectionHeader title="Что говорят специалисты и салоны" subtitle="Отзывы тех, кто уже работает с Промт Диалог" href="/tseny" badge="ОТЗЫВЫ" linkText="Смотреть тарифы" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }} className="rev-text-grid">
+            {TEXT_REVIEWS.map((r) => (
+              <TextReviewCard key={r.name} r={r} />
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section style={{ padding: "0 0 100px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 32px" }}>
@@ -113,6 +131,7 @@ export default function Reviews() {
           .rev-video-mob { display: block; }
           .rev-video-wrap { flex-direction: column !important; min-height: unset !important; }
           .rev-pack-grid { grid-template-columns: 1fr !important; }
+          .rev-text-grid { grid-template-columns: 1fr !important; }
           .rev-stats { gap: 28px !important; }
         }
         @media (min-width: 641px) and (max-width: 980px) {
