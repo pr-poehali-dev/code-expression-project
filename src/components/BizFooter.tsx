@@ -29,7 +29,6 @@ const COLS = [
     links: [
       { label: "Конфиденциальность", href: "/privacy" },
       { label: "Договор оферты", href: "/offer" },
-      { label: "Партнёрам", href: "/partner/rules" },
     ],
   },
 ];
