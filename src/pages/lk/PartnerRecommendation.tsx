@@ -60,9 +60,9 @@ export default function PartnerRecommendation({ source, dark = false }: { source
         </button>
         <span style={{ fontSize: 12, color: c.sub }}>{rec.partner_name}{rec.price ? ` · ${rec.price}` : ""}</span>
       </div>
-      {failed && <div style={{ fontSize: 12, color: "#DC2626", marginTop: 8 }}>Не удалось открыть страницу. Попробуйте ещё раз.</div>}
+      {failed && <div style={{ fontSize: 12, color: "#DC2626", marginTop: 8 }}>Не удалось открыть страницу. Попробуйте еще раз.</div>}
       <div style={{ fontSize: 11, color: c.sub, marginTop: 10, lineHeight: 1.5 }}>
-        Партнёрская рекомендация: исполнитель сотрудничает с «Промт Диалог». Вы перейдёте на сайт внешнего специалиста, а рекомендация сформирована по вашей ситуации и не гарантирует результат.
+        Партнерская рекомендация: исполнитель сотрудничает с «Промт Диалог». Вы перейдете на сайт внешнего специалиста, а рекомендация сформирована по вашей ситуации и не гарантирует результат.
       </div>
     </div>
   );

@@ -55,7 +55,7 @@ export default function PartnerPage() {
     partnerSession.clear(); setMe(null); setAuth("out");
   };
 
-  const head = <Helmet><title>Партнёрский кабинет | Промт Диалог</title><meta name="robots" content="noindex, nofollow" /></Helmet>;
+  const head = <Helmet><title>Партнерский кабинет | Промт Диалог</title><meta name="robots" content="noindex, nofollow" /></Helmet>;
   if (auth === "loading") return <>{head}<Spinner /></>;
   if (auth === "out") return <>{head}<PartnerAuth onDone={() => { setAuth("loading"); load(); }} /></>;
   if (!me) return <Spinner />;
@@ -66,7 +66,7 @@ export default function PartnerPage() {
       {head}
       <header style={{ background: DARK, color: "#fff", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <Link to="/" style={{ color: "#fff", textDecoration: "none", fontFamily: "'Cormorant Garamond', serif", fontSize: 22 }}>
-          Промт Диалог <span style={{ color: TEAL, fontSize: 13, fontFamily: "Inter, sans-serif", marginLeft: 8, letterSpacing: 1, textTransform: "uppercase" }}>Партнёры</span>
+          Промт Диалог <span style={{ color: TEAL, fontSize: 13, fontFamily: "Inter, sans-serif", marginLeft: 8, letterSpacing: 1, textTransform: "uppercase" }}>Партнеры</span>
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 13.5 }}>
           <span style={{ color: "rgba(255,255,255,0.7)" }}>{me.partner.business_name}</span>
@@ -75,7 +75,7 @@ export default function PartnerPage() {
       </header>
       {viewMode && (
         <div style={{ background: "#FEF3C7", borderBottom: "1px solid #FDE68A", color: "#78350F", padding: "10px 20px", fontSize: 13.5, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
-          <Icon name="Eye" size={16} />Режим просмотра: вы видите кабинет глазами партнёра, изменения недоступны.
+          <Icon name="Eye" size={16} />Режим просмотра: вы видите кабинет глазами партнера, изменения недоступны.
         </div>
       )}
       <nav style={{ background: "#fff", borderBottom: `1px solid ${LINE}`, padding: "0 12px", display: "flex", gap: 4, overflowX: "auto" }}>

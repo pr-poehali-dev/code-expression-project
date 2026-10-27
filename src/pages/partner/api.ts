@@ -26,7 +26,7 @@ export async function partnerRequest<T = any>(
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const e = new Error(data.error || "Что-то пошло не так. Попробуйте ещё раз") as Error & { status: number };
+    const e = new Error(data.error || "Что-то пошло не так. Попробуйте еще раз") as Error & { status: number };
     e.status = res.status;
     throw e;
   }

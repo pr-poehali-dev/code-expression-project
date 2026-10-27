@@ -38,7 +38,7 @@ export default function PartnerPromo({ me, reload }: { me: MeData; reload: () =>
       <div style={card}>
         <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, margin: "0 0 6px" }}>Продвижение «Промт Диалог»</h2>
         <p style={{ fontSize: 13.5, color: GRAY, lineHeight: 1.6, margin: "0 0 14px" }}>
-          Один раз опубликуйте материал о платформе и отправьте ссылку. После подтверждения показы включаются, и повторять это не нужно. Дальше вы можете рассказывать о «Промт Диалог» по желанию, без отчёта.
+          Один раз опубликуйте материал о платформе и отправьте ссылку. После подтверждения показы включаются, и повторять это не нужно. Дальше вы можете рассказывать о «Промт Диалог» по желанию, без отчета.
         </p>
         <Notice kind="info">
           <b>Что должно быть в материале:</b> содержательный рассказ о «Промт Диалог» (чем полезна платформа вашей аудитории) и ваша персональная ссылка:<br />
@@ -52,7 +52,7 @@ export default function PartnerPromo({ me, reload }: { me: MeData; reload: () =>
           <input style={inputCss} value={f.publication_url} onChange={e => set("publication_url", e.target.value)} placeholder="https://" />
         </Field>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14 }}>
-          <Field hint={H("Где опубликовано", "Выберите площадку. От неё зависит, сможет ли система проверить страницу автоматически.")}>
+          <Field hint={H("Где опубликовано", "Выберите площадку. От нее зависит, сможет ли система проверить страницу автоматически.")}>
             <select style={inputCss} value={f.platform} onChange={e => set("platform", e.target.value)}>{PLATFORMS.map(p => <option key={p}>{p}</option>)}</select>
           </Field>
           <Field hint={H("Дата публикации", "Необязательно. Укажите, когда вышла публикация.", undefined, false)}>

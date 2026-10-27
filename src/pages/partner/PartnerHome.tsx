@@ -67,7 +67,7 @@ export default function PartnerHome({ me, go }: { me: MeData; go: (t: string) =>
 
       <div style={card}>
         <div style={{ fontSize: 15, fontWeight: 700, color: DARK, marginBottom: 6 }}>Ваша персональная ссылка</div>
-        <div style={{ fontSize: 13, color: GRAY, lineHeight: 1.55, marginBottom: 10 }}>Используйте её в материале о «Промт Диалог». По ней считаются регистрации от вас, и по ней система находит размещение на вашей странице.</div>
+        <div style={{ fontSize: 13, color: GRAY, lineHeight: 1.55, marginBottom: 10 }}>Используйте ее в материале о «Промт Диалог». По ней считаются регистрации от вас, и по ней система находит размещение на вашей странице.</div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <input readOnly value={me.ref_link} onFocus={e => e.target.select()} style={{ flex: 1, minWidth: 200, padding: "10px 12px", borderRadius: 9, border: `1.5px solid ${LINE}`, fontSize: 13.5, color: DARK, background: "#F8FAFC" }} />
           <Btn kind="ghost" onClick={copy}><Icon name={copied ? "Check" : "Copy"} size={15} />{copied ? "Скопировано" : "Копировать"}</Btn>

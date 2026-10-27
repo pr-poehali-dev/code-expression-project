@@ -1,7 +1,7 @@
-"""Партнёрский кабинет «Промт Диалог»: регистрация и вход партнёров, профиль, предложения услуг,
+"""Партнерский кабинет «Промт Диалог»: регистрация и вход партнеров, профиль, предложения услуг,
 подтверждение размещения о платформе (автопроверка страницы), статистика и модерация для администратора.
-Партнёр входит по X-Session-Id из таблицы partner_sessions, администратор — по обычной сессии кабинета (lk_sessions).
-Показы партнёра включаются после одного подтверждённого размещения о платформе и далее не ограничены по сроку."""
+Партнер входит по X-Session-Id из таблицы partner_sessions, администратор — по обычной сессии кабинета (lk_sessions).
+Показы партнера включаются после одного подтвержденного размещения о платформе и далее не ограничены по сроку."""
 import json
 import os
 import re
@@ -107,7 +107,7 @@ def mail_html(title: str, text: str, btn: str = "", link: str = "") -> str:
          f'border-radius:6px;text-decoration:none;font-weight:700">{btn}</a></p>') if link else ""
     return (f'<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#0F172A">'
             f'<h2 style="margin:0 0 12px">{title}</h2><p style="line-height:1.6;white-space:pre-line">{text}</p>{b}'
-            f'<p style="color:#64748B;font-size:12px">Промт Диалог · партнёрская программа</p></div>')
+            f'<p style="color:#64748B;font-size:12px">Промт Диалог · партнерская программа</p></div>')
 
 
 def body_of(event) -> dict:
@@ -264,7 +264,7 @@ def handle_register(event, conn):
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(f"SELECT 1 FROM {tbl('partners')} WHERE email=%s", (email,))
     if cur.fetchone():
-        return err("Партнёр с таким email уже зарегистрирован")
+        return err("Партнер с таким email уже зарегистрирован")
     code = gen_ref_code(cur)
     h = bcrypt.hashpw(pw.encode(), bcrypt.gensalt()).decode()
     ip = ((event.get("requestContext") or {}).get("identity") or {}).get("sourceIp", "")[:64]
@@ -276,11 +276,11 @@ def handle_register(event, conn):
     log(cur, pid, "registered", actor="partner", actor_id=pid)
     sid = new_session(cur, pid)
     conn.commit()
-    send_mail(email, "Вы зарегистрированы в партнёрской программе «Промт Диалог»",
-              mail_html("Добро пожаловать в партнёрскую программу",
+    send_mail(email, "Вы зарегистрированы в партнерской программе «Промт Диалог»",
+              mail_html("Добро пожаловать в партнерскую программу",
                         "Ваш кабинет готов. Заполните профиль и создайте первое предложение: после проверки модератором оно сможет участвовать в рекомендациях.",
                         "Открыть кабинет", f"{SITE_URL}/partner"))
-    send_mail(ADMIN_EMAIL, "Новый партнёр: " + name, mail_html("Новый партнёр", f"{name}\n{contact}\n{email}"))
+    send_mail(ADMIN_EMAIL, "Новый партнер: " + name, mail_html("Новый партнер", f"{name}\n{contact}\n{email}"))
     return ok({"session": sid})
 
 
@@ -320,7 +320,7 @@ def handle_password_forgot(event, conn):
             cur.execute(f"INSERT INTO {tbl('partner_password_resets')} (partner_id, token_hash, expires_at) VALUES (%s,%s,NOW() + INTERVAL '1 hour')", (p["id"], th))
             log(cur, p["id"], "password_reset_requested", actor="partner", actor_id=p["id"])
             conn.commit()
-            send_mail(email, "Восстановление пароля в партнёрском кабинете",
+            send_mail(email, "Восстановление пароля в партнерском кабинете",
                       mail_html("Восстановление пароля",
                                 "Чтобы задать новый пароль, нажмите на кнопку. Ссылка действует 1 час. Если вы не запрашивали восстановление, просто проигнорируйте письмо.",
                                 "Задать новый пароль", f"{SITE_URL}/partner?reset={token}"))
@@ -338,7 +338,7 @@ def handle_password_reset(event, conn):
     cur.execute(f"SELECT id, partner_id FROM {tbl('partner_password_resets')} WHERE token_hash=%s AND used_at IS NULL AND expires_at > NOW() FOR UPDATE", (th,))
     r = cur.fetchone()
     if not r:
-        return err("Ссылка недействительна или устарела. Запросите восстановление ещё раз", 400)
+        return err("Ссылка недействительна или устарела. Запросите восстановление еще раз", 400)
     h = bcrypt.hashpw(pw.encode(), bcrypt.gensalt()).decode()
     cur.execute(f"UPDATE {tbl('partners')} SET password_hash=%s, updated_at=NOW() WHERE id=%s", (h, r["partner_id"]))
     cur.execute(f"UPDATE {tbl('partner_password_resets')} SET used_at=NOW() WHERE partner_id=%s AND used_at IS NULL", (r["partner_id"],))
@@ -655,7 +655,7 @@ def handle_submission_create(event, conn):
         return err("Слишком много попыток за сутки. Попробуйте завтра", 429)
     cur.execute(f"SELECT 1 FROM {tbl('partner_submissions')} WHERE partner_id=%s AND status='pending'", (p["id"],))
     if cur.fetchone():
-        return err("Предыдущее подтверждение ещё проверяется")
+        return err("Предыдущее подтверждение еще проверяется")
     key = url_key(url)
     cur.execute(f"SELECT 1 FROM {tbl('partner_submissions')} WHERE url_key=%s AND status IN ('accepted','pending')", (key,))
     if cur.fetchone():
@@ -755,7 +755,7 @@ def handle_admin_offer_decide(event, conn):
     if decision not in ("approve", "reject", "changes"):
         return err("Неизвестное решение")
     if decision != "approve" and not comment:
-        return err("Укажите комментарий для партнёра")
+        return err("Укажите комментарий для партнера")
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(f"SELECT v.*, o.partner_id, o.approved_version_id, o.title FROM {tbl('partner_offer_versions')} v "
                 f"JOIN {tbl('partner_offers')} o ON o.id=v.offer_id WHERE v.id=%s AND v.status='pending' FOR UPDATE", (vid,))
@@ -873,7 +873,7 @@ def handle_admin_partner_history(event, conn):
 
 
 def handle_admin_view_session(event, conn):
-    """Выдаёт администратору временную сессию партнёра ТОЛЬКО для просмотра (2 часа, без права изменений)."""
+    """Выдает администратору временную сессию партнера ТОЛЬКО для просмотра (2 часа, без права изменений)."""
     a = get_admin(event, conn)
     if not a:
         return err("Нет доступа", 403)
@@ -881,7 +881,7 @@ def handle_admin_view_session(event, conn):
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(f"SELECT id FROM {tbl('partners')} WHERE id=%s", (pid,))
     if not cur.fetchone():
-        return err("Партнёр не найден", 404)
+        return err("Партнер не найден", 404)
     sid = secrets.token_hex(32)
     cur.execute(f"INSERT INTO {tbl('partner_sessions')} (id, partner_id, expires_at, view_only, created_by_admin) "
                 f"VALUES (%s,%s,NOW() + INTERVAL '2 hours',TRUE,%s)", (sid, pid, a["id"]))
@@ -916,7 +916,7 @@ ROUTES = {
 
 
 def handler(event: dict, context) -> dict:
-    """Единая точка партнёрского кабинета: маршрутизация по ?action=."""
+    """Единая точка партнерского кабинета: маршрутизация по ?action=."""
     if event.get("httpMethod") == "OPTIONS":
         return {"statusCode": 200, "headers": CORS, "body": ""}
     action = (event.get("queryStringParameters") or {}).get("action", "")

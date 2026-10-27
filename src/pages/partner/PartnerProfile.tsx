@@ -19,7 +19,7 @@ function PasswordCard() {
     try {
       await partnerRequest("password_change", { body: { old_password: f.old_password, new_password: f.new_password } });
       setF({ old_password: "", new_password: "", repeat: "" });
-      setMsg({ ok: true, text: "Пароль изменён. На других устройствах потребуется войти заново." });
+      setMsg({ ok: true, text: "Пароль изменен. На других устройствах потребуется войти заново." });
     } catch (e) { setMsg({ ok: false, text: (e as Error).message }); }
     finally { setBusy(false); }
   };
@@ -33,7 +33,7 @@ function PasswordCard() {
       <Field hint={H("Новый пароль", "Не короче 8 символов.", undefined, true)}>
         <input style={inputCss} type="password" autoComplete="new-password" value={f.new_password} onChange={e => set("new_password", e.target.value)} />
       </Field>
-      <Field hint={H("Повторите новый пароль", "Введите тот же пароль ещё раз.", undefined, true)}>
+      <Field hint={H("Повторите новый пароль", "Введите тот же пароль еще раз.", undefined, true)}>
         <input style={inputCss} type="password" autoComplete="new-password" value={f.repeat} onChange={e => set("repeat", e.target.value)} />
       </Field>
       {msg && <div style={{ marginBottom: 12 }}><Notice kind={msg.ok ? "success" : "error"}>{msg.text}</Notice></div>}
@@ -57,7 +57,7 @@ export default function PartnerProfile({ me, reload }: Props) {
 
   const save = async () => {
     setBusy(true);
-    try { await partnerRequest("profile_save", { body: f }); setMsg({ ok: true, text: "Профиль сохранён" }); reload(); }
+    try { await partnerRequest("profile_save", { body: f }); setMsg({ ok: true, text: "Профиль сохранен" }); reload(); }
     catch (e) { setMsg({ ok: false, text: (e as Error).message }); }
     finally { setBusy(false); }
   };
@@ -65,7 +65,7 @@ export default function PartnerProfile({ me, reload }: Props) {
   return (
     <div>
     <div style={{ ...card, maxWidth: 720 }}>
-      <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, margin: "0 0 4px" }}>Профиль партнёра</h2>
+      <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, margin: "0 0 4px" }}>Профиль партнера</h2>
       <p style={{ fontSize: 13.5, color: GRAY, margin: "0 0 20px" }}>Эти сведения видит модератор. Не указывайте лишних персональных данных.</p>
       <Field hint={H("Название организации или имя", "Так вас будут знать пользователи, когда ИИ порекомендует вашу услугу.", "Студия маркетинга «Лайм»", true)}>
         <input style={inputCss} value={f.business_name} maxLength={255} onChange={e => set("business_name", e.target.value)} />

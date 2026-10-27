@@ -15,7 +15,7 @@ const GRAY = "#64748B";
 const SERIF = "'Cormorant Garamond', serif";
 const darkBg = `radial-gradient(120% 100% at 80% 0%, #112B3C 0%, ${DARK} 55%, #060B16 100%)`;
 
-function Cta({ children = "Стать партнёром", light = false }: { children?: ReactNode; light?: boolean }) {
+function Cta({ children = "Стать партнером", light = false }: { children?: ReactNode; light?: boolean }) {
   return (
     <Link to="/partner" style={{
       display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "17px 34px", borderRadius: 2,
@@ -64,11 +64,11 @@ export default function PartnerLanding() {
         <div style={{ position: "absolute", top: "-10%", right: "-8%", width: 620, height: 620, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.16) 0%, transparent 65%)", pointerEvents: "none" }} />
         <div style={{ ...wrap, position: "relative", display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 56, alignItems: "center" }} className="pl-hero">
           <div>
-            <div style={{ display: "inline-block", background: TEAL, color: DARK, fontSize: 12, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", padding: "7px 16px", borderRadius: 100, marginBottom: 24 }}>Партнёрская программа</div>
-            <h1 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5.2vw,62px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", lineHeight: 1.05, letterSpacing: "-0.6px" }}>Станьте партнёром «Промт Диалог»</h1>
+            <div style={{ display: "inline-block", background: TEAL, color: DARK, fontSize: 12, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", padding: "7px 16px", borderRadius: 100, marginBottom: 24 }}>Партнерская программа</div>
+            <h1 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5.2vw,62px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", lineHeight: 1.05, letterSpacing: "-0.6px" }}>Станьте партнером «Промт Диалог»</h1>
             <p style={{ fontFamily: SERIF, fontSize: "clamp(20px,2.4vw,28px)", color: TEAL, margin: "0 0 22px", lineHeight: 1.25 }}>Ваше предложение появляется тогда, когда человеку нужна ваша услуга.</p>
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.72)", lineHeight: 1.75, fontWeight: 300, margin: "0 0 14px" }}>
-              «Промт Диалог» помогает предпринимателям и специалистам выбирать следующие шаги для дела. Теперь в рекомендациях ИИ могут появляться услуги, обучение и консультации партнёров.
+              «Промт Диалог» помогает предпринимателям и специалистам выбирать следующие шаги для дела. Теперь в рекомендациях ИИ могут появляться услуги, обучение и консультации партнеров.
             </p>
             <p style={{ fontSize: 16, color: "rgba(255,255,255,0.72)", lineHeight: 1.75, fontWeight: 300, margin: "0 0 30px" }}>
               Это не каталог рекламы: предложение показывается, только если подходит задаче человека.
@@ -77,7 +77,7 @@ export default function PartnerLanding() {
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 16, lineHeight: 1.6, maxWidth: 480 }}>На старте участие бесплатное, количество клиентов не гарантируется.</div>
           </div>
           <div style={{ display: "grid", gap: 12 }}>
-            {[{ i: "Target", t: "Подходящий клиент", d: "услугу видит тот, кому она подходит" }, { i: "Sparkles", t: "Рекомендация ИИ", d: "ИИ объясняет, почему услуга подходит" }, { i: "BadgeCheck", t: "Карточка партнёра", d: "описание и условия, а не бюджет" }].map(x => (
+            {[{ i: "Target", t: "Подходящий клиент", d: "услугу видит тот, кому она подходит" }, { i: "Sparkles", t: "Рекомендация ИИ", d: "ИИ объясняет, почему услуга подходит" }, { i: "BadgeCheck", t: "Карточка партнера", d: "описание и условия, а не бюджет" }].map(x => (
               <div key={x.t} style={{ display: "flex", gap: 16, alignItems: "center", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 16, padding: "18px 20px" }}>
                 <div style={{ width: 46, height: 46, borderRadius: 12, background: `linear-gradient(135deg,${TEAL},${TEAL2})`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon name={x.i} size={22} style={{ color: DARK }} /></div>
                 <div><div style={{ fontFamily: SERIF, fontSize: 22, color: "#fff", fontWeight: 600 }}>{x.t}</div><div style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", marginTop: 2 }}>{x.d}</div></div>
@@ -120,7 +120,7 @@ export default function PartnerLanding() {
             <div style={{ background: darkBg, borderRadius: 18, padding: "28px 30px", boxShadow: "0 20px 60px rgba(15,23,42,0.18)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, color: TEAL, fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 }}><Icon name="Handshake" size={15} />Персональная рекомендация</div>
               <div style={{ fontFamily: SERIF, fontSize: 26, color: "#fff", fontWeight: 600, lineHeight: 1.2, marginBottom: 12 }}>Вам может помочь специалист по удержанию клиентов</div>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.8)", lineHeight: 1.7, fontWeight: 300, margin: "0 0 14px" }}>Для анализа клиентского пути и системы повторных записей посмотрите предложение партнёра.</p>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.8)", lineHeight: 1.7, fontWeight: 300, margin: "0 0 14px" }}>Для анализа клиентского пути и системы повторных записей посмотрите предложение партнера.</p>
               <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.6)", lineHeight: 1.65, margin: "0 0 16px" }}><b style={{ color: TEAL, fontWeight: 600 }}>Почему показано:</b> предложение связано с вашей задачей — повторные записи.</p>
               <span style={{ display: "inline-flex", alignItems: "center", gap: 8, background: `linear-gradient(135deg,${TEAL},${TEAL2})`, color: DARK, fontSize: 13.5, fontWeight: 700, padding: "11px 20px", borderRadius: 9 }}>Подробнее об услуге<Icon name="ArrowRight" size={14} /></span>
             </div>
@@ -131,7 +131,7 @@ export default function PartnerLanding() {
 
       <section style={section("#fff")}>
         <div style={wrap}>
-          <Head eyebrow="Прозрачность" title="Статистика в личном кабинете партнёра" />
+          <Head eyebrow="Прозрачность" title="Статистика в личном кабинете партнера" />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 16, marginBottom: 22 }}>
             {STATS.map(s => (
               <div key={s.title} style={{ border: "1px solid #E2E8F0", borderRadius: 16, padding: "24px 22px" }}>
@@ -161,7 +161,7 @@ export default function PartnerLanding() {
 
       <section style={section("#fff")}>
         <div style={wrap}>
-          <Head eyebrow="Для кого" title="Кому подойдёт партнёрство" />
+          <Head eyebrow="Для кого" title="Кому подойдет партнерство" />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,320px),1fr))", gap: 16 }}>
             {WHO.map(w => (
               <div key={w.title} style={{ border: "1px solid #E2E8F0", borderRadius: 16, overflow: "hidden", background: "#fff" }}>
@@ -179,12 +179,12 @@ export default function PartnerLanding() {
       <section style={section("#F8FAFC")}>
         <div style={{ ...wrap, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "start" }} className="pl-two">
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#0F766E", textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 14 }}>Первая партнёрская группа</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#0F766E", textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 14 }}>Первая партнерская группа</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(28px,3.6vw,40px)", fontWeight: 500, color: DARK, margin: "0 0 18px", lineHeight: 1.12 }}>Почему присоединиться сейчас</h2>
-            <p style={{ fontSize: 15.5, color: GRAY, lineHeight: 1.75, fontWeight: 300, margin: 0 }}>Мы формируем первую партнёрскую группу и настраиваем рекомендации. Аудитория растёт вместе с платформой, поэтому статистика на старте может быть небольшой.</p>
+            <p style={{ fontSize: 15.5, color: GRAY, lineHeight: 1.75, fontWeight: 300, margin: 0 }}>Мы формируем первую партнерскую группу и настраиваем рекомендации. Аудитория растет вместе с платформой, поэтому статистика на старте может быть небольшой.</p>
           </div>
           <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 18, padding: "26px 26px" }}>
-            <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: DARK, marginBottom: 14 }}>Первым участникам это даёт:</div>
+            <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: DARK, marginBottom: 14 }}>Первым участникам это дает:</div>
             <div style={{ display: "grid", gap: 12 }}>
               {EARLY.map(t => (
                 <div key={t} style={{ display: "flex", gap: 11, fontSize: 15, color: GRAY, lineHeight: 1.65, fontWeight: 300 }}>
@@ -201,7 +201,7 @@ export default function PartnerLanding() {
           <div style={{ border: `1px solid ${TEAL}`, borderRadius: 22, padding: "44px 42px", background: "linear-gradient(135deg,#F0FDFA,#fff)" }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: "#0F766E", textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 14 }}>Сколько стоит участие</div>
             <div style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,54px)", color: DARK, fontWeight: 500, lineHeight: 1.05, marginBottom: 18 }}>На старте — бесплатно</div>
-            <p style={{ fontSize: 16, color: GRAY, lineHeight: 1.75, fontWeight: 300, margin: 0, maxWidth: 680 }}>Вместо оплаты за размещение один раз расскажите о «Промт Диалог» своей аудитории: пост, статья или материал в Telegram-канале. Отправьте ссылку через кабинет, и после проверки участие продолжается без повторных отчётов.</p>
+            <p style={{ fontSize: 16, color: GRAY, lineHeight: 1.75, fontWeight: 300, margin: 0, maxWidth: 680 }}>Вместо оплаты за размещение один раз расскажите о «Промт Диалог» своей аудитории: пост, статья или материал в Telegram-канале. Отправьте ссылку через кабинет, и после проверки участие продолжается без повторных отчетов.</p>
           </div>
         </div>
       </section>
@@ -224,11 +224,11 @@ export default function PartnerLanding() {
 
       <section style={{ ...section(darkBg) }}>
         <div style={wrap}>
-          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,4.4vw,50px)", color: "#fff", fontWeight: 500, margin: "0 0 20px", lineHeight: 1.1 }}>Присоединяйтесь к первой партнёрской группе</h2>
-          <p style={{ fontSize: 16.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.75, fontWeight: 300, margin: "0 0 32px" }}>Можно начать сейчас: подготовьте предложение и пройдите модерацию, пока растёт аудитория.</p>
-          <Cta>Стать партнёром «Промт Диалог»</Cta>
+          <h2 style={{ fontFamily: SERIF, fontSize: "clamp(30px,4.4vw,50px)", color: "#fff", fontWeight: 500, margin: "0 0 20px", lineHeight: 1.1 }}>Присоединяйтесь к первой партнерской группе</h2>
+          <p style={{ fontSize: 16.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.75, fontWeight: 300, margin: "0 0 32px" }}>Можно начать сейчас: подготовьте предложение и пройдите модерацию, пока растет аудитория.</p>
+          <Cta>Стать партнером «Промт Диалог»</Cta>
           <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)", lineHeight: 1.7, margin: "30px 0 0", maxWidth: 640 }}>
-            Участие не гарантирует определённое количество показов, переходов, обращений или продаж. Рекомендации формируются с учётом соответствия предложения контексту пользователя. Подробные условия — в <Link to="/partner/rules" style={{ color: TEAL }}>правилах партнёрской программы</Link>.
+            Участие не гарантирует определенное количество показов, переходов, обращений или продаж. Рекомендации формируются с учетом соответствия предложения контексту пользователя. Подробные условия — в <Link to="/partner/rules" style={{ color: TEAL }}>правилах партнерской программы</Link>.
           </p>
         </div>
       </section>

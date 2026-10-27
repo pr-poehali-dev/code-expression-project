@@ -67,14 +67,14 @@ export default function PartnerAuth({ onDone }: { onDone: () => void }) {
         <Link to="/" style={{ display: "block", textAlign: "center", color: "#fff", textDecoration: "none", fontFamily: "'Cormorant Garamond', serif", fontSize: 26, marginBottom: 18 }}>Промт Диалог</Link>
         <div style={{ ...card, padding: 28 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#0F766E", fontSize: 12, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>
-            <Icon name="Handshake" size={15} /> Партнёрская программа
+            <Icon name="Handshake" size={15} /> Партнерская программа
           </div>
           <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 30, margin: "0 0 8px", color: DARK }}>
-            {mode === "register" ? "Станьте партнёром" : mode === "forgot" ? "Восстановление пароля" : mode === "reset" ? "Новый пароль" : "Вход для партнёров"}
+            {mode === "register" ? "Станьте партнером" : mode === "forgot" ? "Восстановление пароля" : mode === "reset" ? "Новый пароль" : "Вход для партнеров"}
           </h1>
           <p style={{ fontSize: 14, color: GRAY, lineHeight: 1.6, margin: "0 0 18px" }}>
             {mode === "register"
-              ? "Расскажите о своей услуге. ИИ предложит её пользователям платформы, когда она действительно решает их задачу. Участие бесплатное."
+              ? "Расскажите о своей услуге. ИИ предложит ее пользователям платформы, когда она действительно решает их задачу. Участие бесплатное."
               : mode === "forgot" ? "Укажите email, на который зарегистрирован кабинет. Мы отправим ссылку для создания нового пароля."
               : mode === "reset" ? "Придумайте новый пароль для входа в кабинет."
               : "Войдите, чтобы управлять предложениями и отправлять размещение на проверку."}
@@ -90,13 +90,13 @@ export default function PartnerAuth({ onDone }: { onDone: () => void }) {
             {mode === "register" && (
               <div style={{ display: "grid", gap: 10, background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: "12px 14px" }}>
                 <Check value={f.consent_rules} onChange={v => set("consent_rules", v)}>
-                  Прочитал и принимаю <a href="/partner/rules" target="_blank" rel="noopener noreferrer" style={lnk}>Правила партнёрской программы</a>: один раз публикую материал о «Промт Диалог» для запуска показов, а все предложения проходят модерацию
+                  Прочитал и принимаю <a href="/partner/rules" target="_blank" rel="noopener noreferrer" style={lnk}>Правила партнерской программы</a>: один раз публикую материал о «Промт Диалог» для запуска показов, а все предложения проходят модерацию
                 </Check>
                 <Check value={f.consent_privacy} onChange={v => set("consent_privacy", v)}>
                   Ознакомлен с <a href="/privacy" target="_blank" rel="noopener noreferrer" style={lnk}>Политикой конфиденциальности</a> и даю согласие на обработку моих персональных данных
                 </Check>
                 <Check value={f.consent_offer} onChange={v => set("consent_offer", v)}>
-                  Принимаю <a href="/offer" target="_blank" rel="noopener noreferrer" style={lnk}>Договор-оферту</a>, включая раздел 18 «Партнёрская программа»: участие бесплатное, рекомендации не являются рекламой
+                  Принимаю <a href="/offer" target="_blank" rel="noopener noreferrer" style={lnk}>Договор-оферту</a>, включая раздел 18 «Партнерская программа»: участие бесплатное, рекомендации не являются рекламой
                 </Check>
               </div>
             )}
@@ -111,7 +111,7 @@ export default function PartnerAuth({ onDone }: { onDone: () => void }) {
             </div>
           ) : (
           <div style={{ textAlign: "center", marginTop: 16, fontSize: 14, color: GRAY }}>
-            {mode === "register" ? "Уже есть кабинет? " : "Ещё нет кабинета? "}
+            {mode === "register" ? "Уже есть кабинет? " : "Еще нет кабинета? "}
             <button onClick={() => { setMode(mode === "register" ? "login" : "register"); setError(""); }} style={{ background: "none", border: "none", color: "#0F766E", fontWeight: 700, cursor: "pointer", fontSize: 14, padding: 0 }}>
               {mode === "register" ? "Войти" : "Зарегистрироваться"}
             </button>

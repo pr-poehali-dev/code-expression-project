@@ -62,7 +62,7 @@ export function OfferForm({ id, go }: { id?: number; go: (t: string) => void }) 
 
   const doSave = async () => {
     setBusy(true); setMsg(null);
-    try { await save(); setMsg({ kind: "success", text: "Черновик сохранён" }); }
+    try { await save(); setMsg({ kind: "success", text: "Черновик сохранен" }); }
     catch (e) { setMsg({ kind: "error", text: (e as Error).message }); }
     finally { setBusy(false); }
   };
@@ -101,10 +101,10 @@ export function OfferForm({ id, go }: { id?: number; go: (t: string) => void }) 
         <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, margin: 0 }}>{offerId ? "Предложение" : "Новое предложение"}</h2>
         {meta && <StatusBadge status={meta.status} />}
       </div>
-      <p style={{ fontSize: 13.5, color: GRAY, lineHeight: 1.6, margin: "0 0 18px" }}>Опишите услугу фактами. ИИ сам решит, кому и когда её предложить, и сам напишет рекомендацию. Нажмите «?» у поля, чтобы увидеть подсказку и пример.</p>
+      <p style={{ fontSize: 13.5, color: GRAY, lineHeight: 1.6, margin: "0 0 18px" }}>Опишите услугу фактами. ИИ сам решит, кому и когда ее предложить, и сам напишет рекомендацию. Нажмите «?» у поля, чтобы увидеть подсказку и пример.</p>
 
       {meta?.last_admin_comment && <div style={{ marginBottom: 16 }}><Notice kind="warn"><b>Комментарий модератора:</b> {meta.last_admin_comment}</Notice></div>}
-      {locked && <div style={{ marginBottom: 16 }}><Notice kind="info">Предложение на проверке или приостановлено, сейчас его нельзя править.{meta?.approved_version_id ? " Пока идёт проверка правок, показывается последняя одобренная версия." : ""}</Notice></div>}
+      {locked && <div style={{ marginBottom: 16 }}><Notice kind="info">Предложение на проверке или приостановлено, сейчас его нельзя править.{meta?.approved_version_id ? " Пока идет проверка правок, показывается последняя одобренная версия." : ""}</Notice></div>}
       {meta?.status === "approved" && !locked && <div style={{ marginBottom: 16 }}><Notice kind="info">Если изменить одобренное предложение, правки пойдут на повторную проверку. Пока они не одобрены, показывается прежняя версия.</Notice></div>}
 
       {text("title")}
