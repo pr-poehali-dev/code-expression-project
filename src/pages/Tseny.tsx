@@ -12,10 +12,10 @@ const SERIF = "'Cormorant Garamond', serif";
 const BASE_PRICE_PER_ENERGY = 990 / 150;
 
 const PACKAGES = [
-  { code: "start", name: "Старт", price: 990, energy: 150, desc: "Знакомство с платформой", features: ["Все инструменты", "Техническая поддержка"], popular: false },
-  { code: "business", name: "Бизнес", price: 2990, energy: 550, desc: "Для активного использования", features: ["Все инструменты", "Приоритетная поддержка"], popular: true },
-  { code: "growth", name: "Рост", price: 4990, energy: 1200, desc: "Для регулярной работы", features: ["Все инструменты", "Приоритетная поддержка"], popular: false },
-  { code: "premium", name: "Премиум", price: 9990, energy: 3000, desc: "Максимальная выгода", features: ["Все инструменты", "VIP-поддержка", "Личный менеджер"], popular: false },
+  { code: "start", name: "Старт", price: 990, energy: 150, desc: "Чтобы попробовать", features: ["Все инструменты", "Техническая поддержка"], popular: false },
+  { code: "business", name: "Бизнес", price: 2990, energy: 550, desc: "Для частой работы", features: ["Все инструменты", "Приоритетная поддержка"], popular: true },
+  { code: "growth", name: "Рост", price: 4990, energy: 1200, desc: "Для постоянной работы", features: ["Все инструменты", "Приоритетная поддержка"], popular: false },
+  { code: "premium", name: "Премиум", price: 9990, energy: 3000, desc: "Самая низкая цена энергии", features: ["Все инструменты", "VIP-поддержка", "Личный менеджер"], popular: false },
 ].map(p => ({
   ...p,
   perEnergy: p.price / p.energy,
@@ -26,25 +26,25 @@ const MIN_REQUEST_PRICE = Math.min(...PACKAGES.map(p => p.perEnergy));
 const fmtRub = (n: number) => n.toLocaleString("ru-RU", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 const FREE_STEPS = [
-  { icon: "UserPlus", title: "Зарегистрируйтесь", desc: "Расскажите о своей практике или бизнесе — это займёт несколько минут." },
-  { icon: "Compass", title: "Пользуйтесь бесплатно", desc: "Платформа анализирует ваши данные и формирует ежедневные шаги развития." },
-  { icon: "Zap", title: "Подключайте инструменты", desc: "Когда понадобятся сообщения, посты и аналитика — расходуйте энергию по мере необходимости." },
+  { icon: "UserPlus", title: "Зарегистрируйтесь", desc: "Расскажите о практике или бизнесе, это займет несколько минут." },
+  { icon: "Compass", title: "Пользуйтесь бесплатно", desc: "Платформа анализирует данные и каждый день предлагает шаги." },
+  { icon: "Zap", title: "Подключайте инструменты", desc: "Для сообщений, постов и аналитики тратьте энергию." },
 ];
 
 const EXPLAINER = [
-  { icon: "Zap", title: "Что такое энергия", desc: "Внутренняя валюта платформы. Расходуется только когда вы запускаете интеллектуальные инструменты." },
-  { icon: "Battery", title: "Не сгорает", desc: "Приобретённая энергия хранится на вашем балансе без ограничения срока." },
-  { icon: "ShieldCheck", title: "Списывается за результат", desc: "Если во время генерации произошёл сбой сервиса, энергия не списывается." },
+  { icon: "Zap", title: "Что такое энергия", desc: "Внутренняя валюта платформы. Тратится только при запуске инструментов." },
+  { icon: "Battery", title: "Не сгорает", desc: "Купленная энергия хранится на балансе без срока." },
+  { icon: "ShieldCheck", title: "Не списывается при сбое", desc: "Если генерация оборвалась, энергия возвращается." },
 ];
 
 const FAQ = [
-  { q: "Нужно ли платить сразу", a: "Нет. После регистрации вы пользуетесь платформой бесплатно и сразу получаете шаги развития под вашу ситуацию. Привязывать карту не нужно." },
-  { q: "Что такое энергия", a: "Энергия — это внутренняя валюта платформы. Каждый запрос к инструментам расходует определённое количество энергии: чем сложнее задача, тем выше расход." },
-  { q: "Сколько стоит один запрос", a: "Стоимость запроса зависит от инструмента и от выбранного пакета энергии. Самые частые действия — сообщение клиенту, пост, ответ на отзыв — стоят 1 энергию, то есть от 3,3 ₽. Более сложные задачи, например анализы и аудиты, расходуют несколько энергий." },
-  { q: "Чем отличаются пакеты", a: "Пакеты отличаются количеством энергии и стоимостью одной энергии: в «Старте» она стоит 6,6 ₽, в «Бизнесе» — 5,4 ₽, в «Росте» — 4,2 ₽, в «Премиуме» — 3,3 ₽. Чем больше энергии вы берёте, тем дешевле каждый запрос." },
-  { q: "Нужна ли подписка", a: "Нет. Абонентской платы нет: вы платите только за энергию, которую выбираете сами, и расходуете её по мере необходимости." },
-  { q: "Не использованная энергия сгорает", a: "Нет. Приобретённая энергия хранится на вашем балансе без ограничения срока." },
-  { q: "Спишется ли энергия, если произошёл сбой", a: "Нет. Если во время генерации произошёл сбой сервиса или оборвалась связь, энергия не списывается." },
+  { q: "Нужно ли платить сразу", a: "Нет. После регистрации платформа бесплатна, шаги вы получаете сразу. Карту привязывать не нужно." },
+  { q: "Что такое энергия", a: "Внутренняя валюта платформы. Чем сложнее запрос, тем больше энергии он тратит." },
+  { q: "Сколько стоит один запрос", a: "Сообщение клиенту, пост и ответ на отзыв стоят 1 энергию, то есть от 3,3 ₽. Анализы и аудиты тратят несколько энергий." },
+  { q: "Чем отличаются пакеты", a: "Количеством энергии и ценой одной: в «Старте» 6,6 ₽, в «Бизнесе» 5,4 ₽, в «Росте» 4,2 ₽, в «Премиуме» 3,3 ₽." },
+  { q: "Нужна ли подписка", a: "Нет. Вы платите только за энергию." },
+  { q: "Энергия сгорает", a: "Нет. Она хранится на балансе без срока." },
+  { q: "Спишется ли энергия, если произошел сбой", a: "Нет. При сбое сервиса или обрыве связи энергия не списывается." },
 ];
 
 export default function Tseny() {
@@ -52,11 +52,11 @@ export default function Tseny() {
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff" }}>
       <Helmet>
         <title>Стоимость запроса от 3,3 ₽ — бесплатный старт | Промт Диалог</title>
-        <meta name="description" content="Начните бесплатно: шаги развития после регистрации без оплаты. Дальше платите только за использованную энергию — запрос от 3,3 ₽, без абонентской платы." />
+        <meta name="description" content="Шаги после регистрации бесплатны. Дальше платите только за энергию: запрос от 3,3 ₽, без абонентской платы." />
         <meta name="keywords" content="цены Промт Диалог, стоимость запроса, тарифы Промт Диалог, энергия Промт Диалог, платформа для специалистов, стоимость платформы для специалистов" />
         <link rel="canonical" href="https://promtdialog.ru/tseny" />
         <meta property="og:title" content="Промт Диалог — бесплатный старт и запрос от 3,3 ₽" />
-        <meta property="og:description" content="Без абонентской платы: платите только за использованную энергию. Шаги развития после регистрации — бесплатно." />
+        <meta property="og:description" content="Без абонентской платы: платите только за энергию. Шаги после регистрации бесплатны." />
         <meta property="og:url" content="https://promtdialog.ru/tseny" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -64,7 +64,7 @@ export default function Tseny() {
           "@context": "https://schema.org",
           "@type": "PriceSpecification",
           "name": "Тарифы Промт Диалог",
-          "description": "Бесплатный старт и энергия без подписки: стоимость запроса от 3,3 ₽.",
+          "description": "Бесплатный старт, запрос от 3,3 ₽, без подписки.",
           "url": "https://promtdialog.ru/tseny"
         })}</script>
       </Helmet>
@@ -84,10 +84,10 @@ export default function Tseny() {
               <span style={{ fontSize: 12, color: TEAL, fontWeight: 500, letterSpacing: "1.5px", textTransform: "uppercase" }}>Тарифы</span>
             </div>
             <h1 style={{ fontFamily: SERIF, fontSize: "clamp(40px,5.5vw,70px)", fontWeight: 500, color: "#fff", lineHeight: 1.05, margin: "0 0 24px", letterSpacing: "-0.5px" }}>
-              Начните бесплатно, а дальше платите только за запросы
+              Бесплатный старт, дальше — только за запросы
             </h1>
             <p style={{ fontSize: "clamp(15px,1.6vw,18px)", color: "rgba(255,255,255,0.62)", lineHeight: 1.7, margin: "0 0 16px", fontWeight: 300, maxWidth: 520 }}>
-              Маркетолог, аналитик, тренер и методист в одной платформе. После регистрации вы получаете шаги развития без оплаты, а энергию тратите только на те запросы, которые действительно нужны.
+              После регистрации шаги бесплатны, энергию вы тратите только на нужные запросы.
             </p>
             <p style={{ fontSize: "clamp(13px,1.3vw,15px)", color: TEAL, lineHeight: 1.6, margin: "0 0 32px", fontWeight: 500, letterSpacing: "0.5px" }}>
               Без найма · Без абонплаты · Запрос от 3,3 ₽
@@ -135,10 +135,10 @@ export default function Tseny() {
           <div style={{ textAlign: "left", marginBottom: 48, maxWidth: 720 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: TEAL, textTransform: "uppercase", letterSpacing: "2.5px", marginBottom: 20 }}>Стоимость</div>
             <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,4.5vw,54px)", fontWeight: 500, color: DARK, margin: "0 0 16px", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
-              Платите только за то, что используете
+              Платите за запросы
             </h2>
             <p style={{ fontSize: 17, color: GRAY, margin: 0, fontWeight: 300, lineHeight: 1.6 }}>
-              Каждое действие в платформе стоит несколько энергий. Чем больше энергии вы берёте за раз, тем дешевле каждая из них.
+              Чем больше энергии берете за раз, тем дешевле каждая.
             </p>
           </div>
 
@@ -152,7 +152,7 @@ export default function Tseny() {
                 <span style={{ fontSize: 28, color: TEAL, fontWeight: 500 }}>₽</span>
               </div>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", margin: "16px 0 0", lineHeight: 1.7, position: "relative" }}>
-                за один запрос: сообщение клиенту, пост, ответ на отзыв, идея для акции. Самые частые действия стоят всего 1 энергию.
+                за запрос: сообщение клиенту, пост, ответ на отзыв, идея для акции.
               </p>
             </div>
             <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 6, padding: "40px 40px" }}>
@@ -163,7 +163,7 @@ export default function Tseny() {
                 Начните без оплаты
               </h3>
               <p style={{ fontSize: 15, color: GRAY, margin: 0, lineHeight: 1.7, fontWeight: 300 }}>
-                После регистрации вы пользуетесь платформой бесплатно и сразу получаете ежедневные шаги развития под вашу ситуацию. Без привязки карты.
+                После регистрации шаги бесплатны. Карта не нужна.
               </p>
             </div>
           </div>
@@ -202,17 +202,17 @@ export default function Tseny() {
             </div>
             <div style={{ flex: 1, minWidth: 260, position: "relative" }}>
               <div style={{ fontSize: 11, color: TEAL, fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "2px", marginBottom: 8 }}>
-                Гарантия результата
+                Без потерь
               </div>
               <h3 style={{ fontFamily: SERIF, fontSize: "clamp(20px,2.2vw,28px)", fontWeight: 500, color: "#fff", margin: "0 0 10px", lineHeight: 1.25 }}>
-                Выполняете план инструментами платформы — получаете результат
+                Энергия не сгорает и не списывается при сбое
               </h3>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", margin: "0 0 16px", lineHeight: 1.7, maxWidth: 620 }}>
-                Каждый день ИИ собирает конкретные шаги под ваши цифры, а инструменты кабинета доводят их до готового действия — сообщения клиентам, офферы, контент. Купленная энергия не сгорает и остаётся на балансе сколько угодно.
+                Купленная энергия остается на балансе без срока.
               </p>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 9, background: "rgba(45,212,191,0.1)", border: "1px solid rgba(45,212,191,0.25)", borderRadius: 10, padding: "9px 14px" }}>
                 <Icon name="ShieldOff" size={15} style={{ color: TEAL, flexShrink: 0 }} />
-                <span style={{ fontSize: 12.5, color: "#fff", fontWeight: 500 }}>Сбой сервиса или обрыв связи во время генерации — энергия не списывается</span>
+                <span style={{ fontSize: 12.5, color: "#fff", fontWeight: 500 }}>При сбое или обрыве связи энергия не списывается</span>
               </div>
             </div>
           </div>
@@ -302,15 +302,15 @@ export default function Tseny() {
 
       {/* ── CTA ── */}
       <section style={{ background: "#fff", padding: "120px 32px" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "left", position: "relative", overflow: "hidden" }}>
+        <div className="tseny-cta" style={{ maxWidth: 1000, margin: "0 auto", background: `linear-gradient(135deg, ${DARK}, #112B3C)`, borderRadius: 6, padding: "80px 56px", textAlign: "left", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: "-30%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
           <h2 style={{ fontFamily: SERIF, fontSize: "clamp(34px,5vw,56px)", fontWeight: 500, color: "#fff", margin: "0 0 20px", letterSpacing: "-0.5px", lineHeight: 1.05, position: "relative" }}>
             Начните бесплатно
           </h2>
           <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", margin: "0 0 40px", fontWeight: 300, position: "relative" }}>
-            Получите план роста дохода бесплатно. Без карты и обязательств.
+            Без карты и обязательств.
           </p>
-          <Link to="/cabinet" style={{
+          <Link to="/cabinet" className="tseny-cta-btn" style={{
             display: "inline-flex", alignItems: "center", gap: 10, padding: "16px 44px", borderRadius: 2,
             background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", color: "#0F172A", fontSize: 15, fontWeight: 600, letterSpacing: "0.3px",
             textDecoration: "none", position: "relative", transition: "all 0.3s",
@@ -341,6 +341,9 @@ export default function Tseny() {
         }
         @media (max-width: 560px) {
           .pkg-grid { grid-template-columns: 1fr !important; }
+          .tseny-cta { padding: 40px 24px !important; }
+          .tseny-cta-btn { display: flex !important; width: 100%; box-sizing: border-box; justify-content: center; padding: 16px 20px !important; }
+          .guarantee-block { padding: 28px 20px !important; }
         }
       `}</style>
     </div>
