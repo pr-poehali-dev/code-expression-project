@@ -991,7 +991,41 @@ def handle_open_partner(event, conn):
     return ok({"session": sid})
 
 
+def handle_inquiry(event, conn):
+    """Заявка с лендинга партнерства: сохраняется в БД и уходит на почту администратора."""
+    b = body_of(event)
+    name = clean(b.get("name"), 150)
+    site = clean(b.get("site_url"), 300)
+    email = clean(b.get("email"), 255).lower()
+    phone = clean(b.get("phone"), 40)
+    msg = clean(b.get("message"), 200)
+    if not name:
+        return err("Укажите имя")
+    if not site or "." not in site:
+        return err("Укажите ссылку на сайт или страницу")
+    if "@" not in email or "." not in email:
+        return err("Укажите корректный email")
+    if len(re.sub(r"\D", "", phone)) < 10:
+        return err("Укажите номер телефона")
+    if b.get("consent_privacy") is not True:
+        return err("Подтвердите согласие с политикой конфиденциальности")
+    ip = ((event.get("requestContext") or {}).get("identity") or {}).get("sourceIp", "")[:64]
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT COUNT(*) AS c FROM {tbl('partner_inquiries')} WHERE ip=%s AND created_at > NOW() - INTERVAL '1 hour'", (ip,))
+    if cur.fetchone()["c"] >= 5:
+        return err("Слишком много заявок. Попробуйте позже", 429)
+    cur.execute(f"INSERT INTO {tbl('partner_inquiries')} (name, site_url, email, phone, message, ip) VALUES (%s,%s,%s,%s,%s,%s)",
+                (name, site, email, phone, msg or None, ip))
+    conn.commit()
+    esc = lambda v: v.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    send_mail(ADMIN_EMAIL, "Вопрос от потенциального партнера: " + name,
+              mail_html("Новая заявка с лендинга партнерства",
+                        esc(f"Имя: {name}\nСайт: {site}\nEmail: {email}\nТелефон: {phone}\nВопрос: {msg or '—'}")))
+    return ok({"ok": True})
+
+
 ROUTES = {
+    "inquiry": handle_inquiry,
     "lk_is_partner": handle_lk_is_partner, "open_partner": handle_open_partner,
     "open_lk": handle_open_lk,
     "ref_visit": handle_ref_visit, "register": handle_register, "login": handle_login, "password_forgot": handle_password_forgot,

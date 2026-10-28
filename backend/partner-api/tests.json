@@ -91,6 +91,13 @@
         "visitor_id": "abcdefgh12345678"
       },
       "expectedStatus": 200
+    },
+    {
+      "name": "Inquiry without data",
+      "method": "POST",
+      "path": "/?action=inquiry",
+      "body": {},
+      "expectedStatus": 400
     }
   ]
 }
