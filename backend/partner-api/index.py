@@ -961,7 +961,35 @@ def handle_open_lk(event, conn):
     return ok({"session_id": sid})
 
 
+def lk_partner_of(event, conn):
+    sid = (event.get("headers") or {}).get("X-Session-Id", "") or (event.get("headers") or {}).get("x-session-id", "")
+    if not sid:
+        return None
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT p.* FROM {tbl('lk_sessions')} s JOIN {tbl('lk_users')} u ON u.id = s.user_id "
+                f"JOIN {tbl('partners')} p ON LOWER(p.email) = LOWER(u.email) "
+                f"WHERE s.id = %s AND s.expires_at > NOW() AND u.is_active = TRUE AND p.status <> 'blocked'", (sid,))
+    return cur.fetchone()
+
+
+def handle_lk_is_partner(event, conn):
+    """Проверка: есть ли у пользователя личного кабинета партнерский кабинет с тем же email."""
+    return ok({"is_partner": bool(lk_partner_of(event, conn))})
+
+
+def handle_open_partner(event, conn):
+    """Вход из личного кабинета в партнерский без повторной авторизации."""
+    p = lk_partner_of(event, conn)
+    if not p:
+        return err("Партнерский кабинет не найден", 404)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    sid = new_session(cur, p["id"])
+    conn.commit()
+    return ok({"session": sid})
+
+
 ROUTES = {
+    "lk_is_partner": handle_lk_is_partner, "open_partner": handle_open_partner,
     "open_lk": handle_open_lk,
     "ref_visit": handle_ref_visit, "register": handle_register, "login": handle_login, "password_forgot": handle_password_forgot,
     "password_reset": handle_password_reset, "password_change": handle_password_change, "logout": handle_logout, "me": handle_me,

@@ -1,5 +1,6 @@
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { adaptNavLabel } from "./otherSpecialistText";
+import LkPartnerLink from "./LkPartnerLink";
 import Icon from "@/components/ui/icon";
 import {
   Tab, NAV_ITEMS, ROLE_TABS, SALON_REQUIRED, getRoleLabel, TEAL_BRIGHT, ACCENT,
@@ -144,6 +145,7 @@ export function LkSidebar({ tab, hasSalon, role, onNav, onLogout }: SidebarProps
             </div>
           );
         })()}
+        <LkPartnerLink />
         <button onClick={onLogout} style={{ display: "flex", alignItems: "center", gap: 7, background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 12, cursor: "pointer", padding: 0, fontFamily: "Montserrat, sans-serif" }}>
           <Icon name="LogOut" size={13} />
           Выйти

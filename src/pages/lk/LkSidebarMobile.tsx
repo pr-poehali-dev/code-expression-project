@@ -1,5 +1,6 @@
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { adaptNavLabel } from "./otherSpecialistText";
+import LkPartnerLink from "./LkPartnerLink";
 import Icon from "@/components/ui/icon";
 import {
   Tab, NAV_ITEMS, SALON_REQUIRED, TEAL_BRIGHT, ACCENT,
@@ -27,6 +28,7 @@ export function LkMobileHeader({ hasSalonId, onNav, onLogout }: MobileHeaderProp
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {hasSalonId && <EnergyBadge onNav={onNav} />}
         <InstallButtonMobile />
+        <LkPartnerLink compact />
         <button onClick={onLogout} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "1.5px solid rgba(255,255,255,0.15)", borderRadius: 8, color: "rgba(255,255,255,0.6)", fontSize: 12, cursor: "pointer", padding: "5px 10px", fontFamily: "Montserrat, sans-serif" }}>
           <Icon name="LogOut" size={12} />
           Выйти
