@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { saveSession } from "@/lib/lkApi";
 import { Helmet } from "@/lib/helmet";
 import Icon from "@/components/ui/icon";
 import { partnerRequest, partnerSession } from "./api";
@@ -25,6 +26,24 @@ export default function PartnerPage() {
   const [auth, setAuth] = useState<"loading" | "in" | "out">("loading");
   const [view, setView] = useState("home");
   const [offerId, setOfferId] = useState<number | undefined>();
+  const navigate = useNavigate();
+  const [lkAsk, setLkAsk] = useState(false);
+  const [lkPass, setLkPass] = useState("");
+  const [lkBusy, setLkBusy] = useState(false);
+  const [lkErr, setLkErr] = useState("");
+
+  const openLk = async (password?: string) => {
+    setLkBusy(true); setLkErr("");
+    try {
+      const r = await partnerRequest<{ session_id: string }>("open_lk", { body: { password: password || "" } });
+      saveSession(r.session_id);
+      navigate("/cabinet");
+    } catch (e) {
+      const err = e as Error & { status?: number };
+      if (err.status === 409) { setLkAsk(true); if (password) setLkErr(err.message); }
+      else setLkErr(err.message);
+    } finally { setLkBusy(false); }
+  };
 
   const [viewMode] = useState(() => {
     const v = new URLSearchParams(window.location.search).get("view");
@@ -70,9 +89,26 @@ export default function PartnerPage() {
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 13.5 }}>
           <span style={{ color: "rgba(255,255,255,0.7)" }}>{me.partner.business_name}</span>
+          {!viewMode && (
+            <button onClick={() => openLk()} disabled={lkBusy} style={{ background: TEAL, border: "none", color: DARK, borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+              <Icon name="LogIn" size={14} />Личный кабинет
+            </button>
+          )}
           <button onClick={logout} style={{ background: "none", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 13 }}>{viewMode ? "Закрыть" : "Выйти"}</button>
         </div>
       </header>
+      {(lkAsk || lkErr) && !viewMode && (
+        <div style={{ background: "#fff", borderBottom: `1px solid ${LINE}`, padding: "14px 20px", display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", fontSize: 13.5 }}>
+          {lkAsk ? (
+            <>
+              <span style={{ color: GRAY }}>Этот email уже есть в личном кабинете. Введите его пароль один раз:</span>
+              <input type="password" value={lkPass} onChange={e => setLkPass(e.target.value)} placeholder="Пароль от кабинета" style={{ padding: "8px 12px", border: `1px solid ${LINE}`, borderRadius: 8, fontSize: 14 }} />
+              <button onClick={() => openLk(lkPass)} disabled={lkBusy || !lkPass} style={{ background: TEAL, border: "none", color: DARK, borderRadius: 8, padding: "8px 16px", cursor: "pointer", fontWeight: 600 }}>Войти</button>
+            </>
+          ) : null}
+          {lkErr && <span style={{ color: "#B91C1C" }}>{lkErr}</span>}
+        </div>
+      )}
       {viewMode && (
         <div style={{ background: "#FEF3C7", borderBottom: "1px solid #FDE68A", color: "#78350F", padding: "10px 20px", fontSize: 13.5, fontWeight: 600, display: "flex", alignItems: "center", gap: 8 }}>
           <Icon name="Eye" size={16} />Режим просмотра: вы видите кабинет глазами партнера, изменения недоступны.

@@ -889,7 +889,7 @@ def handle_admin_view_session(event, conn):
     return ok({"session": sid})
 
 
-WRITE_ACTIONS = {"password_change", "profile_save", "offer_save", "offer_submit", "offer_archive", "submission_create"}
+WRITE_ACTIONS = {"open_lk", "password_change", "profile_save", "offer_save", "offer_submit", "offer_archive", "submission_create"}
 
 
 def is_view_only(event, conn) -> bool:
@@ -902,7 +902,67 @@ def is_view_only(event, conn) -> bool:
     return bool(row and row[0])
 
 
+def gen_lk_ref_code(cur) -> str:
+    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    for _ in range(20):
+        code = "".join(secrets.choice(alphabet) for _ in range(8))
+        cur.execute(f"SELECT 1 FROM {tbl('lk_users')} WHERE ref_code=%s", (code,))
+        if not cur.fetchone():
+            return code
+    raise RuntimeError("ref_code")
+
+
+def handle_open_lk(event, conn):
+    """Вход партнера в основной личный кабинет: создает обычную учетную запись с тем же email (если ее нет) и выдает сессию кабинета."""
+    p = get_partner(event, conn)
+    if not p:
+        return err("Не авторизован", 401)
+    b = body_of(event)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT * FROM {tbl('lk_users')} WHERE LOWER(email)=%s", (p["email"].lower(),))
+    u = cur.fetchone()
+    if u:
+        if not u["is_active"]:
+            return err("Личный кабинет с этим email отключен. Напишите в поддержку", 403)
+        pw = b.get("password") or ""
+        if not pw:
+            return {"statusCode": 409, "headers": {**CORS, "Content-Type": "application/json"},
+                    "body": json.dumps({"error": "Для этого email уже есть личный кабинет. Введите его пароль один раз", "needs_password": True}, ensure_ascii=False)}
+        try:
+            valid = bcrypt.checkpw(pw.encode(), u["password_hash"].encode())
+        except Exception:
+            valid = False
+        if not valid:
+            return {"statusCode": 409, "headers": {**CORS, "Content-Type": "application/json"},
+                    "body": json.dumps({"error": "Неверный пароль от личного кабинета", "needs_password": True}, ensure_ascii=False)}
+        user_id = u["id"]
+    else:
+        base = p["email"].split("@")[0][:90] or "partner"
+        username, n = base, 0
+        while True:
+            cur.execute(f"SELECT 1 FROM {tbl('lk_users')} WHERE username=%s", (username,))
+            if not cur.fetchone():
+                break
+            n += 1
+            username = f"{base}{n}"
+        full_name = p["contact_name"] or p["business_name"]
+        cur.execute(
+            f"INSERT INTO {tbl('lk_users')} (username, email, password_hash, full_name, is_active, segment, role, specialization, "
+            f"welcome_bonus_given, email_verified, ref_code) VALUES (%s,%s,%s,%s,TRUE,'specialist','solo_master','other_specialist',TRUE,FALSE,%s) RETURNING id",
+            (username, p["email"].lower(), p["password_hash"], full_name, gen_lk_ref_code(cur)))
+        user_id = cur.fetchone()["id"]
+        cur.execute(f"INSERT INTO {tbl('salons')} (owner_id, name, credits_balance) VALUES (%s,%s,0) RETURNING id", (user_id, full_name))
+        salon_id = cur.fetchone()["id"]
+        cur.execute(f"UPDATE {tbl('lk_users')} SET salon_id=%s WHERE id=%s", (salon_id, user_id))
+    sid = secrets.token_hex(32)
+    cur.execute(f"INSERT INTO {tbl('lk_sessions')} (id, user_id, user_agent) VALUES (%s,%s,%s)",
+                (sid, user_id, ((event.get("headers") or {}).get("User-Agent") or "")[:300]))
+    conn.commit()
+    return ok({"session_id": sid})
+
+
 ROUTES = {
+    "open_lk": handle_open_lk,
     "ref_visit": handle_ref_visit, "register": handle_register, "login": handle_login, "password_forgot": handle_password_forgot,
     "password_reset": handle_password_reset, "password_change": handle_password_change, "logout": handle_logout, "me": handle_me,
     "profile_save": handle_profile_save, "offers_list": handle_offers_list, "offer_get": handle_offer_get,
