@@ -1,0 +1,2 @@
+ALTER TABLE t_p84565078_code_expression_proj.partners ADD COLUMN IF NOT EXISTS lk_user_id integer NULL;
+UPDATE t_p84565078_code_expression_proj.partners p SET lk_user_id = u.id FROM t_p84565078_code_expression_proj.lk_users u WHERE LOWER(u.email) = LOWER(p.email) AND p.lk_user_id IS NULL AND u.password_hash = p.password_hash;

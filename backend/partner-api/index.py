@@ -925,16 +925,18 @@ def handle_open_lk(event, conn):
         if not u["is_active"]:
             return err("Личный кабинет с этим email отключен. Напишите в поддержку", 403)
         pw = b.get("password") or ""
-        if not pw:
-            return {"statusCode": 409, "headers": {**CORS, "Content-Type": "application/json"},
-                    "body": json.dumps({"error": "Для этого email уже есть личный кабинет. Введите его пароль один раз", "needs_password": True}, ensure_ascii=False)}
-        try:
-            valid = bcrypt.checkpw(pw.encode(), u["password_hash"].encode())
-        except Exception:
-            valid = False
-        if not valid:
-            return {"statusCode": 409, "headers": {**CORS, "Content-Type": "application/json"},
-                    "body": json.dumps({"error": "Неверный пароль от личного кабинета", "needs_password": True}, ensure_ascii=False)}
+        if p.get("lk_user_id") != u["id"]:
+            if not pw:
+                return {"statusCode": 409, "headers": {**CORS, "Content-Type": "application/json"},
+                        "body": json.dumps({"error": "Для этого email уже есть личный кабинет. Введите его пароль один раз", "needs_password": True}, ensure_ascii=False)}
+            try:
+                valid = bcrypt.checkpw(pw.encode(), u["password_hash"].encode())
+            except Exception:
+                valid = False
+            if not valid:
+                return {"statusCode": 409, "headers": {**CORS, "Content-Type": "application/json"},
+                        "body": json.dumps({"error": "Неверный пароль от личного кабинета", "needs_password": True}, ensure_ascii=False)}
+            cur.execute(f"UPDATE {tbl('partners')} SET lk_user_id=%s WHERE id=%s", (u["id"], p["id"]))
         user_id = u["id"]
     else:
         base = p["email"].split("@")[0][:90] or "partner"
@@ -954,6 +956,7 @@ def handle_open_lk(event, conn):
         cur.execute(f"INSERT INTO {tbl('salons')} (owner_id, name, credits_balance) VALUES (%s,%s,0) RETURNING id", (user_id, full_name))
         salon_id = cur.fetchone()["id"]
         cur.execute(f"UPDATE {tbl('lk_users')} SET salon_id=%s WHERE id=%s", (salon_id, user_id))
+        cur.execute(f"UPDATE {tbl('partners')} SET lk_user_id=%s WHERE id=%s", (user_id, p["id"]))
     sid = secrets.token_hex(32)
     cur.execute(f"INSERT INTO {tbl('lk_sessions')} (id, user_id, user_agent) VALUES (%s,%s,%s)",
                 (sid, user_id, ((event.get("headers") or {}).get("User-Agent") or "")[:300]))
