@@ -7,7 +7,7 @@ export type Tab =
   | "home" | "tools" | "academy" | "ai" | "shop"
   | "employees" | "purchases" | "profile" | "salon"
   | "admin" | "support" | "more" | "clientmsg" | "marketing"
-  | "championship" | "blog" | "packages" | "referral" | "clientview";
+  | "championship" | "blog" | "packages" | "referral" | "clientview" | "body";
 
 // Чемпионат временно отключён (не проводится) — вкладка убрана из меню, чтобы cron-функция
 // не расходовала вычислительное время впустую. Чтобы вернуть, добавить "championship" обратно

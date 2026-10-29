@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import { Section, ToolConfig, TEAL, TEAL2, DARK, GRAY, SERIF } from "./types";
 

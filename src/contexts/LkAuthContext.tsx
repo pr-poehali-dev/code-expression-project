@@ -23,6 +23,7 @@ export interface LkUser {
   salon: LkSalon | null;
   course_ids: number[];
   ref_code?: string;
+  notification_email?: string | null;
 }
 
 interface PromoResult { applied: boolean; error?: string; bonus_energy?: number; school_name?: string; }

@@ -21,7 +21,7 @@ export interface SeoReport {
     schema_status?: "good" | "warn" | "bad"; schema_issue?: string; schema_jsonld?: string;
   };
   content_analysis: {
-    word_count_status?: string; word_count_comment?: string;
+    word_count_status?: "good" | "warn" | "bad"; word_count_comment?: string;
     cta_present: boolean; cta_recommendation: string;
     services_mentioned: boolean; services_recommendation: string;
     local_seo: boolean; local_seo_recommendation: string;

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import { champGet, LEVEL_LABELS, LEVEL_COLORS } from "./championshipApi";
 
@@ -10,9 +10,19 @@ interface RatingEntry {
 
 const PLACE_BORDER = ["#f59e0b", "#94a3b8", "#cd7c2f"];
 
-export default function ChampionshipRating() {
-  const [rating, setRating] = useState<RatingEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+// Публичный рейтинг (без фильтра) — в loader маршрута /championship/rating.
+export async function loadChampionshipRating(): Promise<RatingEntry[]> {
+  try {
+    const d = await champGet("rating", { limit: "50" });
+    return d.rating || [];
+  } catch {
+    return [];
+  }
+}
+
+export default function ChampionshipRating({ initial }: { initial: RatingEntry[] }) {
+  const [rating, setRating] = useState<RatingEntry[]>(initial);
+  const [loading, setLoading] = useState(false);
   const [city, setCity] = useState("");
 
   const load = (c = "") => {
@@ -21,8 +31,6 @@ export default function ChampionshipRating() {
     if (c) params.city = c;
     champGet("rating", params).then(d => setRating(d.rating || [])).finally(() => setLoading(false));
   };
-
-  useEffect(() => { load(); }, []);
 
   return (
     <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "Inter, sans-serif" }}>

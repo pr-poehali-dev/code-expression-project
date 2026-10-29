@@ -132,6 +132,7 @@ export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGr
     const userTask = text || "Выполни задачу на основе данных из файла и покажи готовый результат.";
 
     if (file?.batches && file.batches.length > 1) {
+      const fileBatches = file.batches;
       const displayContent = `📎 ${file.name} (${file.totalRows} строк)\n\n${userTask}`;
       setMessages(prev => [...prev, { role: "user", content: displayContent }]);
       setInput("");
@@ -162,7 +163,7 @@ export default function SalonAIAgent({ onNavigateShop, podelamContext, podelamGr
           allResults.push(result.reply);
           if (!isLast) {
             setMessages(prev => [...prev.filter(m => m.role !== "assistant" || !m.content.startsWith("⏳")),
-              { role: "assistant", content: `⏳ Обработано пакетов: ${i + 1} из ${file.batches.length}...\n\n${result.reply}` }]);
+              { role: "assistant", content: `⏳ Обработано пакетов: ${i + 1} из ${fileBatches.length}...\n\n${result.reply}` }]);
           }
         }
         const finalReply = file.batches.length === 1

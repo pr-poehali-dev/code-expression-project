@@ -1,5 +1,5 @@
-import { useEffect, useState, type CSSProperties } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { Link } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import { champGet } from "./championshipApi";
 
@@ -16,12 +16,24 @@ const PLACE_STYLE = [
   { bg: "#fdf4e7", color: "#b45309", icon: "🥉" },
 ];
 
-export default function ChampionshipHallOfFame() {
-  const [entries, setEntries] = useState<HofEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+// Публичный зал славы (все годы) — в loader маршрута /championship/hall-of-fame.
+export async function loadHallOfFame(): Promise<HofEntry[]> {
+  try {
+    const d = await champGet("hall_of_fame", {});
+    return d.hall_of_fame || [];
+  } catch {
+    return [];
+  }
+}
+
+export default function ChampionshipHallOfFame({ initial }: { initial: HofEntry[] }) {
+  const [entries, setEntries] = useState<HofEntry[]>(initial);
+  const [loading, setLoading] = useState(false);
   const [year, setYear] = useState("");
+  const firstRun = useRef(true);
 
   useEffect(() => {
+    if (firstRun.current) { firstRun.current = false; return; }
     const params: Record<string,string> = {};
     if (year) params.year = year;
     champGet("hall_of_fame", params).then(d => setEntries(d.hall_of_fame || [])).finally(() => setLoading(false));

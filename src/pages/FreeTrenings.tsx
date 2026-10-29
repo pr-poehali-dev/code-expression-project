@@ -1,5 +1,5 @@
 import { Helmet } from "@/lib/helmet";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";

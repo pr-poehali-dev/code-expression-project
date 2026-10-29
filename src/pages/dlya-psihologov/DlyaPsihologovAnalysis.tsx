@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import { TEAL, TEAL2, DARK, GRAY, SERIF, ANALYSIS_ITEMS, AUDIENCE, CENTER_ITEMS } from "./shared";
 

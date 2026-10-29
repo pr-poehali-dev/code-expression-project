@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { Helmet } from "@/lib/helmet";
+import { useEffect } from "react";
+import { Link, useNavigate } from "@/lib/router-compat";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
@@ -44,48 +43,99 @@ interface RelatedPost {
 
 function formatDate(iso: string) {
   const d = new Date(iso);
-  return d.toLocaleDateString("ru", { day: "numeric", month: "long", year: "numeric" });
+  return d.toLocaleDateString("ru", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 }
 
-function getSessionId(): string {
-  return localStorage.getItem("lk_session") || "";
+export interface BlogPostData {
+  post: Post;
+  related: RelatedPost[];
 }
 
-export default function BlogPostPage() {
-  const { slug } = useParams<{ slug: string }>();
+// Публичные данные статьи: грузятся в loader маршрута /blog/$slug (на сервере при первом заходе).
+export async function loadBlogPost(slug: string): Promise<BlogPostData | null> {
+  try {
+    const qs = new URLSearchParams({ action: "content_list", slug });
+    const d = await fetch(`${CONTENT_URL}?${qs.toString()}`).then(r => r.json());
+    const found: Post | undefined = d.posts?.[0];
+    if (!found) return null;
+    let related: RelatedPost[] = [];
+    if (found.category) {
+      const rqs = new URLSearchParams({ action: "content_related", category: found.category, post_id: String(found.id), limit: "3" });
+      related = await fetch(`${CONTENT_URL}?${rqs.toString()}`)
+        .then(r => r.json())
+        .then(rd => rd.posts || [])
+        .catch(() => []);
+    }
+    return { post: found, related };
+  } catch {
+    return null;
+  }
+}
+
+export function blogPostHead(data: BlogPostData | undefined) {
+  if (!data) {
+    return { meta: [{ title: "Статья не найдена | Промт Диалог" }, { name: "robots", content: "noindex" }] };
+  }
+  const { post } = data;
+  const url = `https://promtdialog.ru/blog/${post.slug}`;
+  return {
+    meta: [
+      { title: `${post.title} | Промт Диалог` },
+      { name: "description", content: post.excerpt || post.title },
+      { property: "og:title", content: post.title },
+      { property: "og:description", content: post.excerpt || post.title },
+      { property: "og:url", content: url },
+      { property: "og:type", content: "article" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+    scripts: [{
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": post.title,
+        "description": post.excerpt || post.title,
+        "datePublished": post.post_date,
+        "url": url,
+        "author": { "@type": "Organization", "name": "Промт Диалог" },
+        "publisher": { "@type": "Organization", "name": "Промт Диалог", "url": "https://promtdialog.ru" },
+      }),
+    }],
+  };
+}
+
+export function BlogPostNotFound() {
   const navigate = useNavigate();
+  return (
+    <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", minHeight: "100vh" }}>
+      <BizNavbar />
+      <div style={{ padding: "180px 32px 120px", textAlign: "center" }}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>📝</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: DARK, marginBottom: 10 }}>Статья не найдена</div>
+        <button
+          onClick={() => navigate("/blog")}
+          style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500, color: DARK, border: "none", cursor: "pointer", padding: "10px 20px", borderRadius: 2, background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", fontFamily: "Inter, sans-serif" }}
+        >
+          К полезной ленте
+        </button>
+      </div>
+      <BizFooter />
+    </div>
+  );
+}
+
+export default function BlogPostPage({ data }: { data: BlogPostData }) {
   const { user } = useLkAuth();
-  const [post, setPost] = useState<Post | null>(null);
-  const [notFound, setNotFound] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [related, setRelated] = useState<RelatedPost[]>([]);
+  const { post, related } = data;
+  const loading = false;
 
   useEffect(() => {
-    if (!slug) return;
-    setLoading(true);
-    setNotFound(false);
-    setPost(null);
-    const qs = new URLSearchParams({ action: "content_list", slug });
-    fetch(`${CONTENT_URL}?${qs.toString()}`, { headers: { "X-Session-Id": getSessionId() } })
-      .then(r => r.json())
-      .then(d => {
-        const found: Post | undefined = d.posts?.[0];
-        if (!found) { setNotFound(true); return; }
-        setPost(found);
-        if (user && found.post_date) markBlogSeen(found.post_date);
-        if (found.category) {
-          const rqs = new URLSearchParams({ action: "content_related", category: found.category, post_id: String(found.id), limit: "3" });
-          fetch(`${CONTENT_URL}?${rqs.toString()}`)
-            .then(r => r.json())
-            .then(rd => setRelated(rd.posts || []))
-            .catch(() => {});
-        }
-      })
-      .catch(() => setNotFound(true))
-      .finally(() => setLoading(false));
+    if (user && post.post_date) markBlogSeen(post.post_date);
+  }, [user, post.post_date]);
+
+  useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [post.slug]);
 
   const handleShare = async () => {
     if (!post) return;
@@ -103,56 +153,8 @@ export default function BlogPostPage() {
     }
   };
 
-  if (notFound) {
-    return (
-      <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", minHeight: "100vh" }}>
-        <Helmet>
-          <title>Статья не найдена | Промт Диалог</title>
-          <meta name="robots" content="noindex" />
-        </Helmet>
-        <BizNavbar />
-        <div style={{ padding: "180px 32px 120px", textAlign: "center" }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📝</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: DARK, marginBottom: 10 }}>Статья не найдена</div>
-          <button
-            onClick={() => navigate("/blog")}
-            style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 500, color: DARK, border: "none", cursor: "pointer", padding: "10px 20px", borderRadius: 2, background: "linear-gradient(135deg,#2DD4BF,#14B8A6)", fontFamily: "Inter, sans-serif" }}
-          >
-            К полезной ленте
-          </button>
-        </div>
-        <BizFooter />
-      </div>
-    );
-  }
-
-  const url = post ? `https://promtdialog.ru/blog/${post.slug}` : "";
-
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", minHeight: "100vh" }}>
-      {post && (
-        <Helmet>
-          <title>{post.title} | Промт Диалог</title>
-          <meta name="description" content={post.excerpt || post.title} />
-          <link rel="canonical" href={url} />
-          <meta property="og:title" content={post.title} />
-          <meta property="og:description" content={post.excerpt || post.title} />
-          <meta property="og:url" content={url} />
-          <meta property="og:type" content="article" />
-          <meta name="twitter:card" content="summary_large_image" />
-          <script type="application/ld+json">{JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Article",
-            "headline": post.title,
-            "description": post.excerpt || post.title,
-            "datePublished": post.post_date,
-            "url": url,
-            "author": { "@type": "Organization", "name": "Промт Диалог" },
-            "publisher": { "@type": "Organization", "name": "Промт Диалог", "url": "https://promtdialog.ru" },
-          })}</script>
-        </Helmet>
-      )}
-
       <BizNavbar />
 
       <section style={{ padding: "150px 32px 24px" }}>

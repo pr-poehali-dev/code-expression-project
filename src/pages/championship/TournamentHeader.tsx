@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { Tournament } from "./tournamentTypes";
 import { LkUser } from "@/contexts/LkAuthContext";
 

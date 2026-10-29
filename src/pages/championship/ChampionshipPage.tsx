@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import BrandLogo from "@/components/BrandLogo";
 import BizFooter from "@/components/BizFooter";
@@ -24,19 +24,27 @@ interface Stats {
   active_season: Season | null;
 }
 
-export default function ChampionshipPage() {
-  const navigate = useNavigate();
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"current" | "upcoming" | "archive">("current");
+export interface ChampionshipData {
+  stats: Stats | null;
+  tournaments: Tournament[];
+}
 
-  useEffect(() => {
-    Promise.all([champGet("stats"), champGet("tournaments")]).then(([s, t]) => {
-      setStats(s);
-      setTournaments(t.tournaments || []);
-    }).finally(() => setLoading(false));
-  }, []);
+// Публичные данные чемпионата — в loader маршрута /championship.
+export async function loadChampionship(): Promise<ChampionshipData> {
+  try {
+    const [s, t] = await Promise.all([champGet("stats"), champGet("tournaments")]);
+    return { stats: s, tournaments: t.tournaments || [] };
+  } catch {
+    return { stats: null, tournaments: [] };
+  }
+}
+
+export default function ChampionshipPage({ data }: { data: ChampionshipData }) {
+  const navigate = useNavigate();
+  const stats = data.stats;
+  const tournaments = data.tournaments;
+  const loading = false;
+  const [activeTab, setActiveTab] = useState<"current" | "upcoming" | "archive">("current");
 
   const current  = tournaments.filter(t => ["registration", "registration_closed", "active", "voting", "finished_pending"].includes(t.status));
   const upcoming = tournaments.filter(t => ["announced", "draft"].includes(t.status));
@@ -386,7 +394,7 @@ function TournamentCard({ t, onClick }: { t: Tournament; onClick: () => void }) 
   const statusLabel = STATUS_LABELS[t.status] || t.status;
   const registrationOpen = !t.registration_ends || new Date(t.registration_ends).getTime() > Date.now();
 
-  const fmt = (d: string) => d ? new Date(d).toLocaleDateString("ru", { day: "numeric", month: "short" }) : "";
+  const fmt = (d: string) => d ? new Date(d).toLocaleDateString("ru", { day: "numeric", month: "short", timeZone: "Europe/Moscow" }) : "";
 
   const dateInfo = (() => {
     if (["announced", "registration"].includes(t.status) && t.registration_ends)

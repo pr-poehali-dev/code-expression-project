@@ -432,7 +432,7 @@ export function ModuleBlock({ module, onDelete, onEditLesson, courseId, onReload
   };
 
   const newLesson = () => {
-    onEditLesson({ id: 0, module_id: module.id, course_id: courseId, title: "", content: "", video_urls: [], links: [], ai_context: "", sort_order: (module.lessons?.length || 0) });
+    onEditLesson({ id: 0, module_id: module.id, course_id: courseId, title: "", content: "", video_urls: [], links: [], ai_context: "", homework: "", sort_order: (module.lessons?.length || 0) });
   };
 
   return (

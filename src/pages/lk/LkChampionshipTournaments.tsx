@@ -122,7 +122,7 @@ export function TournamentsView({ tournaments, myTournaments, onApplied, onOpenW
                     Работа: {WORK_STATUS[my.work_status]?.label || my.work_status}
                   </div>
                 )}
-                {isMy && my?.real_votes > 0 && (
+                {isMy && my && my.real_votes > 0 && (
                   <div style={{ padding: "9px 14px", borderRadius: 9, background: "#fff7ed", color: "#c2410c", fontSize: 13, fontWeight: 700 }}>
                     ❤️ {my.real_votes} голосов
                   </div>

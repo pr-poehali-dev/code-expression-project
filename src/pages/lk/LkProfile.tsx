@@ -47,7 +47,7 @@ export default function LkProfile() {
   // Данные аккаунта
   const [fullName, setFullName] = useState(user?.full_name || "");
   const [email, setEmail] = useState(user?.email || "");
-  const [notifEmail, setNotifEmail] = useState((user as Record<string, unknown>)?.notification_email as string || "");
+  const [notifEmail, setNotifEmail] = useState(user?.notification_email || "");
   const [savingInfo, setSavingInfo] = useState(false);
   const [infoMsg, setInfoMsg] = useState<{ ok: boolean; text: string } | null>(null);
 

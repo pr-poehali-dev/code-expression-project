@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link } from "@/lib/router-compat";
 import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
@@ -38,6 +38,38 @@ const TOOL_NAMES: Record<string, string> = {
 const CONFIGS: Record<string, ToolConfig> = Object.fromEntries(
   [...MARKETING_TOOLS, ...MANAGEMENT_TOOLS, ...SALES_TOOLS, ...SPECIALIST_TOOLS].map(c => [c.slug, c])
 );
+
+export function isKnownTool(slug: string) {
+  return slug in CONFIGS || slug in TOOL_NAMES;
+}
+
+export function toolLandingHead(slug: string) {
+  const cfg = CONFIGS[slug];
+  if (cfg) {
+    const url = `https://promtdialog.ru/instrumenty/${cfg.slug}`;
+    return {
+      meta: [
+        { title: cfg.seo.title },
+        { name: "description", content: cfg.seo.description },
+        { name: "keywords", content: cfg.seo.keywords },
+        { name: "robots", content: "index, follow" },
+        { property: "og:title", content: cfg.seo.title },
+        { property: "og:description", content: cfg.seo.description },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+      ],
+    };
+  }
+  const toolName = TOOL_NAMES[slug] || "Инструмент платформы";
+  return {
+    meta: [
+      { title: `${toolName} — скоро подробнее | Промт Диалог` },
+      { name: "description", content: `Подробная страница об инструменте «${toolName}» скоро появится. А пока попробуйте его бесплатно в личном кабинете.` },
+      { name: "robots", content: "noindex" },
+    ],
+  };
+}
 
 function ReadyToolLanding({ cfg }: { cfg: ToolConfig }) {
   return (

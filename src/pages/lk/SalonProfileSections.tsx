@@ -6,7 +6,7 @@ import { ACCENT, TONE_OPTIONS, GOAL_OPTIONS, SalonForm, Service, Section, Field,
 interface LogoSectionProps {
   logoUrl: string | null;
   uploading: boolean;
-  fileRef: React.RefObject<HTMLInputElement>;
+  fileRef: React.RefObject<HTMLInputElement | null>;
   onFileChange: (file: File) => void;
 }
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { saveSession } from "@/lib/lkApi";
 import { Helmet } from "@/lib/helmet";
 import Icon from "@/components/ui/icon";

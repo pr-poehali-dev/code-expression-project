@@ -66,10 +66,10 @@ function MemberForm({ member, onChange, onSave, onCancel, saving }: {
       {/* Поток */}
       <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10 }}>Поток клиентов / месяц</div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
-        {[{ k: "clients_count", l: "Клиентов", ph: "40" }, { k: "new_clients", l: "Новых", ph: "10" }, { k: "return_pct", l: "Возврат %", ph: "60" }].map(({ k, l, ph }) => (
+        {([{ k: "clients_count", l: "Клиентов", ph: "40" }, { k: "new_clients", l: "Новых", ph: "10" }, { k: "return_pct", l: "Возврат %", ph: "60" }] as const).map(({ k, l, ph }) => (
           <div key={k}>
             <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#777", marginBottom: 4 }}>{l}</label>
-            <input style={inp} type="number" value={(member as Record<string, string>)[k] || ""} onChange={f(k as keyof StaffMember)} placeholder={ph} />
+            <input style={inp} type="number" value={member[k] || ""} onChange={f(k)} placeholder={ph} />
           </div>
         ))}
       </div>

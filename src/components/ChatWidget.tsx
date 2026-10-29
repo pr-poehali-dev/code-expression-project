@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
 import { renderMarkdown } from "@/utils/markdown";
+import { useLocation } from "@/lib/router-compat";
 
 const ACCENT = "hsl(185,85%,32%)";
 const ACCENT_DARK = "hsl(185,85%,24%)";
@@ -40,15 +41,23 @@ function getSavedUser() {
 const INTERVIEW_ROUTES = ["/massaj", "/job"];
 
 export default function ChatWidget() {
-  const pathname = typeof window !== "undefined" ? window.location.pathname : "/";
-  const saved = getSavedUser();
+  const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   // "form" — экран ввода имени/email, "chat" — чат
-  const [screen, setScreen] = useState<"form" | "chat">(saved ? "chat" : "form");
-  const [userName, setUserName] = useState(saved?.name ?? "");
-  const [userEmail, setUserEmail] = useState(saved?.email ?? "");
-  const [userPhone, setUserPhone] = useState(saved?.phone ?? "");
-  const [agreed, setAgreed] = useState(!!saved);
+  const [screen, setScreen] = useState<"form" | "chat">("form");
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [userPhone, setUserPhone] = useState("");
+  const [agreed, setAgreed] = useState(false);
+  useEffect(() => {
+    const saved = getSavedUser();
+    if (!saved) return;
+    setScreen("chat");
+    setUserName(saved.name ?? "");
+    setUserEmail(saved.email ?? "");
+    setUserPhone(saved.phone ?? "");
+    setAgreed(true);
+  }, []);
   const [formError, setFormError] = useState("");
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [input, setInput] = useState("");

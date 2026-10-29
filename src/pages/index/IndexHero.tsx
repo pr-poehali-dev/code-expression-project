@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 
 const TEAL = "#2DD4BF";
@@ -112,7 +112,7 @@ export default function IndexHero() {
               <img
                 src="https://cdn.poehali.dev/projects/10f61e56-9821-40f3-b705-3590ddaffd08/bucket/17441cfe-b66d-4a86-ad10-5a1fca3bfed4.png"
                 alt="Промт Диалог — ИИ-навигатор дохода «ПоДелам»"
-                fetchpriority="high"
+                fetchPriority="high"
                 decoding="async"
                 style={{ width: "100%", height: "auto", borderRadius: 4, display: "block", boxShadow: "0 32px 80px rgba(0,0,0,0.5)", position: "relative", zIndex: 1 }}
               />

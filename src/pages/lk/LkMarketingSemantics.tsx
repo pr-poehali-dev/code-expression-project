@@ -178,7 +178,6 @@ function KeywordGroupCard({ group, index, onDeleteKeyword }: { group: KeywordGro
 
 // ── Главный компонент ─────────────────────────────────────────────────────────
 
-interface KeywordGroup { group: string; service_tag: string; keywords: { query: string; frequency: string; frequency_label: string; intent: string }[] }
 
 interface Props {
   onBack: () => void;

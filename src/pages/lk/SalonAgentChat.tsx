@@ -19,7 +19,7 @@ interface SalonAgentChatProps {
   freeUsed: number;
   energyBalance: number;
   userName: string;
-  bottomRef: React.RefObject<HTMLDivElement>;
+  bottomRef: React.RefObject<HTMLDivElement | null>;
   onSend: () => void;
   onFileAttach: (file: File) => void;
   onOpenPaywall: () => void;

@@ -38,16 +38,16 @@ export function BodySection() {
       {editZone && (
         <div style={{ background: "#fff", borderRadius: 16, padding: "20px", marginBottom: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
           <h3 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 14px" }}>Зона: {editZone.name}</h3>
-          {[
+          {([
             { key: "description", label: "Общее описание", rows: 3 },
             { key: "diagnosis",   label: "Диагностика",    rows: 5 },
             { key: "video_url",   label: "Видео диагностики (Kinescope URL)", rows: 1 },
-          ].map(f => (
+          ] as const).map(f => (
             <div key={f.key} style={{ marginBottom: 14 }}>
               <label style={labelStyle}>{f.label}</label>
               <textarea
                 rows={f.rows}
-                value={(editZone as Record<string, string>)[f.key] || ""}
+                value={editZone[f.key] || ""}
                 onChange={e => setEditZone(p => p ? { ...p, [f.key]: e.target.value } : null)}
                 style={{ ...inputStyle, height: f.rows * 28, resize: "vertical" }}
               />

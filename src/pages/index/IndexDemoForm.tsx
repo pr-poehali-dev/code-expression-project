@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import { setPodelamTrial } from "@/lib/podelamTrial";
 import { calcGapAmount, calcGrowthPoints, fmt, DemoGrowthPoint } from "@/lib/podelamDemoCalc";

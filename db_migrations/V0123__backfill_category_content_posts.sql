@@ -1,1 +1,0 @@
-UPDATE t_p84565078_code_expression_proj.content_posts SET category = 'marketing' WHERE id = 1;

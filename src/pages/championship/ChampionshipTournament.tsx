@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams } from "@/lib/router-compat";
 import { champGet, champPost, voteGet, votePost, STATUS_LABELS, STATUS_COLORS } from "./championshipApi";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { Tournament, Work, CT_CSS } from "./tournamentTypes";

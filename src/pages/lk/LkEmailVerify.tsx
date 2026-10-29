@@ -145,7 +145,7 @@ export default function LkEmailVerify({ email, verifyToken, promo, onVerified }:
             )}
 
             {/* Экран ожидания (после регистрации, без токена) */}
-            {status === "idle" && !verifyToken && (
+            {(status === "idle" || status === "resending" || status === "resent") && !verifyToken && (
               <>
                 {promo?.applied && (
                   <div style={{ display: "flex", alignItems: "center", gap: 10, background: "hsl(45,90%,96%)", border: "1px solid hsl(45,80%,75%)", borderRadius: 10, padding: "12px 14px", marginBottom: 20 }}>

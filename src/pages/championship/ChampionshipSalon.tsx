@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import Icon from "@/components/ui/icon";
 import { champGet, LEVEL_LABELS, LEVEL_COLORS } from "./championshipApi";
 
@@ -32,28 +31,35 @@ const STATUS_LABELS: Record<string, string> = {
   voting: "Голосование", finished_pending: "Подводятся итоги", finished: "Завершён", cancelled: "Отменён",
 };
 
-export default function ChampionshipSalon() {
-  const { id } = useParams<{ id: string }>();
-  const [salon, setSalon] = useState<Salon | null>(null);
-  const [rating, setRating] = useState<Rating | null>(null);
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [works, setWorks] = useState<Work[]>([]);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
+export interface SalonProfileData {
+  salon: Salon | null;
+  rating: Rating | null;
+  achievements: Achievement[];
+  works: Work[];
+  history: HistoryItem[];
+  services: Service[];
+}
 
-  useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    champGet("salon_profile", { salon_id: id }).then(d => {
-      setSalon(d.salon || null);
-      setRating(d.rating || null);
-      setAchievements(d.achievements || []);
-      setWorks(d.works || []);
-      setHistory(d.history || []);
-      setServices(d.services || []);
-    }).finally(() => setLoading(false));
-  }, [id]);
+// Публичный профиль салона — в loader маршрута /championship/salon/$id.
+export async function loadSalonProfile(id: string): Promise<SalonProfileData> {
+  try {
+    const d = await champGet("salon_profile", { salon_id: id });
+    return {
+      salon: d.salon || null,
+      rating: d.rating || null,
+      achievements: d.achievements || [],
+      works: d.works || [],
+      history: d.history || [],
+      services: d.services || [],
+    };
+  } catch {
+    return { salon: null, rating: null, achievements: [], works: [], history: [], services: [] };
+  }
+}
+
+export default function ChampionshipSalon({ data }: { data: SalonProfileData }) {
+  const { salon, rating, achievements, works, history, services } = data;
+  const loading = false;
 
   if (loading) return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc" }}>

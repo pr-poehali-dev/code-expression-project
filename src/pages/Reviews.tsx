@@ -2,7 +2,7 @@ import { Helmet } from "@/lib/helmet";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { ACCENT, ACCENT_DARK, DARK, VIDEO_SECTIONS, TEXT_REVIEWS } from "./reviews/ReviewsShared";
 import { SectionHeader, TextReviewCard } from "./reviews/ReviewsComponents";
 import ReviewsVideoSection from "./reviews/ReviewsVideoSection";

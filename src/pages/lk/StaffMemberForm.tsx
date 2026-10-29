@@ -66,14 +66,14 @@ export function MemberForm({ member, idx, onChange, onRemove, canRemove }: {
           {/* Поток */}
           <div style={{ fontSize: 11, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 1, marginBottom: 10, marginTop: 16 }}>Поток клиентов</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
-            {[
+            {([
               { key: "clients_count", label: "Клиентов/мес",   ph: "40" },
               { key: "new_clients",   label: "Новых клиентов",  ph: "10" },
               { key: "return_pct",    label: "Возврат (%)",     ph: "60" },
-            ].map(({ key, label, ph }) => (
+            ] as const).map(({ key, label, ph }) => (
               <div key={key}>
                 <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#777", marginBottom: 4 }}>{label}</label>
-                <input style={inp} type="number" value={(member as Record<string, string>)[key]} onChange={f(key as keyof StaffMember)} placeholder={ph} />
+                <input style={inp} type="number" value={member[key]} onChange={f(key)} placeholder={ph} />
               </div>
             ))}
           </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router-compat";
 import { useLkAuth } from "@/contexts/LkAuthContext";
 import { lkApi } from "@/lib/lkApi";
 import Icon from "@/components/ui/icon";

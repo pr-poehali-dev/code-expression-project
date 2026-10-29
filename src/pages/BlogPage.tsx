@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { Helmet } from "@/lib/helmet";
+import { useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "@/lib/router-compat";
 import BizNavbar from "@/components/BizNavbar";
 import BizFooter from "@/components/BizFooter";
 import Icon from "@/components/ui/icon";
@@ -48,26 +47,51 @@ const ROLES: { key: string; label: string }[] = [
 
 function formatDate(iso: string) {
   const d = new Date(iso);
-  return d.toLocaleDateString("ru", { day: "numeric", month: "long", year: "numeric" });
+  return d.toLocaleDateString("ru", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 }
 
 function getSessionId(): string {
   return localStorage.getItem("lk_session") || "";
 }
 
-export default function BlogPage() {
-  const { user } = useLkAuth();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchParams] = useSearchParams();
-  const [category, setCategory] = useState("");
-  const initialRoles = (searchParams.get("role") || "")
+export function parseRoles(raw: string | undefined): string[] {
+  return (raw || "")
     .split(",")
     .filter(k => k && ROLES.some(r => r.key === k));
+}
+
+export interface BlogListData {
+  posts: Post[];
+  totalPages: number;
+  role: string;
+}
+
+// Первая страница ленты — в loader маршрута /blog (сервер отдаёт готовый список).
+export async function loadBlogList(rawRole: string | undefined): Promise<BlogListData> {
+  const role = parseRoles(rawRole).join(",");
+  const qs = new URLSearchParams({ action: "content_list", limit: String(PAGE_SIZE), page: "1" });
+  if (role) qs.set("role", role);
+  try {
+    const d = await fetch(`${CONTENT_URL}?${qs.toString()}`).then(r => r.json());
+    const total = d.total || 0;
+    return { posts: d.posts || [], totalPages: Math.max(1, Math.ceil(total / PAGE_SIZE)), role };
+  } catch {
+    return { posts: [], totalPages: 1, role };
+  }
+}
+
+export default function BlogPage({ initial }: { initial: BlogListData }) {
+  const { user } = useLkAuth();
+  const [posts, setPosts] = useState<Post[]>(initial.posts);
+  const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [category, setCategory] = useState("");
+  const initialRoles = parseRoles(searchParams.get("role") || "");
   const [roles, setRoles] = useState<string[]>(initialRoles);
   const role = roles.join(",");
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(initial.totalPages);
+  const loadedKey = useRef(`|${initial.role}|1`);
 
   useEffect(() => {
     setPage(1);
@@ -77,6 +101,15 @@ export default function BlogPage() {
   // /blog/:slug, где текст подгружается только для этого одного поста. Так лента остаётся лёгкой,
   // а у каждой статьи — своя SEO-страница со своим адресом.
   useEffect(() => {
+    const key = `${category}|${role}|${page}`;
+    if (key === loadedKey.current) {
+      // Эти посты уже пришли с сервера (loader) — повторно не запрашиваем.
+      if (user && page === 1 && !category && !role && posts[0]?.post_date) {
+        markBlogSeen(posts[0].post_date);
+      }
+      return;
+    }
+    loadedKey.current = key;
     setLoading(true);
     const qs = new URLSearchParams({ action: "content_list", limit: String(PAGE_SIZE), page: String(page) });
     if (category) qs.set("category", category);
@@ -98,13 +131,6 @@ export default function BlogPage() {
 
   return (
     <div style={{ fontFamily: "Inter, sans-serif", background: "#fff", minHeight: "100vh" }}>
-      <Helmet>
-        <title>Полезная лента — подсказки по сегментам для салонов красоты | Промт Диалог</title>
-        <meta name="description" content="Каждый день новые рекомендации по оптимизации салона: маркетинг, допродажи, работа с клиентами, управление мастерами — под вашу роль в салоне." />
-        <link rel="canonical" href="https://promtdialog.ru/blog" />
-        <meta property="og:title" content="Полезная лента Промт Диалог — подсказки по сегментам" />
-        <meta property="og:type" content="website" />
-      </Helmet>
 
       <BizNavbar />
 

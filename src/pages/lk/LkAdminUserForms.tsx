@@ -17,17 +17,17 @@ export function CreateUserForm({ form, setForm, saving, onCreate, onCancel }: {
     <div style={{ background: "#fff", borderRadius: 16, padding: "20px", marginBottom: 20, boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
       <h3 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 16px" }}>Новый пользователь</h3>
       <div className="admin-grid-2">
-        {[
+        {([
           { key: "username",  label: "Логин",  type: "text"     },
           { key: "email",     label: "Email",  type: "email"    },
           { key: "password",  label: "Пароль", type: "password" },
           { key: "full_name", label: "Имя",    type: "text"     },
-        ].map(f => (
+        ] as const).map(f => (
           <div key={f.key}>
             <label style={labelStyle}>{f.label}</label>
             <input
               type={f.type}
-              value={(form as Record<string, string>)[f.key]}
+              value={form[f.key]}
               onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
               style={inputStyle}
             />
